@@ -17,7 +17,7 @@ for (let i = 0; i < circles.cols; ++i) {
   let x = circles.data32F[i * 3];
   let y = circles.data32F[i * 3 + 1];
   let r = circles.data32F[i * 3 + 2];
-  console.log('Bille détectée à la position (' + x + ', ' + y + ') avec un rayon de ' + r);
+  console.log('Detected ball at position (' + x + ', ' + y + ') with a radius of ' + r);
 }
 
 
