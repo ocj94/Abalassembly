@@ -22,8 +22,30 @@ const environment = {
   },
 
   actions: ['move', 'push'],  // all possible actions the agent can take
-  rewards: [[0, 1], [-1, 0]],  // reward matrix (state x action)
-  transition: [[1, 0], [0, 2], [1, 2]],  // transition matrix (state x action)
+  rewards: [
+    [0, 1],  // reward for pushing or moving when black wins
+    [-1, 0]  // reward for pushing or moving when white wins
+  ],
+  transition: [
+    [1, 0],  // transition for pushing or moving when black wins
+    [0, 2],  // transition for pushing or moving when tied
+    [1, 2]   // transition for pushing or moving when white wins
+  ],
+
+  // Additional conditions
+  winningCondition: 6,  // number of opponent's pieces required to win
+  timeLimit: 60,  // time limit for each player in seconds
+
+  // Returns the winning player, if any
+  getWinner: function(state) {
+    if (state.black.length >= environment.winningCondition) {
+      return 'black';
+    } else if (state.white.length >= environment.winningCondition) {
+      return 'white';
+    } else {
+      return null;
+    }
+  }
 
   isGameOver: function (state) {
     if (state.black.length === 0) {
