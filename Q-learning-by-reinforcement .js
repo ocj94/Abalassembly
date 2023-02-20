@@ -1,3 +1,68 @@
+ // Define the environment
+const environment = {
+  states: [
+    blackPositions = ['a1', 'a2', 'b1', 'b2', 'b3', 'c2', 'c3', 'g7', 'g8', 'h7', 'h8', 'h9', 'i8', 'i9'],
+    whitePositions = ['a4', 'a5', 'b4', 'b5', 'b6', 'c5', 'c6', 'g4', 'g5', 'h4', 'h5', 'h6', 'i5', 'i6'],
+    allPositions = [
+      ['i5', 'i6', 'i7', 'i8', 'i9'],
+      ['h4', 'h5', 'h6', 'h7', 'h8', 'h9'],
+      ['g3', 'g4', 'g5', 'g6', 'g7', 'g8', 'g9'],
+      ['f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9'],
+      ['e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7', 'e8', 'e9'],
+      ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8'],
+      ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7'],
+      ['b1', 'b2', 'b3', 'b4', 'b5', 'b6'],
+      ['a1', 'a2', 'a3', 'a4', 'a5']
+    ],
+  ],
+
+  state: {
+    black: blackPositions,
+    white: whitePositions
+  },
+
+  actions: ['move', 'push'],  // all possible actions the agent can take
+  rewards: [[0, 1], [-1, 0]],  // reward matrix (state x action)
+  transition: [[1, 0], [0, 2], [1, 2]],  // transition matrix (state x action)
+
+  isGameOver: function (state) {
+    if (state.black.length === 0) {
+      console.log("Black player wins!");
+      return true;
+    } else if (state.white.length === 0) {
+      console.log("White player wins!");
+      return true;
+    }
+    return false;
+  },
+
+  // reward function, takes in the previous state, the current state, and the action
+  rewardFunction: function (prevState, currentState, action) {
+    let isPush = (action === 'push');
+    let isMove = (action === 'move');
+    let reward = 0;
+
+    // check if any pieces were removed
+    if (isPush && prevState.white.length > currentState.white.length) {
+      reward = 1;
+    } else if (isPush && prevState.black.length > currentState.black.length) {
+      reward = -1;
+    }
+
+    // check if time has run out
+    if (currentState.time <= 0) {
+      if (currentState.currentPlayer === 'black') {
+        console.log("White player wins!");
+        reward = -10;
+      } else {
+        console.log("Black player wins!");
+        reward = 10;
+      }
+    }
+
+    return reward;
+  }
+
 // Initialize the Q table with zeros
 let Q = {};
 for (let i = 0; i < environment.states.length; i++) {
@@ -128,5 +193,3 @@ const test = () => {
   }
  }
 };
-
-
