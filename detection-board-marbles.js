@@ -2,7 +2,7 @@
 let img = cv.imread('canvasInput');
 
 // Convert to grayscale to make contour detection easier
-cv.cvtColor(img, img, cv.COLOR_RGBA2GRAY);v
+cv.cvtColor(img, img, cv.COLOR_RGBA2GRAY);
 
 // Apply a threshold to convert the image to a binary image
 let thresholded = new cv.Mat();
@@ -12,13 +12,29 @@ cv.threshold(img, thresholded, 100, 255, cv.THRESH_BINARY);
 let circles = new cv.Mat();
 cv.HoughCircles(thresholded, circles, cv.HOUGH_GRADIENT, 1, 50, 200, 50, 0, 0);
 
+// Define the color thresholds for black and white balls
+let blackThreshold = 60;
+let whiteThreshold = 180;
+
 // Iterate over the detected circles and display their positions
 for (let i = 0; i < circles.cols; ++i) {
   let x = circles.data32F[i * 3];
   let y = circles.data32F[i * 3 + 1];
   let r = circles.data32F[i * 3 + 2];
-  console.log('Detected ball at position (' + x + ', ' + y + ') with a radius of ' + r);
+
+  // Extract the color of the pixel at the center of the circle
+  let pixelColor = img.ucharPtr(Math.round(y), Math.round(x));
+
+  // Check if the pixel is black, white, or something else
+  if (pixelColor[0] < blackThreshold) {
+    console.log('Black ball detected at position (' + x + ', ' + y + ') with a radius of ' + r);
+  } else if (pixelColor[0] > whiteThreshold) {
+    console.log('White ball detected at position (' + x + ', ' + y + ') with a radius of ' + r);
+  } else {
+    console.log('Empty position detected at (' + x + ', ' + y + ') with a radius of ' + r);
+  }
 }
+
 
 
 // Detect contours
