@@ -47,7 +47,7 @@ for (let i = 0; i < positionMap.length; i++) {
 
 // Detect circles in the image
 let circles = new cv.Mat();
-cv.HoughCircles(thresholded, circles, cv.HOUGH_GRADIENT, 1, 50, 200, 50, 0, 0);
+cv.HoughCircles(thresholded, circles, cv.HOUGH_GRADIENT, 1, 50, 200, 50, 0, 0,);
 
 // Define the color thresholds for black and white balls
 let blackThreshold = 60;
@@ -58,6 +58,15 @@ for (let i = 0; i < circles.cols; ++i) {
   let x = circles.data32F[i * 3];
   let y = circles.data32F[i * 3 + 1];
   let r = circles.data32F[i * 3 + 2];
+  ctx.beginPath();
+    ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'red';
+    ctx.stroke();
+  
+  // display the image with circles drawn on it
+let result = document.getElementById("result");
+result.appendChild(canvas);
 
   // Extract the color of the pixel at the center of the circle
   let pixelColor = img.ucharPtr(Math.round(y), Math.round(x));
@@ -181,3 +190,24 @@ cv.findContours(mask5, contours3, hierarchy3, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIM
 for (let i = 0; i < contours3.size(); i++) {
 cv.drawContours(img, contours3, i, color3, 2, cv.LINE_8, hierarchy3, 0);
 }
+
+const canvas = document.getElementById('myCanvas');
+const ctx = canvas.getContext('2d');
+const img = new Image();
+img.onload = function() {
+  ctx.drawImage(img, 0, 0);
+  const dataURL = canvas.toDataURL();
+};
+img.src = 'image.jpg';
+
+const src = cv.imread('canvasInput');
+const dst = new cv.Mat();
+const gray = new cv.Mat();
+cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
+cv.threshold(gray, gray, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU);
+const contours = new cv.MatVector();
+const hierarchy = new cv.Mat();
+cv.findContours(gray, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
+
+
+
