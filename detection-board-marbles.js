@@ -8,6 +8,43 @@ cv.cvtColor(img, img, cv.COLOR_RGBA2GRAY);
 let thresholded = new cv.Mat();
 cv.threshold(img, thresholded, 100, 255, cv.THRESH_BINARY);
 
+// Pixel coordinates of the center of each position
+let pixelCoords = [
+  [240, 460], [280, 460], [320, 460], [360, 460], [400, 460],
+  [210, 420], [250, 420], [290, 420], [330, 420], [370, 420], [410, 420],
+  [180, 380], [220, 380], [260, 380], [300, 380], [340, 380], [380, 380], [420, 380],
+  [150, 340], [190, 340], [230, 340], [270, 340], [310, 340], [350, 340], [390, 340],
+  [120, 300], [160, 300], [200, 300], [240, 300], [280, 300], [320, 300], [360, 300],
+  [90, 260], [130, 260], [170, 260], [210, 260], [250, 260], [290, 260],
+  [100, 220], [140, 220], [180, 220], [220, 220], [260, 220],
+  [110, 180], [150, 180], [190, 180], [230, 180],
+  [120, 140], [160, 140], [200, 140], [240, 140]
+];
+
+// Map pixel coordinates to positions
+let positionMap = [
+  ['i5', 'i6', 'i7', 'i8', 'i9'],
+  ['h4', 'h5', 'h6', 'h7', 'h8', 'h9'],
+  ['g3', 'g4', 'g5', 'g6', 'g7', 'g8', 'g9'],
+  ['f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9'],
+  ['e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7', 'e8', 'e9'],
+  ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8'],
+  ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7'],
+  ['b1', 'b2', 'b3', 'b4', 'b5', 'b6'],
+  ['a1', 'a2', 'a3', 'a4', 'a5']
+];
+
+// Create a map of pixel coordinates to positions
+let pixelToPositionMap = {};
+for (let i = 0; i < positionMap.length; i++) {
+  for (let j = 0; j < positionMap[i].length; j++) {
+    let position = positionMap[i][j];
+    let pixelCoord = pixelCoords.shift();
+    pixelToPositionMap[pixelCoord.toString()] = position;
+  }
+}
+
+
 // Detect circles in the image
 let circles = new cv.Mat();
 cv.HoughCircles(thresholded, circles, cv.HOUGH_GRADIENT, 1, 50, 200, 50, 0, 0);
@@ -57,6 +94,31 @@ for (let i = 1; i < contours.size(); i++) {
 // Draw the outline of the game board
 let color = new cv.Scalar(255, 0, 0, 255);
 cv.drawContours(img, contours, contours.indexOf(maxContour), color, 2, cv.LINE_8, hierarchy, 0);
+
+// Fill the hexagonal game regions to create the final binary representation of the game board
+cv.fillPoly(thresholded, hexagonalRegions, new cv.Scalar(255, 255, 255));
+
+// Detect circles in the image
+let circles = new cv.Mat();
+cv.HoughCircles(thresholded, circles, cv.HOUGH_GRADIENT, 1, 50, 200, 50, 0, 0);
+
+// Iterate over the detected circles and display their positions
+for (let i = 0; i < circles.cols; ++i) {
+  let x = circles.data32F[i * 3];
+  let y = circles.data32F[i * 3 + 1];
+  let r = circles.data32F[i * 3 + 2];
+
+  // Check the color of the pixel at the center of the circle to determine its type
+  let pixelColor = img.ucharPtr(Math.round(y), Math.round(x));
+  if (pixelColor[0] < blackThreshold) {
+    console.log('Black ball detected at position (' + positionMap[Math.round(y)][Math.round(x)] + ') with a radius of ' + r);
+  } else if (pixelColor[0] > whiteThreshold) {
+    console.log('White ball detected at position (' + positionMap[Math.round(y)][Math.round(x)] + ') with a radius of ' + r);
+  } else {
+    console.log('Empty position detected at (' + positionMap[Math.round(y)][Math.round(x)] + ') with a radius of ' + r);
+  }
+}
+
 
 // Segment player 1's balls (black color)
 let hsv = new cv.Mat();
