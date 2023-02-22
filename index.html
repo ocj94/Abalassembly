@@ -155,6 +155,7 @@
     
     
      <script src="Q-learning-by-reinforcement.js"></script>
+     <script async src="https://docs.opencv.org/master/opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
    
   </head> 
   <body>
@@ -163,9 +164,23 @@
     <button id="capture">Capture</button>
     <canvas id="canvas" style="display: none;"></canvas>
     <div id="result"></div>
-    <script src="https://docs.opencv.org/master/opencv.js"></script>
     <script src="detection-board-marbles.js"></script>
     <script src="app.js"></script>
-   
+  
+    
+      <h2>OpenCV.js Example</h2>
+    <div>
+      <p><b>Original Image:</b></p>
+      <img id="canvasInput" src="image.jpg" width="480" height="540">
+    </div>
+    <div>
+      <p><b>Result:</b></p>
+      <canvas id="canvasOutput"></canvas>
+    </div>
+    <script>
+      function onOpenCvReady() {
+        let canvasInput = document.getElementById('canvasInput');
+        let canvasOutput = document.getElementById('canvasOutput');
+        let ctx = canvasOutput.getContext('2d');
   </body>
 </html>
