@@ -24,6 +24,25 @@
     <link rel="preconnect" href="...">
     <link rel="dns-prefetch" href="...">
     <link rel="dns-prefetch" href="...">
+    <!-- Load a custom stylesheet from a CDN -->
+    <link rel="stylesheet" href="https://example.com/styles/custom-styles.css">
+
+    <!-- Load a stylesheet from Bootstrap library using a CDN -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    
+    <!-- Load a custom font family from a CDN using @font-face rule -->
+<style>
+@font-face {
+  font-family: 'CustomFont';
+  src: url('https://example.com/fonts/custom-font.woff2') format('woff2'),
+       url('https://example.com/fonts/custom-font.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+body {
+  font-family: 'CustomFont', sans-serif;
+}
+</style>
 
     <link as="font" crossorigin="crossorigin" href="...">
     <link as="font" crossorigin="crossorigin" href="...">
@@ -157,6 +176,15 @@
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-...');
     </script>
     
+    <!-- Load jQuery library from a CDN -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Load Vue.js library from a specific version using jsDelivr CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+
+    <!-- Load Lodash library from a specific version using Cloudflare CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    
     <!--opencv.js is a library for computer vision and image processing. It is loaded asynchronously with the async attribute and its onload event triggers a function onOpenCvReady() defined elsewhere in the code. -->
     <script async src="https://docs.opencv.org/master/opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
     
@@ -165,6 +193,9 @@
     
     <!--contains code for detecting marbles on a game board using computer vision techniques.-->
     <script src="detection-board-marbles.js"></script>
+    
+    
+   
    
     
     <link rel="manifest" href="manifest.json">
@@ -196,5 +227,8 @@
     });
   }
 </script>
+ 
+
+
   </body>
 </html>
