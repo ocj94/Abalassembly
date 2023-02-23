@@ -9,6 +9,9 @@ const urlsToCache = [
 './script.js',
 './image.jpg',
 './font.woff2'
+'./Q-learning-by-reinforcement.js',
+'./detection-board-marbles.js',
+'./manifest.json'  
 ];
 
 // Install event listener
