@@ -152,10 +152,16 @@
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-...');
     </script>
     
-    
+    <!--opencv.js is a library for computer vision and image processing. It is loaded asynchronously with the async attribute and its onload event triggers a function onOpenCvReady() defined elsewhere in the code. -->
     <script async src="https://docs.opencv.org/master/opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+    
+    <!--contains a reinforcement learning algorithm based on Q-learning.-->
     <script src="Q-learning-by-reinforcement.js"></script>
+    
+    <!--contains code for detecting marbles on a game board using computer vision techniques.-->
     <script src="detection-board-marbles.js"></script>
+    
+    
     <script src="app.js"></script>
    
   </head> 
