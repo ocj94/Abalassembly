@@ -173,5 +173,28 @@
   </head> 
   <body>
     
+    
+    
+    
+    
+    
+    
+    
+    <!-- Check if the browser supports service workers -->
+<script>
+  if ('serviceWorker' in navigator) {
+    // If it does, wait for the window to load
+    window.addEventListener('load', function() {
+      // Register the service worker
+      navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
+        // If registration is successful, log a message to the console
+        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+      }, function(err) {
+        // If registration fails, log an error message to the console
+        console.log('ServiceWorker registration failed: ', err);
+      });
+    });
+  }
+</script>
   </body>
 </html>
