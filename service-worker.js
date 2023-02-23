@@ -1,14 +1,33 @@
-// Manage different cache versions
+// Manage different Cache name and version
 const CACHE_NAME = 'Abalassembly-cache-v3';
 
 // Define URLs to be cached
 const urlsToCache = [
+  // Third party libraries
+'https://code.jquery.com/jquery-3.6.0.min.js',
+'https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js',
+'https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js',
+  
 './',
 './index.html',
+  
+// CSS files
 './style.css',
+'./normalize.css',
+'./bootstrap.min.css'
+
 './script.js',
-'./image.jpg',
+  
+// Images and logos
+'./logo.png',
+'./icon.png',
+'./image1.jpg',
+'./image2.jpg',
+  
+// Web font files
+'./font.woff',
 './font.woff2',
+  
 './Q-learning-by-reinforcement.js',
 './detection-board-marbles.js',
 './manifest.json'  
