@@ -32,9 +32,9 @@ A mobile version of the game to allow players to play on their mobile devices.
 
 
 # Technologies used:
--JavaScript
--HTML
--CSS
+-JavaScript.
+-HTML.
+-CSS.
 
 # How to Play:
 Clone the repository on your local machine. (git clone https://github.com/ocj94/Abalassembly.git)
