@@ -1,11 +1,11 @@
-#Abalassembly:
+# Abalassembly:
 This project is an implementation of the board game Abalone in JavaScript. The game allows two players to compete on a board with 61 hexagonal cells, trying to push their opponent's marbles off the board.
 
 
-#Abalone gameplay:
+# Abalone gameplay:
 Abalone is an award-winning two-player strategy board game designed by Michel Lalet and Laurent Lévi in 1987. The game is played on a hexagonal board containing 61 circular spaces. Each player starts with 14 marbles. The objective of the game is to push six of the opponent's marbles off the edge of the board.
 
-#Features:
+# Features:
 Hexagonal game board with 61 cells
 Ability to play with two players on the same computer
 Valid moves for individual marbles and groups of marbles
@@ -31,18 +31,18 @@ Online tournaments with rewards for top players
 A mobile version of the game to allow players to play on their mobile devices.
 
 
-#Technologies used:
+# Technologies used:
 JavaScript
 HTML
 CSS
 
-#How to Play:
+# How to Play:
 Clone the repository on your local machine. (git clone https://github.com/ocj94/Abalassembly.git)
 Open the index.html file in your web browser.
 Click on a marble to select it, then click on a cell to move the selected marble.
 The goal of the game is to push six of your opponent's marbles off the board.
 
-#Contributions:
+# Contributions:
 Contributions are welcome! Feel free to open an issue or a pull request to propose a new feature or fix a bug.
 
 
