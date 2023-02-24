@@ -53,7 +53,7 @@ A player can push the opponent's marbles if the opponent has fewer marbles in th
 A player wins the game by pushing six of the opponent's marbles off the edge of the board.
 
 # Credits:
-The game Abalone was invented by Michel Lalet and Laurent Lévi in 1987. This implementation of the game in JavaScript was created by [me
+The game Abalone was invented by Michel Lalet and Laurent Lévi in 1987. This implementation of the game was created by players for the players !
 
 # License:
 This project is licensed under the MIT License. See the LICENSE.md file for details.
