@@ -11,12 +11,13 @@ Ability to play with two players on the same computer
 Valid moves for individual marbles and groups of marbles
 Display of selected marbles and possible moves
 Detection of end of game and announcement of winner
+Digital reproduction of the game (Detection of balls coordinates on the board using a camera)
+
 
 #Technologies used:
 JavaScript
 HTML
 CSS
-
 
 #How to Play:
 Clone the repository on your local machine. (git clone https://github.com/ocj94/Abalassembly.git)
@@ -27,14 +28,15 @@ The goal of the game is to push six of your opponent's marbles off the board.
 #Contributions:
 Contributions are welcome! Feel free to open an issue or a pull request to propose a new feature or fix a bug.
 
-#Credits:
-The rules of the Abalone game were invented by Michel Lalet and Laurent Lévi in 1987.
 
 #Rules:
 Players take turns moving their marbles one space at a time in any of the six directions shown in the image above.
 A player can move one, two, or three marbles at a time, as long as they are in a continuous line and there are no marbles in between them.
 A player can push the opponent's marbles if the opponent has fewer marbles in the line being pushed.
 A player wins the game by pushing six of the opponent's marbles off the edge of the board.
+
+#Credits:
+The rules of the Abalone game were invented by Michel Lalet and Laurent Lévi in 1987.
 
 #License:
 This project is licensed under the MIT License. See the LICENSE.md file for details.
