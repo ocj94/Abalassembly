@@ -1,5 +1,5 @@
 # Abalassembly:
-This project is an implementation of the board game Abalone in JavaScript. The game allows two players to compete on a board with 61 hexagonal cells, trying to push their opponent's marbles off the board.
+This project is an implementation of the board game Abalone in JavaScript. The game allows two players to compete on a hexagonal board with 61  cells, trying to push their opponent's marbles off the board.
 
 
 # Abalone gameplay:
