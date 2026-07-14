@@ -17,7 +17,7 @@
 <head>
 <meta charset="UTF-8">
 <!-- Politique de sécurité du contenu (limite les injections de script tierces) -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline'; worker-src 'self' blob:; connect-src 'self'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; worker-src 'self' blob:; connect-src 'self' https://api.anthropic.com; base-uri 'self'; form-action 'self'">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#0d0f0e">
@@ -25,7 +25,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Abalassembly">
-<link rel="manifest" id="pwa-manifest">
+<link rel="manifest" id="pwa-manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%230d0f0e'/><circle cx='50' cy='50' r='18' fill='%23c8a84b'/></svg>">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17563,10 +17563,10 @@ function initPWA() {
       { src: _icon(512), sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
     ]
   };
-  const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const link = document.getElementById('pwa-manifest');
-  if (link) link.href = url;
+  // Le manifest statique manifest.json (start_url relatif, icônes PNG) est
+  // référencé directement dans le <head> — on ne l'écrase plus par un blob,
+  // les navigateurs refusent souvent les manifests blob: pour l'installation.
+  void manifest;
 
   // Register service worker (inline)
   if ('serviceWorker' in navigator) {
