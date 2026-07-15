@@ -14582,21 +14582,121 @@ function scanRecSave(){
   showToast(verified ? '💾 Partie sauvegardée et vérifiée par le moteur ✓'
                      : '💾 Partie sauvegardée — ⚠️ la relecture moteur diverge (détection imparfaite ?)');
 }
+function _scanGameFileStub(g){
+  const slug=function(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,24)||'partie'; };
+  return 'abalassembly-'+g.date+'-'+slug(g.black)+'-vs-'+slug(g.white);
+}
+function _scanDownload(filename, text, mime){
+  try{
+    const blob=new Blob([text],{type:mime||'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+  }catch(e){ showToast('⚠️ Téléchargement impossible sur ce navigateur'); }
+}
+function _scanGameNotationText(g){
+  return 'Abalassembly — partie scannée sur plateau réel\n'
+    +'Noirs : '+g.black+'   ·   Blancs : '+g.white+'\n'
+    +'Variante : '+g.variant+'   ·   Date : '+g.date+'   ·   '+g.plies+' coups'
+    +(g.verified?' · vérifiée par le moteur ✓':' · ⚠️ non vérifiée')+'\n'
+    +'Départ (AO) : '+g.start+'\n\n'+g.seq+'\n';
+}
+function copyScannedGame(id){
+  const g=_scanGamesLoad().find(function(x){return x.id===id;});
+  if(!g){ showToast('Partie introuvable'); return; }
+  const text=_scanGameNotationText(g);
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){ showToast('📋 Notation copiée — colle-la dans WhatsApp, SMS…'); })
+      .catch(function(){ showToast('⚠️ Copie refusée par le navigateur'); });
+  } else { showToast('⚠️ Presse-papiers indisponible sur ce navigateur'); }
+}
+function exportScannedGame(id){
+  const g=_scanGamesLoad().find(function(x){return x.id===id;});
+  if(!g){ showToast('Partie introuvable'); return; }
+  const bundle={ format:'abalassembly-scanned-game-v1', exportedAt:new Date().toISOString(), game:g };
+  _scanDownload(_scanGameFileStub(g)+'.json', JSON.stringify(bundle,null,2));
+  showToast('⬇️ Partie exportée en JSON');
+}
+function exportAllScannedGames(){
+  const list=_scanGamesLoad();
+  if(!list.length){ showToast('Aucune partie à exporter'); return; }
+  const bundle={ format:'abalassembly-scanned-games-v1', exportedAt:new Date().toISOString(), count:list.length, games:list };
+  _scanDownload('abalassembly-parties-scannees-'+new Date().toISOString().slice(0,10)+'.json', JSON.stringify(bundle,null,2));
+  showToast('⬇️ '+list.length+' partie'+(list.length>1?'s':'')+' exportée'+(list.length>1?'s':''));
+}
+// Vérifie une partie importée en rejouant sa notation avec le moteur — jamais
+// confiance aveugle dans un fichier reçu de l'extérieur (Vincent, Saab, etc.)
+function _scanVerifyImported(g){
+  try{
+    if(!_setupFromAOStart(g.start)) return false;
+    let color=g.startColor||'black';
+    const tokens=String(g.seq).replace(/\d+\./g,' ').trim().split(/\s+/).filter(Boolean);
+    if(!tokens.length) return false;
+    for(let i=0;i<tokens.length;i++){
+      const mv=resolveAbaProToken(tokens[i],color);
+      if(!mv) return false;
+      applyMove(mv,color);
+      color=(color==='black')?'white':'black';
+    }
+    return true;
+  }catch(e){ return false; }
+}
+function importScannedGamesFile(input){
+  const file=input && input.files && input.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(){
+    let data;
+    try{ data=JSON.parse(reader.result); }catch(e){ showToast('❌ Fichier illisible (JSON invalide)'); input.value=''; return; }
+    let incoming=[];
+    if(data && data.format==='abalassembly-scanned-games-v1' && Array.isArray(data.games)) incoming=data.games;
+    else if(data && data.format==='abalassembly-scanned-game-v1' && data.game) incoming=[data.game];
+    else if(data && data.start && data.seq) incoming=[data];  // fichier brut sans enveloppe
+    else { showToast('❌ Format non reconnu'); input.value=''; return; }
+
+    const existing=_scanGamesLoad();
+    let added=0, verified=0, rejected=0;
+    incoming.forEach(function(g){
+      if(!g || !g.start || !g.seq){ rejected++; return; }
+      const ok=_scanVerifyImported(g);
+      if(ok) verified++;
+      const clean={ id:Date.now()+Math.floor(Math.random()*1000), date:g.date||'?',
+        black:g.black||'Noirs', white:g.white||'Blancs', variant:g.variant||'custom',
+        start:g.start, startColor:g.startColor||'black', seq:g.seq,
+        plies:g.plies||(String(g.seq).split(/\s+/).filter(Boolean).length), verified:ok };
+      existing.unshift(clean); added++;
+    });
+    _scanGamesSave(existing);
+    renderScannedGames();
+    input.value='';
+    showToast('📥 '+added+' partie'+(added>1?'s':'')+' importée'+(added>1?'s':'')
+      +' ('+verified+' vérifiée'+(verified>1?'s':'')+(rejected?', '+rejected+' ignorée(s)':'')+')');
+  };
+  reader.readAsText(file);
+}
 function renderScannedGames(){
   const el=document.getElementById('scan-games-list'); if(!el) return;
   const list=_scanGamesLoad();
-  if(!list.length){ el.innerHTML='<div style="font-size:12px;color:var(--muted)">Aucune partie enregistrée pour l\'instant.</div>'; return; }
+  let bar='<div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">'
+    +'<button class="cam-btn" style="padding:4px 10px" onclick="exportAllScannedGames()">⬇️ Tout exporter'+(list.length?' ('+list.length+')':'')+'</button>'
+    +'<label class="cam-btn" style="padding:4px 10px;cursor:pointer">📥 Importer un fichier'
+    +'<input type="file" accept="application/json,.json" style="display:none" onchange="importScannedGamesFile(this)"></label>'
+    +'</div>';
+  if(!list.length){ el.innerHTML=bar+'<div style="font-size:12px;color:var(--muted)">Aucune partie enregistrée pour l\'instant.</div>'; return; }
   let h='';
   for(let i=0;i<list.length;i++){
     const g=list[i];
-    h+='<div style="display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid var(--border);font-size:12px">'
-      +'<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
+    h+='<div style="display:flex;align-items:center;gap:6px;padding:7px 4px;border-bottom:1px solid var(--border);font-size:12px;flex-wrap:wrap">'
+      +'<span style="flex:1;min-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
       +(g.verified?'✓ ':'⚠️ ')+'<b>'+g.black+'</b> vs <b>'+g.white+'</b> · '+g.variant+' · '+g.date+' · '+g.plies+' coups</span>'
-      +'<button class="cam-btn" style="padding:4px 10px" onclick="replayScannedGame('+g.id+')">▶ Rejouer</button>'
-      +'<button class="cam-btn" style="padding:4px 10px" onclick="deleteScannedGame('+g.id+')">🗑</button>'
+      +'<button class="cam-btn" style="padding:4px 9px" onclick="replayScannedGame('+g.id+')" title="Rejouer">▶</button>'
+      +'<button class="cam-btn" style="padding:4px 9px" onclick="copyScannedGame('+g.id+')" title="Copier la notation">⧉</button>'
+      +'<button class="cam-btn" style="padding:4px 9px" onclick="exportScannedGame('+g.id+')" title="Exporter en JSON">⬇️</button>'
+      +'<button class="cam-btn" style="padding:4px 9px" onclick="deleteScannedGame('+g.id+')" title="Supprimer">🗑</button>'
       +'</div>';
   }
-  el.innerHTML=h;
+  el.innerHTML=bar+h;
 }
 function deleteScannedGame(id){
   const list=_scanGamesLoad().filter(function(g){return g.id!==id;});
