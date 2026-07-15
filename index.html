@@ -26,7 +26,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Abalassembly">
 <link rel="manifest" id="pwa-manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%230d0f0e'/><circle cx='50' cy='50' r='18' fill='%23c8a84b'/></svg>">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Abalassembly — Jouer, apprendre et progresser au jeu de stratégie Abalone</title>
@@ -43,20 +46,20 @@
 <meta name="language" content="French">
 <meta name="revisit-after" content="3 days">
 <meta name="rating" content="general">
-<link rel="canonical" href="https://www.abalassembly.com/">
+<!-- ⚠️ CANONICAL_URL — pointe vers l'URL réellement en ligne aujourd'hui.
+     Le jour où abalassembly.com est acheté et configuré (Settings → Pages →
+     Custom domain), remplacer partout "https://ocj94.github.io/Abalassembly/"
+     par "https://www.abalassembly.com/" — chercher ce marqueur dans le fichier. -->
+<link rel="canonical" href="https://ocj94.github.io/Abalassembly/">
 
 <!-- ════════════════════════════════════════════════
-     HREFLANG — versions linguistiques (SEO international)
-     À adapter avec le domaine final du site
+     HREFLANG — le site est une page unique (SPA) qui s'appuie sur la
+     traduction navigateur pour les langues autres que le français ; il n'y a
+     pas de sous-pages /fr /pt /nl etc. réellement servies. Un hreflang qui
+     déclarerait ces URLs comme existantes serait signalé en erreur par la
+     Search Console (pages fantômes). x-default suffit ici.
      ════════════════════════════════════════════════ -->
-<link rel="alternate" href="https://www.abalassembly.com/" hreflang="x-default">
-<link rel="alternate" href="https://www.abalassembly.com/fr" hreflang="fr">
-<link rel="alternate" href="https://www.abalassembly.com/pt" hreflang="pt">
-<link rel="alternate" href="https://www.abalassembly.com/nl" hreflang="nl">
-<link rel="alternate" href="https://www.abalassembly.com/pl" hreflang="pl">
-<link rel="alternate" href="https://www.abalassembly.com/ru" hreflang="ru">
-<link rel="alternate" href="https://www.abalassembly.com/zh" hreflang="zh">
-<link rel="alternate" href="https://www.abalassembly.com/ja" hreflang="ja">
+<link rel="alternate" href="https://ocj94.github.io/Abalassembly/" hreflang="x-default">
 
 <!-- ════════════════════════════════════════════════
      OPEN GRAPH — Facebook, LinkedIn, WhatsApp, Discord
@@ -65,9 +68,9 @@
 <meta property="og:site_name" content="Abalassembly">
 <meta property="og:title" content="Abalassembly — Le jeu stratégique de référence">
 <meta property="og:description" content="Jouez, apprenez et progressez au jeu de stratégie Abalone. Affrontez des joueurs du monde entier, résolvez des puzzles et grimpez au classement.">
-<meta property="og:url" content="https://www.abalassembly.com/">
+<meta property="og:url" content="https://ocj94.github.io/Abalassembly/">
 <meta property="og:locale" content="fr_FR">
-<meta property="og:image" content="https://www.abalassembly.com/og-image.png">
+<meta property="og:image" content="https://ocj94.github.io/Abalassembly/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Plateau de jeu Abalone avec billes noires et blanches">
@@ -78,7 +81,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Abalassembly — Le jeu stratégique de référence">
 <meta name="twitter:description" content="Jouez, apprenez et progressez au jeu de stratégie Abalone. Affrontez des joueurs du monde entier.">
-<meta name="twitter:image" content="https://www.abalassembly.com/og-image.png">
+<meta name="twitter:image" content="https://ocj94.github.io/Abalassembly/og-image.png">
 <meta name="twitter:image:alt" content="Plateau de jeu Abalone">
 
 <!-- ════════════════════════════════════════════════
@@ -90,19 +93,11 @@
   "@graph": [
     {
       "@type": "WebSite",
-      "@id": "https://www.abalassembly.com/#website",
-      "url": "https://www.abalassembly.com/",
+      "@id": "https://ocj94.github.io/Abalassembly/#website",
+      "url": "https://ocj94.github.io/Abalassembly/",
       "name": "Abalassembly",
       "description": "La plateforme de référence pour jouer, apprendre et progresser au jeu de stratégie Abalone.",
-      "inLanguage": "fr-FR",
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": {
-          "@type": "EntryPoint",
-          "urlTemplate": "https://www.abalassembly.com/?s={search_term_string}"
-        },
-        "query-input": "required name=search_term_string"
-      }
+      "inLanguage": "fr-FR"
     },
     {
       "@type": "Game",
@@ -120,10 +115,10 @@
     },
     {
       "@type": "Organization",
-      "@id": "https://www.abalassembly.com/#organization",
+      "@id": "https://ocj94.github.io/Abalassembly/#organization",
       "name": "Abalassembly",
-      "url": "https://www.abalassembly.com/",
-      "logo": "https://www.abalassembly.com/logo.png"
+      "url": "https://ocj94.github.io/Abalassembly/",
+      "logo": "https://ocj94.github.io/Abalassembly/icon-512.png"
     }
   ]
 }
@@ -8233,7 +8228,9 @@ function showToast(msg) {
 /* ═══════════════════════════════════════════
    PARTAGE SUR LES RÉSEAUX SOCIAUX
 ═══════════════════════════════════════════ */
-const SHARE_URL = 'https://www.abalassembly.com/';
+// ⚠️ CANONICAL_URL — voir le marqueur identique dans le <head> : à remplacer
+// par 'https://www.abalassembly.com/' le jour où le domaine est configuré.
+const SHARE_URL = 'https://ocj94.github.io/Abalassembly/';
 
 function buildShareText() {
   // Construit un message selon l'état de la partie
