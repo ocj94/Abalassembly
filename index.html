@@ -1198,6 +1198,12 @@ footer {
   .game-center { padding: 80px 16px 16px; }
   .game-right-panel { border-left: none; border-top: 1px solid var(--border); }
   #board { width: 100% !important; height: auto !important; max-width: 440px; }
+  /* Sur mobile, le plateau et le panneau des onglets sont empilés (plus côte
+     à côte) : board-msg (position:absolute; bottom:-40px) déborderait sous
+     #game-board-wrap et chevaucherait la barre d'onglets juste en dessous.
+     On réserve l'espace pour que le message reste visible sans rien recouvrir. */
+  #game-board-wrap { margin-bottom: 46px; }
+  .board-msg { bottom: -38px; white-space: normal; max-width: 90vw; text-align: center; }
 }
 
 /* ─── MOBILE (≤480px) ─── */
