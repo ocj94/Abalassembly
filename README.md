@@ -1,5 +1,9 @@
 # Abalassembly
 
+<p align="center">
+  <img src="og-image.png" width="100%" alt="Abalassembly — jeu de stratégie Abalone">
+</p>
+
 *Abalone est une marque déposée d'Abalone S.A. (France). Ce projet est une implémentation non officielle, sans lien avec les ayants droit.*
 
 **Jouer, apprendre et progresser au jeu de stratégie Abalone** — entièrement dans un seul fichier HTML, sans serveur, sans dépendance, hors-ligne.
@@ -21,7 +25,15 @@ Ou : ouvrez `index.html` dans un navigateur, tout est là.
 
 Deux joueurs, 14 billes chacun sur un plateau hexagonal. Un tour = déplacer une bille seule ou une colonne de 2-3 billes alignées, d'une case, dans une direction libre. Le premier à éjecter **6 billes adverses** hors du plateau gagne.
 
+<p align="center">
+  <img src="rules-moves.png" width="100%" alt="Coup en ligne et coup latéral">
+</p>
+
 On ne peut pousser l'adversaire que si on est numériquement supérieur sur la ligne de poussée (un « sumito ») :
+
+<p align="center">
+  <img src="rules-sumito.png" width="100%" alt="Les trois sumito : 3 contre 2, 3 contre 1, 2 contre 1">
+</p>
 
 | Sumito | Faisable ? |
 |---|---|
