@@ -1198,6 +1198,7 @@ footer {
   .game-center { padding: 80px 16px 16px; }
   .game-right-panel { border-left: none; border-top: 1px solid var(--border); }
   #board { width: 100% !important; height: auto !important; max-width: 440px; }
+  #board-3d { width: 100%; max-width: 440px; margin: 0 auto; }
   /* Sur mobile, le plateau et le panneau des onglets sont empilés (plus côte
      à côte) : board-msg (position:absolute; bottom:-40px) déborderait sous
      #game-board-wrap et chevaucherait la barre d'onglets juste en dessous.
@@ -1254,6 +1255,7 @@ footer {
 
   .game-center { padding: 60px 8px 8px; }
   #board { max-width: 320px; }
+  #board-3d { max-width: 320px; margin: 0 auto; }
   .game-controls { padding: 10px; }
   .ctrl-btn { padding: 11px; font-size: 13px; }
   .move-history { padding: 10px; }
@@ -2732,16 +2734,16 @@ body.focus-mode .main-content { margin-left: 0 !important; padding: 0 !important
         </div>
         <canvas id="board" width="640" height="640"></canvas>
         <!-- Rotation du plateau : un jeu de boutons par joueur, sur le bord gauche -->
-        <div class="rot-ctl" style="top:64px" title="Rotation (côté adversaire)">
+        <div class="rot-ctl" id="rot2d-top" style="top:64px" title="Rotation (côté adversaire)">
           <button class="rot-btn" onclick="rotateBoard(-60)" title="Pivoter anti-horaire">↺</button>
           <button class="rot-btn" onclick="rotateBoard(60)" title="Pivoter horaire">↻</button>
         </div>
-        <div class="rot-ctl" style="bottom:56px" title="Rotation (votre côté)">
+        <div class="rot-ctl" id="rot2d-bottom" style="bottom:56px" title="Rotation (votre côté)">
           <button class="rot-btn" onclick="rotateBoard(-60)" title="Pivoter anti-horaire">↺</button>
           <button class="rot-btn" onclick="rotateBoard(60)" title="Pivoter horaire">↻</button>
         </div>
         <!-- Conteneur du rendu 3D (caché par défaut) -->
-        <div id="board-3d" style="display:none;width:640px;max-width:100%;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#14141a;position:relative">
+        <div id="board-3d" style="display:none;width:640px;max-width:100%;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#14141a;position:relative;margin:0 auto">
           <canvas id="board-3d-canvas" style="width:100%;height:100%;display:block;cursor:grab"></canvas>
           <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:10px;color:#666;pointer-events:none;white-space:nowrap">Glisse pour tourner · molette pour zoomer · vue lecture seule</div>
         </div>
@@ -18481,6 +18483,8 @@ window.setBoardView = function(view) {
   const wrap3d = document.getElementById('board-3d');
   const btn2d = document.getElementById('view-2d-btn');
   const btn3d = document.getElementById('view-3d-btn');
+  const rot2dTop = document.getElementById('rot2d-top');
+  const rot2dBottom = document.getElementById('rot2d-bottom');
   // styles des boutons
   function activate(btn, on) {
     btn.style.background = on ? 'var(--gold)' : 'transparent';
@@ -18490,11 +18494,15 @@ window.setBoardView = function(view) {
     activate(btn3d, true); activate(btn2d, false);
     canvas2d.style.display = 'none';
     wrap3d.style.display = 'block';
+    if (rot2dTop) rot2dTop.style.display = 'none';       // boutons 2D sans effet en 3D
+    if (rot2dBottom) rot2dBottom.style.display = 'none';
     init3DView();
   } else {
     activate(btn2d, true); activate(btn3d, false);
     wrap3d.style.display = 'none';
     canvas2d.style.display = 'block';
+    if (rot2dTop) rot2dTop.style.display = '';
+    if (rot2dBottom) rot2dBottom.style.display = '';
     if (window._three3d) window._three3d.stop();
   }
 };
@@ -18587,27 +18595,63 @@ function start3DScene() {
   const allCells = [];
   for (let r = 0; r < ROWS.length; r++) for (let c = 0; c < ROWS[r]; c++) allCells.push({ r, c });
 
-  // rayon du plateau
+  // ─── Contour hexagonal du plateau, dérivé des 6 cases-coins réelles ───
+  // (et non un cercle générique : le vrai plateau Abalone est un hexagone,
+  // orienté exactement comme la grille de cases — jamais de décalage possible)
+  const cornerCells = [{r:0,c:0},{r:0,c:ROWS[0]-1},{r:4,c:8},{r:8,c:ROWS[8]-1},{r:8,c:0},{r:4,c:0}];
+  const cornerPts = cornerCells.map(function(cc){ return cellPos3(cc.r, cc.c); });
+  let cx0 = 0, cz0 = 0;
+  cornerPts.forEach(function(p){ cx0 += p.x; cz0 += p.z; });
+  cx0 /= 6; cz0 /= 6;
+  const RIM_PAD = 1.28; // le bord physique déborde des cases extrêmes (comme un vrai plateau)
+  const hexOuter = cornerPts.map(function(p){ return { x: cx0+(p.x-cx0)*RIM_PAD, z: cz0+(p.z-cz0)*RIM_PAD }; });
   let maxR = 0;
   allCells.forEach(function(cc){ const p = cellPos3(cc.r, cc.c); maxR = Math.max(maxR, Math.hypot(p.x, p.z)); });
-  const baseR = maxR + 1.5;
+  const baseR = maxR * RIM_PAD; // conservé pour le sol/brouillard, non utilisé pour la forme du plateau
+
+  function hexShape(pts, shrink) {
+    shrink = shrink || 1;
+    const s = new THREE.Shape();
+    pts.forEach(function(p, i){
+      const x = cx0 + (p.x-cx0)*shrink, z = cz0 + (p.z-cz0)*shrink;
+      if (i === 0) s.moveTo(x, z); else s.lineTo(x, z);
+    });
+    s.closePath();
+    return s;
+  }
 
   const group = new THREE.Group();
   scene.add(group);
 
-  // socle
-  const base = new THREE.Mesh(
-    new THREE.CylinderGeometry(baseR, baseR*0.94, 1.1, 64),
-    new THREE.MeshStandardMaterial({ color: 0x2a2d35, roughness: 0.6, metalness: 0.3 }));
-  base.position.y = -0.75; base.castShadow = true; base.receiveShadow = true; group.add(base);
-  const top = new THREE.Mesh(
-    new THREE.CylinderGeometry(baseR*0.97, baseR*0.97, 0.35, 64),
-    new THREE.MeshStandardMaterial({ color: 0x363a44, roughness: 0.45, metalness: 0.35 }));
-  top.position.y = -0.1; top.receiveShadow = true; group.add(top);
-  const ring = new THREE.Mesh(
-    new THREE.TorusGeometry(baseR*0.99, 0.12, 16, 80),
-    new THREE.MeshStandardMaterial({ color: 0xc8a84b, roughness: 0.3, metalness: 0.9 }));
-  ring.rotation.x = Math.PI/2; ring.position.y = 0.08; group.add(ring);
+  // socle (hexagone épais, légèrement plus large que le dessus pour l'effet "plateau posé")
+  const baseShape = hexShape(hexOuter, 1.045);
+  const baseGeo = new THREE.ExtrudeGeometry(baseShape, { depth: 1.1, bevelEnabled: true, bevelThickness: 0.06, bevelSize: 0.06, bevelSegments: 2 });
+  baseGeo.rotateX(Math.PI/2);
+  const base = new THREE.Mesh(baseGeo, new THREE.MeshStandardMaterial({ color: 0x2a2d35, roughness: 0.6, metalness: 0.3 }));
+  base.position.y = -0.45; base.castShadow = true; base.receiveShadow = true; group.add(base);  // span [-1.55,-0.45]
+
+  // dessus du plateau (hexagone, surface de jeu)
+  const topShape = hexShape(hexOuter, 1);
+  const topGeo = new THREE.ExtrudeGeometry(topShape, { depth: 0.35, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.04, bevelSegments: 2 });
+  topGeo.rotateX(Math.PI/2);
+  const top = new THREE.Mesh(topGeo, new THREE.MeshStandardMaterial({ color: 0x363a44, roughness: 0.45, metalness: 0.35 }));
+  top.position.y = -0.10; top.receiveShadow = true; group.add(top);  // span [-0.45,-0.10] — touche le socle exactement
+
+  // liseré doré : cadre hexagonal fin (hexagone plein moins un hexagone légèrement plus petit)
+  const trimOuterPts = hexOuter.map(function(p){ return { x: cx0+(p.x-cx0)*1.015, z: cz0+(p.z-cz0)*1.015 }; });
+  const trimShape = hexShape(trimOuterPts, 1);
+  const trimHole = new THREE.Path();
+  hexOuter.forEach(function(p, i){
+    const x = cx0 + (p.x-cx0)*0.965, z = cz0 + (p.z-cz0)*0.965;
+    if (i === 0) trimHole.moveTo(x, z); else trimHole.lineTo(x, z);
+  });
+  trimHole.closePath();
+  trimShape.holes.push(trimHole);
+  const trimGeo = new THREE.ExtrudeGeometry(trimShape, { depth: 0.14, bevelEnabled: false });
+  trimGeo.rotateX(Math.PI/2);
+  const ring = new THREE.Mesh(trimGeo, new THREE.MeshStandardMaterial({ color: 0xc8a84b, roughness: 0.3, metalness: 0.9 }));
+  ring.position.y = 0.04; group.add(ring);  // span [-0.10,0.04] — touche le dessus, légèrement en saillie
+
   // creux
   const holeGeo = new THREE.CylinderGeometry(BALL_R*0.96, BALL_R*0.7, 0.28, 20);
   const holeMat = new THREE.MeshStandardMaterial({ color: 0x1e2128, roughness: 0.8, metalness: 0.2 });
@@ -18617,9 +18661,9 @@ function start3DScene() {
     h.position.set(p.x, 0, p.z); h.receiveShadow = true; group.add(h);
   });
 
-  // sol (ombres)
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(120,120), new THREE.ShadowMaterial({ opacity: 0.35 }));
-  ground.rotation.x = -Math.PI/2; ground.position.y = -1.3; ground.receiveShadow = true; scene.add(ground);
+  // sol (ombres) — dimensionné proportionnellement au vrai rayon du plateau
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(baseR*10, baseR*10), new THREE.ShadowMaterial({ opacity: 0.35 }));
+  ground.rotation.x = -Math.PI/2; ground.position.y = -1.65; ground.receiveShadow = true; scene.add(ground);  // sous le socle (-1.55), évite le z-fighting
 
   // matériaux billes
   const matBlack = new THREE.MeshStandardMaterial({ color: 0x16161a, roughness: 0.22, metalness: 0.15 });
@@ -18672,6 +18716,36 @@ function start3DScene() {
     e.preventDefault();
     tRadius = Math.max(12, Math.min(40, tRadius + e.deltaY*0.02));
   }, { passive: false });
+
+  // ─── Angles de vue préréglés, sur le côté du plateau ───
+  // (mêmes coordonnées que le drag manuel : theta = azimut, phi = hauteur)
+  const DEFAULT_VIEW = { theta: Math.PI*0.25, phi: Math.PI*0.34, radius: 22 };
+  const VIEW_PRESETS = [
+    { label: '⟲', title: 'Vue cavalière (défaut)', theta: DEFAULT_VIEW.theta, phi: DEFAULT_VIEW.phi, radius: DEFAULT_VIEW.radius },
+    { label: '⚫', title: 'Côté Noirs',              theta: Math.PI*0.5,       phi: Math.PI*0.38,     radius: 22 },
+    { label: '⚪', title: 'Côté Blancs',              theta: -Math.PI*0.5,      phi: Math.PI*0.38,     radius: 22 },
+    { label: '⬆',  title: 'Vue de dessus',            theta: DEFAULT_VIEW.theta, phi: 0.12,            radius: 26 },
+  ];
+  if (!document.getElementById('view3d-ctl')) {
+    const ctl = document.createElement('div');
+    ctl.id = 'view3d-ctl';
+    ctl.className = 'rot-ctl';
+    ctl.style.right = '8px'; ctl.style.left = 'auto'; ctl.style.top = '8px';
+    ctl.title = 'Angles de vue';
+    VIEW_PRESETS.forEach(function(v){
+      const b = document.createElement('button');
+      b.className = 'rot-btn'; b.textContent = v.label; b.title = v.title;
+      b.style.fontSize = '15px';
+      b.onclick = function(){ auto = false; tTheta = v.theta; tPhi = v.phi; tRadius = v.radius; };
+      ctl.appendChild(b);
+    });
+    const autoBtn = document.createElement('button');
+    autoBtn.className = 'rot-btn'; autoBtn.textContent = '🔄'; autoBtn.title = 'Rotation automatique';
+    autoBtn.style.fontSize = '14px';
+    autoBtn.onclick = function(){ auto = true; };
+    ctl.appendChild(autoBtn);
+    document.getElementById('board-3d').appendChild(ctl);   // host3d n'est déclaré que plus bas
+  }
 
   function resize() {
     const w = canvas.clientWidth, h = canvas.clientHeight;
