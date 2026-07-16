@@ -66,7 +66,9 @@ On ne peut pousser l'adversaire que si on est numériquement supérieur sur la l
 - Book d'ouvertures miné depuis ces parties
 
 **Labo**
-- Auto-amélioration du moteur : duels SPRT, réglage SPSA, suivi Elo, exports CSV/JSON
+- Auto-amélioration du moteur : duels SPRT (méthodologie façon Fishtest/Stockfish) et réglage continu SPSA sur 6 poids d'évaluation (centre, cohésion, bord, mobilité, isolement, danger), suivi Elo, exports CSV/JSON
+- **Impact réel, pas un simple tableau de bord** : quand le Labo prouve statistiquement qu'un nouveau jeu de poids bat le champion actuel, il est adopté automatiquement et réécrit en direct le style « équilibré » de l'IA — celui utilisé par défaut tant qu'aucun profil de jeu (agressif/passif) n'est détecté chez l'adversaire humain. Autrement dit : l'IA que vous affrontez peut réellement progresser d'une session à l'autre.
+- Réversible et local : interrupteur « Utiliser les poids du Labo » (actif par défaut, désactivable) ; tout vit dans le `localStorage` du navigateur — chaque exemplaire du jeu apprend pour son propre joueur, rien n'est partagé entre appareils
 - Replay des parties du Labo sur plateau bois avec les vrais skins de billes
 
 ## Choix techniques
