@@ -1,8 +1,35 @@
 # Abalassembly
 
+*Abalone est une marque déposée d'Abalone S.A. (France). Ce projet est une implémentation non officielle, sans lien avec les ayants droit.*
+
 **Jouer, apprendre et progresser au jeu de stratégie Abalone** — entièrement dans un seul fichier HTML, sans serveur, sans dépendance, hors-ligne.
 
-Ouvrez `index.html` dans un navigateur : tout est là. (Version en ligne : https://ocj94.github.io/Abalassembly/)
+### 🎮 [Jouer maintenant → ocj94.github.io/Abalassembly](https://ocj94.github.io/Abalassembly/)
+
+Ou : ouvrez `index.html` dans un navigateur, tout est là.
+
+## Sommaire
+
+- [Règles en bref](#règles-en-bref)
+- [Ce que contient le fichier](#ce-que-contient-le-fichier)
+- [Choix techniques](#choix-techniques)
+- [Backend (dormant)](#backend-dormant)
+- [Développement](#développement)
+- [Licence](#licence)
+
+## Règles en bref
+
+Deux joueurs, 14 billes chacun sur un plateau hexagonal. Un tour = déplacer une bille seule ou une colonne de 2-3 billes alignées, d'une case, dans une direction libre. Le premier à éjecter **6 billes adverses** hors du plateau gagne.
+
+On ne peut pousser l'adversaire que si on est numériquement supérieur sur la ligne de poussée (un « sumito ») :
+
+| Sumito | Faisable ? |
+|---|---|
+| ⚫⚫⚫ pousse ⚪⚪ (3 contre 2) | ✅ |
+| ⚫⚫⚫ pousse ⚪ (3 contre 1) | ✅ |
+| ⚫⚫ pousse ⚪ (2 contre 1) | ✅ |
+| ⚫⚫ contre ⚪⚪, ⚫⚫⚫ contre ⚪⚪⚪ (égalité) | ❌ personne ne pousse |
+| Une seule bille ne pousse jamais | ❌ |
 
 ## Ce que contient le fichier
 
