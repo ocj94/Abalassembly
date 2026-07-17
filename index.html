@@ -14647,9 +14647,234 @@ function _scanVerifyImported(g){
     return true;
   }catch(e){ return false; }
 }
+/* ── 📤 IMPORTATEUR AVANCÉ ──
+   Le format JSON natif (abalassembly-scanned-games-v1) est importé directement,
+   comme avant. Les formats externes (.txt, .csv, .xlsx, .xls, .ods) — typiquement
+   des exports d'autres outils comme Ula — sont analysés par une détection
+   heuristique (titre + séquence de coups par ligne/rangée), puis chaque partie
+   candidate est VÉRIFIÉE par rejeu du vrai moteur avant d'être proposée : jamais
+   d'import silencieux d'un format externe, toujours un aperçu à confirmer. */
+const ADV_LAYOUTS_AO = (function(){
+  // Reconstruit la position AO de départ pour chaque variante connue, à partir
+  // de LAYOUTS (déjà défini plus haut dans le jeu) — une seule source de vérité.
+  if (typeof LAYOUTS === 'undefined') return {};
+  const cellsOf = arr => arr.map(rc => coordToABAPRO(rc[0], rc[1]).toLowerCase()).sort().join('');
+  const out = {};
+  Object.keys(LAYOUTS).forEach(function(key){
+    const L = LAYOUTS[key];
+    out[key] = '0' + cellsOf(L.black) + ',0' + cellsOf(L.white);
+  });
+  return out;
+})();
+function _advGuessLayout(title){
+  const t = String(title).toLowerCase();
+  if (t.includes('mbel') || t.includes('belg')) return 'belgian';
+  if (t.includes('allem') || t.includes('german')) return 'german';
+  if (t.includes('holl') || t.includes('dutch')) return 'dutch';
+  if (t.includes('suiss') || t.includes('swiss')) return 'swiss';
+  if (t.includes('mstd') || t.includes('standard')) return 'standard';
+  return null;
+}
+function _advDeclaredScore(title){
+  const m = String(title).match(/\((\d+)-(\d+)\)/);
+  return m ? { black: +m[1], white: +m[2] } : null;
+}
+function _advGuessLabels(title){
+  const m = String(title).match(/\b(AP\d+)\b|\b(Ula\d+)\b/g) || [];
+  const uniq = [...new Set(m)];
+  if (uniq.length >= 2) return { black: uniq[0], white: uniq[1] };
+  if (uniq.length === 1) return { black: uniq[0], white: uniq[0] + ' (auto-jeu)' };
+  return { black: 'Noirs', white: 'Blancs' };
+}
+function _advLooksLikeSeq(s){ return /^\s*1\.\s*[a-zA-Z]\d/.test(s) && /[a-zA-Z]\d/.test(s); }
+function _advLooksLikeTitle(s){ return !_advLooksLikeSeq(s) && (s.includes(',') || s.startsWith('#')) && s.length > 3 && s.length < 300; }
+// rows : tableau de "lignes", chacune un tableau de chaînes (cellules de tableur,
+// ou groupes de lignes de texte) — trouve un titre + une séquence par ligne.
+function _advExtractCandidates(rows){
+  const out = [];
+  rows.forEach(function(row){
+    let title = null, seq = null;
+    row.forEach(function(cell){
+      const s = String(cell == null ? '' : cell).trim();
+      if (!s) return;
+      if (_advLooksLikeSeq(s) && !seq) seq = s;
+      else if (_advLooksLikeTitle(s) && !title) title = s;
+    });
+    if (title && seq) out.push({ title, seq });
+  });
+  return out;
+}
+// Vérifie une partie candidate par rejeu réel — jamais de confiance aveugle
+// dans un format externe. Sandboxé (_scanSandbox) : ne touche jamais la partie en cours.
+function _advVerifyCandidate(cand){
+  const layoutKey = _advGuessLayout(cand.title);
+  if (!layoutKey || !ADV_LAYOUTS_AO[layoutKey]) return { ok: false, reason: 'position de départ non reconnue' };
+  const start = ADV_LAYOUTS_AO[layoutKey];
+  const score = _advDeclaredScore(cand.title);
+  const [b, w] = start.split(',');
+  const board = {};
+  (b.slice(1).match(/[a-i][1-9]/g) || []).forEach(cc => { const p = abaproToRc(cc); board[p.r + ',' + p.c] = 'black'; });
+  (w.slice(1).match(/[a-i][1-9]/g) || []).forEach(cc => { const p = abaproToRc(cc); board[p.r + ',' + p.c] = 'white'; });
+
+  return _scanSandbox(board, function(){
+    let color = 'black', plies = 0;
+    const tokens = String(cand.seq).replace(/\d+\./g, ' ').trim().split(/\s+/).filter(Boolean).map(t => t.toLowerCase());
+    for (const tok of tokens){
+      const mv = resolveAbaProToken(tok, color);
+      if (!mv) return { ok: false, reason: 'coup illégal : ' + tok };
+      applyMove(mv, color);
+      color = color === 'black' ? 'white' : 'black';
+      plies++;
+      if (score && capturedByBlack >= score.black && capturedByWhite >= score.white) break;
+      if (capturedByBlack >= 6 || capturedByWhite >= 6) break;
+    }
+    const scoreMatches = !score || (capturedByBlack === score.black && capturedByWhite === score.white);
+    const labels = _advGuessLabels(cand.title);
+    return { ok: true, game: {
+      date: new Date().toISOString().slice(0,10), black: labels.black, white: labels.white,
+      variant: layoutKey, start, startColor: 'black', seq: cand.seq, plies, verified: scoreMatches,
+      _src: cand.title
+    }};
+  });
+}
+
+// Chargeur SheetJS à la demande (Excel/.ods), plusieurs CDN en repli — même
+// principe que le chargeur Three.js de la vue 3D.
+let _xlsxLoaded = null;
+function _advEnsureXLSX(){
+  if (_xlsxLoaded) return _xlsxLoaded;
+  const SOURCES = [
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
+  ];
+  _xlsxLoaded = new Promise(function(resolve, reject){
+    (function tryNext(i){
+      if (i >= SOURCES.length) { reject(new Error('toutes les sources XLSX ont échoué')); return; }
+      const s = document.createElement('script');
+      s.src = SOURCES[i];
+      s.onload = function(){ resolve(window.XLSX); };
+      s.onerror = function(){ tryNext(i + 1); };
+      document.head.appendChild(s);
+    })(0);
+  });
+  return _xlsxLoaded;
+}
+
+function _advRowsFromWorkbook(wb){
+  const XLSX = window.XLSX;
+  const rows = [];
+  wb.SheetNames.forEach(function(name){
+    const sheet = wb.Sheets[name];
+    const data = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
+    data.forEach(function(r){ rows.push(r); });
+  });
+  return rows;
+}
+function _advRowsFromText(text){
+  // Chaque ligne non vide est traitée comme sa propre "rangée" ; si titre et
+  // séquence sont sur des lignes séparées, on regroupe une ligne avec la suivante.
+  const lines = String(text).split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const rows = [];
+  for (let i = 0; i < lines.length; i++){
+    if (_advLooksLikeTitle(lines[i]) && lines[i+1] && _advLooksLikeSeq(lines[i+1])){
+      rows.push([lines[i], lines[i+1]]); i++;
+    } else {
+      rows.push([lines[i]]);
+    }
+  }
+  return rows;
+}
+
+function _advShowPreview(candidates){
+  const host = document.getElementById('adv-import-preview');
+  if (!host) return;
+  const results = candidates.map(_advVerifyCandidate);
+  const usable = results.map(function(r, i){ return { r, cand: candidates[i] }; }).filter(x => x.r.ok);
+  if (!usable.length){
+    host.innerHTML = '<div style="margin-top:10px;font-size:12px;color:var(--muted)">Aucune partie exploitable trouvée dans ce fichier.</div>';
+    showToast('❌ Aucune partie reconnue dans ce fichier');
+    return;
+  }
+  window._advPending = usable.map(x => x.r.game);
+  let h = '<div style="margin-top:12px;border:1px solid var(--border);border-radius:10px;padding:12px">'
+    + '<div style="font-weight:700;color:var(--gold);margin-bottom:8px">📤 ' + usable.length + ' partie' + (usable.length>1?'s':'') + ' détectée' + (usable.length>1?'s':'') + '</div>';
+  usable.forEach(function(x, i){
+    const g = x.r.game;
+    h += '<label style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;cursor:pointer">'
+      + '<input type="checkbox" checked data-adv-idx="' + i + '" style="margin-top:3px">'
+      + '<span>' + (g.verified ? '✓' : '⚠️') + ' <b>' + g.black + '</b> vs <b>' + g.white + '</b> · ' + g.variant + ' · ' + g.plies + ' coups'
+      + '<br><span style="color:var(--muted)">' + g._src.slice(0,80) + '</span></span></label>';
+  });
+  h += '<div style="display:flex;gap:8px;margin-top:10px">'
+    + '<button class="cam-btn primary" onclick="advConfirmImport()">📥 Importer la sélection</button>'
+    + '<button class="cam-btn" onclick="advCancelImport()">Annuler</button></div></div>';
+  host.innerHTML = h;
+  const verified = usable.filter(x => x.r.game.verified).length;
+  showToast('📤 ' + usable.length + ' partie(s) trouvée(s), ' + verified + ' vérifiée(s) — relis avant de confirmer');
+}
+function advConfirmImport(){
+  const boxes = document.querySelectorAll('#adv-import-preview input[data-adv-idx]:checked');
+  const chosen = Array.from(boxes).map(b => window._advPending[+b.getAttribute('data-adv-idx')]);
+  if (!chosen.length){ showToast('Aucune partie sélectionnée'); return; }
+  const existing = _scanGamesLoad();
+  chosen.forEach(function(g){
+    const clean = { id: Date.now()+Math.floor(Math.random()*1000), date:g.date, black:g.black, white:g.white,
+      variant:g.variant, start:g.start, startColor:g.startColor, seq:g.seq, plies:g.plies, verified:g.verified };
+    existing.unshift(clean);
+  });
+  _scanGamesSave(existing);
+  window._advPending = null;
+  document.getElementById('adv-import-preview').innerHTML = '';
+  renderScannedGames();
+  showToast('📥 ' + chosen.length + ' partie(s) importée(s)');
+}
+function advCancelImport(){
+  window._advPending = null;
+  const host = document.getElementById('adv-import-preview');
+  if (host) host.innerHTML = '';
+  showToast('Import annulé');
+}
+
 function importScannedGamesFile(input){
-  const file=input && input.files && input.files[0];
-  if(!file) return;
+  const file = input && input.files && input.files[0];
+  if (!file) return;
+  const name = (file.name || '').toLowerCase();
+
+  if (name.endsWith('.json') || file.type === 'application/json'){
+    _importJsonScannedGames(input, file);
+    return;
+  }
+  if (name.endsWith('.txt') || name.endsWith('.csv')){
+    const reader = new FileReader();
+    reader.onload = function(){ _advShowPreview(_advExtractCandidates(_advRowsFromText(reader.result))); input.value=''; };
+    reader.onerror = function(){ showToast('❌ Lecture du fichier impossible'); input.value=''; };
+    reader.readAsText(file);
+    return;
+  }
+  if (name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.ods')){
+    showToast('⏳ Chargement du lecteur de tableur…');
+    _advEnsureXLSX().then(function(XLSX){
+      const reader = new FileReader();
+      reader.onload = function(){
+        try{
+          const wb = XLSX.read(new Uint8Array(reader.result), { type: 'array' });
+          _advShowPreview(_advExtractCandidates(_advRowsFromWorkbook(wb)));
+        }catch(e){ showToast('❌ Fichier tableur illisible'); }
+        input.value = '';
+      };
+      reader.onerror = function(){ showToast('❌ Lecture du fichier impossible'); input.value=''; };
+      reader.readAsArrayBuffer(file);
+    }).catch(function(){
+      showToast('⚠️ Lecteur de tableur indisponible (connexion internet nécessaire pour ce format)');
+      input.value = '';
+    });
+    return;
+  }
+  showToast('❌ Format non reconnu (.json, .txt, .csv, .xlsx, .xls, .ods)');
+  input.value = '';
+}
+function _importJsonScannedGames(input, file){
   const reader=new FileReader();
   reader.onload=function(){
     let data;
@@ -14686,8 +14911,8 @@ function renderScannedGames(){
   let bar='<div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">'
     +'<button class="cam-btn" style="padding:4px 10px" onclick="exportAllScannedGames()">⬇️ Tout exporter'+(list.length?' ('+list.length+')':'')+'</button>'
     +'<label class="cam-btn" style="padding:4px 10px;cursor:pointer">📥 Importer un fichier'
-    +'<input type="file" accept="application/json,.json" style="display:none" onchange="importScannedGamesFile(this)"></label>'
-    +'</div>';
+    +'<input type="file" accept=".json,application/json,.txt,.csv,.xlsx,.xls,.ods" style="display:none" onchange="importScannedGamesFile(this)"></label>'
+    +'</div><div id="adv-import-preview"></div>';
   if(!list.length){ el.innerHTML=bar+'<div style="font-size:12px;color:var(--muted)">Aucune partie enregistrée pour l\'instant.</div>'; return; }
   let h='';
   for(let i=0;i<list.length;i++){
