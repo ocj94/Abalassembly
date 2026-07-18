@@ -14843,6 +14843,62 @@ const ADV_LAYOUTS_AO = (function(){
   });
   return out;
 })();
+
+/* ── Format de position compacte de KAA (Saab) : EjBPosB_EjWPosW ──
+   Ex. "0a12b123_0g789h789i789" → Noirs a1,a2,b1,b2,b3 · Blancs g7,g8,g9,h7,h8,h9,i7,i8,i9
+   Grammaire documentée précisément dans KAA_aide.txt §3.4 et §11d, testée
+   contre les exemples exacts du manuel avant intégration ici. */
+function _advParseKAACompactPosition(str){
+  const parts = String(str).trim().split('_');
+  if (parts.length !== 2) return null;
+  function parseSide(part){
+    const m = part.match(/^(\d+)([a-i](?:\d+)?.*)$/i);
+    if (!m) return null;
+    const ejected = parseInt(m[1], 10);
+    const rest = m[2].toLowerCase();
+    const cells = [];
+    const re = /([a-i])(\d+)/g;
+    let mm;
+    while ((mm = re.exec(rest))){
+      const rowLetter = mm[1];
+      for (const digit of mm[2]) cells.push(rowLetter + digit);
+    }
+    return { ejected, cells };
+  }
+  const black = parseSide(parts[0]), white = parseSide(parts[1]);
+  if (!black || !white || !black.cells.length || !white.cells.length) return null;
+  return { black, white };
+}
+function _advKAAToAOStart(str){
+  const parsed = _advParseKAACompactPosition(str);
+  if (!parsed) return null;
+  return '0' + parsed.black.cells.slice().sort().join('') + ',0' + parsed.white.cells.slice().sort().join('');
+}
+
+/* ── Détection de la notation Nacre (KAA) ──
+   Reconnaît qu'une séquence est en notation Nacre ("1.a1a4 1.-b5b4 2.c3c6…"
+   ou la forme simplifiée sans préfixe "N.-" pour les Blancs), SANS tenter de
+   la décoder en coups. La sémantique exacte (quelle bille du groupe sert de
+   repère, distance non-adjacente autorisée) n'est pas assez précisément
+   spécifiée dans le manuel pour être décodée sans risque d'erreur silencieuse
+   sur de vraies parties — mieux vaut le signaler clairement à l'utilisateur
+   que de deviner et importer un coup faux. À construire dès qu'un fichier
+   KAA réel permettra de vérifier le décodage contre des parties connues. */
+function _advLooksLikeNacre(seq){
+  const s = String(seq).trim();
+  if (!/^1\./.test(s)) return false;
+  if (/\d+\.-/.test(s)) return true;               // préfixe "N.-" explicite pour les Blancs
+  const tokens = s.replace(/\d+\.-?/g, ' ').trim().split(/\s+/).filter(Boolean);
+  // Nacre : premier_bille + destination potentiellement NON adjacentes (distance>1)
+  return tokens.some(function(tok){
+    const m = tok.match(/^([a-i])(\d)([a-i])(\d)$/i);
+    if (!m) return false;
+    const dr = Math.abs('abcdefghi'.indexOf(m[1].toLowerCase()) - 'abcdefghi'.indexOf(m[3].toLowerCase()));
+    const dc = Math.abs(parseInt(m[2],10) - parseInt(m[4],10));
+    return (dr + dc) > 2; // au-delà de la distance max d'un coup AbaPro à 4 caractères
+  });
+}
+
 function _advGuessLayout(title){
   const t = String(title).toLowerCase();
   if (t.includes('mbel') || t.includes('belg')) return 'belgian';
@@ -14884,6 +14940,9 @@ function _advExtractCandidates(rows){
 // Vérifie une partie candidate par rejeu réel — jamais de confiance aveugle
 // dans un format externe. Sandboxé (_scanSandbox) : ne touche jamais la partie en cours.
 function _advVerifyCandidate(cand){
+  if (_advLooksLikeNacre(cand.seq)) {
+    return { ok: false, reason: 'notation Nacre détectée (KAA) — pas encore décodée, importée telle quelle refusée par prudence plutôt que mal interprétée' };
+  }
   const layoutKey = _advGuessLayout(cand.title);
   if (!layoutKey || !ADV_LAYOUTS_AO[layoutKey]) return { ok: false, reason: 'position de départ non reconnue' };
   const start = ADV_LAYOUTS_AO[layoutKey];
