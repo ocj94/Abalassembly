@@ -9769,6 +9769,28 @@ function showResumePrompt() {
   setTimeout(function(){ if (document.getElementById('resume-banner')) { banner.remove(); resetGame(); } }, 12000);
 }
 
+/* ═══════════════════════════════════════════
+   ÉVÉNEMENTS PUBLICS — point d'extension léger
+   Émis via document.dispatchEvent(CustomEvent), l'équivalent natif du
+   navigateur au système de plugins de KAA (on_move_played/on_position_changed).
+   Aucune dépendance, aucun fichier supplémentaire : n'importe quel script
+   externe (une extension, un enregistreur, un outil d'analyse tiers) peut
+   écouter sans qu'Abalassembly ait besoin de le connaître à l'avance :
+
+     document.addEventListener('abalassembly:movePlayed', function(e){
+       console.log(e.detail.color, e.detail.label, e.detail.moveCount);
+     });
+
+   Événements émis :
+   - abalassembly:movePlayed    { color, label, moveCount, capturedByBlack, capturedByWhite }
+   - abalassembly:positionChanged { layout }   (nouvelle partie / position chargée)
+   - abalassembly:gameOver      { winner, reason, capturedByBlack, capturedByWhite, moveCount }
+═══════════════════════════════════════════ */
+function _emitAbaEvent(name, detail){
+  try{ document.dispatchEvent(new CustomEvent('abalassembly:'+name, { detail: detail })); }
+  catch(e){ /* navigateur très ancien sans CustomEvent : silencieux, sans impact sur le jeu */ }
+}
+
 function resetGame() {
   gameOver = false;
   selected = [];
@@ -9807,6 +9829,7 @@ function resetGame() {
   _aiGen++;               // invalide tout calcul IA en cours (résultats périmés ignorés)
   terminateAIWorker();    // worker neuf à la prochaine partie : pas de fuite, pas de coup fantôme
   showAIThinking(false);  // masque l'indicateur si l'IA réfléchissait encore
+  _emitAbaEvent('positionChanged', { layout: (typeof currentLayout !== 'undefined') ? currentLayout : null });
 }
 
 function tickTimers() {
@@ -10607,6 +10630,8 @@ function handleClick(r, c) {
 
   _clockInc(me);   // ⏱️ incrément de cadence pour celui qui vient de jouer
   currentTurn = (me === 'black') ? 'white' : 'black';
+  _emitAbaEvent('movePlayed', { color: me, label: (typeof moveNotation !== 'undefined') ? moveNotation : null,
+    moveCount: moveCount, capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite });
   updateStatus();
   // Animation de glissement si déplacement simple/latéral, sinon rendu direct
   if (slidePieces && slidePieces.length) {
@@ -13272,6 +13297,8 @@ function executeAIMove(chosen) {
   if (typeof recordWhiteHeatmap === 'function') recordWhiteHeatmap(chosen.cells);
   _clockInc(human==='black'?'white':'black');   // ⏱️ incrément pour l'IA qui vient de jouer
   currentTurn=human; moveCount++;
+  _emitAbaEvent('movePlayed', { color: (human==='black'?'white':'black'), label: label,
+    moveCount: moveCount, capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite });
   if (!gameOver) playSfx('occ_change');   // 🔊 « c'est ton tour »
   updateStatus(); drawBoard();
   // Mode Coach : avertit le joueur si l'IA menace une éjection
@@ -13366,6 +13393,8 @@ function triggerWin(winner, reason) {
   }
   gameOver = true;
   try{ localStorage.setItem('abaGamesFinished', String((parseInt(localStorage.getItem('abaGamesFinished')||'0',10)||0)+1)); }catch(e){}
+  _emitAbaEvent('gameOver', { winner: winner, reason: reason || null,
+    capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite, moveCount: moveCount });
   if (typeof updateHeroStats==='function') updateHeroStats();
   if (typeof _tourneyMatch!=='undefined' && _tourneyMatch && typeof tourneyMatchEnd==='function') { tourneyMatchEnd(winner, reason); }
   clearInterval(timerInterval);
