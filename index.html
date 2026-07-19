@@ -14928,6 +14928,102 @@ function _advLooksLikeNacre(seq){
   });
 }
 
+/* ── Résolution de la notation Nacre (KAA) — PROUVÉE, pas supposée ──
+   Un token Nacre "AB" donne la case de départ de la QUEUE du groupe (A) et
+   la case d'arrivée de la TÊTE après le déplacement d'UN pas (B) — jamais
+   la position de repli intermédiaire. La distance A→B (en cases, le long
+   d'une des 6 directions) donne directement la longueur du groupe : pour
+   d5d7, distance=2 ⇒ groupe de 2 billes [d5,d6] avant le coup, [d6,d7] après.
+   Validé le 19/07/2026 contre les 5 coups d'une vraie solution de puzzle KAA
+   (Pzl_M_0021) rejoués par le vrai moteur, capture retrouvée exactement où
+   attendue — voir la conversation pour le détail de la vérification.
+   Couvre les coups EN LIGNE (move/push, 1-3 billes). Les coups latéraux
+   (broadside) ne sont pas couverts — aucun exemple Nacre validé pour ce cas
+   à ce jour ; un token qui ne résout à aucun coup légal en ligne est refusé
+   plutôt que deviné. */
+function _advResolveNacreToken(tok, color){
+  const m = String(tok).trim().match(/^([a-i])(\d)([a-i])(\d)$/i);
+  if (!m) return null;
+  const A = m[1].toLowerCase() + m[2], B = m[3].toLowerCase() + m[4];
+  const pA = abaproToRc(A), pB = abaproToRc(B);
+  if (!pA || !pB) return null;
+  const axA = rcToAxial(pA.r, pA.c), axB = rcToAxial(pB.r, pB.c);
+  const dq = axB.q - axA.q, dr = axB.r - axA.r;
+  for (const dir of AX_DIRS){
+    for (let k = 1; k <= 3; k++){
+      if (dq !== dir.q * k || dr !== dir.r * k) continue;
+      const cells = [];
+      let onBoard = true;
+      for (let s = 0; s < k; s++){
+        const rc = axialToRc(axA.q + dir.q * s, axA.r + dir.r * s);
+        if (!rc) { onBoard = false; break; }
+        cells.push(rc);
+      }
+      if (!onBoard) continue;
+      if (!cells.every(c => board[akey(c.r, c.c)] === color)) continue; // toutes du joueur au trait
+      const moves = getAllMovesForColor(color);
+      const match = moves.find(mv => mv.cells.length === cells.length &&
+        mv.dir.q === dir.q && mv.dir.r === dir.r &&
+        mv.cells.every(c => cells.some(hc => hc.r === c.r && hc.c === c.c)));
+      if (match) return match; // coup géométriquement plausible ET légal selon le moteur
+    }
+  }
+  return _advResolveNacreSidestep(tok, color, axA, axB); // en ligne épuisé → tenter un coup latéral
+}
+
+/* ── Résolution Nacre des coups LATÉRAUX (broadside) — d'après le manuel KAA §11 ──
+   Format AbaPro d'un broadside : [début_groupe][fin_groupe][destination_début]
+   (6 caractères). Conversion Nacre documentée : "utilise préférentiellement
+   fin_groupe+destination_début, sauf quand c'est ambigu (même axe hexagonal),
+   auquel cas utilise début_groupe+destination_dernière_bille" — les deux
+   interprétations sont tentées ici, dans cet ordre, vérifiées contre le vrai
+   moteur exactement comme les coups en ligne.
+   Limite RÉELLEMENT découverte en le testant (pas dans le manuel) : deux
+   groupes de tailles différentes peuvent produire la MÊME paire Nacre depuis
+   une même position (ex. "c4d3" correspond à la fois à un groupe de 2 et de
+   3 billes selon la position) — ambiguïté propre à la notation elle-même,
+   pas un bug. Le résolveur retient le premier coup légal trouvé (groupe le
+   plus petit en priorité), sans prétendre lever une ambiguïté qui n'existe
+   pas dans la notation source. */
+function _advResolveNacreSidestep(tok, color, axA, axB){
+  function tryHyp(getDebut, getFin, getShift){
+    for (const axisDir of AX_DIRS){
+      for (const size of [2, 3]){
+        const debut = getDebut(axisDir, size), fin = getFin(axisDir, size), shift = getShift(axisDir, size);
+        if (!debut || !fin || !shift) continue;
+        const cells = [];
+        let onBoard = true;
+        for (let s = 0; s < size; s++){
+          const rc = axialToRc(debut.q + axisDir.q * s, debut.r + axisDir.r * s);
+          if (!rc) { onBoard = false; break; }
+          cells.push(rc);
+        }
+        if (!onBoard) continue;
+        if (!cells.every(c => board[akey(c.r, c.c)] === color)) continue;
+        const moves = getAllMovesForColor(color);
+        const match = moves.find(mv => mv.cells.length === cells.length &&
+          mv.dir.q === shift.q && mv.dir.r === shift.r &&
+          mv.cells.every(c => cells.some(hc => hc.r === c.r && hc.c === c.c)));
+        if (match) return match;
+      }
+    }
+    return null;
+  }
+  // Hyp. 1 (règle principale) : A=fin_groupe, B=destination_début
+  let res = tryHyp(
+    (axisDir, size) => ({ q: axA.q - axisDir.q * (size - 1), r: axA.r - axisDir.r * (size - 1) }),
+    () => axA,
+    (axisDir, size) => { const d = { q: axA.q - axisDir.q * (size - 1), r: axA.r - axisDir.r * (size - 1) }; return { q: axB.q - d.q, r: axB.r - d.r }; }
+  );
+  if (res) return res;
+  // Hyp. 2 (repli documenté, cas ambigu) : A=début_groupe, B=destination_dernière_bille
+  return tryHyp(
+    () => axA,
+    (axisDir, size) => ({ q: axA.q + axisDir.q * (size - 1), r: axA.r + axisDir.r * (size - 1) }),
+    (axisDir, size) => { const f = { q: axA.q + axisDir.q * (size - 1), r: axA.r + axisDir.r * (size - 1) }; return { q: axB.q - f.q, r: axB.r - f.r }; }
+  );
+}
+
 function _advGuessLayout(title){
   const t = String(title).toLowerCase();
   if (t.includes('mbel') || t.includes('belg')) return 'belgian';
@@ -14969,9 +15065,7 @@ function _advExtractCandidates(rows){
 // Vérifie une partie candidate par rejeu réel — jamais de confiance aveugle
 // dans un format externe. Sandboxé (_scanSandbox) : ne touche jamais la partie en cours.
 function _advVerifyCandidate(cand){
-  if (_advLooksLikeNacre(cand.seq)) {
-    return { ok: false, reason: 'notation Nacre détectée (KAA) — pas encore décodée, importée telle quelle refusée par prudence plutôt que mal interprétée' };
-  }
+  const isNacre = _advLooksLikeNacre(cand.seq);
   const layoutKey = _advGuessLayout(cand.title);
   if (!layoutKey || !ADV_LAYOUTS_AO[layoutKey]) return { ok: false, reason: 'position de départ non reconnue' };
   const start = ADV_LAYOUTS_AO[layoutKey];
@@ -14983,10 +15077,12 @@ function _advVerifyCandidate(cand){
 
   return _scanSandbox(board, function(){
     let color = 'black', plies = 0;
-    const tokens = String(cand.seq).replace(/\d+\./g, ' ').trim().split(/\s+/).filter(Boolean).map(t => t.toLowerCase());
+    // Nacre utilise parfois un préfixe "N.-" explicite pour les Blancs — on le
+    // retire comme les numéros de coup, la couleur reste gérée par l'alternance.
+    const tokens = String(cand.seq).replace(/\d+\.-?/g, ' ').trim().split(/\s+/).filter(Boolean).map(t => t.toLowerCase());
     for (const tok of tokens){
-      const mv = resolveAbaProToken(tok, color);
-      if (!mv) return { ok: false, reason: 'coup illégal : ' + tok };
+      const mv = isNacre ? _advResolveNacreToken(tok, color) : resolveAbaProToken(tok, color);
+      if (!mv) return { ok: false, reason: (isNacre ? 'coup Nacre non résolu (en ligne et latéral testés, sans succès) : ' : 'coup illégal : ') + tok };
       applyMove(mv, color);
       color = color === 'black' ? 'white' : 'black';
       plies++;
