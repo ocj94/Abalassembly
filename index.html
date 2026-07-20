@@ -1992,6 +1992,126 @@ body.focus-mode .main-content { margin-left: 0 !important; padding: 0 !important
 </head>
 <body>
 
+<!-- ═══════════════════════════════════════════════════════════
+     BANDE-ANNONCE D'OUVERTURE — 5 secondes, pur CSS/JS, aucune
+     dépendance ni fichier vidéo (cohérent avec le mono-fichier).
+     Une fois par session (sessionStorage), toujours passable au
+     clic/tap/Échap, raccourcie si l'utilisateur préfère moins
+     d'animations (prefers-reduced-motion).
+     ═══════════════════════════════════════════════════════════ -->
+<style>
+#intro-splash {
+  position: fixed; inset: 0; z-index: 99999;
+  background: radial-gradient(ellipse at center, var(--surface) 0%, var(--bg) 100%);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  animation: introFadeOut .6s ease-in 4.4s forwards;
+}
+#intro-splash.intro-gone { display: none !important; }
+.intro-marbles { position: absolute; inset: 0; }
+.im {
+  position: absolute; top: 50%; left: 50%; width: 30px; height: 30px; border-radius: 50%;
+  transform: translate(calc(-50% + var(--sx)), calc(-50% + var(--sy))) scale(.4);
+  opacity: 0;
+  animation: imConverge 1.5s cubic-bezier(.16,1,.3,1) forwards;
+}
+.im-b { background: radial-gradient(circle at 35% 30%, #4a4a4a, #0a0a0a); box-shadow: 0 3px 10px rgba(0,0,0,.6); }
+.im-w { background: radial-gradient(circle at 35% 30%, #ffffff, #d8d0c0); box-shadow: 0 3px 10px rgba(0,0,0,.35); }
+@keyframes imConverge {
+  0%   { transform: translate(calc(-50% + var(--sx)), calc(-50% + var(--sy))) scale(.4); opacity: 0; }
+  25%  { opacity: 1; }
+  70%  { transform: translate(calc(-50% + var(--sx) * .12), calc(-50% + var(--sy) * .12)) scale(1.15); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(.9); opacity: .55; }
+}
+.im:nth-child(1)  { --sx:380px;  --sy:0px;    animation-delay:.00s; }
+.im:nth-child(2)  { --sx:329px;  --sy:190px;  animation-delay:.03s; }
+.im:nth-child(3)  { --sx:190px;  --sy:329px;  animation-delay:.06s; }
+.im:nth-child(4)  { --sx:0px;    --sy:380px;  animation-delay:.09s; }
+.im:nth-child(5)  { --sx:-190px; --sy:329px;  animation-delay:.12s; }
+.im:nth-child(6)  { --sx:-329px; --sy:190px;  animation-delay:.15s; }
+.im:nth-child(7)  { --sx:-380px; --sy:0px;    animation-delay:.18s; }
+.im:nth-child(8)  { --sx:-329px; --sy:-190px; animation-delay:.21s; }
+.im:nth-child(9)  { --sx:-190px; --sy:-329px; animation-delay:.24s; }
+.im:nth-child(10) { --sx:0px;    --sy:-380px; animation-delay:.27s; }
+.im:nth-child(11) { --sx:190px;  --sy:-329px; animation-delay:.30s; }
+.im:nth-child(12) { --sx:329px;  --sy:-190px; animation-delay:.33s; }
+
+.intro-title { position: relative; text-align: center; opacity: 0; animation: introTitleIn .9s ease-out 1.35s forwards; }
+.intro-logo {
+  font-family: 'Playfair Display', serif; font-size: clamp(32px, 7vw, 64px); font-weight: 700;
+  letter-spacing: .04em; color: var(--white);
+  background: linear-gradient(120deg, var(--gold-light), var(--gold) 50%, var(--gold-dim));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 40px rgba(200,168,75,.25);
+}
+.intro-tagline {
+  margin-top: 10px; font-family: 'DM Sans', sans-serif; font-size: clamp(12px, 2vw, 15px);
+  letter-spacing: .12em; text-transform: uppercase; color: var(--muted); opacity: 0;
+  animation: introTaglineIn .8s ease-out 2.1s forwards;
+}
+@keyframes introTitleIn   { from { opacity:0; transform: translateY(14px) scale(.96); } to { opacity:1; transform: translateY(0) scale(1); } }
+@keyframes introTaglineIn { from { opacity:0; } to { opacity:1; } }
+@keyframes introFadeOut   { to { opacity: 0; visibility: hidden; } }
+
+#intro-skip {
+  position: absolute; bottom: 26px; right: 26px; z-index: 2;
+  background: transparent; border: 1px solid var(--gold-dim); color: var(--muted);
+  font-family: 'DM Sans', sans-serif; font-size: 12px; letter-spacing: .06em;
+  padding: 7px 16px; border-radius: 20px; cursor: pointer; opacity: 0;
+  animation: introTaglineIn .6s ease-out .8s forwards; transition: color .2s, border-color .2s;
+}
+#intro-skip:hover { color: var(--gold-light); border-color: var(--gold); }
+
+@media (prefers-reduced-motion: reduce) {
+  .im { animation: none !important; opacity: 0 !important; }
+  .intro-title, .intro-tagline, #intro-skip { animation-duration: .01s !important; animation-delay: 0s !important; }
+  #intro-splash { animation-delay: 1.2s !important; }
+}
+</style>
+<div id="intro-splash" role="dialog" aria-label="Introduction Abalassembly">
+  <div class="intro-marbles">
+    <div class="im im-b"></div><div class="im im-w"></div><div class="im im-b"></div><div class="im im-w"></div>
+    <div class="im im-b"></div><div class="im im-w"></div><div class="im im-b"></div><div class="im im-w"></div>
+    <div class="im im-b"></div><div class="im im-w"></div><div class="im im-b"></div><div class="im im-w"></div>
+  </div>
+  <div class="intro-title">
+    <div class="intro-logo">ABALASSEMBLY</div>
+    <div class="intro-tagline">Le jeu stratégique de référence</div>
+  </div>
+  <button id="intro-skip" onclick="skipIntro()">Passer ›</button>
+</div>
+<script>
+(function(){
+  try {
+    if (sessionStorage.getItem('abaIntroShown')) {
+      var el = document.getElementById('intro-splash');
+      if (el) el.classList.add('intro-gone');
+      return;
+    }
+    sessionStorage.setItem('abaIntroShown', '1');
+  } catch(e) { /* stockage indisponible (navigation privée...) — l'intro joue quand même, sans persistance */ }
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  window._introTimer = setTimeout(function(){
+    var el = document.getElementById('intro-splash');
+    if (el) el.classList.add('intro-gone');
+  }, reduced ? 1300 : 5100);
+})();
+function skipIntro(){
+  if (window._introTimer != null) clearTimeout(window._introTimer);
+  var el = document.getElementById('intro-splash');
+  if (el) el.classList.add('intro-gone');
+}
+document.addEventListener('keydown', function(e){
+  if ((e.key === 'Escape' || e.key === ' ') && document.getElementById('intro-splash') && !document.getElementById('intro-splash').classList.contains('intro-gone')) {
+    skipIntro();
+  }
+});
+(function(){
+  var el = document.getElementById('intro-splash');
+  if (el) el.addEventListener('click', function(e){ if (e.target === el || e.target.closest('.intro-marbles')) skipIntro(); });
+})();
+</script>
+
 <!-- ─── TOP NAV (logo + auth only) ─── -->
 <nav id="top-nav">
   <!-- LEFT: sidebar toggle -->
