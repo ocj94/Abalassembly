@@ -39,7 +39,7 @@
      ════════════════════════════════════════════════ -->
 <meta name="description" content="Abalassembly : la plateforme de référence pour jouer, apprendre et progresser au jeu de stratégie Abalone. Affrontez des joueurs du monde entier, résolvez des puzzles, suivez des leçons et grimpez au classement ELO.">
 <meta name="keywords" content="abalone, jeu abalone, jeu de stratégie, jeu de billes, abalone en ligne, jouer abalone, règles abalone, puzzles abalone, abalone multijoueur, sumito, belgian daisy, abalone classement, ABA-PRO, stratégie abalone, jeu de plateau hexagonal">
-<meta name="author" content="Abalone.com">
+<meta name="author" content="Abalassembly">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <meta name="googlebot" content="index, follow">
 <meta name="bingbot" content="index, follow">
@@ -2582,8 +2582,8 @@ document.addEventListener('keydown', function(e){
     <span style="font-size:12px;color:var(--muted)">— Le blog de référence sur l'Abalone (règles, variantes, Academy, événements)</span>
   </div>
   <div class="footer-bottom">
-    <span>© 2026 Abalone.com — Tous droits réservés</span>
-    <span>Mentions légales · Politique de confidentialité · <a href="https://onlineabalone.wordpress.com/" target="_blank" rel="noopener" style="color:var(--gold-dim)">Abalone Online Blog</a></span>
+    <span>© 2026 Abalassembly — projet de fan, non affilié à Abalone S.A.</span>
+    <span><a href="#" onclick="showPage('mentions');return false;" style="color:var(--gold-dim)">Mentions légales</a> · <a href="#" onclick="showPage('privacy');return false;" style="color:var(--gold-dim)">Politique de confidentialité</a> · <a href="https://onlineabalone.wordpress.com/" target="_blank" rel="noopener" style="color:var(--gold-dim)">Abalone Online Blog</a></span>
   </div>
 </div>
 
@@ -4364,7 +4364,7 @@ document.addEventListener('keydown', function(e){
       <!-- PERMISSIONS -->
       <div class="settings-panel" id="spanel-permissions">
         <div style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:6px">Autorisations</div>
-        <p style="color:var(--muted);font-size:14px;margin-bottom:24px;line-height:1.7">Gérez les accès accordés à Abalone.com. Ces permissions sont gérées par votre navigateur et peuvent être modifiées à tout moment.</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:24px;line-height:1.7">Gérez les accès accordés à Abalassembly. Ces permissions sont gérées par votre navigateur et peuvent être modifiées à tout moment.</p>
 
         <div style="display:flex;flex-direction:column;gap:12px" id="perm-list">
 
@@ -4430,7 +4430,7 @@ document.addEventListener('keydown', function(e){
               <div class="perm-icon" style="background:rgba(180,100,200,0.1);border-color:rgba(180,100,200,0.2)">👥</div>
               <div>
                 <div class="perm-name">Contacts</div>
-                <div class="perm-desc">Inviter vos contacts à rejoindre Abalone.com et retrouver des amis déjà inscrits</div>
+                <div class="perm-desc">Inviter vos contacts à rejoindre Abalassembly et retrouver des amis déjà inscrits</div>
                 <div class="perm-where">Utilisé dans : <strong>Invitations · Amis · Matchmaking</strong></div>
               </div>
             </div>
@@ -5165,6 +5165,35 @@ document.addEventListener('keydown', function(e){
 </div>
 
 <!-- PAGE: MUSEUM -->
+<div class="page" id="page-mentions">
+  <div class="page-header">
+    <button onclick="showPage('home')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;margin-bottom:16px;display:block">&#8592; Retour</button>
+    <div class="section-label">Informations légales</div>
+    <h2>Mentions légales</h2>
+  </div>
+  <div style="padding:0 60px 80px;max-width:720px;color:var(--text);line-height:1.8;font-size:15px">
+    <p><strong style="color:var(--white)">Abalassembly</strong> est un projet personnel, gratuit, publié en open source (licence GPL v3) sur <a href="https://github.com/ocj94/Abalassembly" target="_blank" rel="noopener" style="color:var(--gold)">GitHub</a>.</p>
+    <p style="margin-top:16px">Le jeu <strong>Abalone®</strong> a été créé par Michel Lalet et Laurent Levi. La marque Abalone est une marque déposée d'Abalone S.A. Ce site est un projet de fan, non affilié et non approuvé par Abalone S.A.</p>
+    <p style="margin-top:16px">Abalassembly n'est pas hébergé sous le nom de domaine « Abalone.com » ni associé à celui-ci — cette mention, présente par erreur dans une version antérieure du site, a été corrigée.</p>
+    <p style="margin-top:16px">Aucune société, aucune entité légale n'édite ce site : il s'agit d'un projet individuel, sans activité commerciale.</p>
+  </div>
+</div>
+
+<div class="page" id="page-privacy">
+  <div class="page-header">
+    <button onclick="showPage('home')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;margin-bottom:16px;display:block">&#8592; Retour</button>
+    <div class="section-label">Vie privée</div>
+    <h2>Politique de confidentialité</h2>
+  </div>
+  <div style="padding:0 60px 80px;max-width:720px;color:var(--text);line-height:1.8;font-size:15px">
+    <p><strong style="color:var(--white)">En une phrase : ce site ne collecte aucune donnée personnelle.</strong></p>
+    <p style="margin-top:16px">Abalassembly est un fichier unique qui tourne entièrement dans votre navigateur. Vos parties, votre progression, vos réglages et vos préférences restent stockés localement sur votre appareil (<code style="background:var(--surface2);padding:2px 6px;border-radius:4px">localStorage</code>) — rien n'est envoyé vers un serveur, parce qu'aucun serveur actif ne reçoit ces informations.</p>
+    <p style="margin-top:16px">Un backend existe bien dans un dépôt séparé (comptes, sauvegarde en ligne) mais il est <strong>volontairement désactivé</strong> — tant qu'il ne l'est pas, aucune donnée ne quitte votre navigateur.</p>
+    <p style="margin-top:16px">Effacer vos données : videz le stockage local de votre navigateur pour ce site (Réglages du navigateur → Confidentialité → Données de site), ou utilisez la fonction d'export/suppression si votre navigateur la propose.</p>
+    <p style="margin-top:16px">Contact : passez par les <a href="https://github.com/ocj94/Abalassembly/issues" target="_blank" rel="noopener" style="color:var(--gold)">issues GitHub</a> du projet.</p>
+  </div>
+</div>
+
 <div class="page" id="page-museum">
   <div class="page-header">
     <div class="section-label">Source: <a href="https://onlineabalone.wordpress.com/le-musee/" target="_blank" rel="noopener noreferrer" style="color:var(--gold);text-decoration:none">Le Musée Abalone</a></div>
