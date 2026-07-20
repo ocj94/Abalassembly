@@ -8987,12 +8987,20 @@ const LAYOUTS = {
   swiss: {
     black: [[7,0],[7,1],[6,0],[6,2],[6,5],[5,1],[5,2],[3,5],[3,6],[2,1],[2,4],[2,6],[1,4],[1,5]],
     white: [[7,4],[7,5],[6,1],[6,4],[6,6],[5,5],[5,6],[3,1],[3,2],[2,0],[2,2],[2,5],[1,0],[1,1]]
+  },
+  decouverte: {
+    // Mode Enfant : 7 billes/camp au lieu de 14 — plus facile à tenir en tête
+    // pour un jeune joueur. Sous-ensemble déjà validé de la disposition belge
+    // (coins opposés), pas de nouvelles coordonnées inventées à la main.
+    black: [[8,0],[8,1],[7,0],[7,1],[7,2],[6,1],[6,2]],
+    white: [[0,0],[0,1],[1,0],[1,1],[1,2],[2,1],[2,2]]
   }
 };
 
 function initBoardState() {
   board = {};
-  const name = (typeof currentLayout !== 'undefined' && currentLayout) ? currentLayout : 'standard';
+  const name = (typeof kidsMode !== 'undefined' && kidsMode) ? 'decouverte'
+             : (typeof currentLayout !== 'undefined' && currentLayout) ? currentLayout : 'standard';
   const layout = LAYOUTS[name] || LAYOUTS.standard;
   layout.black.forEach(function(p){ board[p[0]+','+p[1]] = 'black'; });
   layout.white.forEach(function(p){ board[p[0]+','+p[1]] = 'white'; });
@@ -9217,6 +9225,21 @@ function drawBoard(opts) {
     board = savedB;
   }
 
+  // ── Mode Enfant : met en évidence, AVANT toute sélection, toutes les
+  //    billes du joueur au trait qui ont au moins un coup légal — évite à
+  //    un jeune joueur de chercher au hasard laquelle peut bouger.
+  let kidsPlayableCells = null;
+  if (typeof kidsMode !== 'undefined' && kidsMode && sel.length === 0 && typeof getAllMovesForColor === 'function') {
+    const savedB2 = board; board = boardData;
+    kidsPlayableCells = new Set();
+    try {
+      getAllMovesForColor(turnForHints).forEach(function(mv){
+        mv.cells.forEach(function(c){ kidsPlayableCells.add(c.r + ',' + c.c); });
+      });
+    } catch(e) { /* ne bloque jamais l'affichage si le calcul échoue */ }
+    board = savedB2;
+  }
+
   for (let r=0;r<9;r++) {
     for (let c=0;c<ROWS[r];c++) {
       const {x,y} = hexCoord(r,c);
@@ -9245,6 +9268,15 @@ function drawBoard(opts) {
       ctx.lineWidth = isSel ? 1.5 : 1;
       ctx.stroke();
 
+      if (kidsPlayableCells && kidsPlayableCells.has(key) && piece) {
+        ctx.save();
+        ctx.beginPath(); ctx.arc(x, y, HEX_RADIUS - 2, 0, Math.PI*2);
+        const pulse = 0.35 + 0.15 * Math.sin(Date.now() / 400);
+        ctx.strokeStyle = 'rgba(90,180,140,' + pulse.toFixed(2) + ')';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.restore();
+      }
       if (piece && !isAnimating) drawMarble(ctx, x, y, piece, isSel);
 
       // Indice de coup possible (point vert = déplacement, rouge = poussée)
@@ -13676,7 +13708,17 @@ function triggerWin(winner, reason) {
   const overlay = document.getElementById('win-overlay');
   const title = document.getElementById('win-title');
   const sub = document.getElementById('win-sub');
-  if (winner === 'black') {
+  if (typeof kidsMode !== 'undefined' && kidsMode) {
+    // Mode Enfant : jamais de vocabulaire "défaite" — on valide toujours
+    // l'effort, on invite à rejouer, peu importe le résultat.
+    if (winner === 'black') {
+      title.textContent = 'Bravo, tu as gagné ! 🎉';
+      sub.textContent = 'Belle partie, bien joué !';
+    } else {
+      title.textContent = 'Belle partie ! 💪';
+      sub.textContent = 'Cette fois c\'est l\'autre camp qui gagne — à toi de rejouer !';
+    }
+  } else if (winner === 'black') {
     title.textContent = 'Victoire !';
     sub.textContent = `Vous avez éjecté 6 billes adverses !`;
   } else {
@@ -15888,6 +15930,10 @@ function toggleKidsMode() {
   _kidsPrevSkin = boardTheme.marbleSkin;
   boardTheme.marbleSkin = 'kids';
   applyMarbleSkin();
+  selected = [];
+  if (typeof initBoardState === 'function') initBoardState();  // recharge avec la disposition Découverte (7 billes/camp)
+  capturedByBlack = 0; capturedByWhite = 0;
+  if (typeof updateCaptures === 'function') updateCaptures();
   if (typeof drawBoard === 'function') drawBoard();
   // si le chat était affiché, on bascule sur l'onglet Jeu (jamais laisser le chat visible)
   if (typeof switchGameTab === 'function') {
@@ -15937,6 +15983,10 @@ function _kidsExitCheck() {
   document.body.classList.remove('kids-mode');
   boardTheme.marbleSkin = _kidsPrevSkin || 'kintsugi';
   applyMarbleSkin();
+  selected = [];
+  if (typeof initBoardState === 'function') initBoardState();  // revient à la disposition normale (currentLayout)
+  capturedByBlack = 0; capturedByWhite = 0;
+  if (typeof updateCaptures === 'function') updateCaptures();
   if (typeof drawBoard === 'function') drawBoard();
   const statusEl = document.getElementById('kids-mode-status');
   if (statusEl) statusEl.innerHTML = 'Actuellement : <strong>désactivé</strong>';
