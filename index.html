@@ -2824,6 +2824,7 @@ body.focus-mode .main-content { margin-left: 0 !important; padding: 0 !important
             <button class="ctrl-btn" onclick="replayStep(1)">Suivant ⟩</button>
           </div>
           <button class="ctrl-btn" id="replay-btn" onclick="toggleReplay()" style="margin-top:8px;width:100%">▶ Rejouer la partie</button>
+          <button class="ctrl-btn" id="variant-btn" onclick="toggleVariant()" style="margin-top:8px;width:100%" title="Depuis une position du replay, joue un coup différent et voit l'IA y répondre">🔀 Essayer une variante</button>
           <button class="ctrl-btn" onclick="exportGameNotation()" style="margin-top:8px;width:100%">📋 Exporter la partie</button>
           <button class="ctrl-btn" onclick="openMigsBrowser()" style="margin-top:8px;width:100%">📚 Parties (4480)</button>
           <div id="ai-metrics" style="margin-top:10px;padding:9px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);display:none">
@@ -6420,6 +6421,83 @@ function renderWeeklyCard() {
     '</div>';
 }
 
+/* ═══════════════════════════════════════════
+   DÉFI DU JOUR — PARTIE (distinct du puzzle du jour)
+   Même principe que le défi hebdomadaire mais à échelle quotidienne, et
+   centré sur les PARTIES (victoires, parties jouées, éjections) plutôt que
+   sur un puzzle précis — le défi puzzle du jour (dailyChallenge) reste
+   inchangé, celui-ci s'y ajoute sans le remplacer.
+═══════════════════════════════════════════ */
+const DAILY_GAME_CHALLENGES = [
+  { id:'win1',    icon:'🏆', title:'Victoire du jour',  desc:'Gagne 1 partie aujourd\'hui',    goal:1, metric:'wins',      reward:40 },
+  { id:'eject3',  icon:'🎯', title:'Chasseur du jour',  desc:'Éjecte 3 billes aujourd\'hui',   goal:3, metric:'ejections', reward:35 },
+  { id:'play2',   icon:'🎮', title:'Assidu du jour',    desc:'Joue 2 parties aujourd\'hui',    goal:2, metric:'games',     reward:30 },
+];
+
+function currentDailyGame() {
+  const day = todayStr();
+  let h = 0; for (let i=0;i<day.length;i++) h = (h*31 + day.charCodeAt(i)) % 100000;
+  const ch = DAILY_GAME_CHALLENGES[h % DAILY_GAME_CHALLENGES.length];
+  if (!progress.dailyGame || progress.dailyGame.day !== day) {
+    progress.dailyGame = {
+      day: day,
+      id: ch.id,
+      startWins: progress.gamesWon || 0,
+      startGames: progress.gamesPlayed || 0,
+      startEjections: progress.totalEjections || 0,
+      claimed: false
+    };
+    saveProgress(progress);
+  }
+  return ch;
+}
+
+function dailyGameProgressValue(ch) {
+  const d = progress.dailyGame;
+  if (!d) return 0;
+  switch (ch.metric) {
+    case 'wins':      return Math.max(0, (progress.gamesWon||0) - d.startWins);
+    case 'games':     return Math.max(0, (progress.gamesPlayed||0) - d.startGames);
+    case 'ejections': return Math.max(0, (progress.totalEjections||0) - d.startEjections);
+    default: return 0;
+  }
+}
+
+function checkDailyGameComplete() {
+  const ch = currentDailyGame();
+  const val = dailyGameProgressValue(ch);
+  if (val >= ch.goal && progress.dailyGame && !progress.dailyGame.claimed) {
+    progress.dailyGame.claimed = true;
+    saveProgress(progress);
+    addXp(ch.reward, 'Défi du jour : ' + ch.title);
+    if (typeof awardBadge === 'function') awardBadge('dailygame_' + ch.id);
+    setTimeout(function(){ toastEngage('🎁 Défi du jour réussi ! +' + ch.reward + ' XP'); }, 700);
+  }
+}
+
+function renderDailyGameCard() {
+  const host = document.getElementById('daily-game-card');
+  if (!host) return;
+  const ch = currentDailyGame();
+  const val = Math.min(dailyGameProgressValue(ch), ch.goal);
+  const pct = Math.round(val / ch.goal * 100);
+  const done = progress.dailyGame && progress.dailyGame.claimed;
+  host.innerHTML =
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +
+      '<span style="font-size:24px">' + ch.icon + '</span>' +
+      '<div><div style="font-size:14px;font-weight:700;color:var(--white)">' + ch.title + '</div>' +
+      '<div style="font-size:12px;color:var(--muted)">' + ch.desc + '</div></div>' +
+      (done ? '<span style="margin-left:auto;color:var(--gold);font-size:18px">✓</span>' : '') +
+    '</div>' +
+    '<div style="background:var(--surface2);border-radius:8px;height:8px;overflow:hidden;margin-bottom:6px">' +
+      '<div style="height:100%;width:' + pct + '%;background:linear-gradient(to right,#7ec8e3,#4fa8d8);transition:width .4s"></div>' +
+    '</div>' +
+    '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)">' +
+      '<span>' + val + ' / ' + ch.goal + '</span>' +
+      '<span>' + (done ? 'Récompense obtenue' : '+' + ch.reward + ' XP') + '</span>' +
+    '</div>';
+}
+
 /* ─── Hooks appelés par le jeu ─── */
 function onGamePlayed(result) {
   // result : true/'win' = victoire, false/'loss' = défaite, 'draw' = nul
@@ -6445,6 +6523,7 @@ function onGamePlayed(result) {
   addXp(res === 'win' ? 30 : (res === 'draw' ? 15 : 10),
         res === 'win' ? 'Victoire !' : (res === 'draw' ? 'Match nul' : 'Partie jouée'));
   checkWeeklyComplete();
+  checkDailyGameComplete();
 }
 function onPuzzleSolved() {
   progress.puzzlesSolved += 1;
@@ -6856,8 +6935,14 @@ function renderEngageBar() {
   '<div style="background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:18px 20px;margin-top:14px">'+
     '<div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:12px">🎁 Défi de la semaine</div>'+
     '<div id="weekly-card"></div>'+
+  '</div>' +
+  // ── Carte DÉFI DU JOUR — PARTIE (distincte du puzzle du jour) ──
+  '<div style="background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:18px 20px;margin-top:14px">'+
+    '<div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:12px">⚡ Défi du jour — partie</div>'+
+    '<div id="daily-game-card"></div>'+
   '</div>';
   setTimeout(renderWeeklyCard, 0);
+  setTimeout(renderDailyGameCard, 0);
 }
 
 function renderDailyCard() { renderEngageBar(); }
@@ -10283,6 +10368,7 @@ if (canvas) {
   canvas.addEventListener('click', e => {
     if (canvas._dragJustEnded) { canvas._dragJustEnded = false; return; }
     if (gameOver) return;
+    if (replayMode && !variantMode) return;   // navigation replay = lecture seule, sauf en exploration de variante
     if (gameMode === 'ai' && currentTurn !== humanColor) return;
     const pos = canvasPos(e.clientX, e.clientY);
     const hex = getHexAt(pos.x, pos.y);
@@ -10344,7 +10430,7 @@ function recordPlayerMove(opts) {
   // Poussées
   if (opts.pushAttempt) progress.pushAttempts = (progress.pushAttempts||0) + 1;
   if (opts.pushSuccess) progress.totalPushes = (progress.totalPushes||0) + 1;
-  if (opts.ejection)    progress.totalEjections = (progress.totalEjections||0) + 1;
+  if (opts.ejection)    { progress.totalEjections = (progress.totalEjections||0) + 1; if (typeof checkDailyGameComplete === 'function') checkDailyGameComplete(); }
   // Contrôle du centre + cohésion (état après le coup)
   progress.centerTurns = (progress.centerTurns||0) + centerControl('black');
   progress.cohesionSum = (progress.cohesionSum||0) + cohesionScore('black');
@@ -10596,7 +10682,7 @@ function handleClick(r, c) {
   // Libellé du coup selon les systèmes de notation activés (Aba-Pro et/ou Nacre)
   const ejected = !!(info.type === 'push' && info.ejection);
   const moveNotation = moveLabel(selCopy, chosenDir, info.type, ejected);
-  addMoveToHistory(moveNotation, me, { cells: selCopy.slice(), dir: chosenDir, type: info.type, ejection: ejected });
+  if (!variantMode) addMoveToHistory(moveNotation, me, { cells: selCopy.slice(), dir: chosenDir, type: info.type, ejection: ejected });
   updateCaptures();
 
   // Mode Coach : commente le coup du joueur
@@ -10625,8 +10711,8 @@ function handleClick(r, c) {
   }
 
   // Victoire ?
-  if (capturedByBlack >= 6) { triggerWin('black'); return; }
-  if (capturedByWhite >= 6) { triggerWin('white'); return; }
+  if (capturedByBlack >= 6) { if (variantMode) { _variantConclude('black'); return; } triggerWin('black'); return; }
+  if (capturedByWhite >= 6) { if (variantMode) { _variantConclude('white'); return; } triggerWin('white'); return; }
 
   _clockInc(me);   // ⏱️ incrément de cadence pour celui qui vient de jouer
   currentTurn = (me === 'black') ? 'white' : 'black';
@@ -10646,7 +10732,7 @@ function handleClick(r, c) {
 function afterHumanMove() {
   gameBestHint = null;  // efface la suggestion après avoir joué
   if (_puzzleActive) { checkPuzzleMove(); return; }   // mode puzzle : vérifie, pas d'IA ni de sauvegarde
-  saveGameState();      // sauvegarde automatique
+  if (!variantMode) saveGameState();      // sauvegarde automatique — jamais pendant l'exploration d'une variante
   if (gameMode === 'ai' && currentTurn === aiColor() && !gameOver) {
     setTimeout(aiMove, 800 + Math.random()*600);
   }
@@ -11665,34 +11751,68 @@ function loadAOGame(idx){
 }
 
 // Navigateur de parties
-function openMigsBrowser(){ const m=document.getElementById('migs-modal'); if(!m)return; m.style.display='flex'; renderMigsList(''); const s=document.getElementById('migs-search'); if(s){s.value='';s.focus();} }
+function openMigsBrowser(){ const m=document.getElementById('migs-modal'); if(!m)return; m.style.display='flex'; const s=document.getElementById('migs-search'); if(s){s.value='';} renderMigsList(); if(s) s.focus(); }
 function closeMigsBrowser(){ const m=document.getElementById('migs-modal'); if(m)m.style.display='none'; }
-function renderMigsList(q){
-  q=(q||'').toLowerCase().trim();
+function _migsMoveCount(seq){
+  // Nombre de PLIS (demi-coups) : compte les tokens en retirant les préfixes "N." / "N.-"
+  return String(seq||'').replace(/\d+\.-?/g, ' ').trim().split(/\s+/).filter(Boolean).length;
+}
+function _migsPopulateVariantFilter(){
+  const sel = document.getElementById('migs-filter-variant');
+  if (!sel || sel.options.length > 1) return; // déjà rempli
+  const variants = new Set();
+  AO_GAMES.forEach(function(g){ if (g[4]) variants.add(g[4]); });
+  variants.add('belgian'); // toutes les parties MIGS
+  [...variants].sort().forEach(function(v){
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v.replace('_daisy',' daisy').replace(/_/g,' ');
+    sel.appendChild(opt);
+  });
+}
+function renderMigsList(){
+  const q = (document.getElementById('migs-search')?.value || '').toLowerCase().trim();
+  const variantFilter = document.getElementById('migs-filter-variant')?.value || '';
+  const lengthFilter = document.getElementById('migs-filter-length')?.value || '';
   const list=document.getElementById('migs-list'); if(!list)return;
   if(!AO_GAMES.length && !MIGS_GAMES.length){
     list.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted)">⏳ Chargement de la bibliothèque…</div>';
     ensureGameBanks().then(function(ok){
-      if(ok) renderMigsList(q);
+      if(ok){ _migsPopulateVariantFilter(); renderMigsList(); }
       else list.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted)">Bibliothèque indisponible (navigateur trop ancien)</div>';
     });
     return;
   }
+  _migsPopulateVariantFilter();
+  function lengthMatches(seq){
+    if (!lengthFilter) return true;
+    const n = _migsMoveCount(seq);
+    if (lengthFilter === 'short') return n < 20;
+    if (lengthFilter === 'medium') return n >= 20 && n <= 40;
+    if (lengthFilter === 'long') return n > 40;
+    return true;
+  }
   let html='', a=0, m=0;
   // Variété AbalOnline d'abord (autres variantes) — max 180
-  for(let i=0;i<AO_GAMES.length && a<180;i++){
-    const g=AO_GAMES[i]; // [date,x,y,win,var,start,seq]
-    if(q && (g[1]+' '+g[2]+' '+g[4]).toLowerCase().indexOf(q)===-1) continue;
-    const vl=g[4].replace('_daisy',' daisy');
-    html+='<div onclick="loadAOGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px"><span>'+escapeHtml(g[1])+' <span style="color:var(--muted)">vs</span> '+escapeHtml(g[2])+'</span><span style="color:var(--gold);font-size:11px;white-space:nowrap">'+escapeHtml(vl)+' · '+escapeHtml(g[0])+'</span></div>';
-    a++;
+  if (!variantFilter || variantFilter !== 'belgian') {
+    for(let i=0;i<AO_GAMES.length && a<180;i++){
+      const g=AO_GAMES[i]; // [date,x,y,win,var,start,seq]
+      if(q && (g[1]+' '+g[2]+' '+g[4]).toLowerCase().indexOf(q)===-1) continue;
+      if(variantFilter && g[4]!==variantFilter) continue;
+      if(!lengthMatches(g[6])) continue;
+      const vl=g[4].replace('_daisy',' daisy');
+      html+='<div onclick="loadAOGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px"><span>'+escapeHtml(g[1])+' <span style="color:var(--muted)">vs</span> '+escapeHtml(g[2])+'</span><span style="color:var(--gold);font-size:11px;white-space:nowrap">'+escapeHtml(vl)+' · '+escapeHtml(g[0])+'</span></div>';
+      a++;
+    }
   }
   // Parties Migs (belgian) — max 120
-  for(let i=0;i<MIGS_GAMES.length && m<120;i++){
-    const g=MIGS_GAMES[i]; // [n,date,b,w,res,seq]
-    if(q && (g[2]+' '+g[3]+' belgian').toLowerCase().indexOf(q)===-1) continue;
-    html+='<div onclick="loadMigsGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px"><span>'+escapeHtml(g[2])+' <span style="color:var(--muted)">vs</span> '+escapeHtml(g[3])+'</span><span style="color:var(--muted);font-size:11px;white-space:nowrap">belgian · '+escapeHtml(g[1])+'</span></div>';
-    m++;
+  if (!variantFilter || variantFilter === 'belgian') {
+    for(let i=0;i<MIGS_GAMES.length && m<120;i++){
+      const g=MIGS_GAMES[i]; // [n,date,b,w,res,seq]
+      if(q && (g[2]+' '+g[3]+' belgian').toLowerCase().indexOf(q)===-1) continue;
+      if(!lengthMatches(g[5])) continue;
+      html+='<div onclick="loadMigsGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px"><span>'+escapeHtml(g[2])+' <span style="color:var(--muted)">vs</span> '+escapeHtml(g[3])+'</span><span style="color:var(--muted);font-size:11px;white-space:nowrap">belgian · '+escapeHtml(g[1])+'</span></div>';
+      m++;
+    }
   }
   list.innerHTML = html || '<div style="padding:20px;color:var(--muted);text-align:center">Aucune partie.</div>';
 }
@@ -13284,7 +13404,7 @@ function executeAIMove(chosen) {
     updateCaptures();
     const ejCount = (ai === 'white') ? capturedByWhite : capturedByBlack;
     if (ejX!==null) animateEjection(ejX, ejY, human, ejCount-1);
-    if (ejCount >= 6) { triggerWin(ai); return; }
+    if (ejCount >= 6) { if (variantMode) { _variantConclude(ai); return; } triggerWin(ai); return; }
   } else if (chosen.info.type === 'push') {
     soundPush();   // 🔊
   } else {
@@ -13292,7 +13412,7 @@ function executeAIMove(chosen) {
   }
   // Libellé du coup de l'IA selon les systèmes de notation activés
   const label = moveLabel(chosen.cells, chosen.dir, chosen.type, !!chosen.eject);
-  addMoveToHistory(label, ai, { cells: chosen.cells.slice(), dir: chosen.dir, type: chosen.type, ejection: !!chosen.eject });
+  if (!variantMode) addMoveToHistory(label, ai, { cells: chosen.cells.slice(), dir: chosen.dir, type: chosen.type, ejection: !!chosen.eject });
   // Heatmap : enregistre le coup de l'IA sous 'opponent'
   if (typeof recordWhiteHeatmap === 'function') recordWhiteHeatmap(chosen.cells);
   _clockInc(human==='black'?'white':'black');   // ⏱️ incrément pour l'IA qui vient de jouer
@@ -16175,9 +16295,12 @@ let tournamentGame = false;     // partie en contexte tournoi ?
 let tournamentActiveRules = null; // règles résolues pour la partie en cours
 let replayMode = false;
 let replayCurrentIdx = -1;
+let variantMode = false;   // exploration interactive depuis une position du replay
+let _variantStash = null;  // état réel sauvegardé pendant l'exploration (jamais touché tant qu'on explore)
 
 function toggleReplay() {
   if (boardSnapshots.length < 2) { showToast('Jouez d\u2019abord quelques coups !'); return; }
+  if (variantMode) exitVariant();   // ne jamais quitter le replay en laissant une variante en cours
   replayMode = !replayMode;
   replayCurrentIdx = replayMode ? 0 : -1;
   const btn = document.getElementById('replay-btn');
@@ -17060,6 +17183,69 @@ function loadSnapshot(idx) {
   });
   const statusEl = document.getElementById('game-status-text');
   if (statusEl) statusEl.textContent = 'Replay — Coup ' + (idx+1) + '/' + boardSnapshots.length + ': ' + snap.label;
+}
+
+/* ═══════════════════════════════════════════
+   ANALYSE INTERACTIVE — bifurcation depuis le replay
+   Permet, depuis n'importe quelle position du replay, de jouer un coup
+   DIFFÉRENT de celui réellement joué et de voir l'IA y répondre — sans
+   jamais toucher à la vraie partie ni à l'historique de replay. L'état réel
+   est sauvegardé dans _variantStash et restauré exactement à la sortie,
+   quel que soit ce qui s'est passé pendant l'exploration (victoire comprise).
+═══════════════════════════════════════════ */
+function startVariant() {
+  if (!replayMode || replayCurrentIdx < 0 || !boardSnapshots[replayCurrentIdx]) {
+    showToast('Ouvrez le replay et placez-vous sur un coup avant d\'essayer une variante');
+    return;
+  }
+  const snap = boardSnapshots[replayCurrentIdx];
+  _variantStash = {
+    board: JSON.parse(JSON.stringify(board)),
+    capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite,
+    currentTurn: currentTurn, gameMode: gameMode, humanColor: humanColor, gameOver: gameOver
+  };
+  variantMode = true;
+  board = JSON.parse(JSON.stringify(snap.board));
+  capturedByBlack = snap.capturedByBlack;
+  capturedByWhite = snap.capturedByWhite;
+  currentTurn = (snap.color === 'black') ? 'white' : 'black';
+  humanColor = currentTurn;   // on explore en jouant le prochain coup, quel que soit le camp
+  gameMode = 'ai';            // pour que l'IA réponde automatiquement au coup exploratoire
+  gameOver = false;
+  selected = [];
+  drawBoard();
+  updateCaptures();
+  const btn = document.getElementById('variant-btn');
+  if (btn) btn.textContent = '✕ Quitter la variante';
+  showToast('🔀 Mode variante — jouez un coup différent, l\'IA répondra');
+}
+
+function exitVariant() {
+  if (!variantMode || !_variantStash) return;
+  board = _variantStash.board;
+  capturedByBlack = _variantStash.capturedByBlack;
+  capturedByWhite = _variantStash.capturedByWhite;
+  currentTurn = _variantStash.currentTurn;
+  gameMode = _variantStash.gameMode;
+  humanColor = _variantStash.humanColor;
+  gameOver = _variantStash.gameOver;
+  variantMode = false;
+  _variantStash = null;
+  selected = [];
+  const btn = document.getElementById('variant-btn');
+  if (btn) btn.textContent = '🔀 Essayer une variante';
+  if (replayMode && replayCurrentIdx >= 0) loadSnapshot(replayCurrentIdx);
+  else drawBoard();
+  showToast('◀ Retour au replay');
+}
+
+function _variantConclude(winner) {
+  showToast('🏁 Cette variante mène à une victoire de ' + (winner==='black'?'Noir':'Blanc') + ' !');
+  setTimeout(exitVariant, 1500);
+}
+
+function toggleVariant() {
+  if (variantMode) exitVariant(); else startVariant();
 }
 
 /* ─── DRAW BOARD with theme ─── */
@@ -19419,7 +19605,18 @@ window.refresh3DIfActive = function() {
       <span style="color:var(--muted);font-size:12px">4480 parties · 19 variantes</span>
       <button class="ctrl-btn" onclick="closeMigsBrowser()" style="width:auto;padding:4px 10px">✕</button>
     </div>
-    <input id="migs-search" oninput="renderMigsList(this.value)" placeholder="Rechercher un joueur ou un N°…" style="margin:12px 18px 8px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px">
+    <input id="migs-search" oninput="renderMigsList()" placeholder="Rechercher un joueur ou un N°…" style="margin:12px 18px 8px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px">
+    <div style="display:flex;gap:8px;margin:0 18px 10px">
+      <select id="migs-filter-variant" onchange="renderMigsList()" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px">
+        <option value="">Toutes les variantes</option>
+      </select>
+      <select id="migs-filter-length" onchange="renderMigsList()" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px">
+        <option value="">Toutes longueurs</option>
+        <option value="short">Courte (&lt; 20 coups)</option>
+        <option value="medium">Moyenne (20-40)</option>
+        <option value="long">Longue (&gt; 40)</option>
+      </select>
+    </div>
     <div id="migs-list" style="overflow-y:auto;padding:0 8px 14px"></div>
   </div>
 </div>
