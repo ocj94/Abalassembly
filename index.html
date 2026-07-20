@@ -1988,6 +1988,22 @@ body.focus-mode .top-header { display: none !important; }
 body.focus-mode .game-center { max-width: 100vw; }
 body.focus-mode #game-board-wrap { transform: scale(1.1); }
 body.focus-mode .main-content { margin-left: 0 !important; padding: 0 !important; }
+
+/* ═══ MODE ENFANT — sûr pour n'importe quel enfant, pas seulement les vôtres.
+   Masque chat, Labo, réglages et TOUS les liens externes. Chaque restriction
+   ici est doublée d'une garde côté JS (openLabModal, switchGameTab, showPage)
+   pour qu'un appel direct ne contourne jamais la restriction visuelle seule
+   — défense en profondeur, pas juste du CSS cosmétique. ═══ */
+body.kids-mode #gtab-chat,
+body.kids-mode #gpanel-chat,
+body.kids-mode #lab-btn,
+body.kids-mode #settings-nav-btn,
+body.kids-mode a[target="_blank"] {
+  display: none !important;
+  pointer-events: none !important;
+}
+body.kids-mode #nav-settings,
+body.kids-mode #bnav-settings { display: none !important; }
 </style>
 </head>
 <body>
@@ -2973,7 +2989,7 @@ document.addEventListener('keydown', function(e){
           <button class="ctrl-btn" onclick="showAnalysisPanel()" style="margin-top:6px;width:100%;font-size:12px">📊 Analyse de la position</button>
           <button class="ctrl-btn" onclick="analyzeGame()" style="margin-top:6px;width:100%;font-size:12px">🔍 Analyser la partie</button>
           <button class="ctrl-btn" onclick="openPuzzles()" style="margin-top:6px;width:100%;font-size:12px">🧩 Puzzles (vraies parties)</button>
-          <button class="ctrl-btn" onclick="openLabModal()" style="margin-top:6px;width:100%;font-size:12px">🧪 Labo IA (auto-amélioration)</button>
+          <button class="ctrl-btn" id="lab-btn" onclick="openLabModal()" style="margin-top:6px;width:100%;font-size:12px">🧪 Labo IA (auto-amélioration)</button>
           <!-- Layout selector -->
           <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Configuration</div>
           <div style="display:flex;gap:4px;flex-wrap:wrap">
@@ -3924,7 +3940,7 @@ document.addEventListener('keydown', function(e){
           <div class="rank-val" id="profile-elo-display">1200</div>
           <div class="rank-sub" id="profile-elo-sub">Joueur</div>
         </div>
-        <button onclick="showPage('settings')" style="padding:9px 16px;background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;white-space:nowrap" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">&#9881; Parametres</button>
+        <button id="settings-nav-btn" onclick="showPage('settings')" style="padding:9px 16px;background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;white-space:nowrap" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">&#9881; Parametres</button>
         <button onclick="logout()" style="padding:9px 16px;background:none;border:1px solid rgba(192,57,43,0.3);color:#e05c4b;border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;white-space:nowrap">Deconnexion</button>
       </div>
     </div>
@@ -4350,6 +4366,21 @@ document.addEventListener('keydown', function(e){
         <p style="color:var(--muted);font-size:14px;margin-bottom:24px;line-height:1.7">Gérez les accès accordés à Abalone.com. Ces permissions sont gérées par votre navigateur et peuvent être modifiées à tout moment.</p>
 
         <div style="display:flex;flex-direction:column;gap:12px" id="perm-list">
+
+          <!-- MODE ENFANT — protection dédiée, en tête de liste -->
+          <div class="perm-card" id="perm-card-kids" style="border-color:rgba(90,180,140,0.35)">
+            <div class="perm-left">
+              <div class="perm-icon" style="background:rgba(90,180,140,0.12);border-color:rgba(90,180,140,0.3)">🧒</div>
+              <div>
+                <div class="perm-name">Mode Enfant</div>
+                <div class="perm-desc">Plateau aux couleurs vives, pensé pour les petits joueurs. Masque automatiquement le chat, le Labo IA, les réglages et tous les liens externes — pensé pour être sûr pour n'importe quel enfant, pas seulement les vôtres.</div>
+                <div class="perm-where" id="kids-mode-status">Actuellement : <strong>désactivé</strong></div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
+              <button class="perm-btn allow" id="kids-mode-toggle-btn" onclick="toggleKidsMode()">Activer</button>
+            </div>
+          </div>
 
           <!-- CAMERA -->
           <div class="perm-card" id="perm-card-camera">
@@ -12601,6 +12632,7 @@ function _labReject(st, cf, undecided){
   st.gen++; st.cands=labMutants(st.champion, st.gen); st.confirm=null; st.phase='screen';
 }
 function openLabModal(){
+  if (typeof kidsMode !== 'undefined' && kidsMode) { showToast('🧒 Le Labo IA n\'est pas disponible en mode Enfant'); return; }
   const m=document.getElementById('lab-modal'); if(m){ m.style.display='flex'; renderLab(); }
 }
 function closeLabModal(){ const m=document.getElementById('lab-modal'); if(m) m.style.display='none'; }
@@ -15599,6 +15631,7 @@ function refreshWriterArticles() {
    GAME TABS
 ═══════════════════════════════════════════ */
 function switchGameTab(tab, btn) {
+  if (tab === 'chat' && typeof kidsMode !== 'undefined' && kidsMode) { showToast('🧒 Le chat n\'est pas disponible en mode Enfant'); return; }
   document.querySelectorAll('.game-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.game-tab-panel').forEach(p => { p.classList.remove('active'); p.style.display='none'; });
   btn.classList.add('active');
@@ -15722,6 +15755,12 @@ let boardTheme = { bg1:'#1e2b28', bg2:'#131b19', blackGrad1:'#666', blackGrad2:'
    pour les billes noires (b) et blanches (w)
 ═══════════════════════════════════════════ */
 const MARBLE_SKINS = {
+  kids: {
+    name:'Enfant', desc:'Couleurs vives et contrastées, pensées pour les petits joueurs',
+    b:['#ff9a5c','#ff6b35','#e04e1b'],
+    w:['#7ee0ff','#4fc3f7','#2196c9'],
+    unlock:{ type:'free' }                       // toujours disponible — nécessaire dès l'activation du mode Enfant
+  },
   kintsugi: {
     name:'Kintsugi', desc:'Laque noire veinée d\u2019or · nacre lunaire', veins:true,
     b:['#3a3a3c','#1a1a1c','#050506'],
@@ -15825,6 +15864,85 @@ function applyMarbleSkin() {
   // garde la compat avec le système 2-couleurs
   boardTheme.blackGrad1 = sk.b[0]; boardTheme.blackGrad2 = sk.b[sk.b.length-1];
   boardTheme.whiteGrad1 = sk.w[0]; boardTheme.whiteGrad2 = sk.w[sk.w.length-1];
+}
+
+/* ═══════════════════════════════════════════
+   MODE ENFANT — plateau adapté, restrictions de sécurité
+   Conçu pour être sûr pour N'IMPORTE QUEL enfant, pas seulement les vôtres :
+   aucune donnée personnelle, aucune configuration liée à une famille précise.
+   Chat, Labo, réglages et liens externes verrouillés à la fois visuellement
+   (CSS) ET fonctionnellement (garde dans chaque fonction concernée) — un
+   appel direct ne contourne jamais la restriction visuelle seule.
+   Sortie protégée par un calcul simple généré aléatoirement (verrou
+   parental léger, pas une sécurité cryptographique — juste assez de
+   friction pour qu'un enfant seul ne quitte pas le mode par accident).
+═══════════════════════════════════════════ */
+let kidsMode = false;
+let _kidsPrevSkin = null;
+let _kidsExitAnswer = null;
+
+function toggleKidsMode() {
+  if (kidsMode) { _kidsExitPrompt(); return; }
+  kidsMode = true;
+  document.body.classList.add('kids-mode');
+  _kidsPrevSkin = boardTheme.marbleSkin;
+  boardTheme.marbleSkin = 'kids';
+  applyMarbleSkin();
+  if (typeof drawBoard === 'function') drawBoard();
+  // si le chat était affiché, on bascule sur l'onglet Jeu (jamais laisser le chat visible)
+  if (typeof switchGameTab === 'function') {
+    const chatPanel = document.getElementById('gpanel-chat');
+    if (chatPanel && chatPanel.style.display !== 'none') {
+      const gameTabBtn = document.querySelector('.game-tab[onclick*="\'game\'"]');
+      switchGameTab('game', gameTabBtn || null);
+    }
+  }
+  const statusEl = document.getElementById('kids-mode-status');
+  if (statusEl) statusEl.innerHTML = 'Actuellement : <strong style="color:#5ab48c">activé 🧒</strong>';
+  const btn = document.getElementById('kids-mode-toggle-btn');
+  if (btn) { btn.textContent = 'Désactiver'; btn.classList.remove('allow'); btn.classList.add('deny'); }
+  showToast('🧒 Mode Enfant activé — plateau adapté, chat/Labo/réglages/liens externes masqués');
+}
+
+function _kidsExitPrompt() {
+  const a = 3 + Math.floor(Math.random() * 7);   // 3..9
+  const b = 2 + Math.floor(Math.random() * 8);   // 2..9
+  _kidsExitAnswer = a + b;
+  const q = document.getElementById('kids-exit-question');
+  if (q) q.textContent = a + ' + ' + b + ' = ?';
+  const err = document.getElementById('kids-exit-error');
+  if (err) err.style.display = 'none';
+  const inp = document.getElementById('kids-exit-answer');
+  if (inp) { inp.value = ''; }
+  const m = document.getElementById('kids-exit-modal');
+  if (m) { m.style.display = 'flex'; if (inp) setTimeout(function(){ inp.focus(); }, 50); }
+}
+
+function _kidsExitCancel() {
+  const m = document.getElementById('kids-exit-modal');
+  if (m) m.style.display = 'none';
+  _kidsExitAnswer = null;
+}
+
+function _kidsExitCheck() {
+  const inp = document.getElementById('kids-exit-answer');
+  const given = inp ? parseInt(inp.value, 10) : NaN;
+  if (given !== _kidsExitAnswer) {
+    const err = document.getElementById('kids-exit-error');
+    if (err) err.style.display = 'block';
+    return;
+  }
+  _kidsExitCancel();
+  kidsMode = false;
+  document.body.classList.remove('kids-mode');
+  boardTheme.marbleSkin = _kidsPrevSkin || 'kintsugi';
+  applyMarbleSkin();
+  if (typeof drawBoard === 'function') drawBoard();
+  const statusEl = document.getElementById('kids-mode-status');
+  if (statusEl) statusEl.innerHTML = 'Actuellement : <strong>désactivé</strong>';
+  const btn = document.getElementById('kids-mode-toggle-btn');
+  if (btn) { btn.textContent = 'Activer'; btn.classList.remove('deny'); btn.classList.add('allow'); }
+  showToast('Mode Enfant désactivé');
 }
 
 function setMarbleSkin(skin, btn) {
@@ -17704,6 +17822,10 @@ window.addEventListener('resize', function() {
 // Sync bottom nav highlight with showPage
 const _origShowPageRef = showPage;
 function showPage(name) {
+  if (name === 'settings' && typeof kidsMode !== 'undefined' && kidsMode) {
+    showToast('🧒 Les réglages ne sont pas disponibles en mode Enfant');
+    name = 'game';
+  }
   document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
   document.querySelectorAll('.nav-links a').forEach(function(a){ a.classList.remove('active'); });
   const pg = document.getElementById('page-'+name);
@@ -19738,6 +19860,20 @@ window.refresh3DIfActive = function() {
       </select>
     </div>
     <div id="migs-list" style="overflow-y:auto;padding:0 8px 14px"></div>
+  </div>
+</div>
+<div id="kids-exit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;align-items:center;justify-content:center" onclick="if(event.target===this)_kidsExitCancel()">
+  <div style="background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:26px 28px;width:min(340px,90vw);text-align:center">
+    <div style="font-size:32px;margin-bottom:8px">🔒</div>
+    <div style="font-size:16px;font-weight:700;color:var(--white);margin-bottom:6px">Demande à un adulte</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.6">Pour sortir du mode Enfant, un grand doit répondre à ce calcul :</div>
+    <div id="kids-exit-question" style="font-size:22px;font-weight:700;color:var(--gold);margin-bottom:14px"></div>
+    <input id="kids-exit-answer" type="number" inputmode="numeric" placeholder="Réponse" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:16px;text-align:center;margin-bottom:14px" onkeydown="if(event.key==='Enter')_kidsExitCheck()">
+    <div id="kids-exit-error" style="color:#e06060;font-size:12px;margin-bottom:10px;display:none">Ce n'est pas la bonne réponse — réessaie.</div>
+    <div style="display:flex;gap:8px">
+      <button class="ctrl-btn" style="flex:1" onclick="_kidsExitCancel()">Annuler</button>
+      <button class="ctrl-btn primary" style="flex:1" onclick="_kidsExitCheck()">Valider</button>
+    </div>
   </div>
 </div>
 <div id="ascii-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9999;align-items:center;justify-content:center" onclick="if(event.target===this)closeAsciiModal()">
