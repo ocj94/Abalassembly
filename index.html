@@ -4964,6 +4964,15 @@ document.addEventListener('keydown', function(e){
       <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold)">Abalone Academy</div>
       <h2 style="margin-bottom:8px">Problèmes tactiques</h2>
 
+      <!-- PROBLÈME DU MOIS -->
+      <div style="background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:18px 20px;margin-bottom:24px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <span style="font-size:20px">🏆</span>
+          <span style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px">Le problème du mois</span>
+        </div>
+        <div id="monthly-puzzle-card"></div>
+      </div>
+
       <!-- Mode selector -->
       <div style="display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap">
         <div class="puzzle-mode-btn active" id="puzzle-mode-normal" onclick="setPuzzleMode('normal',this)">
@@ -6185,6 +6194,82 @@ const ENGAGE_KEY = 'abalone_progress';
 function todayStr() {
   const d = new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+/* ═══════════════════════════════════════════
+   PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone Online
+   (onlineabalone.wordpress.com/abalone-academy/problemes-abaloniens/).
+   Un vrai puzzle miné dans une vraie partie (PUZZLES, pas la banque
+   pédagogique de l'Académie), le même pour tout le monde durant tout le
+   mois, présenté façon NIVEAU/TRAIT/OBJECTIF, solution cachée jusqu'au clic.
+═══════════════════════════════════════════ */
+function monthStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+function monthSeed() {
+  const m = monthStr();
+  let h = 0;
+  for (let i = 0; i < m.length; i++) h = (h * 31 + m.charCodeAt(i)) >>> 0;
+  return h;
+}
+const MONTHLY_LEVEL_LABEL = { 1: 'FACILE', 2: 'MOYEN', 3: 'DIFFICILE' };
+function currentMonthlyPuzzle() {
+  const m = monthStr();
+  if (!progress.monthly || progress.monthly.month !== m) {
+    const idx = monthSeed() % PUZZLES.length;
+    progress.monthly = { month: m, idx: idx, solved: false, revealed: false };
+    saveProgress(progress);
+  }
+  const idx = progress.monthly.idx;
+  const p = PUZZLES[idx];
+  return {
+    idx: idx, puzzle: p,
+    niveau: MONTHLY_LEVEL_LABEL[p.d] || 'MOYEN',
+    trait: p.c === 'black' ? 'NOIR' : 'BLANC',
+    objectif: p.def ? 'PARER LA MENACE' : 'TROUVER LE COUP GAGNANT',
+    solved: !!progress.monthly.solved,
+    revealed: !!progress.monthly.revealed,
+  };
+}
+function playMonthlyPuzzle() {
+  const mc = currentMonthlyPuzzle();
+  showPage('puzzles');
+  if (typeof startPuzzle === 'function') startPuzzle(mc.idx);
+}
+function revealMonthlySolution() {
+  progress.monthly.revealed = true;
+  saveProgress(progress);
+  renderMonthlyCard();
+}
+function checkMonthlyCompletion(solvedIdx) {
+  const mc = currentMonthlyPuzzle();
+  if (solvedIdx === mc.idx && !progress.monthly.solved) {
+    progress.monthly.solved = true;
+    saveProgress(progress);
+    addXp(80, 'Problème du mois résolu');
+    if (typeof awardBadge === 'function') awardBadge('monthly_' + mc.idx);
+    setTimeout(function(){ showToast('🏆 Problème du mois résolu ! +80 XP'); }, 700);
+    renderMonthlyCard();
+  }
+}
+function renderMonthlyCard() {
+  const host = document.getElementById('monthly-puzzle-card');
+  if (!host) return;
+  const mc = currentMonthlyPuzzle();
+  const src = mc.puzzle.src || '';
+  host.innerHTML =
+    '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:10px">' +
+      'NIVEAU : <strong style="color:var(--gold)">' + mc.niveau + '</strong> &nbsp;·&nbsp; ' +
+      'TRAIT : <strong style="color:var(--gold)">' + mc.trait + '</strong> &nbsp;·&nbsp; ' +
+      'OBJECTIF : <strong style="color:var(--gold)">' + mc.objectif + '</strong>' +
+    '</div>' +
+    (mc.solved ? '<div style="color:#5ab48c;font-size:13px;margin-bottom:10px">✅ Résolu ce mois-ci</div>' : '') +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">' +
+      '<button class="ctrl-btn" onclick="playMonthlyPuzzle()">▶ Jouer le problème du mois</button>' +
+      (mc.revealed ? '' : '<button class="ctrl-btn" onclick="revealMonthlySolution()">👁 Voir la solution</button>') +
+    '</div>' +
+    (mc.revealed ? '<div style="font-size:13px;color:var(--text);padding:10px;background:var(--surface2);border-radius:8px">Solution : <strong style="color:var(--gold)">' + mc.puzzle.lab + '</strong>' + (src ? '<br><span style="color:var(--muted);font-size:12px">Issu de la partie : ' + src + '</span>' : '') + '</div>' : '');
 }
 function daysBetween(a, b) {
   const da = new Date(a), db = new Date(b);
@@ -12284,6 +12369,7 @@ function checkPuzzleMove(){
     _puzzleActive=null;
     const solved=parseInt(localStorage.getItem('abaPuzzleSolved')||'0',10)+1;
     localStorage.setItem('abaPuzzleSolved', String(solved));
+    if (typeof checkMonthlyCompletion === 'function') checkMonthlyCompletion(pa.idx);
     const t=document.getElementById('pz-title');
     if(t) t.textContent='✅ Bravo ! Puzzle réussi ('+solved+' résolus) — ⏭ pour le suivant';
     showToast(isDef?'🛡️ Menace parée !':'✅ Coup gagnant trouvé !');
@@ -17974,6 +18060,7 @@ function showPage(name) {
     analysis:   function(){ if(analysisHistory.length===0) analysisFromStandard(); else drawAnalysisBoard(); },
     puzzles:    function(){
       renderPuzzles();
+      if (typeof renderMonthlyCard === 'function') renderMonthlyCard();
       setTimeout(function(){
         if(typeof buildPuzzleBoard==='function') buildPuzzleBoard(currentPuzzleIdx||0);
         if(typeof drawPuzzleBoardInteractive==='function') drawPuzzleBoardInteractive();
