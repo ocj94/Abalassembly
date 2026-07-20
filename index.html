@@ -3068,6 +3068,7 @@ document.addEventListener('keydown', function(e){
               <span style="position:absolute;inset:0;background:var(--border);border-radius:12px;cursor:pointer;transition:0.2s"></span>
             </label>
           </div>
+                    <button class="ctrl-btn" id="live-variant-btn" onclick="toggleLiveVariant()" title="Essaie un autre coup et vois ce qui se passe — ça ne compte pas pour de vrai">🔮 Et si...?</button>
           <button class="ctrl-btn" onclick="requestUndo()">↩️ Annuler le dernier coup</button>
           <button class="ctrl-btn" onclick="requestPause()" id="pause-btn">⏸️ Pause (1 min)</button>
           <button class="ctrl-btn primary" onclick="showToast('🤝 Demande de nulle envoyée')">Proposer nulle</button>
@@ -17490,7 +17491,8 @@ function startVariant() {
   _variantStash = {
     board: JSON.parse(JSON.stringify(board)),
     capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite,
-    currentTurn: currentTurn, gameMode: gameMode, humanColor: humanColor, gameOver: gameOver
+    currentTurn: currentTurn, gameMode: gameMode, humanColor: humanColor, gameOver: gameOver,
+    fromLive: false
   };
   variantMode = true;
   board = JSON.parse(JSON.stringify(snap.board));
@@ -17508,8 +17510,32 @@ function startVariant() {
   showToast('🔀 Mode variante — jouez un coup différent, l\'IA répondra');
 }
 
+/* Même mécanisme que startVariant(), mais lancé DEPUIS une partie en direct
+   plutôt que depuis le replay — répond directement à la demande "calculer
+   plusieurs coups à l'avance PENDANT qu'on joue", pas seulement après coup.
+   Le plateau n'est pas remplacé (on explore déjà depuis la position réelle
+   actuelle) — seul l'état est sauvegardé pour un retour exact garanti. */
+function startLiveVariant() {
+  if (replayMode || variantMode) return;
+  if (gameOver) { showToast('La partie est terminée — rien à essayer'); return; }
+  if (gameMode === 'ai' && currentTurn !== humanColor) { showToast('Attends ton tour pour essayer un coup'); return; }
+  _variantStash = {
+    board: JSON.parse(JSON.stringify(board)),
+    capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite,
+    currentTurn: currentTurn, gameMode: gameMode, humanColor: humanColor, gameOver: gameOver,
+    fromLive: true
+  };
+  variantMode = true;
+  selected = [];
+  drawBoard();
+  const btn = document.getElementById('live-variant-btn');
+  if (btn) btn.textContent = '✕ Revenir à ma vraie partie';
+  showToast('🔮 Tu essaies un coup — il ne compte pas pour de vrai !');
+}
+
 function exitVariant() {
   if (!variantMode || !_variantStash) return;
+  const wasFromLive = !!_variantStash.fromLive;
   board = _variantStash.board;
   capturedByBlack = _variantStash.capturedByBlack;
   capturedByWhite = _variantStash.capturedByWhite;
@@ -17522,9 +17548,18 @@ function exitVariant() {
   selected = [];
   const btn = document.getElementById('variant-btn');
   if (btn) btn.textContent = '🔀 Essayer une variante';
-  if (replayMode && replayCurrentIdx >= 0) loadSnapshot(replayCurrentIdx);
-  else drawBoard();
-  showToast('◀ Retour au replay');
+  const liveBtn = document.getElementById('live-variant-btn');
+  if (liveBtn) liveBtn.textContent = '🔮 Et si...?';
+  if (wasFromLive) {
+    drawBoard();
+    updateCaptures();
+    showToast('◀ Retour à ta vraie partie');
+  } else if (replayMode && replayCurrentIdx >= 0) {
+    loadSnapshot(replayCurrentIdx);
+    showToast('◀ Retour au replay');
+  } else {
+    drawBoard();
+  }
 }
 
 function _variantConclude(winner) {
@@ -17534,6 +17569,10 @@ function _variantConclude(winner) {
 
 function toggleVariant() {
   if (variantMode) exitVariant(); else startVariant();
+}
+
+function toggleLiveVariant() {
+  if (variantMode) exitVariant(); else startLiveVariant();
 }
 
 /* ─── DRAW BOARD with theme ─── */
