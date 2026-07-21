@@ -6193,6 +6193,57 @@ document.addEventListener('keydown', function(e){
 
 <script>
 /* ═══════════════════════════════════════════
+   FILET DE SÉCURITÉ GLOBAL — capture les erreurs et rejets non gérés
+   Autonome : ne dépend d'AUCUNE autre fonction ni d'aucun élément déjà
+   présent dans le DOM (il construit son propre bandeau), pour ne jamais
+   « planter dans le plantage ». N'interrompt pas le jeu — informe juste
+   l'utilisateur discrètement plutôt que d'échouer en silence dans la
+   console. Ajouté après vérification qu'aucun handler global n'existait.
+═══════════════════════════════════════════ */
+(function(){
+  var shown = false;          // un seul bandeau à la fois
+  var errorCount = 0;
+  function showErrorBanner(){
+    if (shown) return; shown = true;
+    try {
+      var bar = document.createElement('div');
+      bar.setAttribute('role', 'alert');
+      bar.style.cssText = 'position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:99999;'
+        + 'background:#2a1a1a;color:#f0d0d0;border:1px solid #7a3a3a;border-radius:10px;'
+        + 'padding:12px 16px;font-family:system-ui,sans-serif;font-size:13px;max-width:90vw;'
+        + 'box-shadow:0 8px 30px rgba(0,0,0,0.5);display:flex;align-items:center;gap:12px';
+      var txt = document.createElement('span');
+      txt.textContent = '⚠️ Une erreur est survenue. Le jeu peut continuer, mais si quelque chose semble bloqué :';
+      var reload = document.createElement('button');
+      reload.textContent = 'Recharger';
+      reload.style.cssText = 'background:#c8a84b;color:#0d0f0e;border:none;border-radius:7px;'
+        + 'padding:6px 14px;font-weight:700;cursor:pointer;font-size:13px;white-space:nowrap';
+      reload.onclick = function(){ location.reload(); };
+      var close = document.createElement('button');
+      close.textContent = '✕';
+      close.setAttribute('aria-label', 'Fermer');
+      close.style.cssText = 'background:none;border:none;color:#f0d0d0;cursor:pointer;font-size:15px;padding:0 4px';
+      close.onclick = function(){ if (bar.parentNode) bar.parentNode.removeChild(bar); shown = false; };
+      bar.appendChild(txt); bar.appendChild(reload); bar.appendChild(close);
+      (document.body || document.documentElement).appendChild(bar);
+      // auto-masquage après 12s pour ne pas rester coincé à l'écran
+      setTimeout(function(){ if (bar.parentNode) { bar.parentNode.removeChild(bar); shown = false; } }, 12000);
+    } catch(e){ shown = false; /* dernier recours silencieux : on n'aggrave rien */ }
+  }
+  window.addEventListener('error', function(e){
+    errorCount++;
+    // ignore les erreurs de ressources (images, etc.) qui n'ont pas de message
+    if (e && e.message) showErrorBanner();
+  });
+  window.addEventListener('unhandledrejection', function(e){
+    errorCount++;
+    showErrorBanner();
+  });
+  // exposé pour le test / le diagnostic éventuel
+  window.__abaErrorCount = function(){ return errorCount; };
+})();
+
+/* ═══════════════════════════════════════════
    MOTEUR D'ENGAGEMENT — XP · Streak · Défi quotidien · Badges
    Données persistantes via localStorage (clé: abalone_progress)
 ═══════════════════════════════════════════ */
