@@ -2365,13 +2365,13 @@ document.addEventListener('keydown', function(e){
         <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;flex-basis:100%;margin-bottom:4px">Fiche du jeu — Source: <a href="https://fr.boardgamearena.com/gamepanel?game=abalone" target="_blank" rel="noopener noreferrer" style="color:var(--gold)">Board Game Arena</a></div>
         <div style="display:flex;flex-direction:column;gap:2px">
           <div style="font-size:11px;color:var(--muted)">Stratégie</div>
-          <div style="display:flex;gap:3px"><div style="width:14px;height:14px;border-radius:3px;background:var(--gold)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--gold)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--gold)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--gold)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--gold)"></div></div>
+          <div style="display:flex;gap:3px">${'<div style="width:14px;height:14px;border-radius:3px;background:var(--gold)"></div>'.repeat(5)}</div>
           <div style="font-size:10px;color:var(--gold);font-weight:700">5 / 5</div>
         </div>
         <div style="width:1px;height:36px;background:var(--border)"></div>
         <div style="display:flex;flex-direction:column;gap:2px">
           <div style="font-size:11px;color:var(--muted)">Chance</div>
-          <div style="display:flex;gap:3px"><div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div></div>
+          <div style="display:flex;gap:3px">${'<div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div>'.repeat(5)}</div>
           <div style="font-size:10px;color:var(--muted);font-weight:700">0 / 5</div>
         </div>
         <div style="width:1px;height:36px;background:var(--border)"></div>
@@ -2379,7 +2379,7 @@ document.addEventListener('keydown', function(e){
           <div style="font-size:11px;color:var(--muted)">Complexité</div>
           <div style="display:flex;gap:3px">
             <div style="width:14px;height:14px;border-radius:3px;background:var(--accent-green-light)"></div>
-            <div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div>
+            ${Array(4).fill('<div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div>').join('')}
           </div>
           <div style="font-size:10px;color:var(--accent-green-light);font-weight:700">1 / 5</div>
         </div>
@@ -11808,6 +11808,49 @@ function terminateAIWorker() {
   if (_aiWorkerURL) { try { URL.revokeObjectURL(_aiWorkerURL); } catch(e){} _aiWorkerURL = null; }
 }
 
+/* Force l'IA à jouer maintenant — idée de Saab : quand la recherche prend
+   du temps (surtout en mode α-β), ce bouton interrompt le calcul en cours et
+   joue immédiatement un coup jouable (recherche éclair profondeur 1). La
+   recherche du moteur étant synchrone à l'intérieur du worker, on ne peut pas
+   « récupérer » proprement son meilleur coup partiel ; on termine donc le
+   worker et on relance une recherche minimale dans le thread principal. En
+   incrémentant _aiGen, tout résultat tardif du worker terminé est ignoré
+   (évite qu'il joue un second coup par-dessus). */
+let _aiForcing = false;
+function forceAINow() {
+  if (gameOver) return;
+  if (typeof aiColor !== 'function') return;
+  const ai = aiColor();
+  // on n'agit que si c'est bien à l'IA de jouer et qu'elle réfléchit
+  const thinking = document.getElementById('ai-thinking');
+  if (!thinking || thinking.style.display === 'none') return;
+  if (_aiForcing) return;
+  _aiForcing = true;
+
+  // Invalide tout callback en cours (worker ou setTimeout de secours)
+  if (typeof _aiGen !== 'undefined') _aiGen++;
+  terminateAIWorker();
+  showAIThinking(false);
+
+  try {
+    const moves = getAllMovesForColor(ai);
+    if (!moves.length) { if (typeof humanColor!=='undefined'){ currentTurn = humanColor; updateStatus(); } _aiForcing = false; return; }
+    // recherche éclair : profondeur 1, budget minimal → coup immédiat mais légal
+    let chosen = null;
+    try { chosen = searchBestMove(ai, 1, 120, (typeof _gameHistKeys==='function'?_gameHistKeys():null)); } catch(e){ chosen = null; }
+    if (!chosen) {
+      // dernier recours : le coup le mieux « codé » (heuristique de tri déjà existante)
+      moves.sort(function(a,b){ return (a.code||9)-(b.code||9); });
+      chosen = moves[0];
+    }
+    if (chosen && typeof executeAIMove === 'function') executeAIMove(chosen);
+  } catch(e) {
+    // en cas d'échec total, ne fige pas la partie : rend la main au joueur
+    if (typeof humanColor!=='undefined'){ currentTurn = humanColor; updateStatus(); }
+  }
+  _aiForcing = false;
+}
+
 /* ═══════════════════════════════════════════════════════════
    LIVRE D'OUVERTURES (V13) — SÛR PAR CONSTRUCTION
    Principe : on ne calcule PAS de coordonnées (source d'erreurs).
@@ -13743,7 +13786,10 @@ function showAIThinking(on) {
         + 'display:flex;align-items:center;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,0.5);font-size:14px;color:var(--text)';
       el.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid var(--gold-dim);'
         + 'border-top-color:var(--gold);border-radius:50%;animation:ai-spin 0.7s linear infinite"></span>'
-        + '<span>L\'IA réfléchit…</span>';
+        + '<span>L\'IA réfléchit…</span>'
+        + '<button onclick="forceAINow()" title="Interrompre la réflexion et jouer le meilleur coup trouvé" '
+        + 'style="margin-left:6px;background:var(--gold);color:#0d0f0e;border:none;border-radius:14px;'
+        + 'padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">⚡ Jouer maintenant</button>';
       document.body.appendChild(el);
       // injecte l'animation si absente
       if (!document.getElementById('ai-spin-style')) {
