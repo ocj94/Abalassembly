@@ -765,6 +765,8 @@ h2 {
 .game-left-panel {
   background: var(--surface); border-right: 1px solid var(--border);
   padding: 30px; display: flex; flex-direction: column; gap: 16px;
+  justify-content: center;   /* centré au niveau du plateau, jamais poussé hors écran à fort dézoom */
+  overflow-y: auto;          /* filet de sécurité si le contenu dépasse malgré tout */
 }
 .game-center { display: flex; align-items: center; justify-content: center; padding: 40px; }
 .game-right-panel {
@@ -2870,7 +2872,7 @@ document.addEventListener('keydown', function(e){
         <div class="captured-label">Billes capturées</div>
         <div class="captured-marbles" id="captured-by-me"></div>
       </div>
-      <div style="flex:1"></div>
+      <div style="height:24px"></div>
       <div style="margin-bottom:8px">
         <div class="captured-label">Vos billes perdues</div>
         <div class="captured-marbles" id="captured-by-opp"></div>
@@ -9947,7 +9949,24 @@ const _sfxCache = {};
 let _sfxUnlocked = false;
 function unlockSfx(){
   if(_sfxUnlocked) return; _sfxUnlocked = true;
-  for(const k in SFX){ try{ const a = new Audio(SFX[k]); a.preload = 'auto'; _sfxCache[k] = a; }catch(e){} }
+  for(const k in SFX){
+    try{
+      const a = new Audio(SFX[k]); a.preload = 'auto'; _sfxCache[k] = a;
+      // Déblocage réel : les navigateurs n'autorisent les LECTURES FUTURES
+      // (déclenchées depuis le code, pas directement par un clic) que si un
+      // play() a réellement été exécuté PENDANT un vrai geste utilisateur —
+      // créer l'objet Audio seul ne débloque rien. Volume à 0 et pause
+      // immédiate : aucun son audible, juste le déblocage.
+      a.volume = 0;
+      const p = a.play();
+      if (p && p.then) p.then(function(){ a.pause(); a.currentTime = 0; a.volume = 1; }).catch(function(){ a.volume = 1; });
+    }catch(e){}
+  }
+  // Réveille aussi le second système de son (tonalités synthétisées, playTone/getAudioCtx)
+  try {
+    const ctx = getAudioCtx();
+    if (ctx && ctx.state === 'suspended') ctx.resume().catch(function(){});
+  } catch(e){}
 }
 document.addEventListener('pointerdown', unlockSfx, { once:true });
 function playSfx(name){
@@ -14165,7 +14184,16 @@ function appendMoveRow(list, moveInfo, fallbackLabel, color, plyNum) {
   if (moveInfo && moveInfo.cells && moveInfo.dir) {
     aba = moveToABAPRO(moveInfo.cells, moveInfo.dir, moveInfo.type);
     nac = moveToNACRE(moveInfo.cells, moveInfo.dir, moveInfo.type);
-    ejx = moveInfo.ejection ? ' ✕' : '';
+    // Score traditionnel (captures par Noir-captures par Blanc), affiché
+    // uniquement sur le coup qui vient d'éjecter — idée de Saab, en
+    // s'appuyant sur les compteurs déjà stockés dans le snapshot correspondant
+    // (fiable aussi bien en direct qu'au réaffichage de l'historique).
+    if (moveInfo.ejection) {
+      const snap = (typeof boardSnapshots !== 'undefined') ? boardSnapshots[plyNum - 1] : null;
+      const cb = snap ? snap.capturedByBlack : (typeof capturedByBlack !== 'undefined' ? capturedByBlack : 0);
+      const cw = snap ? snap.capturedByWhite : (typeof capturedByWhite !== 'undefined' ? capturedByWhite : 0);
+      ejx = ' (' + cb + '-' + cw + ')';
+    }
   } else { aba = nac = fallbackLabel || ''; }
   const dot = (color === 'black') ? '#1a1a20' : '#e8e8ee';
   const turnNum = Math.ceil(plyNum / 2);   // noir et blanc d'un même tour partagent le numéro (1,1,2,2,…)
