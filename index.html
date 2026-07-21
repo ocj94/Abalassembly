@@ -2919,6 +2919,7 @@ document.addEventListener('keydown', function(e){
           <div class="win-title" id="win-title">Victoire !</div>
           <div class="win-sub" id="win-sub">Vous avez éjecté 6 billes adverses</div>
           <div id="style-card" style="display:flex;justify-content:center"></div>
+          <div id="heatmap-card" style="display:flex;justify-content:center"></div>
           <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;justify-content:center">
             <button class="btn-gold" style="padding:12px 28px;font-size:15px;font-weight:600;border:none;border-radius:8px;cursor:pointer" onclick="resetGame()">Nouvelle partie</button>
             <button class="btn-ghost" style="padding:12px 22px;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:none;color:var(--text)" onclick="shareResult()">📤 Partager</button>
@@ -13867,6 +13868,7 @@ function triggerWin(winner, reason) {
   }
   overlay.classList.add('show');
   if (typeof renderStyleCard === 'function') renderStyleCard();   // carte d'analyse de style
+  if (typeof renderHeatmapCard === 'function') renderHeatmapCard();   // carte de chaleur de la partie
   // ── Hook engagement : XP, streak, ELO, badges ──
   sanitizeProgress();
   // ── Taux de conversion : le joueur a-t-il mené puis gagné ? ──
@@ -13983,6 +13985,97 @@ function styleBar(name, val, color){
 }
 
 // Remplit la carte d'analyse dans l'overlay de fin de partie.
+/* ── Heatmap de la partie ──────────────────────────────────────────────
+   Compte, pour chaque case du plateau, combien de fois une bille du joueur
+   (noir) ou de l'adversaire (blanc) l'a occupée AU DÉPART d'un coup, sur
+   toute la partie. Rend un plateau SVG en losange où l'intensité de couleur
+   traduit la fréquence : là où ça a le plus / le moins joué. 100% local,
+   reconstruit à partir de boardSnapshots (aucune donnée supplémentaire à
+   stocker). Idée d'Olivier (fin de partie + stats). */
+function computeGameHeatmap(snapshots, forColor) {
+  // forColor : 'black' (le joueur) ou 'white' (l'adversaire)
+  // Chaque snapshot stocke color = la couleur qui a joué CE coup, et
+  // moveInfo.cells = les cases occupées au départ du coup.
+  const counts = {};   // "r,c" -> nombre d'occupations
+  let maxCount = 0;
+  if (!snapshots || !snapshots.length) return { counts, maxCount };
+  for (const snap of snapshots) {
+    if (!snap || snap.color !== forColor) continue;
+    const mi = snap.moveInfo;
+    if (!mi || !mi.cells) continue;
+    for (const c of mi.cells) {
+      const k = c.r + ',' + c.c;
+      counts[k] = (counts[k] || 0) + 1;
+      if (counts[k] > maxCount) maxCount = counts[k];
+    }
+  }
+  return { counts, maxCount };
+}
+
+function buildGameHeatmapSVG(snapshots, forColor, size) {
+  size = size || 260;
+  const { counts, maxCount } = computeGameHeatmap(snapshots, forColor);
+  // Géométrie losange : mêmes ROWS que le plateau réel, mais normalisée sur `size`
+  const ROWS_LOCAL = (typeof ROWS !== 'undefined') ? ROWS : [5,6,7,8,9,8,7,6,5];
+  const R = size / 22;                 // rayon d'une case
+  const hSpacing = R * 2, vSpacing = R * 1.73;
+  const cx = size / 2, cy = size / 2;
+  const base = (forColor === 'black') ? [200,168,75] : [168,196,224];  // or / bleu
+  let cells = '';
+  for (let row = 0; row < ROWS_LOCAL.length; row++) {
+    const rowLen = ROWS_LOCAL[row];
+    for (let col = 0; col < rowLen; col++) {
+      const x = cx + (col - (rowLen - 1) / 2) * hSpacing;
+      const y = cy + (row - 4) * vSpacing;
+      const k = row + ',' + col;
+      const n = counts[k] || 0;
+      const intensity = maxCount > 0 ? n / maxCount : 0;
+      // fond très sombre pour les cases jamais jouées, couleur croissante sinon
+      let fill;
+      if (n === 0) {
+        fill = 'rgba(255,255,255,0.04)';
+      } else {
+        const a = 0.15 + intensity * 0.85;
+        fill = 'rgba(' + base[0] + ',' + base[1] + ',' + base[2] + ',' + a.toFixed(2) + ')';
+      }
+      cells += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (R*0.92).toFixed(1) + '" fill="' + fill + '"'
+        + (n > 0 ? ' stroke="rgba(' + base[0] + ',' + base[1] + ',' + base[2] + ',0.5)" stroke-width="0.5"' : '')
+        + '></circle>';
+      if (n >= Math.max(2, Math.ceil(maxCount * 0.66))) {
+        // affiche le compteur sur les cases les plus chaudes
+        cells += '<text x="' + x.toFixed(1) + '" y="' + (y+R*0.35).toFixed(1) + '" text-anchor="middle" font-size="' + (R*0.9).toFixed(1) + '" fill="#0d0f0e" font-weight="700">' + n + '</text>';
+      }
+    }
+  }
+  return '<svg viewBox="0 0 ' + size + ' ' + size + '" width="100%" style="max-width:' + size + 'px" xmlns="http://www.w3.org/2000/svg">' + cells + '</svg>';
+}
+
+/* Affiche la heatmap de fin de partie, avec bascule Vous / Adversaire.
+   Reconstruite depuis boardSnapshots — aucune donnée supplémentaire stockée. */
+let _heatmapColor = 'black';
+function renderHeatmapCard(){
+  const host = document.getElementById('heatmap-card');
+  if(!host) return;
+  if(typeof boardSnapshots === 'undefined' || !boardSnapshots.length){ host.innerHTML=''; return; }
+  const forColor = _heatmapColor;
+  const { maxCount } = computeGameHeatmap(boardSnapshots, forColor);
+  const svg = buildGameHeatmapSVG(boardSnapshots, forColor, 240);
+  const isBlack = (forColor === 'black');
+  const label = isBlack ? 'Vous (noir)' : 'Adversaire (blanc)';
+  const tabBtn = (c, txt) =>
+    '<button onclick="_heatmapColor=\'' + c + '\';renderHeatmapCard()" style="'
+    + 'padding:5px 12px;font-size:12px;font-weight:600;border-radius:7px;cursor:pointer;border:1px solid var(--border);'
+    + (c === forColor ? 'background:var(--gold);color:#0d0f0e' : 'background:none;color:var(--muted)') + '">' + txt + '</button>';
+  host.innerHTML =
+    '<div style="margin-top:14px;width:min(320px,90vw);text-align:center;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px">'
+    + '<div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">🔥 Carte de chaleur</div>'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">Où ' + label + ' a le plus joué durant la partie</div>'
+    + '<div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px">' + tabBtn('black','Vous') + tabBtn('white','Adversaire') + '</div>'
+    + (maxCount > 0 ? svg : '<div style="font-size:12px;color:var(--muted);padding:20px">Pas encore assez de coups joués</div>')
+    + (maxCount > 0 ? '<div style="font-size:11px;color:var(--muted);margin-top:8px">Plus c\'est vif, plus la case a été occupée (max : ' + maxCount + '×)</div>' : '')
+    + '</div>';
+}
+
 function renderStyleCard(){
   const host = document.getElementById('style-card');
   if(!host) return;
