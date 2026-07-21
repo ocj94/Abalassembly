@@ -14047,20 +14047,33 @@ function abaproToRc(cell) {
 function moveToNACRE(sel, dir, type) {
   if (!sel || !sel.length || !dir) return '?';
   if (type === 'broadside') {
-    // ordonne les billes le long de la rangée (perpendiculaire à dir)
+    // Règle prouvée le 19/07/2026 contre 8 vrais coups latéraux (§11 manuel
+    // KAA) : fin_groupe + destination_début — PAS début + destination_fin.
+    // Voir _advResolveNacreSidestep, qui fait l'opération inverse.
     const coords = sel.map(function(s){ return { rc:s, notation: coordToABAPRO(s.r,s.c) }; });
     coords.sort(function(a,b){ return a.notation < b.notation ? -1 : 1; });
-    const first = coords[0].rc;
-    const last = coords[coords.length-1].rc;
-    // arrivée de la DERNIÈRE bille (et non de la première comme en Aba-Pro)
-    const lastAx = rcToAxial(last.r, last.c);
-    const lastDest = axialToRc(lastAx.q + dir.q, lastAx.r + dir.r);
-    const fromFirst = coordToABAPRO(first.r, first.c);
-    const toLast = lastDest ? coordToABAPRO(lastDest.r, lastDest.c) : '';
-    return fromFirst + toLast;  // ex: c3d6 (4 caractères)
+    const debut = coords[0].rc;               // début_groupe (le plus petit alphabétiquement)
+    const fin = coords[coords.length-1].rc;    // fin_groupe (le plus grand alphabétiquement)
+    const debutAx = rcToAxial(debut.r, debut.c);
+    const debutDest = axialToRc(debutAx.q + dir.q, debutAx.r + dir.r);   // destination_début
+    const fromFin = coordToABAPRO(fin.r, fin.c);
+    const toDebutDest = debutDest ? coordToABAPRO(debutDest.r, debutDest.c) : '';
+    return fromFin + toDebutDest;  // ex: c4d3 (groupe [c2,c3,c4], fin=c4, début=c2→d3)
   } else {
-    // coup en ligne : identique à Aba-Pro (départ + arrivée de la tête)
-    return moveToABAPRO(sel, dir, type);
+    // Coup en ligne : queue AVANT le coup + destination de la TÊTE après le
+    // coup — distance = taille du groupe, jamais figée à 1 case contrairement
+    // à Aba-Pro. Formule prouvée le 19/07/2026 contre les 5 coups d'une
+    // vraie solution de puzzle KAA (Pzl_M_0021) rejoués par le vrai moteur —
+    // voir _advResolveNacreToken, qui fait exactement l'opération inverse.
+    const ax = sel.map(function(s){ return rcToAxial(s.r,s.c); });
+    const sorted = ax.slice().sort(function(a,b){ return (a.q*dir.q+a.r*dir.r)-(b.q*dir.q+b.r*dir.r); });
+    const tail = sorted[0];
+    const head = sorted[sorted.length-1];
+    const tailRc = axialToRc(tail.q, tail.r);
+    const headDest = axialToRc(head.q + dir.q, head.r + dir.r);
+    const from = tailRc ? coordToABAPRO(tailRc.r, tailRc.c) : '';
+    const to = headDest ? coordToABAPRO(headDest.r, headDest.c) : '';
+    return from + to;  // ex: d5d7 (groupe de 2 : [d5,d6] avant → [d6,d7] après)
   }
 }
 
