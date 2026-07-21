@@ -4195,6 +4195,10 @@ document.addEventListener('keydown', function(e){
             <input type="checkbox" id="show-last-arrow-toggle" checked onchange="toggleLastMoveArrow(this.checked)" style="accent-color:var(--gold)">
             Afficher la flèche du dernier coup
           </label>
+          <label style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;cursor:pointer">
+            <input type="checkbox" id="show-threats-toggle" onchange="toggleThreats(this.checked)" style="accent-color:var(--gold)">
+            Afficher les menaces d'éjection (billes en danger)
+          </label>
         </div>
       </div>
     </details>
@@ -9492,6 +9496,7 @@ function drawBoard(opts) {
   // ── Billes éjectées dans la gouttière ──
   drawGutterMarbles(ctx, corners, mx, my, pad, gutterW, opts);
   if (typeof drawLastMoveArrow === 'function') drawLastMoveArrow(ctx);
+  if (typeof drawThreats === 'function') drawThreats(ctx);
   ctx.restore();
 }
 
@@ -16453,6 +16458,13 @@ let showBoardCoords = false;
 let showMoveHints = (function(){ try { const v = localStorage.getItem('abalone_show_hints'); return v === null ? true : v === '1'; } catch(e){ return true; } })();
 let showCoordinates = (function(){ try { return localStorage.getItem('abalone_show_coords') === '1'; } catch(e){ return false; } })();
 let showLastMoveArrow = (function(){ try { const v = localStorage.getItem('abalone_show_last_arrow'); return v === null ? true : v === '1'; } catch(e){ return true; } })();
+let showThreats = (function(){ try { return localStorage.getItem('abalone_show_threats') === '1'; } catch(e){ return false; } })();
+
+function toggleThreats(v) {
+  showThreats = v;
+  try { localStorage.setItem('abalone_show_threats', v ? '1' : '0'); } catch(e){}
+  if (typeof drawBoard === 'function') drawBoard();
+}
 
 function toggleLastMoveArrow(v) {
   showLastMoveArrow = v;
@@ -19728,6 +19740,66 @@ function drawLastMoveArrow(ctx) {
   ctx.fill();
   ctx.restore();
 }
+
+/* ── Affichage des menaces d'éjection ─────────────────────────────────
+   Marque d'un halo rouge chaque bille qui peut être éjectée du plateau au
+   PROCHAIN coup adverse — pour les deux camps à la fois. S'appuie sur le
+   vrai moteur : on génère tous les coups d'éjection légaux de chaque
+   couleur (validateMove renvoie oppStart = la bille éjectée) et on marque
+   ces billes. Idée de Saab (bouton « !? » dans ses diagrammes). Désactivé
+   par défaut ; activable dans les réglages d'accessibilité. */
+function drawThreats(ctx) {
+  if (typeof showThreats !== 'undefined' && !showThreats) return;
+  if (typeof board === 'undefined' || typeof getAllMovesForColor !== 'function') return;
+  if (typeof gameOver !== 'undefined' && gameOver) return;
+
+  // Collecte les billes menacées d'éjection, par couleur de la VICTIME
+  const menaced = {};   // "r,c" -> couleur de la bille menacée
+  ['black','white'].forEach(function(attacker){
+    let moves;
+    try { moves = getAllMovesForColor(attacker); } catch(e){ return; }
+    if (!moves) return;
+    moves.forEach(function(m){
+      if (!m.eject) return;
+      // la bille éjectée est la première bille adverse dans la ligne de poussée
+      const info = m.info || (typeof validateMove === 'function' ? validateMove(m.cells, m.dir, attacker) : null);
+      if (!info || !info.ejection || !info.oppStart) return;
+      // oppStart est en coordonnées AXIALES {q,r} → convertir en case {r,c}
+      const victim = (typeof axialToRc === 'function') ? axialToRc(info.oppStart.q, info.oppStart.r) : null;
+      if (!victim) return;
+      menaced[victim.r + ',' + victim.c] = (attacker === 'black') ? 'white' : 'black';
+    });
+  });
+
+  const keys = Object.keys(menaced);
+  if (!keys.length) return;
+
+  // halo rouge pulsé (léger) autour de chaque bille menacée
+  const pulse = 0.55 + 0.25 * Math.sin(Date.now() / 350);
+  ctx.save();
+  keys.forEach(function(k){
+    const parts = k.split(',');
+    const p = hexCoord(parseInt(parts[0],10), parseInt(parts[1],10));
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, HEX_RADIUS - 3, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(224,64,64,' + pulse.toFixed(2) + ')';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    // petit ⚠ discret en haut à droite de la bille
+    ctx.font = (HEX_RADIUS * 0.7).toFixed(0) + 'px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('⚠', p.x + HEX_RADIUS * 0.55, p.y - HEX_RADIUS * 0.55);
+  });
+  ctx.restore();
+
+  // anime tant que les menaces sont affichées (halo pulsé)
+  if (typeof showThreats !== 'undefined' && showThreats && !_threatAnimScheduled) {
+    _threatAnimScheduled = true;
+    requestAnimationFrame(function(){ _threatAnimScheduled = false; if (typeof drawBoard === 'function') drawBoard(); });
+  }
+}
+let _threatAnimScheduled = false;
 
 // Calcule et affiche le meilleur coup pour la position d'analyse courante
 function analysisShowBestMove() {
