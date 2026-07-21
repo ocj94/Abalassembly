@@ -2338,7 +2338,7 @@ document.addEventListener('keydown', function(e){
       <h1>Maîtrisez<br>l'art de<br><span>l'Abalone !</span></h1>
       <p class="hero-sub">La plateforme de référence pour jouer, apprendre et progresser au jeu de stratégie Abalone. Affrontez des joueurs du monde entier.</p>
       <div class="hero-cta">
-        <button class="btn-xl gold" onclick="showPage('game')">🎮 Jouer maintenant</button>
+        <button class="btn-xl gold" onclick="playGame()">🎮 Jouer maintenant</button>
         <button class="btn-xl outline" onclick="showPage('learn')">📖 Apprendre les règles</button>
       </div>
       <div class="hero-stats">
@@ -3783,7 +3783,7 @@ document.addEventListener('keydown', function(e){
           </ul>
         </div>
         <div style="margin-top:16px;text-align:center">
-          <button onclick="showPage('game')" style="padding:12px 28px;background:var(--gold);border:none;border-radius:8px;color:#0d0f0e;font-size:14px;font-weight:700;cursor:pointer">Affronter l'IA maintenant</button>
+          <button onclick="playGame()" style="padding:12px 28px;background:var(--gold);border:none;border-radius:8px;color:#0d0f0e;font-size:14px;font-weight:700;cursor:pointer">Affronter l'IA maintenant</button>
         </div>
       </div>
 
@@ -4144,7 +4144,7 @@ document.addEventListener('keydown', function(e){
       <div style="margin-left:auto;display:flex;gap:6px">
         <div style="display:flex;flex-direction:column;align-items:center;gap:2px" id="streak-days"></div>
       </div>
-      <button onclick="showPage('game')" style="padding:9px 20px;background:var(--gold);border:none;border-radius:8px;color:#0d0f0e;font-size:13px;font-weight:700;cursor:pointer">Jouer maintenant</button>
+      <button onclick="playGame()" style="padding:9px 20px;background:var(--gold);border:none;border-radius:8px;color:#0d0f0e;font-size:13px;font-weight:700;cursor:pointer">Jouer maintenant</button>
     </div>
 
     <!-- ══ PROGRESSION & BADGES (données réelles) ══ -->
@@ -10180,6 +10180,122 @@ function getHexAt(px, py) {
   return best;
 }
 
+/* ── Animation de transition « pluie de billes » ──────────────────────
+   Au lancement d'une partie, une pluie de billes noires et blanches tombe
+   sur un canvas plein écran (avec gravité, rotation et rebond léger), puis
+   l'overlay se retire en fondu et la partie commence. 100% canvas, aucune
+   dépendance. Idée d'Olivier. Respecte prefers-reduced-motion (accessibilité)
+   et ne se déclenche qu'une fois par entrée sur la page de jeu. */
+let _marbleRainActive = false;
+// Point d'entrée « Jouer » : joue l'animation de pluie de billes puis ouvre
+// la partie. La page s'affiche immédiatement dessous (l'overlay est
+// transparent aux clics et se retire seul), donc aucune latence perçue.
+function playGame() {
+  showPage('game');
+  playMarbleRainTransition();
+}
+
+function playMarbleRainTransition(onDone) {
+  onDone = typeof onDone === 'function' ? onDone : function(){};
+  // Accessibilité : si l'utilisateur a demandé moins d'animations, on saute
+  try {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { onDone(); return; }
+  } catch(e){}
+  if (_marbleRainActive) { onDone(); return; }
+  _marbleRainActive = true;
+
+  let overlay, ctx, raf, marbles;
+  try {
+    overlay = document.createElement('canvas');
+    overlay.id = 'marble-rain';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9000;pointer-events:none;transition:opacity 0.4s ease';
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const W = window.innerWidth, H = window.innerHeight;
+    overlay.width = W * dpr; overlay.height = H * dpr;
+    overlay.style.width = W + 'px'; overlay.style.height = H + 'px';
+    document.body.appendChild(overlay);
+    ctx = overlay.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    // Génère les billes : moitié noires, moitié blanches, positions/timings variés
+    const COUNT = Math.min(46, Math.max(24, Math.floor(W / 24)));
+    marbles = [];
+    for (let i = 0; i < COUNT; i++) {
+      const r = 14 + Math.random() * 16;
+      marbles.push({
+        x: Math.random() * W,
+        y: -r - Math.random() * H * 0.8,     // démarrent au-dessus de l'écran, étalés
+        vy: 3 + Math.random() * 4,
+        vx: (Math.random() - 0.5) * 1.2,
+        r: r,
+        color: i % 2 === 0 ? 'black' : 'white',
+        rot: Math.random() * Math.PI,
+        vrot: (Math.random() - 0.5) * 0.15,
+        landed: false,
+      });
+    }
+
+    const groundY = H + 40;   // les billes sortent par le bas
+    const start = Date.now();
+    const MAX_MS = 2200;
+
+    function drawMarble(m) {
+      ctx.save();
+      ctx.translate(m.x, m.y);
+      ctx.rotate(m.rot);
+      const grad = ctx.createRadialGradient(-m.r*0.35, -m.r*0.35, m.r*0.15, 0, 0, m.r);
+      if (m.color === 'black') { grad.addColorStop(0, '#4a4a52'); grad.addColorStop(1, '#141418'); }
+      else { grad.addColorStop(0, '#ffffff'); grad.addColorStop(1, '#c8c8d0'); }
+      ctx.beginPath();
+      ctx.arc(0, 0, m.r, 0, Math.PI*2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+      // reflet
+      ctx.beginPath();
+      ctx.arc(-m.r*0.32, -m.r*0.32, m.r*0.22, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(255,255,255,' + (m.color === 'black' ? 0.25 : 0.6) + ')';
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function frame() {
+      const elapsed = Date.now() - start;
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      let allGone = true;
+      for (const m of marbles) {
+        m.vy += 0.35;           // gravité
+        m.y += m.vy;
+        m.x += m.vx;
+        m.rot += m.vrot;
+        if (m.y < groundY) allGone = false;
+        drawMarble(m);
+      }
+      // fondu de sortie sur les 400 dernières ms
+      if (elapsed > MAX_MS - 400) overlay.style.opacity = String(Math.max(0, (MAX_MS - elapsed) / 400));
+      if (allGone || elapsed > MAX_MS) { finish(); return; }
+      raf = requestAnimationFrame(frame);
+    }
+
+    let finished = false;
+    function finish() {
+      if (finished) return; finished = true;
+      if (raf) cancelAnimationFrame(raf);
+      if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      _marbleRainActive = false;
+      onDone();
+    }
+
+    raf = requestAnimationFrame(frame);
+    // filet de sécurité : quoi qu'il arrive, on termine
+    setTimeout(finish, MAX_MS + 500);
+  } catch(e) {
+    // en cas d'échec, on n'empêche jamais la partie de démarrer
+    if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    _marbleRainActive = false;
+    onDone();
+  }
+}
+
 function initGame() {
   if (gameOver === 'init') return;
   // Propose de reprendre une partie sauvegardée (avant de réinitialiser)
@@ -10293,7 +10409,35 @@ function resetGame() {
   _aiGen++;               // invalide tout calcul IA en cours (résultats périmés ignorés)
   terminateAIWorker();    // worker neuf à la prochaine partie : pas de fuite, pas de coup fantôme
   showAIThinking(false);  // masque l'indicateur si l'IA réfléchissait encore
+  if (typeof armInactivityCancel === 'function') armInactivityCancel();  // annule la partie si personne ne joue dans la 1re minute
   _emitAbaEvent('positionChanged', { layout: (typeof currentLayout !== 'undefined') ? currentLayout : null });
+}
+
+/* Annulation de partie pour inactivité — idée d'Olivier : si aucun coup n'est
+   joué durant la première minute, la partie est annulée (aucun ELO retiré,
+   aucune stat comptée, puisque moveCount vaut toujours 0). Le minuteur est
+   armé à chaque nouvelle partie et désarmé dès le premier coup. */
+let _inactivityTimer = null;
+function armInactivityCancel() {
+  clearTimeout(_inactivityTimer);
+  _inactivityTimer = setTimeout(function() {
+    // Ne s'applique qu'à une partie encore vierge et en cours
+    if (typeof gameOver !== 'undefined' && gameOver) return;
+    if (typeof moveCount !== 'undefined' && moveCount > 0) return;
+    if (typeof replayMode !== 'undefined' && replayMode) return;
+    if (typeof _tourneyMatch !== 'undefined' && _tourneyMatch) return;  // pas en tournoi
+    // Annule proprement : pas de vainqueur, pas d'ELO, retour à l'accueil
+    if (typeof gameOver !== 'undefined') gameOver = true;
+    if (typeof clearInterval === 'function' && typeof timerInterval !== 'undefined') clearInterval(timerInterval);
+    if (typeof stopGameTimer === 'function') stopGameTimer();
+    if (typeof clearSavedGame === 'function') clearSavedGame();
+    if (typeof showToast === 'function') showToast('⏳ Partie annulée — aucun coup joué en 1 minute. Aucun ELO retiré.');
+    if (typeof showPage === 'function') showPage('home');
+  }, 60000);   // 1 minute
+}
+function disarmInactivityCancel() {
+  clearTimeout(_inactivityTimer);
+  _inactivityTimer = null;
 }
 
 function tickTimers() {
@@ -13939,6 +14083,7 @@ function triggerWin(winner, reason) {
     return;
   }
   gameOver = true;
+  if (typeof disarmInactivityCancel === 'function') disarmInactivityCancel();
   try{ localStorage.setItem('abaGamesFinished', String((parseInt(localStorage.getItem('abaGamesFinished')||'0',10)||0)+1)); }catch(e){}
   _emitAbaEvent('gameOver', { winner: winner, reason: reason || null,
     capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite, moveCount: moveCount });
@@ -13974,13 +14119,20 @@ function triggerWin(winner, reason) {
   // ── Hook engagement : XP, streak, ELO, badges ──
   sanitizeProgress();
   // ── Taux de conversion : le joueur a-t-il mené puis gagné ? ──
-  if (progress.__hadLead || capturedByBlack > 0) {
+  if ((progress.__hadLead || capturedByBlack > 0) && !(typeof moveCount !== 'undefined' && moveCount === 0)) {
     progress.leadGames = (progress.leadGames||0) + 1;
     if (winner === 'black') progress.leadWins = (progress.leadWins||0) + 1;
     progress.__hadLead = false;
     saveProgress(progress);
   }
-  if (typeof onGamePlayed === 'function') onGamePlayed(winner === 'black');
+  if (typeof onGamePlayed === 'function' && !(typeof moveCount !== 'undefined' && moveCount === 0)) {
+    onGamePlayed(winner === 'black');
+  }
+  // Partie sans aucun coup joué (abandon immédiat, annulation) : aucun ELO
+  // retiré, aucune stat comptée — idée d'Olivier. On informe juste discrètement.
+  if (typeof moveCount !== 'undefined' && moveCount === 0) {
+    if (typeof showToast === 'function') showToast('Partie annulée — aucun coup joué, ELO inchangé');
+  }
   // Badge Blanchissage : le joueur gagne 6-0 sans avoir perdu une seule bille
   if (winner === 'black' && capturedByWhite === 0 && typeof awardBadge === 'function') {
     awardBadge('shutout');
@@ -14348,6 +14500,7 @@ function formatMoveABAPRO(fromR, fromC, toR, toC, type) {
 }
 
 function addMoveToHistory(move, color, moveInfo) {
+  if (typeof disarmInactivityCancel === 'function') disarmInactivityCancel();  // un coup a été joué → plus d'annulation auto
   if (typeof _tClockTick==='function') _tClockTick();
   // Save snapshot for replay (avec les infos du coup pour recalculer la notation)
   boardSnapshots.push({
