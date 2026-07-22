@@ -10103,6 +10103,12 @@ function soundUndo()     { playSequence([{f:420,t:0,d:0.07,w:'sine',v:0.08,to:26
 function soundPuzzleOk() { playSequence([{f:660,t:0,d:0.09,v:0.10},{f:990,t:100,d:0.20,v:0.11}]); }
 // Menace détectée : avertissement grave et discret
 function soundThreat()   { playSequence([{f:220,t:0,d:0.12,w:'sawtooth',v:0.05}]); }
+/* Sons de synthèse ajoutés pour des actions jusque-là muettes. Entièrement
+   générés par playSequence (oscillateurs) : aucun fichier audio, aucune
+   ressource tierce, donc rien qui pose de question de droits. */
+function soundForceAI()  { playSequence([{f:1200,t:0,d:0.05,w:'square',v:0.06,to:600},{f:700,t:60,d:0.08,w:'triangle',v:0.07}]); }  // ⚡ forcer l'IA : petit zap descendant
+function soundCancel()   { playSequence([{f:520,t:0,d:0.10,w:'sine',v:0.07,to:340},{f:300,t:120,d:0.18,w:'sine',v:0.06,to:180}]); } // partie annulée : deux notes qui retombent
+function soundRain()     { playSequence([{f:900,t:0,d:0.07,w:'sine',v:0.05},{f:1150,t:70,d:0.07,w:'sine',v:0.045},{f:760,t:150,d:0.09,w:'sine',v:0.04},{f:1320,t:230,d:0.10,w:'sine',v:0.05}]); } // pluie de billes : cascade légère
 function soundWin()     { vibrate([60,50,60,50,120]); playSfx('game_over'); }
 function soundDraw()    { playSfx('occ_draw'); }
 
@@ -10265,6 +10271,7 @@ function playMarbleRainTransition(onDone) {
   } catch(e){}
   if (_marbleRainActive) { onDone(); return; }
   _marbleRainActive = true;
+  if (typeof soundRain === 'function') soundRain();
 
   let overlay, ctx, raf, marbles;
   try {
@@ -10493,6 +10500,7 @@ function armInactivityCancel() {
     if (typeof clearInterval === 'function' && typeof timerInterval !== 'undefined') clearInterval(timerInterval);
     if (typeof stopGameTimer === 'function') stopGameTimer();
     if (typeof clearSavedGame === 'function') clearSavedGame();
+    if (typeof soundCancel === 'function') soundCancel();
     if (typeof showToast === 'function') showToast('⏳ Partie annulée — aucun coup joué en 1 minute. Aucun ELO retiré.');
     if (typeof showPage === 'function') showPage('home');
   }, 60000);   // 1 minute
@@ -12043,6 +12051,7 @@ function forceAINow() {
   _aiForcing = true;
 
   // Invalide tout callback en cours (worker ou setTimeout de secours)
+  if (typeof soundForceAI === 'function') soundForceAI();
   if (typeof _aiGen !== 'undefined') _aiGen++;
   terminateAIWorker();
   showAIThinking(false);
@@ -16469,6 +16478,24 @@ const MARBLE_SKINS = {
     b:['#4c4c50','#2b2b2f','#101012'],
     w:['#fdfdfb','#eeeae4','#cfc8bf','#a79f96'],
     unlock:{ type:'games', value:50 }            // 50 parties jouées
+  },
+  lave: {
+    name:'Lave', desc:'Basalte refroidi \u00b7 coul\u00e9e incandescente',
+    b:['#4a3f3a','#241d1a','#0a0605'],
+    w:['#fff3d6','#ffb347','#f26419','#a3320c'],
+    unlock:{ type:'wins', value:25 }             // 25 victoires
+  },
+  banquise: {
+    name:'Banquise', desc:'Glace profonde \u00b7 gel\u00e9e de surface',
+    b:['#2b4756','#152a36','#04101a'],
+    w:['#f2fbff','#d6f0fa','#a8d8ec','#7fb8d4'],
+    unlock:{ type:'games', value:25 }            // 25 parties jou\u00e9es
+  },
+  encre: {
+    name:'Encre', desc:'Lavis noir \u00b7 papier de riz', veins:true,
+    b:['#3d3a36','#1c1a17','#070605'],
+    w:['#fbf7ee','#efe6d4','#d8c9ae','#b3a288'],
+    unlock:{ type:'level', value:20 }            // niveau 20
   },
   shadow: {
     name:'Ombre d\u2019or', desc:'Noir absolu · or massif — la récompense ultime', veins:true,
