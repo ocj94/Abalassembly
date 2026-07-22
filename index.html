@@ -10259,8 +10259,9 @@ let _marbleRainActive = false;
 // la partie. La page s'affiche immédiatement dessous (l'overlay est
 // transparent aux clics et se retire seul), donc aucune latence perçue.
 function playGame() {
+  // L'animation est declenchee par l'initialisation de la page de jeu
+  // (voir inits.game), pour couvrir tous les points d'entree.
   showPage('game');
-  playMarbleRainTransition();
 }
 
 function playMarbleRainTransition(onDone) {
@@ -10277,7 +10278,7 @@ function playMarbleRainTransition(onDone) {
   try {
     overlay = document.createElement('canvas');
     overlay.id = 'marble-rain';
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:9000;pointer-events:none;transition:opacity 0.4s ease';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99998;pointer-events:none;transition:opacity 0.4s ease';
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const W = window.innerWidth, H = window.innerHeight;
     overlay.width = W * dpr; overlay.height = H * dpr;
@@ -10293,7 +10294,7 @@ function playMarbleRainTransition(onDone) {
       const r = 14 + Math.random() * 16;
       marbles.push({
         x: Math.random() * W,
-        y: -r - Math.random() * H * 0.8,     // démarrent au-dessus de l'écran, étalés
+        y: -r - Math.random() * H * 0.35,    // demarrent juste au-dessus de l'ecran, decalage modere
         vy: 3 + Math.random() * 4,
         vx: (Math.random() - 0.5) * 1.2,
         r: r,
@@ -18644,7 +18645,12 @@ function showPage(name) {
   // Page-specific init
   const inits = {
     home:       function(){ renderEngageBar(); },
-    game:       function(){ if(!tournamentGame && typeof exitTournamentMode==='function') exitTournamentMode(); initGame(); setTimeout(function(){ if(typeof maybeAskHintsPreference==='function') maybeAskHintsPreference(); }, 400); },
+    game:       function(){ if(!tournamentGame && typeof exitTournamentMode==='function') exitTournamentMode(); initGame();
+      // Pluie de billes : uniquement quand une NOUVELLE partie demarre,
+      // pas au retour sur une partie deja engagee.
+      if (typeof playMarbleRainTransition === 'function'
+          && (typeof moveCount === 'undefined' || moveCount === 0)
+          && !(typeof replayMode !== 'undefined' && replayMode)) { playMarbleRainTransition(); } setTimeout(function(){ if(typeof maybeAskHintsPreference==='function') maybeAskHintsPreference(); }, 400); },
     leaderboard:function(){ renderLeaderboard(); },
     profile:    function(){ renderProfile(); renderStreak(); },
     camera:     function(){ setupDragDrop(); },
