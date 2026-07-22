@@ -6536,7 +6536,8 @@ function awardBadge(id) {
     progress.badges[id] = todayStr();
     saveProgress(progress);
     const b = BADGES.find(x=>x.id===id);
-    if (b) toastEngage(b.icon + ' Badge débloqué : ' + b.name);
+    if (b) { toastEngage(b.icon + ' Badge débloqué : ' + b.name);
+             if (typeof soundBadge === 'function') soundBadge(); }
     return true;
   }
   return false;
@@ -10079,6 +10080,29 @@ function soundMove()    { playSfx('move'); }                 // déplacement : c
 function soundPush()    { playSfx('move'); vibrate(20); }  // poussée : son de mouvement + vibration
 function soundEject()   { playSfx('eject'); vibrate([30,40,60]); }  // éjection : descente + vibration forte
 function soundSelect()  { playTone(440, 0.05, 'sine', 0.08); }               // sélection : petit tic
+/* ── Sons synthétisés supplémentaires ─────────────────────────────────
+   Entièrement générés par oscillateur (Web Audio) : aucun échantillon, donc
+   aucun poids ajouté au fichier et aucune ressource tierce. Chaque son est
+   une courte séquence de notes jouées via playTone. Idée d'Olivier. */
+function playSequence(notes) {
+  // notes : [{f:fréquence, t:délai ms, d:durée s, w:forme, v:volume, to:glissando}]
+  if (!soundEnabled) return;
+  notes.forEach(function(n){
+    setTimeout(function(){ playTone(n.f, n.d || 0.09, n.w || 'sine', n.v || 0.10, n.to); }, n.t || 0);
+  });
+}
+// Badge débloqué : arpège majeur ascendant (do–mi–sol–do)
+function soundBadge()    { playSequence([{f:523,t:0},{f:659,t:90},{f:784,t:180},{f:1047,t:270,d:0.22,v:0.12}]); }
+// Montée de niveau : quinte brillante suivie d'une octave
+function soundLevelUp()  { playSequence([{f:440,t:0,w:'triangle'},{f:660,t:100,w:'triangle'},{f:880,t:200,d:0.28,w:'triangle',v:0.13}]); }
+// Nouveau skin débloqué : deux notes cristallines
+function soundUnlock()   { playSequence([{f:988,t:0,d:0.10,v:0.09},{f:1319,t:110,d:0.22,v:0.10}]); }
+// Annulation d'un coup : petite descente
+function soundUndo()     { playSequence([{f:420,t:0,d:0.07,w:'sine',v:0.08,to:260}]); }
+// Puzzle résolu : confirmation à deux notes
+function soundPuzzleOk() { playSequence([{f:660,t:0,d:0.09,v:0.10},{f:990,t:100,d:0.20,v:0.11}]); }
+// Menace détectée : avertissement grave et discret
+function soundThreat()   { playSequence([{f:220,t:0,d:0.12,w:'sawtooth',v:0.05}]); }
 function soundWin()     { vibrate([60,50,60,50,120]); playSfx('game_over'); }
 function soundDraw()    { playSfx('occ_draw'); }
 
@@ -16409,6 +16433,42 @@ const MARBLE_SKINS = {
     b:['#3a5ca0','#1f3a6e','#0a1c3a'],
     w:['#f0f4ff','#d8e0f0','#a8b8d0'],
     unlock:{ type:'elo', value:1500 }            // Elo 1500
+  },
+  ardoise: {
+    name:'Ardoise', desc:'Pierre bleutée · craie mate — sobre et lisible',
+    b:['#5a646e','#39424b','#161b20'],
+    w:['#fbfbf8','#eceae3','#c6c3b8'],
+    unlock:{ type:'games', value:5 }             // 5 parties jouées
+  },
+  cuivre: {
+    name:'Cuivre', desc:'Métal chaud patiné · vert-de-gris clair',
+    b:['#c08048','#8a5228','#3d2210'],
+    w:['#f2f7f2','#d9e8dd','#a9c2b2'],
+    unlock:{ type:'wins', value:5 }              // 5 victoires
+  },
+  nacre: {
+    name:'Nacre', desc:'Reflets irisés · clin d\u2019\u0153il à la notation Nacre',
+    b:['#6a6f86','#3d4257','#14161f'],
+    w:['#ffffff','#eef3ff','#dde8f2','#c2d2e0'],
+    unlock:{ type:'elo', value:1300 }            // Elo 1300
+  },
+  obsidienne: {
+    name:'Obsidienne', desc:'Verre volcanique · cendre claire',
+    b:['#2e2a33','#17141b','#050406'],
+    w:['#f6f2ee','#ded7cf','#ab9f95'],
+    unlock:{ type:'level', value:7 }             // niveau 7
+  },
+  aurore: {
+    name:'Aurore', desc:'Nuit polaire · voile vert et rose',
+    b:['#2b4a5e','#17303f','#081520'],
+    w:['#eafff4','#cdf5e2','#f3d4ea','#b9c9e8'],
+    unlock:{ type:'level', value:15 }            // niveau 15
+  },
+  marbre: {
+    name:'Marbre', desc:'Veines minérales · pierre polie', veins:true,
+    b:['#4c4c50','#2b2b2f','#101012'],
+    w:['#fdfdfb','#eeeae4','#cfc8bf','#a79f96'],
+    unlock:{ type:'games', value:50 }            // 50 parties jouées
   },
   shadow: {
     name:'Ombre d\u2019or', desc:'Noir absolu · or massif — la récompense ultime', veins:true,
