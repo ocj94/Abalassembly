@@ -6387,6 +6387,22 @@ function isMyColor(color) {
 }
 
 // Enregistre des cases jouées dans la heatmap d'un joueur (cumulé sur toutes ses parties)
+/* Variantes suivies par la carte de chaleur. Chaque coup du joueur est
+   comptabilise deux fois : dans le cumul GLOBAL (me_black / me_white) et dans
+   le seau de la variante en cours (me_black@belgian, etc.). On peut ainsi
+   comparer ses habitudes selon la position de depart, qui change beaucoup le
+   jeu. Demande d'Olivier. */
+const HEAT_VARIANTS = ['standard','belgian','german','dutch','swiss','decouverte'];
+const HEAT_VARIANT_LABEL = { standard:'Standard', belgian:'Belgian Daisy', german:'German Daisy',
+  dutch:'Dutch Daisy', swiss:'Swiss Daisy', decouverte:'D\u00e9couverte' };
+
+function recordMyHeat(color, cells) {
+  if (typeof isMyColor === 'function' && !isMyColor(color)) return;
+  recordHeatmapForPlayer('me_' + color, cells);                     // cumul global
+  const v = (typeof currentLayout !== 'undefined') ? currentLayout : 'standard';
+  if (HEAT_VARIANTS.indexOf(v) >= 0) recordHeatmapForPlayer('me_' + color + '@' + v, cells);
+}
+
 function recordHeatmapForPlayer(playerId, cells) {
   if (!playerId || !cells || !cells.length) return;
   const hm = getPlayerHeatmap(playerId);
@@ -7530,6 +7546,7 @@ function renderOneHeatmapCard(title, subtitle, heat, isYou) {
     '</div>';
 }
 
+let _heatVariant = 'all';
 function renderHeatmap() {
   const host = document.getElementById('heatmap-host');
   if (!host) return;
@@ -7550,20 +7567,43 @@ function renderHeatmap() {
     if (legacy && Object.keys(legacy).length) progress.heatmaps['me_black'] = Object.assign({}, legacy);
   }
 
-  const blackHeat = getPlayerHeatmap('me_black');
-  const whiteHeat = getPlayerHeatmap('me_white');
+  // Filtre de variante : cumul global, ou une position de depart precise
+  const vSel = (typeof _heatVariant !== 'undefined') ? _heatVariant : 'all';
+  const suffix = (vSel === 'all') ? '' : ('@' + vSel);
+  const scopeLabel = (vSel === 'all') ? 'toutes variantes confondues'
+                                      : ('variante ' + (HEAT_VARIANT_LABEL[vSel] || vSel));
+
+  const blackHeat = getPlayerHeatmap('me_black' + suffix);
+  const whiteHeat = getPlayerHeatmap('me_white' + suffix);
   const blackTotal = Object.values(blackHeat).reduce(function(a,b){ return a+b; }, 0);
   const whiteTotal = Object.values(whiteHeat).reduce(function(a,b){ return a+b; }, 0);
 
+  // Onglets de variante : on n'affiche que celles reellement jouees, plus « Toutes »
+  const played = HEAT_VARIANTS.filter(function(v){
+    const b = progress.heatmaps['me_black@' + v], w = progress.heatmaps['me_white@' + v];
+    return (b && Object.keys(b).length) || (w && Object.keys(w).length);
+  });
+  const tabs = ['all'].concat(played).map(function(v){
+    const on = (v === vSel);
+    return '<button onclick="_heatVariant=\'' + v + '\';renderHeatmap()" style="'
+      + 'padding:4px 11px;font-size:11px;font-weight:600;border-radius:7px;cursor:pointer;border:1px solid var(--border);'
+      + (on ? 'background:var(--gold);color:#0d0f0e' : 'background:none;color:var(--muted)') + '">'
+      + (v === 'all' ? 'Toutes' : (HEAT_VARIANT_LABEL[v] || v)) + '</button>';
+  }).join('');
+  const tabsHtml = (played.length > 0)
+    ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">' + tabs + '</div>' : '';
+
   if (blackTotal === 0 && whiteTotal === 0) {
-    host.innerHTML = '<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px;background:var(--surface2);border:1px solid var(--border);border-radius:12px">🔥 Joue quelques parties pour voir tes cartes de chaleur apparaître ici.</div>';
+    host.innerHTML = tabsHtml + '<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px;background:var(--surface2);border:1px solid var(--border);border-radius:12px">🔥 '
+      + (vSel === 'all' ? 'Joue quelques parties pour voir tes cartes de chaleur appara\u00eetre ici.'
+                        : 'Aucune partie enregistr\u00e9e sur cette variante pour le moment.') + '</div>';
     return;
   }
 
-  const blackCard = renderOneHeatmapCard('⚫ Mes billes noires', 'Cumul de tes parties avec les noirs', blackHeat, true);
-  const whiteCard = renderOneHeatmapCard('⚪ Mes billes blanches', 'Cumul de tes parties avec les blancs', whiteHeat, true);
+  const blackCard = renderOneHeatmapCard('\u26ab Mes billes noires', 'Cumul de tes parties avec les noirs \u00b7 ' + scopeLabel, blackHeat, true);
+  const whiteCard = renderOneHeatmapCard('\u26aa Mes billes blanches', 'Cumul de tes parties avec les blancs \u00b7 ' + scopeLabel, whiteHeat, true);
 
-  host.innerHTML =
+  host.innerHTML = tabsHtml +
     '<div style="display:flex;gap:16px;flex-wrap:wrap">'+blackCard+whiteCard+'</div>'+
     heatmapLegend()+
     '<div style="margin-top:12px;padding:10px 14px;background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.2);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.5">ℹ️ Ces deux cartes montrent <strong>ton</strong> jeu, selon la couleur que tu tenais. La carte « blanches » se remplit quand tu joues les blancs (ou en mode 2 joueurs sur le même écran).</div>';
@@ -11064,7 +11104,7 @@ function recordPlayerMove(opts) {
   if (opts.cells && opts.cells.length) {
     recordHeatmapForPlayer(localPlayerId(), opts.cells);
     // Carte personnelle « mes noires » (profil perso : on ne range ici que MES coups)
-    if (isMyColor('black')) recordHeatmapForPlayer('me_black', opts.cells);
+    recordMyHeat('black', opts.cells);
     // compat : maintient aussi l'ancienne clé pour ne rien casser
     if (!progress.heatmap) progress.heatmap = {};
     opts.cells.forEach(function(cell){
@@ -11082,7 +11122,7 @@ function recordWhiteHeatmap(cells) {
   if (typeof progress === 'undefined' || !cells || !cells.length) return;
   recordHeatmapForPlayer('opponent', cells);
   // Carte personnelle « mes blanches » : uniquement si le joueur tenait les blancs
-  if (isMyColor('white')) recordHeatmapForPlayer('me_white', cells);
+  recordMyHeat('white', cells);
   // compat : maintient aussi l'ancienne clé
   if (!progress.heatmapWhite) progress.heatmapWhite = {};
   cells.forEach(function(cell){
