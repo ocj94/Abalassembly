@@ -7546,6 +7546,144 @@ function renderOneHeatmapCard(title, subtitle, heat, isYou) {
     '</div>';
 }
 
+/* ── Import d'un historique de parties ────────────────────────────────
+   Permet d'alimenter la carte de chaleur et le profil avec des parties
+   jouees ailleurs. Accepte les formats que le site sait deja lire :
+   l'export d'Abalassembly (« 1.a1b2 c3d4 2.… », avec ou sans en-tetes
+   [Abalassembly] / [Score]) et la notation brute Aba-Pro ou Nacre.
+
+   Les jetons sont resolus CONTRE LE VRAI MOTEUR : pour chaque coup on
+   genere les coups legaux de la position courante et on retient celui dont
+   la notation correspond. Un jeton qui ne correspond a aucun coup legal est
+   signale au lieu d'etre devine — mieux vaut un import partiel et honnete
+   qu'un historique invente.
+
+   L'etat de la partie en cours est sauvegarde puis restaure : importer ne
+   perturbe jamais une partie ouverte. Demande d'Olivier. */
+function _importExtractTokens(text) {
+  return String(text || '')
+    .split('\n')
+    .filter(function(l){ return !/^\s*\[/.test(l); })   // ignore les en-tetes [..]
+    .join(' ')
+    .replace(/\d+\s*\./g, ' ')                          // retire les numeros de coup
+    .split(/[\s,;]+/)
+    .map(function(t){ return t.replace(/[^a-i0-9]/gi, '').toLowerCase(); })
+    // 2 paires = coup en ligne (« c4d4 »), 3 paires = coup lateral, qui note
+    // aussi la fin du groupe (« g5g7f4 »). Les deux formes sont valides.
+    .filter(function(t){ return /^([a-i][1-9]){2,3}$/.test(t); });
+}
+
+function _importCandidates(tok, color) {
+  var out = [], moves;
+  try { moves = getAllMovesForColor(color); } catch(e) { return out; }
+  if (!moves) return out;
+  for (var i = 0; i < moves.length; i++) {
+    try { if (moveToABAPRO(moves[i].cells, moves[i].dir, moves[i].type) === tok) out.push(moves[i]); } catch(e){}
+  }
+  if (!out.length) {
+    for (var j = 0; j < moves.length; j++) {
+      try { if (moveToNACRE(moves[j].cells, moves[j].dir, moves[j].type) === tok) out.push(moves[j]); } catch(e){}
+    }
+  }
+  return out;
+}
+
+function importHistoryFromText(text, myColor, variant) {
+  var tokens = _importExtractTokens(text);
+  if (!tokens.length) return { ok:false, reason:'aucun coup reconnu', moves:0, mine:0, total:0, failedAt:-1 };
+
+  var saved = {
+    board: JSON.parse(JSON.stringify(board)),
+    cb: capturedByBlack, cw: capturedByWhite,
+    layout: (typeof currentLayout !== 'undefined') ? currentLayout : 'standard'
+  };
+  var best = { path: [], depth: 0 };
+  var budget = 20000;   // garde-fou : jamais d'explosion combinatoire
+
+  /* La notation Aba-Pro est ambigue : un meme jeton peut correspondre a
+     plusieurs coups legaux differents. Choisir au hasard fait diverger la
+     position et casse l'import quelques coups plus loin, silencieusement.
+     On explore donc les possibilites avec retour arriere, en gardant la plus
+     longue sequence coherente trouvee. */
+  function explore(i, turn, path) {
+    if (path.length > best.depth) { best = { path: path.slice(), depth: path.length }; }
+    if (i >= tokens.length || budget <= 0) return i >= tokens.length;
+    var cands = _importCandidates(tokens[i], turn);
+    var other = (turn === 'black') ? 'white' : 'black';
+    for (var c = 0; c < cands.length; c++) {
+      if (budget-- <= 0) return false;
+      var undo = applyMove(cands[c], turn);
+      path.push({ color: turn, cells: cands[c].cells });
+      if (explore(i + 1, other, path)) return true;
+      path.pop();
+      undoMove(undo);
+    }
+    return false;
+  }
+
+  try {
+    if (typeof currentLayout !== 'undefined' && HEAT_VARIANTS.indexOf(variant) >= 0) currentLayout = variant;
+    initBoardState();
+    capturedByBlack = 0; capturedByWhite = 0;
+    explore(0, 'black', []);
+  } catch(e) {
+    // on ne laisse jamais l'import casser l'etat
+  } finally {
+    board = saved.board; capturedByBlack = saved.cb; capturedByWhite = saved.cw;
+    if (typeof currentLayout !== 'undefined') currentLayout = saved.layout;
+  }
+
+  // enregistrement une fois l'etat restaure, uniquement pour mes coups
+  var mine = 0;
+  for (var k = 0; k < best.path.length; k++) {
+    if (best.path[k].color !== myColor) continue;
+    recordHeatmapForPlayer('me_' + myColor, best.path[k].cells);
+    if (HEAT_VARIANTS.indexOf(variant) >= 0) recordHeatmapForPlayer('me_' + myColor + '@' + variant, best.path[k].cells);
+    mine++;
+  }
+  return {
+    ok: best.path.length > 0,
+    moves: best.path.length,
+    mine: mine,
+    total: tokens.length,
+    failedAt: best.path.length < tokens.length ? best.path.length : -1
+  };
+}
+
+function runHistoryImport() {
+  var ta = document.getElementById('import-history-text');
+  var col = document.getElementById('import-history-color');
+  var vr = document.getElementById('import-history-variant');
+  if (!ta) return;
+  var res = importHistoryFromText(ta.value, col ? col.value : 'black', vr ? vr.value : 'standard');
+  if (!res.ok) { showToast('\u26a0\ufe0f Aucun coup reconnu \u2014 verifie le format'); return; }
+  var msg = '\u2705 ' + res.mine + ' de tes coups importes (' + res.moves + '/' + res.total + ' coups lus)';
+  if (res.failedAt >= 0) msg += ' \u2014 arret au coup ' + (res.failedAt + 1) + ', non reconnu';
+  showToast(msg);
+  ta.value = '';
+  if (typeof renderHeatmap === 'function') renderHeatmap();
+}
+
+function renderImportCard() {
+  var host = document.getElementById('import-history-host');
+  if (!host) return;
+  var opts = HEAT_VARIANTS.map(function(v){
+    return '<option value="' + v + '">' + (HEAT_VARIANT_LABEL[v] || v) + '</option>';
+  }).join('');
+  host.innerHTML =
+    '<details style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px">'
+    + '<summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--gold)">\ud83d\udce5 Importer des parties jouees ailleurs</summary>'
+    + '<div style="font-size:11px;color:var(--muted);line-height:1.5;margin:10px 0">Colle ici une partie au format Abalassembly (« 1.a1b2 c3d4 \u2026 ») ou une suite de coups en notation Aba-Pro ou Nacre. Les coups sont verifies un a un contre le moteur : ceux qui ne correspondent a aucun coup legal sont signales, jamais devines. \u00c0 noter : la notation Aba-Pro est ambigu\u00eb \u2014 un m\u00eame code peut d\u00e9signer plusieurs coups l\u00e9gaux. La partie est donc reconstitu\u00e9e de fa\u00e7on coh\u00e9rente avec la notation, sans garantie qu\'il s\'agisse exactement de la s\u00e9quence d\'origine.</div>'
+    + '<textarea id="import-history-text" placeholder="1.a1b2 c3d4 2.e5f6 g7h8 \u2026" style="width:100%;height:90px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:12px;resize:vertical"></textarea>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px">'
+    + '<label style="font-size:11px;color:var(--muted)">Je jouais&nbsp;'
+    + '<select id="import-history-color" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:4px 8px;font-size:11px"><option value="black">les noirs</option><option value="white">les blancs</option></select></label>'
+    + '<label style="font-size:11px;color:var(--muted)">Variante&nbsp;'
+    + '<select id="import-history-variant" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:4px 8px;font-size:11px">' + opts + '</select></label>'
+    + '<button onclick="runHistoryImport()" style="padding:6px 14px;background:var(--gold);color:#0d0f0e;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">Importer</button>'
+    + '</div></details>';
+}
+
 let _heatVariant = 'all';
 function renderHeatmap() {
   const host = document.getElementById('heatmap-host');
@@ -7594,9 +7732,11 @@ function renderHeatmap() {
     ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">' + tabs + '</div>' : '';
 
   if (blackTotal === 0 && whiteTotal === 0) {
-    host.innerHTML = tabsHtml + '<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px;background:var(--surface2);border:1px solid var(--border);border-radius:12px">🔥 '
+    host.innerHTML = tabsHtml + '<div id="import-history-host" style="margin-bottom:14px"></div>'
+      + '<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px;background:var(--surface2);border:1px solid var(--border);border-radius:12px">🔥 '
       + (vSel === 'all' ? 'Joue quelques parties pour voir tes cartes de chaleur appara\u00eetre ici.'
                         : 'Aucune partie enregistr\u00e9e sur cette variante pour le moment.') + '</div>';
+    if (typeof renderImportCard === 'function') renderImportCard();
     return;
   }
 
@@ -7604,9 +7744,11 @@ function renderHeatmap() {
   const whiteCard = renderOneHeatmapCard('\u26aa Mes billes blanches', 'Cumul de tes parties avec les blancs \u00b7 ' + scopeLabel, whiteHeat, true);
 
   host.innerHTML = tabsHtml +
+    '<div id="import-history-host" style="margin-bottom:14px"></div>'+
     '<div style="display:flex;gap:16px;flex-wrap:wrap">'+blackCard+whiteCard+'</div>'+
     heatmapLegend()+
     '<div style="margin-top:12px;padding:10px 14px;background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.2);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.5">ℹ️ Ces deux cartes montrent <strong>ton</strong> jeu, selon la couleur que tu tenais. La carte « blanches » se remplit quand tu joues les blancs (ou en mode 2 joueurs sur le même écran).</div>';
+  if (typeof renderImportCard === 'function') renderImportCard();
 }
 
 function syncRadarToggle() {
