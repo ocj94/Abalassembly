@@ -7435,16 +7435,16 @@ function toggleRadarVisibility(show) {
    fausses couleurs) : du noir — là où le joueur joue le MOINS — au blanc,
    là où il joue le PLUS, en passant par bleu, violet, rose, orange et jaune.
    Choix d'Olivier (palette fournie en référence). */
-/* Echelle a 15 paliers (14 teintes + le blanc), du moins joue au plus joue. Les teintes traversent
-   volontairement bleu, violet, bordeaux, brun, vert, rouille, magenta,
-   turquoise, orange, vert pomme, dore, jaune et beige : chaque zone de
-   l'echelle devient identifiable d'un coup d'oeil, sans avoir a comparer
-   avec la legende. Contrainte tenue : la LUMINANCE relative est
-   strictement croissante d'un palier au suivant (verifiee par calcul,
-   ecarts entre 0,017 et 0,213), sinon la carte cesse d'etre lisible
-   comme une echelle. Les couleurs intermediaires sont interpolees, ce
-   qui donne une centaine de nuances continues. Demande d'Olivier. */
-const HEATMAP_SCALE = ['#101018','#1e2f6b','#5b2586','#8e1f3a','#7a4a22','#1c6b3a','#b8451f','#cf2f7a','#12857f','#ea7024','#5faa2e','#f0aa1e','#f2d92f','#efe4c4','#ffffff'];
+/* Echelle de reference a 8 paliers : noir bleute, bleu, violet, rose,
+   orange, dore, jaune, blanc — du moins joue au plus joue. Les couleurs
+   intermediaires sont INTERPOLEES par heatColor(), ce qui donne une
+   centaine de nuances continues a l'ecran : les 8 valeurs ci-dessous sont
+   des points d'ancrage, pas les seules couleurs affichees.
+   Choix d'Olivier, revenu a cette palette apres essai d'une version a 15
+   paliers jugee trop chargee. Note : la luminance monte regulierement sauf
+   entre le violet et le rose, ou elle redescend legerement (0,263 -> 0,245).
+   Ecart assez faible pour rester lisible ; eclaircir le rose le corrigerait. */
+const HEATMAP_SCALE = ['#1b1b2f','#3b5bb5','#9b7fc7','#e8536f','#f0a03c','#f5c518','#e9e94f','#ffffff'];
 const HEATMAP_EMPTY = '#0d0d14';   // case jamais jouée
 
 /* Couleur continue de la carte de chaleur.
