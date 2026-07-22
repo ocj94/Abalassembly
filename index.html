@@ -2262,6 +2262,10 @@ document.addEventListener('keydown', function(e){
       <span class="s-icon">🎖️</span><span class="s-label" data-i18n="nav.pioneers">Pionniers</span>
     </button>
 
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-biblio" onclick="sidebarNav('biblio',this)">
+      <span class="s-icon">📚</span><span class="s-label" data-i18n="nav.biblio">Bibliothèque</span>
+    </button>
+
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-camera" onclick="sidebarNav('camera',this)">
       <span class="s-icon">📷</span><span class="s-label" data-i18n="nav.camera">Détection IA</span>
     </button>
@@ -2365,13 +2369,13 @@ document.addEventListener('keydown', function(e){
         <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;flex-basis:100%;margin-bottom:4px">Fiche du jeu — Source: <a href="https://fr.boardgamearena.com/gamepanel?game=abalone" target="_blank" rel="noopener noreferrer" style="color:var(--gold)">Board Game Arena</a></div>
         <div style="display:flex;flex-direction:column;gap:2px">
           <div style="font-size:11px;color:var(--muted)">Stratégie</div>
-          <div style="display:flex;gap:3px">${'<div style="width:14px;height:14px;border-radius:3px;background:var(--gold)"></div>'.repeat(5)}</div>
+          <div style="display:flex;gap:3px"><div style="width:14px;height:14px;border-radius:3px;background:var(--gold)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--gold)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--gold)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--gold)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--gold)"></div></div>
           <div style="font-size:10px;color:var(--gold);font-weight:700">5 / 5</div>
         </div>
         <div style="width:1px;height:36px;background:var(--border)"></div>
         <div style="display:flex;flex-direction:column;gap:2px">
           <div style="font-size:11px;color:var(--muted)">Chance</div>
-          <div style="display:flex;gap:3px">${'<div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div>'.repeat(5)}</div>
+          <div style="display:flex;gap:3px"><div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div></div>
           <div style="font-size:10px;color:var(--muted);font-weight:700">0 / 5</div>
         </div>
         <div style="width:1px;height:36px;background:var(--border)"></div>
@@ -2379,7 +2383,7 @@ document.addEventListener('keydown', function(e){
           <div style="font-size:11px;color:var(--muted)">Complexité</div>
           <div style="display:flex;gap:3px">
             <div style="width:14px;height:14px;border-radius:3px;background:var(--accent-green-light)"></div>
-            ${Array(4).fill('<div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div>').join('')}
+            <div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div><div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)"></div>
           </div>
           <div style="font-size:10px;color:var(--accent-green-light);font-weight:700">1 / 5</div>
         </div>
@@ -5229,13 +5233,13 @@ document.addEventListener('keydown', function(e){
       <button class="filter-btn" onclick="filterVariants('5', event)">⭐ 5 joueurs</button>
       <button class="filter-btn" onclick="filterVariants('6', event)">🌟 6 joueurs</button>
     </div>
-      <button class="filter-btn active" onclick="filterMuseum('all',this)">Tout voir</button>
-      <button class="filter-btn" onclick="filterMuseum('luxe',this)">💎 Luxe</button>
-      <button class="filter-btn" onclick="filterMuseum('bois',this)">🪵 Bois</button>
-      <button class="filter-btn" onclick="filterMuseum('voyage',this)">✈️ Voyage</button>
-      <button class="filter-btn" onclick="filterMuseum('couleur',this)">🌈 Couleurs</button>
-      <button class="filter-btn" onclick="filterMuseum('special',this)">⭐ Spéciales</button>
-      <button class="filter-btn" onclick="filterMuseum('pirate',this)">🏴‍☠️ Pirates</button>
+      <button class="filter-btn active" onclick="if(typeof filterMuseum==='function')filterMuseum('all',this)">Tout voir</button>
+      <button class="filter-btn" onclick="if(typeof filterMuseum==='function')filterMuseum('luxe',this)">💎 Luxe</button>
+      <button class="filter-btn" onclick="if(typeof filterMuseum==='function')filterMuseum('bois',this)">🪵 Bois</button>
+      <button class="filter-btn" onclick="if(typeof filterMuseum==='function')filterMuseum('voyage',this)">✈️ Voyage</button>
+      <button class="filter-btn" onclick="if(typeof filterMuseum==='function')filterMuseum('couleur',this)">🌈 Couleurs</button>
+      <button class="filter-btn" onclick="if(typeof filterMuseum==='function')filterMuseum('special',this)">⭐ Spéciales</button>
+      <button class="filter-btn" onclick="if(typeof filterMuseum==='function')filterMuseum('pirate',this)">🏴‍☠️ Pirates</button>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px" id="museum-grid"></div>
   </div>
@@ -5672,6 +5676,23 @@ document.addEventListener('keydown', function(e){
     <div style="margin-top:32px;padding:18px;background:var(--surface);border:1px solid var(--border);border-radius:12px;font-size:13px;color:var(--muted)">
       Sources : blog <a href="https://abalone-online.over-blog.com/" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:none">Abalone Online</a>, publications académiques (Graz, Maastricht, Lisbonne, Yeditepe) et travaux de Laurent Pagli. Les noms cités appartiennent à leurs auteurs ; cette page leur rend hommage à titre informatif.
     </div>
+  </div>
+</div>
+
+<div class="page" id="page-biblio">
+  <div class="page-header">
+    <div class="section-label">Documentation & recherche</div>
+    <h2>📚 Bibliothèque</h2>
+    <p style="color:var(--muted);font-size:15px;margin-top:12px;max-width:620px">Ouvrages, articles universitaires et documents communautaires consacrés à l'Abalone : stratégie, notation des coups et intelligence artificielle.</p>
+  </div>
+  <div style="padding:0 60px 80px">
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:24px">
+      <button class="filter-btn active" onclick="filterBiblio('all',this)">Tout voir</button>
+      <button class="filter-btn" onclick="filterBiblio('strategy',this)">♟️ Stratégie</button>
+      <button class="filter-btn" onclick="filterBiblio('ai',this)">🤖 IA & algorithmes</button>
+      <button class="filter-btn" onclick="filterBiblio('notation',this)">✍️ Notation</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px" id="biblio-grid"></div>
   </div>
 </div>
 
@@ -16772,6 +16793,68 @@ const variantsData = [
     origin:'3-2-one.com / spkane.org' },
 ];
 
+/* ── Bibliothèque de documents ────────────────────────────────────────
+   Bibliographie des ouvrages, articles et documents communautaires sur
+   l'Abalone. Volontairement une BIBLIOGRAPHIE (références + liens) et non
+   des fichiers embarqués : intégrer les PDF en base64 ferait passer le
+   fichier unique de ~2,5 Mo à plus de 12 Mo, imposé à chaque visiteur même
+   sans ouvrir un seul document. Idée d'Olivier, source : son Drive.
+   NOTE : les descriptions ne sont renseignées que pour les documents dont
+   le contenu est établi ; les autres portent une mention neutre plutôt
+   qu'un résumé inventé. */
+const BIBLIO_DOCS = [
+  { t:"Abalone — Rules and Strategems (v2.1)", a:"Bruno Curfs", y:"", cat:"strategy", lang:"EN", kind:"Guide", size:"3,5 Mo",
+    d:"Guide de référence de la communauté sur les règles et les schémas stratégiques du jeu.", url:"" },
+  { t:"Algorithmic Fun — Abalone", a:"O. Aichholzer, F. Aurenhammer, T. Werner", y:"2002", cat:"ai", lang:"EN", kind:"Article", size:"202 Ko",
+    d:"Étude théorique du jeu : complexité, structures et propriétés algorithmiques.", url:"" },
+  { t:"Constructing an Abalone game-playing agent", a:"N. Lemmens", y:"", cat:"ai", lang:"EN", kind:"Mémoire", size:"1,7 Mo",
+    d:"Mémoire universitaire consacré à la construction d'une IA joueuse d'Abalone.", url:"" },
+  { t:"Abalone — Final Report", a:"", y:"", cat:"ai", lang:"EN", kind:"Rapport", size:"564 Ko",
+    d:"Rapport de projet universitaire sur Abalone.", url:"" },
+  { t:"Report on Abalone", a:"", y:"", cat:"ai", lang:"EN", kind:"Rapport", size:"124 Ko",
+    d:"Rapport de projet universitaire sur Abalone.", url:"" },
+  { t:"ABLA (id136)", a:"", y:"", cat:"ai", lang:"EN", kind:"Article", size:"194 Ko",
+    d:"Article de recherche sur Abalone.", url:"" },
+  { t:"Comment coder les coups", a:"Laurent Pagli", y:"", cat:"notation", lang:"FR", kind:"Document", size:"15 Ko",
+    d:"Document communautaire francophone sur la notation et le codage des coups.", url:"" },
+  { t:"Codes des variantes de MiGs", a:"", y:"", cat:"notation", lang:"FR", kind:"Document", size:"10 Ko",
+    d:"Codes des positions de départ des variantes MiGs.", url:"" },
+  { t:"Les algorithmes utilisés", a:"", y:"", cat:"ai", lang:"FR", kind:"Document", size:"28 Ko",
+    d:"Document communautaire francophone sur les algorithmes appliqués à Abalone.", url:"" }
+];
+
+let _biblioFilter = 'all';
+function filterBiblio(cat, btn) {
+  _biblioFilter = cat || 'all';
+  try {
+    const wrap = btn && btn.parentNode;
+    if (wrap) Array.prototype.forEach.call(wrap.querySelectorAll('.filter-btn'), function(b){ b.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+  } catch(e){}
+  renderBiblio();
+}
+
+function renderBiblio() {
+  const grid = document.getElementById('biblio-grid');
+  if (!grid) return;
+  const list = BIBLIO_DOCS.filter(function(d){ return _biblioFilter === 'all' || d.cat === _biblioFilter; });
+  if (!list.length) { grid.innerHTML = '<div style="padding:20px;color:var(--muted)">Aucun document dans cette catégorie.</div>'; return; }
+  grid.innerHTML = list.map(function(d){
+    const meta = [d.kind, d.lang, d.size].filter(Boolean).join(' · ');
+    const author = d.a ? (d.a + (d.y ? ' — ' + d.y : '')) : (d.y || 'Auteur non renseigné');
+    const link = d.url
+      ? '<a href="' + d.url + '" target="_blank" rel="noopener noreferrer" style="color:var(--gold);text-decoration:none;font-size:12px;font-weight:700">Consulter →</a>'
+      : '<span style="color:var(--muted);font-size:12px">Référence bibliographique</span>';
+    return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px">'
+      + '<div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">' + escapeHtml(meta) + '</div>'
+      + '<div style="font-size:15px;font-weight:700;color:var(--white);line-height:1.3">' + escapeHtml(d.t) + '</div>'
+      + '<div style="font-size:12px;color:var(--gold-dim)">' + escapeHtml(author) + '</div>'
+      + '<div style="font-size:13px;color:var(--muted);line-height:1.5;flex:1">' + escapeHtml(d.d) + '</div>'
+      + '<div>' + link + '</div>'
+      + '</div>';
+  }).join('');
+}
+
 function renderVariants() {
   const grid = document.getElementById('variants-grid');
   if (!grid || grid.children.length > 0) return;
@@ -18457,7 +18540,14 @@ function showPage(name) {
     profile:    function(){ renderProfile(); renderStreak(); },
     camera:     function(){ setupDragDrop(); },
     variants:   function(){ renderVariants(); },
-    museum:     function(){ renderMuseum(); },
+    biblio:     function(){ renderBiblio(); },
+    // renderMuseum() n'existe pas encore : garde pour éviter un plantage de la
+    // page (ReferenceError) et afficher un état vide honnête à la place.
+    museum:     function(){
+      if (typeof renderMuseum === 'function') { renderMuseum(); return; }
+      const g = document.getElementById('museum-grid');
+      if (g && !g.innerHTML.trim()) g.innerHTML = '<div style="padding:24px;color:var(--muted);grid-column:1/-1">Contenu du musée en cours de préparation.</div>';
+    },
     tournament: function(){ renderTournament(); },
     trombi:     function(){ renderTrombi(); },
     settings:   function(){ renderProfile(); if(typeof syncRadarToggle==='function') syncRadarToggle(); },
