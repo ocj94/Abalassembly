@@ -2196,12 +2196,6 @@ document.addEventListener('keydown', function(e){
 <!-- ─── SIDEBAR (chess.com style) ─── -->
 <aside id="sidebar" class="sidebar sidebar-hidden">
 
-  <!-- Expand toggle at top -->
-  <button class="sidebar-expand-btn" onclick="toggleSidebarExpand()" id="sidebar-expand-btn" title="Agrandir">
-    <span class="s-icon">☰</span>
-    <span class="s-label">Menu</span>
-  </button>
-
   <!-- Nav items -->
   <div class="sidebar-items">
 
@@ -16515,6 +16509,61 @@ function sendGeneralChat() {
 /* ═══════════════════════════════════════════
    GAME ANALYSIS
 ═══════════════════════════════════════════ */
+/* Calcule les meilleurs coups de la position courante, avec le vrai moteur :
+   on joue chaque coup legal, on evalue la position obtenue, puis on annule.
+   Renvoie les `n` meilleurs et le pire, avec un commentaire deduit du coup
+   lui-meme (capture, poussee, sortie de danger…) — jamais un texte figé. */
+function computeTopMoves(color, n) {
+  n = n || 3;
+  var out = [];
+  var moves;
+  try { moves = getAllMovesForColor(color); } catch(e) { return out; }
+  if (!moves || !moves.length) return out;
+
+  var scored = [];
+  for (var i = 0; i < moves.length; i++) {
+    var m = moves[i], undo = null, sc = 0;
+    try {
+      undo = applyMove(m, color);
+      sc = evaluateBoard(color);
+    } catch(e) { sc = -Infinity; }
+    finally { if (undo) { try { undoMove(undo); } catch(e){} } }
+    scored.push({ m: m, sc: sc });
+  }
+  scored.sort(function(a, b){ return b.sc - a.sc; });
+
+  function label(mv) {
+    try { return moveToABAPRO(mv.cells, mv.dir, mv.type).toUpperCase(); }
+    catch(e) { return '?'; }
+  }
+  function why(mv, rank) {
+    if (mv.eject) return 'Ejecte une bille adverse';
+    if (mv.type === 'push') return 'Poussee — gagne du terrain';
+    if (mv.type === 'broadside') return 'Deplacement lateral — elargit le front';
+    if (mv.cells && mv.cells.length >= 3) return 'Groupe de 3 — formation solide';
+    if (mv.cells && mv.cells.length === 2) return 'Groupe de 2 — avance coordonnee';
+    return rank === 0 ? 'Meilleur coup selon le moteur' : 'Alternative jouable';
+  }
+
+  var top = scored.slice(0, Math.min(n, scored.length));
+  for (var t = 0; t < top.length; t++) {
+    out.push({
+      type: t === 0 ? 'best' : 'good',
+      icon: t === 0 ? '\ud83d\udfe2' : '\ud83d\udfe1',
+      move: label(top[t].m),
+      comment: (t === 0 ? 'Meilleur coup — ' : 'Alternative — ') + why(top[t].m, t)
+    });
+  }
+  // le pire coup n'est affiche que s'il se distingue nettement du meilleur
+  if (scored.length > top.length + 1) {
+    var worst = scored[scored.length - 1];
+    if (top[0].sc - worst.sc > 50) {
+      out.push({ type:'bad', icon:'\ud83d\udd34', move: label(worst.m), comment: '\u00c0 \u00e9viter — ' + why(worst.m, -1) });
+    }
+  }
+  return out;
+}
+
 function runAnalysis() {
   const el = document.getElementById('analyse-content');
   if (!el) return;
@@ -16525,12 +16574,10 @@ function runAnalysis() {
   const whiteEj = 14 - whitePieces + capturedByBlack;
   const advantage = blackPieces - whitePieces + (capturedByBlack - capturedByWhite)*2;
   const advPct = Math.min(100, Math.max(0, 50 + advantage*8));
-  const moves = [
-    { type:'best', icon:'🟢', move:'E5→F5', comment:'Meilleur coup — pression au centre' },
-    { type:'good', icon:'🟡', move:'D4→E4', comment:'Bon coup — développement solide' },
-    { type:'good', icon:'🟡', move:'F6→F5', comment:'Alternative — défense centre' },
-    { type:'bad',  icon:'🔴', move:'A1→A2', comment:'À éviter — bille isolée en bord' },
-  ];
+  // Coups reellement calcules sur la position courante (voir computeTopMoves).
+  // Cette liste etait auparavant ecrite en dur et affichait toujours les memes
+  // quatre coups, quelle que soit la partie — signale par Olivier.
+  const moves = computeTopMoves(currentTurn, 3);
   el.innerHTML = [
     '<div style="margin-bottom:14px">',
     '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px">',
@@ -16538,7 +16585,7 @@ function runAnalysis() {
     '<span>⚪ Blanc</span></div>',
     '<div class="analysis-bar"><div class="analysis-fill" style="width:'+advPct+'%;background:'+(advantage>0?'var(--accent-green-light)':'#e05c4b')+'"></div></div>',
     '</div>',
-    '<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:12px 0 8px">Meilleurs coups</div>',
+    '<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:12px 0 8px">Meilleurs coups (position actuelle)</div>',
     moves.map(m => '<div class="analysis-move '+m.type+'"><span class="am-icon">'+m.icon+'</span><span class="am-move">'+m.move+'</span><span class="am-comment">'+m.comment+'</span></div>').join(''),
     '<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--muted);line-height:1.6">',
     '📊 Billes éjectées — Vous: '+capturedByBlack+' · Adversaire: '+capturedByWhite,
