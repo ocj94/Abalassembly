@@ -6413,6 +6413,16 @@ function getPlayerHeatmap(playerId) {
   return progress.heatmaps[playerId];
 }
 
+/* Cette couleur est-elle jouée par le joueur local ?
+   - mode « vs IA » : seulement sa couleur (humanColor)
+   - mode « 2 joueurs » même écran : les deux camps sont locaux, donc les deux
+   Sert à ranger les coups dans MA carte noire ou MA carte blanche. */
+function isMyColor(color) {
+  if (typeof gameMode !== 'undefined' && gameMode === 'local') return true;
+  const hc = (typeof humanColor !== 'undefined') ? humanColor : 'black';
+  return color === hc;
+}
+
 // Enregistre des cases jouées dans la heatmap d'un joueur (cumulé sur toutes ses parties)
 function recordHeatmapForPlayer(playerId, cells) {
   if (!playerId || !cells || !cells.length) return;
@@ -7441,6 +7451,23 @@ function toggleRadarVisibility(show) {
    HEATMAP DES COUPS — carte de chaleur du plateau
    Montre les cases où le joueur a le plus joué (du froid au chaud).
 ═══════════════════════════════════════════ */
+/* Échelle de fausses couleurs de la carte de chaleur (façon éditeur de
+   fausses couleurs) : du noir — là où le joueur joue le MOINS — au blanc,
+   là où il joue le PLUS, en passant par bleu, violet, rose, orange et jaune.
+   Choix d'Olivier (palette fournie en référence). */
+const HEATMAP_SCALE = ['#1b1b2f','#3b5bb5','#9b7fc7','#e8536f','#f0a03c','#f5c518','#e9e94f','#ffffff'];
+const HEATMAP_EMPTY = '#0d0d14';   // case jamais jouée
+
+function heatmapLegend() {
+  const steps = [HEATMAP_EMPTY].concat(HEATMAP_SCALE).map(function(c){
+    return '<div style="flex:1;height:9px;background:' + c + '"></div>';
+  }).join('');
+  return '<div style="margin-top:8px">'
+    + '<div style="display:flex;border-radius:5px;overflow:hidden;border:1px solid var(--border)">' + steps + '</div>'
+    + '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px">'
+    + '<span>joue le moins</span><span>joue le plus</span></div></div>';
+}
+
 // Construit le SVG d'une heatmap pour un ensemble de données de cases
 function buildHeatmapSVG(heat) {
   let maxCount = 0;
@@ -7455,17 +7482,18 @@ function buildHeatmapSVG(heat) {
       const x = p.x * scale, y = p.y * scale;
       const count = heat[r+','+c] || 0;
       const intensity = maxCount > 0 ? count / maxCount : 0;
+      // Fausses couleurs : noir = joue le moins, blanc = joue le plus
       let fill;
-      if (count === 0) fill = 'rgba(255,255,255,0.04)';
+      if (count === 0) fill = HEATMAP_EMPTY;
       else {
-        const rC = Math.round(200 + intensity*55);
-        const gC = Math.round(180 - intensity*150);
-        const bC = Math.round(60 - intensity*50);
-        fill = 'rgba(' + rC + ',' + gC + ',' + bC + ',' + (0.25 + intensity*0.75) + ')';
+        const idx = Math.round(intensity * (HEATMAP_SCALE.length - 1));
+        fill = HEATMAP_SCALE[Math.max(0, Math.min(HEATMAP_SCALE.length - 1, idx))];
       }
-      cells += '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+cellR.toFixed(1)+'" fill="'+fill+'" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>';
+      cells += '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+cellR.toFixed(1)+'" fill="'+fill+'" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>';
       if (count > 0) {
-        cells += '<text x="'+x.toFixed(1)+'" y="'+(y+3).toFixed(1)+'" text-anchor="middle" font-size="9" fill="rgba(0,0,0,0.7)" font-weight="700">'+count+'</text>';
+        // texte lisible quel que soit le fond : sombre sur les cases claires
+        const darkText = intensity >= 0.45;
+        cells += '<text x="'+x.toFixed(1)+'" y="'+(y+3).toFixed(1)+'" text-anchor="middle" font-size="9" fill="'+(darkText?'rgba(0,0,0,0.75)':'rgba(255,255,255,0.85)')+'" font-weight="700">'+count+'</text>';
       }
     }
   }
@@ -7520,22 +7548,32 @@ function renderHeatmap() {
     if (progress.heatmapWhite && !progress.heatmaps['opponent']) progress.heatmaps['opponent'] = Object.assign({}, progress.heatmapWhite);
   }
 
-  const myHeat = getPlayerHeatmap(localPlayerId());
-  const oppHeat = getPlayerHeatmap('opponent');
-  const myTotal = Object.values(myHeat).reduce(function(a,b){ return a+b; }, 0);
-  const oppTotal = Object.values(oppHeat).reduce(function(a,b){ return a+b; }, 0);
+  // Profil PERSONNEL : les deux cartes montrent le jeu du joueur, selon la
+  // couleur qu'il tenait — jamais celui de l'adversaire.
+  // Reprise douce de l'historique : l'ancienne carte 'me' correspondait aux
+  // coups noirs du joueur, on l'utilise comme base de « mes noires ».
+  if (!progress.heatmaps['me_black'] || !Object.keys(progress.heatmaps['me_black']).length) {
+    const legacy = progress.heatmaps[localPlayerId()];
+    if (legacy && Object.keys(legacy).length) progress.heatmaps['me_black'] = Object.assign({}, legacy);
+  }
 
-  if (myTotal === 0 && oppTotal === 0) {
-    host.innerHTML = '<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px;background:var(--surface2);border:1px solid var(--border);border-radius:12px">🔥 Joue quelques parties pour voir les cartes de chaleur apparaître ici.</div>';
+  const blackHeat = getPlayerHeatmap('me_black');
+  const whiteHeat = getPlayerHeatmap('me_white');
+  const blackTotal = Object.values(blackHeat).reduce(function(a,b){ return a+b; }, 0);
+  const whiteTotal = Object.values(whiteHeat).reduce(function(a,b){ return a+b; }, 0);
+
+  if (blackTotal === 0 && whiteTotal === 0) {
+    host.innerHTML = '<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px;background:var(--surface2);border:1px solid var(--border);border-radius:12px">🔥 Joue quelques parties pour voir tes cartes de chaleur apparaître ici.</div>';
     return;
   }
 
-  const myCard = renderOneHeatmapCard('🔵 Toi (Noir)', 'Cumul de toutes tes parties', myHeat, true);
-  const oppCard = renderOneHeatmapCard('⚪ Adversaires (Blanc)', 'IA + joueurs locaux cumulés', oppHeat, false);
+  const blackCard = renderOneHeatmapCard('⚫ Mes billes noires', 'Cumul de tes parties avec les noirs', blackHeat, true);
+  const whiteCard = renderOneHeatmapCard('⚪ Mes billes blanches', 'Cumul de tes parties avec les blancs', whiteHeat, true);
 
   host.innerHTML =
-    '<div style="display:flex;gap:16px;flex-wrap:wrap">'+myCard+oppCard+'</div>'+
-    '<div style="margin-top:12px;padding:10px 14px;background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.2);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.5">ℹ️ Chaque carte cumule les coups sur toutes les parties. Avec le futur mode multijoueur, chaque joueur aura sa propre carte personnelle qui le suivra partout.</div>';
+    '<div style="display:flex;gap:16px;flex-wrap:wrap">'+blackCard+whiteCard+'</div>'+
+    heatmapLegend()+
+    '<div style="margin-top:12px;padding:10px 14px;background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.2);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.5">ℹ️ Ces deux cartes montrent <strong>ton</strong> jeu, selon la couleur que tu tenais. La carte « blanches » se remplit quand tu joues les blancs (ou en mode 2 joueurs sur le même écran).</div>';
 }
 
 function syncRadarToggle() {
@@ -10984,6 +11022,8 @@ function recordPlayerMove(opts) {
   // dans la structure par joueur (cumulé sur toutes ses parties).
   if (opts.cells && opts.cells.length) {
     recordHeatmapForPlayer(localPlayerId(), opts.cells);
+    // Carte personnelle « mes noires » (profil perso : on ne range ici que MES coups)
+    if (isMyColor('black')) recordHeatmapForPlayer('me_black', opts.cells);
     // compat : maintient aussi l'ancienne clé pour ne rien casser
     if (!progress.heatmap) progress.heatmap = {};
     opts.cells.forEach(function(cell){
@@ -11000,6 +11040,8 @@ function recordPlayerMove(opts) {
 function recordWhiteHeatmap(cells) {
   if (typeof progress === 'undefined' || !cells || !cells.length) return;
   recordHeatmapForPlayer('opponent', cells);
+  // Carte personnelle « mes blanches » : uniquement si le joueur tenait les blancs
+  if (isMyColor('white')) recordHeatmapForPlayer('me_white', cells);
   // compat : maintient aussi l'ancienne clé
   if (!progress.heatmapWhite) progress.heatmapWhite = {};
   cells.forEach(function(cell){
@@ -14305,17 +14347,18 @@ function buildGameHeatmapSVG(snapshots, forColor, size) {
       const k = row + ',' + col;
       const n = counts[k] || 0;
       const intensity = maxCount > 0 ? n / maxCount : 0;
-      // fond très sombre pour les cases jamais jouées, couleur croissante sinon
+      // Même échelle de fausses couleurs que la carte du profil, pour la cohérence
+      const SC = (typeof HEATMAP_SCALE !== 'undefined') ? HEATMAP_SCALE : ['#1b1b2f','#ffffff'];
+      const EM = (typeof HEATMAP_EMPTY !== 'undefined') ? HEATMAP_EMPTY : '#0d0d14';
       let fill;
       if (n === 0) {
-        fill = 'rgba(255,255,255,0.04)';
+        fill = EM;
       } else {
-        const a = 0.15 + intensity * 0.85;
-        fill = 'rgba(' + base[0] + ',' + base[1] + ',' + base[2] + ',' + a.toFixed(2) + ')';
+        const idx = Math.round(intensity * (SC.length - 1));
+        fill = SC[Math.max(0, Math.min(SC.length - 1, idx))];
       }
-      cells += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (R*0.92).toFixed(1) + '" fill="' + fill + '"'
-        + (n > 0 ? ' stroke="rgba(' + base[0] + ',' + base[1] + ',' + base[2] + ',0.5)" stroke-width="0.5"' : '')
-        + '></circle>';
+      cells += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (R*0.92).toFixed(1) + '"'
+        + ' fill="' + fill + '" stroke="rgba(255,255,255,0.10)" stroke-width="0.5"></circle>';
       if (n >= Math.max(2, Math.ceil(maxCount * 0.66))) {
         // affiche le compteur sur les cases les plus chaudes
         cells += '<text x="' + x.toFixed(1) + '" y="' + (y+R*0.35).toFixed(1) + '" text-anchor="middle" font-size="' + (R*0.9).toFixed(1) + '" fill="#0d0f0e" font-weight="700">' + n + '</text>';
