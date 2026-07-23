@@ -9762,6 +9762,10 @@ function roundedHexPath(ctx, cx, cy, R, rad) {
    s'accumulent en haut ; celles capturées par les Blancs (billes noires) en bas. */
 function drawGutterMarbles(ctx, corners, mx, my, pad, gutterW, opts) {
   opts = opts || {};
+  /* L'Editeur et l'Analyse passaient deja hideGutter:true, mais l'option
+     n'etait jamais lue : les billes ejectees de la partie precedente
+     restaient affichees dans ces deux modes. Signale par Saab. */
+  if (opts.hideGutter) return;
   const gr = HEX_RADIUS * 0.82;          // même taille (env.) que les billes du plateau
   const spacing = gr * 2.0;
 
@@ -14257,7 +14261,16 @@ function executeAIMove(chosen) {
     updateCaptures();
     const ejCount = (ai === 'white') ? capturedByWhite : capturedByBlack;
     if (ejX!==null) animateEjection(ejX, ejY, human, ejCount-1);
-    if (ejCount >= 6) { if (variantMode) { _variantConclude(ai); return; } triggerWin(ai); return; }
+    /* Le coup gagnant doit etre ENREGISTRE avant de conclure. Le retour
+       anticipe sautait addMoveToHistory : le 6e coup d'ejection de l'IA
+       n'apparaissait ni dans l'historique ni dans l'export. Signale par Saab. */
+    if (ejCount >= 6) {
+      const _winLabel = moveLabel(chosen.cells, chosen.dir, chosen.type, !!chosen.eject);
+      if (!variantMode) addMoveToHistory(_winLabel, ai, { cells: chosen.cells.slice(), dir: chosen.dir, type: chosen.type, ejection: !!chosen.eject });
+      if (typeof recordWhiteHeatmap === 'function') recordWhiteHeatmap(chosen.cells);
+      if (variantMode) { _variantConclude(ai); return; }
+      triggerWin(ai); return;
+    }
   } else if (chosen.info.type === 'push') {
     soundPush();   // 🔊
   } else {
@@ -14804,7 +14817,27 @@ function addMoveToHistory(move, color, moveInfo) {
   const list = document.getElementById('move-list');
   if (!list) return;
   appendMoveRow(list, moveInfo, move, color, boardSnapshots.length);
-  list.scrollTop = list.scrollHeight;
+  scrollMoveListToEnd();
+}
+
+/* Defile l'historique jusqu'au dernier coup.
+   #move-list n'a pas de barre de defilement : c'est son parent .move-history
+   qui porte overflow-y:auto. list.scrollTop = list.scrollHeight n'avait donc
+   aucun effet, et il fallait scroller a la main pour voir le score
+   d'ejection affiche sur le dernier coup. Signale par Saab. */
+function scrollMoveListToEnd() {
+  const list = document.getElementById('move-list');
+  if (!list) return;
+  let box = list;
+  while (box && box !== document.body) {
+    const st = window.getComputedStyle(box).overflowY;
+    if ((st === 'auto' || st === 'scroll') && box.scrollHeight > box.clientHeight) break;
+    box = box.parentElement;
+  }
+  if (box && box !== document.body) box.scrollTop = box.scrollHeight;
+  else if (list.lastElementChild && list.lastElementChild.scrollIntoView) {
+    list.lastElementChild.scrollIntoView({ block: 'nearest' });
+  }
 }
 
 // En-tête de la liste (colonnes Aba-Pro / Nacre)
@@ -14854,7 +14887,7 @@ function rebuildMoveListLabels() {
       if (cur) cur.classList.remove('current');
     }
   });
-  list.scrollTop = list.scrollHeight;
+  scrollMoveListToEnd();
 }
 
 // Auto-init board on canvas ready
@@ -19420,14 +19453,99 @@ function initPuzzleInteraction() {
   const canvas = document.getElementById('puzzle-board');
   if (!canvas || canvas._puzzleInited) return;
   canvas._puzzleInited = true;
-  canvas.addEventListener('click', function(e) {
+
+  /* Coordonnees canvas a partir d'un point ecran. */
+  function puzzlePos(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const px = (e.clientX - rect.left) * scaleX;
-    const py = (e.clientY - rect.top) * scaleY;
-    handlePuzzleClick(px, py);
+    return {
+      x: (clientX - rect.left) * (canvas.width / rect.width),
+      y: (clientY - rect.top)  * (canvas.height / rect.height)
+    };
+  }
+
+  canvas.addEventListener('click', function(e) {
+    /* Neutralise le clic parasite emis a la fin d'un balayage. */
+    if (canvas._pzDragJustEnded) { canvas._pzDragJustEnded = false; return; }
+    const p = puzzlePos(e.clientX, e.clientY);
+    handlePuzzleClick(p.x, p.y);
   });
+
+  /* ── GLISSER : selection par balayage, comme sur le plateau de jeu ──
+     Le mode Puzzle n'avait qu'un ecouteur 'click' : le clic-glisser ne
+     faisait rien. Signale par Saab. On reprend la meme semantique que
+     pointerDown/Move/Up du plateau principal : glisser depuis une bille
+     noire construit la selection (2 ou 3 billes alignees), la direction
+     se donne ensuite par un clic. Souris uniquement : sur tactile on
+     laisse le tap et le defilement de la page. */
+  const PZ_TOUCH = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+  if (PZ_TOUCH) return;
+
+  const PZ_DRAG_THRESHOLD = (typeof DRAG_THRESHOLD !== 'undefined') ? DRAG_THRESHOLD : 8;
+  let pzDrag = null;
+
+  canvas.addEventListener('mousedown', function(e) {
+    canvas._pzDragJustEnded = false;
+    const p = puzzlePos(e.clientX, e.clientY);
+    const hex = puzzleHexAt(p.x, p.y);
+    if (!hex) return;
+    pzDrag = {
+      startX: p.x, startY: p.y, hex: hex, moved: false,
+      onOwnPiece: (puzzleBoard[hex.r + ',' + hex.c] === 'black')
+    };
+    if (e.cancelable) e.preventDefault();
+  });
+
+  canvas.addEventListener('mousemove', function(e) {
+    if (!pzDrag) return;
+    const p = puzzlePos(e.clientX, e.clientY);
+    if (Math.hypot(p.x - pzDrag.startX, p.y - pzDrag.startY) > PZ_DRAG_THRESHOLD) pzDrag.moved = true;
+    if (!pzDrag.moved || !pzDrag.onOwnPiece) return;
+    if (!pzDrag.selecting) {
+      pzDrag.selecting = true;
+      puzzleSelected = [{ r: pzDrag.hex.r, c: pzDrag.hex.c }];
+      drawPuzzleBoardInteractive();
+    }
+    const hex = puzzleHexAt(p.x, p.y);
+    if (!hex || puzzleBoard[hex.r + ',' + hex.c] !== 'black') return;
+    const already = puzzleSelected.some(function(s){ return s.r === hex.r && s.c === hex.c; });
+    if (already || puzzleSelected.length >= 3) return;
+    const candidate = puzzleSelected.concat([{ r: hex.r, c: hex.c }]);
+    if (puzzleSelectionValid(candidate)) {
+      puzzleSelected.push({ r: hex.r, c: hex.c });
+      drawPuzzleBoardInteractive();
+    }
+  });
+
+  function pzEnd() {
+    if (!pzDrag) return;
+    const d = pzDrag;
+    pzDrag = null;
+    if (d.moved && d.onOwnPiece) {
+      canvas._pzDragJustEnded = true;
+      drawPuzzleBoardInteractive();
+      const msgEl = document.getElementById('puzzle-msg');
+      if (msgEl) msgEl.textContent = puzzleSelected.length
+        + ' bille(s) — cliquez la direction de poussée';
+    }
+  }
+  canvas.addEventListener('mouseup', pzEnd);
+  canvas.addEventListener('mouseleave', pzEnd);
+}
+
+/* Case du plateau de puzzle sous un point canvas (null si hors plateau). */
+function puzzleHexAt(px, py) {
+  const canvas = document.getElementById('puzzle-board');
+  const SIZE = canvas ? canvas.width : 400;
+  const scale = SIZE / 640;
+  let best = null, bestDist = Infinity;
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < ROWS[r]; c++) {
+      const p = hexCoord(r, c);
+      const d = Math.hypot(px - p.x * scale, py - p.y * scale);
+      if (d < bestDist && d < HEX_RADIUS * scale) { bestDist = d; best = { r: r, c: c }; }
+    }
+  }
+  return best;
 }
 
 function handlePuzzleClick(px, py) {
