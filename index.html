@@ -2215,6 +2215,10 @@ document.addEventListener('keydown', function(e){
       <span class="s-icon">✏️</span><span class="s-label" data-i18n="nav.editor">Éditeur</span>
     </button>
 
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-library" onclick="openMigsBrowser()">
+      <span class="s-icon">📚</span><span class="s-label">Bibliothèque</span>
+    </button>
+
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-analysis" onclick="sidebarNav('analysis',this)">
       <span class="s-icon">🔬</span><span class="s-label" data-i18n="nav.analysis">Analyse</span>
     </button>
@@ -2974,7 +2978,6 @@ document.addEventListener('keydown', function(e){
           <button class="ctrl-btn" onclick="exportGameNotation()" style="margin-top:8px;width:100%">📋 Exporter la partie</button>
           <button class="ctrl-btn" onclick="openGameCodePanel()" style="margin-top:8px;width:100%" title="Jouer par echange de code, sans compte ni serveur">Partie par code</button>
           <button class="ctrl-btn" onclick="showPostGameReview()" style="margin-top:8px;width:100%" title="Ou la partie a bascule">Analyse d'apres-partie</button>
-          <button class="ctrl-btn" onclick="openMigsBrowser()" style="margin-top:8px;width:100%">📚 Parties (4480)</button>
           <div id="ai-metrics" style="margin-top:10px;padding:9px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);display:none">
             <div style="color:var(--gold);font-weight:600;margin-bottom:6px">🧠 Dernière recherche IA</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 10px">
@@ -7851,6 +7854,7 @@ function setGameMode(mode, btn) {
   gameMode = mode;
   // Mode classique : l'humain joue les noirs, pas de bot conseiller ni de duel.
   humanColor = 'black';
+  if (typeof applyPovOrientation === 'function') applyPovOrientation();
   opponentBot = null;
   advisorEnabled = false;
   botDuelMode = false;
@@ -9363,6 +9367,21 @@ let timerInterval;
 let myTime = 555, oppTime = 522;
 
 let boardRotation = 0;   // rotation de la VUE du plateau, en degrés (multiples de 60)
+
+/* Orientation « POV » : le joueur voit toujours SON camp en bas. Avec les
+   blancs, la vue pivote de 180°. On ne touche qu'a l'affichage : le modele
+   reste absolu, e5 designe toujours e5. Inverser les coordonnees elles-memes
+   casserait l'export Aba-Pro, la bibliotheque des 4480 parties, les puzzles
+   et le code de partie echange avec un adversaire. Les reperes suivent la
+   rotation puisqu'ils sont traces via hexCoord, et les clics aussi, la
+   detection de case passant par la meme fonction. */
+function applyPovOrientation() {
+  const camp = (typeof gameMode !== 'undefined' && gameMode === 'local')
+    ? 'black'
+    : ((typeof humanColor !== 'undefined') ? humanColor : 'black');
+  boardRotation = (camp === 'white') ? 180 : 0;
+  if (typeof drawBoard === 'function') drawBoard();
+}
 function hexCoord(row, col) {
   const rowLen = ROWS[row];
   const cx = 320;
@@ -14868,16 +14887,20 @@ function addMoveToHistory(move, color, moveInfo) {
 function scrollMoveListToEnd() {
   const list = document.getElementById('move-list');
   if (!list) return;
-  let box = list;
-  while (box && box !== document.body) {
-    const st = window.getComputedStyle(box).overflowY;
-    if ((st === 'auto' || st === 'scroll') && box.scrollHeight > box.clientHeight) break;
-    box = box.parentElement;
-  }
-  if (box && box !== document.body) box.scrollTop = box.scrollHeight;
-  else if (list.lastElementChild && list.lastElementChild.scrollIntoView) {
-    list.lastElementChild.scrollIntoView({ block: 'nearest' });
-  }
+  /* Strictement borne au panneau d'historique. La premiere version
+     remontait le DOM jusqu'a trouver un ancetre defilable : quand
+     .move-history n'en etait pas un (cas frequent en affichage etroit,
+     ou le panneau s'etire au lieu de defiler), la boucle continuait
+     jusqu'a un conteneur de page et faisait sauter tout l'ecran apres
+     chaque coup. Le repli scrollIntoView avait le meme defaut : il
+     deplace aussi la fenetre. On ne touche donc qu'au panneau, et
+     seulement s'il defile vraiment. */
+  const box = list.closest('.move-history');
+  if (!box) return;
+  const st = window.getComputedStyle(box).overflowY;
+  if (st !== 'auto' && st !== 'scroll') return;
+  if (box.scrollHeight <= box.clientHeight) return;
+  box.scrollTop = box.scrollHeight;
 }
 
 // En-tête de la liste (colonnes Aba-Pro / Nacre)
@@ -17946,6 +17969,7 @@ function startBotGame(botColor) {
   // Le bot joue SA couleur : contre Bot Blanc tu as les noirs, contre Bot Noir tu as les blancs.
   humanColor = (botColor === 'black') ? 'white' : 'black';
   resetGame();
+  applyPovOrientation();
   const advisor = advisorBotColor();
   const oppName = (botColor === 'black') ? 'Bot Noir 😊' : 'Bot Blanc 😒';
   const advName = (advisor === 'black') ? 'Bot Noir' : 'Bot Blanc';

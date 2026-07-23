@@ -172,6 +172,20 @@ check('.move-history reste le conteneur a defilement', () =>
   /\.move-history\s*\{[^}]*overflow-y:\s*auto/.test(HTML) ||
   'overflow-y:auto a disparu de .move-history');
 
+/* Regression introduite par le correctif precedent : la recherche du
+   conteneur remontait le DOM sans borne et finissait par faire defiler la
+   page entiere apres chaque coup. Le defilement doit rester confine. */
+check('le defilement de l\'historique ne sort pas du panneau', () => {
+  /* Comme plus haut : on retire les commentaires, la note expliquant
+     l'ancien bug cite les tournures fautives. */
+  const b = functionBody('scrollMoveListToEnd')
+    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"])\/\/.*$/gm, '$1');
+  if (!/closest\(['"]\.move-history['"]\)/.test(b)) return 'le panneau n\'est pas cible par closest()';
+  if (/scrollIntoView/.test(b)) return 'scrollIntoView deplace aussi la fenetre';
+  if (/while\s*\(|parentElement/.test(b)) return 'la remontee libre du DOM est revenue';
+  return true;
+});
+
 /* ── 3. Nouvelles fonctionnalites ─────────────────────────────────── */
 
 console.log('\nFonctionnalites');
