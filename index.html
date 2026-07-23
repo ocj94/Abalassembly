@@ -20562,16 +20562,35 @@ function analysisLoadLastGame() {
     showToast('⚠️ Aucune partie récente — joue d\'abord une partie');
     return;
   }
-  // reconstruit l'historique d'analyse depuis les snapshots de la partie
-  analysisHistory = boardSnapshots.map(function(snap, i) {
+  /* Reconstruit l'historique d'analyse depuis les snapshots de la partie.
+     ATTENTION au decalage : boardSnapshots demarre VIDE et recoit un element
+     par coup joue. boardSnapshots[0] est donc l'etat APRES le premier coup,
+     avec pour label la notation de ce premier coup — ce n'est pas la position
+     de depart. L'ancien code etiquetait cet element « Depart », ce qui
+     decalait toute la liste d'un cran : le coup 1 n'etait jamais affiche et
+     chaque case montrait le coup suivant. Signale par Olivier.
+     On insere donc la vraie position de depart en tete, puis chaque snapshot
+     conserve son propre label. */
+  var startBoard = {};
+  try {
+    var _savedBoard = board;
+    initBoardState();
+    startBoard = JSON.parse(JSON.stringify(board));
+    board = _savedBoard;
+  } catch(e) { startBoard = JSON.parse(JSON.stringify(boardSnapshots[0].board)); }
+
+  analysisHistory = [{
+    board: startBoard, capB: 0, capW: 0, label: 'Départ', turn: 'black'
+  }].concat(boardSnapshots.map(function(snap, i) {
     return {
       board: JSON.parse(JSON.stringify(snap.board)),
       capB: snap.capturedByBlack || 0,
       capW: snap.capturedByWhite || 0,
-      label: i === 0 ? 'Départ' : (snap.label || 'Coup ' + i),
-      turn: (i % 2 === 0) ? 'black' : 'white',
+      label: snap.label || ('Coup ' + (i + 1)),
+      // apres le coup i+1 : c'est au camp oppose de jouer
+      turn: (i % 2 === 0) ? 'white' : 'black',
     };
-  });
+  }));
   analysisIdx = 0;
   analysisGoto(0);
   showToast('🎮 Dernière partie chargée (' + (analysisHistory.length-1) + ' coups)');
