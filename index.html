@@ -2972,6 +2972,8 @@ document.addEventListener('keydown', function(e){
           <button class="ctrl-btn" id="replay-btn" onclick="toggleReplay()" style="margin-top:8px;width:100%">▶ Rejouer la partie</button>
           <button class="ctrl-btn" id="variant-btn" onclick="toggleVariant()" style="margin-top:8px;width:100%" title="Depuis une position du replay, joue un coup différent et voit l'IA y répondre">🔀 Essayer une variante</button>
           <button class="ctrl-btn" onclick="exportGameNotation()" style="margin-top:8px;width:100%">📋 Exporter la partie</button>
+          <button class="ctrl-btn" onclick="openGameCodePanel()" style="margin-top:8px;width:100%" title="Jouer par echange de code, sans compte ni serveur">Partie par code</button>
+          <button class="ctrl-btn" onclick="showPostGameReview()" style="margin-top:8px;width:100%" title="Ou la partie a bascule">Analyse d'apres-partie</button>
           <button class="ctrl-btn" onclick="openMigsBrowser()" style="margin-top:8px;width:100%">📚 Parties (4480)</button>
           <div id="ai-metrics" style="margin-top:10px;padding:9px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);display:none">
             <div style="color:var(--gold);font-weight:600;margin-bottom:6px">🧠 Dernière recherche IA</div>
@@ -4928,6 +4930,14 @@ document.addEventListener('keydown', function(e){
     <div style="padding:40px 40px 40px 60px">
       <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold)">Abalone Academy</div>
       <h2 style="margin-bottom:8px">Problèmes tactiques</h2>
+
+      <!-- PUZZLE DU JOUR -->
+      <div style="background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:18px 20px;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <span style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px">Le puzzle du jour</span>
+        </div>
+        <div id="daily-puzzle-card"></div>
+      </div>
 
       <!-- PROBLÈME DU MOIS -->
       <div style="background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:18px 20px;margin-bottom:24px">
@@ -12924,6 +12934,7 @@ function checkPuzzleMove(){
     const solved=parseInt(localStorage.getItem('abaPuzzleSolved')||'0',10)+1;
     localStorage.setItem('abaPuzzleSolved', String(solved));
     if (typeof checkMonthlyCompletion === 'function') checkMonthlyCompletion(pa.idx);
+    if (typeof checkDailyCompletion === 'function') checkDailyCompletion(pa.idx);
     const t=document.getElementById('pz-title');
     if(t) t.textContent='✅ Bravo ! Puzzle réussi ('+solved+' résolus) — ⏭ pour le suivant';
     showToast(isDef?'🛡️ Menace parée !':'✅ Coup gagnant trouvé !');
@@ -19015,6 +19026,7 @@ function showPage(name) {
     puzzles:    function(){
       renderPuzzles();
       if (typeof renderMonthlyCard === 'function') renderMonthlyCard();
+      if (typeof renderDailyCard === 'function') renderDailyCard();
       setTimeout(function(){
         if(typeof buildPuzzleBoard==='function') buildPuzzleBoard(currentPuzzleIdx||0);
         if(typeof drawPuzzleBoardInteractive==='function') drawPuzzleBoardInteractive();
@@ -20871,6 +20883,314 @@ document.addEventListener('DOMContentLoaded', function() {
   if (at) { at.checked = notationAbaPro; at.nextElementSibling.style.background = notationAbaPro ? 'var(--gold)' : 'var(--border)'; }
   if (nt) { nt.checked = notationNacre; nt.nextElementSibling.style.background = notationNacre ? 'var(--gold)' : 'var(--border)'; }
 });
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PARTIE PAR CODE · ANALYSE D'APRES-PARTIE · PUZZLE DU JOUR
+   Trois ajouts qui ne demandent aucun serveur : tout se joue, se verifie
+   et se calcule dans la page. L'architecture mono-fichier reste intacte.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. PARTIE PAR CODE (correspondance) ─────────────────────────────
+   L'export Aba-Pro existant ne convient pas a une partie par echange :
+   la notation est ambigue, un meme jeton peut designer plusieurs coups
+   legaux, et les deux plateaux finissent par diverger. Le code ci-dessous
+   est sans ambiguite : chaque coup y porte le nombre de billes, leurs
+   cases explicites, et l'indice de direction. Le code contient toujours
+   la partie entiere depuis le debut, ce qui la rend auto-synchronisante :
+   celui qui le recoit rejoue tout contre le vrai moteur et refuse le code
+   au premier coup illegal, au lieu de faire confiance. */
+
+const GAME_CODE_TAG = 'ABAL1';
+
+function _gcDirIndex(dir) {
+  if (!dir) return -1;
+  for (let i = 0; i < AX_DIRS.length; i++) {
+    if (AX_DIRS[i].q === dir.q && AX_DIRS[i].r === dir.r) return i;
+  }
+  return -1;
+}
+
+/* Code de la partie en cours, ou null si l'historique est incomplet. */
+function gameCodeEncode() {
+  if (typeof boardSnapshots === 'undefined' || !boardSnapshots.length) return null;
+  const layout = (typeof currentLayout !== 'undefined') ? currentLayout : 'standard';
+  let body = '';
+  for (let i = 0; i < boardSnapshots.length; i++) {
+    const mi = boardSnapshots[i].moveInfo;
+    if (!mi || !mi.cells || !mi.cells.length || !mi.dir) return null;
+    const di = _gcDirIndex(mi.dir);
+    if (di < 0) return null;
+    body += String(mi.cells.length);
+    for (let k = 0; k < mi.cells.length; k++) body += coordToABAPRO(mi.cells[k].r, mi.cells[k].c);
+    body += String(di);
+  }
+  return GAME_CODE_TAG + ':' + layout + ':' + body;
+}
+
+/* Analyse syntaxique seule : ne touche pas au plateau. */
+function gameCodeParse(code) {
+  const m = String(code || '').trim().replace(/\s+/g, '').match(/^ABAL1:([a-z_]+):([a-i0-9]*)$/i);
+  if (!m) return { ok: false, reason: 'format non reconnu — le code commence par ABAL1:' };
+  const layout = m[1].toLowerCase();
+  const body = m[2].toLowerCase();
+  const moves = [];
+  let i = 0;
+  while (i < body.length) {
+    const n = parseInt(body.charAt(i), 10);
+    const at = 'au coup ' + (moves.length + 1);
+    if (!(n >= 1 && n <= 3)) return { ok: false, reason: 'nombre de billes invalide ' + at };
+    const need = 1 + 2 * n + 1;
+    if (i + need > body.length) return { ok: false, reason: 'code tronque ' + at };
+    const cells = [];
+    for (let k = 0; k < n; k++) {
+      const rc = abaproToRc(body.substr(i + 1 + 2 * k, 2));
+      if (!rc) return { ok: false, reason: 'case illisible ' + at };
+      cells.push(rc);
+    }
+    const di = parseInt(body.charAt(i + need - 1), 10);
+    if (!(di >= 0 && di <= 5)) return { ok: false, reason: 'direction invalide ' + at };
+    moves.push({ cells: cells, dir: AX_DIRS[di] });
+    i += need;
+  }
+  return { ok: true, layout: layout, moves: moves };
+}
+
+/* Rejoue le code sur le plateau, chaque coup verifie contre le moteur.
+   En cas de coup illegal on s'arrete net et on le dit : mieux vaut un
+   refus explicite qu'une position fausse acceptee en silence. */
+function gameCodeLoad(code) {
+  const parsed = gameCodeParse(code);
+  if (!parsed.ok) return parsed;
+
+  const savedLayout = (typeof currentLayout !== 'undefined') ? currentLayout : 'standard';
+  if (typeof currentLayout !== 'undefined') currentLayout = parsed.layout;
+  if (typeof resetGame === 'function') resetGame();
+  else { initBoardState(); boardSnapshots = []; capturedByBlack = 0; capturedByWhite = 0; }
+
+  let turn = 'black';
+  for (let i = 0; i < parsed.moves.length; i++) {
+    const mv = parsed.moves[i];
+    const v = validateMove(mv.cells, mv.dir, turn);
+    if (!v || !v.valid) {
+      if (typeof currentLayout !== 'undefined') currentLayout = savedLayout;
+      if (typeof resetGame === 'function') resetGame();
+      return { ok: false, reason: 'coup ' + (i + 1) + ' illegal — ' + ((v && v.reason) || 'refuse par le moteur') };
+    }
+    applyMove({ cells: mv.cells, dir: mv.dir, info: v }, turn);
+    const label = moveLabel(mv.cells, mv.dir, v.type, !!v.ejection);
+    addMoveToHistory(label, turn, { cells: mv.cells.slice(), dir: mv.dir, type: v.type, ejection: !!v.ejection });
+    turn = (turn === 'black') ? 'white' : 'black';
+  }
+
+  currentTurn = turn;
+  moveCount = parsed.moves.length;
+  if (typeof updateCaptures === 'function') updateCaptures();
+  if (typeof drawBoard === 'function') drawBoard();
+  return { ok: true, plies: parsed.moves.length, turn: turn, layout: parsed.layout };
+}
+
+function openGameCodePanel() {
+  const code = gameCodeEncode();
+  let modal = document.getElementById('gamecode-modal');
+  if (modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'gamecode-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:3500;background:rgba(13,15,14,0.92);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML =
+    '<div style="max-width:520px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:24px;max-height:90vh;overflow-y:auto">'
+    + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:6px">Partie par code</h3>'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Joue ton coup, copie le code, envoie-le. Ton adversaire le colle, joue, et te renvoie le sien. Aucun compte, aucun serveur.</div>'
+    + '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">TON CODE'
+    + (code ? '' : ' — aucun coup joue pour l\'instant') + '</div>'
+    + '<textarea id="gamecode-out" readonly style="width:100%;height:80px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:12px;word-break:break-all">'
+    + (code || '') + '</textarea>'
+    + '<div style="display:flex;gap:8px;margin-top:8px;margin-bottom:18px">'
+    + '<button class="ctrl-btn" onclick="copyGameCode()" style="flex:1">Copier</button>'
+    + '</div>'
+    + '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">CODE RECU</div>'
+    + '<textarea id="gamecode-in" placeholder="ABAL1:standard:..." style="width:100%;height:80px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:12px"></textarea>'
+    + '<div id="gamecode-msg" style="font-size:12px;margin-top:8px;min-height:18px"></div>'
+    + '<div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end">'
+    + '<button class="ctrl-btn" onclick="document.getElementById(\'gamecode-modal\').remove()">Fermer</button>'
+    + '<button class="ctrl-btn" onclick="submitGameCode()">Charger la partie</button>'
+    + '</div></div>';
+  document.body.appendChild(modal);
+}
+
+function copyGameCode() {
+  const ta = document.getElementById('gamecode-out');
+  if (!ta || !ta.value) { showToast('Aucun coup a envoyer — joue d\'abord'); return; }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(ta.value).then(function(){ showToast('Code copie'); })
+      .catch(function(){ ta.select(); });
+  } else { ta.select(); }
+}
+
+function submitGameCode() {
+  const ta = document.getElementById('gamecode-in');
+  const msg = document.getElementById('gamecode-msg');
+  if (!ta) return;
+  const res = gameCodeLoad(ta.value);
+  if (!res.ok) {
+    if (msg) { msg.style.color = '#e05c4b'; msg.textContent = res.reason; }
+    return;
+  }
+  const modal = document.getElementById('gamecode-modal');
+  if (modal) modal.remove();
+  showToast(res.plies + ' coups charges — trait aux ' + (res.turn === 'black' ? 'Noirs' : 'Blancs'));
+}
+
+/* ── 2. ANALYSE D'APRES-PARTIE ───────────────────────────────────────
+   Le Coach commente en direct, l'evaluation donne un chiffre a l'instant
+   present, mais rien ne disait ou la partie avait bascule. On rejoue les
+   instantanes deja stockes et on regarde ou l'evaluation s'effondre. */
+
+function postGameReview(myColor) {
+  if (typeof boardSnapshots === 'undefined' || boardSnapshots.length < 2) return null;
+  const me = myColor || (typeof humanColor !== 'undefined' ? humanColor : 'black');
+  const saved = { b: board, cb: capturedByBlack, cw: capturedByWhite };
+  const evals = [];
+  let firstLoss = -1;
+  try {
+    for (let i = 0; i < boardSnapshots.length; i++) {
+      const s = boardSnapshots[i];
+      board = s.board;
+      capturedByBlack = s.capturedByBlack;
+      capturedByWhite = s.capturedByWhite;
+      evals.push(evaluateBoard(me));
+      const lost = (me === 'black') ? s.capturedByWhite : s.capturedByBlack;
+      if (firstLoss < 0 && lost > 0) firstLoss = i + 1;
+    }
+  } catch (e) {
+    return null;
+  } finally {
+    board = saved.b; capturedByBlack = saved.cb; capturedByWhite = saved.cw;
+  }
+
+  /* Coup charniere : la plus forte chute d'evaluation entre deux positions
+     consecutives. On l'attribue au coup qui precede la chute. */
+  let worst = { ply: -1, drop: 0 };
+  for (let i = 1; i < evals.length; i++) {
+    const drop = evals[i - 1] - evals[i];
+    if (drop > worst.drop) worst = { ply: i + 1, drop: drop };
+  }
+  return {
+    color: me,
+    plies: boardSnapshots.length,
+    firstLossPly: firstLoss,
+    turning: worst.ply > 0 ? worst : null,
+    turningLabel: worst.ply > 0 ? (boardSnapshots[worst.ply - 1].label || '') : '',
+    evalStart: evals[0],
+    evalEnd: evals[evals.length - 1]
+  };
+}
+
+function showPostGameReview() {
+  const r = postGameReview();
+  if (!r) { showToast('Pas assez de coups pour une analyse'); return; }
+  let modal = document.getElementById('review-modal');
+  if (modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'review-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:3500;background:rgba(13,15,14,0.92);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
+  const line = function(k, v) {
+    return '<div style="display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border)">'
+      + '<span style="color:var(--muted);font-size:13px">' + k + '</span>'
+      + '<span style="color:var(--text);font-size:13px;font-family:\'DM Mono\',monospace">' + v + '</span></div>';
+  };
+  modal.innerHTML =
+    '<div style="max-width:460px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:24px">'
+    + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:4px">Apres la partie</h3>'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Calcule a partir des positions reelles de la partie, avec la meme evaluation que l\'IA.</div>'
+    + line('Coups joues', r.plies)
+    + line('Premiere bille perdue', r.firstLossPly > 0 ? ('coup ' + r.firstLossPly) : 'aucune')
+    + line('Position basculee au', r.turning ? ('coup ' + r.turning.ply + (r.turningLabel ? ' (' + r.turningLabel + ')' : '')) : 'pas de bascule nette')
+    + line('Evaluation debut → fin', Math.round(r.evalStart) + ' → ' + Math.round(r.evalEnd))
+    + '<div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end">'
+    + '<button class="ctrl-btn" onclick="document.getElementById(\'review-modal\').remove()">Fermer</button>'
+    + '</div></div>';
+  document.body.appendChild(modal);
+}
+
+/* ── 3. PUZZLE DU JOUR ───────────────────────────────────────────────
+   Le probleme du mois donne une raison de revenir le mois prochain.
+   Celui-ci en donne une pour demain. Deterministe par la date : tout le
+   monde a le meme, sans compte ni serveur. */
+
+function dayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
+       + '-' + String(d.getDate()).padStart(2, '0');
+}
+function daySeed() {
+  const s = dayStr();
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return h;
+}
+
+function currentDailyPuzzle() {
+  const day = dayStr();
+  if (!progress.daily || progress.daily.day !== day) {
+    let idx = daySeed() % PUZZLES.length;
+    /* Evite de servir le meme que le probleme du mois le jour ou ils tombent
+       ensemble : deux cartes identiques sur la meme page font negligé. */
+    if (progress.monthly && progress.monthly.idx === idx) idx = (idx + 1) % PUZZLES.length;
+    const prevStreak = (progress.daily && progress.daily.solved
+      && daysBetween(progress.daily.day, day) === 1) ? (progress.daily.streak || 0) : 0;
+    progress.daily = { day: day, idx: idx, solved: false, streak: prevStreak };
+    saveProgress(progress);
+  }
+  const p = PUZZLES[progress.daily.idx];
+  return {
+    idx: progress.daily.idx, puzzle: p,
+    niveau: MONTHLY_LEVEL_LABEL[p.d] || 'MOYEN',
+    trait: p.c === 'black' ? 'NOIR' : 'BLANC',
+    objectif: p.def ? 'PARER LA MENACE' : 'TROUVER LE COUP GAGNANT',
+    solved: !!progress.daily.solved,
+    streak: progress.daily.streak || 0
+  };
+}
+
+function playDailyPuzzle() {
+  const dc = currentDailyPuzzle();
+  showPage('puzzles');
+  if (typeof startPuzzle === 'function') startPuzzle(dc.idx);
+}
+
+function checkDailyCompletion(solvedIdx) {
+  const dc = currentDailyPuzzle();
+  if (solvedIdx !== dc.idx || progress.daily.solved) return;
+  progress.daily.solved = true;
+  progress.daily.streak = (progress.daily.streak || 0) + 1;
+  saveProgress(progress);
+  addXp(25, 'Puzzle du jour resolu');
+  setTimeout(function(){
+    showToast('Puzzle du jour resolu ! +25 XP'
+      + (progress.daily.streak > 1 ? ' — ' + progress.daily.streak + ' jours d\'affilee' : ''));
+  }, 700);
+  renderDailyCard();
+}
+
+function renderDailyCard() {
+  const host = document.getElementById('daily-puzzle-card');
+  if (!host) return;
+  const dc = currentDailyPuzzle();
+  host.innerHTML =
+    '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:10px">'
+      + 'NIVEAU : <strong style="color:var(--gold)">' + dc.niveau + '</strong> &nbsp;&nbsp; '
+      + 'TRAIT : <strong style="color:var(--gold)">' + dc.trait + '</strong> &nbsp;&nbsp; '
+      + 'OBJECTIF : <strong style="color:var(--gold)">' + dc.objectif + '</strong>'
+    + '</div>'
+    + (dc.solved
+        ? '<div style="color:#5ab48c;font-size:13px;margin-bottom:10px">Resolu aujourd\'hui'
+          + (dc.streak > 1 ? ' — ' + dc.streak + ' jours d\'affilee' : '') + '</div>'
+        : (dc.streak > 0
+            ? '<div style="font-size:13px;color:var(--muted);margin-bottom:10px">Serie en cours : ' + dc.streak + ' jour(s)</div>'
+            : ''))
+    + '<button class="ctrl-btn" onclick="playDailyPuzzle()">Jouer le puzzle du jour</button>';
+}
+
 
 </script>
 

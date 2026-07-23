@@ -172,7 +172,44 @@ check('.move-history reste le conteneur a defilement', () =>
   /\.move-history\s*\{[^}]*overflow-y:\s*auto/.test(HTML) ||
   'overflow-y:auto a disparu de .move-history');
 
-/* ── 3. Garde-fous de credibilite ─────────────────────────────────── */
+/* ── 3. Nouvelles fonctionnalites ─────────────────────────────────── */
+
+console.log('\nFonctionnalites');
+
+check('code de partie : aller-retour verifie contre le moteur', () => {
+  const out = execFileSync(process.execPath, [path.join(__dirname, 'gamecode.js')],
+    { stdio: 'pipe', encoding: 'utf8' });
+  /* On lit le resultat, pas seulement l'absence d'erreur : un test qui ne
+     joue aucun coup afficherait « tout passe » sans rien avoir verifie. */
+  const m = out.match(/\((\d+) coups au total\)/);
+  if (!m || parseInt(m[1], 10) < 100) return 'le harnais n\'a joue aucun coup reel';
+  return true;
+});
+
+check('puzzle du jour : deterministe par la date', () =>
+  /function daySeed\s*\(/.test(jsBlocks.join('\n')) &&
+  /function currentDailyPuzzle\s*\(/.test(jsBlocks.join('\n')) ||
+  'les fonctions du puzzle quotidien sont absentes');
+
+check('puzzle du jour : carte presente dans la page Problemes', () =>
+  /id="daily-puzzle-card"/.test(HTML) || 'la carte n\'est pas dans le HTML');
+
+check('puzzle du jour : completion branchee sur la resolution', () =>
+  /checkDailyCompletion\(pa\.idx\)/.test(jsBlocks.join('\n')) ||
+  'la resolution d\'un puzzle ne met pas a jour le puzzle du jour');
+
+check('analyse d\'apres-partie : calculee sur les vraies positions', () => {
+  const b = functionBody('postGameReview');
+  return /boardSnapshots/.test(b) && /evaluateBoard/.test(b) ||
+    'l\'analyse n\'utilise pas les instantanes et l\'evaluation du moteur';
+});
+
+check('analyse d\'apres-partie : l\'etat du jeu est restaure', () => {
+  const b = functionBody('postGameReview');
+  return /finally/.test(b) || 'pas de restauration garantie de board / captures';
+});
+
+/* ── 4. Garde-fous de credibilite ─────────────────────────────────── */
 
 console.log('\nGarde-fous');
 
