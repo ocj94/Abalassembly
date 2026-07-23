@@ -209,6 +209,34 @@ check('analyse d\'apres-partie : l\'etat du jeu est restaure', () => {
   return /finally/.test(b) || 'pas de restauration garantie de board / captures';
 });
 
+/* Bug Saab/Olivier : quand le joueur tenait les blancs, l'onglet « Vous »
+   de la carte de fin de partie affichait la carte du bot, et inversement.
+   Tout le pipeline supposait « noir = moi ». */
+check('carte de fin de partie : les onglets suivent humanColor', () => {
+  const b = functionBody('renderHeatmapCard');
+  if (!/humanColor/.test(b)) return 'renderHeatmapCard ignore humanColor';
+  return !/tabBtn\('black'\s*,\s*'Vous'\)/.test(b) ||
+    '« Vous » est de nouveau code en dur sur les noirs';
+});
+
+check('metriques joueur : plus de couleur codee en dur', () => {
+  const b = functionBody('recordPlayerMove');
+  const dur = [/centerControl\('black'\)/, /cohesionScore\('black'\)/, /recordMyHeat\('black'/]
+    .filter(re => re.test(b));
+  return dur.length === 0 || (dur.length + ' mesure(s) encore calculee(s) sur le noir');
+});
+
+check('les coups de l\'IA ne vont pas dans la carte personnelle', () => {
+  const src = jsBlocks.join('\n');
+  return !/recordWhiteHeatmap\(chosen\.cells\)/.test(src) ||
+    'un coup de l\'IA est encore range via recordWhiteHeatmap (qui ecrit dans me_white)';
+});
+
+check('recordOpponentHeat n\'ecrit jamais dans la carte personnelle', () => {
+  const b = functionBody('recordOpponentHeat');
+  return !/recordMyHeat/.test(b) || 'recordOpponentHeat appelle recordMyHeat';
+});
+
 /* ── 4. Garde-fous de credibilite ─────────────────────────────────── */
 
 console.log('\nGarde-fous');

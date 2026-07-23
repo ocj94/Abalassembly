@@ -11246,8 +11246,11 @@ function recordPlayerMove(opts) {
   if (opts.pushSuccess) progress.totalPushes = (progress.totalPushes||0) + 1;
   if (opts.ejection)    { progress.totalEjections = (progress.totalEjections||0) + 1; if (typeof checkDailyGameComplete === 'function') checkDailyGameComplete(); }
   // Contrôle du centre + cohésion (état après le coup)
-  progress.centerTurns = (progress.centerTurns||0) + centerControl('black');
-  progress.cohesionSum = (progress.cohesionSum||0) + cohesionScore('black');
+  /* Le joueur ne tient pas forcement les noirs : ces trois mesures etaient
+     calculees en dur sur le noir, donc fausses des qu'il jouait blanc. */
+  const _myCol = opts.color || (typeof humanColor !== 'undefined' ? humanColor : 'black');
+  progress.centerTurns = (progress.centerTurns||0) + centerControl(_myCol);
+  progress.cohesionSum = (progress.cohesionSum||0) + cohesionScore(_myCol);
   // "Meilleur coup" : heuristique simple — un coup qui éjecte ou pousse est jugé bon
   if (opts.ejection || opts.pushSuccess) progress.bestMoves = (progress.bestMoves||0) + 1;
   // Heatmap : enregistre les cases jouées par le joueur local ('me')
@@ -11255,7 +11258,7 @@ function recordPlayerMove(opts) {
   if (opts.cells && opts.cells.length) {
     recordHeatmapForPlayer(localPlayerId(), opts.cells);
     // Carte personnelle « mes noires » (profil perso : on ne range ici que MES coups)
-    recordMyHeat('black', opts.cells);
+    recordMyHeat(_myCol, opts.cells);
     // compat : maintient aussi l'ancienne clé pour ne rien casser
     if (!progress.heatmap) progress.heatmap = {};
     opts.cells.forEach(function(cell){
@@ -11269,6 +11272,18 @@ function recordPlayerMove(opts) {
 }
 
 // Enregistre la heatmap des coups blancs (adversaire local ou IA) sous 'opponent'
+/* Coups de l'adversaire : jamais ranges dans la carte personnelle. */
+function recordOpponentHeat(cells) {
+  if (typeof progress === 'undefined' || !cells || !cells.length) return;
+  recordHeatmapForPlayer('opponent', cells);
+  if (!progress.heatmapWhite) progress.heatmapWhite = {};
+  cells.forEach(function(cell){
+    const k = cell.r + ',' + cell.c;
+    progress.heatmapWhite[k] = (progress.heatmapWhite[k] || 0) + 1;
+  });
+  saveProgress(progress);
+}
+
 function recordWhiteHeatmap(cells) {
   if (typeof progress === 'undefined' || !cells || !cells.length) return;
   recordHeatmapForPlayer('opponent', cells);
@@ -11482,17 +11497,22 @@ function handleClick(r, c) {
     soundMove();   // 🔊 son de déplacement
   }
 
-  // Métriques joueur (noir uniquement)
-  if (me === 'black') {
+  /* Attribution des metriques et de la heatmap selon la couleur que le
+     joueur tient reellement, et non « noir = moi ». En mode 2 joueurs on
+     conserve la convention noir = joueur local. */
+  const _mine = (typeof gameMode !== 'undefined' && gameMode === 'local')
+    ? 'black'
+    : ((typeof humanColor !== 'undefined') ? humanColor : 'black');
+  if (me === _mine) {
     recordPlayerMove({
       pushAttempt: info.type === 'push',
       pushSuccess: info.type === 'push',
       ejection: !!(info.type === 'push' && info.ejection),
-      cells: selCopy  // cases jouées (pour la heatmap)
+      cells: selCopy,  // cases jouées (pour la heatmap)
+      color: me
     });
-  } else if (me === 'white') {
-    // En mode 2 joueurs : enregistre la heatmap du joueur blanc
-    recordWhiteHeatmap(selCopy);
+  } else {
+    recordOpponentHeat(selCopy);
   }
 
   selected = [];
@@ -14278,7 +14298,7 @@ function executeAIMove(chosen) {
     if (ejCount >= 6) {
       const _winLabel = moveLabel(chosen.cells, chosen.dir, chosen.type, !!chosen.eject);
       if (!variantMode) addMoveToHistory(_winLabel, ai, { cells: chosen.cells.slice(), dir: chosen.dir, type: chosen.type, ejection: !!chosen.eject });
-      if (typeof recordWhiteHeatmap === 'function') recordWhiteHeatmap(chosen.cells);
+      if (typeof recordOpponentHeat === 'function') recordOpponentHeat(chosen.cells);
       if (variantMode) { _variantConclude(ai); return; }
       triggerWin(ai); return;
     }
@@ -14291,7 +14311,7 @@ function executeAIMove(chosen) {
   const label = moveLabel(chosen.cells, chosen.dir, chosen.type, !!chosen.eject);
   if (!variantMode) addMoveToHistory(label, ai, { cells: chosen.cells.slice(), dir: chosen.dir, type: chosen.type, ejection: !!chosen.eject });
   // Heatmap : enregistre le coup de l'IA sous 'opponent'
-  if (typeof recordWhiteHeatmap === 'function') recordWhiteHeatmap(chosen.cells);
+  if (typeof recordOpponentHeat === 'function') recordOpponentHeat(chosen.cells);
   _clockInc(human==='black'?'white':'black');   // ⏱️ incrément pour l'IA qui vient de jouer
   currentTurn=human; moveCount++;
   _emitAbaEvent('movePlayed', { color: (human==='black'?'white':'black'), label: label,
@@ -14607,16 +14627,25 @@ function buildGameHeatmapSVG(snapshots, forColor, size) {
 
 /* Affiche la heatmap de fin de partie, avec bascule Vous / Adversaire.
    Reconstruite depuis boardSnapshots — aucune donnée supplémentaire stockée. */
-let _heatmapColor = 'black';
+let _heatmapColor = null;
 function renderHeatmapCard(){
   const host = document.getElementById('heatmap-card');
   if(!host) return;
   if(typeof boardSnapshots === 'undefined' || !boardSnapshots.length){ host.innerHTML=''; return; }
+  /* Les onglets suivent humanColor. « Vous » designait auparavant les noirs
+     en dur : des que le joueur tenait les blancs, les deux cartes etaient
+     inversees. En mode 2 joueurs, aucun camp n'est « l'adversaire ». */
+  const hc = (typeof humanColor !== 'undefined') ? humanColor : 'black';
+  const opp = (hc === 'black') ? 'white' : 'black';
+  const localGame = (typeof gameMode !== 'undefined' && gameMode === 'local');
+  if (_heatmapColor !== 'black' && _heatmapColor !== 'white') _heatmapColor = localGame ? 'black' : hc;
   const forColor = _heatmapColor;
   const { maxCount } = computeGameHeatmap(boardSnapshots, forColor);
   const svg = buildGameHeatmapSVG(boardSnapshots, forColor, 240);
-  const isBlack = (forColor === 'black');
-  const label = isBlack ? 'Vous (noir)' : 'Adversaire (blanc)';
+  const nomCouleur = (c) => (c === 'black' ? 'noir' : 'blanc');
+  const label = localGame
+    ? (forColor === 'black' ? 'Le joueur noir' : 'Le joueur blanc')
+    : (forColor === hc ? 'Vous (' + nomCouleur(hc) + ')' : 'Adversaire (' + nomCouleur(opp) + ')');
   const tabBtn = (c, txt) =>
     '<button onclick="_heatmapColor=\'' + c + '\';renderHeatmapCard()" style="'
     + 'padding:5px 12px;font-size:12px;font-weight:600;border-radius:7px;cursor:pointer;border:1px solid var(--border);'
@@ -14625,7 +14654,7 @@ function renderHeatmapCard(){
     '<div style="margin-top:14px;width:min(320px,90vw);text-align:center;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px">'
     + '<div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">🔥 Carte de chaleur</div>'
     + '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">Où ' + label + ' a le plus joué durant la partie</div>'
-    + '<div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px">' + tabBtn('black','Vous') + tabBtn('white','Adversaire') + '</div>'
+    + '<div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px">' + (localGame ? tabBtn('black','Noir') + tabBtn('white','Blanc') : tabBtn(hc,'Vous') + tabBtn(opp,'Adversaire')) + '</div>'
     + (maxCount > 0 ? svg : '<div style="font-size:12px;color:var(--muted);padding:20px">Pas encore assez de coups joués</div>')
     + (maxCount > 0 ? '<div style="font-size:11px;color:var(--muted);margin-top:8px">Plus c\'est vif, plus la case a été occupée (max : ' + maxCount + '×)</div>' : '')
     + '</div>';
