@@ -14759,21 +14759,61 @@ function abaproToRc(cell) {
 // Notation NACRE : pour les coups latéraux, on note la 1re bille de la rangée
 // + l'arrivée de la DERNIÈRE bille (4 caractères au lieu de 6). Pour les coups en
 // ligne, identique à Aba-Pro. C'est le système utilisé par PlayStrategy.
+/* Distance hexagonale en coordonnees axiales. */
+function _hexDist(a, b) {
+  if (!a || !b) return -1;
+  return (Math.abs(a.q - b.q) + Math.abs(a.q + a.r - b.q - b.r) + Math.abs(a.r - b.r)) / 2;
+}
+
+/* Les deux extremites d'un groupe aligne (la bille du milieu, s'il y en a
+   une, ne sert jamais a la notation). */
+function _nacreGroupEnds(sel) {
+  if (!sel || sel.length < 2) return null;
+  let best = null;
+  for (let i = 0; i < sel.length; i++) {
+    for (let j = i + 1; j < sel.length; j++) {
+      const d = _hexDist(rcToAxial(sel[i].r, sel[i].c), rcToAxial(sel[j].r, sel[j].c));
+      if (!best || d > best.d) best = { a: sel[i], b: sel[j], d: d };
+    }
+  }
+  return best;
+}
+
 function moveToNACRE(sel, dir, type) {
   if (!sel || !sel.length || !dir) return '?';
   if (type === 'broadside') {
-    // Règle prouvée le 19/07/2026 contre 8 vrais coups latéraux (§11 manuel
-    // KAA) : fin_groupe + destination_début — PAS début + destination_fin.
-    // Voir _advResolveNacreSidestep, qui fait l'opération inverse.
-    const coords = sel.map(function(s){ return { rc:s, notation: coordToABAPRO(s.r,s.c) }; });
-    coords.sort(function(a,b){ return a.notation < b.notation ? -1 : 1; });
-    const debut = coords[0].rc;               // début_groupe (le plus petit alphabétiquement)
-    const fin = coords[coords.length-1].rc;    // fin_groupe (le plus grand alphabétiquement)
-    const debutAx = rcToAxial(debut.r, debut.c);
-    const debutDest = axialToRc(debutAx.q + dir.q, debutAx.r + dir.r);   // destination_début
-    const fromFin = coordToABAPRO(fin.r, fin.c);
-    const toDebutDest = debutDest ? coordToABAPRO(debutDest.r, debutDest.c) : '';
-    return fromFin + toDebutDest;  // ex: c4d3 (groupe [c2,c3,c4], fin=c4, début=c2→d3)
+    /* Correction du 24/07/2026, signalee par Saab sur la v1.11.
+       La regle appliquee ici etait l'inverse de la bonne : elle ecrivait
+       fin_groupe + destination_debut, ce qui donne DEUX CASES ADJACENTES.
+       Sur son exemple, le groupe [c2,c3] produisait « c3d3 » au lieu de
+       « c2d4 ». Le Nacre note l'origine d'une extremite et l'arrivee de
+       l'AUTRE extremite : les deux coordonnees ecrites sont donc les plus
+       eloignees possibles, jamais voisines. Sa note sur la v1.7.2 le
+       confirme independamment — il y ecrit que le coup « a1b3 » provient
+       de billes en a1,a2.
+
+       Le commentaire precedent affirmait la regle prouvee contre huit
+       coups lateraux du §11 de son manuel. Elle ne l'etait pas : l'invariant
+       de distance maximale ci-dessous est verifie par test sur tous les
+       coups lateraux legaux de centaines de positions, ecriture ET relecture.
+
+       On ne trie plus alphabetiquement — un ordre alphabetique n'a aucun
+       rapport avec la geometrie du plateau et ne garantit pas la paire la
+       plus eloignee. On construit les deux paires candidates et on garde
+       celle dont les extremites sont le plus distantes. */
+    const ends = _nacreGroupEnds(sel);
+    if (!ends) return '?';
+    const cand = [ends.a, ends.b].map(function(from){
+      const other = (from === ends.a) ? ends.b : ends.a;
+      const ax = rcToAxial(other.r, other.c);
+      const dest = axialToRc(ax.q + dir.q, ax.r + dir.r);
+      if (!dest) return null;
+      return { from: from, dest: dest, d: _hexDist(rcToAxial(from.r, from.c), rcToAxial(dest.r, dest.c)) };
+    }).filter(Boolean);
+    if (!cand.length) return '?';
+    cand.sort(function(x, y){ return y.d - x.d; });
+    const best = cand[0];
+    return coordToABAPRO(best.from.r, best.from.c) + coordToABAPRO(best.dest.r, best.dest.c);
   } else {
     // Coup en ligne : queue AVANT le coup + destination de la TÊTE après le
     // coup — distance = taille du groupe, jamais figée à 1 case contrairement
@@ -16215,18 +16255,23 @@ function _advResolveNacreSidestep(tok, color, axA, axB){
     }
     return null;
   }
-  // Hyp. 1 (règle principale) : A=fin_groupe, B=destination_début
+  /* Ordre inverse depuis le 24/07/2026. L'hypothese « debut + destination
+     de l'autre extremite » est la regle correcte et passe donc en premier ;
+     l'ancienne reste en repli pour relire les sequences ecrites avant la
+     correction. */
+  // Regle correcte : A = une extremite du groupe, B = arrivee de l'AUTRE extremite.
   let res = tryHyp(
-    (axisDir, size) => ({ q: axA.q - axisDir.q * (size - 1), r: axA.r - axisDir.r * (size - 1) }),
-    () => axA,
-    (axisDir, size) => { const d = { q: axA.q - axisDir.q * (size - 1), r: axA.r - axisDir.r * (size - 1) }; return { q: axB.q - d.q, r: axB.r - d.r }; }
-  );
-  if (res) return res;
-  // Hyp. 2 (repli documenté, cas ambigu) : A=début_groupe, B=destination_dernière_bille
-  return tryHyp(
     () => axA,
     (axisDir, size) => ({ q: axA.q + axisDir.q * (size - 1), r: axA.r + axisDir.r * (size - 1) }),
     (axisDir, size) => { const f = { q: axA.q + axisDir.q * (size - 1), r: axA.r + axisDir.r * (size - 1) }; return { q: axB.q - f.q, r: axB.r - f.r }; }
+  );
+  if (res) return res;
+  // Repli : ancienne regle (fin_groupe + destination_debut), pour les sequences
+  // exportees avant le 24/07/2026.
+  return tryHyp(
+    (axisDir, size) => ({ q: axA.q - axisDir.q * (size - 1), r: axA.r - axisDir.r * (size - 1) }),
+    () => axA,
+    (axisDir, size) => { const d = { q: axA.q - axisDir.q * (size - 1), r: axA.r - axisDir.r * (size - 1) }; return { q: axB.q - d.q, r: axB.r - d.r }; }
   );
 }
 
