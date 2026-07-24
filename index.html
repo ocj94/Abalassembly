@@ -2829,20 +2829,41 @@ document.addEventListener('keydown', function(e){
       <div>
         <div class="cam-section-title" style="margin-bottom:12px">Capacités IA</div>
         <div style="display:flex;flex-direction:column;gap:8px">
-          ${[
-            ['⚫⚪','Détection des billes','Localise chaque bille noire et blanche'],
-            ['📐','Position hexagonale','Associe chaque bille à sa case exacte'],
-            ['📊','Comptage précis','Compte les billes de chaque camp'],
-            ['💡','Analyse tactique','Identifie les menaces et opportunités'],
-            ['🗺','Reconstruction','Recrée la position en plateau numérique'],
-          ].map(([ic,title,desc])=>`
-            <div style="display:flex;gap:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
-              <span style="font-size:18px;flex-shrink:0">${ic}</span>
-              <div>
-                <div style="font-size:13px;font-weight:600;color:var(--white)">${title}</div>
-                <div style="font-size:11px;color:var(--muted);margin-top:2px">${desc}</div>
-              </div>
-            </div>`).join('')}
+          <div style="display:flex;gap:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+            <span style="font-size:18px;flex-shrink:0">⚫⚪</span>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--white)">Détection des billes</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">Localise chaque bille noire et blanche</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+            <span style="font-size:18px;flex-shrink:0">📐</span>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--white)">Position hexagonale</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">Associe chaque bille à sa case exacte</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+            <span style="font-size:18px;flex-shrink:0">📊</span>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--white)">Comptage précis</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">Compte les billes de chaque camp</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+            <span style="font-size:18px;flex-shrink:0">💡</span>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--white)">Analyse tactique</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">Identifie les menaces et opportunités</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+            <span style="font-size:18px;flex-shrink:0">🗺</span>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--white)">Reconstruction</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">Recrée la position en plateau numérique</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2892,7 +2913,7 @@ document.addEventListener('keydown', function(e){
         <div class="player-avatar" style="background:radial-gradient(circle at 35% 35%,#3a7a56,#1c3d2a);color:var(--gold);font-family:'Playfair Display',serif">O</div>
         <div class="player-info">
           <div class="player-name-lg">Vous (Olivier)</div>
-          <div class="player-rating-lg">ELO 1766</div>
+          <div class="player-rating-lg" title="Aucune partie n'est encore conservee : le classement sera calcule quand l'historique existera">Non classé</div>
         </div>
       </div>
       <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px">Vos billes: Noires ●</div>
@@ -3671,19 +3692,36 @@ document.addEventListener('keydown', function(e){
               <div style="padding:14px 16px;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;border-left:1px solid var(--border)">Résultat</div>
               <div style="padding:14px 16px;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;border-left:1px solid var(--border)">Type</div>
             </div>
-            ${[
-              ['000OOX','✅ Autorisé','3v2 — billes blanches poussées'],
-              ['000OO0','❌ Interdit','3v2 bloqué — bille noire derrière'],
-              ['000OX','✅ Autorisé','3v1 — bille blanche poussée'],
-              ['00OX','✅ Autorisé','2v1 — bille blanche poussée'],
-              ['00OO','❌ Interdit','2v2 — égalité, pas de Sumito'],
-              ['000OOO','❌ Interdit','3v3 — égalité, pas de Sumito'],
-            ].map(([cfg,result,type]) => `
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid rgba(42,51,48,0.4)">
-              <div style="padding:12px 16px;font-family:'DM Mono',monospace;font-size:15px;color:var(--gold);letter-spacing:3px">${cfg}</div>
-              <div style="padding:12px 16px;font-size:13px;border-left:1px solid var(--border)">${result}</div>
-              <div style="padding:12px 16px;font-size:12px;color:var(--muted);border-left:1px solid var(--border)">${type}</div>
-            </div>`).join('')}
+              <div style="padding:12px 16px;font-family:'DM Mono',monospace;font-size:15px;color:var(--gold);letter-spacing:3px">000OOX</div>
+              <div style="padding:12px 16px;font-size:13px;border-left:1px solid var(--border)">✅ Autorisé</div>
+              <div style="padding:12px 16px;font-size:12px;color:var(--muted);border-left:1px solid var(--border)">3v2 — billes blanches poussées</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid rgba(42,51,48,0.4)">
+              <div style="padding:12px 16px;font-family:'DM Mono',monospace;font-size:15px;color:var(--gold);letter-spacing:3px">000OO0</div>
+              <div style="padding:12px 16px;font-size:13px;border-left:1px solid var(--border)">❌ Interdit</div>
+              <div style="padding:12px 16px;font-size:12px;color:var(--muted);border-left:1px solid var(--border)">3v2 bloqué — bille noire derrière</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid rgba(42,51,48,0.4)">
+              <div style="padding:12px 16px;font-family:'DM Mono',monospace;font-size:15px;color:var(--gold);letter-spacing:3px">000OX</div>
+              <div style="padding:12px 16px;font-size:13px;border-left:1px solid var(--border)">✅ Autorisé</div>
+              <div style="padding:12px 16px;font-size:12px;color:var(--muted);border-left:1px solid var(--border)">3v1 — bille blanche poussée</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid rgba(42,51,48,0.4)">
+              <div style="padding:12px 16px;font-family:'DM Mono',monospace;font-size:15px;color:var(--gold);letter-spacing:3px">00OX</div>
+              <div style="padding:12px 16px;font-size:13px;border-left:1px solid var(--border)">✅ Autorisé</div>
+              <div style="padding:12px 16px;font-size:12px;color:var(--muted);border-left:1px solid var(--border)">2v1 — bille blanche poussée</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid rgba(42,51,48,0.4)">
+              <div style="padding:12px 16px;font-family:'DM Mono',monospace;font-size:15px;color:var(--gold);letter-spacing:3px">00OO</div>
+              <div style="padding:12px 16px;font-size:13px;border-left:1px solid var(--border)">❌ Interdit</div>
+              <div style="padding:12px 16px;font-size:12px;color:var(--muted);border-left:1px solid var(--border)">2v2 — égalité, pas de Sumito</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid rgba(42,51,48,0.4)">
+              <div style="padding:12px 16px;font-family:'DM Mono',monospace;font-size:15px;color:var(--gold);letter-spacing:3px">000OOO</div>
+              <div style="padding:12px 16px;font-size:13px;border-left:1px solid var(--border)">❌ Interdit</div>
+              <div style="padding:12px 16px;font-size:12px;color:var(--muted);border-left:1px solid var(--border)">3v3 — égalité, pas de Sumito</div>
+            </div>
           </div>
         </div>
 
@@ -3836,14 +3874,18 @@ document.addEventListener('keydown', function(e){
         <div style="margin-top:28px;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden">
           <div style="padding:14px 18px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--white)">📋 Fiche complète du jeu</div>
           <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px">
-            ${[
-              ['Nom','Abalone'],['Auteurs','Michel Lalet & Laurent Levi'],
-              ['Éditeur','Asmodee'],['Année','1987'],
-              ['Joueurs','2'],['Durée','~20 minutes'],
-              ['Complexité','1 / 5'],['Stratégie','5 / 5'],
-              ['Chance','0 / 5'],['Plateau','61 cases hexagonales'],
-              ['Billes/joueur','14'],['Objectif','Éjecter 6 billes adverses'],
-            ].map(([k,v]) => `<div><span style="color:var(--muted)">${k} : </span><span style="color:var(--text);font-weight:500">${v}</span></div>`).join('')}
+            <div><span style="color:var(--muted)">Nom : </span><span style="color:var(--text);font-weight:500">Abalone</span></div>
+            <div><span style="color:var(--muted)">Auteurs : </span><span style="color:var(--text);font-weight:500">Michel Lalet & Laurent Levi</span></div>
+            <div><span style="color:var(--muted)">Éditeur : </span><span style="color:var(--text);font-weight:500">Asmodee</span></div>
+            <div><span style="color:var(--muted)">Année : </span><span style="color:var(--text);font-weight:500">1987</span></div>
+            <div><span style="color:var(--muted)">Joueurs : </span><span style="color:var(--text);font-weight:500">2</span></div>
+            <div><span style="color:var(--muted)">Durée : </span><span style="color:var(--text);font-weight:500">~20 minutes</span></div>
+            <div><span style="color:var(--muted)">Complexité : </span><span style="color:var(--text);font-weight:500">1 / 5</span></div>
+            <div><span style="color:var(--muted)">Stratégie : </span><span style="color:var(--text);font-weight:500">5 / 5</span></div>
+            <div><span style="color:var(--muted)">Chance : </span><span style="color:var(--text);font-weight:500">0 / 5</span></div>
+            <div><span style="color:var(--muted)">Plateau : </span><span style="color:var(--text);font-weight:500">61 cases hexagonales</span></div>
+            <div><span style="color:var(--muted)">Billes/joueur : </span><span style="color:var(--text);font-weight:500">14</span></div>
+            <div><span style="color:var(--muted)">Objectif : </span><span style="color:var(--text);font-weight:500">Éjecter 6 billes adverses</span></div>
           </div>
         </div>
       </div>
@@ -4045,7 +4087,7 @@ document.addEventListener('keydown', function(e){
             <div style="font-size:13px;font-weight:600;color:var(--white)">Défaite vs The Mandalorian</div>
             <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Blanc · 4-1 · 39 coups · 19 avr. 2020 · Adv. ELO 1650</div>
           </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:#e05c4b">-23</div><div style="font-size:11px;color:var(--muted)">1766 ELO</div></div>
+          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--muted)">—</div><div style="font-size:11px;color:var(--muted)">non classé</div></div>
         </div>
         <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;background:rgba(200,168,75,0.03)">
           <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
@@ -4202,7 +4244,7 @@ document.addEventListener('keydown', function(e){
             </div>
             <div style="display:flex;justify-content:space-between">
               <span style="font-size:13px;color:var(--muted)">ELO actuel</span>
-              <span style="font-family:'DM Mono',monospace;color:var(--accent-green-light)">1766 ↑</span>
+              <span style="font-family:'DM Mono',monospace;color:var(--muted)">—</span>
             </div>
           </div>
         </div>
@@ -5134,7 +5176,7 @@ document.addEventListener('keydown', function(e){
           <div style="width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#3a7a56,#1c3d2a);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;font-family:'Playfair Display',serif;color:var(--gold);margin:0 auto 8px;border:2px solid rgba(200,168,75,0.3)">O</div>
           <div style="font-size:13px;font-weight:600;color:var(--white)">Olivier Charles-Joseph</div>
           <div style="font-size:11px;color:var(--muted);margin-top:3px;line-height:1.4">Ambassadeur & promoteur communautaire 🌍</div>
-          <div style="font-size:10px;color:var(--gold);margin-top:2px;font-family:'DM Mono',monospace">ocj94 · ELO 1766</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace">ocj94 · non classé</div>
         </div>
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center">
           <div style="width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#4a1c5a,#2a0a3a);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;font-family:'Playfair Display',serif;color:#b89ef0;margin:0 auto 8px;border:2px solid rgba(138,114,210,0.3)">F</div>
@@ -5351,7 +5393,7 @@ document.addEventListener('keydown', function(e){
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">
         <div>
           <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">ELO Actuel</div>
-          <div style="font-family:'Playfair Display',serif;font-size:32px;font-weight:900;color:var(--gold)" id="stats-elo">1766</div>
+          <div style="font-family:'Playfair Display',serif;font-size:32px;font-weight:900;color:var(--gold)" id="stats-elo">—</div>
         </div>
         <div style="text-align:right">
           <div style="font-size:14px;color:var(--accent-green-light);font-weight:600" id="stats-elo-delta">↑ +24</div>
@@ -5425,13 +5467,17 @@ document.addEventListener('keydown', function(e){
       <div class="compare-player">
         <div class="compare-avatar" id="cmp-avatar1" style="background:#2d5a3d">?</div>
         <div style="font-size:14px;font-weight:600;color:var(--white)" id="cmp-name1">Vous</div>
-        <div style="font-size:12px;color:var(--muted)">ELO <span id="cmp-elo1">1766</span></div>
+        <div style="font-size:12px;color:var(--muted)">ELO <span id="cmp-elo1">—</span></div>
       </div>
       <div class="compare-vs">VS</div>
       <div class="compare-player">
         <div class="compare-avatar" style="background:#1c3d5a;font-size:18px" id="cmp-avatar2">🔍</div>
         <input id="cmp-search" class="form-input" placeholder="Nom d'utilisateur…" style="text-align:center;margin-top:6px;padding:8px 10px;font-size:13px" oninput="searchComparePlayer()">
       </div>
+    </div>
+
+    <div style="margin:10px auto 0;max-width:520px;padding:10px 14px;border:1px dashed var(--border);border-radius:8px;font-size:12px;color:var(--muted);text-align:center">
+      Les profils proposés ici sont des <strong>exemples de démonstration</strong>. Aucune partie n'étant conservée pour l'instant, il n'existe ni classement ni statistiques réelles.
     </div>
 
     <!-- Compare rows -->
@@ -8508,7 +8554,7 @@ async function loginSuccess() {
   // Match preset accounts
   const PRESETS = {
     'fightclub': { username:'FightClub (Frederic Garnier)', email:'fightclub@abalone.com', role:'writer', color:'#4a1c5a', bio:'Fondateur du blog Abalone Online (2013). Theoricien, encyclopediste, redacteur principal. Contact: +33 6 61 88 69 85', country:'FR', elo:1950, games:312, wins:198, streak:7, joinDate:'Decembre 2013', eloMax:2105 },
-    'olivier':   { username:'ocj94', email:'olivier@abalone.com', role:'player', color:'#2d5a3d', bio:'Joueur passionné et promoteur de la communauté abalonienne mondiale.', country:'FR', elo:1766, games:247, wins:133, streak:18, joinDate:'Mars 2019', eloMax:1766 },
+    'olivier':   { username:'ocj94', email:'', role:'player', color:'#2d5a3d', bio:'Joueur passionné et promoteur de la communauté abalonienne mondiale.', country:'FR', elo:null, games:0, wins:0, streak:0, joinDate:'', eloMax:null },
   };
 
   const emailVal = (document.getElementById('login-email')?.value||'').trim().toLowerCase();
@@ -9366,6 +9412,7 @@ let gameOver = false;
 let timerInterval;
 let myTime = 555, oppTime = 522;
 
+let _replayStartBoard = null;   // position avant le coup 1, pour le rejeu
 let boardRotation = 0;   // rotation de la VUE du plateau, en degrés (multiples de 60)
 
 /* Orientation « POV » : le joueur voit toujours SON camp en bas. Avec les
@@ -12616,6 +12663,15 @@ function _setupFromAOStart(startStr){
 // Rejoue une séquence ABA-PRO sur le plateau courant et bascule en mode rejeu
 function _replaySeqToSnapshots(seq, labelText, startColor){
   boardSnapshots=[]; _bookNode=null;
+  /* Les billes ejectees de la partie precedente restaient dessinees dans la
+     gouttiere pendant tout le rejeu : un score fantome sans rapport avec la
+     partie chargee. Signale par Saab. */
+  if (typeof resetGutterPositions === 'function') resetGutterPositions();
+  /* Position de depart, conservee a part : boardSnapshots ne contient que des
+     etats APRES coup, si bien que le rejeu commencait au coup 1 et ne montrait
+     jamais l'ouverture. On ne l'insere pas dans boardSnapshots, dont l'index
+     est la reference de l'export, de l'historique et de l'analyse. */
+  _replayStartBoard = JSON.parse(JSON.stringify(board));
   let color=startColor||'black', played=0;
   const tokens=String(seq).replace(/\d+\./g,' ').trim().split(/\s+/).filter(Boolean);
   for(let i=0;i<tokens.length;i++){
@@ -12629,9 +12685,9 @@ function _replaySeqToSnapshots(seq, labelText, startColor){
   }
   gameOver=true;
   if(typeof rebuildMoveListLabels==='function') rebuildMoveListLabels();
-  replayMode=true; replayCurrentIdx=0;
+  replayMode=true; replayCurrentIdx=-1;   // -1 = position de depart
   const rb=document.getElementById('replay-btn'); if(rb){ rb.style.display='block'; rb.textContent='■ Quitter replay'; }
-  if(typeof loadSnapshot==='function') loadSnapshot(0);
+  if(typeof loadSnapshot==='function') loadSnapshot(-1);
   closeMigsBrowser();
   showToast('📂 '+labelText+' — '+played+' coups (◀ ▶ pour naviguer)');
 }
@@ -14765,6 +14821,33 @@ function _hexDist(a, b) {
   return (Math.abs(a.q - b.q) + Math.abs(a.q + a.r - b.q - b.r) + Math.abs(a.r - b.r)) / 2;
 }
 
+/* Extremites NOMMEES d'un coup : origine d'un bout du groupe, arrivee de
+   l'autre bout. C'est la paire que le Nacre ecrit, et ce sont aussi les deux
+   points de la fleche du dernier coup — Saab l'a confirme en constatant que
+   la fleche c2d4 etait juste alors que la notation ecrivait c3d3.
+   Une seule source pour les deux : tant qu'elles etaient calculees
+   separement, l'une pouvait deriver sans que l'autre bouge. */
+function moveEndpointCells(cells, dir) {
+  if (!cells || !cells.length || !dir) return null;
+  if (cells.length === 1) {
+    const ax = rcToAxial(cells[0].r, cells[0].c);
+    const dest = axialToRc(ax.q + dir.q, ax.r + dir.r);
+    return dest ? { from: cells[0], to: dest } : null;
+  }
+  const ends = _nacreGroupEnds(cells);
+  if (!ends) return null;
+  const cand = [ends.a, ends.b].map(function(from){
+    const other = (from === ends.a) ? ends.b : ends.a;
+    const ax = rcToAxial(other.r, other.c);
+    const dest = axialToRc(ax.q + dir.q, ax.r + dir.r);
+    if (!dest) return null;
+    return { from: from, to: dest, d: _hexDist(rcToAxial(from.r, from.c), rcToAxial(dest.r, dest.c)) };
+  }).filter(Boolean);
+  if (!cand.length) return null;
+  cand.sort(function(x, y){ return y.d - x.d; });
+  return cand[0];
+}
+
 /* Les deux extremites d'un groupe aligne (la bille du milieu, s'il y en a
    une, ne sert jamais a la notation). */
 function _nacreGroupEnds(sel) {
@@ -14801,19 +14884,9 @@ function moveToNACRE(sel, dir, type) {
        rapport avec la geometrie du plateau et ne garantit pas la paire la
        plus eloignee. On construit les deux paires candidates et on garde
        celle dont les extremites sont le plus distantes. */
-    const ends = _nacreGroupEnds(sel);
-    if (!ends) return '?';
-    const cand = [ends.a, ends.b].map(function(from){
-      const other = (from === ends.a) ? ends.b : ends.a;
-      const ax = rcToAxial(other.r, other.c);
-      const dest = axialToRc(ax.q + dir.q, ax.r + dir.r);
-      if (!dest) return null;
-      return { from: from, dest: dest, d: _hexDist(rcToAxial(from.r, from.c), rcToAxial(dest.r, dest.c)) };
-    }).filter(Boolean);
-    if (!cand.length) return '?';
-    cand.sort(function(x, y){ return y.d - x.d; });
-    const best = cand[0];
-    return coordToABAPRO(best.from.r, best.from.c) + coordToABAPRO(best.dest.r, best.dest.c);
+    const ep = moveEndpointCells(sel, dir);
+    if (!ep) return '?';
+    return coordToABAPRO(ep.from.r, ep.from.c) + coordToABAPRO(ep.to.r, ep.to.c);
   } else {
     // Coup en ligne : queue AVANT le coup + destination de la TÊTE après le
     // coup — distance = taille du groupe, jamais figée à 1 case contrairement
@@ -18620,11 +18693,23 @@ function replayStep(dir) {
     const btn = document.getElementById('replay-btn');
     if (btn) btn.style.display = 'block';
   }
-  replayCurrentIdx = Math.max(0, Math.min(boardSnapshots.length - 1, replayCurrentIdx + dir));
+  const _min = _replayStartBoard ? -1 : 0;   // -1 seulement si une position de depart est connue
+  replayCurrentIdx = Math.max(_min, Math.min(boardSnapshots.length - 1, replayCurrentIdx + dir));
   loadSnapshot(replayCurrentIdx);
 }
 
 function loadSnapshot(idx) {
+  // Index -1 : position de depart, avant le premier coup.
+  if (idx === -1) {
+    if (!_replayStartBoard) return;
+    board = JSON.parse(JSON.stringify(_replayStartBoard));
+    capturedByBlack = 0; capturedByWhite = 0;
+    drawBoard(); updateCaptures();
+    document.querySelectorAll('.move-item').forEach(function(el){ el.classList.remove('current'); });
+    const st0 = document.getElementById('game-status-text');
+    if (st0) st0.textContent = 'Replay — position de depart (0/' + boardSnapshots.length + ')';
+    return;
+  }
   if (!boardSnapshots[idx]) return;
   const snap = boardSnapshots[idx];
   board = JSON.parse(JSON.stringify(snap.board));
@@ -19176,12 +19261,20 @@ function setStatsPeriod(days, btn) {
 /* ═══════════════════════════════════════════
    COMPARE PAGE
 ═══════════════════════════════════════════ */
+/* Profils de DEMONSTRATION. Ces joueurs n'existent pas et leurs chiffres sont
+   inventes : la page de comparaison le dit explicitement a l'ecran. Le compte
+   du joueur, lui, affiche des zeros tant qu'aucune partie n'est conservee —
+   il portait auparavant un ELO de 1766 et 247 parties, presentes comme des
+   faits. */
 const compareProfiles = {
   'SumitoPro':    { color:'#2a3a32', elo:2341, games:502, wins:412, streak:31, puzzles:1200 },
   'MarbleKing_FR':{ color:'#3a2a2a', elo:2289, games:478, wins:389, streak:18, puzzles:980 },
   'FightClub':    { color:'#4a1c5a', elo:1950, games:312, wins:198, streak:7,  puzzles:450 },
   'Gramgroum':    { color:'#5a3a1c', elo:1780, games:245, wins:155, streak:5,  puzzles:320 },
-  'Olivier_CJ':   { color:'#2d5a3d', elo:1766, games:247, wins:133, streak:18, puzzles:89  },
+  /* Compte de demonstration : les compteurs sont a zero tant qu'aucune partie
+     n'est conservee. Les valeurs precedentes — 1766 d'ELO, 247 parties, 133
+     victoires — etaient inventees et affichees comme des faits. */
+  'Olivier_CJ':   { color:'#2d5a3d', elo:null, games:0, wins:0, streak:0, puzzles:0 },
   'Vincent_F':    { color:'#1c3d5a', elo:2189, games:430, wins:340, streak:12, puzzles:750 },
 };
 
@@ -19192,7 +19285,7 @@ function searchComparePlayer() {
 }
 
 function showCompareResult(name, profile) {
-  const u = currentUser || { elo:1766, games:247, wins:133, streak:18, puzzles:89 };
+  const u = currentUser || { elo:null, games:0, wins:0, streak:0, puzzles:0 };
   const av2 = document.getElementById('cmp-avatar2');
   if (av2) { av2.textContent=name[0].toUpperCase(); av2.style.background=profile.color; av2.style.fontSize='24px'; }
   const n2 = document.getElementById('cmp-search');
@@ -20590,7 +20683,17 @@ function drawBestMoveHint() {
 function drawLastMoveArrow(ctx) {
   if (typeof showLastMoveArrow !== 'undefined' && !showLastMoveArrow) return;
   if (typeof boardSnapshots === 'undefined' || !boardSnapshots.length) return;
-  const snap = boardSnapshots[boardSnapshots.length - 1];
+  /* En replay, la fleche doit designer le coup AFFICHE, pas le dernier coup
+     de la partie. Elle montrait le coup final quelle que soit la position
+     parcourue : une fleche fantome au debut, et aucune fleche utile pendant
+     la navigation. Les deux remarques de Saab n'en faisaient qu'une.
+     A la position initiale (index -1), il n'y a pas encore de coup. */
+  let _idx = boardSnapshots.length - 1;
+  if (typeof replayMode !== 'undefined' && replayMode && typeof replayCurrentIdx !== 'undefined') {
+    if (replayCurrentIdx < 0) return;
+    _idx = replayCurrentIdx;
+  }
+  const snap = boardSnapshots[_idx];
   const info = snap && snap.moveInfo;
   if (!info || !info.cells || !info.dir) return;
 
@@ -20611,20 +20714,18 @@ function drawLastMoveArrow(ctx) {
     const destRc = axialToRc(ax.q + info.dir.q, ax.r + info.dir.r);
     return destRc ? hexCoord(destRc.r, destRc.c) : hexCoord(c.r, c.c);
   });
-  const avg = function(pts){ return { x: pts.reduce(function(s,p){return s+p.x;},0)/pts.length, y: pts.reduce(function(s,p){return s+p.y;},0)/pts.length }; };
-  /* La fleche pointe sur la bille d'ARRIVEE du groupe, pas sur le centre du
-     groupe : quand les billes arriere sont collees, le centre ne montre pas
-     ce qui s'est reellement deplace. Remarque de Saab. On part donc du centre
-     du groupe avant le coup et on vise la case d'arrivee de la bille de tete. */
-  const p0 = avg(before);
-  let p1 = avg(after);
-  try {
-    const ordered = info.cells.map(function(c){ return { c: c, ax: rcToAxial(c.r, c.c) }; })
-      .sort(function(a, b){ return (a.ax.q*info.dir.q + a.ax.r*info.dir.r) - (b.ax.q*info.dir.q + b.ax.r*info.dir.r); });
-    const head = ordered[ordered.length - 1].ax;
-    const headDest = axialToRc(head.q + info.dir.q, head.r + info.dir.r);
-    if (headDest) p1 = hexCoord(headDest.r, headDest.c);
-  } catch(e) {}
+  /* La fleche relie les memes deux cases que la notation Nacre : centre de la
+     PREMIERE bille du groupe, centre de la case d'arrivee de la DERNIERE.
+     Elle partait du barycentre du groupe — donc, sur deux billes, du vide qui
+     les separe, et sur trois, de la bille du milieu. Signale par Saab.
+
+     Le tri qui designait la « tete » projetait les billes sur la direction du
+     coup : sur un coup LATERAL, toutes ont la meme projection, l'ordre etait
+     donc indetermine et la fleche visait une bille au hasard. */
+  const ep = moveEndpointCells(info.cells, info.dir);
+  if (!ep) return;
+  const p0 = hexCoord(ep.from.r, ep.from.c);
+  const p1 = hexCoord(ep.to.r, ep.to.c);
   if (Math.abs(p0.x - p1.x) < 1 && Math.abs(p0.y - p1.y) < 1) return; // rien à dessiner (ne devrait pas arriver)
 
   ctx.save();

@@ -214,7 +214,32 @@ check('Nacre lateral : jamais deux cases adjacentes', () => {
   const b = functionBody('moveToNACRE')
     .replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"])\/\/.*$/gm, '$1');
   if (/notation\s*<\s*b\.notation/.test(b)) return 'le tri alphabetique est revenu';
-  return /_hexDist/.test(b) || 'la regle ne s\'appuie plus sur la distance';
+  return /moveEndpointCells/.test(b) || 'la notation n\'utilise plus la source partagee';
+});
+
+/* La fleche du dernier coup et la notation doivent nommer les MEMES cases.
+   Calculees separement, l'une avait derive sans l'autre. */
+check('fleche et notation partagent la meme source', () => {
+  const a = functionBody('drawLastMoveArrow');
+  if (!/moveEndpointCells/.test(a)) return 'la fleche recalcule ses extremites de son cote';
+  return !/const p0 = avg\(before\)/.test(a) || 'la fleche repart du barycentre du groupe';
+});
+
+/* Le rejeu doit montrer le coup affiche, pas le dernier de la partie. */
+check('replay : la fleche suit la position affichee', () => {
+  const a = functionBody('drawLastMoveArrow');
+  return /replayCurrentIdx/.test(a) || 'la fleche vise toujours le dernier coup';
+});
+
+check('replay : la position de depart existe', () => {
+  const src = jsBlocks.join('\n');
+  if (!/_replayStartBoard/.test(src)) return 'aucune position de depart conservee';
+  return /replayCurrentIdx\s*=\s*-1/.test(src) || 'le rejeu ne commence pas avant le coup 1';
+});
+
+check('replay : la gouttiere est remise a zero', () => {
+  const b = functionBody('_replaySeqToSnapshots');
+  return /resetGutterPositions/.test(b) || 'les billes ejectees precedentes persistent';
 });
 
 check('puzzle du jour : deterministe par la date', () =>
@@ -272,8 +297,29 @@ check('recordOpponentHeat n\'ecrit jamais dans la carte personnelle', () => {
 
 console.log('\nGarde-fous');
 
-check('aucun ELO fictif code en dur (1766)', () =>
-  !/\b1766\b/.test(HTML) || 'la valeur 1766 est reapparue');
+/* Le nombre 1766 etait un ELO invente, affiche comme un fait a neuf
+   endroits. Tant qu'aucune partie n'est conservee, il n'y a pas de
+   classement a montrer : « non classe » est la seule reponse honnete.
+   Les commentaires sont ignores — celui qui documente le retrait cite
+   forcement l'ancienne valeur. */
+check('aucun ELO fictif code en dur (1766)', () => {
+  const code = HTML
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/<!--[\s\S]*?-->/g, ' ');
+  return !/\b1766\b/.test(code) || 'la valeur 1766 est reapparue';
+});
+
+/* Le compte du joueur ne doit porter aucune statistique inventee. */
+check('aucune statistique de compte inventee', () => {
+  const code = HTML.replace(/\/\*[\s\S]*?\*\//g, ' ');
+  const bad = ['games:247', 'wins:133', 'puzzles:89'].filter(x => code.includes(x));
+  return bad.length === 0 || ('valeurs fictives : ' + bad.join(', '));
+});
+
+/* Les profils de comparaison sont fictifs : la page doit le dire. */
+check('les profils de demonstration sont annonces comme tels', () =>
+  /exemples de d[ée]monstration/i.test(HTML) ||
+  'la page Comparer presente des profils inventes sans le signaler');
 
 check('le backend reste dormant', () =>
   !/BACKEND\s*\.?\s*enabled\s*[:=]\s*true/.test(HTML) ||
