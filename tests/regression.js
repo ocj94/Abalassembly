@@ -343,6 +343,26 @@ check('carte de chaleur : la legende chiffre la distribution', () => {
     'la legende est redevenue purement qualitative';
 });
 
+/* Le mode Enfant est une fonction de PROTECTION : un parent doit pouvoir
+   savoir qu'elle existe sans lire le code. Elle n'etait documentee nulle part. */
+check('mode Enfant : documente dans le README', () => {
+  const rd = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
+  if (!/##\s*Mode Enfant/.test(rd)) return 'aucune section dediee';
+  if (!/Param[eè]tres/.test(rd)) return 'le chemin d\'acces n\'est pas indique';
+  return /addition|sortie/i.test(rd) || 'la protection de sortie n\'est pas mentionnee';
+});
+
+check('le README suit les fonctionnalites livrees', () => {
+  const rd = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
+  const manquants = [
+    ['APGN', /APGN/],
+    ['partie par code', /[Pp]artie par code/],
+    ['puzzle du jour', /[Pp]uzzle du jour/],
+    ['suite de tests', /tests\/regression\.js/]
+  ].filter(e => !e[1].test(rd)).map(e => e[0]);
+  return manquants.length === 0 || ('non documente : ' + manquants.join(', '));
+});
+
 /* ── 4. Garde-fous de credibilite ─────────────────────────────────── */
 
 console.log('\nGarde-fous');
