@@ -200,6 +200,23 @@ check('code de partie : aller-retour verifie contre le moteur', () => {
   return true;
 });
 
+/* Bug Saab (24/07/2026) : la notation Nacre des coups lateraux ecrivait
+   deux cases adjacentes au lieu des deux extremites. */
+check('notation Nacre laterale : conforme au moteur', () => {
+  const out = execFileSync(process.execPath, [path.join(__dirname, 'nacre.js')],
+    { stdio: 'pipe', encoding: 'utf8' });
+  const m = out.match(/coups lateraux testes\s*:\s*(\d+)/);
+  if (!m || parseInt(m[1], 10) < 500) return 'le harnais n\'a teste aucun coup lateral';
+  return true;
+});
+
+check('Nacre lateral : jamais deux cases adjacentes', () => {
+  const b = functionBody('moveToNACRE')
+    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"])\/\/.*$/gm, '$1');
+  if (/notation\s*<\s*b\.notation/.test(b)) return 'le tri alphabetique est revenu';
+  return /_hexDist/.test(b) || 'la regle ne s\'appuie plus sur la distance';
+});
+
 check('puzzle du jour : deterministe par la date', () =>
   /function daySeed\s*\(/.test(jsBlocks.join('\n')) &&
   /function currentDailyPuzzle\s*\(/.test(jsBlocks.join('\n')) ||
