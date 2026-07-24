@@ -293,6 +293,56 @@ check('recordOpponentHeat n\'ecrit jamais dans la carte personnelle', () => {
   return !/recordMyHeat/.test(b) || 'recordOpponentHeat appelle recordMyHeat';
 });
 
+/* Le mode Enfant ne survivait pas a un rechargement : un rafraichissement
+   rouvrait le chat et les reglages alors qu'un enfant tenait l'appareil. */
+check('mode Enfant : l\'etat est conserve', () => {
+  const src = jsBlocks.join('\n');
+  if (!/progress\.kidsMode\s*=\s*true/.test(src)) return 'l\'activation n\'est pas enregistree';
+  if (!/progress\.kidsMode\s*=\s*false/.test(src)) return 'la desactivation n\'est pas enregistree';
+  return /kidsMode = !!\(typeof progress/.test(src) || 'l\'etat n\'est pas relu au demarrage';
+});
+
+check('mode Enfant : l\'interface est restauree au chargement', () => {
+  const src = jsBlocks.join('\n');
+  return /progress\.kidsMode && typeof toggleKidsMode/.test(src) ||
+    'aucune restauration branchee sur DOMContentLoaded';
+});
+
+check('mode Enfant : la sortie reste protegee', () => {
+  const b = functionBody('_kidsExitCheck');
+  return /_kidsExitAnswer/.test(b) || 'la verification de la reponse a disparu';
+});
+
+/* L'echelle de la carte de chaleur doit monter du sombre au clair sans
+   redescendre, sinon deux intensites differentes paraissent identiques. */
+check('carte de chaleur : luminance strictement croissante', () => {
+  const m = jsBlocks.join('\n').match(/const HEATMAP_SCALE = \[([^\]]+)\]/);
+  if (!m) return 'echelle introuvable';
+  const cols = m[1].split(',').map(x => x.trim().replace(/'/g, ''));
+  const lum = h => {
+    const c = [1,3,5].map(i => parseInt(h.slice(i,i+2),16)/255)
+      .map(v => v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4));
+    return 0.2126*c[0] + 0.7152*c[1] + 0.0722*c[2];
+  };
+  for (let i = 1; i < cols.length; i++) {
+    if (lum(cols[i]) <= lum(cols[i-1])) {
+      return 'la luminance redescend en ' + cols[i] + ' (palier ' + i + ')';
+    }
+  }
+  return true;
+});
+
+check('carte de chaleur : le compteur reste lisible sur fond sombre', () => {
+  const b = functionBody('buildGameHeatmapSVG');
+  return /_heatIsLight/.test(b) || 'l\'encre du compteur ne s\'adapte pas au fond';
+});
+
+check('carte de chaleur : la legende chiffre la distribution', () => {
+  const b = functionBody('heatmapLegend');
+  return /counts/.test(b) && /cases jouees/.test(b) ||
+    'la legende est redevenue purement qualitative';
+});
+
 /* ── 4. Garde-fous de credibilite ─────────────────────────────────── */
 
 console.log('\nGarde-fous');
