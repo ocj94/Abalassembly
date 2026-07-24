@@ -7490,7 +7490,12 @@ function toggleRadarVisibility(show) {
    paliers jugee trop chargee. Note : la luminance monte regulierement sauf
    entre le violet et le rose, ou elle redescend legerement (0,263 -> 0,245).
    Ecart assez faible pour rester lisible ; eclaircir le rose le corrigerait. */
-const HEATMAP_SCALE = ['#1b1b2f','#3b5bb5','#9b7fc7','#e8536f','#f0a03c','#f5c518','#e9e94f','#ffffff'];
+/* Luminance relative de chaque palier, mesuree : 0.012, 0.117, 0.263, 0.365,
+   0.440, 0.594, 0.762, 1.000 — strictement croissante. Le rose valait
+   auparavant #e8536f (0.245) et REDESCENDAIT sous le violet : deux intensites
+   differentes pouvaient paraitre de meme clarte, et l'ordre se lisait mal en
+   niveaux de gris ou pour un oeil daltonien. #f47f92 corrige ce creux. */
+const HEATMAP_SCALE = ['#1b1b2f','#3b5bb5','#9b7fc7','#f47f92','#f0a03c','#f5c518','#e9e94f','#ffffff'];
 const HEATMAP_EMPTY = '#0d0d14';   // case jamais jouée
 
 /* Couleur continue de la carte de chaleur.
@@ -7503,6 +7508,19 @@ const HEATMAP_EMPTY = '#0d0d14';   // case jamais jouée
 function _heatHexToRgb(hex) {
   return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)];
 }
+/* Clarte percue d'une couleur, pour choisir une encre lisible par-dessus.
+   Formule de luminance relative WCAG, la meme qui a servi a verifier que
+   l'echelle monte bien du sombre au clair sans redescendre. */
+function _heatIsLight(css) {
+  const m = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/.exec(css);
+  const rgb = m ? [+m[1], +m[2], +m[3]]
+                : (css.charAt(0) === '#' ? _heatHexToRgb(css) : [0,0,0]);
+  const lin = rgb.map(function(v){
+    v /= 255; return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4);
+  });
+  return (0.2126*lin[0] + 0.7152*lin[1] + 0.0722*lin[2]) > 0.42;
+}
+
 function heatColor(intensity) {
   if (!(intensity > 0)) return HEATMAP_EMPTY;
   const t = Math.max(0, Math.min(1, intensity));
@@ -7516,16 +7534,51 @@ function heatColor(intensity) {
   return 'rgb(' + mix[0] + ',' + mix[1] + ',' + mix[2] + ')';
 }
 
-function heatmapLegend() {
-  // degrade continu, reflet exact de l'echelle utilisee sur le plateau
+/* Legende de la carte de chaleur.
+   Elle portait deux mots — « joue le moins », « joue le plus » — sans dire
+   combien. On y ajoute donc les valeurs reelles et la distribution : sous le
+   degrade, une barre par palier montre COMBIEN de cases tombent dedans. Une
+   carte ou trente cases sont tiedes et une seule brulante ne se lit pas comme
+   une carte ou l'intensite est repartie, et le degrade seul ne le disait pas.
+   `counts` est optionnel : sans lui, la legende reste qualitative. */
+function heatmapLegend(counts) {
   const stops = HEATMAP_SCALE.map(function(c, i){
     return c + ' ' + Math.round((i / (HEATMAP_SCALE.length - 1)) * 100) + '%';
   }).join(',');
   const bar = 'background:linear-gradient(90deg,' + HEATMAP_EMPTY + ' 0%,' + stops + ')';
-  return '<div style="margin-top:8px">'
-    + '<div style="height:10px;border-radius:5px;border:1px solid var(--border);' + bar + '"></div>'
-    + '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px">'
-    + '<span>joue le moins</span><span>joue le plus</span></div></div>';
+  let out = '<div style="margin-top:8px">'
+    + '<div style="height:10px;border-radius:5px;border:1px solid var(--border);' + bar + '"></div>';
+
+  const vals = counts ? Object.keys(counts).map(function(k){ return counts[k]; }).filter(function(v){ return v > 0; }) : [];
+  if (vals.length) {
+    const max = Math.max.apply(null, vals);
+    const played = vals.length;
+    /* Repartition sur les memes 8 paliers que la palette, avec le meme
+       adoucissement gamma : ce que montre l'histogramme correspond exactement
+       a ce que montre la carte. */
+    const NB = HEATMAP_SCALE.length;
+    const bins = new Array(NB).fill(0);
+    vals.forEach(function(v){
+      const g = Math.pow(v / max, 0.6);
+      bins[Math.min(NB - 1, Math.floor(g * (NB - 1) + 0.5))]++;
+    });
+    const peak = Math.max.apply(null, bins) || 1;
+    out += '<div style="display:flex;align-items:flex-end;gap:1px;height:22px;margin-top:4px">';
+    for (let i = 0; i < NB; i++) {
+      const h = bins[i] ? Math.max(2, Math.round((bins[i] / peak) * 22)) : 1;
+      out += '<div title="' + bins[i] + ' case(s)" style="flex:1;height:' + h + 'px;border-radius:1px;'
+           + 'background:' + (bins[i] ? HEATMAP_SCALE[i] : 'var(--border)') + '"></div>';
+    }
+    out += '</div>';
+    out += '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px">'
+      + '<span>1 fois</span>'
+      + '<span style="color:var(--text)">' + played + ' cases jouees</span>'
+      + '<span>' + max + ' fois</span></div>';
+  } else {
+    out += '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px">'
+      + '<span>joue le moins</span><span>joue le plus</span></div>';
+  }
+  return out + '</div>';
 }
 
 // Construit le SVG d'une heatmap pour un ensemble de données de cases
@@ -7792,7 +7845,7 @@ function renderHeatmap() {
   host.innerHTML = tabsHtml +
     '<div id="import-history-host" style="margin-bottom:14px"></div>'+
     '<div style="display:flex;gap:16px;flex-wrap:wrap">'+blackCard+whiteCard+'</div>'+
-    heatmapLegend()+
+    heatmapLegend(Object.assign({}, blackHeat, whiteHeat))+
     '<div style="margin-top:12px;padding:10px 14px;background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.2);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.5">ℹ️ Ces deux cartes montrent <strong>ton</strong> jeu, selon la couleur que tu tenais. La carte « blanches » se remplit quand tu joues les blancs (ou en mode 2 joueurs sur le même écran).</div>';
   if (typeof renderImportCard === 'function') renderImportCard();
 }
@@ -14689,11 +14742,22 @@ function buildGameHeatmapSVG(snapshots, forColor, size) {
       const fill = (typeof heatColor === 'function')
         ? heatColor(n === 0 ? 0 : intensity)
         : ((typeof HEATMAP_EMPTY !== 'undefined') ? HEATMAP_EMPTY : '#0d0d14');
-      cells += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (R*0.92).toFixed(1) + '"'
+      /* La couleur seule ne suffisait pas : sur un ecran de telephone, deux
+         paliers voisins se distinguent mal. Le RAYON porte donc la meme
+         information — une case peu jouee est petite, une case chaude est
+         pleine. Deux canaux valent mieux qu'un, et celui-ci reste lisible
+         en niveaux de gris. */
+      const rad = R * (n === 0 ? 0.62 : 0.72 + 0.28 * Math.pow(intensity, 0.6));
+      cells += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + rad.toFixed(1) + '"'
         + ' fill="' + fill + '" stroke="rgba(255,255,255,0.10)" stroke-width="0.5"></circle>';
-      if (n >= Math.max(2, Math.ceil(maxCount * 0.66))) {
-        // affiche le compteur sur les cases les plus chaudes
-        cells += '<text x="' + x.toFixed(1) + '" y="' + (y+R*0.35).toFixed(1) + '" text-anchor="middle" font-size="' + (R*0.9).toFixed(1) + '" fill="#0d0f0e" font-weight="700">' + n + '</text>';
+      if (n > 0 && maxCount >= 2) {
+        /* Le compteur etait ecrit en sombre, ce qui allait tant qu'il ne
+           s'affichait que sur les cases brulantes. Maintenant qu'il apparait
+           des la premiere occupation, il doit rester lisible sur un fond
+           sombre : on choisit l'encre selon la clarte reelle de la case. */
+        const ink = _heatIsLight(fill) ? '#0d0f0e' : 'rgba(255,255,255,0.92)';
+        cells += '<text x="' + x.toFixed(1) + '" y="' + (y+R*0.32).toFixed(1) + '" text-anchor="middle" font-size="'
+          + (R*0.85).toFixed(1) + '" fill="' + ink + '" font-weight="700">' + n + '</text>';
       }
     }
   }
@@ -17036,13 +17100,18 @@ function applyMarbleSkin() {
    parental léger, pas une sécurité cryptographique — juste assez de
    friction pour qu'un enfant seul ne quitte pas le mode par accident).
 ═══════════════════════════════════════════ */
-let kidsMode = false;
+/* Le mode Enfant ne survivait pas a un rechargement : un simple rafraichissement
+   rouvrait le chat, le Labo et les reglages alors qu'un enfant tenait le
+   telephone. Il est donc conserve dans progress, au meme titre que le reste,
+   et restaure au demarrage. La sortie reste protegee par l'addition. */
+let kidsMode = !!(typeof progress !== 'undefined' && progress.kidsMode);
 let _kidsPrevSkin = null;
 let _kidsExitAnswer = null;
 
 function toggleKidsMode() {
   if (kidsMode) { _kidsExitPrompt(); return; }
   kidsMode = true;
+  progress.kidsMode = true; saveProgress(progress);
   document.body.classList.add('kids-mode');
   _kidsPrevSkin = boardTheme.marbleSkin;
   boardTheme.marbleSkin = 'kids';
@@ -17097,6 +17166,7 @@ function _kidsExitCheck() {
   }
   _kidsExitCancel();
   kidsMode = false;
+  progress.kidsMode = false; saveProgress(progress);
   document.body.classList.remove('kids-mode');
   boardTheme.marbleSkin = _kidsPrevSkin || 'kintsugi';
   applyMarbleSkin();
@@ -19411,6 +19481,14 @@ document.addEventListener('DOMContentLoaded', function() {
   try { var sv = localStorage.getItem('abalone_marble_skin'); if (sv && MARBLE_SKINS[sv]) boardTheme.marbleSkin = sv; } catch(e){}
   applyMarbleSkin();
   setTimeout(renderSkinGallery, 200);
+  /* Mode Enfant : restaure l'interface si la session precedente l'avait laisse
+     actif. On repasse par toggleKidsMode plutot que de dupliquer ses effets —
+     une seule fonction decide de ce que le mode masque, et elle ne peut pas
+     deriver de sa copie. La bascule attend kidsMode a false pour activer. */
+  if (progress.kidsMode && typeof toggleKidsMode === 'function') {
+    kidsMode = false;
+    toggleKidsMode();
+  }
   const activePg = document.querySelector('.page.active');
   if (!activePg) {
     const home = document.getElementById('page-home');
