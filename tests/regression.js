@@ -363,7 +363,114 @@ check('le README suit les fonctionnalites livrees', () => {
   return manquants.length === 0 || ('non documente : ' + manquants.join(', '));
 });
 
-/* ── 4. Garde-fous de credibilite ─────────────────────────────────── */
+/* Horloges : le camp au trait doit etre rapporte a la couleur reellement
+   tenue. Code sur le noir, les coups du joueur blanc decomptaient l'horloge
+   adverse — troisieme occurrence du meme « noir = moi ». */
+check('horloges : le decompte suit la couleur tenue', () => {
+  const b = functionBody('tickTimers');
+  if (!/_clockMine\(\)/.test(b)) return 'tickTimers ignore la couleur du joueur';
+  return !/currentTurn\s*===\s*'black'/.test(b) || 'le camp est de nouveau code en dur';
+});
+
+check('horloges : affichage au-dessus et au-dessous du plateau', () => {
+  const both = /id="clock-top"/.test(HTML) && /id="clock-bottom"/.test(HTML);
+  return both || 'les barres autour du plateau sont absentes';
+});
+
+check('horloges : un seul endroit peint les quatre affichages', () => {
+  const src = jsBlocks.join('\n');
+  return /function _clockPaint/.test(src) || 'la peinture des horloges est de nouveau dispersee';
+});
+
+check('horloges : la chute du drapeau fait perdre le bon camp', () => {
+  const b = functionBody('tickTimers');
+  return /_flagFall\(_mine/.test(b) || 'le perdant au temps est code en dur';
+});
+
+check('aucune identite d\'adversaire inventee', () => {
+  const code = HTML.replace(/\/\*[\s\S]*?\*\//g, ' ');
+  const bad = ['KosmicKnight', 'ELO 1847', 'MarbleFan_77', 'AbaloneCzar'].filter(x => code.includes(x));
+  return bad.length === 0 || ('encore present : ' + bad.join(', '));
+});
+
+check('horloges : plus de temps de depart invente', () => {
+  const src = jsBlocks.join('\n').replace(/\/\*[\s\S]*?\*\//g, ' ');
+  return !/myTime = 555|oppTime = 522/.test(src) || 'les valeurs 555/522 sont revenues';
+});
+
+/* Profil de performance detaille : chaque indicateur doit etre defini,
+   chiffre a partir de vraies donnees, et situe contre le corpus MiGs. */
+check('profil : les indicateurs derivent des compteurs reels', () => {
+  const b = functionBody('computePerfMetrics');
+  if (!/progress/.test(b)) return 'les mesures n\'utilisent pas progress';
+  return /gamesPlayed|totalMoves|totalEjections/.test(b) || 'aucun compteur reel lu';
+});
+
+check('profil : une donnee absente n\'est jamais montree comme zero', () => {
+  const b = functionBody('computePerfMetrics');
+  return /den\(/.test(b) && /null/.test(b) ||
+    'un denominateur nul produirait un chiffre au lieu d\'un tiret';
+});
+
+check('profil : reference MiGs presente et coherente', () => {
+  const src = jsBlocks.join('\n');
+  const m = src.match(/const PERF_REF_LEN = (\[\[[\s\S]*?\]\]);/);
+  if (!m) return 'la distribution de reference est absente';
+  const cdf = JSON.parse(m[1]);
+  if (cdf[0][0] !== 0 || cdf[cdf.length-1][0] !== 100) return 'la CDF ne couvre pas 0 a 100';
+  for (let i = 1; i < cdf.length; i++) {
+    if (cdf[i][1] < cdf[i-1][1]) return 'la CDF de reference n\'est pas monotone';
+  }
+  return true;
+});
+
+check('profil : export brut en JSON et CSV', () => {
+  const b = functionBody('exportPerfJSON');
+  return /application\/json/.test(b) && /text\/csv/.test(b) ||
+    'l\'export ne fournit pas les deux formats';
+});
+
+/* Accessibilite : les reglages doivent CHANGER le comportement, pas
+   seulement afficher un interrupteur. Chacun agit via une classe body reelle. */
+check('accessibilite : chaque reglage a une regle CSS reelle', () => {
+  const classes = ['a11y-calm', 'a11y-quiet', 'a11y-focus', 'a11y-contrast', 'a11y-oneaction'];
+  const absent = classes.filter(c => !new RegExp('body\\.' + c).test(HTML));
+  return absent.length === 0 || ('classes sans regle CSS : ' + absent.join(', '));
+});
+
+check('accessibilite : mouvement reduit coupe vraiment les animations', () => {
+  return /body\.a11y-calm[\s\S]{0,200}animation-duration:\s*0\.001ms/.test(HTML) ||
+    'le mode calme n\'annule pas les animations';
+});
+
+check('accessibilite : les reglages sont persistes', () => {
+  const b = functionBody('setA11y');
+  return /saveProgress/.test(b) || 'un changement de reglage n\'est pas enregistre';
+});
+
+check('accessibilite : appliquee au demarrage', () => {
+  const src = jsBlocks.join('\n');
+  return /initA11y\(\)/.test(src) && /function applyA11y/.test(src) ||
+    'les reglages ne sont pas reappliques au chargement';
+});
+
+check('accessibilite : respecte le reglage systeme par defaut', () => {
+  const b = functionBody('initA11y');
+  return /prefers-reduced-motion/.test(b) ||
+    'le mode calme n\'est pas active quand le systeme le demande';
+});
+
+check('accessibilite : ne promet rien de therapeutique', () => {
+  /* Garde-fou ethique : le panneau ne doit pas se presenter comme un
+     traitement. On cherche une AFFIRMATION medicale — « soigne le TDAH »,
+     « traite le HPI » — pas une negation (« ne pretend rien soigner »), qui
+     est au contraire la bonne posture. */
+  const panel = HTML.slice(HTML.indexOf('Confort'), HTML.indexOf('Confort') + 700);
+  const claim = /(soigne|traite|guérit|guerit)\s+(le\s+)?(TDAH|TDA|HPI|trouble|déficit)/i;
+  return !claim.test(panel) || 'le panneau affirme un effet therapeutique';
+});
+
+/* ── 6. Garde-fous de credibilite ─────────────────────────────────── */
 
 console.log('\nGarde-fous');
 
@@ -387,9 +494,10 @@ check('aucune statistique de compte inventee', () => {
 });
 
 /* Les profils de comparaison sont fictifs : la page doit le dire. */
-check('les profils de demonstration sont annonces comme tels', () =>
-  /exemples de d[ée]monstration/i.test(HTML) ||
-  'la page Comparer presente des profils inventes sans le signaler');
+check('les profils de demonstration sont annonces comme tels', () => {
+  const n = (HTML.match(/exemples de d[ée]monstration/gi) || []).length;
+  return n >= 2 || 'les pages Comparer et Amis presentent des profils inventes sans le signaler';
+});
 
 check('le backend reste dormant', () =>
   !/BACKEND\s*\.?\s*enabled\s*[:=]\s*true/.test(HTML) ||

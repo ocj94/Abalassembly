@@ -1267,6 +1267,99 @@ footer {
   #board-3d { max-width: 320px; margin: 0 auto; }
   .game-controls { padding: 10px; }
   .ctrl-btn { padding: 11px; font-size: 13px; }
+  /* Horloges de part et d'autre du plateau : l'adversaire en haut, vous en bas,
+     dans le meme sens que la vue a la premiere personne. Celle du camp au trait
+     s'allume ; sous 30 s elle passe au rouge et bat. */
+  .clock-bar {
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:7px 14px; margin:6px 0; border:1px solid var(--border); border-radius:10px;
+    background:var(--surface); opacity:.55; transition:opacity .2s, border-color .2s;
+  }
+  .clock-bar.active { opacity:1; border-color:var(--gold); }
+  .clock-who {
+    font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .clock-time {
+    font-family:'DM Mono',monospace; font-size:19px; font-weight:700; color:var(--text);
+    font-variant-numeric:tabular-nums; letter-spacing:1px;
+  }
+  .clock-bar.low .clock-time { color:#e05c4b; }
+  .clock-bar.active.low { animation:clockPulse 1s ease-in-out infinite; }
+  @keyframes clockPulse { 50% { border-color:#e05c4b; } }
+  @media (prefers-reduced-motion:reduce){ .clock-bar.active.low { animation:none; } }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CONFORT & ACCESSIBILITE
+   Des reglages qui changent reellement le comportement de la page, pas des
+   etiquettes. Chacun agit via une classe sur <body> et des variables CSS,
+   pour rester dans le fichier unique. Aucun ne promet de soigner quoi que
+   ce soit : ce sont des choix d'affichage et d'attention.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --a11y-text-scale: 1;      /* taille du texte */
+  --a11y-space: 1;           /* interlignage et espacement */
+}
+
+/* Echelle typographique : agit sur tout le corps de texte. */
+body.a11y-text { font-size: calc(16px * var(--a11y-text-scale)); }
+body.a11y-space { line-height: calc(1.6 * var(--a11y-space)); letter-spacing: calc((var(--a11y-space) - 1) * 0.04em); }
+
+/* Mouvement reduit : coupe animations et transitions, y compris le splash,
+   la pluie de billes, les pulsations d'horloge et les degrades animes.
+   S'active a la demande OU si le systeme le demande deja. */
+body.a11y-calm *,
+body.a11y-calm *::before,
+body.a11y-calm *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+body.a11y-calm #intro-splash { animation: none !important; display: none !important; }
+
+/* Mode sobre : retire le bruit ludique — XP flottant, series, badges
+   clinquants, effets de survol decoratifs — pour ne garder que le jeu et
+   l'information. Le contenu reste, seul l'ornement disparait. */
+body.a11y-quiet .xp-float,
+body.a11y-quiet .streak-flame,
+body.a11y-quiet .marble-rain,
+body.a11y-quiet .confetti,
+body.a11y-quiet .badge-shine,
+body.a11y-quiet .decorative-only { display: none !important; }
+body.a11y-quiet .perm-card:hover,
+body.a11y-quiet .cc-button-component:hover { transform: none !important; }
+
+/* Focus renforce : un contour net et constant sur l'element actif, pour ne
+   jamais perdre ou l'on en est. Utile au clavier comme a l'attention. */
+body.a11y-focus *:focus-visible {
+  outline: 3px solid var(--gold) !important;
+  outline-offset: 3px !important;
+  border-radius: 3px;
+}
+body.a11y-focus button:focus-visible,
+body.a11y-focus a:focus-visible,
+body.a11y-focus input:focus-visible {
+  box-shadow: 0 0 0 5px rgba(217,164,65,0.25) !important;
+}
+
+/* Contraste renforce : assombrit les fonds, eclaircit le texte secondaire,
+   epaissit les bordures. Reste dans la palette bois-et-ivoire du jeu. */
+body.a11y-contrast {
+  --bg: #0a0806;
+  --surface: #17120d;
+  --surface2: #1f1811;
+  --text: #f6efe0;
+  --muted: #bcae98;
+  --border: #4a3f30;
+}
+
+/* Une seule action a la fois : attenue les appels a l'action secondaires
+   pour qu'un seul bouton principal ressorte a chaque ecran. Ne les masque
+   pas — les grise, pour ne pas surprendre. */
+body.a11y-oneaction .ctrl-btn:not(.primary):not(:hover):not(:focus) { opacity: 0.55; }
+
   .move-history { padding: 10px; }
   .timer-block { font-size: 20px; }
 
@@ -2892,11 +2985,11 @@ document.addEventListener('keydown', function(e){
       <div class="player-card">
         <div class="player-avatar" style="background:radial-gradient(circle at 35% 35%,#e8e0d0,#aaa);color:#222;font-family:'Playfair Display',serif">K</div>
         <div class="player-info">
-          <div class="player-name-lg">KosmicKnight</div>
-          <div class="player-rating-lg">ELO 1847</div>
+          <div class="player-name-lg" id="opp-name-lg">Adversaire</div>
+          <div class="player-rating-lg" id="opp-rating-lg">non classé</div>
         </div>
       </div>
-      <div class="timer-block" id="timer-opponent">08:42</div>
+      <div class="timer-block" id="timer-opponent">10:00</div>
       <div class="timer-label">Temps restant</div>
       <div style="margin-top:8px">
         <div class="captured-label">Billes capturées</div>
@@ -2907,7 +3000,7 @@ document.addEventListener('keydown', function(e){
         <div class="captured-label">Vos billes perdues</div>
         <div class="captured-marbles" id="captured-by-opp"></div>
       </div>
-      <div class="timer-block active" id="timer-me">09:15</div>
+      <div class="timer-block active" id="timer-me">10:00</div>
       <div class="timer-label">Votre temps</div>
       <div class="player-card" style="margin-top:8px">
         <div class="player-avatar" style="background:radial-gradient(circle at 35% 35%,#3a7a56,#1c3d2a);color:var(--gold);font-family:'Playfair Display',serif">O</div>
@@ -2928,7 +3021,17 @@ document.addEventListener('keydown', function(e){
           <button id="view-2d-btn" onclick="setBoardView('2d')" title="Vue classique 2D" style="padding:6px 12px;background:var(--gold);color:#14141a;border:none;cursor:pointer;font-size:12px;font-weight:600">2D</button>
           <button id="view-3d-btn" onclick="setBoardView('3d')" title="Vue 3D (admirer)" style="padding:6px 12px;background:transparent;color:var(--muted);border:none;cursor:pointer;font-size:12px;font-weight:600">3D</button>
         </div>
+        <!-- Horloge de l'adversaire : au-dessus du plateau, son camp etant en haut -->
+        <div class="clock-bar" id="clock-top">
+          <span class="clock-who" id="clock-top-who">Adversaire</span>
+          <span class="clock-time" id="clock-top-time">10:00</span>
+        </div>
         <canvas id="board" width="640" height="640"></canvas>
+        <!-- Votre horloge : sous le plateau, du cote de vos billes -->
+        <div class="clock-bar" id="clock-bottom">
+          <span class="clock-who" id="clock-bottom-who">Vous</span>
+          <span class="clock-time" id="clock-bottom-time">10:00</span>
+        </div>
         <!-- Rotation du plateau : un jeu de boutons par joueur, sur le bord gauche -->
         <div class="rot-ctl" id="rot2d-bottom" style="bottom:56px" title="Rotation (votre côté)">
           <button class="rot-btn" onclick="rotateBoard(-60)" title="Pivoter anti-horaire">↺</button>
@@ -4152,6 +4255,7 @@ document.addEventListener('keydown', function(e){
     <div style="margin-bottom:24px">
       <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px">⬡ Profil de performance</div>
       <div id="personal-radar"></div>
+      <div id="perf-detail" style="margin-top:16px"></div>
     </div>
 
     <!-- ══ HEATMAP DES COUPS ══ -->
@@ -4482,6 +4586,13 @@ document.addEventListener('keydown', function(e){
           <div style="font-size:13px;color:var(--muted);line-height:1.7">
             Les autorisations sont gérées par votre navigateur. Pour réinitialiser une autorisation refusée, cliquez sur l'icône 🔒 dans la barre d'adresse ou allez dans <strong style="color:var(--text)">Paramètres navigateur → Confidentialité → Autorisations de site</strong>.
           </div>
+        </div>
+
+        <!-- CONFORT & ACCESSIBILITE -->
+        <div style="margin-top:26px;padding-top:22px;border-top:1px solid var(--border)">
+          <div style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:4px">Confort &amp; accessibilité</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Des réglages qui changent réellement l'affichage et le rythme du jeu. Rien ici ne prétend soigner quoi que ce soit — ce sont des choix, offerts à qui en a besoin comme à qui les préfère.</div>
+          <div id="a11y-panel"></div>
         </div>
 
         <!-- Refresh button -->
@@ -7358,6 +7469,278 @@ function sparkline(data, w, h, color) {
    RADAR PERSONNEL — forces & faiblesses du joueur
    Les 6 critères sont dérivés des statistiques réelles.
 ═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════
+   PROFIL DE PERFORMANCE DETAILLE
+   Pense pour un oeil analytique : chaque indicateur est defini, chiffre, et
+   situe par rapport a un corpus reel de 2589 parties (serveur MiGs). Aucune
+   valeur inventee — quand une donnee manque, le champ le dit.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Distribution de reference : longueur des parties MiGs, en percentiles.
+   Mesuree sur les 2589 parties reelles rejouees contre le moteur.
+   Lecture : au percentile p, une partie dure PERF_REF_LEN[p] coups. */
+const PERF_REF_LEN = [[0,9],[5,33],[10,43],[15,51],[20,57],[25,64],[30,69],[35,75],[40,81],[45,87],[50,93],[55,99],[60,106],[65,114],[70,121],[75,130],[80,141],[85,154],[90,173],[95,197],[100,370]];
+
+/* Reperes MiGs (medianes et quartiles), pour situer un joueur en une phrase.
+   1re ejection : q25=19, med=27, q75=36. Ejections/partie : med=7.
+   Part de poussees : med=41%. */
+const PERF_REF = {
+  firstEjection: { q25:19, med:27, q75:36 },
+  ejPerGame:     { q25:5,  med:7,  q75:9  },
+  pushShare:     { q25:0.363, med:0.411, q75:0.458 }
+};
+
+/* Percentile d'une valeur dans une CDF echantillonnee [[pct,val],...]. */
+function _perfPercentile(cdf, v) {
+  if (v <= cdf[0][1]) return 0;
+  if (v >= cdf[cdf.length-1][1]) return 100;
+  for (let i=1;i<cdf.length;i++){
+    if (v <= cdf[i][1]){
+      const [p0,v0]=cdf[i-1], [p1,v1]=cdf[i];
+      return Math.round(p0 + (p1-p0)*(v-v0)/(v1-v0));
+    }
+  }
+  return 50;
+}
+
+/* Toutes les mesures derivees, avec numerateur/denominateur exposes pour qui
+   veut verifier le calcul. Rien n'est arrondi ici : l'arrondi est une decision
+   d'affichage, pas de calcul. */
+function computePerfMetrics() {
+  const p = progress;
+  const G  = p.gamesPlayed || 0;
+  const M  = p.totalMoves || 0;
+  const den = (x) => x > 0 ? x : null;   // null = indefini, pas 0
+
+  const ratio = (num, d) => { const dd = den(d); return dd === null ? null : num / dd; };
+
+  const winRate   = ratio(p.gamesWon, G);
+  const drawRate  = ratio(p.gamesDraw, G);
+  const lossRate  = ratio(p.gamesLost, G);
+  const ejPerGame = ratio(p.totalEjections, G);
+  const pushShare = ratio(p.totalPushes, M);
+  const pushEff   = ratio(p.totalPushes, p.pushAttempts);
+  const bestShare = ratio(p.bestMoves, M);
+  const fastShare = ratio(p.fastMoves, M);
+  const centerSh  = ratio(p.centerTurns, M);
+  const cohesion  = ratio(p.cohesionSum, M);
+  const conversion= ratio(p.leadWins, p.leadGames);
+  const avgLen    = ratio(M, G);
+
+  return {
+    sample: { games: G, moves: M, wins: p.gamesWon||0, losses: p.gamesLost||0, draws: p.gamesDraw||0 },
+    metrics: [
+      { id:'winRate',   label:'Taux de victoire',      val:winRate,   fmt:'pct', num:p.gamesWon,     den:G, def:"Parties gagnees / parties jouees." },
+      { id:'ejPerGame', label:'Ejections par partie',  val:ejPerGame, fmt:'num', num:p.totalEjections,den:G, def:"Billes adverses sorties, en moyenne par partie.", ref:PERF_REF.ejPerGame },
+      { id:'pushShare', label:'Part de poussees',      val:pushShare, fmt:'pct', num:p.totalPushes,  den:M, def:"Coups qui poussent une bille adverse, sur l'ensemble des coups.", ref:PERF_REF.pushShare },
+      { id:'pushEff',   label:'Efficacite des poussees',val:pushEff,  fmt:'pct', num:p.totalPushes,  den:p.pushAttempts, def:"Poussees reussies / tentatives de poussee." },
+      { id:'bestShare', label:'Coups optimaux',        val:bestShare, fmt:'pct', num:p.bestMoves,    den:M, def:"Coups juges optimaux par le moteur, sur l'ensemble des coups." },
+      { id:'centerSh',  label:'Controle du centre',    val:centerSh,  fmt:'pct', num:p.centerTurns,  den:M, def:"Coups ou vous dominiez le centre du plateau." },
+      { id:'cohesion',  label:'Cohesion moyenne',      val:cohesion,  fmt:'pct', num:p.cohesionSum,  den:M, def:"Compacite de vos billes, moyennee sur chaque coup." },
+      { id:'conversion',label:'Conversion des avantages',val:conversion,fmt:'pct',num:p.leadWins,    den:p.leadGames, def:"Parties menees ET gagnees / parties menees." },
+      { id:'fastShare', label:'Coups rapides',         val:fastShare, fmt:'pct', num:p.fastMoves,    den:M, def:"Coups joues sans longue reflexion." },
+      { id:'avgLen',    label:'Longueur de partie',    val:avgLen,    fmt:'num', num:M,              den:G, def:"Nombre de coups par partie, en moyenne.", cdf:PERF_REF_LEN }
+    ]
+  };
+}
+
+function _perfFmt(v, fmt) {
+  if (v === null || v === undefined) return '—';
+  if (fmt === 'pct') return (v*100).toFixed(1) + ' %';
+  return v.toFixed(v < 10 ? 2 : 1);
+}
+
+/* Le tableau detaille. Chaque ligne : la valeur, sa definition, et — quand une
+   reference existe — ou elle se situe dans le corpus MiGs. */
+function renderPerfDetail() {
+  const host = document.getElementById('perf-detail');
+  if (!host) return;
+  const d = computePerfMetrics();
+
+  if (!d.sample.games) {
+    host.innerHTML = '<div style="padding:22px;text-align:center;color:var(--muted);font-size:13px;'
+      + 'border:1px dashed var(--border);border-radius:10px">Aucune partie enregistree pour l\u0027instant.'
+      + '<br><span style="font-size:12px">Jouez une partie pour alimenter votre profil.</span></div>';
+    return;
+  }
+
+  let rows = '';
+  d.metrics.forEach(function(m){
+    let refCol = '<span style="color:var(--muted)">—</span>';
+    if (m.val !== null && m.cdf) {
+      const pc = _perfPercentile(m.cdf, m.val);
+      refCol = '<span style="color:var(--gold)">P' + pc + '</span>'
+        + '<span style="font-size:10px;color:var(--muted)"> vs MiGs</span>';
+    } else if (m.val !== null && m.ref) {
+      const r = m.ref, band = m.val < r.q25 ? 'sous q25' : m.val > r.q75 ? 'au-dessus q75' : 'dans l\u0027ecart median';
+      const col = m.val >= r.q25 && m.val <= r.q75 ? 'var(--gold)' : 'var(--muted)';
+      refCol = '<span style="color:'+col+'">'+band+'</span>'
+        + '<span style="font-size:10px;color:var(--muted)"> (med '+_perfFmt(m.ref.med, m.fmt)+')</span>';
+    }
+    rows += '<div style="display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:baseline;'
+      + 'padding:11px 0;border-bottom:1px solid var(--border)">'
+      + '<div><div style="font-size:14px;color:var(--text);font-weight:600">'+m.label+'</div>'
+      +   '<div style="font-size:11px;color:var(--muted);margin-top:2px">'+m.def
+      +     (m.den ? ' <span style="font-family:\'DM Mono\',monospace">['+ (m.num||0) +'/'+ m.den +']</span>' : '')
+      +   '</div></div>'
+      + '<div style="font-family:\'DM Mono\',monospace;font-size:16px;font-weight:700;color:var(--text);text-align:right;min-width:74px">'
+      +   _perfFmt(m.val, m.fmt) + '</div>'
+      + '<div style="font-size:11px;text-align:right;min-width:96px">'+refCol+'</div>'
+      + '</div>';
+  });
+
+  host.innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">'
+    + '<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)">Indicateurs detailles</div>'
+    + '<button onclick="exportPerfJSON()" style="font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:.05em;'
+    +   'background:none;border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:4px;cursor:pointer">Exporter (JSON / CSV)</button>'
+    + '</div>'
+    + '<div style="font-size:11px;color:var(--muted);margin-bottom:10px">Echantillon : '
+    +   d.sample.games + ' partie(s), ' + d.sample.moves + ' coups. Colonne de droite : position dans un corpus de 2589 parties reelles.</div>'
+    + rows;
+}
+
+/* Export : les donnees brutes, pour qui veut les manipuler ailleurs
+   (tableur, notebook). Deux formats, aucune perte. */
+function exportPerfJSON() {
+  const d = computePerfMetrics();
+  const flat = {};
+  d.metrics.forEach(function(m){ flat[m.id] = m.val; });
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    sample: d.sample,
+    metrics: flat,
+    raw: {
+      gamesPlayed:progress.gamesPlayed, gamesWon:progress.gamesWon, gamesLost:progress.gamesLost,
+      gamesDraw:progress.gamesDraw, totalMoves:progress.totalMoves, totalEjections:progress.totalEjections,
+      totalPushes:progress.totalPushes, pushAttempts:progress.pushAttempts, bestMoves:progress.bestMoves,
+      fastMoves:progress.fastMoves, centerTurns:progress.centerTurns, cohesionSum:progress.cohesionSum,
+      leadGames:progress.leadGames, leadWins:progress.leadWins, elo:progress.elo, xp:progress.xp
+    },
+    reference: 'MiGs 2016-2017, 2589 parties'
+  };
+  const cols = Object.keys(flat);
+  const csv = 'metric,value\n' + cols.map(function(k){ return k+','+(flat[k]===null?'':flat[k]); }).join('\n');
+
+  function dl(name, text, type){
+    const b = new Blob([text], {type:type});
+    const u = URL.createObjectURL(b), a = document.createElement('a');
+    a.href = u; a.download = name; a.click();
+    setTimeout(function(){ URL.revokeObjectURL(u); }, 1000);
+  }
+  dl('abalassembly-profil.json', JSON.stringify(payload, null, 2), 'application/json');
+  dl('abalassembly-profil.csv', csv, 'text/csv');
+  if (typeof showToast === 'function') showToast('Profil exporte (JSON + CSV)');
+}
+
+/* ═══ CONFORT & ACCESSIBILITE — logique ═══
+   Les preferences vivent dans progress.a11y et s'appliquent au demarrage.
+   Rien n'est promis de therapeutique : ce sont des reglages d'affichage et
+   d'attention, offerts a qui en a besoin comme a qui les prefere. */
+
+const A11Y_DEFAULTS = {
+  calm: false,      // mouvement reduit
+  quiet: false,     // mode sobre (moins de bruit ludique)
+  focus: false,     // focus renforce
+  contrast: false,  // contraste renforce
+  oneAction: false, // une action principale a la fois
+  textScale: 1,     // 1 = normal, jusqu'a 1.4
+  space: 1          // 1 = normal, jusqu'a 1.6
+};
+
+function getA11y() {
+  return Object.assign({}, A11Y_DEFAULTS, (progress && progress.a11y) || {});
+}
+
+function applyA11y() {
+  const a = getA11y();
+  const b = document.body;
+  b.classList.toggle('a11y-calm', a.calm);
+  b.classList.toggle('a11y-quiet', a.quiet);
+  b.classList.toggle('a11y-focus', a.focus);
+  b.classList.toggle('a11y-contrast', a.contrast);
+  b.classList.toggle('a11y-oneaction', a.oneAction);
+  b.classList.toggle('a11y-text', a.textScale !== 1);
+  b.classList.toggle('a11y-space', a.space !== 1);
+  document.documentElement.style.setProperty('--a11y-text-scale', a.textScale);
+  document.documentElement.style.setProperty('--a11y-space', a.space);
+}
+
+function setA11y(key, value) {
+  if (!progress.a11y) progress.a11y = {};
+  progress.a11y[key] = value;
+  saveProgress(progress);
+  applyA11y();
+  if (typeof renderA11yPanel === 'function') renderA11yPanel();
+}
+
+/* Au premier passage, si le systeme demande deja moins d'animations, on
+   active le mode calme par defaut — sans ecraser un choix explicite. */
+function initA11y() {
+  if (progress.a11y === undefined) {
+    progress.a11y = {};
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      progress.a11y.calm = true;
+    }
+    saveProgress(progress);
+  }
+  applyA11y();
+}
+
+function renderA11yPanel() {
+  const host = document.getElementById('a11y-panel');
+  if (!host) return;
+  const a = getA11y();
+
+  const toggle = function(key, label, desc) {
+    const on = !!a[key];
+    return '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;'
+      + 'padding:13px 0;border-bottom:1px solid var(--border)">'
+      + '<div style="flex:1"><div style="font-size:14px;color:var(--text);font-weight:600">'+label+'</div>'
+      +   '<div style="font-size:11px;color:var(--muted);margin-top:2px">'+desc+'</div></div>'
+      + '<button onclick="setA11y(\''+key+'\','+(!on)+')" role="switch" aria-checked="'+on+'" '
+      +   'style="flex:0 0 auto;width:46px;height:26px;border-radius:13px;border:1px solid var(--border);cursor:pointer;'
+      +   'background:'+(on?'var(--gold)':'var(--surface2)')+';position:relative;transition:background .15s">'
+      +   '<span style="position:absolute;top:2px;left:'+(on?'22px':'2px')+';width:20px;height:20px;border-radius:50%;'
+      +     'background:'+(on?'#0d0f0e':'var(--muted)')+';transition:left .15s"></span></button>'
+      + '</div>';
+  };
+
+  const slider = function(key, label, desc, min, max, step) {
+    const v = a[key];
+    return '<div style="padding:13px 0;border-bottom:1px solid var(--border)">'
+      + '<div style="display:flex;justify-content:space-between;align-items:baseline">'
+      +   '<div style="font-size:14px;color:var(--text);font-weight:600">'+label+'</div>'
+      +   '<span style="font-family:\'DM Mono\',monospace;font-size:12px;color:var(--gold)">'+Math.round(v*100)+'%</span></div>'
+      + '<div style="font-size:11px;color:var(--muted);margin:2px 0 8px">'+desc+'</div>'
+      + '<input type="range" min="'+min+'" max="'+max+'" step="'+step+'" value="'+v+'" '
+      +   'oninput="setA11y(\''+key+'\',parseFloat(this.value))" '
+      +   'style="width:100%;accent-color:var(--gold)" aria-label="'+label+'"></div>';
+  };
+
+  const anyOn = a.calm || a.quiet || a.focus || a.contrast || a.oneAction || a.textScale!==1 || a.space!==1;
+
+  host.innerHTML =
+    toggle('calm', 'Mouvement reduit', 'Coupe animations et transitions. Active automatiquement si votre systeme le demande.')
+    + toggle('quiet', 'Mode sobre', 'Retire les effets ludiques (XP flottant, series, ornements) pour ne garder que le jeu et l\u0027information.')
+    + toggle('focus', 'Focus renforce', 'Contour net et constant sur l\u0027element actif, au clavier comme au toucher.')
+    + toggle('contrast', 'Contraste renforce', 'Fonds plus sombres, texte plus clair, bordures plus nettes.')
+    + toggle('oneAction', 'Une action a la fois', 'Attenue les boutons secondaires pour qu\u0027un seul ressorte par ecran.')
+    + slider('textScale', 'Taille du texte', 'Agrandit l\u0027ensemble du texte.', 1, 1.4, 0.05)
+    + slider('space', 'Espacement', 'Aere l\u0027interlignage et l\u0027espacement des lettres.', 1, 1.6, 0.1)
+    + (anyOn ? '<button onclick="resetA11y()" style="margin-top:14px;font-family:\'DM Mono\',monospace;font-size:11px;'
+        + 'background:none;border:1px solid var(--border);color:var(--muted);padding:8px 14px;border-radius:4px;cursor:pointer">'
+        + 'Tout remettre par defaut</button>' : '');
+}
+
+function resetA11y() {
+  progress.a11y = {};
+  saveProgress(progress);
+  applyA11y();
+  renderA11yPanel();
+  if (typeof showToast === 'function') showToast('Reglages de confort reinitialises');
+}
+
 function computePlayerRadar() {
   const p = progress;
   const games = Math.max(1, p.gamesPlayed || 0);
@@ -7470,6 +7853,7 @@ function toggleRadarVisibility(show) {
   progress.showRadar = !!show;
   saveProgress(progress);
   renderPersonalRadar();
+  if (typeof renderPerfDetail === 'function') renderPerfDetail();
   showToast(show ? '📊 Radar de performance affiché' : '📊 Radar masqué');
 }
 
@@ -9377,23 +9761,21 @@ function renderProfile() {
   const wTab=document.getElementById('stab-writer');
   if (wTab) wTab.style.display = u.role==='writer'?'block':'none';
 
-  // Game history
-  const history = u.role==='writer' ? [
-    { res:'win',  opp:'Gramgroum',  elo:1650, change:'+9', ago:'Il y a 1h' },
-    { res:'draw', opp:'Vincent_F',  elo:1920, change:'+3', ago:'Hier' },
-    { res:'win',  opp:'Chriscool',  elo:1420, change:'+8', ago:'Il y a 2j' },
-  ] : [
-    { res:'win',  opp:'KosmicKnight',  elo:1847, change:'+12', ago:'Il y a 2h' },
-    { res:'win',  opp:'MarbleFan_77',  elo:1398, change:'+8',  ago:'Il y a 5h' },
-    { res:'loss', opp:'AbaloneCzar',   elo:2145, change:'-6',  ago:'Hier' },
-    { res:'win',  opp:'HexRider',      elo:1421, change:'+9',  ago:'Hier' },
-    { res:'draw', opp:'StoneDancer',   elo:1408, change:'+2',  ago:'Il y a 2j' },
-    { res:'loss', opp:'GrandPousser',  elo:2012, change:'-5',  ago:'Il y a 3j' },
-    { res:'win',  opp:'BoulePower',    elo:1355, change:'+7',  ago:'Il y a 4j' },
-  ];
+  /* Historique des parties.
+     Cette liste etait inventee de bout en bout : une dizaine d'adversaires
+     fictifs, leur ELO, la variation de classement et « il y a 2h ». Elle
+     s'affichait comme l'historique reel du joueur. Aucune partie n'etant
+     conservee a ce jour, la seule reponse honnete est un etat vide qui
+     annonce ce qui manque. Le stockage des parties (voir games/ et le
+     format APGN) est ce qui remplira cette liste. */
+  const history = [];
   const resLabel={win:'V',loss:'D',draw:'N'};
   const ghEl=document.getElementById('game-history');
-  if (ghEl) ghEl.innerHTML = history.map(g=>`
+  if (ghEl && !history.length) {
+    ghEl.innerHTML = '<div style="padding:18px;text-align:center;color:var(--muted);font-size:13px;'
+      + 'border:1px dashed var(--border);border-radius:10px">Aucune partie conservée pour l\'instant.'
+      + '<br><span style="font-size:12px">Les parties jouées ne sont pas encore enregistrées.</span></div>';
+  } else if (ghEl) ghEl.innerHTML = history.map(g=>`
     <div class="game-history-item">
       <div class="result-badge ${g.res}">${resLabel[g.res]}</div>
       <div class="game-opp">${g.opp} <span>(${g.elo} ELO)</span><br><span>${g.ago}</span></div>
@@ -9463,7 +9845,10 @@ let capturedByWhite = 0;
 let moveCount = 14;
 let gameOver = false;
 let timerInterval;
-let myTime = 555, oppTime = 522;
+/* 555 et 522 — soit 09:15 et 08:42 — etaient des valeurs inventees, affichees
+   comme un temps de partie reel avant meme le premier coup. Les deux horloges
+   partent maintenant de la meme cadence. */
+let myTime = 600, oppTime = 600;
 
 let _replayStartBoard = null;   // position avant le coup 1, pour le rejeu
 let boardRotation = 0;   // rotation de la VUE du plateau, en degrés (multiples de 60)
@@ -10788,6 +11173,7 @@ function resetGame() {
   moveCount = 0;
   currentTurn = 'black';
   myTime = _timeCtlBase || 600; oppTime = _timeCtlBase || 600;
+  if (typeof _clockPaint === 'function') _clockPaint(currentTurn === _clockMine());
   boardSnapshots = [];
   _bookNode = (typeof OPENING_TREES !== 'undefined' && typeof currentLayout !== 'undefined' && OPENING_TREES[currentLayout]) ? OPENING_TREES[currentLayout] : null;
   resetGutterPositions();  // vide la gouttière (positions des billes éjectées)
@@ -10850,22 +11236,31 @@ function disarmInactivityCancel() {
   _inactivityTimer = null;
 }
 
+/* Quelle horloge tourne ? Celle du camp au trait, rapporte a la couleur que
+   le JOUEUR tient reellement. C'etait code sur le noir : en jouant blanc, vos
+   propres coups decomptaient l'horloge de l'adversaire et inversement.
+   Meme cause que l'inversion de la carte de chaleur — « noir = moi ». */
+function _clockMine() {
+  if (typeof gameMode !== 'undefined' && gameMode === 'local') return 'black';
+  return (typeof humanColor !== 'undefined') ? humanColor : 'black';
+}
+
 function tickTimers() {
   if (gameOver) return;
   if (timerPaused) return;   // timer en pause
-  if (currentTurn === 'black') {
+  const _mine = _clockMine();
+  if (currentTurn === _mine) {
     myTime = Math.max(0, myTime-1);
     if (myTime === 30 || myTime === 10) playSfx('time_alert');   // 🔊 alerte temps
     document.getElementById('timer-me').textContent = formatTime(myTime);
-    if (myTime === 0 && _timeCtlBase && !_clockExempt()) { _flagFall('black'); return; }
+    if (myTime === 0 && _timeCtlBase && !_clockExempt()) { _flagFall(_mine); return; }
   } else {
     oppTime = Math.max(0, oppTime-1);
     if (oppTime === 30 || oppTime === 10) playSfx('time_alert');
     document.getElementById('timer-opponent').textContent = formatTime(oppTime);
-    if (oppTime === 0 && _timeCtlBase && !_clockExempt()) { _flagFall('white'); return; }
+    if (oppTime === 0 && _timeCtlBase && !_clockExempt()) { _flagFall(_mine === 'black' ? 'white' : 'black'); return; }
   }
-  document.getElementById('timer-me').classList.toggle('active', currentTurn==='black');
-  document.getElementById('timer-opponent').classList.toggle('active', currentTurn==='white');
+  _clockPaint(currentTurn === _mine);
 }
 
 /* ── ⏱️ PENDULE RÉELLE (parties normales) ──
@@ -10887,6 +11282,36 @@ function setTimeControl(v){
   showToast(v ? ('⏱️ Cadence '+Math.round(_timeCtlBase/60)+' min + '+_timeCtlInc+' s — dès la prochaine partie')
               : '⏱️ Pendule libre — pas de défaite au temps');
 }
+/* Un seul endroit decide de l'affichage des horloges : les deux blocs de la
+   colonne laterale et les deux barres autour du plateau. Tant qu'ils etaient
+   peints separement, l'un pouvait rester allume pendant que l'autre s'eteignait. */
+function _clockPaint(mineActive){
+  const mine = _clockMine();
+  const oppName = (typeof opponentBot !== 'undefined' && opponentBot)
+    ? (opponentBot === 'black' ? 'Bot Noir' : 'Bot Blanc')
+    : ((typeof gameMode !== 'undefined' && gameMode === 'local') ? 'Joueur blanc' : 'Adversaire');
+  const meName = (typeof gameMode !== 'undefined' && gameMode === 'local') ? 'Joueur noir' : 'Vous';
+  const pairs = [
+    ['timer-me', null, myTime, mineActive],
+    ['timer-opponent', null, oppTime, !mineActive],
+    ['clock-bottom-time', 'clock-bottom', myTime, mineActive],
+    ['clock-top-time', 'clock-top', oppTime, !mineActive]
+  ];
+  pairs.forEach(function(p){
+    const t = document.getElementById(p[0]);
+    if (t) t.textContent = formatTime(p[2]);
+    const box = p[1] ? document.getElementById(p[1]) : t;
+    if (box) {
+      box.classList.toggle('active', p[3]);
+      box.classList.toggle('low', _timeCtlBase > 0 && p[2] <= 30);
+    }
+  });
+  const wt = document.getElementById('clock-top-who');
+  if (wt) wt.textContent = oppName + ' (' + (mine === 'black' ? 'blancs' : 'noirs') + ')';
+  const wb = document.getElementById('clock-bottom-who');
+  if (wb) wb.textContent = meName + ' (' + (mine === 'black' ? 'noirs' : 'blancs') + ')';
+}
+
 function _clockExempt(){
   return (typeof _tourneyMatch!=='undefined' && _tourneyMatch)
       || (typeof _puzzleActive!=='undefined' && _puzzleActive)
@@ -10895,7 +11320,7 @@ function _clockExempt(){
 }
 function _clockInc(mover){
   if(!_timeCtlInc || gameOver || _clockExempt()) return;
-  if(mover==='black'){ myTime+=_timeCtlInc; const el=document.getElementById('timer-me'); if(el) el.textContent=formatTime(myTime); }
+  if(mover===_clockMine()){ myTime+=_timeCtlInc; const el=document.getElementById('timer-me'); if(el) el.textContent=formatTime(myTime); }
   else { oppTime+=_timeCtlInc; const el=document.getElementById('timer-opponent'); if(el) el.textContent=formatTime(oppTime); }
 }
 function _flagFall(loser){
@@ -19436,7 +19861,25 @@ const friendsData = {
   ]
 };
 
+/* Les contacts ci-dessous sont fictifs — noms, ELO, « vu il y a 2 h ». Sans
+   comptes ni serveur, il ne peut pas en etre autrement ; la page le dit donc
+   a l'ecran plutot que de les faire passer pour de vrais joueurs. C'est la
+   meme regle que pour la page Comparer. */
+function _friendsDemoNotice(){
+  const host = document.getElementById('friends-online');
+  if (!host || document.getElementById('friends-demo-note')) return;
+  const d = document.createElement('div');
+  d.id = 'friends-demo-note';
+  d.style.cssText = 'margin:0 0 12px;padding:10px 14px;border:1px dashed var(--border);'
+    + 'border-radius:8px;font-size:12px;color:var(--muted);text-align:center';
+  d.innerHTML = "Ces contacts sont des <strong>exemples de démonstration</strong>. "
+    + "Il n'y a ni comptes ni serveur : pour jouer réellement contre quelqu'un, "
+    + "utilisez <strong>Partie par code</strong>.";
+  host.parentNode.insertBefore(d, host);
+}
+
 function renderFriends() {
+  _friendsDemoNotice();
   function friendRow(f, isSug) {
     return [
       '<div class="friend-row">',
@@ -19489,6 +19932,8 @@ document.addEventListener('DOMContentLoaded', function() {
     kidsMode = false;
     toggleKidsMode();
   }
+  if (typeof initA11y === 'function') initA11y();
+  if (typeof renderA11yPanel === 'function') renderA11yPanel();
   const activePg = document.querySelector('.page.active');
   if (!activePg) {
     const home = document.getElementById('page-home');
