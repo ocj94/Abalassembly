@@ -535,6 +535,22 @@ check('config : variante et camp se choisissent avant la partie', () => {
   return (hasLayout && hasFirst) || 'la variante ou le choix du camp manque dans la config';
 });
 
+check('config : jouer second declenche le coup d\'ouverture de l\'IA', () => {
+  const b = functionBody('startConfiguredGame');
+  /* Le declenchement doit se faire sur currentTurn !== humanColor (robuste
+     quel que soit le camp), pas sur un test code en dur humanColor==='white'
+     qui laissait le joueur bloque « en attente ». */
+  if (!/currentTurn !== humanColor/.test(b)) return 'le declenchement IA est code sur une couleur en dur';
+  return /aiMove/.test(b) || 'l\'IA n\'est pas declenchee au demarrage';
+});
+
+check('config : les etapes de demarrage sont isolees', () => {
+  const b = functionBody('startConfiguredGame');
+  /* Une etape secondaire qui echoue ne doit pas empecher la partie de
+     demarrer — c'etait la cause du blocage « une erreur est survenue ». */
+  return /try\s*\{/.test(b) || 'aucune protection : une exception bloque tout le demarrage';
+});
+
 check('config : le demarrage applique bien la configuration', () => {
   const b = functionBody('startConfiguredGame');
   return /currentLayout/.test(b) && /humanColor/.test(b) && /showPage\('game'\)/.test(b) ||
