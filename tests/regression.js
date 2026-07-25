@@ -470,7 +470,102 @@ check('accessibilite : ne promet rien de therapeutique', () => {
   return !claim.test(panel) || 'le panneau affirme un effet therapeutique';
 });
 
-/* ── 6. Garde-fous de credibilite ─────────────────────────────────── */
+/* Radar : normalisation par percentile contre le corpus MiGs. Un axe non
+   calibre ne doit jamais etre gonfle a 100 — c'etait le defaut de l'ancien. */
+check('radar : 15 axes definis', () => {
+  const src = jsBlocks.join('\n');
+  const m = src.match(/const RADAR_AXES = \[([\s\S]*?)\];/);
+  if (!m) return 'RADAR_AXES absent';
+  const n = (m[1].match(/key:/g) || []).length;
+  return n === 15 || ('trouve ' + n + ' axes, attendu 15');
+});
+
+check('radar : chaque axe a une definition et une reference', () => {
+  const b = functionBody('_axisPercentile');
+  if (!/ax\.cdf|ax\.ref/.test(b)) return 'la normalisation n\'utilise pas de reference';
+  const src = jsBlocks.join('\n');
+  const block = src.match(/const RADAR_AXES = \[([\s\S]*?)\];/)[1];
+  const defs = (block.match(/def:/g) || []).length;
+  return defs === 15 || (defs + ' definitions sur 15 axes');
+});
+
+check('radar : un axe non calibre affiche un tiret, pas 100', () => {
+  const b = functionBody('_axisPercentile');
+  return /return null/.test(b) || 'un axe sans donnee renverrait une valeur au lieu de null';
+});
+
+check('radar : le point fort ignore les axes non calibres', () => {
+  const b = functionBody('renderPersonalRadar');
+  return /\.pct !== null/.test(b) || 'le point fort pourrait etre un axe non calibre';
+});
+
+check('radar : les axes sont interactifs (selection au clic)', () => {
+  const src = jsBlocks.join('\n');
+  return /function selectRadarAxis/.test(src) && /onclick="selectRadarAxis/.test(src) ||
+    'les noms d\'axes ne sont pas cliquables';
+});
+
+check('radar : reference MiGs coherente (deciles ordonnes)', () => {
+  const src = jsBlocks.join('\n');
+  const block = src.match(/const RADAR_AXES = \[([\s\S]*?)\];/)[1];
+  const refs = block.match(/\{q10:[^}]+\}/g) || [];
+  for (const r of refs) {
+    const m = r.match(/q10:([\d.]+),med:([\d.]+),q90:([\d.]+)/);
+    if (m) {
+      const [a,b,c] = [+m[1],+m[2],+m[3]];
+      if (!(a <= b && b <= c)) return 'deciles non ordonnes : ' + r;
+    }
+  }
+  return true;
+});
+
+/* Refonte du flux « Jouer » : un ecran de configuration precede le plateau. */
+check('config : « Jouer » ouvre la configuration, pas le plateau', () => {
+  const b = functionBody('playGame');
+  return /openGameSetup/.test(b) || 'playGame montre encore le plateau directement';
+});
+
+check('config : l\'ecran page-setup existe', () =>
+  /id="page-setup"/.test(HTML) || 'la page de configuration est absente');
+
+check('config : variante et camp se choisissent avant la partie', () => {
+  const setup = HTML.slice(HTML.indexOf('id="page-setup"'), HTML.indexOf('id="page-game"'));
+  const hasLayout = /setupPick\('layout'/.test(setup);
+  const hasFirst = /setupPick\('first'/.test(setup);
+  return (hasLayout && hasFirst) || 'la variante ou le choix du camp manque dans la config';
+});
+
+check('config : le demarrage applique bien la configuration', () => {
+  const b = functionBody('startConfiguredGame');
+  return /currentLayout/.test(b) && /humanColor/.test(b) && /showPage\('game'\)/.test(b) ||
+    'startConfiguredGame n\'applique pas tous les choix';
+});
+
+check('config : coordonnees liees entre config, jeu et parametres', () => {
+  const b = functionBody('syncCoordsToggles');
+  return /setup-coords/.test(b) && /game-coords-toggle/.test(b) && /settings-coords-toggle/.test(b) ||
+    'les trois interrupteurs de coordonnees ne sont pas synchronises';
+});
+
+check('parametres : notation, sons et coordonnees presents', () => {
+  const hasSound = /id="settings-sound-toggle"/.test(HTML);
+  const hasCoords = /id="settings-coords-toggle"/.test(HTML);
+  const hasNota = /id="settings-abapro-toggle"/.test(HTML);
+  return (hasSound && hasCoords && hasNota) || 'un reglage de jeu manque dans Parametres';
+});
+
+check('Labo : accessible depuis le menu', () =>
+  /id="sid-lab"/.test(HTML) && /function openLabFromMenu/.test(jsBlocks.join('\n')) ||
+  'le Labo n\'a pas d\'entree de menu');
+
+check('Labo : retire du panneau de jeu', () => {
+  return !/id="lab-btn"/.test(HTML) || 'le bouton Labo est encore dans le jeu';
+});
+
+check('config : le style IA reste ajustable en partie', () =>
+  /setAIStyle\('auto'\)/.test(HTML) || 'le selecteur de style a disparu du panneau de jeu');
+
+/* ── 8. Garde-fous de credibilite ─────────────────────────────────── */
 
 console.log('\nGarde-fous');
 

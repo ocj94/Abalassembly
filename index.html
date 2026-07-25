@@ -1360,6 +1360,22 @@ body.a11y-contrast {
    pas — les grise, pour ne pas surprendre. */
 body.a11y-oneaction .ctrl-btn:not(.primary):not(:hover):not(:focus) { opacity: 0.55; }
 
+  /* Écran de configuration avant partie */
+  .setup-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px 18px; margin-bottom:14px; }
+  .setup-h { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--gold); margin-bottom:12px; font-weight:600; }
+  .setup-row-lbl { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+  .setup-opt { padding:8px 12px; font-size:12px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:7px; cursor:pointer; transition:all .15s; }
+  .setup-opt:hover { border-color:var(--gold); }
+  .setup-opt.active { background:var(--gold); color:#0d0f0e; border-color:var(--gold); font-weight:600; }
+  .setup-opt:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+  .setup-toggle { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); cursor:pointer; }
+  .setup-toggle:last-child { border-bottom:none; }
+  .setup-toggle input { display:none; }
+  .setup-sw { flex:0 0 auto; width:44px; height:24px; border-radius:12px; background:var(--border); position:relative; transition:background .15s; }
+  .setup-sw::after { content:''; position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:var(--muted); transition:left .15s,background .15s; }
+  .setup-toggle input:checked + .setup-sw { background:var(--gold); }
+  .setup-toggle input:checked + .setup-sw::after { left:22px; background:#0d0f0e; }
+
   .move-history { padding: 10px; }
   .timer-block { font-size: 20px; }
 
@@ -2296,8 +2312,12 @@ document.addEventListener('keydown', function(e){
       <span class="s-icon">🏠</span><span class="s-label" data-i18n="nav.home">Accueil</span>
     </button>
 
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-game" onclick="sidebarNav('game',this)">
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-game" onclick="sidebarNav('setup',this)">
       <span class="s-icon"><span class="marble-gold"></span></span><span class="s-label" data-i18n="nav.play">Jouer</span>
+    </button>
+
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-lab" onclick="openLabFromMenu(this)">
+      <span class="s-icon">🧪</span><span class="s-label">Labo IA</span>
     </button>
 
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-puzzles" onclick="sidebarNav('puzzles',this)">
@@ -2643,7 +2663,7 @@ document.addEventListener('keydown', function(e){
     </div>
     <div class="footer-col">
       <h5>Jeu</h5>
-      <a onclick="showPage('game')">Jouer</a>
+      <a onclick="openGameSetup()">Jouer</a>
       <a>Puzzles</a>
       <a>Tournois</a>
       <a>Analyse</a>
@@ -2977,6 +2997,93 @@ document.addEventListener('keydown', function(e){
 </div>
 
 <!-- ─── PAGE: GAME ─── -->
+<!-- ══ ÉCRAN DE CONFIGURATION AVANT PARTIE ══
+     Un clic sur « Jouer » ouvre d'abord ceci ; le plateau ne s'affiche
+     qu'apres « Commencer ». Variante et camp sont fixes ICI, avant la
+     partie ; le reste (style IA, coups possibles, cadence, coordonnees)
+     reste ajustable en jeu. Notation, sons et coordonnees vivent aussi
+     dans Parametres, lies au meme etat. -->
+<div class="page" id="page-setup">
+  <div style="max-width:640px;margin:0 auto;padding:8px 4px 40px">
+    <div style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Nouvelle partie</div>
+    <div style="font-family:'DM Serif Display',Georgia,serif;font-size:30px;color:var(--white);margin-bottom:22px">Configurer avant de jouer</div>
+
+    <!-- Configuration : variante + mode + qui commence -->
+    <div class="setup-card">
+      <div class="setup-h">Configuration</div>
+
+      <div class="setup-row-lbl">Disposition de départ</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap" id="setup-layout">
+        <button onclick="setupPick('layout','standard',this)" class="setup-opt active">Standard</button>
+        <button onclick="setupPick('layout','belgian',this)" class="setup-opt">Belgian Daisy</button>
+        <button onclick="setupPick('layout','german',this)" class="setup-opt">German Daisy</button>
+        <button onclick="setupPick('layout','dutch',this)" class="setup-opt">Dutch Daisy</button>
+        <button onclick="setupPick('layout','swiss',this)" class="setup-opt">Swiss Daisy</button>
+      </div>
+
+      <div class="setup-row-lbl" style="margin-top:14px">Adversaire</div>
+      <div style="display:flex;gap:5px" id="setup-mode">
+        <button onclick="setupPick('mode','ai',this)" class="setup-opt active" style="flex:1">🤖 Contre l'IA</button>
+        <button onclick="setupPick('mode','local',this)" class="setup-opt" style="flex:1">👥 Deux joueurs</button>
+      </div>
+
+      <div id="setup-first-wrap" class="setup-row-lbl" style="margin-top:14px">Qui commence ?</div>
+      <div style="display:flex;gap:5px" id="setup-first">
+        <button onclick="setupPick('first','black',this)" class="setup-opt active" style="flex:1">⚫ Moi (noirs)</button>
+        <button onclick="setupPick('first','white',this)" class="setup-opt" style="flex:1">⚪ L'adversaire</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">Aux noirs de jouer le premier coup. « L'adversaire commence » vous fait jouer les blancs.</div>
+    </div>
+
+    <!-- Style IA -->
+    <div class="setup-card" id="setup-style-card">
+      <div class="setup-h">Style de l'IA</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap" id="setup-style">
+        <button onclick="setupPick('style','auto',this)" class="setup-opt active">Auto</button>
+        <button onclick="setupPick('style','aggressive',this)" class="setup-opt">Agressif</button>
+        <button onclick="setupPick('style','defensive',this)" class="setup-opt">Défensif</button>
+        <button onclick="setupPick('style','divide',this)" class="setup-opt">Division</button>
+        <button onclick="setupPick('style','balanced',this)" class="setup-opt">Équilibré</button>
+      </div>
+      <div class="setup-row-lbl" style="margin-top:14px">Niveau</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap" id="setup-diff">
+        <button onclick="setupPick('diff','easy',this)" class="setup-opt active">Facile</button>
+        <button onclick="setupPick('diff','medium',this)" class="setup-opt">Moyen</button>
+        <button onclick="setupPick('diff','hard',this)" class="setup-opt">Expert</button>
+        <button onclick="setupPick('diff','minimax',this)" class="setup-opt" style="color:#b89ef0">Minimax</button>
+      </div>
+    </div>
+
+    <!-- Cadence -->
+    <div class="setup-card">
+      <div class="setup-h">Cadence</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap" id="setup-time">
+        <button onclick="setupPick('time','',this)" class="setup-opt active">Libre</button>
+        <button onclick="setupPick('time','300+3',this)" class="setup-opt">5 min + 3 s</button>
+        <button onclick="setupPick('time','600+5',this)" class="setup-opt">10 min + 5 s</button>
+        <button onclick="setupPick('time','1200+10',this)" class="setup-opt">20 min + 10 s</button>
+      </div>
+    </div>
+
+    <!-- Aides visuelles -->
+    <div class="setup-card">
+      <div class="setup-h">Aides</div>
+      <label class="setup-toggle">
+        <span><b>Indiquer les coups possibles</b><br><span style="color:var(--muted);font-size:11px">Met en évidence les billes jouables.</span></span>
+        <input type="checkbox" id="setup-hints" checked onchange="setupToggle('hints',this.checked)">
+        <span class="setup-sw"></span>
+      </label>
+      <label class="setup-toggle">
+        <span><b>Coordonnées des cases</b><br><span style="color:var(--muted);font-size:11px">Affiche les repères a1…i9. Aussi dans Paramètres.</span></span>
+        <input type="checkbox" id="setup-coords" onchange="setupToggle('coords',this.checked)">
+        <span class="setup-sw"></span>
+      </label>
+    </div>
+
+    <button class="ctrl-btn primary" style="width:100%;margin-top:8px;padding:14px;font-size:16px" onclick="startConfiguredGame()">Commencer la partie</button>
+  </div>
+</div>
+
 <div class="page" id="page-game">
   <div class="game-layout">
     <!-- Left panel -->
@@ -3128,85 +3235,11 @@ document.addEventListener('keydown', function(e){
           <button class="ctrl-btn" onclick="showAnalysisPanel()" style="margin-top:6px;width:100%;font-size:12px">📊 Analyse de la position</button>
           <button class="ctrl-btn" onclick="analyzeGame()" style="margin-top:6px;width:100%;font-size:12px">🔍 Analyser la partie</button>
           <button class="ctrl-btn" onclick="openPuzzles()" style="margin-top:6px;width:100%;font-size:12px">🧩 Puzzles (vraies parties)</button>
-          <button class="ctrl-btn" id="lab-btn" onclick="openLabModal()" style="margin-top:6px;width:100%;font-size:12px">🧪 Labo IA (auto-amélioration)</button>
-          <!-- Layout selector -->
-          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Configuration</div>
-          <div style="display:flex;gap:4px;flex-wrap:wrap">
-            <button onclick="setLayout('standard',this)" class="diff-btn active" id="layout-standard" style="flex:1;font-size:9px">Standard</button>
-            <button onclick="setLayout('belgian',this)" class="diff-btn" id="layout-belgian" style="flex:1;font-size:9px">Belgian 🌼</button>
-            <button onclick="setLayout('german',this)" class="diff-btn" id="layout-german" style="flex:1;font-size:9px">German 🌸</button>
-            <button onclick="setLayout('dutch',this)" class="diff-btn" id="layout-dutch" style="flex:1;font-size:9px">Dutch 🌷</button>
-            <button onclick="setLayout('swiss',this)" class="diff-btn" id="layout-swiss" style="flex:1;font-size:9px">Swiss 🏔</button>
-          </div>
-          <!-- Mode de jeu -->
-          <div style="display:flex;gap:6px;align-items:center">
-            <span style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Mode :</span>
-            <button onclick="setGameMode('ai',this)" class="diff-btn active" id="mode-ai" style="flex:1">🤖 vs IA</button>
-            <button onclick="setGameMode('local',this)" class="diff-btn" id="mode-local" style="flex:1">👥 2 joueurs</button>
-          </div>
-          <!-- Difficulty -->
-          <div style="display:flex;gap:6px;align-items:center" id="difficulty-row">
-            <span style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">IA :</span>
-            <button onclick="setDifficulty('easy',this)" class="diff-btn active" id="diff-easy">Facile</button>
-            <button onclick="setDifficulty('medium',this)" class="diff-btn" id="diff-medium">Moyen</button>
-            <button onclick="setDifficulty('hard',this)" class="diff-btn" id="diff-hard">Expert</button>
-            <button onclick="setDifficulty('minimax',this)" class="diff-btn" id="diff-minimax" style="color:#b89ef0;border-color:rgba(138,114,210,0.4)">α-β</button>
-          </div>
-          <!-- Aide visuelle : indiquer les déplacements possibles -->
-          <div style="display:flex;gap:6px;align-items:center;justify-content:space-between;padding:4px 0">
-            <span style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">💡 Indiquer les coups possibles</span>
-            <label style="position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0">
-              <input type="checkbox" id="game-hints-toggle" checked style="opacity:0;width:0;height:0"
-                onchange="toggleMoveHints(this.checked);this.nextElementSibling.style.background=this.checked?'var(--gold)':'var(--border)'">
-              <span style="position:absolute;inset:0;background:var(--gold);border-radius:12px;cursor:pointer;transition:0.2s"></span>
-            </label>
-          </div>
-          <!-- Sons -->
-          <div style="display:flex;gap:6px;align-items:center;justify-content:space-between;padding:4px 0">
-            <span style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">🔊 Sons du jeu</span>
-            <label style="position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0">
-              <input type="checkbox" id="game-sound-toggle" checked style="opacity:0;width:0;height:0"
-                onchange="toggleSound(this.checked);this.nextElementSibling.style.background=this.checked?'var(--gold)':'var(--border)'">
-              <span style="position:absolute;inset:0;background:var(--gold);border-radius:12px;cursor:pointer;transition:0.2s"></span>
-            </label>
-          </div>
-          <!-- Cadence (pendule réelle) -->
-          <div style="display:flex;gap:6px;align-items:center;justify-content:space-between;padding:4px 0">
-            <span style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">⏱️ Cadence</span>
-            <select id="time-ctl-select" onchange="setTimeControl(this.value)" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:11px;padding:3px 6px;cursor:pointer">
-              <option value="">Libre</option>
-              <option value="300+3">5 min + 3 s</option>
-              <option value="600+5">10 min + 5 s</option>
-              <option value="1200+10">20 min + 10 s</option>
-            </select>
-          </div>
-          <!-- Coordonnées des cases -->
-          <div style="display:flex;gap:6px;align-items:center;justify-content:space-between;padding:4px 0">
-            <span style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">🔤 Coordonnées des cases</span>
-            <label style="position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0">
-              <input type="checkbox" id="game-coords-toggle" style="opacity:0;width:0;height:0"
-                onchange="toggleCoordinates(this.checked);this.nextElementSibling.style.background=this.checked?'var(--gold)':'var(--border)'">
-              <span style="position:absolute;inset:0;background:var(--border);border-radius:12px;cursor:pointer;transition:0.2s"></span>
-            </label>
-          </div>
-          <!-- Systèmes de notation -->
-          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">📝 Notation des coups</div>
-          <div style="display:flex;gap:6px;align-items:center;justify-content:space-between;padding:4px 0">
-            <span style="font-size:11px;color:var(--text)">Aba-Pro <span style="color:var(--muted);font-size:10px">(e6e8f6)</span></span>
-            <label style="position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0">
-              <input type="checkbox" id="notation-abapro-toggle" checked style="opacity:0;width:0;height:0"
-                onchange="toggleNotationAbaPro(this.checked);this.nextElementSibling.style.background=this.checked?'var(--gold)':'var(--border)'">
-              <span style="position:absolute;inset:0;background:var(--gold);border-radius:12px;cursor:pointer;transition:0.2s"></span>
-            </label>
-          </div>
-          <div style="display:flex;gap:6px;align-items:center;justify-content:space-between;padding:4px 0">
-            <span style="font-size:11px;color:var(--text)">Nacre <span style="color:var(--muted);font-size:10px">(c3d6, PlayStrategy)</span></span>
-            <label style="position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0">
-              <input type="checkbox" id="notation-nacre-toggle" style="opacity:0;width:0;height:0"
-                onchange="toggleNotationNacre(this.checked);this.nextElementSibling.style.background=this.checked?'var(--gold)':'var(--border)'">
-              <span style="position:absolute;inset:0;background:var(--border);border-radius:12px;cursor:pointer;transition:0.2s"></span>
-            </label>
-          </div>
+          <!-- Labo IA deplace dans le menu principal (openLabFromMenu) -->
+          <!-- Réglages de partie déplacés : disposition, mode, niveau, cadence,
+               coups possibles → écran de configuration (menu « Jouer »).
+               Notation, sons, coordonnées → Paramètres. Le style IA reste
+               ci-dessus pour un ajustement en cours de partie. -->
                     <button class="ctrl-btn" id="live-variant-btn" onclick="toggleLiveVariant()" title="Essaie un autre coup et vois ce qui se passe — ça ne compte pas pour de vrai">🔮 Et si...?</button>
           <button class="ctrl-btn" onclick="requestUndo()">↩️ Annuler le dernier coup</button>
           <button class="ctrl-btn" onclick="requestPause()" id="pause-btn">⏸️ Pause (1 min)</button>
@@ -4594,6 +4627,39 @@ document.addEventListener('keydown', function(e){
           <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Des réglages qui changent réellement l'affichage et le rythme du jeu. Rien ici ne prétend soigner quoi que ce soit — ce sont des choix, offerts à qui en a besoin comme à qui les préfère.</div>
           <div id="a11y-panel"></div>
         </div>
+
+        <!-- RÉGLAGES DE JEU : notation, sons, coordonnées (liés au jeu) -->
+        <div style="margin-top:26px;padding-top:22px;border-top:1px solid var(--border)">
+          <div style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:4px">Réglages de jeu</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Notation, sons et coordonnées. Ces préférences valent pour toutes vos parties.</div>
+
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:8px 0 4px">Sons du jeu</div>
+          <label class="setup-toggle">
+            <span>Effets sonores lors des coups et captures</span>
+            <input type="checkbox" id="settings-sound-toggle" checked onchange="toggleSound(this.checked);syncSoundToggles(this.checked)">
+            <span class="setup-sw"></span>
+          </label>
+
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:14px 0 4px">Coordonnées des cases</div>
+          <label class="setup-toggle">
+            <span>Afficher les repères a1…i9 sur le plateau</span>
+            <input type="checkbox" id="settings-coords-toggle" onchange="toggleCoordinates(this.checked);syncCoordsToggles(this.checked)">
+            <span class="setup-sw"></span>
+          </label>
+
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:14px 0 4px">Notation des coups</div>
+          <label class="setup-toggle">
+            <span>Aba-Pro <span style="color:var(--muted);font-size:11px">(e6e8 — officielle)</span></span>
+            <input type="checkbox" id="settings-abapro-toggle" checked onchange="toggleNotationAbaPro(this.checked);syncNotationToggles()">
+            <span class="setup-sw"></span>
+          </label>
+          <label class="setup-toggle">
+            <span>Nacre <span style="color:var(--muted);font-size:11px">(c3d6 — francophone)</span></span>
+            <input type="checkbox" id="settings-nacre-toggle" onchange="toggleNotationNacre(this.checked);syncNotationToggles()">
+            <span class="setup-sw"></span>
+          </label>
+        </div>
+
 
         <!-- Refresh button -->
         <button class="modal-submit" style="max-width:220px;margin-top:16px" onclick="checkAllPermissions()">🔄 Vérifier toutes les autorisations</button>
@@ -6501,6 +6567,10 @@ function defaultProgress() {
     cohesionSum: 0,         // somme des scores de cohésion (0..1) par coup
     leadGames: 0,           // parties où le joueur a mené
     leadWins: 0,            // parties menées ET gagnées (conversion)
+    broadsideMoves: 0,      // coups latéraux (axe Jeu de flanc)
+    firstEjSum: 0, firstEjGames: 0,    // tempo : coup de la 1re éjection
+    compactSum: 0, compactSamples: 0,  // compacité géo. échantillonnée
+    oppGroupSum: 0, oppGroupSamples: 0,// fragmentation adverse échantillonnée
     showRadar: true,        // afficher le radar perso dans les stats
     puzzlesSolved: 0,
     dailyDone: null,        // date du dernier défi complété
@@ -7741,6 +7811,143 @@ function resetA11y() {
   if (typeof showToast === 'function') showToast('Reglages de confort reinitialises');
 }
 
+/* ══ Écran de configuration avant partie ══
+   Un clic sur « Jouer » (menu Partie) ouvre page-setup, pas page-game.
+   Les choix sont accumules dans _setupCfg puis appliques d'un coup au
+   demarrage. Variante et camp ne sont modifiables qu'ici ; le reste reste
+   ajustable en jeu. */
+let _setupCfg = { layout:'standard', mode:'ai', first:'black', style:'auto', diff:'easy', time:'', hints:true, coords:false };
+
+function setupPick(group, value, btn) {
+  _setupCfg[group] = value;
+  const box = btn.parentElement;
+  box.querySelectorAll('.setup-opt').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  /* En deux joueurs, « qui commence » et le style IA n'ont pas de sens. */
+  if (group === 'mode') {
+    const isAI = value === 'ai';
+    const styleCard = document.getElementById('setup-style-card');
+    const firstWrap = document.getElementById('setup-first-wrap');
+    const firstBox = document.getElementById('setup-first');
+    if (styleCard) styleCard.style.display = isAI ? '' : 'none';
+    if (firstWrap) firstWrap.style.display = isAI ? '' : 'none';
+    if (firstBox) firstBox.style.display = isAI ? '' : 'none';
+  }
+}
+
+function setupToggle(key, on) { _setupCfg[key] = on; }
+
+/* Ouvre la configuration. C'est le nouveau point d'entree de « Jouer ». */
+function openGameSetup() {
+  showPage('setup');
+}
+
+/* Applique toute la configuration puis bascule sur le plateau. */
+function startConfiguredGame() {
+  const c = _setupCfg;
+
+  // Disposition
+  if (typeof currentLayout !== 'undefined') currentLayout = c.layout;
+  document.querySelectorAll('[id^="layout-"]').forEach(function(b){
+    b.classList.toggle('active', b.id === 'layout-' + c.layout);
+  });
+
+  // Mode
+  if (typeof gameMode !== 'undefined') gameMode = c.mode;
+  ['mode-ai','mode-local'].forEach(function(id){
+    var b = document.getElementById(id); if (b) b.classList.toggle('active', id === 'mode-' + c.mode);
+  });
+
+  // Camp : en IA, l'humain tient la couleur choisie ; noirs commencent
+  humanColor = (c.mode === 'ai') ? c.first : 'black';
+  if (typeof applyPovOrientation === 'function') applyPovOrientation();
+
+  // Style IA + niveau
+  if (c.mode === 'ai') {
+    if (typeof setAIStyle === 'function') setAIStyle(c.style);
+    if (typeof aiDifficulty !== 'undefined') aiDifficulty = c.diff;
+    document.querySelectorAll('[id^="diff-"]').forEach(function(b){
+      b.classList.toggle('active', b.id === 'diff-' + c.diff);
+    });
+  }
+
+  // Cadence
+  if (typeof setTimeControl === 'function') setTimeControl(c.time);
+  var tsel = document.getElementById('time-ctl-select'); if (tsel) tsel.value = c.time;
+
+  // Aides
+  if (typeof toggleMoveHints === 'function') toggleMoveHints(c.hints);
+  var ht = document.getElementById('game-hints-toggle'); if (ht) ht.checked = c.hints;
+  if (typeof toggleCoordinates === 'function') toggleCoordinates(c.coords);
+  syncCoordsToggles(c.coords);
+
+  // On lance la partie et on montre le plateau
+  showPage('game');
+  if (typeof resetGame === 'function') resetGame();
+  /* Si l'humain joue blanc, c'est a l'IA d'ouvrir. resetGame remet le trait
+     aux noirs ; aiMove joue alors le premier coup. */
+  if (c.mode === 'ai' && humanColor === 'white' && typeof aiMove === 'function') {
+    setTimeout(aiMove, 500);
+  }
+}
+
+/* Coordonnees : un seul etat pour les trois interrupteurs (config, jeu,
+   parametres). Tous suivent. */
+/* Les sons ont un interrupteur en jeu et un dans Parametres : le meme etat. */
+function syncSoundToggles(on) {
+  ['game-sound-toggle','settings-sound-toggle'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el && el.type === 'checkbox') {
+      el.checked = on;
+      var sw = el.nextElementSibling;
+      if (sw && sw.style) sw.style.background = on ? 'var(--gold)' : 'var(--border)';
+    }
+  });
+}
+
+/* La notation vit en jeu et dans Parametres. On reflete l'etat reel des deux
+   systemes sur les quatre interrupteurs. */
+function syncNotationToggles() {
+  var ap = document.getElementById('notation-abapro-toggle');
+  var na = document.getElementById('notation-nacre-toggle');
+  var apOn = ap ? ap.checked : true;
+  var naOn = na ? na.checked : false;
+  [['settings-abapro-toggle', apOn], ['notation-abapro-toggle', apOn],
+   ['settings-nacre-toggle', naOn], ['notation-nacre-toggle', naOn]].forEach(function(pair){
+    var el = document.getElementById(pair[0]);
+    if (el && el.type === 'checkbox') {
+      el.checked = pair[1];
+      var sw = el.nextElementSibling;
+      if (sw && sw.style) sw.style.background = pair[1] ? 'var(--gold)' : 'var(--border)';
+    }
+  });
+}
+
+function syncCoordsToggles(on) {
+  ['setup-coords','game-coords-toggle','settings-coords-toggle'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el && el.type === 'checkbox') {
+      el.checked = on;
+      var sw = el.nextElementSibling;
+      if (sw && sw.style) sw.style.background = on ? 'var(--gold)' : 'var(--border)';
+    }
+  });
+}
+
+/* Le Labo quitte le panneau de jeu pour devenir une entree du menu. Il reste
+   un modal (le plateau tourne derriere), mais on l'atteint desormais sans etre
+   deja en partie. Refuse en mode Enfant, comme toutes les entrees masquees. */
+function openLabFromMenu(btn) {
+  if (typeof kidsMode !== 'undefined' && kidsMode) {
+    if (typeof showToast === 'function') showToast('Le Labo n\'est pas disponible en mode Enfant');
+    return;
+  }
+  document.querySelectorAll('.sidebar-item').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  if (window.innerWidth < 600 && typeof closeSidebarMobile === 'function') closeSidebarMobile();
+  if (typeof openLabModal === 'function') openLabModal();
+}
+
 function computePlayerRadar() {
   const p = progress;
   const games = Math.max(1, p.gamesPlayed || 0);
@@ -7817,36 +8024,189 @@ function buildRadarSVG(dataObj, keys, labels, size) {
   </svg>`;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   RADAR A 15 AXES, NORMALISE PAR PERCENTILE
+   Chaque axe est situe contre le corpus reel de 2589 parties MiGs : la
+   valeur affichee est un PERCENTILE, pas un score brut. « 100 » veut donc
+   dire « au niveau des meilleurs du corpus », non « peu de donnees ».
+   C'etait le defaut de l'ancien radar : trois axes saturaient a 100 sur
+   quelques parties. Ici, sans reference disponible pour un axe, on marque
+   la valeur comme non calibree plutot que de la gonfler.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* References MiGs : pour chaque axe, les deciles q10/med/q90 (ou l'echelle
+   naturelle 0..1 quand la mesure est deja bornee). `invert:true` = plus la
+   valeur brute est PETITE, meilleur c'est (compacite, groupes subis). */
+const RADAR_AXES = [
+  { key:'aggression', label:'Agressivité',      def:"Éjections + poussées par partie.",                    ref:{q10:0.5,med:3.0,q90:6.5} },
+  { key:'defense',    label:'Défense',          def:"Part de parties non perdues.",                        ref:{q10:0.2,med:0.5,q90:0.8} },
+  { key:'speed',      label:'Rapidité',         def:"Part de coups joués sans longue réflexion.",          ref:{q10:0.1,med:0.35,q90:0.7} },
+  { key:'precision',  label:'Précision',        def:"Part de coups jugés optimaux par le moteur.",         ref:{q10:0.15,med:0.4,q90:0.7} },
+  { key:'center',     label:'Contrôle centre',  def:"Part de coups avec domination du centre.",            ref:{q10:0.2,med:0.45,q90:0.75} },
+  { key:'cohesion',   label:'Cohésion',         def:"Compacité moyenne des billes.",                       ref:{q10:0.35,med:0.6,q90:0.85} },
+  { key:'pushEff',    label:'Poussées',         def:"Poussées réussies / tentatives.",                     ref:{q10:0.2,med:0.5,q90:0.8} },
+  { key:'conversion', label:'Conversion',       def:"Parties menées ET gagnées / parties menées.",         ref:{q10:0.3,med:0.6,q90:0.9} },
+  /* ── cinq axes issus de la littérature (Schmittberger, ABA-PRO, arXiv) ── */
+  { key:'compact',    label:'Compacité géo.',   def:"Distance moyenne au centre de masse — la mesure d'ABA-PRO. Plus petit = plus resserré.", ref:{q10:1.94,med:2.26,q90:2.63}, invert:true },
+  { key:'tempo',      label:"Tempo d'attaque",  def:"Coup de la première éjection. Le corpus attaque au coup 27 en médiane.",                ref:{q10:13,med:27,q90:48}, invert:true },
+  { key:'flank',      label:'Jeu de flanc',     def:"Part de coups latéraux (broadside) plutôt qu'en ligne. Attaquer de côté, non de face.",  ref:{q10:0.048,med:0.09,q90:0.154} },
+  { key:'fragment',   label:'Fragmentation',    def:"Nombre de groupes séparés imposés à l'adversaire. Diviser pour régner.",                 ref:{q10:2.0,med:3.0,q90:4.19} },
+  { key:'sacrifice',  label:'Sacrifice',        def:"Billes cédées suivies d'un gain net — sacrifice calculé.",                               ref:{q10:0,med:0.5,q90:2} },
+  /* ── deux axes de méta-jeu, calibrés sur les compteurs existants ── */
+  { key:'discipline', label:'Discipline déf.',  def:"Billes atteignant le bord sans être perdues vs éjectées.",                               ref:{q10:0.2,med:0.5,q90:0.8} },
+  { key:'activity',   label:'Activité',         def:"Longueur de partie : mène-t-on des parties longues et travaillées ?",                    cdf:PERF_REF_LEN }
+];
+
+/* Position en percentile (0..100) d'une valeur brute dans une reference. */
+function _axisPercentile(ax, v) {
+  if (v === null || v === undefined) return null;
+  if (ax.cdf) return _perfPercentile(ax.cdf, v);
+  const r = ax.ref;
+  if (!r) return null;
+  /* Interpolation lineaire par morceaux sur q10/med/q90, extrapolee aux bords. */
+  let p;
+  if (v <= r.q10)      p = 10 * (v - (r.q10 - (r.med-r.q10))) / Math.max(1e-9, (r.med-r.q10));
+  else if (v <= r.med) p = 10 + 40 * (v - r.q10) / Math.max(1e-9, (r.med - r.q10));
+  else if (v <= r.q90) p = 50 + 40 * (v - r.med) / Math.max(1e-9, (r.q90 - r.med));
+  else                 p = 90 + 10 * (v - r.q90) / Math.max(1e-9, (r.q90 - r.med));
+  p = Math.max(0, Math.min(100, p));
+  return Math.round(ax.invert ? 100 - p : p);
+}
+
+/* Valeurs BRUTES de chaque axe depuis progress. null = donnee absente. */
+function computeRadarRaw() {
+  const p = progress;
+  const G = p.gamesPlayed || 0, M = p.totalMoves || 0;
+  const r = (num, den) => den > 0 ? num / den : null;
+  return {
+    aggression: r((p.totalEjections||0)+(p.totalPushes||0), G),
+    defense:    r((p.gamesPlayed||0)-(p.gamesLost||0), G),
+    speed:      r(p.fastMoves, M),
+    precision:  r(p.bestMoves, M),
+    center:     r(p.centerTurns, M),
+    cohesion:   r(p.cohesionSum, M),
+    pushEff:    r(p.totalPushes, p.pushAttempts),
+    conversion: r(p.leadWins, p.leadGames),
+    compact:    (p.compactSum ? r(p.compactSum, p.compactSamples||M) : null),
+    tempo:      (p.firstEjSum && p.firstEjGames ? r(p.firstEjSum, p.firstEjGames) : null),
+    flank:      (p.broadsideMoves != null ? r(p.broadsideMoves, M) : null),
+    fragment:   (p.oppGroupSum ? r(p.oppGroupSum, p.oppGroupSamples||M) : null),
+    sacrifice:  (p.sacrifices != null ? r(p.sacrifices, G) : null),
+    discipline: (p.edgeSurvived != null ? r(p.edgeSurvived, (p.edgeSurvived+(p.gamesLost?0:0))||1) : null),
+    activity:   r(M, G)
+  };
+}
+
+/* Percentiles par axe, prets pour le trace. */
+function computeRadarPercentiles() {
+  const raw = computeRadarRaw();
+  const out = {};
+  RADAR_AXES.forEach(ax => { out[ax.key] = { pct:_axisPercentile(ax, raw[ax.key]), raw:raw[ax.key] }; });
+  return out;
+}
+
+let _radarSelected = null;   // axe mis en valeur au clic
+
+function buildRadar15(size) {
+  size = size || 380;
+  const data = computeRadarPercentiles();
+  const n = RADAR_AXES.length;
+  const cx = size/2, cy = size/2, R = size*0.32;
+  const ptAt = (i, rad) => {
+    const a = (Math.PI*2*i/n) - Math.PI/2;
+    return [cx + rad*Math.cos(a), cy + rad*Math.sin(a)];
+  };
+
+  // toile
+  let grid = '';
+  [20,40,60,80,100].forEach(pct => {
+    const pts = RADAR_AXES.map((_,i)=>ptAt(i, R*pct/100).map(x=>x.toFixed(1)).join(',')).join(' ');
+    grid += '<polygon points="'+pts+'" fill="none" stroke="var(--border)" stroke-width="0.6" opacity="0.5"/>';
+  });
+  RADAR_AXES.forEach((ax,i)=>{
+    const [x,y]=ptAt(i,R);
+    grid += '<line x1="'+cx+'" y1="'+cy+'" x2="'+x.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="var(--border)" stroke-width="0.6" opacity="0.4"/>';
+  });
+
+  // aire (les axes non calibres sont poses a 0 pour ne pas fausser le trace)
+  const poly = RADAR_AXES.map((ax,i)=>{
+    const pc = data[ax.key].pct; const v = (pc==null?0:pc);
+    return ptAt(i, R*v/100).map(x=>x.toFixed(1)).join(',');
+  }).join(' ');
+
+  // sommets + libelles cliquables
+  let dots='', labs='';
+  RADAR_AXES.forEach((ax,i)=>{
+    const d=data[ax.key]; const pc=d.pct; const v=(pc==null?0:pc);
+    const [px,py]=ptAt(i, R*v/100);
+    const sel = _radarSelected===ax.key;
+    const uncal = pc==null;
+    const col = uncal ? 'var(--muted)' : sel ? '#fff' : 'var(--gold)';
+    dots += '<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+(sel?5:3)+'" fill="'+col+'"'
+         + (uncal?' opacity="0.4"':'')+'/>';
+    if(sel){ dots += '<text x="'+px.toFixed(1)+'" y="'+(py-9).toFixed(1)+'" text-anchor="middle" '
+      + 'font-family="\'DM Mono\',monospace" font-size="12" font-weight="700" fill="#fff">'+(uncal?'—':('P'+pc))+'</text>'; }
+    const [lx,ly]=ptAt(i, R*1.16);
+    const anchor = Math.abs(lx-cx)<8 ? 'middle' : (lx<cx?'end':'start');
+    labs += '<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="'+anchor+'" '
+      + 'font-family="\'DM Sans\',sans-serif" font-size="11" fill="'+(sel?'var(--gold)':'var(--muted)')+'" '
+      + (sel?'font-weight="700" ':'')+'style="cursor:pointer" onclick="selectRadarAxis(\''+ax.key+'\')">'+ax.label+'</text>';
+  });
+
+  return '<svg viewBox="0 0 '+size+' '+size+'" width="100%" style="max-width:'+size+'px" xmlns="http://www.w3.org/2000/svg">'
+    + grid
+    + '<polygon points="'+poly+'" fill="rgba(217,164,65,0.16)" stroke="var(--gold)" stroke-width="1.5"/>'
+    + dots + labs + '</svg>';
+}
+
+function selectRadarAxis(key) {
+  _radarSelected = (_radarSelected===key ? null : key);
+  renderPersonalRadar();
+}
+
 function renderPersonalRadar() {
   const host = document.getElementById('personal-radar');
   if (!host) return;
-  // Respecte la préférence d'affichage
-  if (progress.showRadar === false) {
-    host.innerHTML = '<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px">📊 Le radar de performance est masqué.<br><span style="font-size:12px">Activez-le dans Paramètres › Affichage.</span></div>';
+  if (!(progress.gamesPlayed > 0)) {
+    host.innerHTML = '<div style="padding:22px;text-align:center;color:var(--muted);font-size:13px;'
+      + 'border:1px dashed var(--border);border-radius:10px">Aucune partie enregistree pour l\'instant.'
+      + '<br><span style="font-size:12px">Le radar se remplit des votre premiere partie.</span></div>';
     return;
   }
-  const keys = ['agressivite','defense','rapidite','precision','centre','cohesion','poussee','conversion'];
-  const labels = ['Agressivité','Défense','Rapidité','Précision','Contrôle centre','Cohésion','Poussées','Conversion'];
-  const data = computePlayerRadar();
-  const svg = buildRadarSVG(data, keys, labels, 360);
+  const data = computeRadarPercentiles();
+  /* Point fort / point faible parmi les seuls axes CALIBRES : un axe sans
+     reference ne peut pas etre declare fort ou faible sans mentir. */
+  const cal = RADAR_AXES.filter(a => data[a.key].pct !== null);
+  let best=null, worst=null;
+  cal.forEach(a => {
+    const pc = data[a.key].pct;
+    if (!best || pc > data[best.key].pct) best = a;
+    if (!worst || pc < data[worst.key].pct) worst = a;
+  });
 
-  // Identifie point fort et point faible
-  let maxK = keys[0], minK = keys[0];
-  keys.forEach(k => { if (data[k] > data[maxK]) maxK = k; if (data[k] < data[minK]) minK = k; });
-  const labelOf = {}; keys.forEach((k,i)=> labelOf[k]=labels[i]);
+  let detail = '';
+  if (_radarSelected) {
+    const ax = RADAR_AXES.find(a => a.key === _radarSelected);
+    const d = data[ax.key];
+    const rawTxt = d.raw==null ? 'donnee absente'
+      : (Math.abs(d.raw) < 2 ? (d.raw*100).toFixed(1)+' %' : d.raw.toFixed(2));
+    detail = '<div style="margin-top:12px;padding:12px 14px;border:1px solid var(--gold);border-radius:8px;background:rgba(217,164,65,0.06)">'
+      + '<div style="font-size:14px;font-weight:700;color:var(--gold)">'+ax.label+'</div>'
+      + '<div style="font-size:12px;color:var(--text);margin:4px 0">'+ax.def+'</div>'
+      + '<div style="font-family:\'DM Mono\',monospace;font-size:12px;color:var(--muted)">'
+      +   'Valeur : '+rawTxt+' &middot; '+(d.pct==null?'<span style="color:var(--muted)">non calibre (pas de reference)</span>':'<span style="color:var(--gold)">P'+d.pct+' vs 2589 parties MiGs</span>')+'</div></div>';
+  } else {
+    detail = '<div style="margin-top:12px;font-size:11px;color:var(--muted);text-align:center">'
+      + 'Touchez le nom d\'un axe pour le mettre en valeur et voir son detail.</div>';
+  }
 
   host.innerHTML =
-    '<div style="display:flex;justify-content:center;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px">'+svg+'</div>'+
-    '<div style="display:flex;gap:10px;margin-top:12px">'+
-      '<div style="flex:1;padding:12px;background:rgba(74,148,99,0.08);border:1px solid rgba(74,148,99,0.25);border-radius:10px">'+
-        '<div style="font-size:11px;color:#6fcf97;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">💪 Point fort</div>'+
-        '<div style="font-size:14px;font-weight:700;color:var(--text)">'+labelOf[maxK]+' <span style="color:var(--muted);font-size:12px">('+data[maxK]+')</span></div>'+
-      '</div>'+
-      '<div style="flex:1;padding:12px;background:rgba(224,92,75,0.08);border:1px solid rgba(224,92,75,0.25);border-radius:10px">'+
-        '<div style="font-size:11px;color:#e05c4b;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">🎯 À travailler</div>'+
-        '<div style="font-size:14px;font-weight:700;color:var(--text)">'+labelOf[minK]+' <span style="color:var(--muted);font-size:12px">('+data[minK]+')</span></div>'+
-      '</div>'+
-    '</div>';
+    buildRadar15(380)
+    + '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:6px">'
+    +   (best ? '<span style="font-size:11px;color:var(--muted)">Point fort : <b style="color:var(--gold)">'+best.label+'</b> (P'+data[best.key].pct+')</span>' : '')
+    +   (worst && worst!==best ? '<span style="font-size:11px;color:var(--muted)">A travailler : <b style="color:var(--text)">'+worst.label+'</b> (P'+data[worst.key].pct+')</span>' : '')
+    + '</div>'
+    + detail;
 }
 
 function toggleRadarVisibility(show) {
@@ -10975,9 +11335,10 @@ let _marbleRainActive = false;
 // la partie. La page s'affiche immédiatement dessous (l'overlay est
 // transparent aux clics et se retire seul), donc aucune latence perçue.
 function playGame() {
-  // L'animation est declenchee par l'initialisation de la page de jeu
-  // (voir inits.game), pour couvrir tous les points d'entree.
-  showPage('game');
+  /* « Jouer » ouvre desormais l'ecran de configuration, et non plus le
+     plateau directement. La variante et le camp s'y choisissent avant la
+     partie. On y passe par openGameSetup pour un point d'entree unique. */
+  openGameSetup();
 }
 
 function playMarbleRainTransition(onDone) {
@@ -11166,6 +11527,7 @@ function hideWinOverlay() {
 }
 
 function resetGame() {
+  if (typeof progress !== 'undefined') { progress.__firstEjDone = false; progress.__hadLead = false; }
   gameOver = false;
   selected = [];
   capturedByBlack = 0;
@@ -11795,8 +12157,27 @@ function recordPlayerMove(opts) {
   const _myCol = opts.color || (typeof humanColor !== 'undefined' ? humanColor : 'black');
   progress.centerTurns = (progress.centerTurns||0) + centerControl(_myCol);
   progress.cohesionSum = (progress.cohesionSum||0) + cohesionScore(_myCol);
+  /* Compacite geometrique (ABA-PRO) et fragmentation adverse, echantillonnees
+     periodiquement pour ne pas alourdir chaque coup. La reference MiGs est
+     elle-meme echantillonnee de la meme facon (un point tous les ~10 coups). */
+  if (((progress.totalMoves||0) % 8) === 0) {
+    const _cp = _compactness(_myCol);
+    if (_cp != null) { progress.compactSum = (progress.compactSum||0) + _cp; progress.compactSamples = (progress.compactSamples||0) + 1; }
+    const _oppCol = _myCol === 'black' ? 'white' : 'black';
+    progress.oppGroupSum = (progress.oppGroupSum||0) + _groupCount(_oppCol);
+    progress.oppGroupSamples = (progress.oppGroupSamples||0) + 1;
+  }
   // "Meilleur coup" : heuristique simple — un coup qui éjecte ou pousse est jugé bon
   if (opts.ejection || opts.pushSuccess) progress.bestMoves = (progress.bestMoves||0) + 1;
+  /* Jeu de flanc : coups latéraux (broadside) du joueur. */
+  if (opts.type === 'broadside') progress.broadsideMoves = (progress.broadsideMoves||0) + 1;
+  /* Tempo : coup de la PREMIÈRE éjection réussie du joueur dans la partie.
+     _firstEjThisGame est remis à zéro au début de chaque partie. */
+  if (opts.ejection && !progress.__firstEjDone) {
+    progress.__firstEjDone = true;
+    progress.firstEjSum = (progress.firstEjSum||0) + ((progress.totalMoves||1));
+    progress.firstEjGames = (progress.firstEjGames||0) + 1;
+  }
   // Heatmap : enregistre les cases jouées par le joueur local ('me')
   // dans la structure par joueur (cumulé sur toutes ses parties).
   if (opts.cells && opts.cells.length) {
@@ -12053,7 +12434,8 @@ function handleClick(r, c) {
       pushSuccess: info.type === 'push',
       ejection: !!(info.type === 'push' && info.ejection),
       cells: selCopy,  // cases jouées (pour la heatmap)
-      color: me
+      color: me,
+      type: info.type   // 'move' | 'push' | 'broadside'
     });
   } else {
     recordOpponentHeat(selCopy);
@@ -19934,6 +20316,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   if (typeof initA11y === 'function') initA11y();
   if (typeof renderA11yPanel === 'function') renderA11yPanel();
+  // Refleter l'etat courant sur les nouveaux interrupteurs de Parametres.
+  if (typeof syncNotationToggles === 'function') syncNotationToggles();
+  if (typeof syncSoundToggles === 'function') { var _sd=document.getElementById('settings-sound-toggle'); if(_sd) _sd.checked = (typeof soundEnabled==='undefined')||soundEnabled; }
   const activePg = document.querySelector('.page.active');
   if (!activePg) {
     const home = document.getElementById('page-home');

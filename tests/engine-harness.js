@@ -17,7 +17,7 @@ const parts=[];
 for(const c of ['ROWS','ABAPRO_ROWS','AX_DIRS','akey']) parts.push(grab('const',c));
 for(const f of ['rcToAxial','axialToRc','selectionLine','validateMove','abApplyMove',
                 'applyMove','undoMove','getAllMovesForColor','coordToABAPRO','abaproToRc',
-                'gameCodeParse','_gcDirIndex']) parts.push(grab('fn',f));
+                'gameCodeParse','_gcDirIndex','resolveAbaProToken','abaproOfficialLabels','selectionLine']) parts.push(grab('fn',f));
 
 let board={}, capturedByBlack=0, capturedByWhite=0;
 const ctx={board:null};
@@ -27,7 +27,7 @@ const run=new Function('getBoard','setBoard','getCap','setCap', `
   Object.defineProperty(globalThis,'capturedByBlack',{get:()=>getCap('b'),set:v=>setCap('b',v),configurable:true});
   Object.defineProperty(globalThis,'capturedByWhite',{get:()=>getCap('w'),set:v=>setCap('w',v),configurable:true});
   ${code}
-  return {validateMove,applyMove,undoMove,getAllMovesForColor,coordToABAPRO,abaproToRc,gameCodeParse,AX_DIRS,akey,rcToAxial,axialToRc};
+  return {validateMove,applyMove,undoMove,getAllMovesForColor,coordToABAPRO,abaproToRc,gameCodeParse,resolveAbaProToken,AX_DIRS,akey,rcToAxial,axialToRc};
 `);
 module.exports={run:()=> run(()=>board,v=>{board=v},k=>k==='b'?capturedByBlack:capturedByWhite,
   (k,v)=>{ if(k==='b')capturedByBlack=v; else capturedByWhite=v; }),
