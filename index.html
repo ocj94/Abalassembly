@@ -7845,49 +7845,58 @@ function openGameSetup() {
 /* Applique toute la configuration puis bascule sur le plateau. */
 function startConfiguredGame() {
   const c = _setupCfg;
+  /* Chaque etape est isolee : un reglage secondaire qui echoue ne doit pas
+     empecher la partie de demarrer. Le bug precedent laissait le joueur
+     bloque « en attente du coup adverse » quand une etape levait une
+     exception avant meme resetGame. */
+  const step = (fn) => { try { fn(); } catch (e) { if (window.console) console.warn('config:', e && e.message); } };
 
-  // Disposition
-  if (typeof currentLayout !== 'undefined') currentLayout = c.layout;
-  document.querySelectorAll('[id^="layout-"]').forEach(function(b){
-    b.classList.toggle('active', b.id === 'layout-' + c.layout);
+  step(function(){ if (typeof currentLayout !== 'undefined') currentLayout = c.layout; });
+  step(function(){
+    document.querySelectorAll('[id^="layout-"]').forEach(function(b){
+      b.classList.toggle('active', b.id === 'layout-' + c.layout);
+    });
+  });
+  step(function(){ if (typeof gameMode !== 'undefined') gameMode = c.mode; });
+  step(function(){
+    ['mode-ai','mode-local'].forEach(function(id){
+      var b = document.getElementById(id); if (b) b.classList.toggle('active', id === 'mode-' + c.mode);
+    });
   });
 
-  // Mode
-  if (typeof gameMode !== 'undefined') gameMode = c.mode;
-  ['mode-ai','mode-local'].forEach(function(id){
-    var b = document.getElementById(id); if (b) b.classList.toggle('active', id === 'mode-' + c.mode);
-  });
-
-  // Camp : en IA, l'humain tient la couleur choisie ; noirs commencent
+  /* Camp : en IA, l'humain tient la couleur choisie ; les noirs jouent
+     toujours le premier coup. Si l'humain a choisi de jouer second, il
+     prend les blancs et l'IA (noire) ouvre. */
   humanColor = (c.mode === 'ai') ? c.first : 'black';
-  if (typeof applyPovOrientation === 'function') applyPovOrientation();
+  step(function(){ if (typeof applyPovOrientation === 'function') applyPovOrientation(); });
 
-  // Style IA + niveau
   if (c.mode === 'ai') {
-    if (typeof setAIStyle === 'function') setAIStyle(c.style);
-    if (typeof aiDifficulty !== 'undefined') aiDifficulty = c.diff;
-    document.querySelectorAll('[id^="diff-"]').forEach(function(b){
-      b.classList.toggle('active', b.id === 'diff-' + c.diff);
+    step(function(){ if (typeof setAIStyle === 'function') setAIStyle(c.style); });
+    step(function(){ if (typeof aiDifficulty !== 'undefined') aiDifficulty = c.diff; });
+    step(function(){
+      document.querySelectorAll('[id^="diff-"]').forEach(function(b){
+        b.classList.toggle('active', b.id === 'diff-' + c.diff);
+      });
     });
   }
 
-  // Cadence
-  if (typeof setTimeControl === 'function') setTimeControl(c.time);
-  var tsel = document.getElementById('time-ctl-select'); if (tsel) tsel.value = c.time;
+  step(function(){ if (typeof setTimeControl === 'function') setTimeControl(c.time); });
+  step(function(){ var t = document.getElementById('time-ctl-select'); if (t) t.value = c.time; });
+  step(function(){ if (typeof toggleMoveHints === 'function') toggleMoveHints(c.hints); });
+  step(function(){ var h = document.getElementById('game-hints-toggle'); if (h) h.checked = c.hints; });
+  step(function(){ if (typeof toggleCoordinates === 'function') toggleCoordinates(c.coords); });
+  step(function(){ if (typeof syncCoordsToggles === 'function') syncCoordsToggles(c.coords); });
 
-  // Aides
-  if (typeof toggleMoveHints === 'function') toggleMoveHints(c.hints);
-  var ht = document.getElementById('game-hints-toggle'); if (ht) ht.checked = c.hints;
-  if (typeof toggleCoordinates === 'function') toggleCoordinates(c.coords);
-  syncCoordsToggles(c.coords);
-
-  // On lance la partie et on montre le plateau
+  // Le plateau, puis la partie
   showPage('game');
   if (typeof resetGame === 'function') resetGame();
-  /* Si l'humain joue blanc, c'est a l'IA d'ouvrir. resetGame remet le trait
-     aux noirs ; aiMove joue alors le premier coup. */
-  if (c.mode === 'ai' && humanColor === 'white' && typeof aiMove === 'function') {
-    setTimeout(aiMove, 500);
+
+  /* Declenchement de l'IA aligne sur le reste du jeu (meme forme qu'apres un
+     coup humain et en tournoi) : si ce n'est pas au tour de l'humain, l'IA
+     joue. Robuste quel que soit le camp choisi. */
+  if (c.mode === 'ai' && typeof currentTurn !== 'undefined'
+      && currentTurn !== humanColor && !gameOver && typeof aiMove === 'function') {
+    setTimeout(function(){ if (!gameOver && currentTurn !== humanColor) aiMove(); }, 700);
   }
 }
 
