@@ -12122,6 +12122,45 @@ if (canvas) {
 let lastMoveTime = Date.now();
 
 // Cohésion : part des billes du joueur ayant au moins un voisin allié (0..1)
+/* Compacite geometrique : distance hexagonale moyenne de chaque bille au
+   centre de masse du camp. Mesure d'ABA-PRO. Plus petit = plus resserre.
+   (Ces deux fonctions avaient ete perdues lors de l'ajout du radar 15 axes :
+   les appels subsistaient dans recordMoveStats, provoquant un crash a chaque
+   coup joue. Reintegrees ici, pres des mesures de meme nature.) */
+function _compactness(color) {
+  const cells = Object.keys(board).filter(function(k){ return board[k] === color; })
+    .map(function(k){ const p = k.split(',').map(Number); return rcToAxial(p[0], p[1]); });
+  if (cells.length < 2) return null;
+  const cx = cells.reduce(function(s,p){ return s + p.q; }, 0) / cells.length;
+  const cy = cells.reduce(function(s,p){ return s + p.r; }, 0) / cells.length;
+  return cells.reduce(function(s,p){
+    return s + (Math.abs(p.q - cx) + Math.abs(p.q + p.r - cx - cy) + Math.abs(p.r - cy)) / 2;
+  }, 0) / cells.length;
+}
+
+/* Nombre de groupes connectes d'un camp. Impose a l'adversaire, il mesure la
+   fragmentation — « diviser pour regner » (Schmittberger). */
+function _groupCount(color) {
+  const set = new Set(Object.keys(board).filter(function(k){ return board[k] === color; }));
+  if (!set.size) return 0;
+  const seen = new Set();
+  let groups = 0;
+  set.forEach(function(start){
+    if (seen.has(start)) return;
+    groups++;
+    const stack = [start];
+    seen.add(start);
+    while (stack.length) {
+      const rc = stack.pop().split(',').map(Number);
+      neighbors(rc[0], rc[1]).forEach(function(nb){
+        const k = nb.r + ',' + nb.c;
+        if (set.has(k) && !seen.has(k)) { seen.add(k); stack.push(k); }
+      });
+    }
+  });
+  return groups;
+}
+
 function cohesionScore(color) {
   const cells = Object.keys(board).filter(k => board[k] === color);
   if (!cells.length) return 0;
