@@ -600,6 +600,32 @@ check('export : score et sequence se rapportent au meme coup', () => {
     'la sequence n\'est pas bornee comme le score';
 });
 
+/* Puzzles : aucun label ne doit mentir sur le coup joue, aucune position ne
+   doit etre impossible. Verifie en profondeur par tests/puzzles.js ; ici on
+   garde un controle rapide contre les regressions les plus courantes. */
+check('puzzles : effectifs possibles (billes + captures <= 14)', () => {
+  const m = HTML.match(/const PUZZLES=(\[[\s\S]*?\]);/);
+  if (!m) return 'PUZZLES introuvable';
+  const P = JSON.parse(m[1]);
+  const bad = [];
+  P.forEach((p, i) => {
+    const nb = (p.bm||[]).length, nw = (p.wm||[]).length;
+    if (nb + (p.cw||0) > 14 || nw + (p.cb||0) > 14) bad.push(i);
+  });
+  return bad.length === 0 || ('puzzles a effectif impossible : ' + bad.join(', '));
+});
+
+check('puzzles : coordonnees sur le plateau', () => {
+  const m = HTML.match(/const PUZZLES=(\[[\s\S]*?\]);/);
+  const P = JSON.parse(m[1]);
+  const ROWS = [5,6,7,8,9,8,7,6,5];
+  const ok = rc => { const p = /^(\d+),(\d+)$/.exec(rc); if (!p) return false;
+    const r = +p[1], c = +p[2]; return r>=0 && r<9 && c>=0 && c<ROWS[r]; };
+  const bad = [];
+  P.forEach((p, i) => { [].concat(p.bm||[], p.wm||[]).forEach(s => { if (!ok(s)) bad.push(i); }); });
+  return bad.length === 0 || ('coordonnees hors plateau : ' + [...new Set(bad)].join(', '));
+});
+
 /* ── 8. Garde-fous de credibilite ─────────────────────────────────── */
 
 console.log('\nGarde-fous');

@@ -8,6 +8,7 @@ Un jeu d'Abalone complet dans un seul fichier HTML : zéro dépendance, hors-lig
 - **[Confort & accessibilité](Accessibilite.md)** — réglages qui changent réellement l'affichage et le rythme.
 - **[Profil de performance](Profil-de-performance.md)** — indicateurs définis, calculés, situés contre un corpus réel.
 - **[Échanger des parties](Echanger-des-parties.md)** — partie par code, format APGN.
+- **[Puzzles](Puzzles.md)** — comment la bibliothèque est vérifiée contre le moteur.
 
 ## En bref
 
