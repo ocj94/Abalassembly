@@ -117,7 +117,7 @@ function boardFromAOStart(startStr) {
 
 /* ── Position APGN : rangees i -> a, chiffres pour les cases vides ────── */
 
-function positionString(b, turn) {
+function positionString(b, turn, ejB, ejW) {
   const rows = [];
   for (let r = 0; r < 9; r++) {
     let out = '', gap = 0;
@@ -130,7 +130,10 @@ function positionString(b, turn) {
     if (gap) out += gap;
     rows.push(out || String(ROWS[r]));
   }
-  return rows.join('/') + ' ' + (turn === 'black' ? 'b' : 'w');
+  /* Score : billes deja ejectees, ecrites -<nb>b<nb>w avant le trait. Omis si
+     aucune ejection (proposition de Saab). */
+  const ej = ((ejB || 0) > 0 || (ejW || 0) > 0) ? '-' + (ejB || 0) + 'b' + (ejW || 0) + 'w' : '';
+  return rows.join('/') + ej + ' ' + (turn === 'black' ? 'b' : 'w');
 }
 
 /* ── Rejeu et validation ──────────────────────────────────────────────── */
@@ -227,7 +230,7 @@ for (const g of (source === 'migs' ? [] : AO)) {
     tag('Result', res),
     tag('Notation', 'Aba-Pro'),
     tag('SetUp', '1'),
-    tag('Position', positionString(st.board, 'black')),
+    tag('Position', positionString(st.board, 'black', st.capturedByWhite, st.capturedByBlack)),
     tag('Plies', r.played.length),
     tag('Source', 'AbalOnline')
   ];
