@@ -82,6 +82,31 @@ Le dernier champ, séparé par une espace, est le trait : `b` ou `w`. Il est
 obligatoire. Aux échecs, le trait se déduit du numéro de coup ; en Abalone,
 une position d'étude peut commencer sur n'importe quel camp.
 
+### Billes déjà éjectées
+
+Une position reprise en cours de partie doit aussi porter le **score** : sans
+lui, on ne peut pas savoir combien de billes ont déjà quitté le plateau, et la
+partie n'est pas fidèlement reconstituée. Signalé par Saab.
+
+Le compte des éjections s'écrit entre les rangées et le trait, précédé d'un
+tiret : `<nb>b<nb>w`, soit d'abord les billes noires sorties, puis les
+blanches. Le tiret le distingue sans ambiguïté du reste.
+
+```
+Position "ww3/www3/2www2/8/9/8/2bbb2/3bbb/3bb-5b4w b"
+```
+
+Ici, 5 billes noires et 4 blanches ont été éjectées. À la position de départ,
+aucune éjection : le segment est **omis** plutôt qu'écrit `-0b0w`, qui
+alourdirait inutilement.
+
+```
+Position "ww3/www3/2www2/8/9/8/2bbb2/3bbb/3bb b"
+```
+
+Un lecteur qui rencontre `-0b0w` doit l'accepter (équivalent à l'absence de
+segment) ; un producteur ne l'écrit pas.
+
 ## 5. Texte des coups
 
 Les coups sont groupés par numéro : `1. <noir> <blanc> 2. <noir> <blanc>`. Le

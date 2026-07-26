@@ -581,6 +581,25 @@ check('Labo : retire du panneau de jeu', () => {
 check('config : le style IA reste ajustable en partie', () =>
   /setAIStyle\('auto'\)/.test(HTML) || 'le selecteur de style a disparu du panneau de jeu');
 
+/* Retours de Saab (v1.17). */
+check('bibliotheque : charger une partie bascule sur le plateau', () => {
+  const b = functionBody('loadMigsGame');
+  return /showPage\('game'\)/.test(b) || 'la partie chargee ne s\'affiche pas';
+});
+
+check('export : la sequence peut etre bornee au coup affiche', () => {
+  const b = functionBody('buildGameNotation');
+  return /upToIdx/.test(b) && /slice\(0, upToIdx/.test(b) ||
+    'l\'export ne peut pas s\'arreter au coup actif';
+});
+
+check('export : score et sequence se rapportent au meme coup', () => {
+  const b = functionBody('exportGameNotation');
+  if (!/replayCurrentIdx/.test(b)) return 'l\'export ignore la position de replay';
+  return /buildGameNotation\(system, bound\)/.test(b) ||
+    'la sequence n\'est pas bornee comme le score';
+});
+
 /* ── 8. Garde-fous de credibilite ─────────────────────────────────── */
 
 console.log('\nGarde-fous');
