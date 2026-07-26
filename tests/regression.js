@@ -626,6 +626,28 @@ check('puzzles : coordonnees sur le plateau', () => {
   return bad.length === 0 || ('coordonnees hors plateau : ' + [...new Set(bad)].join(', '));
 });
 
+/* Fonctions internes appelees mais jamais definies. Ce controle aurait attrape
+   le crash « une erreur est survenue » a chaque coup : _compactness et
+   _groupCount etaient appelees mais leur definition avait ete perdue lors d'un
+   remaniement. On verifie un ensemble de fonctions internes critiques du
+   chemin de jeu. */
+check('aucune fonction interne critique n\'est appelee sans etre definie', () => {
+  const src = jsBlocks.join('\n');
+  const critical = [
+    '_compactness', '_groupCount', 'cohesionScore', 'centerControl',
+    'neighbors', 'recordMoveStats', 'aiMove', 'executeAIMove',
+    'applyMove', 'validateMove', 'drawBoard', 'updateStatus',
+    '_clockPaint', '_clockMine', 'resetGame', 'loadSnapshot'
+  ];
+  const missing = critical.filter(fn => {
+    const called = new RegExp('[^.\\w]' + fn + '\\s*\\(').test(src);
+    const defined = new RegExp('function\\s+' + fn + '\\s*\\(').test(src)
+                 || new RegExp('(?:const|let|var)\\s+' + fn + '\\s*=').test(src);
+    return called && !defined;
+  });
+  return missing.length === 0 || ('appelees mais non definies : ' + missing.join(', '));
+});
+
 /* ── 8. Garde-fous de credibilite ─────────────────────────────────── */
 
 console.log('\nGarde-fous');
