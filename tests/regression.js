@@ -528,6 +528,17 @@ check('config : « Jouer » ouvre la configuration, pas le plateau', () => {
 check('config : l\'ecran page-setup existe', () =>
   /id="page-setup"/.test(HTML) || 'la page de configuration est absente');
 
+check('config : le choix du camp propose l\'aleatoire', () => {
+  const setup = HTML.slice(HTML.indexOf('id="page-setup"'), HTML.indexOf('id="page-game"'));
+  return /setupPick\('first','random'/.test(setup) || 'l\'option Aleatoire manque';
+});
+
+check('config : le camp aleatoire est tire au sort au lancement', () => {
+  const b = functionBody('startConfiguredGame');
+  return /'random'/.test(b) && /Math\.random/.test(b) ||
+    'le camp aleatoire n\'est pas resolu au demarrage';
+});
+
 check('config : variante et camp se choisissent avant la partie', () => {
   const setup = HTML.slice(HTML.indexOf('id="page-setup"'), HTML.indexOf('id="page-game"'));
   const hasLayout = /setupPick\('layout'/.test(setup);
