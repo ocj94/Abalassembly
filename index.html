@@ -3029,10 +3029,11 @@ document.addEventListener('keydown', function(e){
 
       <div id="setup-first-wrap" class="setup-row-lbl" style="margin-top:14px">Qui commence ?</div>
       <div style="display:flex;gap:5px" id="setup-first">
-        <button onclick="setupPick('first','black',this)" class="setup-opt active" style="flex:1">⚫ Moi (noirs)</button>
-        <button onclick="setupPick('first','white',this)" class="setup-opt" style="flex:1">⚪ L'adversaire</button>
+        <button onclick="setupPick('first','black',this)" class="setup-opt active" style="flex:1">⚫ Moi</button>
+        <button onclick="setupPick('first','white',this)" class="setup-opt" style="flex:1">⚪ Adversaire</button>
+        <button onclick="setupPick('first','random',this)" class="setup-opt" style="flex:1">🎲 Aléatoire</button>
       </div>
-      <div style="font-size:11px;color:var(--muted);margin-top:6px">Aux noirs de jouer le premier coup. « L'adversaire commence » vous fait jouer les blancs.</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">Aux noirs de jouer le premier coup. « Adversaire » vous fait jouer les blancs. « Aléatoire » tire votre camp au sort au lancement.</div>
     </div>
 
     <!-- Style IA -->
@@ -7867,7 +7868,17 @@ function startConfiguredGame() {
   /* Camp : en IA, l'humain tient la couleur choisie ; les noirs jouent
      toujours le premier coup. Si l'humain a choisi de jouer second, il
      prend les blancs et l'IA (noire) ouvre. */
-  humanColor = (c.mode === 'ai') ? c.first : 'black';
+  /* Camp : en IA, l'humain tient la couleur choisie ; les noirs jouent
+     toujours le premier coup. « random » tire le camp au sort au lancement,
+     de sorte que ni le joueur ni l'IA ne sait a l'avance qui ouvre. */
+  let _first = c.first;
+  if (c.mode === 'ai' && _first === 'random') {
+    _first = (Math.random() < 0.5) ? 'black' : 'white';
+    if (typeof showToast === 'function') {
+      showToast(_first === 'black' ? '🎲 Vous jouez les noirs' : '🎲 Vous jouez les blancs');
+    }
+  }
+  humanColor = (c.mode === 'ai') ? _first : 'black';
   step(function(){ if (typeof applyPovOrientation === 'function') applyPovOrientation(); });
 
   if (c.mode === 'ai') {
