@@ -2336,6 +2336,10 @@ document.addEventListener('keydown', function(e){
       <span class="s-icon">🔬</span><span class="s-label" data-i18n="nav.analysis">Analyse</span>
     </button>
 
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-tablebase" onclick="sidebarNav('tablebase',this)">
+      <span class="s-icon">🧮</span><span class="s-label">Tables de finale</span>
+    </button>
+
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-learn" onclick="sidebarNav('learn',this)">
       <span class="s-icon">📖</span><span class="s-label" data-i18n="nav.rules">Règles du jeu</span>
     </button>
@@ -3128,6 +3132,7 @@ document.addEventListener('keydown', function(e){
         <div id="view-toggle" style="position:absolute;top:11%;left:3%;z-index:20;display:flex;background:rgba(20,24,22,0.7);border:1px solid var(--border);border-radius:8px;overflow:hidden">
           <button id="view-2d-btn" onclick="setBoardView('2d')" title="Vue classique 2D" style="padding:6px 12px;background:var(--gold);color:#14141a;border:none;cursor:pointer;font-size:12px;font-weight:600">2D</button>
           <button id="view-3d-btn" onclick="setBoardView('3d')" title="Vue 3D (admirer)" style="padding:6px 12px;background:transparent;color:var(--muted);border:none;cursor:pointer;font-size:12px;font-weight:600">3D</button>
+          <button id="view-1d-btn" onclick="setBoardView('1d')" title="Vue texte, monochrome" style="padding:6px 12px;background:transparent;color:var(--muted);border:none;cursor:pointer;font-size:12px;font-weight:600">1D</button>
         </div>
         <!-- Horloge de l'adversaire : au-dessus du plateau, son camp etant en haut -->
         <div class="clock-bar" id="clock-top">
@@ -3144,6 +3149,10 @@ document.addEventListener('keydown', function(e){
         <div class="rot-ctl" id="rot2d-bottom" style="bottom:22%" title="Rotation (votre côté)">
           <button class="rot-btn" onclick="rotateBoard(-60)" title="Pivoter anti-horaire">↺</button>
           <button class="rot-btn" onclick="rotateBoard(60)" title="Pivoter horaire">↻</button>
+        </div>
+        <!-- Vue 1D : le plateau en texte, monochrome, esprit terminal -->
+        <div id="board-1d" style="display:none;width:640px;max-width:100%;aspect-ratio:1;border-radius:12px;overflow:auto;background:#000;border:1px solid #333;position:relative;margin:0 auto;padding:18px 14px;box-sizing:border-box">
+          <pre id="board-1d-text" style="margin:0;font-family:'DM Mono',ui-monospace,'Courier New',monospace;color:#e8e8e8;font-size:14px;line-height:1.5;letter-spacing:1px;white-space:pre;user-select:text"></pre>
         </div>
         <!-- Conteneur du rendu 3D (caché par défaut) -->
         <div id="board-3d" style="display:none;width:640px;max-width:100%;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#14141a;position:relative;margin:0 auto">
@@ -5371,6 +5380,50 @@ document.addEventListener('keydown', function(e){
   </div>
 </div>
 
+
+<!-- PAGE: TABLES DE FINALE -->
+<div class="page" id="page-tablebase">
+  <div style="padding-top:64px">
+    <div class="page-header" style="padding:40px 60px 0">
+      <div class="section-label">Certitude</div>
+      <h2>Tables de finale</h2>
+      <p style="color:var(--muted);font-size:14px;max-width:660px">Ici, rien n'est estimé. Les réponses de cette page sont des résultats démontrés, ou un franc « aucune preuve ». Aucune évaluation heuristique n'intervient.</p>
+    </div>
+
+    <div style="padding:24px 60px 60px;max-width:900px">
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:20px">
+        <h3 style="margin:0 0 6px;color:var(--white);font-size:17px">Position en cours</h3>
+        <p style="margin:0 0 14px;font-size:13px;color:var(--muted);line-height:1.6">La table couvre les finales à 2 contre 2 et 3 contre 2 du mode Découverte. Le solveur, lui, travaille sur n'importe quelle position.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn" onclick="tbConsultCurrent()">🧮 Consulter la table</button>
+          <button class="btn" onclick="tbSolveCurrent(3)">⚡ Séquence forcée (3 demi-coups)</button>
+          <button class="btn" onclick="tbSolveCurrent(5)">🔍 Séquence forcée (5 demi-coups)</button>
+        </div>
+        <div id="tb-verdict" style="margin-top:16px;padding:16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:14px;color:var(--text);line-height:1.7;min-height:24px">Choisis une consultation ci-dessus.</div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:20px">
+        <h3 style="margin:0 0 12px;color:var(--white);font-size:17px">Ce qui a été résolu</h3>
+        <p style="margin:0 0 14px;font-size:13px;color:var(--muted);line-height:1.7">Deux classes de finale ont été calculées entièrement, par induction rétrograde, jeu parfait garanti. Elles n'existent qu'en mode Découverte : en Abalone standard, un camp a toujours entre 9 et 14 billes.</p>
+        <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <tr style="color:var(--gold);text-align:left"><th style="padding:8px 6px">Classe</th><th style="padding:8px 6px">Positions</th><th style="padding:8px 6px">Gains</th><th style="padding:8px 6px">Nulles</th><th style="padding:8px 6px">Le plus long</th></tr>
+          <tr style="border-top:1px solid var(--border)"><td style="padding:8px 6px">2 contre 2</td><td style="padding:8px 6px">6 262 260</td><td style="padding:8px 6px">6 264</td><td style="padding:8px 6px">99,90 %</td><td style="padding:8px 6px">1 demi-coup</td></tr>
+          <tr style="border-top:1px solid var(--border)"><td style="padding:8px 6px">3 contre 2</td><td style="padding:8px 6px">11 703 240</td><td style="padding:8px 6px">17 575</td><td style="padding:8px 6px">99,85 %</td><td style="padding:8px 6px">7 demi-coups</td></tr>
+        </table>
+        </div>
+      </div>
+
+      <div style="background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.2);border-radius:10px;padding:18px 20px">
+        <strong style="color:var(--gold);font-size:14px">Ce que ça apprend sur Abalone</strong>
+        <p style="margin:10px 0 0;font-size:13px;color:var(--muted);line-height:1.7">En 2 contre 2, les seuls gains sont les éjections immédiates : deux billes collées ne peuvent jamais être poussées, et elles peuvent toujours bouger. En 3 contre 2, le camp fort ne force presque jamais l'éjection. Contrairement aux échecs où le roi finit acculé, le plateau reste immense face au matériel restant — le défenseur garde toujours une cinquantaine de cases pour fuir. C'est pourquoi Abalone n'a pas besoin de tables de finale, et cette page le démontre plutôt qu'elle ne l'affirme.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <!-- PAGE: MUSEUM -->
 <div class="page" id="page-mentions">
   <div class="page-header">
@@ -7420,7 +7473,7 @@ function renderEngageBar() {
 
   // Raccourcis rapides façon a2one (Play / Puzzles / Learn / Watch / Social)
   const quickLinks = [
-    { page:'game',      icon:'⚪', label:'Jouer',     color:'#4a9463' },
+    { page:'game',      icon:'<span class="marble-gold"></span>', label:'Jouer',     color:'#4a9463' },
     { page:'puzzles',   icon:'🧩', label:'Problèmes', color:'#6299ff' },
     { page:'learn',     icon:'📖', label:'Apprendre', color:'#c8a84b' },
     { page:'observe',   icon:'👁', label:'Observer',  color:'#b06fd0' },
@@ -10320,6 +10373,7 @@ function drawBoard(opts) {
   const boardData = opts.board || board;          // plateau à dessiner
   // Synchronise la vue 3D si elle est ouverte (uniquement pour le plateau principal)
   if (canvasId === 'board' && typeof window.refresh3DIfActive === 'function') window.refresh3DIfActive();
+  if (canvasId === 'board' && typeof window.refresh1DIfActive === 'function') window.refresh1DIfActive();
   const sel = opts.selected || selected;          // sélection à dessiner
   const showHints = (opts.showHints !== undefined) ? opts.showHints : showMoveHints;
   const canvas = document.getElementById(canvasId);
@@ -11555,6 +11609,7 @@ function resetGame() {
   moveCount = 0;
   currentTurn = 'black';
   myTime = _timeCtlBase || 600; oppTime = _timeCtlBase || 600;
+  if (!_timeCtlBase && typeof _clockPaintFree === 'function') { _clockPaintFree(); }
   if (typeof _clockPaint === 'function') _clockPaint(currentTurn === _clockMine());
   boardSnapshots = [];
   _bookNode = (typeof OPENING_TREES !== 'undefined' && typeof currentLayout !== 'undefined' && OPENING_TREES[currentLayout]) ? OPENING_TREES[currentLayout] : null;
@@ -11630,6 +11685,8 @@ function _clockMine() {
 function tickTimers() {
   if (gameOver) return;
   if (timerPaused) return;   // timer en pause
+  // Cadence libre : aucune horloge ne tourne, aucun temps ne s'affiche.
+  if (!_timeCtlBase || _clockExempt()) { _clockPaintFree(); return; }
   const _mine = _clockMine();
   if (currentTurn === _mine) {
     myTime = Math.max(0, myTime-1);
@@ -11667,6 +11724,18 @@ function setTimeControl(v){
 /* Un seul endroit decide de l'affichage des horloges : les deux blocs de la
    colonne laterale et les deux barres autour du plateau. Tant qu'ils etaient
    peints separement, l'un pouvait rester allume pendant que l'autre s'eteignait. */
+function _clockPaintFree(){
+  // Cadence libre : pas de temps. On affiche un tiret neutre, sans surbrillance.
+  ['timer-me','timer-opponent','clock-bottom-time','clock-top-time'].forEach(function(id){
+    const t=document.getElementById(id); if(t) t.textContent='–';
+  });
+  ['clock-bottom','clock-top'].forEach(function(id){
+    const b=document.getElementById(id); if(b){ b.classList.remove('active'); b.classList.remove('low'); }
+  });
+  const tm=document.getElementById('timer-me'), to=document.getElementById('timer-opponent');
+  if(tm) tm.classList.remove('active'); if(to) to.classList.remove('active');
+}
+
 function _clockPaint(mineActive){
   const mine = _clockMine();
   const oppName = (typeof opponentBot !== 'undefined' && opponentBot)
@@ -22406,21 +22475,83 @@ window.setBoardView = function(view) {
     btn.style.background = on ? 'var(--gold)' : 'transparent';
     btn.style.color = on ? '#14141a' : 'var(--muted)';
   }
+  const wrap1d = document.getElementById('board-1d');
+  const btn1d = document.getElementById('view-1d-btn');
   if (view === '3d') {
-    activate(btn3d, true); activate(btn2d, false);
+    activate(btn3d, true); activate(btn2d, false); if (btn1d) activate(btn1d, false);
     canvas2d.style.display = 'none';
+    if (wrap1d) wrap1d.style.display = 'none';
     wrap3d.style.display = 'block';
     if (rot2dTop) rot2dTop.style.display = 'none';       // boutons 2D sans effet en 3D
     if (rot2dBottom) rot2dBottom.style.display = 'none';
     init3DView();
-  } else {
-    activate(btn2d, true); activate(btn3d, false);
+  } else if (view === '1d') {
+    if (btn1d) activate(btn1d, true); activate(btn2d, false); activate(btn3d, false);
+    canvas2d.style.display = 'none';
     wrap3d.style.display = 'none';
+    if (wrap1d) wrap1d.style.display = 'block';
+    if (rot2dTop) rot2dTop.style.display = 'none';
+    if (rot2dBottom) rot2dBottom.style.display = 'none';
+    if (window._three3d) window._three3d.stop();
+    window.render1D();
+  } else {
+    activate(btn2d, true); activate(btn3d, false); if (btn1d) activate(btn1d, false);
+    wrap3d.style.display = 'none';
+    if (wrap1d) wrap1d.style.display = 'none';
     canvas2d.style.display = 'block';
     if (rot2dTop) rot2dTop.style.display = '';
     if (rot2dBottom) rot2dBottom.style.display = '';
     if (window._three3d) window._three3d.stop();
   }
+};
+
+
+/* ═══════════════════════════════════════════
+   VUE 1D — le plateau en texte, monochrome
+   Pas de couleur, pas de skin, pas de canvas : les 61 cases en caracteres,
+   comme sur une invite de commande. Vue de lecture, comme la 3D.
+   ═══════════════════════════════════════════ */
+window.render1D = function () {
+  const pre = document.getElementById('board-1d-text');
+  if (!pre || typeof board === 'undefined') return;
+  const rows = (typeof ROWS !== 'undefined') ? ROWS : [5,6,7,8,9,8,7,6,5];
+  const L = [];
+  const cap = (typeof capturedByBlack !== 'undefined')
+    ? { b: capturedByBlack, w: capturedByWhite } : { b: 0, w: 0 };
+  const trait = (typeof currentTurn !== 'undefined') ? currentTurn : 'black';
+  const fin = (typeof gameOver !== 'undefined') && gameOver;
+
+  L.push('abalone> position');
+  L.push('');
+  for (let r = 0; r < 9; r++) {
+    let line = '';
+    // etiquette de rangee, prise du meme convertisseur que le reste de l'app
+    let lab = '?';
+    if (typeof coordToABAPRO === 'function') {
+      const t = coordToABAPRO(r, 0);
+      if (t) lab = String(t).charAt(0).toUpperCase();
+    }
+    line += ' ' + lab + ' ';
+    line += ' '.repeat(9 - rows[r]);
+    const cells = [];
+    for (let c = 0; c < rows[r]; c++) {
+      const v = board[r + ',' + c];
+      cells.push(v === 'black' ? '@' : v === 'white' ? 'O' : '.');
+    }
+    line += cells.join(' ');
+    L.push(line);
+  }
+  L.push('');
+  L.push('   @ = noirs   O = blancs   . = case vide');
+  L.push('');
+  L.push('   ejections   noirs ' + cap.b + '/6      blancs ' + cap.w + '/6');
+  L.push('   trait       ' + (fin ? 'partie terminee' : (trait === 'black' ? 'NOIRS' : 'BLANCS')));
+  L.push('');
+  L.push('abalone> _');
+  pre.textContent = L.join('\n');
+};
+window.refresh1DIfActive = function () {
+  if (window._boardView === '1d') window.render1D();
 };
 
 // Charge Three.js dynamiquement (depuis le CDN) puis initialise la scène
@@ -23060,6 +23191,200 @@ var AbaTB = (function () {
   return { loadFrom: loadFrom, probe: probe, _internals: { fromBoard: fromBoard, lookup: lookup, RC: RC, PAIRS: PAIRS, SYM: SYM } };
 })();
 
+
+/* ============================================================================
+   ABALASSEMBLY — SOLVEUR D'EJECTION FORCEE                    tablebase/solver.js
+   ----------------------------------------------------------------------------
+   L'equivalent Abalone d'un solveur de mat. Ne calcule aucune evaluation :
+   il ne renvoie que des faits demontres, ou "indetermine".
+
+   Deux objectifs :
+
+     AbaSolve.win(color, maxPlies)   Gain de PARTIE force : le camp atteint sa
+                                     6e ejection quoi que fasse l'adversaire.
+                                     Reponse positive = certitude absolue,
+                                     avec le nombre de demi-coups minimal.
+
+     AbaSolve.gain(color, maxPlies)  Gain MATERIEL force : +1 bille nette,
+                                     conservee jusqu'a l'horizon. Reponse
+                                     positive = certitude bornee a l'horizon
+                                     (l'adversaire peut se refaire apres).
+
+   Une reponse negative signifie toujours "pas de preuve dans cet horizon",
+   jamais "impossible".
+
+   Depend du moteur de la page : board, capturedByBlack, capturedByWhite,
+   getAllMovesForColor, applyMove, undoMove, hashBoard.
+   ========================================================================== */
+var AbaSolve = (function () {
+  'use strict';
+
+  var ABORT = { abort: true };
+  var ctx = null;
+
+  function other(c) { return c === 'black' ? 'white' : 'black'; }
+  function capturedBy(c) { return c === 'black' ? capturedByBlack : capturedByWhite; }
+
+  // cle de transposition : plateau + trait. Les compteurs d'ejection se
+  // deduisent du nombre de billes, donc le hash du plateau les porte deja.
+  function ttKey(side) {
+    var h = hashBoard() >>> 0;
+    return side === 'black' ? h : (h ^ 0x9e3779b9) >>> 0;
+  }
+
+  function order(moves) {
+    return moves.slice().sort(function (a, b) { return (a.code || 9) - (b.code || 9); });
+  }
+
+  /* Recherche ET/OU. Renvoie true si l'attaquant atteint l'objectif quoi que
+     joue le defenseur, dans le budget de demi-coups restant. */
+  function prove(side, plies) {
+    if (++ctx.nodes > ctx.maxNodes) throw ABORT;
+    if ((ctx.nodes & 1023) === 0 && Date.now() > ctx.deadline) throw ABORT;
+
+    // etats terminaux : la partie est finie, l'horizon ne compte plus
+    if (capturedBy(ctx.attacker) >= 6) return true;
+    if (capturedBy(ctx.defender) >= 6) return false;
+
+    if (plies <= 0) {
+      if (ctx.goal === 'win') return false;                    // pas de preuve
+      var net = (capturedBy(ctx.attacker) - ctx.baseAtt) - (capturedBy(ctx.defender) - ctx.baseDef);
+      return net >= ctx.target;
+    }
+
+    var key = ttKey(side), e = ctx.tt.get(key);
+    // une preuve trouvee dans un budget plus court vaut pour un budget plus long ;
+    // un echec constate dans un budget plus long vaut pour un budget plus court.
+    if (e) {
+      if (e.v === 1 && e.p <= plies) return true;
+      if (e.v === 0 && e.p >= plies) return false;
+    }
+
+    var moves = order(getAllMovesForColor(side));
+    var res;
+    if (!moves.length) {
+      res = (side === ctx.defender) ? true : false;   // camp bloque : rare, mais defini
+    } else if (side === ctx.attacker) {
+      res = false;
+      for (var i = 0; i < moves.length && !res; i++) {
+        var u = applyMove(moves[i], side);
+        if (prove(ctx.defender, plies - 1)) { res = true; ctx.best[plies] = moves[i]; }
+        undoMove(u);
+      }
+    } else {
+      res = true;
+      for (var j = 0; j < moves.length && res; j++) {
+        var u2 = applyMove(moves[j], side);
+        if (!prove(ctx.attacker, plies - 1)) res = false;
+        undoMove(u2);
+      }
+    }
+    ctx.tt.set(key, { p: plies, v: res ? 1 : 0 });
+    return res;
+  }
+
+  /* 'win' : objectif monotone (la partie s'arrete a la 6e ejection), donc
+     l'approfondissement iteratif donne la sequence la plus COURTE.
+     'gain' : objectif NON monotone — un horizon court est une affirmation plus
+     FAIBLE, pas une preuve plus courte. On y travaille donc a horizon fixe :
+     "+1 bille nette, conservee pendant N demi-coups". */
+  function run(color, maxPlies, goal, target, opts) {
+    opts = opts || {};
+    var t0 = Date.now(), totalNodes = 0;
+    var from = (goal === 'win') ? 1 : maxPlies;
+    for (var d = from; d <= maxPlies; d += 2) {
+      ctx = {
+        attacker: color, defender: other(color), goal: goal, target: target,
+        baseAtt: capturedBy(color), baseDef: capturedBy(other(color)),
+        tt: new Map(), best: {}, nodes: 0,
+        maxNodes: opts.maxNodes || 3000000,
+        deadline: t0 + (opts.timeMs || 4000)
+      };
+      var ok;
+      try { ok = prove(color, d); }
+      catch (err) {
+        if (err !== ABORT) throw err;
+        return { proved: false, aborted: true, plies: null, move: null, goal: goal,
+                 nodes: totalNodes + ctx.nodes, ms: Date.now() - t0, searched: d - 2 };
+      }
+      totalNodes += ctx.nodes;
+      if (ok) return { proved: true, aborted: false, plies: d, move: ctx.best[d] || null,
+                       goal: goal, nodes: totalNodes, ms: Date.now() - t0, searched: d };
+    }
+    return { proved: false, aborted: false, plies: null, move: null,
+             goal: goal, nodes: totalNodes, ms: Date.now() - t0, searched: maxPlies };
+  }
+
+  // profondeur unique, sans approfondissement iteratif (sert aux tests)
+  function at(color, plies, goal, target, opts) {
+    opts = opts || {};
+    ctx = { attacker: color, defender: other(color), goal: goal, target: target || 1,
+            baseAtt: capturedBy(color), baseDef: capturedBy(other(color)),
+            tt: new Map(), best: {}, nodes: 0,
+            maxNodes: opts.maxNodes || 3000000, deadline: Date.now() + (opts.timeMs || 10000) };
+    try { return { proved: prove(color, plies), nodes: ctx.nodes }; }
+    catch (e) { if (e !== ABORT) throw e; return { proved: null, nodes: ctx.nodes }; }
+  }
+
+  /* Detection de gaffe : apres le coup qui vient d'etre joue par `color`,
+     l'adversaire dispose-t-il d'un gain force ? Sert a annoter une partie
+     rejouee — c'est une erreur DEMONTREE, pas une baisse d'evaluation. */
+  function threat(color, plies, opts) {
+    return run(other(color), plies || 3, 'gain', 1, opts);
+  }
+
+  function ready() {
+    return typeof board !== 'undefined' && typeof getAllMovesForColor === 'function' &&
+           typeof applyMove === 'function' && typeof undoMove === 'function' &&
+           typeof hashBoard === 'function';
+  }
+
+  return {
+    _at: at,
+    ready: ready,
+    threat: threat,
+    // gain de partie force (6e ejection) — certitude absolue si proved
+    win: function (color, maxPlies, opts) { return run(color, maxPlies || 5, 'win', 0, opts); },
+    // gain materiel force de n billes nettes, conserve jusqu'a l'horizon
+    gain: function (color, maxPlies, n, opts) { return run(color, maxPlies || 5, 'gain', n || 1, opts); },
+    // phrase prete a afficher, sans jamais surpromettre
+    describe: function (r, color) {
+      var camp = color === 'black' ? 'Noirs' : 'Blancs';
+      if (r.aborted) return 'Indetermine : budget epuise apres ' + r.nodes.toLocaleString('fr-FR') + ' noeuds';
+      if (!r.proved) return r.goal === 'win'
+        ? 'Aucun gain de partie force en ' + r.searched + ' demi-coups'
+        : 'Aucun gain materiel force tenable sur ' + r.searched + ' demi-coups';
+      return r.goal === 'win'
+        ? camp + ' gagnent par la force en ' + r.plies + ' demi-coup' + (r.plies > 1 ? 's' : '')
+        : camp + ' gagnent une bille par la force, acquise et conservee sur ' + r.plies + ' demi-coups';
+    }
+  };
+})();
+
+
+/* ── Contrôleur de la page « Tables de finale » ── */
+function _tbOut(html){ var e=document.getElementById('tb-verdict'); if(e) e.innerHTML=html; }
+function tbConsultCurrent(){
+  if (typeof AbaTB === 'undefined' || !AbaTB.ready) { _tbOut('Tables non chargées.'); return; }
+  var r = AbaTB.probe(board, currentTurn);
+  var camp = currentTurn === 'black' ? 'Noirs' : 'Blancs';
+  if (!r) { _tbOut('<strong>Hors table.</strong> Les tables ne couvrent que 2 contre 2 et 3 contre 2 (mode Découverte). En jeu standard, ces positions ne surviennent jamais — utilise le solveur ci-dessus.'); return; }
+  if (r.wdl === 'DRAW') { _tbOut('<strong style="color:var(--gold)">Nulle démontrée.</strong> Aucun des deux camps ne peut forcer le gain, quoi qu\'il joue.'); return; }
+  var mv = r.moves && r.moves[0];
+  _tbOut('<strong style="color:var(--gold)">' + (r.wdl === 'WIN' ? camp + ' gagnent' : camp + ' perdent') + '</strong> — ' +
+    (r.wdl === 'WIN' ? 'gain forcé en ' : 'défaite forcée en ') + r.dtw + ' demi-coup' + (r.dtw > 1 ? 's' : '') + '.' +
+    (mv ? '<br><span style="color:var(--muted)">Meilleur coup : ' + mv.from.join(' + ') + ' → ' + mv.to.join(' + ') + (mv.eject ? ' (éjection)' : '') + '</span>' : ''));
+}
+function tbSolveCurrent(plies){
+  if (typeof AbaSolve === 'undefined' || !AbaSolve.ready()) { _tbOut('Solveur indisponible.'); return; }
+  _tbOut('Recherche en cours…');
+  setTimeout(function(){
+    var w = AbaSolve.win(currentTurn, plies, { timeMs: 4000 });
+    if (w.proved) { _tbOut('<strong style="color:var(--gold)">' + AbaSolve.describe(w, currentTurn) + '</strong><br><span style="color:var(--muted)">' + w.nodes.toLocaleString('fr-FR') + ' positions examinées en ' + w.ms + ' ms. Résultat certain : la partie s\'arrête à la 6e éjection.</span>'); return; }
+    var g = AbaSolve.gain(currentTurn, plies, 1, { timeMs: 4000 });
+    _tbOut('<strong>' + AbaSolve.describe(g, currentTurn) + '</strong><br><span style="color:var(--muted)">' + g.nodes.toLocaleString('fr-FR') + ' positions examinées en ' + g.ms + ' ms. ' + (g.proved ? 'Certitude bornée à l\'horizon : l\'adversaire peut se refaire au-delà.' : 'Une réponse négative signifie « pas de preuve dans cet horizon », jamais « impossible ».') + '</span>');
+  }, 30);
+}
 
 /* ---------- donnees embarquees ---------- */
 (function () {
