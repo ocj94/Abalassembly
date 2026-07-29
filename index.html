@@ -884,6 +884,16 @@ h2 {
 /* Selection en video inverse — la convention du terminal, et surtout aucun
    caractere ajoute qui decalerait la grille. */
 #board-1d-text .c1d.sel { background: #e8e8e8; color: #000; }
+/* Indices de coups — exactement les couleurs de la 2D : le vert des points de
+   deplacement (rgba(74,148,99)) et le rouge des points de poussee
+   (rgba(224,92,75)). Meme code couleur d'une vue a l'autre. */
+#board-1d-text .c1d.depl    { color: #4a9463; font-weight: 700; }
+#board-1d-text .c1d.pousse  { color: #e05c4b; font-weight: 700; }
+/* Une bille n'est JAMAIS recoloree ni surlignee : sa couleur est ce qui dit a
+   qui elle appartient. Seules les cases de destination changent d'aspect.
+   Signale par Olivier. */
+#board-1d-text .lg-depl     { color: #4a9463; }
+#board-1d-text .lg-pousse   { color: #e05c4b; }
 
 .game-controls {
   padding: 20px; border-top: 1px solid var(--border);
@@ -3182,6 +3192,17 @@ document.addEventListener('keydown', function(e){
           <span class="clock-time" id="clock-top-time">10:00</span>
         </div>
         <canvas id="board" width="640" height="640"></canvas>
+        <!-- Vues 1D et 3D : elles remplacent le canvas 2D, elles doivent donc
+             occuper SA place, entre les deux barres de joueur. Placees apres
+             clock-bottom, elles rejetaient les deux barres au-dessus du plateau
+             et « Vous (noirs) » se retrouvait du cote de l'adversaire. -->
+        <div id="board-1d" style="display:none;width:640px;max-width:100%;aspect-ratio:1;border-radius:12px;overflow:auto;background:#000;border:1px solid #333;position:relative;margin:0 auto;padding:18px 14px;box-sizing:border-box">
+          <pre id="board-1d-text" style="margin:0;font-family:'DM Mono',ui-monospace,'Courier New',monospace;color:#e8e8e8;font-size:14px;line-height:1.5;letter-spacing:1px;white-space:pre;user-select:text"></pre>
+        </div>
+        <div id="board-3d" style="display:none;width:640px;max-width:100%;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#14141a;position:relative;margin:0 auto">
+          <canvas id="board-3d-canvas" style="width:100%;height:100%;display:block;cursor:grab"></canvas>
+          <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:10px;color:#666;pointer-events:none;white-space:nowrap">Glisse pour tourner · molette pour zoomer · vue lecture seule</div>
+        </div>
         <!-- Votre horloge : sous le plateau, du cote de vos billes -->
         <div class="clock-bar" id="clock-bottom">
           <span class="clock-who" id="clock-bottom-who">Vous</span>
@@ -3191,15 +3212,6 @@ document.addEventListener('keydown', function(e){
         <div class="rot-ctl" id="rot2d-bottom" style="bottom:22%" title="Rotation (votre côté)">
           <button class="rot-btn" onclick="rotateBoard(-60)" title="Pivoter anti-horaire">↺</button>
           <button class="rot-btn" onclick="rotateBoard(60)" title="Pivoter horaire">↻</button>
-        </div>
-        <!-- Vue 1D : le plateau en texte, monochrome, esprit terminal -->
-        <div id="board-1d" style="display:none;width:640px;max-width:100%;aspect-ratio:1;border-radius:12px;overflow:auto;background:#000;border:1px solid #333;position:relative;margin:0 auto;padding:18px 14px;box-sizing:border-box">
-          <pre id="board-1d-text" style="margin:0;font-family:'DM Mono',ui-monospace,'Courier New',monospace;color:#e8e8e8;font-size:14px;line-height:1.5;letter-spacing:1px;white-space:pre;user-select:text"></pre>
-        </div>
-        <!-- Conteneur du rendu 3D (caché par défaut) -->
-        <div id="board-3d" style="display:none;width:640px;max-width:100%;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#14141a;position:relative;margin:0 auto">
-          <canvas id="board-3d-canvas" style="width:100%;height:100%;display:block;cursor:grab"></canvas>
-          <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:10px;color:#666;pointer-events:none;white-space:nowrap">Glisse pour tourner · molette pour zoomer · vue lecture seule</div>
         </div>
         <!-- Temps restant : decompte, place directement sous le plateau -->
         <div id="game-timer-box" style="display:flex;align-items:center;justify-content:center;gap:8px;margin:10px auto 0;padding:8px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;width:fit-content">
@@ -4883,7 +4895,7 @@ document.addEventListener('keydown', function(e){
             </div>
             <label style="position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0">
               <input type="checkbox" id="coords-toggle-acc" style="opacity:0;width:0;height:0"
-                onchange="showBoardCoords=this.checked;if(typeof drawBoard==='function')drawBoard();this.nextElementSibling.style.background=this.checked?'var(--gold)':'var(--border)'">
+                onchange="toggleBoardCoords(this.checked);this.nextElementSibling.style.background=this.checked?'var(--gold)':'var(--border)'">
               <span style="position:absolute;inset:0;background:var(--border);border-radius:12px;cursor:pointer;transition:0.2s"></span>
             </label>
           </div>
@@ -8092,7 +8104,7 @@ function syncNotationToggles() {
 }
 
 function syncCoordsToggles(on) {
-  ['setup-coords','game-coords-toggle','settings-coords-toggle'].forEach(function(id){
+  ['setup-coords','game-coords-toggle','settings-coords-toggle','show-coords-toggle','coords-toggle-acc'].forEach(function(id){
     var el = document.getElementById(id);
     if (el && el.type === 'checkbox') {
       el.checked = on;
@@ -10462,6 +10474,61 @@ function initBoardState() {
   layout.white.forEach(function(p){ board[p[0]+','+p[1]] = 'white'; });
 }
 
+/* ── Indices de coups : calcul partage entre la 2D et la 1D ──────────────
+   Ce calcul vivait en clair dans drawBoard. La vue 1D en a besoin a
+   l'identique : plutot que de le recopier — et de le voir diverger du moteur
+   a la premiere evolution — on l'isole ici. Une vue ne decide de rien, elle
+   demande. validateMove et getAllMovesForColor lisent le plateau global
+   'board' : on le permute le temps du calcul, et on le restaure meme en cas
+   d'exception. */
+function computeMoveHints(sel, turn, boardData) {
+  const out = [];
+  if (!sel || !sel.length || typeof validateMove !== 'function') return out;
+  const savedB = board;
+  board = boardData || board;
+  try {
+    for (const dir of AX_DIRS) {
+      const info = validateMove(sel, dir, turn);
+      if (!info.valid) continue;
+      const ax = sel.map(s => rcToAxial(s.r, s.c));
+      if (info.type === 'broadside') {
+        // coup en fleche : chaque bille avance d'une case, toutes vides
+        ax.forEach(a => { const d = axialToRc(a.q+dir.q, a.r+dir.r); if (d) out.push({ r:d.r, c:d.c, push:false }); });
+      } else {
+        // coup en ligne : seule la case devant la bille de tete est concernee
+        const sorted = ax.slice().sort((a,b)=>(a.q*dir.q+a.r*dir.r)-(b.q*dir.q+b.r*dir.r));
+        const head = sorted[sorted.length-1];
+        const d = axialToRc(head.q+dir.q, head.r+dir.r);
+        if (d) out.push({ r:d.r, c:d.c, push: info.type==='push' });
+      }
+    }
+  } finally { board = savedB; }
+  return out;
+}
+
+/* Billes du camp au trait ayant au moins un coup legal. Memorise sur une
+   signature du plateau : drawBoard peut etre rappele plusieurs fois par
+   seconde (animations, halos de menace pulses) et la generation de coups
+   n'a aucune raison d'etre refaite tant que rien n'a bouge. */
+let _playableMemo = { key: null, set: null };
+function computePlayableCells(turn, boardData) {
+  const brd = boardData || board;
+  if (typeof getAllMovesForColor !== 'function') return new Set();
+  const key = turn + '|' + Object.keys(brd).sort().map(function(k){ return k + brd[k].charAt(0); }).join('');
+  if (_playableMemo.key === key) return _playableMemo.set;
+  const set = new Set();
+  const savedB = board;
+  board = brd;
+  try {
+    getAllMovesForColor(turn).forEach(function(mv){
+      mv.cells.forEach(function(c){ set.add(c.r + ',' + c.c); });
+    });
+  } catch(e) { /* ne bloque jamais l'affichage si le calcul echoue */ }
+  finally { board = savedB; }
+  _playableMemo = { key: key, set: set };
+  return set;
+}
+
 function drawBoard(opts) {
   opts = opts || {};
   const canvasId = opts.canvasId || 'board';
@@ -10662,40 +10729,14 @@ function drawBoard(opts) {
 
   // ── Indices de coups : cases où la sélection peut aller (si activé) ──
   const turnForHints = opts.turn || currentTurn;
-  let hintCells = [];
-  if (showHints && sel.length > 0 && typeof validateMove === 'function') {
-    const savedB = board; board = boardData;   // validateMove lit 'board'
-    for (const dir of AX_DIRS) {
-      const info = validateMove(sel, dir, turnForHints);
-      if (info.valid) {
-        const ax = sel.map(s => rcToAxial(s.r, s.c));
-        if (info.type === 'broadside') {
-          ax.forEach(a => { const d = axialToRc(a.q+dir.q, a.r+dir.r); if (d) hintCells.push({ r:d.r, c:d.c, push:false }); });
-        } else {
-          const sorted = ax.slice().sort((a,b)=>(a.q*dir.q+a.r*dir.r)-(b.q*dir.q+b.r*dir.r));
-          const head = sorted[sorted.length-1];
-          const d = axialToRc(head.q+dir.q, head.r+dir.r);
-          if (d) hintCells.push({ r:d.r, c:d.c, push: info.type==='push' });
-        }
-      }
-    }
-    board = savedB;
-  }
+  const hintCells = (showHints && sel.length > 0)
+    ? computeMoveHints(sel, turnForHints, boardData) : [];
 
   // ── Mode Enfant : met en évidence, AVANT toute sélection, toutes les
   //    billes du joueur au trait qui ont au moins un coup légal — évite à
   //    un jeune joueur de chercher au hasard laquelle peut bouger.
-  let kidsPlayableCells = null;
-  if (typeof kidsMode !== 'undefined' && kidsMode && sel.length === 0 && typeof getAllMovesForColor === 'function') {
-    const savedB2 = board; board = boardData;
-    kidsPlayableCells = new Set();
-    try {
-      getAllMovesForColor(turnForHints).forEach(function(mv){
-        mv.cells.forEach(function(c){ kidsPlayableCells.add(c.r + ',' + c.c); });
-      });
-    } catch(e) { /* ne bloque jamais l'affichage si le calcul échoue */ }
-    board = savedB2;
-  }
+  const kidsPlayableCells = (typeof kidsMode !== 'undefined' && kidsMode && sel.length === 0)
+    ? computePlayableCells(turnForHints, boardData) : null;
 
   for (let r=0;r<9;r++) {
     for (let c=0;c<ROWS[r];c++) {
@@ -11909,24 +11950,46 @@ function setTimeControl(v){
 /* Un seul endroit decide de l'affichage des horloges : les deux blocs de la
    colonne laterale et les deux barres autour du plateau. Tant qu'ils etaient
    peints separement, l'un pouvait rester allume pendant que l'autre s'eteignait. */
-function _clockPaintFree(){
-  // Cadence libre : pas de temps. On affiche un tiret neutre, sans surbrillance.
-  ['timer-me','timer-opponent','clock-bottom-time','clock-top-time'].forEach(function(id){
-    const t=document.getElementById(id); if(t) t.textContent='–';
-  });
-  ['clock-bottom','clock-top'].forEach(function(id){
-    const b=document.getElementById(id); if(b){ b.classList.remove('active'); b.classList.remove('low'); }
-  });
-  const tm=document.getElementById('timer-me'), to=document.getElementById('timer-opponent');
-  if(tm) tm.classList.remove('active'); if(to) to.classList.remove('active');
-}
-
-function _clockPaint(mineActive){
+/* Les libelles des deux barres, calcules au meme endroit pour les deux modes
+   de peinture : en cadence libre comme en cadence chronometree, ils doivent
+   dire la meme chose. */
+function _clockNames(){
   const mine = _clockMine();
   const oppName = (typeof opponentBot !== 'undefined' && opponentBot)
     ? (opponentBot === 'black' ? 'Bot Noir' : 'Bot Blanc')
     : ((typeof gameMode !== 'undefined' && gameMode === 'local') ? 'Joueur blanc' : 'Adversaire');
   const meName = (typeof gameMode !== 'undefined' && gameMode === 'local') ? 'Joueur noir' : 'Vous';
+  const wt = document.getElementById('clock-top-who');
+  if (wt) wt.textContent = oppName + ' (' + (mine === 'black' ? 'blancs' : 'noirs') + ')';
+  const wb = document.getElementById('clock-bottom-who');
+  if (wb) wb.textContent = meName + ' (' + (mine === 'black' ? 'noirs' : 'blancs') + ')';
+}
+
+function _clockPaintFree(){
+  // Cadence libre : pas de temps. On affiche un tiret neutre.
+  ['timer-me','timer-opponent','clock-bottom-time','clock-top-time'].forEach(function(id){
+    const t=document.getElementById(id); if(t) t.textContent='–';
+  });
+  _clockNames();
+  /* Le trait, lui, reste indispensable : sans horloge qui tourne, le lisere
+     dore est le seul repere disant a qui de jouer. On garde donc exactement
+     la meme mise en evidence que les cadences chronometrees, simplement sans
+     chiffres. Demande d'Olivier.
+     Aucun trait n'est marque hors partie vivante : replay, puzzle, match de
+     tournoi ou partie terminee — marquer un camp y serait trompeur. */
+  const vivante = !((typeof gameOver !== 'undefined' && gameOver) || _clockExempt());
+  const mienActif = vivante && (typeof currentTurn !== 'undefined') && currentTurn === _clockMine();
+  const advActif  = vivante && !mienActif;
+  [['clock-bottom', mienActif], ['clock-top', advActif]].forEach(function(p){
+    const b=document.getElementById(p[0]);
+    if(b){ b.classList.toggle('active', p[1]); b.classList.remove('low'); }
+  });
+  const tm=document.getElementById('timer-me'), to=document.getElementById('timer-opponent');
+  if(tm) tm.classList.toggle('active', mienActif);
+  if(to) to.classList.toggle('active', advActif);
+}
+
+function _clockPaint(mineActive){
   const pairs = [
     ['timer-me', null, myTime, mineActive],
     ['timer-opponent', null, oppTime, !mineActive],
@@ -11942,10 +12005,7 @@ function _clockPaint(mineActive){
       box.classList.toggle('low', _timeCtlBase > 0 && p[2] <= 30);
     }
   });
-  const wt = document.getElementById('clock-top-who');
-  if (wt) wt.textContent = oppName + ' (' + (mine === 'black' ? 'blancs' : 'noirs') + ')';
-  const wb = document.getElementById('clock-bottom-who');
-  if (wb) wb.textContent = meName + ' (' + (mine === 'black' ? 'noirs' : 'blancs') + ')';
+  _clockNames();
 }
 
 function _clockExempt(){
@@ -18438,7 +18498,6 @@ function setMarbleColor(piece, style, btn) {
   drawBoard();
 }
 
-let showBoardCoords = false;
 let showMoveHints = (function(){ try { const v = localStorage.getItem('abalone_show_hints'); return v === null ? true : v === '1'; } catch(e){ return true; } })();
 let showCoordinates = (function(){ try { return localStorage.getItem('abalone_show_coords') === '1'; } catch(e){ return false; } })();
 let showLastMoveArrow = (function(){ try { const v = localStorage.getItem('abalone_show_last_arrow'); return v === null ? true : v === '1'; } catch(e){ return true; } })();
@@ -18456,7 +18515,10 @@ function toggleLastMoveArrow(v) {
   if (typeof drawBoard === 'function') drawBoard();
 }
 
-function toggleBoardCoords(v) { showBoardCoords = v; drawBoard(); }
+/* Ecrivait dans showBoardCoords, que rien ne lisait : drawBoard consulte
+   showCoordinates. Les deux cases « coordonnees » de l'accessibilite etaient
+   donc sans effet. On delegue au seul reglage reel. */
+function toggleBoardCoords(v) { toggleCoordinates(v); syncCoordsToggles(v); }
 function toggleMoveHints(v)   {
   showMoveHints = v;
   try { localStorage.setItem('abalone_show_hints', v ? '1' : '0'); } catch(e){}
@@ -22742,6 +22804,19 @@ window.setBoardView = function(view) {
   }
   const wrap1d = document.getElementById('board-1d');
   const btn1d = document.getElementById('view-1d-btn');
+  /* En 2D et en 3D la bascule flotte au-dessus d'un plateau rond : elle tombe
+     dans un angle vide. En 1D le plateau est un bloc de texte qui monte
+     jusqu'en haut a gauche, et la bascule recouvrait les rangees I et H. On
+     la colle donc dans l'angle, et le texte demarre sous elle — la decaler
+     seulement vers la gauche n'aurait pas suffi sur un ecran etroit, ou elle
+     est plus large que la marge disponible. Signale par Olivier. */
+  const bascule = document.getElementById('view-toggle');
+  const texte1d = document.getElementById('board-1d-text');
+  if (bascule) {
+    bascule.style.top  = (view === '1d') ? '4px' : '11%';
+    bascule.style.left = (view === '1d') ? '4px' : '3%';
+  }
+  if (texte1d) texte1d.style.paddingTop = (view === '1d') ? '44px' : '0';
   if (view === '3d') {
     activate(btn3d, true); activate(btn2d, false); if (btn1d) activate(btn1d, false);
     canvas2d.style.display = 'none';
@@ -22812,43 +22887,117 @@ window.render1D = function () {
     return false;
   };
 
-  L.push('abalone&gt; position');
-  L.push('');
+  /* Indices de coups — memes regles, memes couleurs que la 2D, et surtout
+     la meme fonction de calcul : computeMoveHints. Rien n'est recalcule ici,
+     la 1D ne fait que colorer ce qu'on lui repond.
+       . vert  = la selection peut venir sur cette case (deplacement)
+       @ rouge = la selection peut pousser cette bille (poussee)
+     Seules les CASES changent de couleur. Une bille garde toujours la sienne :
+     c'est elle qui dit a qui elle appartient. */
+  const aideOn = (typeof showMoveHints !== 'undefined') ? showMoveHints : true;
+  let hints = [];
+  if (aideOn && jouable && sel.length && typeof computeMoveHints === 'function') {
+    hints = computeMoveHints(sel, trait, board);
+  }
+  const hintAt = function (r, c) {
+    for (let i = 0; i < hints.length; i++) if (hints[i].r === r && hints[i].c === c) return hints[i];
+    return null;
+  };
+
+  /* ── Mise en page ────────────────────────────────────────────────────
+     L'hexagone doit tomber au milieu du bloc. Il ne l'etait pas : les neuf
+     rangees etaient bien regulieres (leurs cases centrees sur la colonne 11)
+     mais la colonne des etiquettes n'existe qu'a gauche, si bien que le
+     centre du bloc tombait 1,5 caractere plus a gauche que celui du plateau
+     — et les lignes d'information, plus larges, aggravaient l'ecart.
+     On procede donc dans l'autre sens : on mesure d'abord la largeur du
+     bloc, on y centre le champ de 17 caracteres qu'occupent les cases, puis
+     on pose chaque etiquette juste avant sa rangee. Les etiquettes suivent
+     alors le bord gauche de l'hexagone, ce qui est aussi plus lisible.
+     Signale par Olivier. */
+  /* Largeur du bloc FIXE. Si on la deduisait des lignes d'information, elle
+     changerait avec elles — la ligne d'aide n'apparait qu'une fois une bille
+     choisie — et l'hexagone sauterait lateralement a chaque selection.
+     BORD = 9 place le champ de 17 caracteres des cases exactement au milieu
+     d'un bloc de 35 : centre du plateau et centre du bloc tombent tous deux
+     sur la colonne 17. Les lignes d'information tiennent dans ces 35. */
+  const CASES = 9 * 2 - 1;                        // 17 : la rangee E, la plus longue
+  const BORD  = 9;                                // marge de chaque cote
+  const W     = CASES + BORD * 2;                 // 35
+
+  const infos = [];                               // lignes sous le plateau
+  infos.push('O = noirs   @ = blancs   . = vide');
+  if (aideOn && jouable && sel.length) {
+    infos.push('<span class="lg-depl">vert</span> = deplacement  <span class="lg-pousse">rouge</span> = poussee');
+  }
+  infos.push('');
+  infos.push('ejections   noirs ' + cap.b + '/6   blancs ' + cap.w + '/6');
+  infos.push('trait       ' + (fin ? 'partie terminee' : (trait === 'black' ? 'NOIRS' : 'BLANCS')));
+  infos.push('selection   ' + (sel.length
+    ? sel.map(function (s) {
+        return (typeof coordToABAPRO === 'function') ? coordToABAPRO(s.r, s.c) : (s.r + ',' + s.c);
+      }).join(' ')
+    : '(aucune)'));
+  infos.push('');
+  infos.push(jouable
+    ? 'abalone&gt; clique une bille ' + (trait === 'black' ? 'O' : '@') + ' _'
+    : 'abalone&gt; (lecture seule) _');
+
+  /* Reperes A-I et 1-9, sous le meme reglage que la 2D (« Coordonnees des
+     cases », dans Aides). Les chiffres suivent la geometrie reelle de la
+     notation Aba-Pro : ce sont des diagonales nord-ouest / sud-est, reperees
+     par leur extremite BAS-DROITE. Concretement 1 a 5 se posent sous la
+     rangee A, et 6 a 9 le long du bord bas-droit, contre les rangees B, C, D
+     et E — exactement le trace que tu as entoure en rouge. */
+  const coordsOn = (typeof showCoordinates !== 'undefined') ? showCoordinates : true;
+
   for (let r = 0; r < 9; r++) {
     let line = '';
     // etiquette de rangee, prise du meme convertisseur que le reste de l'app
-    let lab = '?';
-    if (typeof coordToABAPRO === 'function') {
+    let lab = ' ';
+    if (coordsOn && typeof coordToABAPRO === 'function') {
       const t = coordToABAPRO(r, 0);
       if (t) lab = String(t).charAt(0).toUpperCase();
     }
-    line += ' ' + lab + ' ';
-    line += ' '.repeat(9 - rows[r]);
+    // decalage de la rangee dans le champ des cases, puis etiquette accolee
+    const creux = BORD + (9 - rows[r]);
+    line += ' '.repeat(creux - 2) + lab + ' ';
     const cells = [];
     for (let c = 0; c < rows[r]; c++) {
       const v = board[r + ',' + c];
       // O = noirs, @ = blancs (convention retenue par Olivier)
       const ch = (v === 'black') ? 'O' : (v === 'white') ? '@' : '.';
-      cells.push('<span class="c1d' + (estSel(r, c) ? ' sel' : '') + '"'
-        + ' data-r="' + r + '" data-c="' + c + '">' + ch + '</span>');
+      let cls = 'c1d';
+      if (estSel(r, c)) {
+        cls += ' sel';
+      } else {
+        const h = hintAt(r, c);
+        if (h) cls += h.push ? ' pousse' : ' depl';
+      }
+      cells.push('<span class="' + cls + '" data-r="' + r + '" data-c="' + c + '">' + ch + '</span>');
     }
     line += cells.join(' ');
+    /* Chaque chiffre se pose sur le PROLONGEMENT de sa propre diagonale, un
+       cran plus bas et un cran plus a droite que sa derniere case. La
+       diagonale 9 finit en e9 : son repere tombe donc au bout de la ligne de
+       la rangee D, pas de celle de E. De meme 8 au bout de C, 7 au bout de B,
+       6 au bout de A, et 5 en pied. Les reperes longent ainsi exactement le
+       bord bas-droit du plateau. Signale par Olivier. */
+    if (coordsOn && r >= 5) line += ' ' + (14 - r);
     L.push(line);
   }
+  if (coordsOn) {
+    /* Numeros 1 a 5 en pied. Chacun est pose EN BAS A DROITE de la derniere
+       case de sa diagonale — un cran plus bas, un cran plus a droite — et non
+       a l'aplomb de la case : c'est ainsi que les reperes sortent du plateau,
+       le long du bord. Le 5 tombe alors pile dans l'angle bas-droit, dans le
+       prolongement de a5. Signale par Olivier. */
+    let pied = ' '.repeat(BORD + 5);
+    for (let n = 1; n <= 5; n++) pied += (n > 1 ? ' ' : '') + n;
+    L.push(pied);
+  }
   L.push('');
-  L.push('   O = noirs   @ = blancs   . = case vide');
-  L.push('');
-  L.push('   ejections   noirs ' + cap.b + '/6      blancs ' + cap.w + '/6');
-  L.push('   trait       ' + (fin ? 'partie terminee' : (trait === 'black' ? 'NOIRS' : 'BLANCS')));
-  L.push('   selection   ' + (sel.length
-    ? sel.map(function (s) {
-        return (typeof coordToABAPRO === 'function') ? coordToABAPRO(s.r, s.c) : (s.r + ',' + s.c);
-      }).join(' ')
-    : '(aucune)'));
-  L.push('');
-  L.push(jouable
-    ? 'abalone&gt; clique une bille ' + (trait === 'black' ? 'O' : '@') + ' puis une case voisine _'
-    : 'abalone&gt; (lecture seule) _');
+  infos.forEach(function (l) { L.push(l); });
   pre.innerHTML = L.join('\n');
   pre.classList.toggle('jouable', jouable);
 };
