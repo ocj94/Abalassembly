@@ -1,0 +1,11 @@
+{
+ "source": "KAA_NEXT_MOVE_REF_1500_0_sansNull.csv",
+ "layout": "belgian",
+ "total_transitions": 137045,
+ "positions_all": 91403,
+ "positions_kept": 90,
+ "min_games": 30,
+ "root_posRef": "0a12b123c23g78h789i89",
+ "root_in_tree": true,
+ "note": "Index par posRef du camp au trait (segment avant \"_\"). Chaque valeur : coup -> [W,L,D]."
+}
