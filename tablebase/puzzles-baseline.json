@@ -1,0 +1,42 @@
+{
+ "comment": "Puzzles casses connus, constates a l'introduction de l'audit (v1.24). La CI echoue si un puzzle NON liste ici casse, ou si l'un de ceux-ci est corrige sans mettre a jour cette reference. Le but est de ne plus reculer, puis de vider cette liste.",
+ "horizon": 3,
+ "known_broken": [
+  {
+   "idx": 67,
+   "lab": "d1c1",
+   "verdict": "SOLUTION FAUSSE",
+   "src": "vincent vs Seohee Park · custom · 2022-05-11"
+  },
+  {
+   "idx": 69,
+   "lab": "d8e8",
+   "verdict": "SANS SOLUTION",
+   "src": "saabalone vs pianoman · standard · 2020-11-06"
+  },
+  {
+   "idx": 72,
+   "lab": "i8i9",
+   "verdict": "SOLUTION FAUSSE",
+   "src": "Kihece vs Vind313 · custom · 2022-02-19"
+  },
+  {
+   "idx": 73,
+   "lab": "e8d7",
+   "verdict": "SANS SOLUTION",
+   "src": "kihece vs saabalone · german_daisy · 2021-09-27"
+  },
+  {
+   "idx": 74,
+   "lab": "c1d1",
+   "verdict": "SANS SOLUTION",
+   "src": "anniii0000 vs tallox19 · standard · 2021-06-11"
+  },
+  {
+   "idx": 77,
+   "lab": "h8h7",
+   "verdict": "SANS SOLUTION",
+   "src": "Claudie vs Amatino · standard · 2022-01-02"
+  }
+ ]
+}
