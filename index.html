@@ -5470,6 +5470,19 @@ document.addEventListener('keydown', function(e){
   </div>
 </div>
 
+
+<!-- PAGE: LABO IA -->
+<div class="page" id="page-lab">
+  <div style="padding-top:64px">
+    <div class="page-header" style="padding:40px 60px 0">
+      <div class="section-label">Moteur</div>
+      <h2>Labo d'auto-amélioration récursive</h2>
+      <p style="color:var(--muted);font-size:14px;max-width:680px">Duels réels moteur contre moteur, dans un worker dédié — tu peux continuer à jouer pendant.</p>
+    </div>
+    <div id="page-lab-host" style="padding:24px 60px 60px;max-width:900px"></div>
+  </div>
+</div>
+
 <!-- PAGE: MUSEUM -->
 <div class="page" id="page-mentions">
   <div class="page-header">
@@ -14479,11 +14492,39 @@ function _labReject(st, cf, undecided){
   st.history.unshift({gen:st.gen, type:(undecided?'\u2753 ind\u00e9cis (cap 60)':'\u2717 rejet\u00e9 (SPRT)'), name:cf.name, score:cf.score, games:cf.done, elo:_labEloStr(cf.W||0,cf.D||0,cf.L||0)});
   st.gen++; st.cands=labMutants(st.champion, st.gen); st.confirm=null; st.phase='screen';
 }
+/* Le Labo s'ouvre desormais comme une page a part entiere, pas comme une
+   fenetre : sur telephone, une boite de 520 px plafonnee a 84vh rendait les
+   tableaux illisibles. Le contenu est deplace une seule fois du modal vers la
+   page, et les styles propres a la fenetre sont neutralises. */
+function _labMigrateToPage(){
+  const modal=document.getElementById('lab-modal');
+  const host=document.getElementById('page-lab-host');
+  if(!modal||!host) return false;
+  const box=modal.firstElementChild;
+  if(box && !host.firstElementChild){
+    box.style.maxWidth='none'; box.style.width='auto'; box.style.maxHeight='none';
+    box.style.border='none'; box.style.background='transparent'; box.style.padding='0';
+    box.style.overflow='visible';
+    // le titre et la croix de fermeture font double emploi avec l'en-tete de page
+    const head=box.firstElementChild;
+    if(head) head.style.display='none';
+    host.appendChild(box);
+  }
+  return !!host.firstElementChild;
+}
 function openLabModal(){
   if (typeof kidsMode !== 'undefined' && kidsMode) { showToast('🧒 Le Labo IA n\'est pas disponible en mode Enfant'); return; }
-  const m=document.getElementById('lab-modal'); if(m){ m.style.display='flex'; renderLab(); }
+  _labMigrateToPage();
+  if (typeof showPage === 'function') showPage('lab');
+  if (typeof renderLab === 'function') renderLab();
 }
-function closeLabModal(){ const m=document.getElementById('lab-modal'); if(m) m.style.display='none'; }
+/* Conservee pour les appels existants : il n'y a plus de fenetre a fermer,
+   on revient simplement a l'accueil. */
+function closeLabModal(){
+  const m=document.getElementById('lab-modal');
+  if(m) m.style.display='none';
+  if (typeof showPage === 'function') showPage('home');
+}
 // ══ Outils avancés du Labo (programmeurs) ══
 function _labWeightsFromInputs(){
   const w={};
