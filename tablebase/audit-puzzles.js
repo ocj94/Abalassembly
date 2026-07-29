@@ -14,10 +14,18 @@
      SOLUTION FAUSSE    des coups evitent la perte, mais pas celui enregistre
      TRIVIAL            plus de la moitie des coups conviennent : puzzle sans interet
 
-   Usage : extraire index.html a cote de ce fichier, puis `node audit-puzzles.js`
+   Usage : node audit-puzzles.js [index.html] [--baseline fichier.json]
+
+   Avec --baseline, la sortie vaut 1 seulement si un puzzle NON reference casse,
+   ou si un puzzle de la reference a ete corrige sans mettre la reference a jour.
+   C'est ce mode qu'utilise l'integration continue : on interdit de reculer,
+   sans bloquer sur les cas connus au moment ou l'audit a ete introduit.
    ========================================================================== */
 const fs = require('fs');
-const path = process.argv[2] || 'index.html';
+const argv = process.argv.slice(2);
+const bi = argv.indexOf('--baseline');
+const baselinePath = bi >= 0 ? argv[bi + 1] : null;
+const path = argv.filter((a, i) => a !== '--baseline' && (bi < 0 || i !== bi + 1))[0] || 'index.html';
 const src = fs.readFileSync(path, 'utf8');
 
 // --- moteur : on reutilise celui du Web Worker, seule source de verite ---
@@ -82,4 +90,30 @@ console.log(`  triviaux            : ${nTriv}`);
 console.log(`  A CORRIGER          : ${nBad}`);
 fs.writeFileSync('audit-puzzles.json', JSON.stringify({ horizon: HORIZON, total: PUZ.length, report }, null, 1));
 console.log('\nrapport detaille : audit-puzzles.json');
-process.exit(nBad ? 1 : 0);
+
+if (!baselinePath) process.exit(nBad ? 1 : 0);
+
+// ── comparaison a la reference des cas connus ──
+const base = JSON.parse(fs.readFileSync(baselinePath, 'utf8'));
+const known = new Set(base.known_broken.map(x => x.idx + ':' + x.verdict));
+const now = new Set(report.filter(r => r.verdict === 'SANS SOLUTION' || r.verdict === 'SOLUTION FAUSSE')
+                          .map(r => r.idx + ':' + r.verdict));
+const nouveaux = [...now].filter(k => !known.has(k));
+const corriges = [...known].filter(k => !now.has(k));
+
+console.log('\n── comparaison a ' + baselinePath + ' ──');
+if (nouveaux.length) {
+  console.error('  REGRESSION : ' + nouveaux.length + ' puzzle(s) casse(s) hors reference');
+  nouveaux.forEach(k => {
+    const r = report.find(x => x.idx + ':' + x.verdict === k);
+    console.error('    #' + r.idx + ' ' + r.lab + ' — ' + r.verdict + ' (partie : ' + (r.src || '?') + ')');
+  });
+}
+if (corriges.length) {
+  console.error('  ' + corriges.length + ' puzzle(s) de la reference ne cassent plus : mets a jour ' + baselinePath);
+  corriges.forEach(k => console.error('    ' + k));
+}
+if (!nouveaux.length && !corriges.length) {
+  console.log('  aucun changement : ' + known.size + ' cas connus, aucune regression.');
+}
+process.exit((nouveaux.length || corriges.length) ? 1 : 0);

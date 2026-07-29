@@ -1,0 +1,46 @@
+name: Vérification
+
+# Abalassembly est un mono-fichier de 2,8 Mo : rien ne signale une régression
+# avant l'ouverture dans un navigateur. Ces contrôles s'exécutent à chaque
+# poussée et transforment « ça marchait la dernière fois » en fait vérifié.
+# Durée totale : environ 30 secondes.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 1/3 — une erreur de syntaxe dans n'importe quel bloc casse toute l'app
+      - name: Syntaxe des blocs script
+        run: node tools/check-scripts.js index.html
+
+      # 2/3 — les tables embarquées en base64 doivent rester égales aux JSON sources
+      - name: Tables embarquées conformes aux références
+        run: node tools/check-embedded.js index.html
+
+      # 3/3 — chaque puzzle doit avoir une solution démontrable.
+      # La référence fige les cas connus : on échoue seulement si ça empire.
+      - name: Audit des puzzles par preuve
+        run: node tablebase/audit-puzzles.js index.html --baseline tablebase/puzzles-baseline.json
+
+      - name: Rapport d'audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-puzzles
+          path: audit-puzzles.json
+          if-no-files-found: ignore
