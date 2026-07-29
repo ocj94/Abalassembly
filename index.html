@@ -788,6 +788,16 @@ h2 {
 .game-right-panel {
   background: var(--surface); border-left: 1px solid var(--border);
   display: flex; flex-direction: column;
+  /* .game-layout n'impose qu'un min-height : sans hauteur definie ici, la
+     colonne droite s'etirait avec son contenu. L'historique (.move-history,
+     flex:1 + overflow-y:auto) ne declenchait alors jamais son ascenseur — il
+     poussait simplement .game-controls vers le bas, et les quatre derniers
+     boutons (Annuler / Pause / Nulle / Abandonner) sortaient de l'ecran.
+     En bornant la colonne a la hauteur utile, le defilement interne reprend
+     son role et les boutons restent atteignables. Signale par Saab (les deux
+     remarques « histo trop longue » et « btn hors fenetre » n'en font qu'une). */
+  height: calc(100vh - 64px);
+  position: sticky; top: 64px; align-self: start;
 }
 
 .player-card {
@@ -860,6 +870,20 @@ h2 {
 .move-b { color: var(--text); }   /* conservés pour compatibilité */
 .move-w { color: var(--muted); }
 .move-item.current { background: rgba(200,168,75,0.08); }
+
+/* ── Cases cliquables de la vue 1D ──
+   Le padding agrandit la zone de clic (une seule lettre, c'est petit au
+   doigt) et la marge negative de meme valeur l'annule exactement : dans un
+   <pre> monospace, le moindre decalage horizontal casserait l'alignement des
+   neuf rangees. Rien ne bouge, la cible est juste plus large. */
+#board-1d-text .c1d {
+  padding: 2px 3px; margin: -2px -3px; border-radius: 2px;
+}
+#board-1d-text.jouable .c1d { cursor: pointer; }
+#board-1d-text.jouable .c1d:hover { background: #2a2a2a; }
+/* Selection en video inverse — la convention du terminal, et surtout aucun
+   caractere ajoute qui decalerait la grille. */
+#board-1d-text .c1d.sel { background: #e8e8e8; color: #000; }
 
 .game-controls {
   padding: 20px; border-top: 1px solid var(--border);
@@ -1214,7 +1238,12 @@ footer {
   .game-layout { grid-template-columns: 1fr; }
   .game-left-panel { display: none; }
   .game-center { padding: 80px 16px 16px; }
-  .game-right-panel { border-left: none; border-top: 1px solid var(--border); }
+  /* En pile (une seule colonne), la colonne droite ne doit plus etre bornee
+     ni collante : c'est la page entiere qui defile. */
+  .game-right-panel {
+    border-left: none; border-top: 1px solid var(--border);
+    height: auto; position: static; align-self: auto;
+  }
   #board { width: 100% !important; height: auto !important; max-width: 440px; }
   #board-3d { width: 100%; max-width: 440px; margin: 0 auto; }
   /* Sur mobile, le plateau et le panneau des onglets sont empilés (plus côte
@@ -3141,11 +3170,11 @@ document.addEventListener('keydown', function(e){
     <div class="game-center">
       <div id="game-board-wrap">
         <button id="focus-btn" onclick="toggleFullscreenBoard()" title="Mode plein écran (plateau seul)" style="position:absolute;top:11%;right:3%;z-index:20;width:36px;height:36px;border-radius:8px;background:rgba(20,24,22,0.7);border:1px solid var(--border);color:var(--gold);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">⛶</button>
-        <!-- Bascule 2D / 3D -->
+        <!-- Bascule 1D / 2D / 3D — dans l'ordre des dimensions -->
         <div id="view-toggle" style="position:absolute;top:11%;left:3%;z-index:20;display:flex;background:rgba(20,24,22,0.7);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+          <button id="view-1d-btn" onclick="setBoardView('1d')" title="Vue texte, monochrome — jouable" style="padding:6px 12px;background:transparent;color:var(--muted);border:none;cursor:pointer;font-size:12px;font-weight:600">1D</button>
           <button id="view-2d-btn" onclick="setBoardView('2d')" title="Vue classique 2D" style="padding:6px 12px;background:var(--gold);color:#14141a;border:none;cursor:pointer;font-size:12px;font-weight:600">2D</button>
           <button id="view-3d-btn" onclick="setBoardView('3d')" title="Vue 3D (admirer)" style="padding:6px 12px;background:transparent;color:var(--muted);border:none;cursor:pointer;font-size:12px;font-weight:600">3D</button>
-          <button id="view-1d-btn" onclick="setBoardView('1d')" title="Vue texte, monochrome" style="padding:6px 12px;background:transparent;color:var(--muted);border:none;cursor:pointer;font-size:12px;font-weight:600">1D</button>
         </div>
         <!-- Horloge de l'adversaire : au-dessus du plateau, son camp etant en haut -->
         <div class="clock-bar" id="clock-top">
@@ -4360,6 +4389,10 @@ document.addEventListener('keydown', function(e){
             <input type="checkbox" id="show-threats-toggle" onchange="toggleThreats(this.checked)" style="accent-color:var(--gold)">
             Afficher les menaces d'éjection (billes en danger)
           </label>
+          <label style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;cursor:pointer">
+            <input type="checkbox" id="gutter-align-toggle" onchange="setGutterAlign(this.checked ? 'bottom' : 'drop')" style="accent-color:var(--gold)">
+            Ranger les billes éjectées en bas de la rigole (sinon : à leur point de sortie)
+          </label>
         </div>
       </div>
     </details>
@@ -5067,6 +5100,9 @@ document.addEventListener('keydown', function(e){
           </div>
           <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px">
             <span>⚫ Noirs</span><span>⚪ Blancs</span>
+          </div>
+          <div id="analysis-score" style="text-align:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:13px;font-family:'DM Mono',monospace">
+            <span style="color:var(--text)">⚫ Noirs 0</span><span style="color:var(--muted);margin:0 8px">—</span><span style="color:var(--text)">0 Blancs ⚪</span><span style="color:var(--muted);margin-left:10px;font-size:11px">billes éjectées</span>
           </div>
         </div>
       </div>
@@ -10739,8 +10775,17 @@ function drawBoard(opts) {
 
   // ── Billes éjectées dans la gouttière ──
   drawGutterMarbles(ctx, corners, mx, my, pad, gutterW, opts);
-  if (typeof drawLastMoveArrow === 'function') drawLastMoveArrow(ctx);
-  if (typeof drawThreats === 'function') drawThreats(ctx);
+  /* Surcouches liees a LA PARTIE EN COURS : fleche du dernier coup et halos
+     de menace. drawLastMoveArrow lit boardSnapshots et drawThreats lit le
+     plateau global — sur les canvas Editeur / Puzzles / Analyse / Tutoriel,
+     elles affichaient donc l'etat de la partie precedente. C'est exactement
+     le defaut deja corrige pour les billes ejectees via hideGutter : l'option
+     manquait simplement pour ces deux calques. Signale par Saab (« Charge
+     apres ma game, il reste la fleche »). */
+  if (!opts.hideGameOverlays) {
+    if (typeof drawLastMoveArrow === 'function') drawLastMoveArrow(ctx);
+    if (typeof drawThreats === 'function') drawThreats(ctx);
+  }
   ctx.restore();
 }
 
@@ -10794,7 +10839,52 @@ function drawGutterMarbles(ctx, corners, mx, my, pad, gutterW, opts) {
     return;
   }
 
+  /* Rangee alignee en bas de la gouttiere, dans l'ordre noir puis blanc.
+     Sert a trois usages : le replay, le plateau d'analyse, et le mode
+     d'affichage « alignees en bas » choisi dans les Parametres.
+     L'ecartement se resserre au-dela de 6 billes pour ne jamais deborder. */
+  function drawBottomRow(colors) {
+    const n = colors.length;
+    if (!n) return;
+    const sp = (n > 6) ? spacing * 6 / n : spacing;
+    for (let i = 0; i < n; i++) {
+      drawSmallMarble(ctx, mx + (i - (n-1)/2) * sp, my + ringR, gr, colors[i]);
+    }
+  }
+  function colorsFromCounts(cnt) {
+    const out = [];
+    for (let i = 0; i < (cnt.black|0); i++) out.push('black');
+    for (let i = 0; i < (cnt.white|0); i++) out.push('white');
+    return out;
+  }
+
+  // ── Comptes explicites (plateau d'analyse) ──
+  // gutterMarbles est global a la partie en cours : un plateau qui a ses
+  // propres compteurs (l'Analyse) doit pouvoir imposer ce qu'il affiche.
+  if (opts.gutterCounts) { drawBottomRow(colorsFromCounts(opts.gutterCounts)); return; }
+
+  /* ── Mode REPLAY ──
+     gutterMarbles n'est vide que par resetGutterPositions(), appele en debut
+     de partie : il contenait donc toujours le total final, quel que soit le
+     coup affiche. La colonne de gauche disait 0-0 pendant que la rigole en
+     montrait 6. On la reconstruit ici depuis les compteurs du snapshot
+     courant, seule source exacte pour la position affichee. Signale par Saab
+     (« eject colonne gauche -0b3w OK / Rigole -0b6w ?? »).
+     Note : capturedByBlack = billes BLANCHES ejectees par les Noirs. */
+  if (typeof replayMode !== 'undefined' && replayMode) {
+    const snap = (typeof replayCurrentIdx !== 'undefined' && replayCurrentIdx >= 0
+                  && typeof boardSnapshots !== 'undefined') ? boardSnapshots[replayCurrentIdx] : null;
+    drawBottomRow(snap ? colorsFromCounts({ black: snap.capturedByWhite, white: snap.capturedByBlack })
+                       : []);   // index -1 = position de depart : rigole vide
+    return;
+  }
+
   // ── Mode JEU normal ──
+  if (gutterAlign === 'bottom') {
+    // Les billes se rangent en bas de la rigole (« circuit rigole »).
+    drawBottomRow(gutterMarbles.map(function(m){ return m.color; }));
+    return;
+  }
   // Chaque bille éjectée est dessinée à sa VRAIE position de chute (x,y),
   // là où elle est sortie du plateau, quelle que soit sa couleur.
   // La bille en cours d'animation est exclue (ajoutée à la fin de l'anim).
@@ -10842,6 +10932,35 @@ let moveAnim = null;   // animation de glissement des billes {pieces:[{fromX,fro
 // (x, y) à l'endroit où elle est sortie du plateau, peu importe sa couleur.
 // Si plusieurs tombent au même endroit, la nouvelle pousse légèrement les précédentes.
 let gutterMarbles = [];  // [{x, y, color}]
+
+/* Mode d'affichage des billes ejectees, au choix dans les Parametres :
+   'drop'   = chaque bille reste la ou elle est sortie du plateau (defaut)
+   'bottom' = elles se rangent en bas de la rigole (« circuit rigole »)
+   Les deux ont leurs partisans : la premiere montre par ou l'adversaire a
+   perce, la seconde se lit d'un coup d'oeil. Demande de Saab, arbitree par
+   Olivier en gardant les deux. */
+let gutterAlign = (function(){
+  try { return localStorage.getItem('abalone_gutter_align') === 'bottom' ? 'bottom' : 'drop'; }
+  catch(e){ return 'drop'; }
+})();
+function setGutterAlign(mode) {
+  gutterAlign = (mode === 'bottom') ? 'bottom' : 'drop';
+  try { localStorage.setItem('abalone_gutter_align', gutterAlign); } catch(e){}
+  if (typeof drawBoard === 'function') drawBoard();
+}
+
+/* Les trois cases d'affichage (fleche, menaces, rangement de la rigole) sont
+   memorisees en localStorage mais aucune n'etait relue a l'ouverture des
+   Parametres : la case affichait l'etat par defaut du HTML pendant que le
+   reglage reel, lui, etait bien applique. On aligne l'interface sur l'etat. */
+function syncDisplayToggles() {
+  const a = document.getElementById('show-last-arrow-toggle');
+  if (a && typeof showLastMoveArrow !== 'undefined') a.checked = !!showLastMoveArrow;
+  const t = document.getElementById('show-threats-toggle');
+  if (t && typeof showThreats !== 'undefined') t.checked = !!showThreats;
+  const g = document.getElementById('gutter-align-toggle');
+  if (g) g.checked = (gutterAlign === 'bottom');
+}
 
 // Anciennes structures conservées pour compat (puzzle, etc.)
 let gutterWhite = [];
@@ -11622,11 +11741,18 @@ function showResumePrompt() {
   const no = document.createElement('button');
   no.textContent = 'Nouvelle partie';
   no.style.cssText = 'padding:8px 16px;background:transparent;border:1px solid var(--border);border-radius:7px;color:var(--text);cursor:pointer;font-family:DM Sans,sans-serif;font-size:13px';
-  no.onclick = function() { banner.remove(); clearSavedGame(); resetGame(); };
+  /* « Nouvelle partie » doit mener a l'ecran de configuration, pas lancer
+     directement une partie : resetGame() repart sur la disposition par
+     defaut (standard) sans jamais montrer les choix. C'est par ce chemin que
+     Saab tombait sur une partie standard sans avoir rien choisi
+     (« Pas tjs la fenetre de choix, demarre sur Standard »). */
+  no.onclick = function() { banner.remove(); clearSavedGame(); openGameSetup(); };
   banner.appendChild(yes); banner.appendChild(no);
   document.body.appendChild(banner);
-  // auto-dismiss après 12s → nouvelle partie par défaut
-  setTimeout(function(){ if (document.getElementById('resume-banner')) { banner.remove(); resetGame(); } }, 12000);
+  /* Sans reponse au bout de 12 s, meme regle : on montre les choix au lieu de
+     demarrer une partie a la place du joueur. La sauvegarde est conservee —
+     l'absence de reponse n'est pas un refus. */
+  setTimeout(function(){ if (document.getElementById('resume-banner')) { banner.remove(); openGameSetup(); } }, 12000);
 }
 
 /* ═══════════════════════════════════════════
@@ -18881,12 +19007,17 @@ function toggleReplay() {
   if (boardSnapshots.length < 2) { showToast('Jouez d\u2019abord quelques coups !'); return; }
   if (variantMode) exitVariant();   // ne jamais quitter le replay en laissant une variante en cours
   replayMode = !replayMode;
-  replayCurrentIdx = replayMode ? 0 : -1;
+  /* Le replay doit s'ouvrir sur la position AVANT le coup 1, pas sur le
+     plateau d'apres le coup 1. loadSnapshot(-1) sait deja restituer cette
+     position de depart via _replayStartBoard, et replayStep() autorise deja
+     l'index -1 : toggleReplay etait le seul a ne jamais s'en servir.
+     Signale par Saab (« Pas sur la posStart, tjs mv1 joue »). */
+  replayCurrentIdx = replayMode ? (_replayStartBoard ? -1 : 0) : -1;
   const btn = document.getElementById('replay-btn');
   if (btn) btn.textContent = replayMode ? '■ Quitter replay' : '▶ Rejouer';
   if (replayMode) {
     showToast('📽 Mode replay — utilisez Précédent/Suivant');
-    loadSnapshot(0);
+    loadSnapshot(replayCurrentIdx);
   } else {
     // Restore live board
     drawBoard();
@@ -20318,7 +20449,7 @@ function showPage(name) {
     },
     tournament: function(){ renderTournament(); },
     trombi:     function(){ renderTrombi(); },
-    settings:   function(){ renderProfile(); if(typeof syncRadarToggle==='function') syncRadarToggle(); },
+    settings:   function(){ renderProfile(); if(typeof syncRadarToggle==='function') syncRadarToggle(); if(typeof syncDisplayToggles==='function') syncDisplayToggles(); },
     stats:      function(){ renderStats(); },
     compare:    function(){ renderCompare(); },
     friends:    function(){ renderFriends(); },
@@ -21235,6 +21366,7 @@ function drawPuzzleBoardInteractive() {
   // Utilise EXACTEMENT le même rendu que le jeu principal (gouttière comprise)
   drawBoard({
     canvasId: 'puzzle-board',
+    hideGameOverlays: true,   // pas la fleche/menaces de la partie precedente
     board: puzzleBoard,
     selected: Array.isArray(puzzleSelected) ? puzzleSelected : [],
     showHints: true,
@@ -21460,6 +21592,7 @@ function tutorialPrev() {
 function drawTutorialBoard() {
   drawBoard({
     canvasId: 'tuto-board',
+    hideGameOverlays: true,
     board: tutoBoard,
     selected: tutoSelected,
     showHints: true,
@@ -21615,6 +21748,7 @@ function loadEditorPreset(preset) {
 function drawEditorBoard() {
   drawBoard({
     canvasId: 'editor-board',
+    hideGameOverlays: true,
     board: editorBoard,
     selected: [],
     showHints: false,
@@ -21764,15 +21898,34 @@ let analysisBestHint = null;  // {cells:[...], dir} = meilleur coup suggéré
 function drawAnalysisBoard() {
   drawBoard({
     canvasId: 'analysis-board',
+    hideGameOverlays: true,
     board: analysisBoard,
     selected: analysisSelected,
     showHints: true,
     turn: analysisTurn,
-    hideGutter: true,
+    /* hideGutter masquait toute la rigole : c'etait le seul moyen d'eviter
+       d'afficher les billes de la partie precedente, mais du coup l'analyse
+       ne montrait jamais ses propres ejections. Elle tient pourtant ses
+       compteurs a jour — on les lui passe explicitement.
+       analysisCapB = pris PAR les Noirs = billes blanches. Signale par Saab. */
+    gutterCounts: { black: analysisCapW, white: analysisCapB },
   });
   // Surligne le meilleur coup suggéré (flèche dorée)
   if (analysisBestHint) drawBestMoveHint();
   updateAnalysisEval();
+  updateAnalysisScore();
+}
+
+/* Score d'ejection de la position affichee, en clair sous le plateau.
+   Il n'existait nulle part dans la page alors que les compteurs etaient
+   corrects en interne. */
+function updateAnalysisScore() {
+  const el = document.getElementById('analysis-score');
+  if (!el) return;
+  el.innerHTML = '<span style="color:var(--text)">⚫ Noirs ' + analysisCapB + '</span>'
+    + '<span style="color:var(--muted);margin:0 8px">—</span>'
+    + '<span style="color:var(--text)">' + analysisCapW + ' Blancs ⚪</span>'
+    + '<span style="color:var(--muted);margin-left:10px;font-size:11px">billes éjectées</span>';
 }
 
 // Dessine une flèche dorée du groupe de billes vers la destination du meilleur coup
@@ -22017,15 +22170,28 @@ function renderAnalysisMoves() {
     host.innerHTML = '<div style="color:var(--muted);font-style:italic">Position de départ</div>';
     return;
   }
+  /* moveNum et isBlack etaient calcules puis jamais utilises : la liste ne
+     montrait ni le numero du coup ni le camp, seulement une notation nue.
+     Signale par Saab. Noir et Blanc d'un meme tour partagent le numero
+     (1,1,2,2,…), comme dans l'historique de la partie. */
   let html = '';
   for (let i = 1; i < analysisHistory.length; i++) {
     const h = analysisHistory[i];
     const active = i === analysisIdx;
     const moveNum = Math.ceil(i / 2);
-    const isBlack = h.turn === 'white';  // le coup qui vient d'être joué
-    html += '<span onclick="analysisGoto(' + i + ')" style="display:inline-block;margin:1px 4px 1px 0;padding:2px 7px;border-radius:5px;cursor:pointer;'
+    // couleur qui a joue ce coup : enregistree si disponible, sinon deduite
+    // du trait qui suit (l'inverse), pour rester juste sur les anciens etats.
+    const isBlack = h.color ? (h.color === 'black') : (h.turn === 'white');
+    html += '<span onclick="analysisGoto(' + i + ')" title="Coup ' + moveNum + ' — ' + (isBlack ? 'Noirs' : 'Blancs') + '"'
+      + ' style="display:inline-block;margin:1px 4px 1px 0;padding:2px 7px;border-radius:5px;cursor:pointer;'
       + (active ? 'background:var(--gold);color:#0d0f0e;font-weight:700;' : 'color:var(--text);')
-      + '">' + (h.label || '?') + '</span>';
+      + '">'
+      + '<span style="opacity:.55;font-size:11px">' + moveNum + '.</span>'
+      + '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;margin:0 4px;vertical-align:middle;'
+      + 'background:' + (isBlack ? '#1a1a20' : '#e8e8ee') + ';border:1px solid var(--border)"></span>'
+      + (h.label || '?')
+      + (h.eject ? ' <span style="opacity:.7">✕</span>' : '')
+      + '</span>';
   }
   host.innerHTML = html;
 }
@@ -22172,6 +22338,9 @@ function handleAnalysisClick(r, c) {
     const info = validateMove(analysisSelected, dir, me);
     if (info.valid) {
       const ejated = !!(info.type === 'push' && info.ejection);
+      // copie des cases AVANT application : la notation se calcule sur la
+      // position de depart, et analysisSelected est vide plus bas.
+      const _movedCells = analysisSelected.map(function(s){ return {r:s.r, c:s.c}; });
       abApplyMove(analysisSelected, dir, me, info);
       if (ejated) { if (me === 'black') capturedByBlack++; else capturedByWhite++; soundEject(); }
       else if (info.type === 'push') soundPush();
@@ -22182,11 +22351,19 @@ function handleAnalysisClick(r, c) {
       // tronque l'historique après la position courante (nouvelle variante)
       analysisHistory = analysisHistory.slice(0, analysisIdx + 1);
       analysisTurn = (me === 'black') ? 'white' : 'black';
-      const label = coordToABAPRO(analysisSelected[0].r, analysisSelected[0].c);
+      /* L'historique n'affichait que la case de depart de la PREMIERE bille
+         selectionnee (« a1 » au lieu de « a1b2 »), ce qui ne designe aucun
+         coup de facon unique. On reutilise moteur commun moveToABAPRO —
+         celui de la partie et de l'export — plutot que de reconstruire une
+         notation ici : c'est lui qui connait la regle de la bille de queue
+         et le cas des coups en fleche. Signale par Saab. */
+      let label;
+      try { label = moveToABAPRO(_movedCells, dir, info.type); }
+      catch(e) { label = coordToABAPRO(_movedCells[0].r, _movedCells[0].c); }
       analysisHistory.push({
         board: JSON.parse(JSON.stringify(analysisBoard)),
         capB: analysisCapB, capW: analysisCapW,
-        label: label, turn: analysisTurn,
+        label: label, turn: analysisTurn, color: me, eject: ejated,
       });
       analysisIdx = analysisHistory.length - 1;
       analysisSelected = [];
@@ -22595,10 +22772,30 @@ window.setBoardView = function(view) {
 
 
 /* ═══════════════════════════════════════════
-   VUE 1D — le plateau en texte, monochrome
+   VUE 1D — le plateau en texte, monochrome, ET JOUABLE
    Pas de couleur, pas de skin, pas de canvas : les 61 cases en caracteres,
-   comme sur une invite de commande. Vue de lecture, comme la 3D.
+   comme sur une invite de commande.
+   Chaque case est un <span> cliquable qui appelle handleClick(r,c) — le MEME
+   point d'entree que le plateau 2D. Aucune regle du jeu n'est reecrite ici :
+   la 1D ne fait que designer une case. La synchronisation avec la 2D et la 3D
+   en decoule d'elle-meme, puisque handleClick termine par drawBoard(), qui
+   rafraichit la 1D et la 3D. On peut donc jouer indifferemment dans l'une ou
+   l'autre des trois vues, y compris en alternant en cours de partie.
    ═══════════════════════════════════════════ */
+
+/* Memes verrous que le listener du canvas 2D : partie finie, navigation en
+   replay (sauf exploration de variante), et tour de l'IA. Si l'un tombe, la
+   1D reste lisible mais n'accepte plus de clic. */
+window._1dCanPlay = function () {
+  if (typeof gameOver !== 'undefined' && gameOver) return false;
+  if (typeof replayMode !== 'undefined' && replayMode
+      && !(typeof variantMode !== 'undefined' && variantMode)) return false;
+  if (typeof gameMode !== 'undefined' && gameMode === 'ai'
+      && typeof currentTurn !== 'undefined' && typeof humanColor !== 'undefined'
+      && currentTurn !== humanColor) return false;
+  return true;
+};
+
 window.render1D = function () {
   const pre = document.getElementById('board-1d-text');
   if (!pre || typeof board === 'undefined') return;
@@ -22608,8 +22805,14 @@ window.render1D = function () {
     ? { b: capturedByBlack, w: capturedByWhite } : { b: 0, w: 0 };
   const trait = (typeof currentTurn !== 'undefined') ? currentTurn : 'black';
   const fin = (typeof gameOver !== 'undefined') && gameOver;
+  const sel = (typeof selected !== 'undefined' && Array.isArray(selected)) ? selected : [];
+  const jouable = window._1dCanPlay();
+  const estSel = function (r, c) {
+    for (let i = 0; i < sel.length; i++) if (sel[i].r === r && sel[i].c === c) return true;
+    return false;
+  };
 
-  L.push('abalone> position');
+  L.push('abalone&gt; position');
   L.push('');
   for (let r = 0; r < 9; r++) {
     let line = '';
@@ -22624,20 +22827,54 @@ window.render1D = function () {
     const cells = [];
     for (let c = 0; c < rows[r]; c++) {
       const v = board[r + ',' + c];
-      cells.push(v === 'black' ? '@' : v === 'white' ? 'O' : '.');
+      // O = noirs, @ = blancs (convention retenue par Olivier)
+      const ch = (v === 'black') ? 'O' : (v === 'white') ? '@' : '.';
+      cells.push('<span class="c1d' + (estSel(r, c) ? ' sel' : '') + '"'
+        + ' data-r="' + r + '" data-c="' + c + '">' + ch + '</span>');
     }
     line += cells.join(' ');
     L.push(line);
   }
   L.push('');
-  L.push('   @ = noirs   O = blancs   . = case vide');
+  L.push('   O = noirs   @ = blancs   . = case vide');
   L.push('');
   L.push('   ejections   noirs ' + cap.b + '/6      blancs ' + cap.w + '/6');
   L.push('   trait       ' + (fin ? 'partie terminee' : (trait === 'black' ? 'NOIRS' : 'BLANCS')));
+  L.push('   selection   ' + (sel.length
+    ? sel.map(function (s) {
+        return (typeof coordToABAPRO === 'function') ? coordToABAPRO(s.r, s.c) : (s.r + ',' + s.c);
+      }).join(' ')
+    : '(aucune)'));
   L.push('');
-  L.push('abalone> _');
-  pre.textContent = L.join('\n');
+  L.push(jouable
+    ? 'abalone&gt; clique une bille ' + (trait === 'black' ? 'O' : '@') + ' puis une case voisine _'
+    : 'abalone&gt; (lecture seule) _');
+  pre.innerHTML = L.join('\n');
+  pre.classList.toggle('jouable', jouable);
 };
+
+/* Un seul ecouteur, pose sur le conteneur : le contenu de la 1D est reconstruit
+   a chaque rendu, donc on ne peut pas attacher les ecouteurs aux cases. */
+(function bind1DClicks() {
+  function attach() {
+    const host = document.getElementById('board-1d');
+    if (!host || host._1dBound) return;
+    host._1dBound = true;
+    host.addEventListener('click', function (e) {
+      const cell = (e.target && e.target.closest) ? e.target.closest('.c1d') : null;
+      if (!cell) return;
+      if (!window._1dCanPlay()) return;
+      const r = parseInt(cell.getAttribute('data-r'), 10);
+      const c = parseInt(cell.getAttribute('data-c'), 10);
+      if (isNaN(r) || isNaN(c)) return;
+      if (typeof handleClick !== 'function') return;
+      handleClick(r, c);
+      window.render1D();   // filet : handleClick redessine deja, mais on ne parie pas dessus
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', attach);
+  else attach();
+})();
 window.refresh1DIfActive = function () {
   if (window._boardView === '1d') window.render1D();
 };
