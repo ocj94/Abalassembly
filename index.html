@@ -915,14 +915,29 @@ h2 {
 #game-board-wrap {
   position: relative; user-select: none;
 }
+/* ── Scene commune aux 3 vues ──
+   Avant ce conteneur, chaque vue avait sa PROPRE technique de dimensionnement :
+   le canvas 2D se dimensionnait via max-width/height:auto a partir de ses
+   attributs width/height (640), la 1D via aspect-ratio + padding, la 3D via
+   aspect-ratio seule. Trois techniques different suffisamment d'un moteur de
+   rendu a l'autre pour qu'un ecart d'un ou deux pixels s'installe, et que le
+   plateau semble « sauter » en changeant de vue.
+   Ici, UNE SEULE boite carree (#board-stage) porte la taille et le centrage ;
+   les trois vues ne sont plus que des enfants en position absolute, inset:0,
+   qui en remplissent chacune 100% — bit pour bit la meme boite, quelle que
+   soit celle qui est active. Signale par Olivier. */
+#board-stage {
+  width: 640px; max-width: 100%; aspect-ratio: 1;
+  margin: 0 auto; position: relative;
+}
 canvas#board {
+  position: absolute; inset: 0; width: 100%; height: 100%; display: block;
   border-radius: 16px;
   box-shadow: 0 0 0 1px var(--border), 0 20px 60px rgba(0,0,0,0.5), 0 0 80px rgba(200,168,75,0.08);
   -webkit-user-select: none;   /* pas de sélection de texte au toucher long */
   user-select: none;
   -webkit-touch-callout: none; /* pas de menu contextuel iOS au toucher long */
   /* note : pas de touch-action:none — la page doit rester défilable au toucher */
-  max-width: 100%; height: auto;  /* s'adapte à la colonne sans déborder sur le panneau droit */
 }
 .board-msg {
   position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%);
@@ -1254,8 +1269,12 @@ footer {
     border-left: none; border-top: 1px solid var(--border);
     height: auto; position: static; align-self: auto;
   }
-  #board { width: 100% !important; height: auto !important; max-width: 440px; }
-  #board-3d { width: 100%; max-width: 440px; margin: 0 auto; }
+  /* La taille des 3 vues se pilote desormais a un seul endroit : #board-stage
+     (voir sa regle de base, plus haut). #board et #board-3d avaient chacun
+     leur propre max-width ici, mais #board-1d n'avait pas d'equivalent : a
+     cette largeur d'ecran, la 1D restait donc plus grande que les deux autres
+     et ne partageait plus leur centrage. Signale par Olivier. */
+  #board-stage { max-width: 440px; }
   /* Sur mobile, le plateau et le panneau des onglets sont empilés (plus côte
      à côte) : board-msg (position:absolute; bottom:-40px) déborderait sous
      #game-board-wrap et chevaucherait la barre d'onglets juste en dessous.
@@ -1311,8 +1330,7 @@ footer {
   .upload-zone { min-height: 200px; }
 
   .game-center { padding: 60px 8px 8px; }
-  #board { max-width: 320px; }
-  #board-3d { max-width: 320px; margin: 0 auto; }
+  #board-stage { max-width: 320px; }
   .game-controls { padding: 10px; }
   .ctrl-btn { padding: 11px; font-size: 13px; }
   /* Horloges de part et d'autre du plateau : l'adversaire en haut, vous en bas,
@@ -3191,18 +3209,20 @@ document.addEventListener('keydown', function(e){
           <span class="clock-who" id="clock-top-who">Adversaire</span>
           <span class="clock-time" id="clock-top-time">10:00</span>
         </div>
+        <div id="board-stage">
         <canvas id="board" width="640" height="640"></canvas>
         <!-- Vues 1D et 3D : elles remplacent le canvas 2D, elles doivent donc
              occuper SA place, entre les deux barres de joueur. Placees apres
              clock-bottom, elles rejetaient les deux barres au-dessus du plateau
              et « Vous (noirs) » se retrouvait du cote de l'adversaire. -->
-        <div id="board-1d" style="display:none;width:640px;max-width:100%;aspect-ratio:1;border-radius:12px;overflow:auto;background:#000;border:1px solid #333;position:relative;margin:0 auto;padding:18px 14px;box-sizing:border-box">
+        <div id="board-1d" style="display:none;position:absolute;inset:0;border-radius:12px;overflow:auto;background:#000;border:1px solid #333;padding:18px 14px;box-sizing:border-box">
           <pre id="board-1d-text" style="margin:0;font-family:'DM Mono',ui-monospace,'Courier New',monospace;color:#e8e8e8;font-size:14px;line-height:1.5;letter-spacing:1px;white-space:pre;user-select:text"></pre>
         </div>
-        <div id="board-3d" style="display:none;width:640px;max-width:100%;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#14141a;position:relative;margin:0 auto">
+        <div id="board-3d" style="display:none;position:absolute;inset:0;border-radius:12px;overflow:hidden;background:#14141a">
           <canvas id="board-3d-canvas" style="width:100%;height:100%;display:block;cursor:grab"></canvas>
           <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:10px;color:#666;pointer-events:none;white-space:nowrap">Glisse pour tourner · molette pour zoomer · vue lecture seule</div>
         </div>
+      </div>
         <!-- Votre horloge : sous le plateau, du cote de vos billes -->
         <div class="clock-bar" id="clock-bottom">
           <span class="clock-who" id="clock-bottom-who">Vous</span>
@@ -22860,8 +22880,11 @@ window.setBoardView = function(view) {
 
 /* Memes verrous que le listener du canvas 2D : partie finie, navigation en
    replay (sauf exploration de variante), et tour de l'IA. Si l'un tombe, la
-   1D reste lisible mais n'accepte plus de clic. */
-window._1dCanPlay = function () {
+   vue reste lisible mais n'accepte plus de clic — quelle que soit la vue.
+   Portee de 1D a toutes les vues : c'etait deja une regle du moteur, pas une
+   regle de la 1D. window._1dCanPlay reste expose sous son ancien nom (rien
+   ne devait casser une reference existante), en simple alias. */
+window.canInteractWithBoard = function () {
   if (typeof gameOver !== 'undefined' && gameOver) return false;
   if (typeof replayMode !== 'undefined' && replayMode
       && !(typeof variantMode !== 'undefined' && variantMode)) return false;
@@ -22870,6 +22893,7 @@ window._1dCanPlay = function () {
       && currentTurn !== humanColor) return false;
   return true;
 };
+window._1dCanPlay = window.canInteractWithBoard;
 
 window.render1D = function () {
   const pre = document.getElementById('board-1d-text');
@@ -23183,10 +23207,36 @@ function start3DScene() {
   // creux
   const holeGeo = new THREE.CylinderGeometry(BALL_R*0.96, BALL_R*0.7, 0.28, 20);
   const holeMat = new THREE.MeshStandardMaterial({ color: 0x1e2128, roughness: 0.8, metalness: 0.2 });
+  const holeMeshes = [];
+  /* Cibles de picking DEDIEES, invisibles — un plan par case, tague (r,c).
+     Ne servent qu'au raycasting, jamais au rendu visible (visible=false n'empeche
+     pas Three.js de les tester : verifie explicitement avant d'ecrire ce code).
+     Deux raisons de ne pas raycaster directement les trous/billes visibles :
+     1) une case vide et une case occupee ont des geometries differentes (creux
+        vs sphere) ; une cible unique et constante evite de recombiner
+        holeMeshes+ballMeshes a chaque clic, et reste valable meme si sync()
+        n'a pas encore tourne.
+     2) le creux est un cylindre a capuchon en eventail de triangles, qui
+        partagent un sommet central : un rayon visant EXACTEMENT le centre
+        mathematique d'une case (le cas le plus frequent, puisque l'oeil vise
+        le centre) peut echouer sur ce sommet singulier par un pur artefact
+        flottant. Un plan (2 triangles sur 4 sommets de coin, aucun sommet
+        partage au centre) n'a pas ce defaut. Trouve en testant le picking
+        avec la vraie bibliotheque Three.js avant de l'ecrire ici. */
+  const pickGeo = new THREE.PlaneGeometry(BALL_R*2.1, BALL_R*2.1);
+  const pickMat = new THREE.MeshBasicMaterial({ visible: false });
+  const pickMeshes = [];
   allCells.forEach(function(cc){
     const p = cellPos3(cc.r, cc.c);
     const h = new THREE.Mesh(holeGeo, holeMat);
-    h.position.set(p.x, 0, p.z); h.receiveShadow = true; group.add(h);
+    h.position.set(p.x, 0, p.z); h.receiveShadow = true; h.userData = { r: cc.r, c: cc.c };
+    group.add(h); holeMeshes.push(h);
+
+    const pk = new THREE.Mesh(pickGeo, pickMat);
+    pk.rotation.x = -Math.PI/2;                    // couche le plan a plat (a l'horizontale)
+    pk.position.set(p.x, BALL_R + 0.05, p.z);       // hauteur d'une bille : cible confortable, occupee ou non
+    pk.userData = { r: cc.r, c: cc.c };
+    group.add(pk); pickMeshes.push(pk);
   });
 
   // sol (ombres) — dimensionné proportionnellement au vrai rayon du plateau
@@ -23198,6 +23248,56 @@ function start3DScene() {
   const matWhite = new THREE.MeshStandardMaterial({ color: 0xeceff4, roughness: 0.22, metalness: 0.1 });
   const ballGeo = new THREE.SphereGeometry(BALL_R, 40, 40);
   const ballMeshes = [];
+
+  /* ── Marqueurs de sélection et d'indices, PARTAGES avec la 2D et la 1D ──
+     Meme principe que documente dans le wiki (« Vues du plateau ») : la 3D
+     ne reimplemente aucune regle, elle appelle les memes fonctions,
+     computeMoveHints, et lit le meme tableau global 'selected'.
+     Aucune bille n'est JAMAIS teintee ni surlignee — sa couleur reste
+     reservee a dire noire ou blanche. La selection et les indices sont donc
+     des ANNEAUX ou des DISQUES poses a cote/autour, jamais une recoloration
+     du materiau de la bille elle-meme. C'est l'exact analogue 3D de la regle
+     posee en 1D (voir plus bas dans ce fichier). */
+  const ringGeo = new THREE.TorusGeometry(BALL_R*1.12, 0.045, 8, 32);
+  ringGeo.rotateX(Math.PI/2);   // le tore est vertical par defaut : on le couche a plat
+  const selRingMat  = new THREE.MeshBasicMaterial({ color: 0xc8a84b });   // or — identique a la 2D
+  const pushRingMat = new THREE.MeshBasicMaterial({ color: 0xe05c4b });   // rouge — poussee possible
+  const moveDiscGeo = new THREE.CircleGeometry(BALL_R*0.42, 24);
+  const moveDiscMat = new THREE.MeshBasicMaterial({ color: 0x4a9463, transparent: true, opacity: 0.6, side: THREE.DoubleSide }); // vert — déplacement possible
+  let overlayMeshes = [];
+
+  function syncOverlays() {
+    overlayMeshes.forEach(function(m){ group.remove(m); });
+    overlayMeshes.length = 0;
+
+    const sel = (typeof selected !== 'undefined' && Array.isArray(selected)) ? selected : [];
+    sel.forEach(function(s){
+      const p = cellPos3(s.r, s.c);
+      const ring = new THREE.Mesh(ringGeo, selRingMat);
+      ring.position.set(p.x, BALL_R + 0.05, p.z);
+      group.add(ring); overlayMeshes.push(ring);
+    });
+
+    // Indices de coups : memes regles que la 1D — computeMoveHints est le
+    // moteur commun, on ne colore que ce qu'il renvoie.
+    const aideOn = (typeof showMoveHints !== 'undefined') ? showMoveHints : true;
+    const hints = (aideOn && sel.length && typeof computeMoveHints === 'function' && typeof currentTurn !== 'undefined')
+      ? computeMoveHints(sel, currentTurn, board) : [];
+    hints.forEach(function(h){
+      if (sel.some(function(s){ return s.r === h.r && s.c === h.c; })) return;  // jamais sur une case deja selectionnee
+      const p = cellPos3(h.r, h.c);
+      if (h.push) {
+        const ring = new THREE.Mesh(ringGeo, pushRingMat);
+        ring.position.set(p.x, BALL_R + 0.05, p.z);
+        group.add(ring); overlayMeshes.push(ring);
+      } else {
+        const disc = new THREE.Mesh(moveDiscGeo, moveDiscMat);
+        disc.rotation.x = -Math.PI/2;
+        disc.position.set(p.x, 0.16, p.z);
+        group.add(disc); overlayMeshes.push(disc);
+      }
+    });
+  }
 
   // synchronise les billes 3D avec le tableau 'board' du jeu
   function sync() {
@@ -23211,8 +23311,10 @@ function start3DScene() {
       const m = new THREE.Mesh(ballGeo, v === 'black' ? matBlack : matWhite);
       m.position.set(p.x, BALL_R + 0.05, p.z);
       m.castShadow = true; m.receiveShadow = true;
+      m.userData = { r: r, c: c };
       group.add(m); ballMeshes.push(m);
     }
+    syncOverlays();
   }
   sync();
 
@@ -23231,11 +23333,50 @@ function start3DScene() {
   }
 
   // interactions
+  /* Meme seuil que le glisser-deposer 2D (DRAG_THRESHOLD, defini dans une
+     autre fonction — on ne peut pas le reutiliser directement, donc on
+     recopie la meme valeur en expliquant pourquoi). En-deca, un pointerdown
+     suivi d'un pointerup est un TAP : on tente une selection/un coup. Au-dela,
+     c'est un glisser de camera, et aucun clic n'est envoye au moteur — on ne
+     veut pas qu'une simple rotation de vue selectionne une bille au passage. */
+  const TAP_THRESHOLD_3D = 18;
+  const raycaster = new THREE.Raycaster();
+  const pointerNDC = new THREE.Vector2();
+
+  /* Resout un point d'ecran (client X/Y) en case (r,c) du plateau, en
+     raycastant contre les cibles de picking dediees (pickMeshes) — un plan
+     invisible par case, constant, jamais reconstruit. Independant de l'etat
+     des billes : pas besoin de recombiner deux tableaux a chaque clic, et
+     valable meme entre deux appels de sync(). */
+  function handleBoardTap3D(clientX, clientY) {
+    if (typeof window.canInteractWithBoard === 'function' && !window.canInteractWithBoard()) return;
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    pointerNDC.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    pointerNDC.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(pointerNDC, camera);
+    const hits = raycaster.intersectObjects(pickMeshes, false);
+    if (!hits.length) return;
+    const cell = hits[0].object.userData;
+    if (!cell || cell.r === undefined || cell.c === undefined) return;
+    if (typeof handleClick === 'function') handleClick(cell.r, cell.c);
+  }
+
   let drag = false, lx = 0, ly = 0;
-  canvas.addEventListener('pointerdown', function(e){ drag = true; lx = e.clientX; ly = e.clientY; auto = false; canvas.style.cursor = 'grabbing'; });
-  window.addEventListener('pointerup', function(){ drag = false; canvas.style.cursor = 'grab'; });
+  let downX = 0, downY = 0, movedDist = 0;   // distance parcourue depuis le pointerdown
+  canvas.addEventListener('pointerdown', function(e){
+    drag = true; lx = e.clientX; ly = e.clientY;
+    downX = e.clientX; downY = e.clientY; movedDist = 0;
+    auto = false; canvas.style.cursor = 'grabbing';
+  });
+  window.addEventListener('pointerup', function(e){
+    const wasDragging = drag;    // capture avant reinitialisation : un pointerup errant
+    drag = false; canvas.style.cursor = 'grab';   // (ex. relache d'un bouton voisin) ne doit pas jouer un coup
+    if (wasDragging && movedDist <= TAP_THRESHOLD_3D) handleBoardTap3D(e.clientX, e.clientY);
+  });
   window.addEventListener('pointermove', function(e){
     if (!drag) return;
+    movedDist = Math.max(movedDist, Math.hypot(e.clientX-downX, e.clientY-downY));
     tTheta -= (e.clientX-lx)*0.008;
     tPhi = Math.max(0.15, Math.min(Math.PI*0.49, tPhi - (e.clientY-ly)*0.008));
     lx = e.clientX; ly = e.clientY;
