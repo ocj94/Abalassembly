@@ -11985,16 +11985,38 @@ function setTimeControl(v){
 /* Les libelles des deux barres, calcules au meme endroit pour les deux modes
    de peinture : en cadence libre comme en cadence chronometree, ils doivent
    dire la meme chose. */
+/* Pastille de couleur reprenant EXACTEMENT le calcul des billes 3D
+   (syncMarbleColors) : la teinte du milieu du degrade du skin actif — pas
+   une couleur figee. Un skin Kids donnera orange/bleu, un skin Rubis
+   rouge/ivoire, etc. La meme fonction pourrait alimenter les deux usages
+   (3D et ces pastilles), mais ils vivent dans des portees JS distinctes
+   (start3DScene() vs le reste du script) ; la duplication de cette formule
+   courte est plus sure qu'un couplage artificiel entre deux zones du
+   fichier qui n'ont sinon aucune raison de se connaitre. */
+function _skinDotColor(side) {
+  const stops = (side === 'black')
+    ? ((typeof boardTheme !== 'undefined' && boardTheme.blackStops) || ['#3a3a3c','#1a1a1c','#050506'])
+    : ((typeof boardTheme !== 'undefined' && boardTheme.whiteStops) || ['#ffffff','#e8e6e2','#c4c2c0','#9a9a9c']);
+  return stops[Math.floor(stops.length / 2)];
+}
+function _dot(color) {
+  return '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;'
+    + 'background:' + color + ';vertical-align:middle;margin-left:7px;'
+    + 'box-shadow:0 0 0 1px rgba(255,255,255,0.18)"></span>';
+}
+/* « Joueur 1 » / « Joueur 2 » remplace Vous/Adversaire/Joueur noir/Joueur
+   blanc/Bot Noir/Bot Blanc — trois formulations differentes selon le mode
+   de jeu, unifiees en une seule. Joueur 1 = vous (la barre du bas), Joueur
+   2 = l'adversaire (la barre du haut), quel que soit le mode. La pastille
+   dit la couleur reelle ; le texte n'a plus besoin de repeter "(noirs)" /
+   "(blancs)". Signale par Olivier. */
 function _clockNames(){
   const mine = _clockMine();
-  const oppName = (typeof opponentBot !== 'undefined' && opponentBot)
-    ? (opponentBot === 'black' ? 'Bot Noir' : 'Bot Blanc')
-    : ((typeof gameMode !== 'undefined' && gameMode === 'local') ? 'Joueur blanc' : 'Adversaire');
-  const meName = (typeof gameMode !== 'undefined' && gameMode === 'local') ? 'Joueur noir' : 'Vous';
+  const opp = mine === 'black' ? 'white' : 'black';
   const wt = document.getElementById('clock-top-who');
-  if (wt) wt.textContent = oppName + ' (' + (mine === 'black' ? 'blancs' : 'noirs') + ')';
+  if (wt) wt.innerHTML = 'Joueur 2' + _dot(_skinDotColor(opp));
   const wb = document.getElementById('clock-bottom-who');
-  if (wb) wb.textContent = meName + ' (' + (mine === 'black' ? 'noirs' : 'blancs') + ')';
+  if (wb) wb.innerHTML = 'Joueur 1' + _dot(_skinDotColor(mine));
 }
 
 function _clockPaintFree(){
