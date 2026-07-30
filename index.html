@@ -4437,6 +4437,19 @@ document.addEventListener('keydown', function(e){
             <input type="checkbox" id="gutter-align-toggle" onchange="setGutterAlign(this.checked ? 'bottom' : 'drop')" style="accent-color:var(--gold)">
             Ranger les billes éjectées en bas de la rigole (sinon : à leur point de sortie)
           </label>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase">Son et vibration, par vue</div>
+          <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:6px 14px;align-items:center;margin-top:6px;font-size:13px;color:var(--muted)">
+            <span></span><span style="font-size:11px;text-align:center">Son</span><span style="font-size:11px;text-align:center">Vibration</span>
+            <span>1D</span>
+            <input type="checkbox" id="avfx-s1d" onchange="setViewSound('1d', this.checked)" style="accent-color:var(--gold);justify-self:center">
+            <input type="checkbox" id="avfx-v1d" onchange="setViewVibration('1d', this.checked)" style="accent-color:var(--gold);justify-self:center">
+            <span>2D</span>
+            <input type="checkbox" id="avfx-s2d" onchange="setViewSound('2d', this.checked)" style="accent-color:var(--gold);justify-self:center">
+            <input type="checkbox" id="avfx-v2d" onchange="setViewVibration('2d', this.checked)" style="accent-color:var(--gold);justify-self:center">
+            <span>3D</span>
+            <input type="checkbox" id="avfx-s3d" onchange="setViewSound('3d', this.checked)" style="accent-color:var(--gold);justify-self:center">
+            <input type="checkbox" id="avfx-v3d" onchange="setViewVibration('3d', this.checked)" style="accent-color:var(--gold);justify-self:center">
+          </div>
         </div>
       </div>
     </details>
@@ -11372,6 +11385,38 @@ let _audioCtx = null;
 let soundEnabled = true;
 try { soundEnabled = localStorage.getItem('abalone_sound') !== '0'; } catch(e) {}
 
+/* Son et vibration, GRANULAIRES PAR VUE (1D / 2D / 3D) — demande d'Olivier.
+   Par defaut : la 1D est entierement silencieuse (aucune vibration non
+   plus — coherente avec une vue texte pensee pour la lecture concentree),
+   la 2D garde le son mais pas de vibration (le jeu "normal"), la 3D active
+   les deux (l'experience la plus immersive).
+   Le son garde par-dessus l'interrupteur general existant (soundEnabled,
+   juste au-dessus) comme coupe-circuit global : meme une vue autorisee au
+   son reste muette si l'utilisateur a coupe le son partout. La vibration
+   n'avait pas d'equivalent global avant ce reglage — ces trois cases en
+   deviennent le seul controle. */
+let viewAVFX = { s1d: false, s2d: true, s3d: true, v1d: false, v2d: false, v3d: true };
+try {
+  const _savedAVFX = JSON.parse(localStorage.getItem('abalone_view_avfx') || 'null');
+  if (_savedAVFX && typeof _savedAVFX === 'object') Object.assign(viewAVFX, _savedAVFX);
+} catch(e) {}
+function saveViewAVFX() {
+  try { localStorage.setItem('abalone_view_avfx', JSON.stringify(viewAVFX)); } catch(e) {}
+}
+function _currentBoardView() {
+  return (typeof window._boardView !== 'undefined' && window._boardView) ? window._boardView : '2d';
+}
+function _viewAllowsSound() { return viewAVFX['s' + _currentBoardView()] !== false; }
+function _viewAllowsVibration() { return viewAVFX['v' + _currentBoardView()] === true; }
+function setViewSound(view, on) { viewAVFX['s' + view] = !!on; saveViewAVFX(); }
+function setViewVibration(view, on) { viewAVFX['v' + view] = !!on; saveViewAVFX(); }
+function syncViewAVFXToggles() {
+  ['1d', '2d', '3d'].forEach(function(v){
+    const s = document.getElementById('avfx-s' + v); if (s) s.checked = viewAVFX['s' + v] !== false;
+    const vb = document.getElementById('avfx-v' + v); if (vb) vb.checked = viewAVFX['v' + v] === true;
+  });
+}
+
 // Systèmes de notation actifs (Aba-Pro et/ou Nacre). Aba-Pro activé par défaut.
 let notationAbaPro = true;
 let notationNacre = false;
@@ -11477,10 +11522,14 @@ function playSfx(name){
   }catch(e){}
 }
 
-function soundMove()    { playSfx('move'); }                 // déplacement : clic doux
-function soundPush()    { playSfx('move'); vibrate(20); }  // poussée : son de mouvement + vibration
-function soundEject()   { playSfx('eject'); vibrate([30,40,60]); }  // éjection : descente + vibration forte
-function soundSelect()  { playTone(440, 0.05, 'sine', 0.08); }               // sélection : petit tic
+/* Ces 4 fonctions correspondent aux micro-interactions DU PLATEAU — celles
+   dont Olivier a demande qu'elles suivent la vue active (1D/2D/3D), pas les
+   evenements globaux du jeu (partie gagnee, badge debloque...) qui restent
+   uniquement sous le controle du son general (soundEnabled). */
+function soundMove()    { if (_viewAllowsSound()) playSfx('move'); if (_viewAllowsVibration()) vibrate(20); }  // déplacement : clic doux + buzz (3D)
+function soundPush()    { if (_viewAllowsSound()) playSfx('move'); if (_viewAllowsVibration()) vibrate(20); }  // poussée : son de mouvement + vibration
+function soundEject()   { if (_viewAllowsSound()) playSfx('eject'); if (_viewAllowsVibration()) vibrate([30,40,60]); }  // éjection : descente + vibration forte
+function soundSelect()  { if (_viewAllowsSound()) playTone(440, 0.05, 'sine', 0.08); }               // sélection : petit tic
 /* ── Sons synthétisés supplémentaires ─────────────────────────────────
    Entièrement générés par oscillateur (Web Audio) : aucun échantillon, donc
    aucun poids ajouté au fichier et aucune ressource tierce. Chaque son est
@@ -12004,6 +12053,33 @@ function _dot(color) {
     + 'background:' + color + ';vertical-align:middle;margin-left:7px;'
     + 'box-shadow:0 0 0 1px rgba(255,255,255,0.18)"></span>';
 }
+/* En 1D, la pastille ronde detonne : cette vue est du texte monochrome, sans
+   rien de rond ni de colore par ailleurs. On y reprend plutot le symbole
+   REEL du plateau — O pour les noirs, @ pour les blancs, exactement comme
+   dans la grille elle-meme (« O = noirs, @ = blancs » sous le plateau) —
+   plutot qu'une forme qui n'existe nulle part ailleurs dans cette vue.
+   La couleur du skin reste appliquee AU CARACTERE, pour ne pas perdre
+   l'information : seule sa forme change entre les vues, pas ce qu'elle dit.
+
+   Joueur 1 = O, Joueur 2 = @, FIXE — pas suivant humanColor. « Joueur 1 »
+   designe un siege (la barre du bas, vous), pas une couleur ; le symbole
+   qui l'accompagne suit desormais cette meme logique plutot que la couleur
+   reellement jouee. Signale par Olivier. */
+function _letter(ch) {
+  const color = ch === 'O' ? _skinDotColor('black') : _skinDotColor('white');
+  /* Taille mesuree sur le VRAI plateau (getComputedStyle de #board-1d-text,
+     qui porte .plateau1d et sa taille en cqw) plutot que redupliquee en dur :
+     une valeur recopiee aurait divergé du plateau au moindre reglage futur
+     de cette taille (deja ajustee deux fois cette session). Repli a 16px si
+     le plateau n'est pas encore dans le DOM (peinture avant la 1D active). */
+  let taille = '16px';
+  try {
+    const board = document.getElementById('board-1d-text');
+    if (board && typeof getComputedStyle === 'function') taille = getComputedStyle(board).fontSize || taille;
+  } catch(e) {}
+  return '<span style="font-family:\'DM Mono\',ui-monospace,\'Courier New\',monospace;'
+    + 'font-weight:700;margin-left:7px;font-size:' + taille + ';color:' + color + '">' + ch + '</span>';
+}
 /* « Joueur 1 » / « Joueur 2 » remplace Vous/Adversaire/Joueur noir/Joueur
    blanc/Bot Noir/Bot Blanc — trois formulations differentes selon le mode
    de jeu, unifiees en une seule. Joueur 1 = vous (la barre du bas), Joueur
@@ -12013,10 +12089,11 @@ function _dot(color) {
 function _clockNames(){
   const mine = _clockMine();
   const opp = mine === 'black' ? 'white' : 'black';
+  const en1D = _currentBoardView() === '1d';
   const wt = document.getElementById('clock-top-who');
-  if (wt) wt.innerHTML = 'Joueur 2' + _dot(_skinDotColor(opp));
+  if (wt) wt.innerHTML = 'Joueur 2' + (en1D ? _letter('@') : _dot(_skinDotColor(opp)));
   const wb = document.getElementById('clock-bottom-who');
-  if (wb) wb.innerHTML = 'Joueur 1' + _dot(_skinDotColor(mine));
+  if (wb) wb.innerHTML = 'Joueur 1' + (en1D ? _letter('O') : _dot(_skinDotColor(mine)));
 }
 
 function _clockPaintFree(){
@@ -20565,7 +20642,7 @@ function showPage(name) {
     },
     tournament: function(){ renderTournament(); },
     trombi:     function(){ renderTrombi(); },
-    settings:   function(){ renderProfile(); if(typeof syncRadarToggle==='function') syncRadarToggle(); if(typeof syncDisplayToggles==='function') syncDisplayToggles(); },
+    settings:   function(){ renderProfile(); if(typeof syncRadarToggle==='function') syncRadarToggle(); if(typeof syncDisplayToggles==='function') syncDisplayToggles(); if(typeof syncViewAVFXToggles==='function') syncViewAVFXToggles(); },
     stats:      function(){ renderStats(); },
     compare:    function(){ renderCompare(); },
     friends:    function(){ renderFriends(); },
