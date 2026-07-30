@@ -3220,7 +3220,10 @@ document.addEventListener('keydown', function(e){
         </div>
         <div id="board-3d" style="display:none;position:absolute;inset:0;border-radius:12px;overflow:hidden;background:#14141a">
           <canvas id="board-3d-canvas" style="width:100%;height:100%;display:block;cursor:grab"></canvas>
-          <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:10px;color:#666;pointer-events:none;white-space:nowrap">Glisse pour tourner · molette pour zoomer · vue lecture seule</div>
+          <!-- En bas-a-droite, en miroir du panneau zoom/rotation (bas-a-gauche,
+               construit plus bas dans le script) : les deux ne se chevauchent
+               jamais, quelle que soit la largeur de l'ecran. -->
+          <div style="position:absolute;bottom:8px;right:8px;max-width:55%;text-align:right;font-size:10px;color:#666;pointer-events:none">Tape une bille pour jouer · glisse pour tourner · molette pour zoomer</div>
         </div>
       </div>
         <!-- Votre horloge : sous le plateau, du cote de vos billes -->
@@ -23244,8 +23247,29 @@ function start3DScene() {
   ground.rotation.x = -Math.PI/2; ground.position.y = -1.65; ground.receiveShadow = true; scene.add(ground);  // sous le socle (-1.55), évite le z-fighting
 
   // matériaux billes
+  /* Les couleurs suivent le skin actif — le MEME que la 2D — au lieu d'un
+     noir/blanc fige. MARBLE_SKINS/boardTheme sont la source unique deja
+     utilisee par drawMarble() en 2D (boardTheme.blackStops/whiteStops) :
+     on lit cette meme source plutot que de redefinir des couleurs a part,
+     qui auraient fini par diverger au premier nouveau skin ajoute.
+     Un digrade 2D (3 a 5 teintes, du clair pres du reflet simule au sombre
+     dans l'ombre simulee) n'a pas d'equivalent direct en 3D : ici la vraie
+     lumiere de la scene cree le relief, il suffit d'une couleur de base
+     plausible. On prend la teinte du milieu du degrade — plus proche de la
+     couleur "propre" du skin que ses deux extremes, qui sont des artifices
+     du degrade 2D (reflet simule / ombre simulee) que la vraie lumiere 3D
+     recree deja par elle-meme. Les veines dorees (kintsugi) et le nacrage
+     restent des effets 2D uniquement — hors de portee d'une simple couleur
+     de base. Signale par Olivier. */
   const matBlack = new THREE.MeshStandardMaterial({ color: 0x16161a, roughness: 0.22, metalness: 0.15 });
   const matWhite = new THREE.MeshStandardMaterial({ color: 0xeceff4, roughness: 0.22, metalness: 0.1 });
+  function syncMarbleColors() {
+    const bs = (typeof boardTheme !== 'undefined' && boardTheme.blackStops) || ['#3a3a3c','#1a1a1c','#050506'];
+    const ws = (typeof boardTheme !== 'undefined' && boardTheme.whiteStops) || ['#ffffff','#e8e6e2','#c4c2c0','#9a9a9c'];
+    matBlack.color.set(bs[Math.floor(bs.length / 2)]);
+    matWhite.color.set(ws[Math.floor(ws.length / 2)]);
+  }
+  syncMarbleColors();
   const ballGeo = new THREE.SphereGeometry(BALL_R, 40, 40);
   const ballMeshes = [];
 
@@ -23301,6 +23325,13 @@ function start3DScene() {
 
   // synchronise les billes 3D avec le tableau 'board' du jeu
   function sync() {
+    /* Reappliquee a CHAQUE synchro (pas seulement a la creation) : le skin
+       peut changer dans Parametres pendant que la 3D n'est pas affichee —
+       sync() tourne aussi bien au premier affichage qu'au retour dans cette
+       vue (voir l'appel window._three3d.sync() plus bas), donc les billes
+       reprennent toujours le skin reellement actif, jamais celui d'une
+       visite precedente. */
+    syncMarbleColors();
     // retire les anciennes
     ballMeshes.forEach(function(m){ group.remove(m); });
     ballMeshes.length = 0;
@@ -23319,17 +23350,28 @@ function start3DScene() {
   sync();
 
   // ─── Caméra orbitale ───
-  let theta = Math.PI*0.25, phi = Math.PI*0.34, radius = 22;
-  let tTheta = theta, tPhi = phi, tRadius = radius;
+  // theta = azimut (rotation autour de Y, horizontale), phi = elevation
+  // (incline autour de X), radius = distance (zoom). roll s'y ajoute : une
+  // rotation autour de Z (l'axe de visee lui-meme), absente jusqu'ici — la
+  // camera ne pouvait tourner que sur 2 des 3 axes. Demande d'Olivier.
+  let theta = Math.PI*0.25, phi = Math.PI*0.34, radius = 22, roll = 0;
+  let tTheta = theta, tPhi = phi, tRadius = radius, tRoll = 0;
   let auto = true, running = true;
 
   function updateCam() {
     theta += (tTheta-theta)*0.1; phi += (tPhi-phi)*0.1; radius += (tRadius-radius)*0.1;
+    roll += (tRoll-roll)*0.1;
     camera.position.set(
       radius*Math.sin(phi)*Math.cos(theta),
       radius*Math.cos(phi),
       radius*Math.sin(phi)*Math.sin(theta));
     camera.lookAt(0, 0, 0);
+    /* lookAt() recalcule l'orientation avec un "up" par defaut a chaque
+       frame — le roll doit donc etre reapplique APRES, en rotation autour
+       de l'axe Z local de la camera (son propre axe de visee). C'est bien
+       la valeur ABSOLUE de roll qui est appliquee, pas un increment : sans
+       cela, le roll s'accumulerait de travers a chaque frame. */
+    camera.rotateZ(roll);
   }
 
   // interactions
@@ -23395,25 +23437,68 @@ function start3DScene() {
     { label: '⚪', title: 'Côté Blancs',              theta: -Math.PI*0.5,      phi: Math.PI*0.38,     radius: 22 },
     { label: '⬆',  title: 'Vue de dessus',            theta: DEFAULT_VIEW.theta, phi: 0.12,            radius: 26 },
   ];
-  if (!document.getElementById('view3d-ctl')) {
-    const ctl = document.createElement('div');
-    ctl.id = 'view3d-ctl';
-    ctl.className = 'rot-ctl';
-    ctl.style.right = '8px'; ctl.style.left = 'auto'; ctl.style.top = '8px';
-    ctl.title = 'Angles de vue';
-    VIEW_PRESETS.forEach(function(v){
+
+  /* ── Un seul panneau, 4 colonnes, en bas a gauche ──
+     Zoom/rotation (colonnes 1-2, 4 rangees) et angles de vue (colonnes 3-4,
+     entrelaces sur les memes rangees) partagent desormais UNE seule grille.
+     Deux grilles cote a cote, chacune avec son propre nombre de rangees,
+     ne s'alignaient que par coincidence de marges calculees a la main —
+     fragile des que le nombre de boutons change. Un placement EXPLICITE
+     (grid-column/grid-row par bouton) dans un conteneur commun est la seule
+     facon fiable de faire tomber ⟲/⚫/⚪ et ⬆/🔄 exactement sur les rangees
+     demandees, disposition precisee par Olivier :
+       🔍+  🔍−   ⟲   ⬆
+       X↑   X↓    ⚫   🔄
+       Y↺   Y↻    ⚪
+       Z↶   Z↷               */
+  if (!document.getElementById('view3d-nav')) {
+    const PHI_MIN = 0.15, PHI_MAX = Math.PI*0.49;     // memes bornes que le drag (evite un plateau vu par en-dessous)
+    const RADIUS_MIN = 12, RADIUS_MAX = 40;            // memes bornes que la molette
+    const wrap = function(a){ return ((a + Math.PI) % (Math.PI*2) + Math.PI*2) % (Math.PI*2) - Math.PI; };
+
+    const nav = document.createElement('div');
+    nav.id = 'view3d-nav';
+    nav.className = 'rot-ctl';
+    nav.style.display = 'grid';
+    nav.style.gridTemplateColumns = 'repeat(4, 34px)';
+    nav.style.gap = '6px';
+    nav.style.left = '8px'; nav.style.right = 'auto'; nav.style.bottom = '8px'; nav.style.top = 'auto';
+    nav.title = 'Zoom, rotation (X, Y, Z) et angles de vue';
+
+    function poser(label, title, colonne, rangee, taille, onclick) {
       const b = document.createElement('button');
-      b.className = 'rot-btn'; b.textContent = v.label; b.title = v.title;
-      b.style.fontSize = '15px';
-      b.onclick = function(){ auto = false; tTheta = v.theta; tPhi = v.phi; tRadius = v.radius; };
-      ctl.appendChild(b);
+      b.className = 'rot-btn'; b.style.fontSize = taille;
+      b.style.gridColumn = String(colonne); b.style.gridRow = String(rangee);
+      b.textContent = label; b.title = title;
+      b.onclick = onclick;
+      nav.appendChild(b);
+    }
+
+    // colonnes 1-2 : zoom et rotation X/Y/Z
+    [
+      { label: '🔍+', title: 'Zoom avant',  action: function(){ tRadius = Math.max(RADIUS_MIN, tRadius - 3); } },
+      { label: '🔍−', title: 'Zoom arrière', action: function(){ tRadius = Math.min(RADIUS_MAX, tRadius + 3); } },
+      { label: 'X↑', title: 'Rotation X (incliner vers le haut)', action: function(){ tPhi = Math.max(PHI_MIN, tPhi - 0.12); } },
+      { label: 'X↓', title: 'Rotation X (incliner vers le bas)',  action: function(){ tPhi = Math.min(PHI_MAX, tPhi + 0.12); } },
+      { label: 'Y↺', title: 'Rotation Y (pivoter à gauche)', action: function(){ tTheta = wrap(tTheta - 0.20); } },
+      { label: 'Y↻', title: 'Rotation Y (pivoter à droite)', action: function(){ tTheta = wrap(tTheta + 0.20); } },
+      { label: 'Z↶', title: 'Rotation Z (roulis anti-horaire)', action: function(){ tRoll = wrap(tRoll - 0.20); } },
+      { label: 'Z↷', title: 'Rotation Z (roulis horaire)',      action: function(){ tRoll = wrap(tRoll + 0.20); } },
+    ].forEach(function(it, i){
+      poser(it.label, it.title, (i % 2) + 1, Math.floor(i / 2) + 1, '13px', function(){ auto = false; it.action(); });
     });
-    const autoBtn = document.createElement('button');
-    autoBtn.className = 'rot-btn'; autoBtn.textContent = '🔄'; autoBtn.title = 'Rotation automatique';
-    autoBtn.style.fontSize = '14px';
-    autoBtn.onclick = function(){ auto = true; };
-    ctl.appendChild(autoBtn);
-    document.getElementById('board-3d').appendChild(ctl);   // host3d n'est déclaré que plus bas
+
+    // colonne 3 : ⟲ (defaut), ⚫ (cote noirs), ⚪ (cote blancs) — rangees 1 a 3
+    VIEW_PRESETS.slice(0, 3).forEach(function(v, i){
+      poser(v.label, v.title, 3, i + 1, '15px', function(){ auto = false; tTheta = v.theta; tPhi = v.phi; tRadius = v.radius; });
+    });
+    // colonne 4, rangee 1 : ⬆ (vue de dessus)
+    const dessus = VIEW_PRESETS[3];
+    poser(dessus.label, dessus.title, 4, 1, '15px', function(){ auto = false; tTheta = dessus.theta; tPhi = dessus.phi; tRadius = dessus.radius; });
+    // colonne 4, rangee 2 : 🔄 (rotation automatique)
+    poser('🔄', 'Rotation automatique', 4, 2, '14px', function(){ auto = true; });
+
+    document.getElementById('board-3d').appendChild(nav);
   }
 
   function resize() {
