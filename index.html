@@ -889,11 +889,15 @@ h2 {
    (rgba(224,92,75)). Meme code couleur d'une vue a l'autre. */
 #board-1d-text .c1d.depl    { color: #4a9463; font-weight: 700; }
 #board-1d-text .c1d.pousse  { color: #e05c4b; font-weight: 700; }
-/* Une bille n'est JAMAIS recoloree ni surlignee : sa couleur est ce qui dit a
-   qui elle appartient. Seules les cases de destination changent d'aspect.
-   Signale par Olivier. */
-#board-1d-text .lg-depl     { color: #4a9463; }
-#board-1d-text .lg-pousse   { color: #e05c4b; }
+
+/* Taille du texte, proportionnelle a la largeur du cadre (unite cqw :
+   #board-1d est le conteneur de requete, voir son style inline
+   container-type:inline-size). Choisie par comparaison directe sur un
+   apercu ouvrable. line-height reste un multiplicateur sans unite : il suit
+   automatiquement la taille du bloc. letter-spacing est en em (relatif a la
+   taille du bloc), pas en px, pour garder un espacement visuellement
+   proportionne quelle que soit la taille du cadre. Signale par Olivier. */
+#board-1d-text.plateau1d { font-size: 6.2cqw; line-height: 1.4; letter-spacing: 0.06em; }
 
 .game-controls {
   padding: 20px; border-top: 1px solid var(--border);
@@ -3215,8 +3219,13 @@ document.addEventListener('keydown', function(e){
              occuper SA place, entre les deux barres de joueur. Placees apres
              clock-bottom, elles rejetaient les deux barres au-dessus du plateau
              et « Vous (noirs) » se retrouvait du cote de l'adversaire. -->
-        <div id="board-1d" style="display:none;position:absolute;inset:0;border-radius:12px;overflow:auto;background:#000;border:1px solid #333;padding:18px 14px;box-sizing:border-box">
-          <pre id="board-1d-text" style="margin:0;font-family:'DM Mono',ui-monospace,'Courier New',monospace;color:#e8e8e8;font-size:14px;line-height:1.5;letter-spacing:1px;white-space:pre;user-select:text"></pre>
+        <div id="board-1d" style="display:none;position:absolute;inset:0;border-radius:12px;overflow:hidden;background:#000;border:1px solid #333;padding:18px 14px;box-sizing:border-box;container-type:inline-size;justify-content:center;align-items:center">
+          <!-- Uniquement le plateau + coordonnees, centre dans la fenetre
+               (display:flex sur le parent). Les infos textuelles (legende,
+               ejections, trait, selection, invite) ont ete retirees de cette
+               vue — demande d'Olivier : seul le plateau reste affiche.
+               Signale par Olivier. -->
+          <pre id="board-1d-text" style="margin:0;font-family:'DM Mono',ui-monospace,'Courier New',monospace;color:#e8e8e8;white-space:pre;user-select:text"></pre>
         </div>
         <div id="board-3d" style="display:none;position:absolute;inset:0;border-radius:12px;overflow:hidden;background:#14141a">
           <canvas id="board-3d-canvas" style="width:100%;height:100%;display:block;cursor:grab"></canvas>
@@ -22834,12 +22843,17 @@ window.setBoardView = function(view) {
      seulement vers la gauche n'aurait pas suffi sur un ecran etroit, ou elle
      est plus large que la marge disponible. Signale par Olivier. */
   const bascule = document.getElementById('view-toggle');
-  const texte1d = document.getElementById('board-1d-text');
   if (bascule) {
-    bascule.style.top  = (view === '1d') ? '4px' : '11%';
+    bascule.style.top  = (view === '1d') ? '30px' : '11%';
     bascule.style.left = (view === '1d') ? '4px' : '3%';
   }
-  if (texte1d) texte1d.style.paddingTop = (view === '1d') ? '44px' : '0';
+  /* L'ancien decalage vertical du texte (padding-top fixe, pour degager la
+     bascule 1D/2D/3D) est retire : le plateau est desormais CENTRE dans la
+     fenetre (display:flex sur #board-1d), un padding fixe le pousserait hors
+     du centre reel au lieu de l'y laisser. La bascule a deja ete descendue
+     (30px) lors d'une demande precedente ; si un chevauchement reapparait a
+     l'usage sur un ecran etroit, le reglage se fera sur la bascule elle-meme,
+     pas en recreant ce hack. Signale par Olivier. */
   if (view === '3d') {
     activate(btn3d, true); activate(btn2d, false); if (btn1d) activate(btn1d, false);
     canvas2d.style.display = 'none';
@@ -22852,7 +22866,7 @@ window.setBoardView = function(view) {
     if (btn1d) activate(btn1d, true); activate(btn2d, false); activate(btn3d, false);
     canvas2d.style.display = 'none';
     wrap3d.style.display = 'none';
-    if (wrap1d) wrap1d.style.display = 'block';
+    if (wrap1d) wrap1d.style.display = 'flex';   // flex, pas block : necessaire au centrage du plateau
     if (rot2dTop) rot2dTop.style.display = 'none';
     if (rot2dBottom) rot2dBottom.style.display = 'none';
     if (window._three3d) window._three3d.stop();
@@ -22902,11 +22916,8 @@ window.render1D = function () {
   const pre = document.getElementById('board-1d-text');
   if (!pre || typeof board === 'undefined') return;
   const rows = (typeof ROWS !== 'undefined') ? ROWS : [5,6,7,8,9,8,7,6,5];
-  const L = [];
-  const cap = (typeof capturedByBlack !== 'undefined')
-    ? { b: capturedByBlack, w: capturedByWhite } : { b: 0, w: 0 };
+  const L = [];        // rangees du plateau + reperes de coordonnees (taille .plateau1d)
   const trait = (typeof currentTurn !== 'undefined') ? currentTurn : 'black';
-  const fin = (typeof gameOver !== 'undefined') && gameOver;
   const sel = (typeof selected !== 'undefined' && Array.isArray(selected)) ? selected : [];
   const jouable = window._1dCanPlay();
   const estSel = function (r, c) {
@@ -22952,24 +22963,6 @@ window.render1D = function () {
   const BORD  = 9;                                // marge de chaque cote
   const W     = CASES + BORD * 2;                 // 35
 
-  const infos = [];                               // lignes sous le plateau
-  infos.push('O = noirs   @ = blancs   . = vide');
-  if (aideOn && jouable && sel.length) {
-    infos.push('<span class="lg-depl">vert</span> = deplacement  <span class="lg-pousse">rouge</span> = poussee');
-  }
-  infos.push('');
-  infos.push('ejections   noirs ' + cap.b + '/6   blancs ' + cap.w + '/6');
-  infos.push('trait       ' + (fin ? 'partie terminee' : (trait === 'black' ? 'NOIRS' : 'BLANCS')));
-  infos.push('selection   ' + (sel.length
-    ? sel.map(function (s) {
-        return (typeof coordToABAPRO === 'function') ? coordToABAPRO(s.r, s.c) : (s.r + ',' + s.c);
-      }).join(' ')
-    : '(aucune)'));
-  infos.push('');
-  infos.push(jouable
-    ? 'abalone&gt; clique une bille ' + (trait === 'black' ? 'O' : '@') + ' _'
-    : 'abalone&gt; (lecture seule) _');
-
   /* Reperes A-I et 1-9, sous le meme reglage que la 2D (« Coordonnees des
      cases », dans Aides). Les chiffres suivent la geometrie reelle de la
      notation Aba-Pro : ce sont des diagonales nord-ouest / sud-est, reperees
@@ -23004,13 +22997,33 @@ window.render1D = function () {
       cells.push('<span class="' + cls + '" data-r="' + r + '" data-c="' + c + '">' + ch + '</span>');
     }
     line += cells.join(' ');
+    // largeur VISIBLE de la ligne jusqu'ici : creux (etiquette + espaces) +
+    // les cellules (1 glyphe chacune) + les espaces separateurs entre elles.
+    // Ne PAS mesurer line.length : la ligne contient deja le balisage HTML
+    // des <span>, dont la longueur (200-400+ caracteres) n'a aucun rapport
+    // avec ce qui s'affiche reellement (1 caractere par cellule).
+    let visible = creux + (2 * rows[r] - 1);
     /* Chaque chiffre se pose sur le PROLONGEMENT de sa propre diagonale, un
        cran plus bas et un cran plus a droite que sa derniere case. La
        diagonale 9 finit en e9 : son repere tombe donc au bout de la ligne de
        la rangee D, pas de celle de E. De meme 8 au bout de C, 7 au bout de B,
        6 au bout de A, et 5 en pied. Les reperes longent ainsi exactement le
        bord bas-droit du plateau. Signale par Olivier. */
-    if (coordsOn && r >= 5) line += ' ' + (14 - r);
+    if (coordsOn && r >= 5) { line += ' ' + (14 - r); visible += 2; }
+    /* Complete a largeur VISIBLE fixe (W=35 caracteres), en comptant les
+       glyphes reellement affiches — pas les caracteres de la chaine HTML.
+       Sans les infos, plus rien n'atteignait naturellement cette largeur :
+       la boite du <pre> aurait retreci a la largeur de sa ligne la plus
+       longue (~28 caracteres visibles), et le centrage flexbox aurait alors
+       centre CETTE boite plus etroite, pas le vrai centre de l'hexagone
+       (colonne 17) qui suppose une largeur de 35. Un espace de fin occupe
+       bien une cellule dans un <pre> monospace (white-space:pre les
+       preserve) : completer redonne a la boite sa largeur prevue, quel que
+       soit le contenu affiche par ailleurs. Signale par Olivier — corrige
+       apres avoir constate que la premiere version comparait par erreur
+       W a la longueur de la chaine HTML (200-400+ caracteres a cause des
+       balises <span>), qui ne declenchait donc jamais le complement. */
+    if (visible < W) line += ' '.repeat(W - visible);
     L.push(line);
   }
   if (coordsOn) {
@@ -23021,10 +23034,12 @@ window.render1D = function () {
        prolongement de a5. Signale par Olivier. */
     let pied = ' '.repeat(BORD + 5);
     for (let n = 1; n <= 5; n++) pied += (n > 1 ? ' ' : '') + n;
-    L.push(pied);
+    L.push(pied.length < W ? pied + ' '.repeat(W - pied.length) : pied);
   }
-  L.push('');
-  infos.forEach(function (l) { L.push(l); });
+  /* Le plateau est le SEUL contenu de cette vue desormais : la legende, les
+     ejections, le trait, la selection et l'invite ont ete retires — demande
+     d'Olivier. */
+  pre.className = 'plateau1d';
   pre.innerHTML = L.join('\n');
   pre.classList.toggle('jouable', jouable);
 };
