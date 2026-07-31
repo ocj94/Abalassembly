@@ -3542,7 +3542,7 @@ document.addEventListener('keydown', function(e){
         <div class="section-label">Objectif</div>
         <h2>Remporter la partie</h2>
         <p>L'objectif est d'éjecter 6 billes adverses hors du plateau hexagonal. Dès que la 6ème bille adverse est poussée à l'extérieur, la partie s'arrête et vous êtes déclaré vainqueur.</p>
-        <p>Chaque bille éjectée tombe dans le creux entourant le plateau. Un compteur suit les billes perdues par chaque camp. Il n'y a pas de match nul possible en Abalone standard.</p>
+        <p>Chaque bille éjectée tombe dans le creux entourant le plateau. Un compteur suit les billes perdues par chaque camp. La victoire s'obtient en éjectant 6 billes adverses ; une partie peut aussi se conclure par une nulle, par accord entre les deux joueurs ou par répétition de position — comme en tournoi.</p>
       </div>
 
       <div class="learn-section" id="learn-moves">
@@ -8817,8 +8817,13 @@ function renderHeatmap() {
     return;
   }
 
-  const blackCard = renderOneHeatmapCard('\u26ab Mes billes noires', 'Cumul de tes parties avec les noirs \u00b7 ' + scopeLabel, blackHeat, true);
-  const whiteCard = renderOneHeatmapCard('\u26aa Mes billes blanches', 'Cumul de tes parties avec les blancs \u00b7 ' + scopeLabel, whiteHeat, true);
+  /* "Joueur 1"/"Joueur 2" plutot que "noires"/"blanches", avec une pastille
+     de couleur reelle (pas ⚫/⚪ figes) — meme raisonnement et memes
+     fonctions que les bandeaux joueur (_skinDotColor/_dot) : le skin des
+     billes va changer, un rond noir fixe ne representerait plus la vraie
+     couleur jouee des qu'un skin colore est actif. Signale par Olivier. */
+  const blackCard = renderOneHeatmapCard(_dot(_skinDotColor('black')) + ' Mes billes en tant que joueur 1', 'Cumul de tes parties en tant que joueur 1 \u00b7 ' + scopeLabel, blackHeat, true);
+  const whiteCard = renderOneHeatmapCard(_dot(_skinDotColor('white')) + ' Mes billes en tant que joueur 2', 'Cumul de tes parties en tant que joueur 2 \u00b7 ' + scopeLabel, whiteHeat, true);
 
   host.innerHTML = tabsHtml +
     '<div id="import-history-host" style="margin-bottom:14px"></div>'+
@@ -9022,7 +9027,7 @@ function applyTrombiFilter() {
     const matchSearch = !trombiSearch || p.name.toLowerCase().includes(trombiSearch) || p.handle.toLowerCase().includes(trombiSearch);
     return matchCat && matchSearch;
   });
-  if (!filtered.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--muted)">Aucun joueur trouve</div>'; return; }
+  if (!filtered.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--muted)">Aucun joueur trouvé</div>'; return; }
   grid.innerHTML = filtered.map((p,i) => `
     <div class="trombi-card" onclick="showTrombiModal(${trombiData.indexOf(p)})">
       <div class="trombi-avatar" style="background:${p.color}">${p.name[0].toUpperCase()}</div>
@@ -9451,10 +9456,16 @@ function launch2FA() {
 
   // email or sms — show code input
   _fakeOTP = String(Math.floor(100000 + Math.random() * 900000));
-  console.log('[DEV] OTP simulé :', _fakeOTP); // dev only
+  /* Aucun email ni SMS n'est reellement envoye (pas de backend — voir le
+     commentaire "2FA simule retire" plus haut). Le code etait jusqu'ici
+     visible UNIQUEMENT dans la console (console.log 'dev only'), ce qui le
+     rendait a la fois trompeur (ca ressemble a de la vraie 2FA) ET
+     inutilisable pour quiconque n'ouvre pas les outils de developpement.
+     Affiche desormais directement dans le message a l'ecran, etiquete
+     "demo" sans ambiguite — signale par Olivier. */
   const msgs = {
-    email: `Code envoyé à ${maskEmail(_loginEmail)}`,
-    sms: 'Code envoyé par SMS sur votre numéro enregistré',
+    email: `Code envoyé à ${maskEmail(_loginEmail)} (démo — aucun email réel n'est envoyé : code ${_fakeOTP})`,
+    sms: `Code envoyé par SMS sur votre numéro enregistré (démo — aucun SMS réel n'est envoyé : code ${_fakeOTP})`,
   };
   document.getElementById('2fa-send-msg').textContent = msgs[selected2FA];
   document.getElementById('2fa-code-label').textContent = selected2FA === 'email' ? 'Code reçu par email' : 'Code reçu par SMS';
