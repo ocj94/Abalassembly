@@ -3240,10 +3240,19 @@ document.addEventListener('keydown', function(e){
           <span class="clock-who" id="clock-bottom-who">Vous</span>
           <span class="clock-time" id="clock-bottom-time">10:00</span>
         </div>
-        <!-- Rotation du plateau : un jeu de boutons par joueur, sur le bord gauche -->
+        <!-- Rotation du plateau : un jeu de boutons par joueur, sur le bord gauche.
+             Y↺/Y↻ (renomme, memes noms qu'en 3D) : synchronises avec la rotation
+             Y de la 3D, via window.boardRotation (voir aussi setBoardView). ⚫/⚪ :
+             cote Noirs/Blancs, ajoutes ici et synchronises avec leurs equivalents
+             3D — les deux ne bougent QUE la rotation Y (pas d'elevation en 2D),
+             donc compatibles avec le verrou "vue du dessus" de la 3D, comme Y.
+             Colores selon le skin actif, pas figes en noir/blanc — voir
+             skinSideBtnColor(). Signale par Olivier. -->
         <div class="rot-ctl" id="rot2d-bottom" style="bottom:22%" title="Rotation (votre côté)">
-          <button class="rot-btn" onclick="rotateBoard(-60)" title="Pivoter anti-horaire">↺</button>
-          <button class="rot-btn" onclick="rotateBoard(60)" title="Pivoter horaire">↻</button>
+          <button class="rot-btn" onclick="rotateBoard(-BOARD_ROTATE_STEP_DEG)" title="Pivoter anti-horaire">Y↺</button>
+          <button class="rot-btn" onclick="rotateBoard(BOARD_ROTATE_STEP_DEG)" title="Pivoter horaire">Y↻</button>
+          <button class="rot-btn" id="side2d-black" onclick="setSideView('black')" title="Côté Noirs"></button>
+          <button class="rot-btn" id="side2d-white" onclick="setSideView('white')" title="Côté Blancs"></button>
         </div>
         <!-- Temps restant : decompte, place directement sous le plateau -->
         <div id="game-timer-box" style="display:flex;align-items:center;justify-content:center;gap:8px;margin:10px auto 0;padding:8px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;width:fit-content">
@@ -10436,7 +10445,38 @@ let timerInterval;
 let myTime = 600, oppTime = 600;
 
 let _replayStartBoard = null;   // position avant le coup 1, pour le rejeu
-let boardRotation = 0;   // rotation de la VUE du plateau, en degrés (multiples de 60)
+window.boardRotation = 0;   // rotation de la VUE du plateau, en degrés — propriete de window
+                             // (pas "let"), pour rester la MEME variable vue depuis le bloc
+                             // <script> de la 3D (start3DScene), qui a besoin de la lire/ecrire
+                             // pour la synchronisation entre les deux dimensions.
+/* Pas de rotation, PARTAGE entre les boutons 2D (rotateBoard) et les
+   boutons Y de la 3D (orbite de la camera) — une seule valeur, deux
+   consommateurs, pour qu'il n'y ait jamais deux pas differents a
+   resynchroniser separement. 11,5° par clic, sur demande d'Olivier —
+   la 2D acceptait n'importe quel angle (les 60° d'origine etaient un
+   choix esthetique, pas une contrainte : le cadre hexagonal ET les cases
+   se recalculent tous deux via hexCoord(), donc restent coherents entre
+   eux a n'importe quel angle). */
+const BOARD_ROTATE_STEP_DEG = 11.5;
+window.BOARD_ROTATE_STEP_DEG = BOARD_ROTATE_STEP_DEG;   // rendu explicitement global : start3DScene()
+                                                          // vit dans un AUTRE bloc <script>, qui ne
+                                                          // partage pas forcement la portee lexicale
+                                                          // de ce const — window. leve toute ambiguite.
+/* Meme angle de depart que DEFAULT_VIEW.theta dans start3DScene() (Math.PI*0.25) —
+   duplique ici volontairement : les deux fonctions vivent dans des portees
+   JS distinctes qui n'ont sinon aucune raison de se connaitre, la
+   duplication d'une seule constante est plus sure qu'un couplage
+   artificiel entre elles. Sert de reference commune pour convertir entre
+   la rotation 2D (boardRotation, degres) et l'orbite 3D (theta, radians),
+   afin que changer de dimension ne produise aucun decalage visuel :
+   tourner le plateau en 2D puis passer en 3D doit montrer le MEME angle,
+   et inversement. Signale par Olivier. */
+const THETA_DEFAULT_3D = Math.PI * 0.25;
+function boardRotationToTheta3D(deg) { return THETA_DEFAULT_3D - deg * Math.PI / 180; }
+function theta3DToBoardRotation(rad) {
+  const deg = (THETA_DEFAULT_3D - rad) * 180 / Math.PI;
+  return ((deg % 360) + 360) % 360;
+}
 
 /* Orientation « POV » : le joueur voit toujours SON camp en bas. Avec les
    blancs, la vue pivote de 180°. On ne touche qu'a l'affichage : le modele
@@ -10474,6 +10514,42 @@ function rotateBoard(deg) {
   boardRotation = ((boardRotation + deg) % 360 + 360) % 360;
   if (typeof drawBoard === 'function') drawBoard();
   if (typeof showToast === 'function') showToast((deg > 0 ? '↻' : '↺') + ' Plateau pivoté (' + boardRotation + '°)');
+}
+
+/* Cote Noirs / cote Blancs, PARTAGE entre la 2D et la 3D — memes boutons
+   ⚫/⚪ que ceux deja presents en 3D, ajoutes ici. Contrairement aux anciens
+   prereglages 3D (qui changeaient aussi l'elevation), ceux-ci ne touchent
+   QUE la rotation Y (boardRotation), exactement comme Y↺/Y↻ : la 2D n'a
+   pas de notion d'elevation, et ca les rend compatibles avec le verrou
+   "vue du dessus" de la 3D — toujours actifs, jamais grises. 0°/180° pour
+   coincider avec applyPovOrientation() (meme convention noirs/blancs).
+   Signale par Olivier. */
+function setSideView(side) {
+  window.boardRotation = (side === 'white') ? 180 : 0;
+  if (typeof drawBoard === 'function') drawBoard();
+  if (window._boardView === '3d' && window._three3d && typeof boardRotationToTheta3D === 'function') {
+    window._three3d.setTheta(boardRotationToTheta3D(window.boardRotation));
+  }
+  if (typeof showToast === 'function') showToast(side === 'white' ? '⚪ Côté Blancs' : '⚫ Côté Noirs');
+}
+/* Pastilles de couleur des boutons ⚫/⚪ (2D) — la teinte REELLE du skin
+   actif, meme calcul que les billes 3D (syncMarbleColors, v1.32) et les
+   symboles 1D (_letter). Rappelee a chaque dessin du plateau principal
+   (voir drawBoard) : un changement de skin doit se refleter immediatement,
+   pas seulement au prochain clic sur ⚫/⚪. */
+function syncSideButtonColors() {
+  const bEl = document.getElementById('side2d-black');
+  const wEl = document.getElementById('side2d-white');
+  if (!bEl && !wEl) return;
+  const bs = (typeof boardTheme !== 'undefined' && boardTheme.blackStops) || ['#3a3a3c','#1a1a1c','#050506'];
+  const ws = (typeof boardTheme !== 'undefined' && boardTheme.whiteStops) || ['#ffffff','#e8e6e2','#c4c2c0','#9a9a9c'];
+  const bc = bs[Math.floor(bs.length / 2)], wc = ws[Math.floor(ws.length / 2)];
+  const pastille = function(c){
+    return '<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:' + c
+      + ';box-shadow:0 0 0 1px rgba(255,255,255,0.18)"></span>';
+  };
+  if (bEl) bEl.innerHTML = pastille(bc);
+  if (wEl) wEl.innerHTML = pastille(wc);
 }
 
 // ═══ POSITIONS DE DÉPART ═══
@@ -10581,6 +10657,7 @@ function drawBoard(opts) {
   // Synchronise la vue 3D si elle est ouverte (uniquement pour le plateau principal)
   if (canvasId === 'board' && typeof window.refresh3DIfActive === 'function') window.refresh3DIfActive();
   if (canvasId === 'board' && typeof window.refresh1DIfActive === 'function') window.refresh1DIfActive();
+  if (canvasId === 'board' && typeof syncSideButtonColors === 'function') syncSideButtonColors();
   const sel = opts.selected || selected;          // sélection à dessiner
   const showHints = (opts.showHints !== undefined) ? opts.showHints : showMoveHints;
   const canvas = document.getElementById(canvasId);
@@ -22921,7 +22998,18 @@ window._three3d = null;      // contexte de la scène 3D
 
 window.setBoardView = function(view) {
   if (view === window._boardView) return;
+  const previousView = window._boardView;   // avant reassignation : pour detecter qu'on QUITTE la 3D
   window._boardView = view;
+  /* Synchro 3D -> 2D : en quittant la 3D, on relit l'angle ou la camera se
+     trouve reellement (tTheta, la cible — pas theta, qui peut etre en
+     cours de rattrapage anime) et on le reporte sur boardRotation, pour
+     que la 2D (ou la bascule de vue elle-meme, au prochain retour en 3D)
+     reprenne exactement la ou l'utilisateur avait laisse la camera. Sans
+     ce report, tourner la vue en 3D n'aurait aucun effet une fois revenu
+     en 2D — exactement le decalage qu'Olivier a signale. */
+  if (previousView === '3d' && window._three3d && typeof theta3DToBoardRotation === 'function') {
+    window.boardRotation = theta3DToBoardRotation(window._three3d.getTheta());
+  }
   const canvas2d = document.getElementById('board');
   const wrap3d = document.getElementById('board-3d');
   const btn2d = document.getElementById('view-2d-btn');
@@ -22961,6 +23049,14 @@ window.setBoardView = function(view) {
     if (rot2dTop) rot2dTop.style.display = 'none';       // boutons 2D sans effet en 3D
     if (rot2dBottom) rot2dBottom.style.display = 'none';
     init3DView();
+    /* Synchro 2D -> 3D : si la scene existe deja (pas la toute premiere
+       ouverture — ce cas est deja couvert par l'angle de depart de
+       start3DScene), on pousse la rotation 2D en cours dans la camera,
+       pour qu'il n'y ait jamais de decalage visuel au changement de vue.
+       Signale par Olivier. */
+    if (window._three3d && typeof boardRotationToTheta3D === 'function') {
+      window._three3d.setTheta(boardRotationToTheta3D(window.boardRotation || 0));
+    }
   } else if (view === '1d') {
     if (btn1d) activate(btn1d, true); activate(btn2d, false); activate(btn3d, false);
     canvas2d.style.display = 'none';
@@ -22978,6 +23074,10 @@ window.setBoardView = function(view) {
     if (rot2dTop) rot2dTop.style.display = '';
     if (rot2dBottom) rot2dBottom.style.display = '';
     if (window._three3d) window._three3d.stop();
+    // redessine toujours a l'affichage : au retour depuis la 3D, boardRotation
+    // vient d'etre mis a jour ci-dessus, et le canvas doit refleter ce nouvel
+    // angle immediatement, pas rester sur le bitmap d'avant le changement.
+    if (typeof drawBoard === 'function') drawBoard();
   }
 };
 
@@ -23446,6 +23546,7 @@ function start3DScene() {
        reprennent toujours le skin reellement actif, jamais celui d'une
        visite precedente. */
     syncMarbleColors();
+    syncSideButtonColors3D();
     // retire les anciennes
     ballMeshes.forEach(function(m){ group.remove(m); });
     ballMeshes.length = 0;
@@ -23468,13 +23569,62 @@ function start3DScene() {
   // (incline autour de X), radius = distance (zoom). roll s'y ajoute : une
   // rotation autour de Z (l'axe de visee lui-meme), absente jusqu'ici — la
   // camera ne pouvait tourner que sur 2 des 3 axes. Demande d'Olivier.
-  let theta = Math.PI*0.25, phi = Math.PI*0.34, radius = 22, roll = 0;
+  /* Angle de depart : derive de window.boardRotation (la rotation 2D en
+     cours), pas d'une valeur fixe — si le plateau a deja ete pivote en 2D
+     avant la toute premiere ouverture de la 3D, la camera doit demarrer
+     sur ce MEME angle plutot que sur l'orientation par defaut, sinon un
+     decalage apparaitrait des la premiere fois. boardRotationToTheta3D est
+     declare dans l'autre bloc <script> (function = toujours globale,
+     window. inutile pour la lire). Signale par Olivier. */
+  let theta = (typeof boardRotationToTheta3D === 'function') ? boardRotationToTheta3D(window.boardRotation || 0) : Math.PI*0.25;
+  /* Verrou "vue du dessus", ACTIF PAR DEFAUT : phi et radius demarrent donc
+     sur les valeurs du preregle ⬆ Vue de dessus (0.12 / 26), pas sur la vue
+     cavaliere habituelle — puisque le verrou commence engage, la camera
+     doit deja s'y trouver, pas juste l'autoriser plus tard. theta n'est PAS
+     touche : il reste sur l'angle synchronise avec la 2D (ci-dessus), seul
+     axe que le verrou laisse toujours libre, avec le zoom. Signale par
+     Olivier. */
+  let topLocked = true;
+  let phi = topLocked ? 0.12 : Math.PI*0.34, radius = topLocked ? 26 : 22, roll = 0;
   let tTheta = theta, tPhi = phi, tRadius = radius, tRoll = 0;
   let auto = true, running = true;
+  /* Boutons ⚫/⚪ (cote Noirs/Blancs) et leur synchro de couleur : declares
+     ICI (portee de start3DScene, pas a l'interieur du bloc de construction
+     du panneau) pour que sync() — une fonction SOEUR, pas une fonction
+     imbriquee dans ce bloc — puisse aussi les rafraichir a chaque
+     resynchronisation. Un "function" declare a l'interieur d'un bloc if{}
+     est scope A CE BLOC en JS moderne, invisible depuis sync(). */
+  let btnNoir3D = null, btnBlanc3D = null;
+  function syncSideButtonColors3D() {
+    if (!btnNoir3D || !btnBlanc3D) return;
+    const bs = (typeof boardTheme !== 'undefined' && boardTheme.blackStops) || ['#3a3a3c','#1a1a1c','#050506'];
+    const ws = (typeof boardTheme !== 'undefined' && boardTheme.whiteStops) || ['#ffffff','#e8e6e2','#c4c2c0','#9a9a9c'];
+    const pastille = function(c){
+      return '<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:' + c
+        + ';box-shadow:0 0 0 1px rgba(255,255,255,0.18)"></span>';
+    };
+    btnNoir3D.innerHTML = pastille(bs[Math.floor(bs.length / 2)]);
+    btnBlanc3D.innerHTML = pastille(ws[Math.floor(ws.length / 2)]);
+  }
+  /* Enroule un angle dans (-pi, pi]. Declaree ICI (portee englobante) et pas
+     seulement pres des boutons : updateCam() en a aussi besoin, pour
+     interpoler par le chemin le plus court (voir plus bas). */
+  function wrapAngle(a){ return ((a + Math.PI) % (Math.PI*2) + Math.PI*2) % (Math.PI*2) - Math.PI; }
 
   function updateCam() {
-    theta += (tTheta-theta)*0.1; phi += (tPhi-phi)*0.1; radius += (tRadius-radius)*0.1;
-    roll += (tRoll-roll)*0.1;
+    /* L'ecart brut (tTheta - theta) peut valoir pres de 2*pi si les deux
+       valeurs se trouvent de part et d'autre de la frontiere +-180° — meme
+       si l'angle REEL a parcourir est petit. Un clic Y pres de cette
+       frontiere pouvait ainsi declencher un ecart de -348° au lieu des 11.5°
+       reellement demandes : la camera partait presque a l'oppose avant de
+       revenir, ce qui ressemblait a un retour a l'etat initial. Enrouler
+       l'ecart lui-meme (pas seulement theta) force l'interpolation a
+       toujours prendre le chemin le plus court. Signale par Olivier. */
+    theta += wrapAngle(tTheta-theta)*0.1; phi += (tPhi-phi)*0.1; radius += (tRadius-radius)*0.1;
+    /* Meme raisonnement pour le roulis (roll) : tRoll s'enroule aussi dans
+       (-pi, pi] (voir les boutons Z↶/Z↷), donc sujet exactement au meme
+       defaut d'interpolation a sa propre frontiere +-180°. */
+    roll += wrapAngle(tRoll-roll)*0.1;
     camera.position.set(
       radius*Math.sin(phi)*Math.cos(theta),
       radius*Math.cos(phi),
@@ -23534,7 +23684,12 @@ function start3DScene() {
     if (!drag) return;
     movedDist = Math.max(movedDist, Math.hypot(e.clientX-downX, e.clientY-downY));
     tTheta -= (e.clientX-lx)*0.008;
-    tPhi = Math.max(0.15, Math.min(Math.PI*0.49, tPhi - (e.clientY-ly)*0.008));
+    /* La composante verticale du glisser (phi) est elle aussi bloquee par le
+       verrou "vue du dessus" — sinon un simple glisser au doigt suffirait a
+       le contourner, alors que les boutons X sont grises. Meme regle que les
+       boutons : verrouille = phi/radius immobiles, seuls theta (Y) et le
+       zoom restent libres. topLocked est déclaré plus haut, avec la caméra. */
+    if (!topLocked) tPhi = Math.max(0.15, Math.min(Math.PI*0.49, tPhi - (e.clientY-ly)*0.008));
     lx = e.clientX; ly = e.clientY;
   });
   canvas.addEventListener('wheel', function(e){
@@ -23545,30 +23700,31 @@ function start3DScene() {
   // ─── Angles de vue préréglés, sur le côté du plateau ───
   // (mêmes coordonnées que le drag manuel : theta = azimut, phi = hauteur)
   const DEFAULT_VIEW = { theta: Math.PI*0.25, phi: Math.PI*0.34, radius: 22 };
+  /* ⟲ (vue cavaliere) et 🔄 (rotation auto) retires — demande d'Olivier.
+     ⚫/⚪ ont quitte ce tableau : ils ne relevent plus des prereglages
+     complets (theta+phi+radius), voir plus bas pourquoi. Seul ⬆ reste un
+     VRAI prereglage de camera. */
   const VIEW_PRESETS = [
-    { label: '⟲', title: 'Vue cavalière (défaut)', theta: DEFAULT_VIEW.theta, phi: DEFAULT_VIEW.phi, radius: DEFAULT_VIEW.radius },
-    { label: '⚫', title: 'Côté Noirs',              theta: Math.PI*0.5,       phi: Math.PI*0.38,     radius: 22 },
-    { label: '⚪', title: 'Côté Blancs',              theta: -Math.PI*0.5,      phi: Math.PI*0.38,     radius: 22 },
-    { label: '⬆',  title: 'Vue de dessus',            theta: DEFAULT_VIEW.theta, phi: 0.12,            radius: 26 },
+    { label: '⬆',  title: 'Vue de dessus', theta: DEFAULT_VIEW.theta, phi: 0.12, radius: 26 },
   ];
 
   /* ── Un seul panneau, 4 colonnes, en bas a gauche ──
-     Zoom/rotation (colonnes 1-2, 4 rangees) et angles de vue (colonnes 3-4,
-     entrelaces sur les memes rangees) partagent desormais UNE seule grille.
-     Deux grilles cote a cote, chacune avec son propre nombre de rangees,
-     ne s'alignaient que par coincidence de marges calculees a la main —
-     fragile des que le nombre de boutons change. Un placement EXPLICITE
-     (grid-column/grid-row par bouton) dans un conteneur commun est la seule
-     facon fiable de faire tomber ⟲/⚫/⚪ et ⬆/🔄 exactement sur les rangees
-     demandees, disposition precisee par Olivier :
-       🔍+  🔍−   ⟲   ⬆
-       X↑   X↓    ⚫   🔄
-       Y↺   Y↻    ⚪
-       Z↶   Z↷               */
+     Zoom/rotation (colonnes 1-2, 4 rangees) et angles de vue (colonnes 3-4)
+     partagent UNE seule grille, avec placement EXPLICITE (grid-column/
+     grid-row) — deux grilles cote a cote ne peuvent pas s'aligner de facon
+     fiable des que leur nombre de boutons differe. Disposition actuelle,
+     apres retrait de ⟲/🔄 :
+       🔍+  🔍−   ⚫   ⬆
+       X↑   X↓    ⚪   🔒
+       Y↺   Y↻
+       Z↶   Z↷        */
   if (!document.getElementById('view3d-nav')) {
     const PHI_MIN = 0.15, PHI_MAX = Math.PI*0.49;     // memes bornes que le drag (evite un plateau vu par en-dessous)
     const RADIUS_MIN = 12, RADIUS_MAX = 40;            // memes bornes que la molette
-    const wrap = function(a){ return ((a + Math.PI) % (Math.PI*2) + Math.PI*2) % (Math.PI*2) - Math.PI; };
+    // wrapAngle est declaree plus haut, avec la camera — reutilisee ici (pas
+    // de seconde copie) pour que le meme enroulement serve aussi bien aux
+    // boutons qu'a l'interpolation d'updateCam().
+    const wrap = wrapAngle;
 
     const nav = document.createElement('div');
     nav.id = 'view3d-nav';
@@ -23586,31 +23742,85 @@ function start3DScene() {
       b.textContent = label; b.title = title;
       b.onclick = onclick;
       nav.appendChild(b);
+      return b;
     }
 
     // colonnes 1-2 : zoom et rotation X/Y/Z
+    // X et Z sont BLOQUES par le verrou "vue du dessus" (topLocked) ; zoom et
+    // Y restent toujours actifs, quel que soit l'etat du verrou — Y parce
+    // qu'il reste synchronise avec la rotation 2D (voir boardRotationToTheta3D
+    // plus haut), zoom parce qu'il ne fait jamais sortir de la vue du dessus.
+    const lockableBtns = [];
     [
-      { label: '🔍+', title: 'Zoom avant',  action: function(){ tRadius = Math.max(RADIUS_MIN, tRadius - 3); } },
-      { label: '🔍−', title: 'Zoom arrière', action: function(){ tRadius = Math.min(RADIUS_MAX, tRadius + 3); } },
-      { label: 'X↑', title: 'Rotation X (incliner vers le haut)', action: function(){ tPhi = Math.max(PHI_MIN, tPhi - 0.12); } },
-      { label: 'X↓', title: 'Rotation X (incliner vers le bas)',  action: function(){ tPhi = Math.min(PHI_MAX, tPhi + 0.12); } },
-      { label: 'Y↺', title: 'Rotation Y (pivoter à gauche)', action: function(){ tTheta = wrap(tTheta - 0.20); } },
-      { label: 'Y↻', title: 'Rotation Y (pivoter à droite)', action: function(){ tTheta = wrap(tTheta + 0.20); } },
-      { label: 'Z↶', title: 'Rotation Z (roulis anti-horaire)', action: function(){ tRoll = wrap(tRoll - 0.20); } },
-      { label: 'Z↷', title: 'Rotation Z (roulis horaire)',      action: function(){ tRoll = wrap(tRoll + 0.20); } },
+      { label: '🔍+', title: 'Zoom avant',  action: function(){ auto = false; tRadius = Math.max(RADIUS_MIN, tRadius - 3); }, verrouillable: false },
+      { label: '🔍−', title: 'Zoom arrière', action: function(){ auto = false; tRadius = Math.min(RADIUS_MAX, tRadius + 3); }, verrouillable: false },
+      { label: 'X↑', title: 'Rotation X (incliner vers le haut)', action: function(){ if (topLocked) return; auto = false; tPhi = Math.max(PHI_MIN, tPhi - 0.12); }, verrouillable: true },
+      { label: 'X↓', title: 'Rotation X (incliner vers le bas)',  action: function(){ if (topLocked) return; auto = false; tPhi = Math.min(PHI_MAX, tPhi + 0.12); }, verrouillable: true },
+      { label: 'Y↺', title: 'Rotation Y (pivoter à gauche)', action: function(){ auto = false; tTheta = wrap(tTheta - window.BOARD_ROTATE_STEP_DEG * Math.PI / 180); }, verrouillable: false },
+      { label: 'Y↻', title: 'Rotation Y (pivoter à droite)', action: function(){ auto = false; tTheta = wrap(tTheta + window.BOARD_ROTATE_STEP_DEG * Math.PI / 180); }, verrouillable: false },
+      { label: 'Z↶', title: 'Rotation Z (roulis anti-horaire)', action: function(){ if (topLocked) return; auto = false; tRoll = wrap(tRoll - 0.20); }, verrouillable: true },
+      { label: 'Z↷', title: 'Rotation Z (roulis horaire)',      action: function(){ if (topLocked) return; auto = false; tRoll = wrap(tRoll + 0.20); }, verrouillable: true },
     ].forEach(function(it, i){
-      poser(it.label, it.title, (i % 2) + 1, Math.floor(i / 2) + 1, '13px', function(){ auto = false; it.action(); });
+      const b = poser(it.label, it.title, (i % 2) + 1, Math.floor(i / 2) + 1, '13px', it.action);
+      if (it.verrouillable) lockableBtns.push(b);
     });
 
-    // colonne 3 : ⟲ (defaut), ⚫ (cote noirs), ⚪ (cote blancs) — rangees 1 a 3
-    VIEW_PRESETS.slice(0, 3).forEach(function(v, i){
-      poser(v.label, v.title, 3, i + 1, '15px', function(){ auto = false; tTheta = v.theta; tPhi = v.phi; tRadius = v.radius; });
+    /* colonne 3 : ⚫ (cote Noirs, rangee 1), ⚪ (cote Blancs, rangee 2) —
+       PARTAGES avec la 2D (memes boutons dans le panneau lateral 2D, voir
+       setSideView()/boardRotation). Contrairement aux anciens prereglages,
+       ils ne touchent QUE theta (comme Y↺/Y↻) — la 2D n'a pas de notion
+       d'elevation, donc plus de raison de faire bouger phi/radius ici non
+       plus. TOUJOURS ACTIFS, jamais grises par le verrou : meme categorie
+       que Y. Colores selon le skin actif (pas noir/blanc fige) — voir
+       syncSideButtonColors3D(). Signale par Olivier. */
+    function actionCote(side) {
+      return function(){
+        auto = false;
+        window.boardRotation = (side === 'white') ? 180 : 0;
+        tTheta = boardRotationToTheta3D(window.boardRotation);
+      };
+    }
+    const btnNoir = poser('', 'Côté Noirs', 3, 1, '13px', actionCote('black'));
+    const btnBlanc = poser('', 'Côté Blancs', 3, 2, '13px', actionCote('white'));
+    btnNoir3D = btnNoir; btnBlanc3D = btnBlanc;   // publie vers la portee englobante (voir plus haut, pour sync())
+    syncSideButtonColors3D();
+
+    // colonne 4, rangee 1 : ⬆ (vue de dessus) — reste bloque : c'est le
+    // dernier prereglage a encore toucher phi/radius, redondant tant que
+    // le verrou est actif (on y est deja).
+    const dessus = VIEW_PRESETS[0];
+    lockableBtns.push(poser(dessus.label, dessus.title, 4, 1, '15px', function(){ if (topLocked) return; auto = false; tTheta = dessus.theta; tPhi = dessus.phi; tRadius = dessus.radius; }));
+
+    /* ── Verrou "vue du dessus" — colonne 4, rangee 2 ──
+       Actif PAR DEFAUT (topLocked = true, déclaré plus haut avec la caméra) :
+       la camera demarre deja en vue de dessus, et X/Z/⬆ sont bloques des
+       l'ouverture. Zoom, Y et ⚫/⚪ restent toujours actifs, verrouille ou
+       non — Y et ⚫/⚪ parce qu'ils ne touchent que theta, reste synchronise
+       avec la 2D ; zoom parce qu'il ne fait jamais sortir de la vue du dessus.
+       Cliquer le bouton :
+       - deverrouille -> libere X/Z/⬆, sans toucher a l'angle actuel (la
+         camera reste ou elle est, simplement plus rien ne l'empeche de
+         bouger sur X/Z desormais) ;
+       - reverrouille -> impose a nouveau phi/radius de la vue de dessus
+         (theta n'est pas touche, il reste synchronise avec la 2D), et
+         regrise les boutons concernes.
+       Signale par Olivier. */
+    function applyLockUI() {
+      lockableBtns.forEach(function(b){
+        b.style.opacity = topLocked ? '0.35' : '1';
+        b.style.pointerEvents = topLocked ? 'none' : 'auto';
+      });
+      lockBtn.textContent = topLocked ? '🔒' : '🔓';
+      lockBtn.title = topLocked
+        ? 'Vue du dessus verrouillée — cliquer pour déverrouiller (X, Z, vue de dessus)'
+        : 'Vue du dessus déverrouillée — cliquer pour reverrouiller (zoom, Y et côtés restent toujours libres)';
+    }
+    const lockBtn = poser('🔒', 'Vue du dessus verrouillée — cliquer pour déverrouiller', 4, 2, '15px', function(){
+      topLocked = !topLocked;
+      if (topLocked) { auto = false; tPhi = 0.12; tRadius = 26; }   // reverrouille : reimpose la vue de dessus (theta intact)
+      applyLockUI();
     });
-    // colonne 4, rangee 1 : ⬆ (vue de dessus)
-    const dessus = VIEW_PRESETS[3];
-    poser(dessus.label, dessus.title, 4, 1, '15px', function(){ auto = false; tTheta = dessus.theta; tPhi = dessus.phi; tRadius = dessus.radius; });
-    // colonne 4, rangee 2 : 🔄 (rotation automatique)
-    poser('🔄', 'Rotation automatique', 4, 2, '14px', function(){ auto = true; });
+    applyLockUI();   // etat visuel initial coherent avec topLocked = true
 
     document.getElementById('board-3d').appendChild(nav);
   }
@@ -23648,7 +23858,15 @@ function start3DScene() {
     sync: sync,
     resize: resize,
     start: function(){ if (!running) { running = true; loop(); } },
-    stop: function(){ running = false; }
+    stop: function(){ running = false; },
+    /* Pour la synchronisation avec la rotation 2D au moment de changer de
+       vue (voir setBoardView) : getTheta lit l'angle CIBLE (tTheta, pas le
+       theta amorti — c'est la ou l'utilisateur a reellement vise, meme si
+       l'animation n'a pas fini de le rattraper), setTheta l'impose et coupe
+       la rotation automatique (comme le ferait n'importe quelle navigation
+       manuelle). */
+    getTheta: function(){ return tTheta; },
+    setTheta: function(rad){ tTheta = rad; auto = false; }
   };
 }
 
