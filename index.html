@@ -23538,32 +23538,6 @@ function start3DScene() {
   }
 
   // synchronise les billes 3D avec le tableau 'board' du jeu
-  function sync() {
-    /* Reappliquee a CHAQUE synchro (pas seulement a la creation) : le skin
-       peut changer dans Parametres pendant que la 3D n'est pas affichee —
-       sync() tourne aussi bien au premier affichage qu'au retour dans cette
-       vue (voir l'appel window._three3d.sync() plus bas), donc les billes
-       reprennent toujours le skin reellement actif, jamais celui d'une
-       visite precedente. */
-    syncMarbleColors();
-    syncSideButtonColors3D();
-    // retire les anciennes
-    ballMeshes.forEach(function(m){ group.remove(m); });
-    ballMeshes.length = 0;
-    for (let r = 0; r < ROWS.length; r++) for (let c = 0; c < ROWS[r]; c++) {
-      const v = board[akey(r, c)];
-      if (!v) continue;
-      const p = cellPos3(r, c);
-      const m = new THREE.Mesh(ballGeo, v === 'black' ? matBlack : matWhite);
-      m.position.set(p.x, BALL_R + 0.05, p.z);
-      m.castShadow = true; m.receiveShadow = true;
-      m.userData = { r: r, c: c };
-      group.add(m); ballMeshes.push(m);
-    }
-    syncOverlays();
-  }
-  sync();
-
   // ─── Caméra orbitale ───
   // theta = azimut (rotation autour de Y, horizontale), phi = elevation
   // (incline autour de X), radius = distance (zoom). roll s'y ajoute : une
@@ -23606,10 +23580,55 @@ function start3DScene() {
     btnNoir3D.innerHTML = pastille(bs[Math.floor(bs.length / 2)]);
     btnBlanc3D.innerHTML = pastille(ws[Math.floor(ws.length / 2)]);
   }
+  /* Skin du PLATEAU (pas des billes) — vue de dessus. En 2D, malgre les 6
+     noms de theme (dark/forest/ocean/marble/gold/wood) definis dans
+     setBoardTheme(), la fonction de rendu ne teste QUE boardTheme.wood :
+     les 5 autres produisent un rendu IDENTIQUE (gris neutre). Ce n'est pas
+     un oubli de synchronisation 3D — c'est la 2D elle-meme qui n'a que
+     deux apparences reelles. La 3D reprend donc cette meme logique binaire,
+     avec les memes teintes bois que le 2D (gouttiere #5a3a1e, contour
+     #3a2614) plutot que d'inventer une troisieme palette. Si les 5 autres
+     themes deviennent un jour visuellement distincts en 2D, cette fonction
+     est l'endroit a etendre. Signale par Olivier. */
+  function syncBoardTheme3D() {
+    const bois = typeof boardTheme !== 'undefined' && !!boardTheme.wood;
+    holeMat.color.set(bois ? '#4a2e18' : 0x1e2128);
+    scene.background = new THREE.Color(bois ? '#241a10' : 0x14141a);
+    if (scene.fog) scene.fog.color.set(bois ? '#241a10' : 0x14141a);
+  }
   /* Enroule un angle dans (-pi, pi]. Declaree ICI (portee englobante) et pas
      seulement pres des boutons : updateCam() en a aussi besoin, pour
      interpoler par le chemin le plus court (voir plus bas). */
   function wrapAngle(a){ return ((a + Math.PI) % (Math.PI*2) + Math.PI*2) % (Math.PI*2) - Math.PI; }
+
+  function sync() {
+    /* Reappliquee a CHAQUE synchro (pas seulement a la creation) : le skin
+       peut changer dans Parametres pendant que la 3D n'est pas affichee —
+       sync() tourne aussi bien au premier affichage qu'au retour dans cette
+       vue (voir l'appel window._three3d.sync() plus bas), donc les billes
+       reprennent toujours le skin reellement actif, jamais celui d'une
+       visite precedente. */
+    syncMarbleColors();
+    syncSideButtonColors3D();
+    syncBoardTheme3D();
+    // retire les anciennes
+    ballMeshes.forEach(function(m){ group.remove(m); });
+    ballMeshes.length = 0;
+    for (let r = 0; r < ROWS.length; r++) for (let c = 0; c < ROWS[r]; c++) {
+      const v = board[akey(r, c)];
+      if (!v) continue;
+      const p = cellPos3(r, c);
+      const m = new THREE.Mesh(ballGeo, v === 'black' ? matBlack : matWhite);
+      m.position.set(p.x, BALL_R + 0.05, p.z);
+      m.castShadow = true; m.receiveShadow = true;
+      m.userData = { r: r, c: c };
+      group.add(m); ballMeshes.push(m);
+    }
+    syncOverlays();
+  }
+  sync();
+
+
 
   function updateCam() {
     /* L'ecart brut (tTheta - theta) peut valoir pres de 2*pi si les deux
