@@ -4442,7 +4442,7 @@ document.addEventListener('keydown', function(e){
               <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Bois &amp; résine</span>
             </div>
           </div>
-          <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">Seul « Bois &amp; résine » change réellement l'apparence du plateau pour l'instant — les 5 autres teintes n'affectent que ces vignettes.</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">Chaque thème change réellement la couleur du plateau — feutre, gouttière et contour — aussi bien en 2D qu'en 3D.</div>
         </div>
         <div style="margin-top:16px;display:flex;gap:10px;align-items:center">
           <label style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;cursor:pointer">
@@ -10686,6 +10686,25 @@ function computePlayableCells(turn, boardData) {
   return set;
 }
 
+/* Couleurs de surface par theme de plateau (Obsidian/Ocean/Marbre/Or/Foret).
+   Le bois (wood) reste a part : degrade lineaire + veines + rivieres de
+   resine + coin epoxy sont des effets propres au bois, pas des couleurs
+   generalisables a un simple degrade radial — voir plus bas dans
+   drawBoard(). Ces 5 themes partagent en revanche exactement le meme
+   TRAITEMENT que l'ancien "Obsidian" (gouttiere + contour + surface en
+   degrade radial), seules les teintes changent. Exposee sur window pour
+   que syncBoardTheme3D() (autre bloc <script>) puisse la reutiliser —
+   memes couleurs des deux cotes, pas une seconde palette inventee.
+   Signale par Olivier. */
+const BOARD_SURFACE_THEMES = {
+  dark:   { gutterOuter:'#16181a', gutGrad:['#2a2d30','#1a1c1e'], trim:'#0a0a0b', surf:['#a8a8a8','#919191','#7c7c7c'] },
+  ocean:  { gutterOuter:'#0a1826', gutGrad:['#1a3a52','#0d2436'], trim:'#040d16', surf:['#5a8aa8','#3f6a88','#254a64'] },
+  marble: { gutterOuter:'#2a2a2a', gutGrad:['#3a3a3a','#242424'], trim:'#141414', surf:['#d8d4cc','#c0bab0','#a8a094'] },
+  gold:   { gutterOuter:'#241a08', gutGrad:['#4a3510','#2a1c08'], trim:'#120c04', surf:['#c9a24a','#a8822e','#7a5c1c'] },
+  forest: { gutterOuter:'#0e1a0e', gutGrad:['#1e3a1e','#0f200f'], trim:'#060e06', surf:['#5a8258','#436843','#2c4a2c'] },
+};
+window.BOARD_SURFACE_THEMES = BOARD_SURFACE_THEMES;
+
 function drawBoard(opts) {
   opts = opts || {};
   const canvasId = opts.canvasId || 'board';
@@ -10749,6 +10768,10 @@ function drawBoard(opts) {
 
   // ══ GOUTTIÈRE : anneau hexagonal autour du plateau ══
   const gutterW = 46;  // largeur de la gouttière (assez large pour les billes)
+  // theme de SURFACE (Obsidian/Ocean/Marbre/Or/Foret) — le bois reste a
+  // part (degrade lineaire + veines + rivieres, voir plus bas), donc pas
+  // dans cette table ; repli sur Obsidian si le theme est inconnu.
+  const surfTheme = BOARD_SURFACE_THEMES[boardTheme.theme] || BOARD_SURFACE_THEMES.dark;
   const gutterOuter = corners.map(p => {
     const dx=p.x-mx, dy=p.y-my, d=Math.hypot(dx,dy);
     return { x: p.x + dx/d*(pad+gutterW), y: p.y + dy/d*(pad+gutterW) };
@@ -10756,7 +10779,7 @@ function drawBoard(opts) {
   ctx.save();
   // paroi extérieure sombre de la gouttière
   pathFromCorners(gutterOuter, 22);
-  ctx.fillStyle = boardTheme.wood ? '#5a3a1e' : '#16181a';
+  ctx.fillStyle = boardTheme.wood ? '#5a3a1e' : surfTheme.gutterOuter;
   ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 4;
   ctx.fill();
   ctx.restore();
@@ -10768,7 +10791,7 @@ function drawBoard(opts) {
   }), 20);
   const gutGrad = ctx.createRadialGradient(mx, my, 200, mx, my, 300);
   if (boardTheme.wood) { gutGrad.addColorStop(0, '#b58a52'); gutGrad.addColorStop(1, '#7e5028'); }
-  else { gutGrad.addColorStop(0, '#2a2d30'); gutGrad.addColorStop(1, '#1a1c1e'); }
+  else { gutGrad.addColorStop(0, surfTheme.gutGrad[0]); gutGrad.addColorStop(1, surfTheme.gutGrad[1]); }
   ctx.fillStyle = gutGrad;
   ctx.fill();
   ctx.restore();
@@ -10776,7 +10799,7 @@ function drawBoard(opts) {
   // contour noir extérieur
   ctx.save();
   pathFromCorners(outer, 18);
-  ctx.fillStyle = boardTheme.wood ? '#3a2614' : '#0a0a0b';
+  ctx.fillStyle = boardTheme.wood ? '#3a2614' : surfTheme.trim;
   ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 6;
   ctx.fill();
   ctx.restore();
@@ -10827,9 +10850,9 @@ function drawBoard(opts) {
     ctx.globalAlpha = 1; ctx.restore();
   } else {
     const surf = ctx.createRadialGradient(mx, my, 30, mx, my, 260);
-    surf.addColorStop(0, '#a8a8a8');
-    surf.addColorStop(0.7, '#919191');
-    surf.addColorStop(1, '#7c7c7c');
+    surf.addColorStop(0, surfTheme.surf[0]);
+    surf.addColorStop(0.7, surfTheme.surf[1]);
+    surf.addColorStop(1, surfTheme.surf[2]);
     ctx.fillStyle = surf;
     ctx.fill();
   }
@@ -18373,7 +18396,7 @@ function renderBots() {
 /* ═══════════════════════════════════════════
    THEME CUSTOMIZER
 ═══════════════════════════════════════════ */
-let boardTheme = { bg1:'#1e2b28', bg2:'#131b19', blackGrad1:'#666', blackGrad2:'#0a0a0a', whiteGrad1:'#fff', whiteGrad2:'#bbb', marbleSkin:'kintsugi' };
+let boardTheme = { theme:'dark', bg1:'#1e2b28', bg2:'#131b19', blackGrad1:'#666', blackGrad2:'#0a0a0a', whiteGrad1:'#fff', whiteGrad2:'#bbb', marbleSkin:'kintsugi' };
 
 /* ═══════════════════════════════════════════
    SKINS DE BILLES — dégradés multi-stops
@@ -18723,6 +18746,7 @@ function setBoardTheme(theme, btn) {
     wood:   { bg1:'#2a1c10', bg2:'#150d06' },
   };
   Object.assign(boardTheme, themes[theme]||themes.dark);
+  boardTheme.theme = theme;   // nom du theme, pas seulement le booleen bois — necessaire pour BOARD_SURFACE_THEMES
   boardTheme.wood = (theme === 'wood');
   if (theme === 'wood') {
     // billes bleu résine / blanc nacré (comme le plateau en photo)
@@ -23634,21 +23658,28 @@ function start3DScene() {
     btnNoir3D.innerHTML = pastille(bs[Math.floor(bs.length / 2)]);
     btnBlanc3D.innerHTML = pastille(ws[Math.floor(ws.length / 2)]);
   }
-  /* Skin du PLATEAU (pas des billes) — vue de dessus. En 2D, malgre les 6
-     noms de theme (dark/forest/ocean/marble/gold/wood) definis dans
-     setBoardTheme(), la fonction de rendu ne teste QUE boardTheme.wood :
-     les 5 autres produisent un rendu IDENTIQUE (gris neutre). Ce n'est pas
-     un oubli de synchronisation 3D — c'est la 2D elle-meme qui n'a que
-     deux apparences reelles. La 3D reprend donc cette meme logique binaire,
-     avec les memes teintes bois que le 2D (gouttiere #5a3a1e, contour
-     #3a2614) plutot que d'inventer une troisieme palette. Si les 5 autres
-     themes deviennent un jour visuellement distincts en 2D, cette fonction
-     est l'endroit a etendre. Signale par Olivier. */
+  /* Skin du PLATEAU (pas des billes) — vue de dessus. BOARD_SURFACE_THEMES
+     (dark/ocean/marble/gold/forest) est defini dans l'AUTRE bloc <script>
+     (avec drawBoard, 2D) et expose sur window pour etre relu ici — memes
+     couleurs des deux cotes, pas une seconde palette inventee. Le bois
+     reste un CAS A PART (comme en 2D) : un traitement plus riche (grain,
+     rivieres de resine) qui ne se resume pas a deux couleurs. Signale par
+     Olivier — complete une base deja posee (BOARD_SURFACE_THEMES,
+     boardTheme.theme) mais dont seule la 2D avait ete cablee jusqu'ici. */
   function syncBoardTheme3D() {
     const bois = typeof boardTheme !== 'undefined' && !!boardTheme.wood;
-    holeMat.color.set(bois ? '#4a2e18' : 0x1e2128);
-    scene.background = new THREE.Color(bois ? '#241a10' : 0x14141a);
-    if (scene.fog) scene.fog.color.set(bois ? '#241a10' : 0x14141a);
+    if (bois) {
+      holeMat.color.set('#4a2e18');
+      scene.background = new THREE.Color('#241a10');
+      if (scene.fog) scene.fog.color.set('#241a10');
+      return;
+    }
+    const themes = (typeof window !== 'undefined' && window.BOARD_SURFACE_THEMES) || {};
+    const nom = (typeof boardTheme !== 'undefined' && boardTheme.theme) || 'dark';
+    const t = themes[nom] || themes.dark || { trim: '#0a0a0b', gutterOuter: '#16181a' };
+    holeMat.color.set(t.trim);
+    scene.background = new THREE.Color(t.gutterOuter);
+    if (scene.fog) scene.fog.color.set(t.gutterOuter);
   }
   /* Enroule un angle dans (-pi, pi]. Declaree ICI (portee englobante) et pas
      seulement pres des boutons : updateCam() en a aussi besoin, pour
