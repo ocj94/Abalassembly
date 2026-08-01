@@ -4416,14 +4416,33 @@ document.addEventListener('keydown', function(e){
         </div>
         <div>
           <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Thème plateau</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <button onclick="setBoardTheme('dark',this)" class="bg-swatch active" style="background:linear-gradient(135deg,#1e2b28,#131b19)" title="Obsidian (défaut)"></button>
-            <button onclick="setBoardTheme('forest',this)" class="bg-swatch" style="background:linear-gradient(135deg,#1a2e1a,#0d1a0d)" title="Forêt"></button>
-            <button onclick="setBoardTheme('ocean',this)" class="bg-swatch" style="background:linear-gradient(135deg,#0d1a2e,#071020)" title="Océan"></button>
-            <button onclick="setBoardTheme('marble',this)" class="bg-swatch" style="background:linear-gradient(135deg,#2a2a2a,#1a1a1a)" title="Marbre"></button>
-            <button onclick="setBoardTheme('gold',this)" class="bg-swatch" style="background:linear-gradient(135deg,#2e200a,#1a1005)" title="Or"></button>
-            <button onclick="setBoardTheme('wood',this)" class="bg-swatch" style="background:linear-gradient(135deg,#a9763f,#1f6fb0)" title="Bois &amp; résine époxy"></button>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('dark',this)" class="bg-swatch active" style="background:linear-gradient(135deg,#1e2b28,#131b19)" title="Obsidian (défaut)"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Obsidian</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('forest',this)" class="bg-swatch" style="background:linear-gradient(135deg,#1a2e1a,#0d1a0d)" title="Forêt"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Forêt</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('ocean',this)" class="bg-swatch" style="background:linear-gradient(135deg,#0d1a2e,#071020)" title="Océan"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Océan</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('marble',this)" class="bg-swatch" style="background:linear-gradient(135deg,#2a2a2a,#1a1a1a)" title="Marbre"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Marbre</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('gold',this)" class="bg-swatch" style="background:linear-gradient(135deg,#2e200a,#1a1005)" title="Or"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Or</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('wood',this)" class="bg-swatch" style="background:linear-gradient(135deg,#a9763f,#1f6fb0)" title="Bois &amp; résine époxy"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Bois &amp; résine</span>
+            </div>
           </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">Seul « Bois &amp; résine » change réellement l'apparence du plateau pour l'instant — les 5 autres teintes n'affectent que ces vignettes.</div>
         </div>
         <div style="margin-top:16px;display:flex;gap:10px;align-items:center">
           <label style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;cursor:pointer">
@@ -8569,7 +8588,7 @@ function buildHeatmapSVG(heat) {
   let cells = '';
   for (let r=0;r<9;r++) {
     for (let c=0;c<ROWS[r];c++) {
-      const p = hexCoord(r, c);
+      const p = hexCoord(r, c, true);   // true : ignore la rotation du plateau, carte de chaleur toujours fixe
       const x = p.x * scale, y = p.y * scale;
       const count = heat[r+','+c] || 0;
       const intensity = maxCount > 0 ? count / maxCount : 0;
@@ -10503,7 +10522,7 @@ function applyPovOrientation() {
   boardRotation = (camp === 'white') ? 180 : 0;
   if (typeof drawBoard === 'function') drawBoard();
 }
-function hexCoord(row, col) {
+function hexCoord(row, col, ignorerRotation) {
   const rowLen = ROWS[row];
   const cx = 320;
   const cy = 320;
@@ -10512,7 +10531,13 @@ function hexCoord(row, col) {
   // Chaque rangée est centrée horizontalement sur cx (losange vertical symétrique)
   let x = cx + (col - (rowLen - 1) / 2) * hSpacing;
   let y = cy + (row - 4) * vSpacing;
-  if (boardRotation) {
+  /* ignorerRotation : la carte de chaleur (buildHeatmapSVG) doit rester
+     FIXE, quelle que soit la rotation actuelle du plateau de jeu — c'est
+     une reference statistique statique, pas une vue du plateau en cours de
+     partie. Sans ce parametre, tourner le plateau (Y↺/Y↻, synchronise avec
+     la 3D) faisait aussi tourner la carte de chaleur, ce qui n'a pas de
+     sens pour des donnees cumulees. Signale par Olivier. */
+  if (boardRotation && !ignorerRotation) {
     const a = boardRotation * Math.PI / 180;
     const dx = x - cx, dy = y - cy;
     x = cx + dx * Math.cos(a) - dy * Math.sin(a);
@@ -18471,6 +18496,24 @@ const MARBLE_SKINS = {
     w:['#fbf7ee','#efe6d4','#d8c9ae','#b3a288'],
     unlock:{ type:'level', value:20 }            // niveau 20
   },
+  amethyste: {
+    name:'Améthyste', desc:'Quartz violet profond · lilas glacé',
+    b:['#8b5fb0','#5e3a82','#2e1a4a','#140a24'],
+    w:['#f5eefc','#e0cdf0','#c4a8de'],
+    unlock:{ type:'elo', value:1400 }            // Elo 1400 — entre Nacre (1300) et Saphir (1500)
+  },
+  corail: {
+    name:'Corail', desc:'Récif chaud · écume claire',
+    b:['#e8896a','#c85a3f','#8a3222','#3d150d'],
+    w:['#fff3ea','#ffd9c2','#f0b090'],
+    unlock:{ type:'wins', value:15 }             // 15 victoires — entre Rubis (10) et Lave (25)
+  },
+  titane: {
+    name:'Titane', desc:'Métal brossé · gunmetal mat',
+    b:['#8a92a0','#5a6270','#2e343e','#12151a'],
+    w:['#f4f6f8','#dde2e8','#b8c0ca','#8a94a0'],
+    unlock:{ type:'level', value:12 }            // niveau 12 — entre Émeraude (10) et Aurore (15)
+  },
   shadow: {
     name:'Ombre d\u2019or', desc:'Noir absolu · or massif — la récompense ultime', veins:true,
     b:['#1a1a1a','#0a0a0a','#000000'],
@@ -24057,6 +24100,16 @@ window.refresh3DIfActive = function() {
 <style>.style-btn.active{background:var(--gold)!important;border-color:var(--gold)!important;color:#0d0f0e!important}
 .rot-ctl{position:absolute;left:4%;z-index:20;display:flex;flex-direction:column;gap:6px}
 .rot-btn{width:34px;height:34px;border-radius:8px;background:rgba(20,24,22,0.7);border:1px solid var(--border);color:var(--gold);cursor:pointer;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0}
+/* .bg-swatch n'avait AUCUNE regle CSS definie nulle part dans le fichier —
+   seulement des usages avec un style="background:..." inline. Un <button>
+   vide (sans texte ni enfant) retombe sur la taille minuscule par defaut du
+   navigateur : illisible, comme signale par Olivier (capture d'ecran a
+   l'appui — de minuscules triangles sombres, impossibles a distinguer).
+   Taille et forme explicites ici ; l'anneau dore sur .active reprend le
+   meme langage visuel que les autres etats "selectionne" de l'app. */
+.bg-swatch{width:52px;height:52px;border-radius:12px;border:2px solid var(--border);cursor:pointer;padding:0;flex:none;transition:transform .15s,border-color .15s}
+.bg-swatch:hover{transform:scale(1.06)}
+.bg-swatch.active{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,168,75,0.35)}
 .rot-btn:hover{background:rgba(200,168,75,0.18)}</style>
 
 <!-- ══ TABLEBASES DE FINALE — 2v2 et 3v2 resolues exhaustivement (mode Decouverte) ══
