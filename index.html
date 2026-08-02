@@ -1389,6 +1389,22 @@ body.a11y-calm *::after {
 }
 body.a11y-calm #intro-splash { animation: none !important; display: none !important; }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   MODE PROJECTEUR — fenetre separee, plateau seul, plein ecran, lecture
+   seule. #board-stage est REPARENTE (deplace, pas clone — meme element,
+   memes ecouteurs, memes references JS) dans #projector-root par
+   _enterProjectorMode() ; tout le reste du <body> est masque d'un coup.
+   ═══════════════════════════════════════════════════════════════════════ */
+body.projector-mode { margin: 0; overflow: hidden; background: #000; }
+body.projector-mode #intro-splash { display: none !important; }
+body.projector-mode > *:not(#projector-root) { display: none !important; }
+#projector-root {
+  position: fixed; inset: 0; background: #000;
+  display: flex; align-items: center; justify-content: center;
+}
+#projector-root #board-stage { width: min(94vw, 94vh); max-width: none; }
+
+
 /* Mode sobre : retire le bruit ludique — XP flottant, series, badges
    clinquants, effets de survol decoratifs — pour ne garder que le jeu et
    l'information. Le contenu reste, seul l'ornement disparait. */
@@ -2195,6 +2211,25 @@ body.kids-mode #bnav-settings { display: none !important; }
 </style>
 </head>
 <body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODE PROJECTEUR — detection precoce (avant l'intro), pour que
+     le CSS puisse deja masquer le chrome normal des le premier rendu.
+     ?projector=1d|2d|3d dans l'URL : fenetre separee, plateau seul, plein
+     ecran, lecture seule (canInteractWithBoard le bloque, voir plus bas
+     dans le script principal). Demande d'Olivier — plusieurs fenetres du
+     meme appareil, a repartir sur plusieurs ecrans, synchronisees en
+     direct via BroadcastChannel (natif, aucune dependance, aucun serveur). -->
+<script>
+(function(){
+  var p = new URLSearchParams(location.search).get('projector');
+  if (p === '1d' || p === '2d' || p === '3d') {
+    window._isProjector = true;
+    window._projectorDim = p;
+    document.body.classList.add('projector-mode');
+  }
+})();
+</script>
 
 <!-- ═══════════════════════════════════════════════════════════
      BANDE-ANNONCE D'OUVERTURE — 5 secondes, pur CSS/JS, aucune
@@ -3259,6 +3294,50 @@ document.addEventListener('keydown', function(e){
           <span style="font-size:14px">⏱️</span>
           <span id="game-timer" style="font-size:18px;font-weight:700;font-family:'DM Mono',monospace;color:var(--gold)">20:00</span>
           <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">restant</span>
+        </div>
+        <!-- Mode commentateur : stats des deux joueurs, mises a jour en direct
+             via les evenements publics abalassembly:movePlayed/gameOver deja
+             emis par le moteur (aucune modification du jeu lui-meme requise —
+             pur observateur, voir _emitAbaEvent). Demande d'Olivier, pour
+             suivre une partie (tournoi ou non) de l'exterieur. -->
+        <div style="text-align:center;margin-top:8px">
+          <button class="btn-ghost" id="commentator-toggle" onclick="toggleCommentatorMode()"
+            style="padding:6px 14px;font-size:12px;font-weight:600;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:none;color:var(--muted)">🎙️ Mode commentateur</button>
+        </div>
+        <!-- Mode projecteur : ouvre une fenetre separee par dimension, a
+             repartir sur plusieurs ecrans, synchronisee en direct via
+             BroadcastChannel. Demande d'Olivier. -->
+        <div style="text-align:center;margin-top:6px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+          <span style="font-size:11px;color:var(--muted);align-self:center">📺 Projeter :</span>
+          <button class="btn-ghost" onclick="openProjectorWindow('1d')" title="Ouvrir la vue 1D dans une fenêtre séparée"
+            style="padding:4px 10px;font-size:11px;font-weight:600;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:none;color:var(--muted)">1D</button>
+          <button class="btn-ghost" onclick="openProjectorWindow('2d')" title="Ouvrir la vue 2D dans une fenêtre séparée"
+            style="padding:4px 10px;font-size:11px;font-weight:600;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:none;color:var(--muted)">2D</button>
+          <button class="btn-ghost" onclick="openProjectorWindow('3d')" title="Ouvrir la vue 3D dans une fenêtre séparée"
+            style="padding:4px 10px;font-size:11px;font-weight:600;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:none;color:var(--muted)">3D</button>
+        </div>
+        <div id="commentator-panel" style="display:none;margin:10px auto 0;max-width:420px;background:var(--surface2);border:1px solid var(--gold);border-radius:10px;padding:14px 16px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div style="text-align:center">
+              <div id="commentator-p1-name" style="font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;justify-content:center;gap:6px">Joueur 1</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:6px">Billes perdues</div>
+              <div id="commentator-p1-lost" style="font-size:22px;font-weight:700;color:var(--gold)">0</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:6px">Coups joués</div>
+              <div id="commentator-p1-moves" style="font-size:16px;font-weight:600">0</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:6px">Temps restant</div>
+              <div id="commentator-p1-time" style="font-size:16px;font-weight:600;font-family:'DM Mono',monospace">—</div>
+            </div>
+            <div style="text-align:center;border-left:1px solid var(--border)">
+              <div id="commentator-p2-name" style="font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;justify-content:center;gap:6px">Joueur 2</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:6px">Billes perdues</div>
+              <div id="commentator-p2-lost" style="font-size:22px;font-weight:700;color:var(--gold)">0</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:6px">Coups joués</div>
+              <div id="commentator-p2-moves" style="font-size:16px;font-weight:600">0</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:6px">Temps restant</div>
+              <div id="commentator-p2-time" style="font-size:16px;font-weight:600;font-family:'DM Mono',monospace">—</div>
+            </div>
+          </div>
+          <div id="commentator-last" style="text-align:center;font-size:11px;color:var(--muted);margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">En attente du premier coup…</div>
         </div>
         <div class="board-msg" id="board-msg">Cliquez sur vos billes pour les sélectionner</div>
         <div class="win-overlay" id="win-overlay">
@@ -10501,7 +10580,16 @@ window.BOARD_ROTATE_STEP_DEG = BOARD_ROTATE_STEP_DEG;   // rendu explicitement g
    afin que changer de dimension ne produise aucun decalage visuel :
    tourner le plateau en 2D puis passer en 3D doit montrer le MEME angle,
    et inversement. Signale par Olivier. */
-const THETA_DEFAULT_3D = Math.PI * 0.25;
+/* 90°, PAS 45° : axPos() place la rangee sur l'axe Z et la colonne sur l'axe
+   X (voir axPos plus bas, autre bloc <script>) — a theta=0 la camera est
+   alignee sur l'axe des COLONNES (aucun decalage Z), pas sur celui des
+   RANGEES. Avec l'ancienne valeur (Math.PI*0.25), boardRotation=0
+   produisait donc une vue 3D en coin/diagonale au lieu d'etre alignee
+   comme la 2D (rangee 0 en haut, rangee 8 en bas) — exactement le
+   decalage signale par Olivier (« le plateau n'est pas aligne »).
+   Verifie par calcul : a theta=90°, le decalage camera est purement sur Z
+   (aligne avec l'axe des rangees) ; a 45°, il est diagonal (x=z). */
+const THETA_DEFAULT_3D = Math.PI * 0.5;
 function boardRotationToTheta3D(deg) { return THETA_DEFAULT_3D - deg * Math.PI / 180; }
 function theta3DToBoardRotation(rad) {
   const deg = (THETA_DEFAULT_3D - rad) * 180 / Math.PI;
@@ -10713,6 +10801,7 @@ function drawBoard(opts) {
   if (canvasId === 'board' && typeof window.refresh3DIfActive === 'function') window.refresh3DIfActive();
   if (canvasId === 'board' && typeof window.refresh1DIfActive === 'function') window.refresh1DIfActive();
   if (canvasId === 'board' && typeof syncSideButtonColors === 'function') syncSideButtonColors();
+  if (canvasId === 'board' && typeof _broadcastProjectorState === 'function') _broadcastProjectorState();
   const sel = opts.selected || selected;          // sélection à dessiner
   const showHints = (opts.showHints !== undefined) ? opts.showHints : showMoveHints;
   const canvas = document.getElementById(canvasId);
@@ -12035,6 +12124,172 @@ function _emitAbaEvent(name, detail){
   catch(e){ /* navigateur très ancien sans CustomEvent : silencieux, sans impact sur le jeu */ }
 }
 
+/* ── Mode commentateur : stats des deux joueurs, mises a jour en direct ──
+   PUR OBSERVATEUR : ecoute uniquement les evenements publics deja emis par
+   le moteur (abalassembly:movePlayed / gameOver / positionChanged, voir la
+   doc juste au-dessus de _emitAbaEvent) — exactement comme le ferait un
+   outil externe. Ne modifie et ne lit AUCUN etat interne du jeu directement
+   pendant une partie ; capturedByBlack/capturedByWhite/myTime/oppTime sont
+   lus au moment de l'affichage, pas caches. moveCount est un compteur
+   GLOBAL (toutes couleurs confondues) dans le moteur — le decompte par
+   joueur est donc tenu ICI, a partir du flux d'evenements, puisque rien
+   d'equivalent n'existe deja cote moteur. Demande d'Olivier. */
+let _commentatorOn = false;
+let _commentatorMoves = { black: 0, white: 0 };
+function toggleCommentatorMode() {
+  _commentatorOn = !_commentatorOn;
+  const panel = document.getElementById('commentator-panel');
+  const btn = document.getElementById('commentator-toggle');
+  if (panel) panel.style.display = _commentatorOn ? 'block' : 'none';
+  if (btn) { btn.style.color = _commentatorOn ? 'var(--gold)' : 'var(--muted)'; btn.style.borderColor = _commentatorOn ? 'var(--gold)' : 'var(--border)'; }
+  if (_commentatorOn) _commentatorRefresh();
+}
+function _commentatorLabel(id, side) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const mine = (typeof _clockMine === 'function') ? _clockMine() : 'black';
+  const estJoueur1 = (side === mine);
+  const couleur = (typeof _skinDotColor === 'function') ? _skinDotColor(side) : (side === 'black' ? '#1a1a1c' : '#e8e6e2');
+  const pastille = (typeof _dot === 'function') ? _dot(couleur) : '';
+  el.innerHTML = (estJoueur1 ? 'Joueur 1' : 'Joueur 2') + pastille;
+}
+function _commentatorRefresh() {
+  if (!_commentatorOn) return;
+  const mine = (typeof _clockMine === 'function') ? _clockMine() : 'black';
+  const opp = mine === 'black' ? 'white' : 'black';
+  _commentatorLabel('commentator-p1-name', mine);
+  _commentatorLabel('commentator-p2-name', opp);
+  const perdues = { black: (typeof capturedByWhite !== 'undefined') ? capturedByWhite : 0, white: (typeof capturedByBlack !== 'undefined') ? capturedByBlack : 0 };
+  // capturedByBlack = billes BLANCHES ejectees par les noirs (voir le
+  // commentaire a sa declaration) : donc les pertes du camp BLANC, pas du
+  // camp noir — inversion deliberee, pas une faute de frappe.
+  const p1lost = document.getElementById('commentator-p1-lost'); if (p1lost) p1lost.textContent = perdues[mine];
+  const p2lost = document.getElementById('commentator-p2-lost'); if (p2lost) p2lost.textContent = perdues[opp];
+  const p1mv = document.getElementById('commentator-p1-moves'); if (p1mv) p1mv.textContent = _commentatorMoves[mine];
+  const p2mv = document.getElementById('commentator-p2-moves'); if (p2mv) p2mv.textContent = _commentatorMoves[opp];
+  const fmt = function(t){ if (typeof t !== 'number') return '—'; const m = Math.floor(t/60), s = Math.floor(t%60); return m + ':' + (s<10?'0':'') + s; };
+  const tMine = (typeof myTime !== 'undefined') ? myTime : undefined;
+  const tOpp = (typeof oppTime !== 'undefined') ? oppTime : undefined;
+  const p1t = document.getElementById('commentator-p1-time'); if (p1t) p1t.textContent = fmt(tMine);
+  const p2t = document.getElementById('commentator-p2-time'); if (p2t) p2t.textContent = fmt(tOpp);
+}
+document.addEventListener('abalassembly:movePlayed', function(e){
+  const d = e && e.detail; if (!d) return;
+  if (d.color === 'black' || d.color === 'white') _commentatorMoves[d.color]++;
+  if (_commentatorOn) {
+    _commentatorRefresh();
+    const last = document.getElementById('commentator-last');
+    if (last) last.textContent = 'Dernier coup : ' + (d.label || '—') + ' (' + (d.color === 'black' ? 'noirs' : 'blancs') + ', coup n°' + (d.moveCount != null ? d.moveCount : '?') + ')';
+  }
+});
+document.addEventListener('abalassembly:gameOver', function(e){
+  if (!_commentatorOn) return;
+  const d = e && e.detail; if (!d) return;
+  _commentatorRefresh();
+  const last = document.getElementById('commentator-last');
+  if (last) last.textContent = 'Partie terminée — ' + (d.winner ? ('victoire ' + (d.winner === 'black' ? 'des noirs' : 'des blancs')) : 'nulle') + ' · ' + (d.moveCount != null ? d.moveCount : '?') + ' coups joués';
+});
+document.addEventListener('abalassembly:positionChanged', function(){
+  _commentatorMoves = { black: 0, white: 0 };
+  if (_commentatorOn) {
+    _commentatorRefresh();
+    const last = document.getElementById('commentator-last');
+    if (last) last.textContent = 'En attente du premier coup…';
+  }
+});
+
+/* ── Mode projecteur : plusieurs fenetres du meme appareil, synchronisees
+   en direct via BroadcastChannel — API native du navigateur, aucune
+   dependance, aucun serveur (les fenetres doivent juste partager la meme
+   origine, ce qui est toujours le cas ici puisque c'est le MEME fichier
+   ouvert plusieurs fois). La fenetre principale EMET l'etat a chaque
+   redessin du plateau principal (accroche a drawBoard(), meme point
+   d'entree deja utilise par refresh3DIfActive/refresh1DIfActive/
+   syncSideButtonColors) ; chaque fenetre projecteur RECOIT et redessine
+   sa propre vue (1D, 2D ou 3D choisie via ?projector=1d|2d|3d dans l'URL),
+   en lecture seule (window._isProjector bloque l'interaction — voir
+   canInteractWithBoard, le clic 2D principal, et pointerDown).
+
+   Place ICI deliberement (meme bloc <script> que "let board"/"let
+   boardTheme") : ce sont des declarations lexicales (let/const), pas des
+   "var" — inaccessibles via window.board/window.boardTheme depuis un
+   AUTRE bloc <script>. Un identifiant nu (board = ...) ne fonctionne de
+   facon fiable que dans ce meme bloc. window._isProjector et
+   window.boardRotation, eux, sont deja des proprietes explicites de
+   window (voir plus haut) et restent lisibles depuis n'importe ou.
+   Signale par Olivier. */
+let _projectorChannel = null;
+function _getProjectorChannel() {
+  if (_projectorChannel) return _projectorChannel;
+  try { _projectorChannel = new BroadcastChannel('abalassembly-projector'); }
+  catch(e) { _projectorChannel = null; /* navigateur sans BroadcastChannel : mode projecteur simplement indisponible */ }
+  return _projectorChannel;
+}
+
+/* Ouvre une fenetre projecteur pour la dimension demandee (bouton dans
+   l'interface principale). Le fichier est le MEME (index.html) — seul le
+   parametre ?projector= change son comportement au chargement. */
+function openProjectorWindow(dim) {
+  const url = location.pathname + '?projector=' + dim;
+  const w = window.open(url, '_blank', 'width=900,height=900');
+  if (!w) { if (typeof showToast === 'function') showToast('⚠️ Fenêtre bloquée par le navigateur — autorisez les popups pour ouvrir un projecteur'); return; }
+  if (typeof showToast === 'function') showToast('📺 Fenêtre projecteur ouverte (' + dim.toUpperCase() + ') — à glisser sur un autre écran');
+}
+
+/* Bascule REELLEMENT la page en mode projecteur : deplace #board-stage (le
+   MEME element, jamais un clone — conserve tous ses ecouteurs et
+   references JS existantes) dans un conteneur plein ecran dedie, force la
+   vue demandee, et se met a l'ecoute des mises a jour de la fenetre
+   principale. Appelee une seule fois, au chargement, si l'URL contient
+   ?projector=. */
+function _enterProjectorMode(dim) {
+  const root = document.createElement('div');
+  root.id = 'projector-root';
+  document.body.appendChild(root);
+  const stage = document.getElementById('board-stage');
+  if (stage) root.appendChild(stage);   // reparente : deplace, ne clone pas
+  if (typeof setBoardView === 'function') setBoardView(dim);
+  const ch = _getProjectorChannel();
+  if (!ch) return;
+  ch.onmessage = function(e){
+    const d = e.data;
+    if (!d || d.type !== 'state') return;
+    board = d.board || board;
+    selected = d.selected || [];
+    currentTurn = d.currentTurn || currentTurn;
+    if (typeof d.boardRotation === 'number') window.boardRotation = d.boardRotation;
+    if (d.boardTheme && typeof boardTheme !== 'undefined') Object.assign(boardTheme, d.boardTheme);
+    if (typeof drawBoard === 'function') drawBoard();   // redessine 2D, et rafraichit 1D/3D via ses propres accroches internes
+  };
+}
+if (window._isProjector) {
+  // DOMContentLoaded peut deja etre passe si ce script s'execute tard —
+  // readyState le couvre dans les deux cas.
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ _enterProjectorMode(window._projectorDim); });
+  else _enterProjectorMode(window._projectorDim);
+}
+
+/* Emet l'etat courant vers les fenetres projecteur — appelee depuis
+   drawBoard() (voir plus bas), uniquement pour le plateau PRINCIPAL, et
+   jamais depuis une fenetre projecteur elle-meme (qui ne doit jamais
+   re-emettre ce qu'elle vient de recevoir). */
+function _broadcastProjectorState() {
+  if (window._isProjector) return;
+  const ch = _getProjectorChannel();
+  if (!ch) return;
+  try {
+    ch.postMessage({
+      type: 'state',
+      board: board, selected: selected, currentTurn: currentTurn,
+      boardRotation: window.boardRotation,
+      boardTheme: (typeof boardTheme !== 'undefined') ? {
+        marbleSkin: boardTheme.marbleSkin, blackStops: boardTheme.blackStops, whiteStops: boardTheme.whiteStops,
+        wood: boardTheme.wood, theme: boardTheme.theme
+      } : null,
+    });
+  } catch(e) { /* postMessage peut echouer sur un objet non serialisable — ne doit jamais casser le jeu principal */ }
+}
+
 /* Referme l'ecran de fin sans relancer de partie : le plateau, le dernier
    coup joue et le Replay redeviennent accessibles. Demande de Saab. */
 function hideWinOverlay() {
@@ -12617,6 +12872,7 @@ if (canvas) {
 
   // ── Début du geste (souris ou doigt) ──
   function pointerDown(clientX, clientY, e) {
+    if (window._isProjector) return;   // fenetre projecteur : jamais interactif
     canvas._dragJustEnded = false;   // nouvelle interaction : on repart propre
     if (gameOver) return;
     if (gameMode === 'ai' && currentTurn !== humanColor) return;
@@ -12687,6 +12943,7 @@ if (canvas) {
   // L'événement 'click' est déclenché par un clic souris ET par un tap sur écran tactile.
   // C'est la méthode la plus fiable et universelle pour la sélection.
   canvas.addEventListener('click', e => {
+    if (window._isProjector) return;   // fenetre projecteur : jamais interactif (voir canInteractWithBoard)
     if (canvas._dragJustEnded) { canvas._dragJustEnded = false; return; }
     if (gameOver) return;
     if (replayMode && !variantMode) return;   // navigation replay = lecture seule, sauf en exploration de variante
@@ -23179,6 +23436,7 @@ window.setBoardView = function(view) {
    regle de la 1D. window._1dCanPlay reste expose sous son ancien nom (rien
    ne devait casser une reference existante), en simple alias. */
 window.canInteractWithBoard = function () {
+  if (window._isProjector) return false;   // fenetre projecteur : affichage seul, jamais interactif
   if (typeof gameOver !== 'undefined' && gameOver) return false;
   if (typeof replayMode !== 'undefined' && replayMode
       && !(typeof variantMode !== 'undefined' && variantMode)) return false;
@@ -23639,7 +23897,13 @@ function start3DScene() {
   let topLocked = true;
   let phi = topLocked ? 0.12 : Math.PI*0.34, radius = topLocked ? 26 : 22, roll = 0;
   let tTheta = theta, tPhi = phi, tRadius = radius, tRoll = 0;
-  let auto = true, running = true;
+  /* auto=false par defaut : le bouton 🔄 qui permettait de (re)activer la
+     rotation automatique a ete retire du panneau (v1.36, sur demande
+     d'Olivier). Depuis, plus AUCUN code ne remet jamais auto a true — seul
+     ce point de depart le faisait, ce qui faisait tourner le plateau tout
+     seul a chaque nouvelle partie, sans aucun moyen de l'arreter avant de
+     cliquer sur autre chose. Signale par Olivier. */
+  let auto = false, running = true;
   /* Boutons ⚫/⚪ (cote Noirs/Blancs) et leur synchro de couleur : declares
      ICI (portee de start3DScene, pas a l'interieur du bloc de construction
      du panneau) pour que sync() — une fonction SOEUR, pas une fonction
@@ -23666,20 +23930,102 @@ function start3DScene() {
      rivieres de resine) qui ne se resume pas a deux couleurs. Signale par
      Olivier — complete une base deja posee (BOARD_SURFACE_THEMES,
      boardTheme.theme) mais dont seule la 2D avait ete cablee jusqu'ici. */
+  /* Texture procedurale bois + rivieres d'epoxy pour la VRAIE surface du
+     plateau (top, l'hexagone extrude qui sert de plan de jeu — pas les
+     trous ni le fond de scene). Meme esprit que le rendu 2D (grain
+     sinusoidal, rivieres translucides bleues, accent d'angle) mais reproduit
+     ici en canvas 2D puis converti en THREE.CanvasTexture, coherent avec la
+     contrainte zero-dependance du fichier (aucune image externe). Construite
+     UNE SEULE FOIS et mise en cache (woodTexture) : sync() tourne a chaque
+     coup, refaire ce dessin a chaque fois serait couteux pour rien — seul
+     un changement REEL de theme doit la (re)generer. Signale par Olivier. */
+  let woodTexture = null;
+  function getWoodTexture() {
+    if (woodTexture) return woodTexture;
+    const cv = document.createElement('canvas');
+    cv.width = 512; cv.height = 512;
+    const c2 = cv.getContext('2d');
+    const W = 512, H = 512;
+
+    // fond bois (meme degrade diagonal que la 2D)
+    const wood = c2.createLinearGradient(0, 0, W, H);
+    wood.addColorStop(0, '#cda472'); wood.addColorStop(0.5, '#a9763f'); wood.addColorStop(1, '#85562d');
+    c2.fillStyle = wood; c2.fillRect(0, 0, W, H);
+
+    // veines du bois : lignes sinusoidales alternees, memes formules que la 2D (echelle adaptee)
+    c2.lineWidth = 2; c2.globalAlpha = 0.16;
+    for (let g = 0; g < 26; g++) {
+      const y0 = g * 20;
+      c2.strokeStyle = (g % 2) ? '#6b4222' : '#dcb888';
+      c2.beginPath();
+      for (let x = 0; x <= W; x += 6) {
+        const yy = y0 + Math.sin((x + g * 37) / 46) * 7 + Math.sin(x / 105) * 10;
+        if (x === 0) c2.moveTo(x, yy); else c2.lineTo(x, yy);
+      }
+      c2.stroke();
+    }
+    c2.globalAlpha = 1;
+
+    // rivieres de resine epoxy bleue : 3 coulees sinueuses translucides, meme esprit que la 2D
+    const rivers = [
+      { y: 120, amp: 34, w: 22, phase: 0.4 },
+      { y: 260, amp: 58, w: 16, phase: 3.1 },
+      { y: 400, amp: 38, w: 26, phase: 1.7 },
+    ];
+    function riverY(rv, x) { return rv.y + Math.sin(x / 68 + rv.phase) * rv.amp + Math.sin(x / 27) * 6; }
+    rivers.forEach(function(rv) {
+      c2.beginPath();
+      for (let x = 0; x <= W; x += 5) { const yy = riverY(rv, x); if (x === 0) c2.moveTo(x, yy - rv.w/2); else c2.lineTo(x, yy - rv.w/2); }
+      for (let x = W; x >= 0; x -= 5) { const yy = riverY(rv, x); c2.lineTo(x, yy + rv.w/2); }
+      c2.closePath();
+      const grad = c2.createLinearGradient(0, rv.y - rv.amp, 0, rv.y + rv.amp + rv.w);
+      grad.addColorStop(0, 'rgba(46,130,205,0.82)');
+      grad.addColorStop(0.5, 'rgba(20,82,165,0.9)');
+      grad.addColorStop(1, 'rgba(9,42,108,0.92)');
+      c2.fillStyle = grad; c2.fill();
+      c2.strokeStyle = 'rgba(165,215,255,0.55)'; c2.lineWidth = 2;
+      c2.beginPath();
+      for (let x = 0; x <= W; x += 5) { const yy = riverY(rv, x) - rv.w/2 + 2; if (x === 0) c2.moveTo(x, yy); else c2.lineTo(x, yy); }
+      c2.stroke();
+    });
+
+    // accent d'angle (rappel du coin resine 2D) : tache bleue radiale, coin haut-gauche
+    const accent = c2.createRadialGradient(60, 60, 4, 60, 60, 90);
+    accent.addColorStop(0, 'rgba(96,175,240,0.85)');
+    accent.addColorStop(0.5, 'rgba(28,98,188,0.75)');
+    accent.addColorStop(1, 'rgba(8,38,102,0)');
+    c2.fillStyle = accent; c2.beginPath(); c2.arc(60, 60, 90, 0, Math.PI * 2); c2.fill();
+
+    woodTexture = new THREE.CanvasTexture(cv);
+    woodTexture.needsUpdate = true;
+    return woodTexture;
+  }
   function syncBoardTheme3D() {
     const bois = typeof boardTheme !== 'undefined' && !!boardTheme.wood;
     if (bois) {
       holeMat.color.set('#4a2e18');
       scene.background = new THREE.Color('#241a10');
       if (scene.fog) scene.fog.color.set('#241a10');
+      top.material.map = getWoodTexture();
+      top.material.color.set('#ffffff');   // laisse la texture porter la couleur, pas de teinte multiplicative dessus
+      top.material.needsUpdate = true;
+      base.material.map = null;
+      base.material.color.set('#3a2614');   // meme teinte que le contour bois en 2D
+      base.material.needsUpdate = true;
       return;
     }
     const themes = (typeof window !== 'undefined' && window.BOARD_SURFACE_THEMES) || {};
     const nom = (typeof boardTheme !== 'undefined' && boardTheme.theme) || 'dark';
-    const t = themes[nom] || themes.dark || { trim: '#0a0a0b', gutterOuter: '#16181a' };
+    const t = themes[nom] || themes.dark || { trim: '#0a0a0b', gutterOuter: '#16181a', surf: ['#a8a8a8','#919191','#7c7c7c'] };
     holeMat.color.set(t.trim);
     scene.background = new THREE.Color(t.gutterOuter);
     if (scene.fog) scene.fog.color.set(t.gutterOuter);
+    top.material.map = null;
+    top.material.color.set(t.surf[1]);
+    top.material.needsUpdate = true;
+    base.material.map = null;
+    base.material.color.set(t.gutterOuter);
+    base.material.needsUpdate = true;
   }
   /* Enroule un angle dans (-pi, pi]. Declaree ICI (portee englobante) et pas
      seulement pres des boutons : updateCam() en a aussi besoin, pour
@@ -23787,13 +24133,20 @@ function start3DScene() {
   window.addEventListener('pointermove', function(e){
     if (!drag) return;
     movedDist = Math.max(movedDist, Math.hypot(e.clientX-downX, e.clientY-downY));
-    tTheta -= (e.clientX-lx)*0.008;
-    /* La composante verticale du glisser (phi) est elle aussi bloquee par le
-       verrou "vue du dessus" — sinon un simple glisser au doigt suffirait a
-       le contourner, alors que les boutons X sont grises. Meme regle que les
-       boutons : verrouille = phi/radius immobiles, seuls theta (Y) et le
-       zoom restent libres. topLocked est déclaré plus haut, avec la caméra. */
-    if (!topLocked) tPhi = Math.max(0.15, Math.min(Math.PI*0.49, tPhi - (e.clientY-ly)*0.008));
+    /* Le verrou "vue du dessus" bloque desormais TOUT deplacement de la
+       camera au doigt — theta (Y) ET phi — pas seulement l'inclinaison.
+       Sans ca, un simple glisser horizontal suffisait a faire tourner le
+       plateau meme verrouille, en contournant totalement le sens du
+       cadenas : "on ne peut pas le bouger en le touchant". Y↺/Y↻
+       restent le SEUL moyen de tourner sous le verrou — deliberes, pas
+       accidentels. movedDist, lui, continue d'etre suivi meme verrouille :
+       necessaire a la distinction tap/glisser pour la selection d'une
+       bille au relachement, sans rapport avec la camera. Signale par
+       Olivier. */
+    if (!topLocked) {
+      tTheta -= (e.clientX-lx)*0.008;
+      tPhi = Math.max(0.15, Math.min(Math.PI*0.49, tPhi - (e.clientY-ly)*0.008));
+    }
     lx = e.clientX; ly = e.clientY;
   });
   canvas.addEventListener('wheel', function(e){
