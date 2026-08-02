@@ -3286,7 +3286,7 @@ document.addEventListener('keydown', function(e){
         <div class="rot-ctl" id="rot2d-bottom" style="bottom:22%" title="Rotation (votre côté)">
           <button class="rot-btn" onclick="rotateBoard(-BOARD_ROTATE_STEP_DEG)" title="Pivoter anti-horaire">Y↺</button>
           <button class="rot-btn" onclick="rotateBoard(BOARD_ROTATE_STEP_DEG)" title="Pivoter horaire">Y↻</button>
-          <button class="rot-btn" id="side2d-black" onclick="setSideView('black')" title="Côté Noirs"></button>
+          <button class="rot-btn" id="side2d-black" onclick="setSideView('black')" title="Côté Noirs (0° exactement — pas par incréments, contrairement à Y↺/Y↻)"></button>
           <button class="rot-btn" id="side2d-white" onclick="setSideView('white')" title="Côté Blancs"></button>
         </div>
         <!-- Temps restant : decompte, place directement sous le plateau -->
@@ -23942,63 +23942,91 @@ function start3DScene() {
   let woodTexture = null;
   function getWoodTexture() {
     if (woodTexture) return woodTexture;
+    /* 640x640, mx=my=320 : EXACTEMENT le canvas et le centre de reference du
+       rendu 2D (hexCoord utilise cx=cy=320) — le grain occupe donc les
+       memes proportions du plateau des deux cotes. Les rivieres d'epoxy ne
+       sont PLUS peintes ici : une texture plate n'est pas un relief, ce
+       qu'Olivier a signale a raison. Elles sont desormais une vraie
+       geometrie 3D, voir getRiverMeshes() juste en dessous. */
     const cv = document.createElement('canvas');
-    cv.width = 512; cv.height = 512;
+    cv.width = 640; cv.height = 640;
     const c2 = cv.getContext('2d');
-    const W = 512, H = 512;
+    const mx = 320, my = 320;
 
-    // fond bois (meme degrade diagonal que la 2D)
-    const wood = c2.createLinearGradient(0, 0, W, H);
+    const wood = c2.createLinearGradient(mx - 230, my - 210, mx + 230, my + 210);
     wood.addColorStop(0, '#cda472'); wood.addColorStop(0.5, '#a9763f'); wood.addColorStop(1, '#85562d');
-    c2.fillStyle = wood; c2.fillRect(0, 0, W, H);
+    c2.fillStyle = wood; c2.fillRect(0, 0, 640, 640);
 
-    // veines du bois : lignes sinusoidales alternees, memes formules que la 2D (echelle adaptee)
+    // veines du bois : EXACTEMENT la boucle 2D (28 lignes, memes sinusoides)
     c2.lineWidth = 2; c2.globalAlpha = 0.16;
-    for (let g = 0; g < 26; g++) {
-      const y0 = g * 20;
+    for (let g = 0; g < 28; g++) {
+      const y0 = my - 220 + g * 16;
       c2.strokeStyle = (g % 2) ? '#6b4222' : '#dcb888';
       c2.beginPath();
-      for (let x = 0; x <= W; x += 6) {
-        const yy = y0 + Math.sin((x + g * 37) / 46) * 7 + Math.sin(x / 105) * 10;
-        if (x === 0) c2.moveTo(x, yy); else c2.lineTo(x, yy);
+      for (let x = mx - 250; x <= mx + 250; x += 10) {
+        const yy = y0 + Math.sin((x + g * 37) / 52) * 6 + Math.sin(x / 120) * 9;
+        if (x === mx - 250) c2.moveTo(x, yy); else c2.lineTo(x, yy);
       }
       c2.stroke();
     }
     c2.globalAlpha = 1;
 
-    // rivieres de resine epoxy bleue : 3 coulees sinueuses translucides, meme esprit que la 2D
-    const rivers = [
-      { y: 120, amp: 34, w: 22, phase: 0.4 },
-      { y: 260, amp: 58, w: 16, phase: 3.1 },
-      { y: 400, amp: 38, w: 26, phase: 1.7 },
-    ];
-    function riverY(rv, x) { return rv.y + Math.sin(x / 68 + rv.phase) * rv.amp + Math.sin(x / 27) * 6; }
-    rivers.forEach(function(rv) {
-      c2.beginPath();
-      for (let x = 0; x <= W; x += 5) { const yy = riverY(rv, x); if (x === 0) c2.moveTo(x, yy - rv.w/2); else c2.lineTo(x, yy - rv.w/2); }
-      for (let x = W; x >= 0; x -= 5) { const yy = riverY(rv, x); c2.lineTo(x, yy + rv.w/2); }
-      c2.closePath();
-      const grad = c2.createLinearGradient(0, rv.y - rv.amp, 0, rv.y + rv.amp + rv.w);
-      grad.addColorStop(0, 'rgba(46,130,205,0.82)');
-      grad.addColorStop(0.5, 'rgba(20,82,165,0.9)');
-      grad.addColorStop(1, 'rgba(9,42,108,0.92)');
-      c2.fillStyle = grad; c2.fill();
-      c2.strokeStyle = 'rgba(165,215,255,0.55)'; c2.lineWidth = 2;
-      c2.beginPath();
-      for (let x = 0; x <= W; x += 5) { const yy = riverY(rv, x) - rv.w/2 + 2; if (x === 0) c2.moveTo(x, yy); else c2.lineTo(x, yy); }
-      c2.stroke();
-    });
-
-    // accent d'angle (rappel du coin resine 2D) : tache bleue radiale, coin haut-gauche
-    const accent = c2.createRadialGradient(60, 60, 4, 60, 60, 90);
-    accent.addColorStop(0, 'rgba(96,175,240,0.85)');
-    accent.addColorStop(0.5, 'rgba(28,98,188,0.75)');
-    accent.addColorStop(1, 'rgba(8,38,102,0)');
-    c2.fillStyle = accent; c2.beginPath(); c2.arc(60, 60, 90, 0, Math.PI * 2); c2.fill();
-
     woodTexture = new THREE.CanvasTexture(cv);
     woodTexture.needsUpdate = true;
     return woodTexture;
+  }
+  /* Rivieres d'epoxy : VRAIE geometrie 3D (un ruban extrude par riviere),
+     pas une texture plate — corrige une premiere version qui les peignait
+     sur la surface, signalee a raison par Olivier ("il faut des sinusoides
+     d'epoxy EN 3D"). Meme tracé sinusoïdal EXACT que la 2D (memes y/amp/w/
+     phase, meme formule riverY), converti de l'espace pixel 2D (canvas
+     640x640, centre 320,320) vers l'espace monde 3D par un simple facteur
+     d'echelle (rayon reel du plateau / demi-largeur du canvas de reference)
+     — les rivieres occupent exactement les MEMES proportions du plateau
+     qu'en 2D. Construites une seule fois et mises en cache, comme la
+     texture de grain : sync() tourne a chaque coup, pas de raison de
+     reconstruire une geometrie identique a chaque fois. Verifiees d'abord
+     dans un apercu Three.js reel avant d'etre integrees ici. */
+  let riverMeshes = null;
+  function getRiverMeshes() {
+    if (riverMeshes) return riverMeshes;
+    const echelle = baseR / 320;   // baseR = rayon reel du plateau 3D, deja calcule plus haut
+    const mx = 320, my = 320;
+    const rivers = [
+      { y: my - 165, amp: 55, w: 30, phase: 0.4 },
+      { y: my + 30,  amp: 95, w: 22, phase: 3.1 },
+      { y: my + 175, amp: 60, w: 36, phase: 1.7 },
+    ];
+    const x0px = mx - 340, x1px = mx + 340;
+    function riverY(rv, xpx) { return rv.y + Math.sin((xpx / 95) + rv.phase) * rv.amp + Math.sin(xpx / 38) * 9; }
+    const hauteur = 0.10;   // saillie du relief, en unites monde — valeur validee sur l'apercu
+    const glassMat = new THREE.MeshPhysicalMaterial({
+      color: 0x2a72c8, roughness: 0.08, metalness: 0.05,
+      transmission: 0.55, thickness: 0.4, clearcoat: 1, clearcoatRoughness: 0.05,
+      transparent: true, opacity: 0.92,
+    });
+    riverMeshes = rivers.map(function(rv) {
+      const shape = new THREE.Shape();
+      let premier = true;
+      for (let xpx = x0px; xpx <= x1px; xpx += 7) {
+        const ypx = riverY(rv, xpx) - rv.w / 2;
+        const X = (xpx - mx) * echelle, Z = (ypx - my) * echelle;
+        if (premier) { shape.moveTo(X, Z); premier = false; } else shape.lineTo(X, Z);
+      }
+      for (let xpx = x1px; xpx >= x0px; xpx -= 7) {
+        const ypx = riverY(rv, xpx) + rv.w / 2;
+        const X = (xpx - mx) * echelle, Z = (ypx - my) * echelle;
+        shape.lineTo(X, Z);
+      }
+      shape.closePath();
+      const geo = new THREE.ExtrudeGeometry(shape, { depth: hauteur, bevelEnabled: true, bevelThickness: hauteur * 0.3, bevelSize: hauteur * 0.2, bevelSegments: 3 });
+      geo.rotateX(Math.PI / 2);
+      const mesh = new THREE.Mesh(geo, glassMat);
+      mesh.position.y = 0.075;   // affleure le dessus du plateau (top), en legere saillie — valeur validee sur l'apercu
+      mesh.castShadow = true; mesh.receiveShadow = true;
+      return mesh;
+    });
+    return riverMeshes;
   }
   function syncBoardTheme3D() {
     const bois = typeof boardTheme !== 'undefined' && !!boardTheme.wood;
@@ -24012,6 +24040,7 @@ function start3DScene() {
       base.material.map = null;
       base.material.color.set('#3a2614');   // meme teinte que le contour bois en 2D
       base.material.needsUpdate = true;
+      getRiverMeshes().forEach(function(m){ if (!m.parent) group.add(m); });
       return;
     }
     const themes = (typeof window !== 'undefined' && window.BOARD_SURFACE_THEMES) || {};
@@ -24025,6 +24054,7 @@ function start3DScene() {
     top.material.needsUpdate = true;
     base.material.map = null;
     base.material.color.set(t.gutterOuter);
+    if (riverMeshes) riverMeshes.forEach(function(m){ if (m.parent) group.remove(m); });
     base.material.needsUpdate = true;
   }
   /* Enroule un angle dans (-pi, pi]. Declaree ICI (portee englobante) et pas
@@ -24211,12 +24241,12 @@ function start3DScene() {
     [
       { label: '🔍+', title: 'Zoom avant',  action: function(){ auto = false; tRadius = Math.max(RADIUS_MIN, tRadius - 3); }, verrouillable: false },
       { label: '🔍−', title: 'Zoom arrière', action: function(){ auto = false; tRadius = Math.min(RADIUS_MAX, tRadius + 3); }, verrouillable: false },
-      { label: 'X↑', title: 'Rotation X (incliner vers le haut)', action: function(){ if (topLocked) return; auto = false; tPhi = Math.max(PHI_MIN, tPhi - 0.12); }, verrouillable: true },
-      { label: 'X↓', title: 'Rotation X (incliner vers le bas)',  action: function(){ if (topLocked) return; auto = false; tPhi = Math.min(PHI_MAX, tPhi + 0.12); }, verrouillable: true },
-      { label: 'Y↺', title: 'Rotation Y (pivoter à gauche)', action: function(){ auto = false; tTheta = wrap(tTheta - window.BOARD_ROTATE_STEP_DEG * Math.PI / 180); }, verrouillable: false },
-      { label: 'Y↻', title: 'Rotation Y (pivoter à droite)', action: function(){ auto = false; tTheta = wrap(tTheta + window.BOARD_ROTATE_STEP_DEG * Math.PI / 180); }, verrouillable: false },
-      { label: 'Z↶', title: 'Rotation Z (roulis anti-horaire)', action: function(){ if (topLocked) return; auto = false; tRoll = wrap(tRoll - 0.20); }, verrouillable: true },
-      { label: 'Z↷', title: 'Rotation Z (roulis horaire)',      action: function(){ if (topLocked) return; auto = false; tRoll = wrap(tRoll + 0.20); }, verrouillable: true },
+      { label: 'X↑', title: 'Rotation X (incliner vers le haut)', action: function(){ if (topLocked) return; auto = false; tPhi = Math.max(PHI_MIN, tPhi - 0.12); if (typeof showToast === 'function') showToast('⬆ Inclinaison (' + Math.round(tPhi * 180 / Math.PI) + '°)'); }, verrouillable: true },
+      { label: 'X↓', title: 'Rotation X (incliner vers le bas)',  action: function(){ if (topLocked) return; auto = false; tPhi = Math.min(PHI_MAX, tPhi + 0.12); if (typeof showToast === 'function') showToast('⬇ Inclinaison (' + Math.round(tPhi * 180 / Math.PI) + '°)'); }, verrouillable: true },
+      { label: 'Y↺', title: 'Rotation Y (pivoter à gauche)', action: function(){ auto = false; tTheta = wrap(tTheta - window.BOARD_ROTATE_STEP_DEG * Math.PI / 180); if (typeof showToast === 'function' && typeof theta3DToBoardRotation === 'function') showToast('↺ Plateau pivoté (' + Math.round(theta3DToBoardRotation(tTheta)) + '°)'); }, verrouillable: false },
+      { label: 'Y↻', title: 'Rotation Y (pivoter à droite)', action: function(){ auto = false; tTheta = wrap(tTheta + window.BOARD_ROTATE_STEP_DEG * Math.PI / 180); if (typeof showToast === 'function' && typeof theta3DToBoardRotation === 'function') showToast('↻ Plateau pivoté (' + Math.round(theta3DToBoardRotation(tTheta)) + '°)'); }, verrouillable: false },
+      { label: 'Z↶', title: 'Rotation Z (roulis anti-horaire)', action: function(){ if (topLocked) return; auto = false; tRoll = wrap(tRoll - 0.20); if (typeof showToast === 'function') showToast('↶ Roulis (' + Math.round(tRoll * 180 / Math.PI) + '°)'); }, verrouillable: true },
+      { label: 'Z↷', title: 'Rotation Z (roulis horaire)',      action: function(){ if (topLocked) return; auto = false; tRoll = wrap(tRoll + 0.20); if (typeof showToast === 'function') showToast('↷ Roulis (' + Math.round(tRoll * 180 / Math.PI) + '°)'); }, verrouillable: true },
     ].forEach(function(it, i){
       const b = poser(it.label, it.title, (i % 2) + 1, Math.floor(i / 2) + 1, '13px', it.action);
       if (it.verrouillable) lockableBtns.push(b);
@@ -24237,7 +24267,7 @@ function start3DScene() {
         tTheta = boardRotationToTheta3D(window.boardRotation);
       };
     }
-    const btnNoir = poser('', 'Côté Noirs', 3, 1, '13px', actionCote('black'));
+    const btnNoir = poser('', 'Côté Noirs (0° exactement — pas par incréments, contrairement à Y↺/Y↻)', 3, 1, '13px', actionCote('black'));
     const btnBlanc = poser('', 'Côté Blancs', 3, 2, '13px', actionCote('white'));
     btnNoir3D = btnNoir; btnBlanc3D = btnBlanc;   // publie vers la portee englobante (voir plus haut, pour sync())
     syncSideButtonColors3D();
