@@ -10561,12 +10561,11 @@ window.boardRotation = 0;   // rotation de la VUE du plateau, en degrés — pro
 /* Pas de rotation, PARTAGE entre les boutons 2D (rotateBoard) et les
    boutons Y de la 3D (orbite de la camera) — une seule valeur, deux
    consommateurs, pour qu'il n'y ait jamais deux pas differents a
-   resynchroniser separement. 11,5° par clic, sur demande d'Olivier —
-   la 2D acceptait n'importe quel angle (les 60° d'origine etaient un
-   choix esthetique, pas une contrainte : le cadre hexagonal ET les cases
-   se recalculent tous deux via hexCoord(), donc restent coherents entre
-   eux a n'importe quel angle). */
-const BOARD_ROTATE_STEP_DEG = 11.5;
+   resynchroniser separement. 10° par clic, sur demande d'Olivier
+   (auparavant 11,5°) — la 2D accepte n'importe quel angle (le cadre
+   hexagonal ET les cases se recalculent tous deux via hexCoord(), donc
+   restent coherents entre eux a n'importe quel angle). */
+const BOARD_ROTATE_STEP_DEG = 10;
 window.BOARD_ROTATE_STEP_DEG = BOARD_ROTATE_STEP_DEG;   // rendu explicitement global : start3DScene()
                                                           // vit dans un AUTRE bloc <script>, qui ne
                                                           // partage pas forcement la portee lexicale
@@ -24187,23 +24186,21 @@ function start3DScene() {
   // ─── Angles de vue préréglés, sur le côté du plateau ───
   // (mêmes coordonnées que le drag manuel : theta = azimut, phi = hauteur)
   const DEFAULT_VIEW = { theta: Math.PI*0.25, phi: Math.PI*0.34, radius: 22 };
-  /* ⟲ (vue cavaliere) et 🔄 (rotation auto) retires — demande d'Olivier.
-     ⚫/⚪ ont quitte ce tableau : ils ne relevent plus des prereglages
-     complets (theta+phi+radius), voir plus bas pourquoi. Seul ⬆ reste un
-     VRAI prereglage de camera. */
-  const VIEW_PRESETS = [
-    { label: '⬆',  title: 'Vue de dessus', theta: DEFAULT_VIEW.theta, phi: 0.12, radius: 26 },
-  ];
+  /* ⟲ (vue cavaliere), 🔄 (rotation auto) et ⬆ (vue de dessus) retires —
+     demande d'Olivier. ⬆ etait devenu redondant : le verrou "vue du
+     dessus" impose deja exactement les memes valeurs (tPhi=0.12,
+     tRadius=26, voir plus bas) des qu'il est active, ce qui est le cas par
+     defaut. */
 
-  /* ── Un seul panneau, 4 colonnes, en bas a gauche ──
-     Zoom/rotation (colonnes 1-2, 4 rangees) et angles de vue (colonnes 3-4)
+  /* ── Un seul panneau, 3 colonnes utilisees, en bas a gauche ──
+     Zoom/rotation (colonnes 1-2, 4 rangees) et angles de vue (colonne 3)
      partagent UNE seule grille, avec placement EXPLICITE (grid-column/
      grid-row) — deux grilles cote a cote ne peuvent pas s'aligner de facon
      fiable des que leur nombre de boutons differe. Disposition actuelle,
-     apres retrait de ⟲/🔄 :
-       🔍+  🔍−   ⚫   ⬆
-       X↑   X↓    ⚪   🔒
-       Y↺   Y↻
+     apres retrait de ⟲/🔄/⬆ :
+       🔍+  🔍−   ⚫
+       X↑   X↓    ⚪
+       Y↺   Y↻    🔒
        Z↶   Z↷        */
   if (!document.getElementById('view3d-nav')) {
     const PHI_MIN = 0.15, PHI_MAX = Math.PI*0.49;     // memes bornes que le drag (evite un plateau vu par en-dessous)
@@ -24217,7 +24214,7 @@ function start3DScene() {
     nav.id = 'view3d-nav';
     nav.className = 'rot-ctl';
     nav.style.display = 'grid';
-    nav.style.gridTemplateColumns = 'repeat(4, 34px)';
+    nav.style.gridTemplateColumns = 'repeat(3, 34px)';   // 3 colonnes : la 4e n'est plus utilisee depuis le retrait de ⬆
     nav.style.gap = '6px';
     nav.style.left = '8px'; nav.style.right = 'auto'; nav.style.bottom = '8px'; nav.style.top = 'auto';
     nav.title = 'Zoom, rotation (X, Y, Z) et angles de vue';
@@ -24245,8 +24242,8 @@ function start3DScene() {
       { label: 'X↓', title: 'Rotation X (incliner vers le bas)',  action: function(){ if (topLocked) return; auto = false; tPhi = Math.min(PHI_MAX, tPhi + 0.12); if (typeof showToast === 'function') showToast('⬇ Inclinaison (' + Math.round(tPhi * 180 / Math.PI) + '°)'); }, verrouillable: true },
       { label: 'Y↺', title: 'Rotation Y (pivoter à gauche)', action: function(){ auto = false; tTheta = wrap(tTheta - window.BOARD_ROTATE_STEP_DEG * Math.PI / 180); if (typeof showToast === 'function' && typeof theta3DToBoardRotation === 'function') showToast('↺ Plateau pivoté (' + Math.round(theta3DToBoardRotation(tTheta)) + '°)'); }, verrouillable: false },
       { label: 'Y↻', title: 'Rotation Y (pivoter à droite)', action: function(){ auto = false; tTheta = wrap(tTheta + window.BOARD_ROTATE_STEP_DEG * Math.PI / 180); if (typeof showToast === 'function' && typeof theta3DToBoardRotation === 'function') showToast('↻ Plateau pivoté (' + Math.round(theta3DToBoardRotation(tTheta)) + '°)'); }, verrouillable: false },
-      { label: 'Z↶', title: 'Rotation Z (roulis anti-horaire)', action: function(){ if (topLocked) return; auto = false; tRoll = wrap(tRoll - 0.20); if (typeof showToast === 'function') showToast('↶ Roulis (' + Math.round(tRoll * 180 / Math.PI) + '°)'); }, verrouillable: true },
-      { label: 'Z↷', title: 'Rotation Z (roulis horaire)',      action: function(){ if (topLocked) return; auto = false; tRoll = wrap(tRoll + 0.20); if (typeof showToast === 'function') showToast('↷ Roulis (' + Math.round(tRoll * 180 / Math.PI) + '°)'); }, verrouillable: true },
+      { label: 'Z↶', title: 'Rotation Z (roulis anti-horaire)', action: function(){ if (topLocked) return; auto = false; tRoll = wrap(tRoll - 10 * Math.PI / 180); if (typeof showToast === 'function') showToast('↶ Roulis (' + Math.round(tRoll * 180 / Math.PI) + '°)'); }, verrouillable: true },
+      { label: 'Z↷', title: 'Rotation Z (roulis horaire)',      action: function(){ if (topLocked) return; auto = false; tRoll = wrap(tRoll + 10 * Math.PI / 180); if (typeof showToast === 'function') showToast('↷ Roulis (' + Math.round(tRoll * 180 / Math.PI) + '°)'); }, verrouillable: true },
     ].forEach(function(it, i){
       const b = poser(it.label, it.title, (i % 2) + 1, Math.floor(i / 2) + 1, '13px', it.action);
       if (it.verrouillable) lockableBtns.push(b);
@@ -24272,25 +24269,22 @@ function start3DScene() {
     btnNoir3D = btnNoir; btnBlanc3D = btnBlanc;   // publie vers la portee englobante (voir plus haut, pour sync())
     syncSideButtonColors3D();
 
-    // colonne 4, rangee 1 : ⬆ (vue de dessus) — reste bloque : c'est le
-    // dernier prereglage a encore toucher phi/radius, redondant tant que
-    // le verrou est actif (on y est deja).
-    const dessus = VIEW_PRESETS[0];
-    lockableBtns.push(poser(dessus.label, dessus.title, 4, 1, '15px', function(){ if (topLocked) return; auto = false; tTheta = dessus.theta; tPhi = dessus.phi; tRadius = dessus.radius; }));
-
-    /* ── Verrou "vue du dessus" — colonne 4, rangee 2 ──
+    /* ── Verrou "vue du dessus" — colonne 3, rangee 3 ──
        Actif PAR DEFAUT (topLocked = true, déclaré plus haut avec la caméra) :
-       la camera demarre deja en vue de dessus, et X/Z/⬆ sont bloques des
+       la camera demarre deja en vue de dessus, et X/Z sont bloques des
        l'ouverture. Zoom, Y et ⚫/⚪ restent toujours actifs, verrouille ou
        non — Y et ⚫/⚪ parce qu'ils ne touchent que theta, reste synchronise
        avec la 2D ; zoom parce qu'il ne fait jamais sortir de la vue du dessus.
        Cliquer le bouton :
-       - deverrouille -> libere X/Z/⬆, sans toucher a l'angle actuel (la
+       - deverrouille -> libere X/Z, sans toucher a l'angle actuel (la
          camera reste ou elle est, simplement plus rien ne l'empeche de
          bouger sur X/Z desormais) ;
        - reverrouille -> impose a nouveau phi/radius de la vue de dessus
          (theta n'est pas touche, il reste synchronise avec la 2D), et
          regrise les boutons concernes.
+       Place a l'emplacement libre (colonne 3, rangee 3, sous ⚪) plutot que
+       colonne 4 : ⬆ (vue de dessus), qui occupait la colonne 4, a ete
+       retire — redondant avec ce que le verrou impose deja par defaut.
        Signale par Olivier. */
     function applyLockUI() {
       lockableBtns.forEach(function(b){
@@ -24299,10 +24293,10 @@ function start3DScene() {
       });
       lockBtn.textContent = topLocked ? '🔒' : '🔓';
       lockBtn.title = topLocked
-        ? 'Vue du dessus verrouillée — cliquer pour déverrouiller (X, Z, vue de dessus)'
+        ? 'Vue du dessus verrouillée — cliquer pour déverrouiller (X, Z)'
         : 'Vue du dessus déverrouillée — cliquer pour reverrouiller (zoom, Y et côtés restent toujours libres)';
     }
-    const lockBtn = poser('🔒', 'Vue du dessus verrouillée — cliquer pour déverrouiller', 4, 2, '15px', function(){
+    const lockBtn = poser('🔒', 'Vue du dessus verrouillée — cliquer pour déverrouiller', 3, 3, '15px', function(){
       topLocked = !topLocked;
       if (topLocked) { auto = false; tPhi = 0.12; tRadius = 26; }   // reverrouille : reimpose la vue de dessus (theta intact)
       applyLockUI();
