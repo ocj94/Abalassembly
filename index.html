@@ -4520,8 +4520,20 @@ document.addEventListener('keydown', function(e){
               <button onclick="setBoardTheme('wood',this)" class="bg-swatch" style="background:linear-gradient(135deg,#a9763f,#1f6fb0)" title="Bois &amp; résine époxy"></button>
               <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Bois &amp; résine</span>
             </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('volcanique',this)" class="bg-swatch" style="background:linear-gradient(135deg,#9c6030,#141414)" title="Volcanique"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Volcanique</span>
+            </div>
           </div>
           <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">Chaque thème change réellement la couleur du plateau — feutre, gouttière et contour — aussi bien en 2D qu'en 3D.</div>
+          <!-- Jour/Nuit : pour l'instant, seul Volcanique a une variante nuit
+               (les 5 autres viendront plus tard, un par un — demande
+               d'Olivier). toggleThemeNight() previent clairement si le
+               theme actif n'en a pas encore. -->
+          <div style="margin-top:10px">
+            <button onclick="toggleThemeNight()" id="theme-night-toggle" class="btn-ghost"
+              style="padding:5px 12px;font-size:12px;font-weight:600;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:none;color:var(--muted)">🌗 Jour / Nuit</button>
+          </div>
         </div>
         <div style="margin-top:16px;display:flex;gap:10px;align-items:center">
           <label style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;cursor:pointer">
@@ -10789,8 +10801,165 @@ const BOARD_SURFACE_THEMES = {
   marble: { gutterOuter:'#2a2a2a', gutGrad:['#3a3a3a','#242424'], trim:'#141414', surf:['#d8d4cc','#c0bab0','#a8a094'] },
   gold:   { gutterOuter:'#241a08', gutGrad:['#4a3510','#2a1c08'], trim:'#120c04', surf:['#c9a24a','#a8822e','#7a5c1c'] },
   forest: { gutterOuter:'#0e1a0e', gutGrad:['#1e3a1e','#0f200f'], trim:'#060e06', surf:['#5a8258','#436843','#2c4a2c'] },
+  /* Volcanique : PREMIER theme avec variante jour/nuit (les 5 autres n'en
+     ont pas encore — "on fera les autres apres", demande d'Olivier).
+     Couleurs RE-ECHANTILLONNEES directement sur la photo de reference
+     fournie par Olivier (roche noire craquelee, veines de lave) — pas
+     choisies a l'oeil. La premiere version etait trop chaude/brune sur la
+     roche ; la vraie photo montre un gris-noir neutre, avec les veines
+     nettement plus discretes le jour (ambre terne) que la nuit (rouge-
+     orange vif) — l'ecart jour/nuit est plus marque que ce qu'on avait. */
+  volcanique: {
+    day:   { gutterOuter:'#141414', gutGrad:['#282828','#141414'], trim:'#9c6030', surf:['#383838','#282828','#141414'] },
+    night: { gutterOuter:'#050505', gutGrad:['#100000','#050505'], trim:'#c01800', surf:['#180000','#0d0000','#050505'] },
+  },
 };
 window.BOARD_SURFACE_THEMES = BOARD_SURFACE_THEMES;
+/* Resout les couleurs reelles d'un theme, qu'il soit "plat" (les 5 themes
+   d'origine, une seule teinte) ou "jour/nuit" (Volcanique, et les futurs
+   themes qui suivront le meme motif). boardTheme.night est un booleen
+   simple ; ignore silencieusement pour un theme qui n'a pas encore de
+   variante nuit (repli sur day, ou sur le theme plat tel quel) — jamais
+   d'erreur si on bascule le mode nuit sur un theme qui ne le gere pas
+   encore. Signale par Olivier. */
+function resolveThemeColors(nom, estNuit) {
+  const t = BOARD_SURFACE_THEMES[nom] || BOARD_SURFACE_THEMES.dark;
+  if (t.day || t.night) return (estNuit && t.night) ? t.night : (t.day || t.night);
+  return t;
+}
+window.resolveThemeColors = resolveThemeColors;
+
+/* Textures procedurales des 6 themes de plateau, cote 2D — MEMES formules
+   que la version 3D (getThemeTexture, plus bas dans le bloc <script> de la
+   3D), portees ici plutot que reinventees, mais avec un vrai souci de
+   PERFORMANCE propre a la 2D : drawBoard() redessine le canvas ENTIER a
+   chaque coup, chaque survol, chaque frame d'animation — repeindre 100+
+   formes avec Math.random() a chaque appel serait couteux ET instable
+   visuellement (le motif "sauterait" a chaque redessin puisque
+   Math.random() donnerait une position differente a chaque fois). Chaque
+   texture est donc peinte UNE SEULE FOIS sur un canvas hors-ecran, mis en
+   cache par (theme, jour/nuit), puis simplement collee (drawImage) a
+   chaque redessin — aussi rapide qu'un degrade, motif stable. Signale par
+   Olivier — "je veux ca pour chaque theme". */
+const themeTextures2D = {};
+function peindreTextureTheme2D(nom, night, t) {
+  const cv = document.createElement('canvas');
+  cv.width = 640; cv.height = 640;
+  const c2 = cv.getContext('2d');
+  function fondDegrade2D(c1coul, c2coul) {
+    const g = c2.createLinearGradient(0, 0, 640, 640);
+    g.addColorStop(0, c1coul); g.addColorStop(1, c2coul);
+    c2.fillStyle = g; c2.fillRect(0, 0, 640, 640);
+  }
+  function fissures2D(couleurFissure, largeur, alpha) {
+    for (let b = 0; b < 26; b++) {
+      let x = Math.random() * 640, y = Math.random() * 640;
+      let angle = Math.random() * Math.PI * 2;
+      c2.beginPath(); c2.moveTo(x, y);
+      const longueur = 70 + Math.random() * 160;
+      let dist = 0;
+      while (dist < longueur) {
+        angle += (Math.random() - 0.5) * 0.7;
+        const pas = 7 + Math.random() * 6;
+        x += Math.cos(angle) * pas; y += Math.sin(angle) * pas;
+        dist += pas;
+        c2.lineTo(x, y);
+      }
+      c2.strokeStyle = couleurFissure; c2.globalAlpha = alpha * (0.6 + Math.random() * 0.4);
+      c2.lineWidth = largeur * (0.5 + Math.random());
+      c2.stroke();
+    }
+    c2.globalAlpha = 1;
+  }
+  if (nom === 'dark') {
+    fondDegrade2D(t.surf[0], t.surf[2]);
+    for (let i = 0; i < 4; i++) {
+      c2.beginPath();
+      const y0 = Math.random() * 640;
+      c2.moveTo(0, y0);
+      c2.quadraticCurveTo(320, y0 + (Math.random() - 0.5) * 220, 640, y0 + (Math.random() - 0.5) * 120);
+      c2.strokeStyle = 'rgba(210,220,230,0.07)'; c2.lineWidth = 24 + Math.random() * 30;
+      c2.stroke();
+    }
+    for (let i = 0; i < 30; i++) {
+      c2.fillStyle = 'rgba(255,255,255,' + (0.03 + Math.random() * 0.06).toFixed(3) + ')';
+      c2.beginPath(); c2.arc(Math.random() * 640, Math.random() * 640, 0.6 + Math.random() * 1.6, 0, 7); c2.fill();
+    }
+  } else if (nom === 'ocean') {
+    fondDegrade2D(t.surf[1], t.gutterOuter);
+    for (let v = 0; v < 22; v++) {
+      c2.beginPath();
+      const y0 = (v / 22) * 640;
+      for (let x = 0; x <= 640; x += 6) {
+        const y = y0 + Math.sin(x / 42 + v) * 9 + Math.sin(x / 17 + v * 1.7) * 3;
+        if (x === 0) c2.moveTo(x, y); else c2.lineTo(x, y);
+      }
+      c2.strokeStyle = 'rgba(180,222,240,' + (0.05 + Math.random() * 0.07).toFixed(3) + ')';
+      c2.lineWidth = 1.2;
+      c2.stroke();
+    }
+    for (let i = 0; i < 9; i++) {
+      const cx = Math.random() * 640, cy = Math.random() * 640, r = 24 + Math.random() * 46;
+      const g = c2.createRadialGradient(cx, cy, 0, cx, cy, r);
+      g.addColorStop(0, 'rgba(200,240,255,0.14)'); g.addColorStop(1, 'rgba(200,240,255,0)');
+      c2.fillStyle = g; c2.beginPath(); c2.arc(cx, cy, r, 0, 7); c2.fill();
+    }
+  } else if (nom === 'marble') {
+    fondDegrade2D(t.surf[0], t.surf[2]);
+    for (let v = 0; v < 16; v++) {
+      c2.beginPath();
+      let y0 = Math.random() * 640;
+      c2.moveTo(0, y0);
+      for (let x = 0; x <= 640; x += 8) {
+        const y = y0 + Math.sin(x / 58 + v) * 32 + Math.sin(x / 21 + v * 2.3) * 15 + Math.sin(x / 9 + v) * 5;
+        c2.lineTo(x, y);
+      }
+      c2.strokeStyle = 'rgba(110,105,96,' + (0.12 + Math.random() * 0.18).toFixed(3) + ')';
+      c2.lineWidth = 1 + Math.random() * 2.4;
+      c2.stroke();
+    }
+  } else if (nom === 'gold') {
+    fondDegrade2D(t.surf[0], t.surf[2]);
+    for (let i = 0; i < 260; i++) {
+      const y = Math.random() * 640;
+      c2.strokeStyle = 'rgba(255,232,160,' + (0.025 + Math.random() * 0.05).toFixed(3) + ')';
+      c2.lineWidth = 0.5 + Math.random();
+      c2.beginPath(); c2.moveTo(0, y); c2.lineTo(640, y + (Math.random() - 0.5) * 4); c2.stroke();
+    }
+    const sheen = c2.createLinearGradient(0, 0, 640, 640);
+    sheen.addColorStop(0.32, 'rgba(255,255,255,0)');
+    sheen.addColorStop(0.5, 'rgba(255,242,205,0.22)');
+    sheen.addColorStop(0.68, 'rgba(255,255,255,0)');
+    c2.fillStyle = sheen; c2.fillRect(0, 0, 640, 640);
+  } else if (nom === 'forest') {
+    fondDegrade2D(t.surf[0], t.surf[2]);
+    for (let i = 0; i < 100; i++) {
+      const cx = Math.random() * 640, cy = Math.random() * 640, r = 7 + Math.random() * 20;
+      c2.fillStyle = 'rgba(' + Math.round(20 + Math.random() * 45) + ',' + Math.round(60 + Math.random() * 55) + ',' + Math.round(20 + Math.random() * 35) + ',0.22)';
+      c2.beginPath(); c2.arc(cx, cy, r, 0, 7); c2.fill();
+    }
+  } else if (nom === 'volcanique') {
+    fondDegrade2D(t.surf[0], t.surf[2]);
+    for (let i = 0; i < 180; i++) {
+      const cx = Math.random() * 640, cy = Math.random() * 640, r = 2 + Math.random() * 7;
+      c2.fillStyle = 'rgba(0,0,0,' + (0.15 + Math.random() * 0.2).toFixed(3) + ')';
+      c2.beginPath(); c2.arc(cx, cy, r, 0, 7); c2.fill();
+    }
+    if (night) {
+      fissures2D('rgba(255,80,0,0.35)', 10, 0.5);
+      fissures2D('#ff5722', 2.5, 0.9);
+    } else {
+      fissures2D(t.trim, 3, 0.7);
+    }
+  }
+  return cv;
+}
+function getThemeCanvas2D(nom, night, t) {
+  const cle = nom + (night ? '_nuit' : '_jour');
+  if (themeTextures2D[cle]) return themeTextures2D[cle];
+  themeTextures2D[cle] = peindreTextureTheme2D(nom, night, t);
+  return themeTextures2D[cle];
+}
 
 function drawBoard(opts) {
   opts = opts || {};
@@ -10859,7 +11028,7 @@ function drawBoard(opts) {
   // theme de SURFACE (Obsidian/Ocean/Marbre/Or/Foret) — le bois reste a
   // part (degrade lineaire + veines + rivieres, voir plus bas), donc pas
   // dans cette table ; repli sur Obsidian si le theme est inconnu.
-  const surfTheme = BOARD_SURFACE_THEMES[boardTheme.theme] || BOARD_SURFACE_THEMES.dark;
+  const surfTheme = resolveThemeColors(boardTheme.theme, boardTheme.night);
   const gutterOuter = corners.map(p => {
     const dx=p.x-mx, dy=p.y-my, d=Math.hypot(dx,dy);
     return { x: p.x + dx/d*(pad+gutterW), y: p.y + dy/d*(pad+gutterW) };
@@ -10943,6 +11112,12 @@ function drawBoard(opts) {
     surf.addColorStop(1, surfTheme.surf[2]);
     ctx.fillStyle = surf;
     ctx.fill();
+    // texture procedurale par-dessus le degrade de base, clippee a la surface
+    ctx.save();
+    pathFromCorners(inner, 14); ctx.clip();
+    const tex2d = getThemeCanvas2D(boardTheme.theme, boardTheme.night, surfTheme);
+    if (tex2d) ctx.drawImage(tex2d, mx - 320, my - 320);
+    ctx.restore();
   }
 
   // ── Rivières de résine époxy bleue (coulées sinueuses translucides sur le bois) ──
@@ -18652,7 +18827,7 @@ function renderBots() {
 /* ═══════════════════════════════════════════
    THEME CUSTOMIZER
 ═══════════════════════════════════════════ */
-let boardTheme = { theme:'dark', bg1:'#1e2b28', bg2:'#131b19', blackGrad1:'#666', blackGrad2:'#0a0a0a', whiteGrad1:'#fff', whiteGrad2:'#bbb', marbleSkin:'kintsugi' };
+let boardTheme = { theme:'dark', night:false, bg1:'#1e2b28', bg2:'#131b19', blackGrad1:'#666', blackGrad2:'#0a0a0a', whiteGrad1:'#fff', whiteGrad2:'#bbb', marbleSkin:'kintsugi' };
 
 /* ═══════════════════════════════════════════
    SKINS DE BILLES — dégradés multi-stops
@@ -19015,7 +19190,20 @@ function setBoardTheme(theme, btn) {
     applyMarbleSkin();   // restaure le skin de billes courant en quittant le bois
   }
   drawBoard();
-  showToast(theme === 'wood' ? '🌳 Plateau bois & résine époxy' : '🎨 Plateau mis à jour !');
+  showToast(theme === 'wood' ? '🌳 Plateau bois & résine époxy' : theme === 'volcanique' ? '🌋 Plateau volcanique' : '🎨 Plateau mis à jour !');
+}
+
+/* Bascule jour/nuit pour le theme de plateau ACTUELLEMENT actif. Ne fait
+   rien (avec message clair) si ce theme n'a pas encore de variante nuit —
+   seul Volcanique en a une pour l'instant, les 5 autres viendront plus
+   tard un par un. Redessine 2D et resynchronise la 3D si elle est ouverte,
+   comme n'importe quel autre changement de theme. Signale par Olivier. */
+function toggleThemeNight() {
+  const t = BOARD_SURFACE_THEMES[boardTheme.theme];
+  if (!t || !t.night) { showToast('🌞 Ce thème n\'a pas encore de variante nuit'); return; }
+  boardTheme.night = !boardTheme.night;
+  drawBoard();
+  showToast(boardTheme.night ? '🌙 Mode nuit' : '🌞 Mode jour');
 }
 
 // Legacy — conservé pour ne rien casser ailleurs
@@ -23738,7 +23926,7 @@ function start3DScene() {
   const topShape = hexShape(hexOuter, 1);
   const topGeo = new THREE.ExtrudeGeometry(topShape, { depth: 0.35, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.04, bevelSegments: 2 });
   topGeo.rotateX(Math.PI/2);
-  const top = new THREE.Mesh(topGeo, new THREE.MeshStandardMaterial({ color: 0x363a44, roughness: 0.45, metalness: 0.35 }));
+  const top = new THREE.Mesh(topGeo, new THREE.MeshStandardMaterial({ color: 0x363a44, roughness: 0.45, metalness: 0.35, emissive: 0x000000, emissiveIntensity: 0 }));
   top.position.y = -0.10; top.receiveShadow = true; group.add(top);  // span [-0.45,-0.10] — touche le socle exactement
 
   // liseré doré : cadre hexagonal fin (hexagone plein moins un hexagone légèrement plus petit)
@@ -23974,6 +24162,138 @@ function start3DScene() {
     woodTexture.needsUpdate = true;
     return woodTexture;
   }
+  /* Textures procedurales des 6 themes de plateau (une par matiere : verre
+     volcanique lisse, ondulations d'eau, veines de marbre, metal brosse,
+     mousse organique, roche fissuree + lave) — une vraie texture peinte au
+     lieu d'un degrade uni, meme esprit que le grain du bois ci-dessus.
+     Verifiees d'abord dans un apercu Three.js reel (deux allers-retours :
+     couleurs re-echantillonnees sur une vraie photo pour Volcanique, puis
+     les 6 textures ensemble) avant d'etre integrees ici a l'identique.
+     Mises en cache par (theme, jour/nuit) : sync() tourne a chaque coup,
+     jamais de raison de repeindre une texture identique. Signale par
+     Olivier — "je veux ca pour chaque theme". */
+  const themeTextures = {};
+  function fondDegrade3D(c2, c1coul, c2coul) {
+    const g = c2.createLinearGradient(0, 0, 640, 640);
+    g.addColorStop(0, c1coul); g.addColorStop(1, c2coul);
+    c2.fillStyle = g; c2.fillRect(0, 0, 640, 640);
+  }
+  function dessinerFissures3D(c2, couleurFissure, largeur, alpha) {
+    for (let b = 0; b < 26; b++) {
+      let x = Math.random() * 640, y = Math.random() * 640;
+      let angle = Math.random() * Math.PI * 2;
+      c2.beginPath(); c2.moveTo(x, y);
+      const longueur = 70 + Math.random() * 160;
+      let dist = 0;
+      while (dist < longueur) {
+        angle += (Math.random() - 0.5) * 0.7;
+        const pas = 7 + Math.random() * 6;
+        x += Math.cos(angle) * pas; y += Math.sin(angle) * pas;
+        dist += pas;
+        c2.lineTo(x, y);
+      }
+      c2.strokeStyle = couleurFissure; c2.globalAlpha = alpha * (0.6 + Math.random() * 0.4);
+      c2.lineWidth = largeur * (0.5 + Math.random());
+      c2.stroke();
+    }
+    c2.globalAlpha = 1;
+  }
+  function peindreTextureTheme(nom, night) {
+    const cv = document.createElement('canvas');
+    cv.width = 640; cv.height = 640;
+    const c2 = cv.getContext('2d');
+    const t = resolveThemeColors(nom, night);
+    if (nom === 'dark') {
+      fondDegrade3D(c2, t.surf[0], t.surf[2]);
+      for (let i = 0; i < 4; i++) {
+        c2.beginPath();
+        const y0 = Math.random() * 640;
+        c2.moveTo(0, y0);
+        c2.quadraticCurveTo(320, y0 + (Math.random() - 0.5) * 220, 640, y0 + (Math.random() - 0.5) * 120);
+        c2.strokeStyle = 'rgba(210,220,230,0.07)'; c2.lineWidth = 24 + Math.random() * 30;
+        c2.stroke();
+      }
+      for (let i = 0; i < 30; i++) {
+        c2.fillStyle = 'rgba(255,255,255,' + (0.03 + Math.random() * 0.06).toFixed(3) + ')';
+        c2.beginPath(); c2.arc(Math.random() * 640, Math.random() * 640, 0.6 + Math.random() * 1.6, 0, 7); c2.fill();
+      }
+    } else if (nom === 'ocean') {
+      fondDegrade3D(c2, t.surf[1], t.gutterOuter);
+      for (let v = 0; v < 22; v++) {
+        c2.beginPath();
+        const y0 = (v / 22) * 640;
+        for (let x = 0; x <= 640; x += 6) {
+          const y = y0 + Math.sin(x / 42 + v) * 9 + Math.sin(x / 17 + v * 1.7) * 3;
+          if (x === 0) c2.moveTo(x, y); else c2.lineTo(x, y);
+        }
+        c2.strokeStyle = 'rgba(180,222,240,' + (0.05 + Math.random() * 0.07).toFixed(3) + ')';
+        c2.lineWidth = 1.2;
+        c2.stroke();
+      }
+      for (let i = 0; i < 9; i++) {
+        const cx = Math.random() * 640, cy = Math.random() * 640, r = 24 + Math.random() * 46;
+        const g = c2.createRadialGradient(cx, cy, 0, cx, cy, r);
+        g.addColorStop(0, 'rgba(200,240,255,0.14)'); g.addColorStop(1, 'rgba(200,240,255,0)');
+        c2.fillStyle = g; c2.beginPath(); c2.arc(cx, cy, r, 0, 7); c2.fill();
+      }
+    } else if (nom === 'marble') {
+      fondDegrade3D(c2, t.surf[0], t.surf[2]);
+      for (let v = 0; v < 16; v++) {
+        c2.beginPath();
+        let y0 = Math.random() * 640;
+        c2.moveTo(0, y0);
+        for (let x = 0; x <= 640; x += 8) {
+          const y = y0 + Math.sin(x / 58 + v) * 32 + Math.sin(x / 21 + v * 2.3) * 15 + Math.sin(x / 9 + v) * 5;
+          c2.lineTo(x, y);
+        }
+        c2.strokeStyle = 'rgba(110,105,96,' + (0.12 + Math.random() * 0.18).toFixed(3) + ')';
+        c2.lineWidth = 1 + Math.random() * 2.4;
+        c2.stroke();
+      }
+    } else if (nom === 'gold') {
+      fondDegrade3D(c2, t.surf[0], t.surf[2]);
+      for (let i = 0; i < 260; i++) {
+        const y = Math.random() * 640;
+        c2.strokeStyle = 'rgba(255,232,160,' + (0.025 + Math.random() * 0.05).toFixed(3) + ')';
+        c2.lineWidth = 0.5 + Math.random();
+        c2.beginPath(); c2.moveTo(0, y); c2.lineTo(640, y + (Math.random() - 0.5) * 4); c2.stroke();
+      }
+      const sheen = c2.createLinearGradient(0, 0, 640, 640);
+      sheen.addColorStop(0.32, 'rgba(255,255,255,0)');
+      sheen.addColorStop(0.5, 'rgba(255,242,205,0.22)');
+      sheen.addColorStop(0.68, 'rgba(255,255,255,0)');
+      c2.fillStyle = sheen; c2.fillRect(0, 0, 640, 640);
+    } else if (nom === 'forest') {
+      fondDegrade3D(c2, t.surf[0], t.surf[2]);
+      for (let i = 0; i < 100; i++) {
+        const cx = Math.random() * 640, cy = Math.random() * 640, r = 7 + Math.random() * 20;
+        c2.fillStyle = 'rgba(' + Math.round(20 + Math.random() * 45) + ',' + Math.round(60 + Math.random() * 55) + ',' + Math.round(20 + Math.random() * 35) + ',0.22)';
+        c2.beginPath(); c2.arc(cx, cy, r, 0, 7); c2.fill();
+      }
+    } else if (nom === 'volcanique') {
+      fondDegrade3D(c2, t.surf[0], t.surf[2]);
+      for (let i = 0; i < 180; i++) {
+        const cx = Math.random() * 640, cy = Math.random() * 640, r = 2 + Math.random() * 7;
+        c2.fillStyle = 'rgba(0,0,0,' + (0.15 + Math.random() * 0.2).toFixed(3) + ')';
+        c2.beginPath(); c2.arc(cx, cy, r, 0, 7); c2.fill();
+      }
+      if (night) {
+        dessinerFissures3D(c2, 'rgba(255,80,0,0.35)', 10, 0.5);
+        dessinerFissures3D(c2, '#ff5722', 2.5, 0.9);
+      } else {
+        dessinerFissures3D(c2, t.trim, 3, 0.7);
+      }
+    }
+    const tex = new THREE.CanvasTexture(cv);
+    tex.needsUpdate = true;
+    return tex;
+  }
+  function getThemeTexture(nom, night) {
+    const cle = nom + (night ? '_nuit' : '_jour');
+    if (themeTextures[cle]) return themeTextures[cle];
+    themeTextures[cle] = peindreTextureTheme(nom, night);
+    return themeTextures[cle];
+  }
   /* Rivieres d'epoxy : VRAIE geometrie 3D (un ruban extrude par riviere),
      pas une texture plate — corrige une premiere version qui les peignait
      sur la surface, signalee a raison par Olivier ("il faut des sinusoides
@@ -24042,14 +24362,27 @@ function start3DScene() {
       getRiverMeshes().forEach(function(m){ if (!m.parent) group.add(m); });
       return;
     }
-    const themes = (typeof window !== 'undefined' && window.BOARD_SURFACE_THEMES) || {};
     const nom = (typeof boardTheme !== 'undefined' && boardTheme.theme) || 'dark';
-    const t = themes[nom] || themes.dark || { trim: '#0a0a0b', gutterOuter: '#16181a', surf: ['#a8a8a8','#919191','#7c7c7c'] };
+    const estNuit = typeof boardTheme !== 'undefined' && !!boardTheme.night;
+    const resolveur = typeof window !== 'undefined' && window.resolveThemeColors;
+    const t = (resolveur && resolveur(nom, estNuit)) || { trim: '#0a0a0b', gutterOuter: '#16181a', surf: ['#a8a8a8','#919191','#7c7c7c'] };
     holeMat.color.set(t.trim);
     scene.background = new THREE.Color(t.gutterOuter);
     if (scene.fog) scene.fog.color.set(t.gutterOuter);
-    top.material.map = null;
-    top.material.color.set(t.surf[1]);
+    top.material.map = getThemeTexture(nom, estNuit);
+    top.material.color.set('#ffffff');   // laisse la texture porter la couleur, comme le bois
+    /* Lueur (emissive) : Volcanique seulement pour l'instant (les 5 autres
+       themes n'en ont pas — meme logique progressive que jour/nuit, "on
+       fera les autres apres"). Jour discret, nuit intense — valeurs
+       reprises de la proposition d'Olivier (0.25 / 1.2), verifiees d'abord
+       dans l'apercu avant d'etre integrees ici. */
+    if (nom === 'volcanique') {
+      top.material.emissive.set(estNuit ? '#ff3300' : '#ff2200');
+      top.material.emissiveIntensity = estNuit ? 1.2 : 0.25;
+    } else {
+      top.material.emissive.set('#000000');
+      top.material.emissiveIntensity = 0;
+    }
     top.material.needsUpdate = true;
     base.material.map = null;
     base.material.color.set(t.gutterOuter);
