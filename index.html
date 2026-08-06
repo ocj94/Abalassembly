@@ -10862,6 +10862,192 @@ window.genererFissures = function(nb) {
   return fissures;
 };
 
+/* ══ Moteur generique de materiaux par COUCHES — base du createur de
+   plateau visuel a venir ══
+   Avant : 6 themes = 6 blocs if/else codes en dur, DUPLIQUES a l'identique
+   entre le peintre 2D (ce bloc) et le peintre 3D (peindreTextureTheme,
+   bloc <script> de la 3D) — meme recette copiee-collee deux fois.
+   Maintenant : un theme = une RECETTE (liste ordonnee de couches), chaque
+   couche = {type, p} ou "type" pioche dans un petit catalogue de motifs
+   reutilisables (degrade, veines, vagues, pores, fissures...) et "p" ses
+   parametres. Le moteur (peindreCouches) ne connait aucun theme par son
+   nom — il execute juste la recette qu'on lui donne. Un theme personnalise
+   (a venir : editeur avec curseurs) sera juste une recette de plus, geree
+   EXACTEMENT comme les 6 autres — pas un code special a part.
+   Verifie par execution reelle que les 6 recettes REPRODUISENT le rendu
+   d'origine (memes motifs, memes plages de valeurs) — voir
+   test_theme_layer_engine.js. */
+window.LAYER_TYPES = {
+  degrade: function(c2, p) {
+    const g = c2.createLinearGradient(0, 0, 640, 640);
+    g.addColorStop(0, p.c1); g.addColorStop(1, p.c2);
+    c2.fillStyle = g; c2.fillRect(0, 0, 640, 640);
+  },
+  courbes_larges: function(c2, p) {
+    for (let i = 0; i < p.n; i++) {
+      c2.beginPath();
+      const y0 = Math.random() * 640;
+      c2.moveTo(0, y0);
+      c2.quadraticCurveTo(320, y0 + (Math.random() - 0.5) * 220, 640, y0 + (Math.random() - 0.5) * 120);
+      c2.strokeStyle = p.couleur;
+      c2.lineWidth = p.largeurMin + Math.random() * (p.largeurMax - p.largeurMin);
+      c2.stroke();
+    }
+  },
+  poussiere: function(c2, p) {
+    for (let i = 0; i < p.n; i++) {
+      const a = p.alphaMin + Math.random() * (p.alphaMax - p.alphaMin);
+      c2.fillStyle = 'rgba(' + p.couleur[0] + ',' + p.couleur[1] + ',' + p.couleur[2] + ',' + a.toFixed(3) + ')';
+      c2.beginPath(); c2.arc(Math.random() * 640, Math.random() * 640, p.rMin + Math.random() * (p.rMax - p.rMin), 0, 7); c2.fill();
+    }
+  },
+  vagues: function(c2, p) {
+    for (let v = 0; v < p.n; v++) {
+      c2.beginPath();
+      const y0 = (v / p.n) * 640;
+      for (let x = 0; x <= 640; x += 6) {
+        const y = y0 + Math.sin(x / 42 + v) * 9 + Math.sin(x / 17 + v * 1.7) * 3;
+        if (x === 0) c2.moveTo(x, y); else c2.lineTo(x, y);
+      }
+      const a = p.alphaMin + Math.random() * (p.alphaMax - p.alphaMin);
+      c2.strokeStyle = 'rgba(' + p.couleur[0] + ',' + p.couleur[1] + ',' + p.couleur[2] + ',' + a.toFixed(3) + ')';
+      c2.lineWidth = 1.2; c2.stroke();
+    }
+  },
+  caustiques: function(c2, p) {
+    for (let i = 0; i < p.n; i++) {
+      const cx = Math.random() * 640, cy = Math.random() * 640, r = p.rMin + Math.random() * (p.rMax - p.rMin);
+      const g = c2.createRadialGradient(cx, cy, 0, cx, cy, r);
+      g.addColorStop(0, 'rgba(' + p.couleur[0] + ',' + p.couleur[1] + ',' + p.couleur[2] + ',' + p.alphaMax + ')');
+      g.addColorStop(1, 'rgba(' + p.couleur[0] + ',' + p.couleur[1] + ',' + p.couleur[2] + ',0)');
+      c2.fillStyle = g; c2.beginPath(); c2.arc(cx, cy, r, 0, 7); c2.fill();
+    }
+  },
+  veines_turbulentes: function(c2, p) {
+    for (let v = 0; v < p.n; v++) {
+      c2.beginPath();
+      let y0 = Math.random() * 640;
+      c2.moveTo(0, y0);
+      for (let x = 0; x <= 640; x += 8) {
+        const y = y0 + Math.sin(x / 58 + v) * 32 + Math.sin(x / 21 + v * 2.3) * 15 + Math.sin(x / 9 + v) * 5;
+        c2.lineTo(x, y);
+      }
+      const a = p.alphaMin + Math.random() * (p.alphaMax - p.alphaMin);
+      c2.strokeStyle = 'rgba(' + p.couleur[0] + ',' + p.couleur[1] + ',' + p.couleur[2] + ',' + a.toFixed(3) + ')';
+      c2.lineWidth = p.largeurMin + Math.random() * (p.largeurMax - p.largeurMin);
+      c2.stroke();
+    }
+  },
+  rayures_fines: function(c2, p) {
+    for (let i = 0; i < p.n; i++) {
+      const y = Math.random() * 640;
+      const a = p.alphaMin + Math.random() * (p.alphaMax - p.alphaMin);
+      c2.strokeStyle = 'rgba(' + p.couleur[0] + ',' + p.couleur[1] + ',' + p.couleur[2] + ',' + a.toFixed(3) + ')';
+      c2.lineWidth = 0.5 + Math.random();
+      c2.beginPath(); c2.moveTo(0, y); c2.lineTo(640, y + (Math.random() - 0.5) * 4); c2.stroke();
+    }
+  },
+  reflet_diagonal: function(c2, p) {
+    const g = c2.createLinearGradient(0, 0, 640, 640);
+    g.addColorStop(0.32, 'rgba(255,255,255,0)');
+    g.addColorStop(0.5, 'rgba(' + p.couleur[0] + ',' + p.couleur[1] + ',' + p.couleur[2] + ',' + p.alphaPic + ')');
+    g.addColorStop(0.68, 'rgba(255,255,255,0)');
+    c2.fillStyle = g; c2.fillRect(0, 0, 640, 640);
+  },
+  taches_organiques: function(c2, p) {
+    for (let i = 0; i < p.n; i++) {
+      const cx = Math.random() * 640, cy = Math.random() * 640, r = p.rMin + Math.random() * (p.rMax - p.rMin);
+      c2.fillStyle = p.couleurFn();
+      c2.beginPath(); c2.arc(cx, cy, r, 0, 7); c2.fill();
+    }
+  },
+  pores: function(c2, p) {
+    for (let i = 0; i < p.n; i++) {
+      const cx = Math.random() * 640, cy = Math.random() * 640, r = p.rMin + Math.random() * (p.rMax - p.rMin);
+      const a = p.alphaMin + Math.random() * (p.alphaMax - p.alphaMin);
+      c2.fillStyle = 'rgba(0,0,0,' + a.toFixed(3) + ')';
+      c2.beginPath(); c2.arc(cx, cy, r, 0, 7); c2.fill();
+    }
+  },
+  fissures: function(c2, p) {
+    for (let b = 0; b < p.fissures.length; b++) {
+      const pts = p.fissures[b];
+      c2.beginPath(); c2.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) c2.lineTo(pts[i].x, pts[i].y);
+      c2.strokeStyle = p.couleur;
+      c2.globalAlpha = p.alpha * (0.6 + Math.random() * 0.4);
+      c2.lineWidth = p.largeur * (0.5 + Math.random());
+      c2.stroke();
+    }
+    c2.globalAlpha = 1;
+  },
+};
+window.peindreCouches = function(c2, couches) {
+  couches.forEach(function(couche) {
+    const fn = window.LAYER_TYPES[couche.type];
+    if (fn) fn(c2, couche.p);
+  });
+};
+// Recette = fonction(t, night, options) -> liste de couches. Exactement les
+// memes motifs/plages de valeurs que l'ancien code if/else (verifie par
+// test), juste reorganises en donnees plutot qu'en branches.
+window.THEME_RECIPES = {
+  dark: function(t) {
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'courbes_larges', p: { n: 4, couleur: 'rgba(210,220,230,0.07)', largeurMin: 24, largeurMax: 54 } },
+      { type: 'poussiere', p: { n: 30, couleur: [255, 255, 255], alphaMin: 0.03, alphaMax: 0.09, rMin: 0.6, rMax: 2.2 } },
+    ];
+  },
+  ocean: function(t) {
+    return [
+      { type: 'degrade', p: { c1: t.surf[1], c2: t.gutterOuter } },
+      { type: 'vagues', p: { n: 22, couleur: [180, 222, 240], alphaMin: 0.05, alphaMax: 0.12 } },
+      { type: 'caustiques', p: { n: 9, couleur: [200, 240, 255], alphaMax: 0.14, rMin: 24, rMax: 70 } },
+    ];
+  },
+  marble: function(t) {
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'veines_turbulentes', p: { n: 16, couleur: [110, 105, 96], alphaMin: 0.12, alphaMax: 0.30, largeurMin: 1, largeurMax: 3.4 } },
+    ];
+  },
+  gold: function(t) {
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'rayures_fines', p: { n: 260, couleur: [255, 232, 160], alphaMin: 0.025, alphaMax: 0.075 } },
+      { type: 'reflet_diagonal', p: { couleur: [255, 242, 205], alphaPic: 0.22 } },
+    ];
+  },
+  forest: function(t) {
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'taches_organiques', p: { n: 100, rMin: 7, rMax: 27, couleurFn: function() {
+        return 'rgba(' + Math.round(20 + Math.random() * 45) + ',' + Math.round(60 + Math.random() * 55) + ',' + Math.round(20 + Math.random() * 35) + ',0.22)';
+      } } },
+    ];
+  },
+  volcanique: function(t, night, options) {
+    const couches = [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'pores', p: { n: 180, alphaMin: 0.15, alphaMax: 0.35, rMin: 2, rMax: 9 } },
+    ];
+    // La 3D n'a plus besoin des fissures peintes (vraie geometrie depuis
+    // v1.45) — options.sansFissures le lui permet de sauter cette couche
+    // sans dupliquer la recette.
+    if (!(options && options.sansFissures)) {
+      const fissures = window.genererFissures(26);
+      if (night) {
+        couches.push({ type: 'fissures', p: { fissures: fissures, couleur: 'rgba(255,80,0,0.35)', largeur: 10, alpha: 0.5 } });
+        couches.push({ type: 'fissures', p: { fissures: fissures, couleur: '#ff5722', largeur: 2.5, alpha: 0.9 } });
+      } else {
+        couches.push({ type: 'fissures', p: { fissures: fissures, couleur: t.trim, largeur: 3, alpha: 0.7 } });
+      }
+    }
+    return couches;
+  },
+};
+
 /* Textures procedurales des 6 themes de plateau, cote 2D — MEMES formules
    que la version 3D (getThemeTexture, plus bas dans le bloc <script> de la
    3D), portees ici plutot que reinventees, mais avec un vrai souci de
@@ -10879,104 +11065,8 @@ function peindreTextureTheme2D(nom, night, t) {
   const cv = document.createElement('canvas');
   cv.width = 640; cv.height = 640;
   const c2 = cv.getContext('2d');
-  function fondDegrade2D(c1coul, c2coul) {
-    const g = c2.createLinearGradient(0, 0, 640, 640);
-    g.addColorStop(0, c1coul); g.addColorStop(1, c2coul);
-    c2.fillStyle = g; c2.fillRect(0, 0, 640, 640);
-  }
-  function fissures2D(fissures, couleurFissure, largeur, alpha) {
-    for (let b = 0; b < fissures.length; b++) {
-      const pts = fissures[b];
-      c2.beginPath(); c2.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length; i++) c2.lineTo(pts[i].x, pts[i].y);
-      c2.strokeStyle = couleurFissure; c2.globalAlpha = alpha * (0.6 + Math.random() * 0.4);
-      c2.lineWidth = largeur * (0.5 + Math.random());
-      c2.stroke();
-    }
-    c2.globalAlpha = 1;
-  }
-  if (nom === 'dark') {
-    fondDegrade2D(t.surf[0], t.surf[2]);
-    for (let i = 0; i < 4; i++) {
-      c2.beginPath();
-      const y0 = Math.random() * 640;
-      c2.moveTo(0, y0);
-      c2.quadraticCurveTo(320, y0 + (Math.random() - 0.5) * 220, 640, y0 + (Math.random() - 0.5) * 120);
-      c2.strokeStyle = 'rgba(210,220,230,0.07)'; c2.lineWidth = 24 + Math.random() * 30;
-      c2.stroke();
-    }
-    for (let i = 0; i < 30; i++) {
-      c2.fillStyle = 'rgba(255,255,255,' + (0.03 + Math.random() * 0.06).toFixed(3) + ')';
-      c2.beginPath(); c2.arc(Math.random() * 640, Math.random() * 640, 0.6 + Math.random() * 1.6, 0, 7); c2.fill();
-    }
-  } else if (nom === 'ocean') {
-    fondDegrade2D(t.surf[1], t.gutterOuter);
-    for (let v = 0; v < 22; v++) {
-      c2.beginPath();
-      const y0 = (v / 22) * 640;
-      for (let x = 0; x <= 640; x += 6) {
-        const y = y0 + Math.sin(x / 42 + v) * 9 + Math.sin(x / 17 + v * 1.7) * 3;
-        if (x === 0) c2.moveTo(x, y); else c2.lineTo(x, y);
-      }
-      c2.strokeStyle = 'rgba(180,222,240,' + (0.05 + Math.random() * 0.07).toFixed(3) + ')';
-      c2.lineWidth = 1.2;
-      c2.stroke();
-    }
-    for (let i = 0; i < 9; i++) {
-      const cx = Math.random() * 640, cy = Math.random() * 640, r = 24 + Math.random() * 46;
-      const g = c2.createRadialGradient(cx, cy, 0, cx, cy, r);
-      g.addColorStop(0, 'rgba(200,240,255,0.14)'); g.addColorStop(1, 'rgba(200,240,255,0)');
-      c2.fillStyle = g; c2.beginPath(); c2.arc(cx, cy, r, 0, 7); c2.fill();
-    }
-  } else if (nom === 'marble') {
-    fondDegrade2D(t.surf[0], t.surf[2]);
-    for (let v = 0; v < 16; v++) {
-      c2.beginPath();
-      let y0 = Math.random() * 640;
-      c2.moveTo(0, y0);
-      for (let x = 0; x <= 640; x += 8) {
-        const y = y0 + Math.sin(x / 58 + v) * 32 + Math.sin(x / 21 + v * 2.3) * 15 + Math.sin(x / 9 + v) * 5;
-        c2.lineTo(x, y);
-      }
-      c2.strokeStyle = 'rgba(110,105,96,' + (0.12 + Math.random() * 0.18).toFixed(3) + ')';
-      c2.lineWidth = 1 + Math.random() * 2.4;
-      c2.stroke();
-    }
-  } else if (nom === 'gold') {
-    fondDegrade2D(t.surf[0], t.surf[2]);
-    for (let i = 0; i < 260; i++) {
-      const y = Math.random() * 640;
-      c2.strokeStyle = 'rgba(255,232,160,' + (0.025 + Math.random() * 0.05).toFixed(3) + ')';
-      c2.lineWidth = 0.5 + Math.random();
-      c2.beginPath(); c2.moveTo(0, y); c2.lineTo(640, y + (Math.random() - 0.5) * 4); c2.stroke();
-    }
-    const sheen = c2.createLinearGradient(0, 0, 640, 640);
-    sheen.addColorStop(0.32, 'rgba(255,255,255,0)');
-    sheen.addColorStop(0.5, 'rgba(255,242,205,0.22)');
-    sheen.addColorStop(0.68, 'rgba(255,255,255,0)');
-    c2.fillStyle = sheen; c2.fillRect(0, 0, 640, 640);
-  } else if (nom === 'forest') {
-    fondDegrade2D(t.surf[0], t.surf[2]);
-    for (let i = 0; i < 100; i++) {
-      const cx = Math.random() * 640, cy = Math.random() * 640, r = 7 + Math.random() * 20;
-      c2.fillStyle = 'rgba(' + Math.round(20 + Math.random() * 45) + ',' + Math.round(60 + Math.random() * 55) + ',' + Math.round(20 + Math.random() * 35) + ',0.22)';
-      c2.beginPath(); c2.arc(cx, cy, r, 0, 7); c2.fill();
-    }
-  } else if (nom === 'volcanique') {
-    fondDegrade2D(t.surf[0], t.surf[2]);
-    for (let i = 0; i < 180; i++) {
-      const cx = Math.random() * 640, cy = Math.random() * 640, r = 2 + Math.random() * 7;
-      c2.fillStyle = 'rgba(0,0,0,' + (0.15 + Math.random() * 0.2).toFixed(3) + ')';
-      c2.beginPath(); c2.arc(cx, cy, r, 0, 7); c2.fill();
-    }
-    const fissures = window.genererFissures(26);
-    if (night) {
-      fissures2D(fissures, 'rgba(255,80,0,0.35)', 10, 0.5);
-      fissures2D(fissures, '#ff5722', 2.5, 0.9);
-    } else {
-      fissures2D(fissures, t.trim, 3, 0.7);
-    }
-  }
+  const recette = window.THEME_RECIPES[nom];
+  if (recette) window.peindreCouches(c2, recette(t, night));
   return cv;
 }
 function getThemeCanvas2D(nom, night, t) {
@@ -24197,99 +24287,31 @@ function start3DScene() {
      Mises en cache par (theme, jour/nuit) : sync() tourne a chaque coup,
      jamais de raison de repeindre une texture identique. Signale par
      Olivier — "je veux ca pour chaque theme". */
+  /* Textures procedurales des 6 themes de plateau — desormais generees par
+     le meme moteur generique a couches que la 2D (window.THEME_RECIPES /
+     window.peindreCouches, definis dans le bloc <script> du haut) plutot
+     que par une seconde copie des blocs if/else. Les DEUX peintres (2D et
+     3D) executent maintenant EXACTEMENT la meme recette par theme — plus
+     de duplication a maintenir en double. Mises en cache par (theme,
+     jour/nuit) : sync() tourne a chaque coup, jamais de raison de repeindre
+     une texture identique. Signale par Olivier — "je veux ca pour chaque
+     theme". */
   const themeTextures = {};
-  function fondDegrade3D(c2, c1coul, c2coul) {
-    const g = c2.createLinearGradient(0, 0, 640, 640);
-    g.addColorStop(0, c1coul); g.addColorStop(1, c2coul);
-    c2.fillStyle = g; c2.fillRect(0, 0, 640, 640);
-  }
   function peindreTextureTheme(nom, night) {
     const cv = document.createElement('canvas');
     cv.width = 640; cv.height = 640;
     const c2 = cv.getContext('2d');
     const t = resolveThemeColors(nom, night);
-    if (nom === 'dark') {
-      fondDegrade3D(c2, t.surf[0], t.surf[2]);
-      for (let i = 0; i < 4; i++) {
-        c2.beginPath();
-        const y0 = Math.random() * 640;
-        c2.moveTo(0, y0);
-        c2.quadraticCurveTo(320, y0 + (Math.random() - 0.5) * 220, 640, y0 + (Math.random() - 0.5) * 120);
-        c2.strokeStyle = 'rgba(210,220,230,0.07)'; c2.lineWidth = 24 + Math.random() * 30;
-        c2.stroke();
-      }
-      for (let i = 0; i < 30; i++) {
-        c2.fillStyle = 'rgba(255,255,255,' + (0.03 + Math.random() * 0.06).toFixed(3) + ')';
-        c2.beginPath(); c2.arc(Math.random() * 640, Math.random() * 640, 0.6 + Math.random() * 1.6, 0, 7); c2.fill();
-      }
-    } else if (nom === 'ocean') {
-      fondDegrade3D(c2, t.surf[1], t.gutterOuter);
-      for (let v = 0; v < 22; v++) {
-        c2.beginPath();
-        const y0 = (v / 22) * 640;
-        for (let x = 0; x <= 640; x += 6) {
-          const y = y0 + Math.sin(x / 42 + v) * 9 + Math.sin(x / 17 + v * 1.7) * 3;
-          if (x === 0) c2.moveTo(x, y); else c2.lineTo(x, y);
-        }
-        c2.strokeStyle = 'rgba(180,222,240,' + (0.05 + Math.random() * 0.07).toFixed(3) + ')';
-        c2.lineWidth = 1.2;
-        c2.stroke();
-      }
-      for (let i = 0; i < 9; i++) {
-        const cx = Math.random() * 640, cy = Math.random() * 640, r = 24 + Math.random() * 46;
-        const g = c2.createRadialGradient(cx, cy, 0, cx, cy, r);
-        g.addColorStop(0, 'rgba(200,240,255,0.14)'); g.addColorStop(1, 'rgba(200,240,255,0)');
-        c2.fillStyle = g; c2.beginPath(); c2.arc(cx, cy, r, 0, 7); c2.fill();
-      }
-    } else if (nom === 'marble') {
-      fondDegrade3D(c2, t.surf[0], t.surf[2]);
-      for (let v = 0; v < 16; v++) {
-        c2.beginPath();
-        let y0 = Math.random() * 640;
-        c2.moveTo(0, y0);
-        for (let x = 0; x <= 640; x += 8) {
-          const y = y0 + Math.sin(x / 58 + v) * 32 + Math.sin(x / 21 + v * 2.3) * 15 + Math.sin(x / 9 + v) * 5;
-          c2.lineTo(x, y);
-        }
-        c2.strokeStyle = 'rgba(110,105,96,' + (0.12 + Math.random() * 0.18).toFixed(3) + ')';
-        c2.lineWidth = 1 + Math.random() * 2.4;
-        c2.stroke();
-      }
-    } else if (nom === 'gold') {
-      fondDegrade3D(c2, t.surf[0], t.surf[2]);
-      for (let i = 0; i < 260; i++) {
-        const y = Math.random() * 640;
-        c2.strokeStyle = 'rgba(255,232,160,' + (0.025 + Math.random() * 0.05).toFixed(3) + ')';
-        c2.lineWidth = 0.5 + Math.random();
-        c2.beginPath(); c2.moveTo(0, y); c2.lineTo(640, y + (Math.random() - 0.5) * 4); c2.stroke();
-      }
-      const sheen = c2.createLinearGradient(0, 0, 640, 640);
-      sheen.addColorStop(0.32, 'rgba(255,255,255,0)');
-      sheen.addColorStop(0.5, 'rgba(255,242,205,0.22)');
-      sheen.addColorStop(0.68, 'rgba(255,255,255,0)');
-      c2.fillStyle = sheen; c2.fillRect(0, 0, 640, 640);
-    } else if (nom === 'forest') {
-      fondDegrade3D(c2, t.surf[0], t.surf[2]);
-      for (let i = 0; i < 100; i++) {
-        const cx = Math.random() * 640, cy = Math.random() * 640, r = 7 + Math.random() * 20;
-        c2.fillStyle = 'rgba(' + Math.round(20 + Math.random() * 45) + ',' + Math.round(60 + Math.random() * 55) + ',' + Math.round(20 + Math.random() * 35) + ',0.22)';
-        c2.beginPath(); c2.arc(cx, cy, r, 0, 7); c2.fill();
-      }
-    } else if (nom === 'volcanique') {
-      /* Roche + pores seulement ici — les fissures de lave ne sont plus
-         peintes a plat sur cette texture : elles sont desormais une VRAIE
-         geometrie 3D (tubes emissifs, voir getLavaCrackMeshes plus bas),
-         exactement comme les rivieres d'epoxy du bois ont remplace une
-         texture peinte par une geometrie en relief. Le canvas 2D
-         (peindreTextureTheme2D, autre bloc <script>) continue lui de les
-         peindre a plat : la vue 2D n'a pas de geometrie. */
-      fondDegrade3D(c2, t.surf[0], t.surf[2]);
-      for (let i = 0; i < 180; i++) {
-        const cx = Math.random() * 640, cy = Math.random() * 640, r = 2 + Math.random() * 7;
-        c2.fillStyle = 'rgba(0,0,0,' + (0.15 + Math.random() * 0.2).toFixed(3) + ')';
-        c2.beginPath(); c2.arc(cx, cy, r, 0, 7); c2.fill();
-      }
-    }
+    const recette = window.THEME_RECIPES[nom];
+    /* Roche + pores seulement pour Volcanique en 3D — les fissures de lave
+       ne sont plus peintes a plat sur cette texture : elles sont
+       desormais une VRAIE geometrie 3D (tubes emissifs, voir
+       getLavaCrackMeshes plus bas), exactement comme les rivieres
+       d'epoxy du bois ont remplace une texture peinte par une geometrie
+       en relief. Le canvas 2D (peindreTextureTheme2D, autre bloc
+       <script>) continue lui de les peindre a plat : la vue 2D n'a pas
+       de geometrie. */
+    if (recette) window.peindreCouches(c2, recette(t, night, nom === 'volcanique' ? { sansFissures: true } : undefined));
     const tex = new THREE.CanvasTexture(cv);
     tex.needsUpdate = true;
     return tex;
