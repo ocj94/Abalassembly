@@ -10829,6 +10829,39 @@ function resolveThemeColors(nom, estNuit) {
 }
 window.resolveThemeColors = resolveThemeColors;
 
+/* Genere le TRACE des fissures de lave (marche aleatoire ramifiee) sous
+   forme de DONNEES pures — un tableau de tableaux de points {x,y} en espace
+   canvas 640x640 — plutot que de dessiner directement. Expose sur window
+   pour etre partage entre le rendu 2D (peindreTextureTheme2D, ce bloc) et
+   le rendu 3D (dessinerFissures3D + la geometrie reelle des fissures, bloc
+   <script> de la 3D plus bas) : un seul generateur, plusieurs consommateurs.
+   CORRIGE AU PASSAGE un vrai bug trouve en le centralisant : le halo large
+   (nuit) et le trait fin par-dessus etaient dessines par DEUX appels
+   independants a l'ancien dessinerFissures3D/fissures2D, chacun relancant
+   Math.random() — le halo et le coeur ne suivaient donc PAS le meme tracé,
+   la lueur ne "collait" pas a la fissure. En generant le tracé une seule
+   fois et en le redessinant deux fois avec des styles differents, le halo
+   entoure desormais reellement le trait. */
+window.genererFissures = function(nb) {
+  const fissures = [];
+  for (let b = 0; b < nb; b++) {
+    let x = Math.random() * 640, y = Math.random() * 640;
+    let angle = Math.random() * Math.PI * 2;
+    const pts = [{ x: x, y: y }];
+    const longueur = 70 + Math.random() * 160;
+    let dist = 0;
+    while (dist < longueur) {
+      angle += (Math.random() - 0.5) * 0.7;
+      const pas = 7 + Math.random() * 6;
+      x += Math.cos(angle) * pas; y += Math.sin(angle) * pas;
+      dist += pas;
+      pts.push({ x: x, y: y });
+    }
+    fissures.push(pts);
+  }
+  return fissures;
+};
+
 /* Textures procedurales des 6 themes de plateau, cote 2D — MEMES formules
    que la version 3D (getThemeTexture, plus bas dans le bloc <script> de la
    3D), portees ici plutot que reinventees, mais avec un vrai souci de
@@ -10851,20 +10884,11 @@ function peindreTextureTheme2D(nom, night, t) {
     g.addColorStop(0, c1coul); g.addColorStop(1, c2coul);
     c2.fillStyle = g; c2.fillRect(0, 0, 640, 640);
   }
-  function fissures2D(couleurFissure, largeur, alpha) {
-    for (let b = 0; b < 26; b++) {
-      let x = Math.random() * 640, y = Math.random() * 640;
-      let angle = Math.random() * Math.PI * 2;
-      c2.beginPath(); c2.moveTo(x, y);
-      const longueur = 70 + Math.random() * 160;
-      let dist = 0;
-      while (dist < longueur) {
-        angle += (Math.random() - 0.5) * 0.7;
-        const pas = 7 + Math.random() * 6;
-        x += Math.cos(angle) * pas; y += Math.sin(angle) * pas;
-        dist += pas;
-        c2.lineTo(x, y);
-      }
+  function fissures2D(fissures, couleurFissure, largeur, alpha) {
+    for (let b = 0; b < fissures.length; b++) {
+      const pts = fissures[b];
+      c2.beginPath(); c2.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) c2.lineTo(pts[i].x, pts[i].y);
       c2.strokeStyle = couleurFissure; c2.globalAlpha = alpha * (0.6 + Math.random() * 0.4);
       c2.lineWidth = largeur * (0.5 + Math.random());
       c2.stroke();
@@ -10945,11 +10969,12 @@ function peindreTextureTheme2D(nom, night, t) {
       c2.fillStyle = 'rgba(0,0,0,' + (0.15 + Math.random() * 0.2).toFixed(3) + ')';
       c2.beginPath(); c2.arc(cx, cy, r, 0, 7); c2.fill();
     }
+    const fissures = window.genererFissures(26);
     if (night) {
-      fissures2D('rgba(255,80,0,0.35)', 10, 0.5);
-      fissures2D('#ff5722', 2.5, 0.9);
+      fissures2D(fissures, 'rgba(255,80,0,0.35)', 10, 0.5);
+      fissures2D(fissures, '#ff5722', 2.5, 0.9);
     } else {
-      fissures2D(t.trim, 3, 0.7);
+      fissures2D(fissures, t.trim, 3, 0.7);
     }
   }
   return cv;
@@ -24178,26 +24203,6 @@ function start3DScene() {
     g.addColorStop(0, c1coul); g.addColorStop(1, c2coul);
     c2.fillStyle = g; c2.fillRect(0, 0, 640, 640);
   }
-  function dessinerFissures3D(c2, couleurFissure, largeur, alpha) {
-    for (let b = 0; b < 26; b++) {
-      let x = Math.random() * 640, y = Math.random() * 640;
-      let angle = Math.random() * Math.PI * 2;
-      c2.beginPath(); c2.moveTo(x, y);
-      const longueur = 70 + Math.random() * 160;
-      let dist = 0;
-      while (dist < longueur) {
-        angle += (Math.random() - 0.5) * 0.7;
-        const pas = 7 + Math.random() * 6;
-        x += Math.cos(angle) * pas; y += Math.sin(angle) * pas;
-        dist += pas;
-        c2.lineTo(x, y);
-      }
-      c2.strokeStyle = couleurFissure; c2.globalAlpha = alpha * (0.6 + Math.random() * 0.4);
-      c2.lineWidth = largeur * (0.5 + Math.random());
-      c2.stroke();
-    }
-    c2.globalAlpha = 1;
-  }
   function peindreTextureTheme(nom, night) {
     const cv = document.createElement('canvas');
     cv.width = 640; cv.height = 640;
@@ -24271,17 +24276,18 @@ function start3DScene() {
         c2.beginPath(); c2.arc(cx, cy, r, 0, 7); c2.fill();
       }
     } else if (nom === 'volcanique') {
+      /* Roche + pores seulement ici — les fissures de lave ne sont plus
+         peintes a plat sur cette texture : elles sont desormais une VRAIE
+         geometrie 3D (tubes emissifs, voir getLavaCrackMeshes plus bas),
+         exactement comme les rivieres d'epoxy du bois ont remplace une
+         texture peinte par une geometrie en relief. Le canvas 2D
+         (peindreTextureTheme2D, autre bloc <script>) continue lui de les
+         peindre a plat : la vue 2D n'a pas de geometrie. */
       fondDegrade3D(c2, t.surf[0], t.surf[2]);
       for (let i = 0; i < 180; i++) {
         const cx = Math.random() * 640, cy = Math.random() * 640, r = 2 + Math.random() * 7;
         c2.fillStyle = 'rgba(0,0,0,' + (0.15 + Math.random() * 0.2).toFixed(3) + ')';
         c2.beginPath(); c2.arc(cx, cy, r, 0, 7); c2.fill();
-      }
-      if (night) {
-        dessinerFissures3D(c2, 'rgba(255,80,0,0.35)', 10, 0.5);
-        dessinerFissures3D(c2, '#ff5722', 2.5, 0.9);
-      } else {
-        dessinerFissures3D(c2, t.trim, 3, 0.7);
       }
     }
     const tex = new THREE.CanvasTexture(cv);
@@ -24347,6 +24353,45 @@ function start3DScene() {
     });
     return riverMeshes;
   }
+  /* Fissures de lave : VRAIE geometrie 3D (un tube emissif par fissure),
+     remplace l'ancienne texture peinte a plat — meme logique que les
+     rivieres d'epoxy pour le bois. Le trace vient de window.genererFissures,
+     PARTAGE avec le rendu 2D (peindreTextureTheme2D, autre bloc <script>) :
+     un seul generateur de marche aleatoire ramifiee, deux consommateurs.
+     Converti de l'espace canvas 2D (640x640, centre 320,320) vers l'espace
+     monde 3D par le meme facteur d'echelle que les rivieres (baseR/320).
+     Mis en cache par jour/nuit (comme la texture de theme, getThemeTexture)
+     car la couleur/intensite emissive differe — jamais reconstruit sur un
+     appel repete avec le meme etat jour/nuit. */
+  const lavaCrackMeshesCache = {};
+  function getLavaCrackMeshes(night) {
+    const cle = night ? 'nuit' : 'jour';
+    if (lavaCrackMeshesCache[cle]) return lavaCrackMeshesCache[cle];
+    const echelle = baseR / 320;
+    const mx = 320, my = 320;
+    const fissures = window.genererFissures(26);
+    const couleur = night ? 0xff3300 : 0xff5722;
+    const intensite = night ? 2.2 : 0.6;
+    const rayon = (night ? 3.2 : 2.4) * echelle;
+    const mat = new THREE.MeshStandardMaterial({
+      color: 0x1a0a05, emissive: couleur, emissiveIntensity: intensite,
+      roughness: 0.6, metalness: 0,
+    });
+    const meshes = fissures.map(function(pts) {
+      if (pts.length < 2) return null;
+      const pts3D = pts.map(function(p) {
+        return new THREE.Vector3((p.x - mx) * echelle, 0.03, (p.y - my) * echelle);
+      });
+      const curve = new THREE.CatmullRomCurve3(pts3D);
+      const geo = new THREE.TubeGeometry(curve, Math.max(2, pts3D.length), rayon, 5, false);
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.castShadow = false; mesh.receiveShadow = false;
+      return mesh;
+    }).filter(function(m) { return m !== null; });
+    lavaCrackMeshesCache[cle] = meshes;
+    return meshes;
+  }
+  let lavaCracksActive = null;
   function syncBoardTheme3D() {
     const bois = typeof boardTheme !== 'undefined' && !!boardTheme.wood;
     if (bois) {
@@ -24360,6 +24405,7 @@ function start3DScene() {
       base.material.color.set('#3a2614');   // meme teinte que le contour bois en 2D
       base.material.needsUpdate = true;
       getRiverMeshes().forEach(function(m){ if (!m.parent) group.add(m); });
+      if (lavaCracksActive) { lavaCracksActive.forEach(function(m){ if (m.parent) group.remove(m); }); lavaCracksActive = null; }
       return;
     }
     const nom = (typeof boardTheme !== 'undefined' && boardTheme.theme) || 'dark';
@@ -24379,9 +24425,16 @@ function start3DScene() {
     if (nom === 'volcanique') {
       top.material.emissive.set(estNuit ? '#ff3300' : '#ff2200');
       top.material.emissiveIntensity = estNuit ? 1.2 : 0.25;
+      const nouvellesFissures = getLavaCrackMeshes(estNuit);
+      if (lavaCracksActive !== nouvellesFissures) {
+        if (lavaCracksActive) lavaCracksActive.forEach(function(m){ if (m.parent) group.remove(m); });
+        nouvellesFissures.forEach(function(m){ if (!m.parent) group.add(m); });
+        lavaCracksActive = nouvellesFissures;
+      }
     } else {
       top.material.emissive.set('#000000');
       top.material.emissiveIntensity = 0;
+      if (lavaCracksActive) { lavaCracksActive.forEach(function(m){ if (m.parent) group.remove(m); }); lavaCracksActive = null; }
     }
     top.material.needsUpdate = true;
     base.material.map = null;
