@@ -17,7 +17,7 @@
 <head>
 <meta charset="UTF-8">
 <!-- Politique de sécurité du contenu (limite les injections de script tierces) -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; worker-src 'self' blob:; connect-src 'self'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self'; base-uri 'self'; form-action 'self'">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#0d0f0e">
@@ -4606,6 +4606,81 @@ document.addEventListener('keydown', function(e){
               style="padding:5px 12px;font-size:12px;font-weight:600;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:none;color:var(--muted)">🌗 Jour / Nuit</button>
           </div>
         </div>
+
+        <!-- ══ CREATEUR DE PLATEAU ══
+             Un thème perso n'est jamais un nouveau code : c'est UNE recette
+             de plus (baseTemplate + reglages), executee par le meme moteur
+             de couches que les 16 themes integres (window.LAYER_TYPES /
+             window.THEME_RECIPES, v1.46). Les curseurs "densite" et
+             "intensite" ne touchent a AUCUN theme existant : ils
+             post-traitent la liste de couches renvoyee par la recette de
+             base choisie (multiplient n et les canaux alpha), donc
+             marchent identiquement sur les 16 recettes sans code special
+             par theme. La 3D en herite automatiquement, exactement comme
+             les 10 themes de la v1.48 — meme THEME_RECIPES consulte des
+             deux cotes. -->
+        <details style="margin-top:16px;background:rgba(0,0,0,0.15);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+          <summary style="padding:14px 18px;font-size:13px;font-weight:600;color:var(--white);cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between">
+            🧪 Créateur de plateau
+            <span style="font-size:11px;color:var(--muted);font-weight:400">Base + couleurs + densité — aperçu en direct</span>
+          </summary>
+          <div style="padding:18px;border-top:1px solid var(--border);display:flex;gap:20px;flex-wrap:wrap">
+            <div style="flex:0 0 200px">
+              <canvas id="creator-preview" width="200" height="200" style="width:200px;height:200px;border-radius:12px;border:1px solid var(--border);display:block"></canvas>
+              <div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center">Aperçu 2D — la 3D utilise la même recette</div>
+            </div>
+            <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:12px">
+              <div>
+                <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Thème de base</label>
+                <select id="creator-base" onchange="creatorUpdate()" style="width:100%;margin-top:4px;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">
+                  <option value="dark">Obsidian</option>
+                  <option value="forest">Forêt</option>
+                  <option value="ocean">Océan</option>
+                  <option value="marble">Marbre</option>
+                  <option value="gold">Or</option>
+                  <option value="volcanique">Volcanique</option>
+                  <option value="metal">Métal</option>
+                  <option value="bronze">Bronze</option>
+                  <option value="cuivre">Cuivre</option>
+                  <option value="ardoise">Ardoise</option>
+                  <option value="granite">Granite</option>
+                  <option value="verre">Verre</option>
+                  <option value="beton">Béton</option>
+                  <option value="corail">Corail</option>
+                  <option value="glace">Glace</option>
+                  <option value="carbone">Carbone</option>
+                </select>
+              </div>
+              <div style="display:flex;gap:12px">
+                <div style="flex:1">
+                  <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Teinte claire</label>
+                  <input type="color" id="creator-c1" onchange="creatorUpdate()" style="width:100%;height:32px;margin-top:4px;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer">
+                </div>
+                <div style="flex:1">
+                  <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Teinte sombre</label>
+                  <input type="color" id="creator-c2" onchange="creatorUpdate()" style="width:100%;height:32px;margin-top:4px;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer">
+                </div>
+                <div style="flex:1">
+                  <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Gouttière</label>
+                  <input type="color" id="creator-gutter" onchange="creatorUpdate()" style="width:100%;height:32px;margin-top:4px;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer">
+                </div>
+              </div>
+              <div>
+                <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Densité de la texture — <span id="creator-densite-val">100%</span></label>
+                <input type="range" id="creator-densite" min="20" max="220" value="100" oninput="creatorUpdate()" style="width:100%;accent-color:var(--gold);margin-top:4px">
+              </div>
+              <div>
+                <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Intensité — <span id="creator-intensite-val">100%</span></label>
+                <input type="range" id="creator-intensite" min="20" max="220" value="100" oninput="creatorUpdate()" style="width:100%;accent-color:var(--gold);margin-top:4px">
+              </div>
+              <div style="display:flex;gap:8px;margin-top:6px">
+                <button onclick="creatorApply()" class="ctrl-btn primary" style="flex:1">Appliquer au plateau</button>
+                <button onclick="creatorReset()" class="ctrl-btn outline">↺ Réinitialiser</button>
+              </div>
+              <div style="font-size:11px;color:var(--muted)">Le thème personnalisé est sauvegardé automatiquement et reste disponible à la prochaine visite (bouton « Perso » à côté des autres thèmes une fois appliqué).</div>
+            </div>
+          </div>
+        </details>
         <div style="margin-top:16px;display:flex;gap:10px;align-items:center">
           <label style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;cursor:pointer">
             <input type="checkbox" id="show-coords-toggle" onchange="toggleBoardCoords(this.checked)" style="accent-color:var(--gold)">
@@ -10626,6 +10701,24 @@ let gameMode = 'ai';   // 'ai' = vs ordinateur, 'local' = 2 joueurs même écran
 // Devient 'white' quand on affronte le Bot Noir (qui, lui, joue les noirs).
 let humanColor = 'black';
 function aiColor() { return humanColor === 'black' ? 'white' : 'black'; }
+/* Point de verite UNIQUE pour "quelle couleur je tiens reellement" — remplace
+   trois implementations locales identiques trouvees independamment
+   (_clockMine() pour l'horloge, un _mine ad-hoc pour la heatmap, un _myCol
+   ad-hoc pour les metriques de style), chacune corrigeant le meme bug
+   ("noir = moi" code en dur) sans jamais converger vers un seul endroit.
+   En mode IA : la couleur que l'humain a choisie (humanColor). En mode 2
+   joueurs locaux : convention "noir = joueur local" (les deux joueurs
+   partagent le meme profil/heatmap sur cet appareil, il faut bien choisir
+   un cote pour l'attribution). Purement une consolidation de lisibilite —
+   aucune des trois anciennes implementations n'avait de bug actif restant. */
+function monCamp() {
+  if (typeof gameMode !== 'undefined' && gameMode === 'local') return 'black';
+  return (typeof humanColor !== 'undefined' && humanColor) ? humanColor : 'black';
+}
+// "Est-ce mon tour ?" — juste une lecture de monCamp() par rapport au trait
+// courant, exposee separement pour les endroits qui posent la question
+// plutot que d'avoir besoin de la couleur elle-meme.
+function estMonTour() { return (typeof currentTurn !== 'undefined') && currentTurn === monCamp(); }
 let capturedByBlack = 0;
 let capturedByWhite = 0;
 let moveCount = 14;
@@ -12603,7 +12696,7 @@ function toggleCommentatorMode() {
 function _commentatorLabel(id, side) {
   const el = document.getElementById(id);
   if (!el) return;
-  const mine = (typeof _clockMine === 'function') ? _clockMine() : 'black';
+  const mine = (typeof monCamp === 'function') ? monCamp() : 'black';
   const estJoueur1 = (side === mine);
   const couleur = (typeof _skinDotColor === 'function') ? _skinDotColor(side) : (side === 'black' ? '#1a1a1c' : '#e8e6e2');
   const pastille = (typeof _dot === 'function') ? _dot(couleur) : '';
@@ -12611,7 +12704,7 @@ function _commentatorLabel(id, side) {
 }
 function _commentatorRefresh() {
   if (!_commentatorOn) return;
-  const mine = (typeof _clockMine === 'function') ? _clockMine() : 'black';
+  const mine = (typeof monCamp === 'function') ? monCamp() : 'black';
   const opp = mine === 'black' ? 'white' : 'black';
   _commentatorLabel('commentator-p1-name', mine);
   _commentatorLabel('commentator-p2-name', opp);
@@ -12764,7 +12857,7 @@ function resetGame() {
   currentTurn = 'black';
   myTime = _timeCtlBase || 600; oppTime = _timeCtlBase || 600;
   if (!_timeCtlBase && typeof _clockPaintFree === 'function') { _clockPaintFree(); }
-  if (typeof _clockPaint === 'function') _clockPaint(currentTurn === _clockMine());
+  if (typeof _clockPaint === 'function') _clockPaint(estMonTour());
   boardSnapshots = [];
   _bookNode = (typeof OPENING_TREES !== 'undefined' && typeof currentLayout !== 'undefined' && OPENING_TREES[currentLayout]) ? OPENING_TREES[currentLayout] : null;
   resetGutterPositions();  // vide la gouttière (positions des billes éjectées)
@@ -12828,20 +12921,15 @@ function disarmInactivityCancel() {
 }
 
 /* Quelle horloge tourne ? Celle du camp au trait, rapporte a la couleur que
-   le JOUEUR tient reellement. C'etait code sur le noir : en jouant blanc, vos
-   propres coups decomptaient l'horloge de l'adversaire et inversement.
-   Meme cause que l'inversion de la carte de chaleur — « noir = moi ». */
-function _clockMine() {
-  if (typeof gameMode !== 'undefined' && gameMode === 'local') return 'black';
-  return (typeof humanColor !== 'undefined') ? humanColor : 'black';
-}
+   le JOUEUR tient reellement — voir monCamp(), point de verite unique
+   defini plus haut avec humanColor/aiColor(). */
 
 function tickTimers() {
   if (gameOver) return;
   if (timerPaused) return;   // timer en pause
   // Cadence libre : aucune horloge ne tourne, aucun temps ne s'affiche.
   if (!_timeCtlBase || _clockExempt()) { _clockPaintFree(); return; }
-  const _mine = _clockMine();
+  const _mine = monCamp();
   if (currentTurn === _mine) {
     myTime = Math.max(0, myTime-1);
     if (myTime === 30 || myTime === 10) playSfx('time_alert');   // 🔊 alerte temps
@@ -12934,7 +13022,7 @@ function _letter(ch) {
    dit la couleur reelle ; le texte n'a plus besoin de repeter "(noirs)" /
    "(blancs)". Signale par Olivier. */
 function _clockNames(){
-  const mine = _clockMine();
+  const mine = monCamp();
   const opp = mine === 'black' ? 'white' : 'black';
   const en1D = _currentBoardView() === '1d';
   const wt = document.getElementById('clock-top-who');
@@ -12956,7 +13044,7 @@ function _clockPaintFree(){
      Aucun trait n'est marque hors partie vivante : replay, puzzle, match de
      tournoi ou partie terminee — marquer un camp y serait trompeur. */
   const vivante = !((typeof gameOver !== 'undefined' && gameOver) || _clockExempt());
-  const mienActif = vivante && (typeof currentTurn !== 'undefined') && currentTurn === _clockMine();
+  const mienActif = vivante && estMonTour();
   const advActif  = vivante && !mienActif;
   [['clock-bottom', mienActif], ['clock-top', advActif]].forEach(function(p){
     const b=document.getElementById(p[0]);
@@ -12994,7 +13082,7 @@ function _clockExempt(){
 }
 function _clockInc(mover){
   if(!_timeCtlInc || gameOver || _clockExempt()) return;
-  if(mover===_clockMine()){ myTime+=_timeCtlInc; const el=document.getElementById('timer-me'); if(el) el.textContent=formatTime(myTime); }
+  if(mover===monCamp()){ myTime+=_timeCtlInc; const el=document.getElementById('timer-me'); if(el) el.textContent=formatTime(myTime); }
   else { oppTime+=_timeCtlInc; const el=document.getElementById('timer-opponent'); if(el) el.textContent=formatTime(oppTime); }
 }
 function _flagFall(loser){
@@ -13505,9 +13593,10 @@ function recordPlayerMove(opts) {
   if (opts.pushSuccess) progress.totalPushes = (progress.totalPushes||0) + 1;
   if (opts.ejection)    { progress.totalEjections = (progress.totalEjections||0) + 1; if (typeof checkDailyGameComplete === 'function') checkDailyGameComplete(); }
   // Contrôle du centre + cohésion (état après le coup)
-  /* Le joueur ne tient pas forcement les noirs : ces trois mesures etaient
-     calculees en dur sur le noir, donc fausses des qu'il jouait blanc. */
-  const _myCol = opts.color || (typeof humanColor !== 'undefined' ? humanColor : 'black');
+  /* Le joueur ne tient pas forcement les noirs — voir monCamp() (point de
+     verite unique, defini avec humanColor/aiColor()). opts.color reste
+     prioritaire quand l'appelant le precise explicitement. */
+  const _myCol = opts.color || monCamp();
   progress.centerTurns = (progress.centerTurns||0) + centerControl(_myCol);
   progress.cohesionSum = (progress.cohesionSum||0) + cohesionScore(_myCol);
   /* Compacite geometrique (ABA-PRO) et fragmentation adverse, echantillonnees
@@ -13776,11 +13865,8 @@ function handleClick(r, c) {
   }
 
   /* Attribution des metriques et de la heatmap selon la couleur que le
-     joueur tient reellement, et non « noir = moi ». En mode 2 joueurs on
-     conserve la convention noir = joueur local. */
-  const _mine = (typeof gameMode !== 'undefined' && gameMode === 'local')
-    ? 'black'
-    : ((typeof humanColor !== 'undefined') ? humanColor : 'black');
+     joueur tient reellement — voir monCamp() (point de verite unique). */
+  const _mine = monCamp();
   if (me === _mine) {
     recordPlayerMove({
       pushAttempt: info.type === 'push',
@@ -20013,7 +20099,7 @@ function setBoardTheme(theme, btn) {
     glace:   { bg1:'#183842', bg2:'#0a1a20' },
     carbone: { bg1:'#141416', bg2:'#020202' },
   };
-  Object.assign(boardTheme, themes[theme]||themes.dark);
+  Object.assign(boardTheme, themes[theme] || (theme === 'perso' && BOARD_SURFACE_THEMES.perso ? { bg1: BOARD_SURFACE_THEMES.perso.surf[0], bg2: BOARD_SURFACE_THEMES.perso.gutterOuter } : themes.dark));
   boardTheme.theme = theme;   // nom du theme, pas seulement le booleen bois — necessaire pour BOARD_SURFACE_THEMES
   boardTheme.wood = (theme === 'wood');
   if (theme === 'wood') {
@@ -20027,8 +20113,142 @@ function setBoardTheme(theme, btn) {
     applyMarbleSkin();   // restaure le skin de billes courant en quittant le bois
   }
   drawBoard();
-  showToast(theme === 'wood' ? '🌳 Plateau bois & résine époxy' : theme === 'volcanique' ? '🌋 Plateau volcanique' : '🎨 Plateau mis à jour !');
+  showToast(theme === 'wood' ? '🌳 Plateau bois & résine époxy' : theme === 'volcanique' ? '🌋 Plateau volcanique' : theme === 'perso' ? '🧪 Thème personnalisé appliqué' : '🎨 Plateau mis à jour !');
 }
+
+/* ══ CREATEUR DE PLATEAU ══
+   Principe : un theme perso n'est JAMAIS du nouveau code — c'est une
+   recette de plus (nom de base + couleurs + deux facteurs d'echelle),
+   executee par le meme window.peindreCouches/window.THEME_RECIPES que les
+   16 themes integres. "densite" multiplie le nombre d'elements (n) de
+   chaque couche, "intensite" multiplie les canaux alpha — deux operations
+   generiques qui marchent identiquement sur N'IMPORTE QUELLE recette,
+   sans code special par theme. Persiste dans localStorage comme donnees
+   pures (jamais une fonction serialisee) ; reconstruit une vraie fonction
+   recette au chargement. */
+function creatorScaleLayers(couches, densite, intensite) {
+  return couches.map(function(couche) {
+    const p2 = Object.assign({}, couche.p);
+    if (typeof p2.n === 'number') p2.n = Math.max(1, Math.round(p2.n * densite));
+    ['alpha', 'alphaMin', 'alphaMax', 'alphaPic'].forEach(function(cle) {
+      if (typeof p2[cle] === 'number') p2[cle] = Math.min(1, Math.max(0, p2[cle] * intensite));
+    });
+    return { type: couche.type, p: p2 };
+  });
+}
+function creatorBuildRecipe(baseName, densite, intensite) {
+  return function(t, night, options) {
+    const base = window.THEME_RECIPES[baseName];
+    if (!base) return [];
+    const couches = base(t, night, options);
+    return creatorScaleLayers(couches, densite, intensite);
+  };
+}
+function creatorReadControls() {
+  const base = document.getElementById('creator-base').value;
+  const c1 = document.getElementById('creator-c1').value;
+  const c2 = document.getElementById('creator-c2').value;
+  const gutter = document.getElementById('creator-gutter').value;
+  const densite = (+document.getElementById('creator-densite').value) / 100;
+  const intensite = (+document.getElementById('creator-intensite').value) / 100;
+  return { base, c1, c2, gutter, densite, intensite };
+}
+function creatorInitControls() {
+  const sel = document.getElementById('creator-base');
+  if (!sel) return;
+  const saved = creatorLoadSaved();
+  const base = (saved && saved.base) || 'metal';
+  sel.value = base;
+  const t = window.BOARD_SURFACE_THEMES[base] || window.BOARD_SURFACE_THEMES.dark;
+  document.getElementById('creator-c1').value = (saved && saved.c1) || t.surf[0];
+  document.getElementById('creator-c2').value = (saved && saved.c2) || t.surf[2];
+  document.getElementById('creator-gutter').value = (saved && saved.gutter) || t.gutterOuter;
+  document.getElementById('creator-densite').value = saved ? Math.round(saved.densite * 100) : 100;
+  document.getElementById('creator-intensite').value = saved ? Math.round(saved.intensite * 100) : 100;
+  creatorUpdate();
+}
+// Repeint juste l'apercu (jamais le vrai plateau) — appele a chaque
+// changement de curseur, doit rester rapide : un seul canvas 200x200,
+// aucun cache necessaire vu la frequence d'usage (curseur, pas drawBoard()).
+function creatorUpdate() {
+  const ctrl = creatorReadControls();
+  document.getElementById('creator-densite-val').textContent = Math.round(ctrl.densite * 100) + '%';
+  document.getElementById('creator-intensite-val').textContent = Math.round(ctrl.intensite * 100) + '%';
+  const canvas = document.getElementById('creator-preview');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const t = { surf: [ctrl.c1, ctrl.c1, ctrl.c2], gutterOuter: ctrl.gutter, gutGrad: [ctrl.c1, ctrl.gutter], trim: ctrl.gutter };
+  const recette = creatorBuildRecipe(ctrl.base, ctrl.densite, ctrl.intensite);
+  const off = document.createElement('canvas'); off.width = 640; off.height = 640;
+  const offCtx = off.getContext('2d');
+  window.peindreCouches(offCtx, recette(t, false));
+  ctx.clearRect(0, 0, 200, 200);
+  ctx.drawImage(off, 0, 0, 640, 640, 0, 0, 200, 200);
+  creatorSaveToStorage(ctrl);
+}
+function creatorSaveToStorage(ctrl) {
+  try { localStorage.setItem('abalone_custom_theme', JSON.stringify(ctrl)); } catch (e) {}
+}
+function creatorLoadSaved() {
+  try { const raw = localStorage.getItem('abalone_custom_theme'); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+}
+// Enregistre le theme "perso" dans les DEUX registres globaux (couleurs +
+// recette) — a partir de la, "perso" est un theme comme les 16 autres pour
+// tout le reste du code (2D, 3D, setBoardTheme), aucune branche speciale
+// ailleurs.
+function creatorRegisterPerso(ctrl) {
+  window.BOARD_SURFACE_THEMES.perso = { gutterOuter: ctrl.gutter, gutGrad: [ctrl.c1, ctrl.gutter], trim: ctrl.gutter, surf: [ctrl.c1, ctrl.c1, ctrl.c2] };
+  window.THEME_RECIPES.perso = creatorBuildRecipe(ctrl.base, ctrl.densite, ctrl.intensite);
+}
+function creatorEnsurePersoSwatch() {
+  if (document.getElementById('perso-swatch-wrap')) return;
+  const wrap = document.createElement('div');
+  wrap.id = 'perso-swatch-wrap';
+  wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;width:60px';
+  wrap.innerHTML = '<button onclick="setBoardTheme(\'perso\',this)" class="bg-swatch" id="perso-swatch-btn" title="Mon thème personnalisé"></button>' +
+    '<span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Perso</span>';
+  const carbBtn = document.querySelector('.bg-swatch[title="Carbone (laque noire)"]');
+  const host = carbBtn && carbBtn.closest('div[style*="flex-direction:column"]') && carbBtn.closest('div[style*="flex-direction:column"]').parentElement;
+  if (host) host.appendChild(wrap); else return;
+  creatorRefreshSwatchGradient();
+}
+function creatorRefreshSwatchGradient() {
+  const btn = document.getElementById('perso-swatch-btn');
+  const ctrl = creatorReadControls();
+  if (btn && ctrl.c1 && ctrl.c2) btn.style.background = 'linear-gradient(135deg,' + ctrl.c1 + ',' + ctrl.c2 + ')';
+}
+function creatorApply() {
+  const ctrl = creatorReadControls();
+  creatorRegisterPerso(ctrl);
+  creatorSaveToStorage(ctrl);
+  creatorEnsurePersoSwatch();
+  creatorRefreshSwatchGradient();
+  const btn = document.getElementById('perso-swatch-btn');
+  setBoardTheme('perso', btn);
+}
+function creatorReset() {
+  try { localStorage.removeItem('abalone_custom_theme'); } catch (e) {}
+  document.getElementById('creator-base').value = 'metal';
+  creatorInitControls();
+  showToast('↺ Créateur réinitialisé');
+}
+// Au chargement : si un theme perso a deja ete sauvegarde, l'enregistrer
+// tout de suite dans THEME_RECIPES/BOARD_SURFACE_THEMES (sans l'appliquer
+// automatiquement — l'utilisateur garde le theme actif choisi la derniere
+// fois via boardTheme.theme, deja restaure ailleurs) pour que le bouton
+// "Perso" fonctionne des l'ouverture du panneau.
+(function creatorBootstrap() {
+  const saved = creatorLoadSaved();
+  if (saved && saved.base) {
+    try { creatorRegisterPerso(saved); } catch (e) {}
+  }
+})();
+document.addEventListener('DOMContentLoaded', function() {
+  const saved = creatorLoadSaved();
+  if (saved && saved.base) creatorEnsurePersoSwatch();
+  const sel = document.getElementById('creator-base');
+  if (sel) creatorInitControls();
+});
 
 /* Bascule jour/nuit pour le theme de plateau ACTUELLEMENT actif. Ne fait
    rien (avec message clair) si ce theme n'a pas encore de variante nuit —
@@ -21352,6 +21572,13 @@ function handleBotCommand(rawMsg, box){
 
 
 let coachEnabled = false;
+try { coachEnabled = localStorage.getItem('abalone_coach') === '1'; } catch(e) {}
+if (coachEnabled) {
+  document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('coach-toggle-btn');
+    if (btn) { btn.style.opacity = '1'; btn.textContent = '🎓 Coach activé'; }
+  });
+}
 
 function toggleCoachMode() {
   coachEnabled = !coachEnabled;
