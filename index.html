@@ -2841,6 +2841,7 @@ document.addEventListener('keydown', function(e){
         <div class="cam-mode-tabs">
           <button class="cam-mode-tab active" id="tab-upload" onclick="switchCamMode('upload')">📁 Importer une image</button>
           <button class="cam-mode-tab" id="tab-live" onclick="switchCamMode('live')">🔴 Caméra en direct</button>
+          <button class="cam-mode-tab" id="tab-ar" onclick="switchCamMode('ar')">🎯 AR Live</button>
         </div>
       </div>
 
@@ -2879,6 +2880,35 @@ document.addEventListener('keydown', function(e){
         </div>
         <canvas id="snap-canvas" style="display:none"></canvas>
         <img id="snap-preview" style="display:none;width:100%;border-radius:14px;margin-top:12px;border:1px solid var(--border)">
+      </div>
+
+      <!-- AR MODE : flux vidéo continu + calibration 4 coins + overlay temps réel.
+           Réutilise EXACTEMENT le moteur de détection existant (detComputeHomography,
+           detApplyHomography, detSamplePatch, detClassify — déjà validés sur la
+           détection photo) et le moteur de jeu réel (validateMove, applyMove,
+           evaluateBoard) en échangeant temporairement le "board" global le temps
+           d'un calcul synchrone, puis en le restaurant. Aucune logique de jeu
+           réinventée. -->
+      <div id="mode-ar" style="display:none">
+        <div id="ar-start-block" style="display:flex;align-items:center;justify-content:center;min-height:280px;background:var(--surface);border:1px solid var(--border);border-radius:14px;flex-direction:column;gap:16px">
+          <div style="font-size:56px">🎯</div>
+          <div style="font-size:16px;font-weight:600;color:var(--text)">Réalité augmentée</div>
+          <div style="font-size:13px;color:var(--muted);text-align:center;max-width:340px">Pose le téléphone à ~40cm au dessus du plateau réel, bien éclairé. Tape ensuite les 4 coins du cadre pour caler la projection.</div>
+          <button class="cam-btn cam-live" onclick="arStartCamera()" style="margin-top:8px">🔴 Démarrer la caméra AR</button>
+        </div>
+        <div id="ar-live-wrap" style="display:none;position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:#000">
+          <video id="ar-video" autoplay playsinline muted style="display:block;width:100%;height:60vh;max-height:520px;object-fit:cover"></video>
+          <canvas id="ar-canvas" style="position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair"></canvas>
+          <div id="ar-status" style="position:absolute;top:10px;left:10px;right:10px;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,0.55);color:#e8dcc0;font-size:12px;pointer-events:none">Calibration : tape les 4 coins (haut-gauche → haut-droit → bas-droit → bas-gauche)</div>
+        </div>
+        <div id="ar-controls" style="display:none;margin-top:12px;flex-wrap:wrap;gap:8px">
+          <button class="cam-btn outline" onclick="arRecalibrate()">◫ Recalibrer</button>
+          <button class="cam-btn outline" onclick="arDetectBalls()">🔍 Détecter billes</button>
+          <button class="cam-btn outline" id="ar-best-btn" onclick="arShowBestMove()">★ Meilleur coup</button>
+          <button class="cam-btn outline" id="ar-freeze-btn" onclick="arToggleFreeze()">❄️ Freeze</button>
+          <button class="cam-btn outline" onclick="arSwitchPlayer()" id="ar-player-btn" style="margin-left:auto">⚫ Noirs</button>
+          <button class="cam-btn outline" onclick="arStopCamera()">⏹ Arrêter</button>
+        </div>
       </div>
 
       <!-- Action buttons -->
@@ -4524,6 +4554,46 @@ document.addEventListener('keydown', function(e){
             <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
               <button onclick="setBoardTheme('volcanique',this)" class="bg-swatch" style="background:linear-gradient(135deg,#9c6030,#141414)" title="Volcanique"></button>
               <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Volcanique</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('metal',this)" class="bg-swatch" style="background:linear-gradient(135deg,#c8ccd1,#4a4e54)" title="Métal (acier brossé)"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Métal</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('bronze',this)" class="bg-swatch" style="background:linear-gradient(135deg,#b98a4a,#241a0c)" title="Bronze"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Bronze</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('cuivre',this)" class="bg-swatch" style="background:linear-gradient(135deg,#c97a4a,#2c150c)" title="Cuivre"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Cuivre</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('ardoise',this)" class="bg-swatch" style="background:linear-gradient(135deg,#5c6a72,#161b1e)" title="Ardoise"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Ardoise</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('granite',this)" class="bg-swatch" style="background:linear-gradient(135deg,#8a8a90,#1e1e22)" title="Granite"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Granite</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('verre',this)" class="bg-swatch" style="background:linear-gradient(135deg,#bfe4f0,#0a1a24)" title="Verre"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Verre</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('beton',this)" class="bg-swatch" style="background:linear-gradient(135deg,#9a988e,#1c1c1a)" title="Béton"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Béton</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('corail',this)" class="bg-swatch" style="background:linear-gradient(135deg,#e28a7a,#2a0e16)" title="Corail"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Corail</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('glace',this)" class="bg-swatch" style="background:linear-gradient(135deg,#dff4f8,#0a1e26)" title="Glace"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Glace</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('carbone',this)" class="bg-swatch" style="background:linear-gradient(135deg,#38383e,#050506)" title="Carbone (laque noire)"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Carbone</span>
             </div>
           </div>
           <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">Chaque thème change réellement la couleur du plateau — feutre, gouttière et contour — aussi bien en 2D qu'en 3D.</div>
@@ -10802,6 +10872,21 @@ const BOARD_SURFACE_THEMES = {
   marble: { gutterOuter:'#2a2a2a', gutGrad:['#3a3a3a','#242424'], trim:'#141414', surf:['#d8d4cc','#c0bab0','#a8a094'] },
   gold:   { gutterOuter:'#241a08', gutGrad:['#4a3510','#2a1c08'], trim:'#120c04', surf:['#c9a24a','#a8822e','#7a5c1c'] },
   forest: { gutterOuter:'#0e1a0e', gutGrad:['#1e3a1e','#0f200f'], trim:'#060e06', surf:['#5a8258','#436843','#2c4a2c'] },
+  /* 10 nouveaux thèmes (demande d'Olivier : "metal, pierre, marbre, verre...
+     une dixaine, tous differents"). Même structure EXACTE que les 5
+     ci-dessus (gutterOuter/gutGrad/trim/surf) — aucun nouveau champ, aucun
+     traitement spécial requis côté drawBoard()/3D, juste de nouvelles
+     teintes + de nouvelles recettes de couches (THEME_RECIPES plus bas). */
+  metal:    { gutterOuter:'#2c2f33', gutGrad:['#4a4e54','#22252a'], trim:'#15171a', surf:['#c8ccd1','#9a9ea4','#6e7278'] },   // acier brossé
+  bronze:   { gutterOuter:'#2e2010', gutGrad:['#5a3f1c','#241a0c'], trim:'#140d05', surf:['#b98a4a','#8a6530','#5c421e'] },
+  cuivre:   { gutterOuter:'#3a1c10', gutGrad:['#7a3c1e','#2c150c'], trim:'#1a0d06', surf:['#c97a4a','#a85830','#7a3c1e'] },
+  ardoise:  { gutterOuter:'#1c2226', gutGrad:['#323c42','#161b1e'], trim:'#0c0f11', surf:['#5c6a72','#48545a','#333c40'] },
+  granite:  { gutterOuter:'#26262a', gutGrad:['#3e3e44','#1e1e22'], trim:'#111113', surf:['#8a8a90','#6e6e74','#525256'] },
+  verre:    { gutterOuter:'#0e2230', gutGrad:['#1c4258','#0a1a24'], trim:'#052030', surf:['#bfe4f0','#8ec4d8','#5f9cb4'] },
+  beton:    { gutterOuter:'#242422', gutGrad:['#3c3c38','#1c1c1a'], trim:'#101010', surf:['#9a988e','#807e76','#66645c'] },
+  corail:   { gutterOuter:'#3a1622', gutGrad:['#6a2a3c','#2a0e16'], trim:'#1a0810', surf:['#e28a7a','#c4604e','#8e3c34'] },
+  glace:    { gutterOuter:'#0e2a34', gutGrad:['#1e4a58','#0a1e26'], trim:'#04141a', surf:['#dff4f8','#b0dce8','#7fbcd0'] },
+  carbone:  { gutterOuter:'#0a0a0c', gutGrad:['#1a1a1e','#050506'], trim:'#000000', surf:['#38383e','#242428','#141416'] },   // laque noire / fibre de carbone
   /* Volcanique : PREMIER theme avec variante jour/nuit (les 5 autres n'en
      ont pas encore — "on fera les autres apres", demande d'Olivier).
      Couleurs RE-ECHANTILLONNEES directement sur la photo de reference
@@ -11046,6 +11131,87 @@ window.THEME_RECIPES = {
       }
     }
     return couches;
+  },
+  /* 10 nouveaux themes — chaque recette ne fait qu'assembler 2-3 couches du
+     catalogue EXISTANT (LAYER_TYPES), rien de nouveau invente au niveau du
+     moteur. Verifie par rendu reel (voir test_new_material_themes.js et
+     capture Playwright) que les 10 sont visuellement distincts. */
+  metal: function(t) {   // acier brosse : grain directionnel + reflet net
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'rayures_fines', p: { n: 420, couleur: [255, 255, 255], alphaMin: 0.02, alphaMax: 0.10 } },
+      { type: 'reflet_diagonal', p: { couleur: [255, 255, 255], alphaPic: 0.28 } },
+    ];
+  },
+  bronze: function(t) {   // patine organique + reflet chaud
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'taches_organiques', p: { n: 70, rMin: 5, rMax: 20, couleurFn: function() {
+        return 'rgba(' + Math.round(40 + Math.random()*40) + ',' + Math.round(70 + Math.random()*40) + ',' + Math.round(40 + Math.random()*30) + ',0.16)';
+      } } },
+      { type: 'reflet_diagonal', p: { couleur: [255, 224, 170], alphaPic: 0.20 } },
+    ];
+  },
+  cuivre: function(t) {   // vert-de-gris (patine oxydee) + fines rayures chaudes
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'taches_organiques', p: { n: 55, rMin: 6, rMax: 24, couleurFn: function() {
+        return 'rgba(' + Math.round(60 + Math.random()*40) + ',' + Math.round(140 + Math.random()*50) + ',' + Math.round(110 + Math.random()*40) + ',0.14)';
+      } } },
+      { type: 'rayures_fines', p: { n: 180, couleur: [255, 200, 150], alphaMin: 0.03, alphaMax: 0.09 } },
+    ];
+  },
+  ardoise: function(t) {   // pierre feuilletee : fines fissures + grain
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'veines_turbulentes', p: { n: 12, couleur: [10, 12, 14], alphaMin: 0.15, alphaMax: 0.35, largeurMin: 0.6, largeurMax: 1.8 } },
+      { type: 'pores', p: { n: 90, alphaMin: 0.08, alphaMax: 0.20, rMin: 1, rMax: 3.5 } },
+    ];
+  },
+  granite: function(t) {   // grain sel-et-poivre (deux nuages de mouchetures)
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'poussiere', p: { n: 400, couleur: [20, 20, 22], alphaMin: 0.06, alphaMax: 0.16, rMin: 0.5, rMax: 2 } },
+      { type: 'poussiere', p: { n: 260, couleur: [235, 232, 225], alphaMin: 0.05, alphaMax: 0.14, rMin: 0.5, rMax: 2.2 } },
+    ];
+  },
+  verre: function(t) {   // translucide : caustiques + reflet vif
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'caustiques', p: { n: 14, couleur: [230, 250, 255], alphaMax: 0.20, rMin: 30, rMax: 90 } },
+      { type: 'reflet_diagonal', p: { couleur: [255, 255, 255], alphaPic: 0.35 } },
+    ];
+  },
+  beton: function(t) {   // mat, grain fin, quelques micro-fissures
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'poussiere', p: { n: 320, couleur: [40, 40, 38], alphaMin: 0.04, alphaMax: 0.12, rMin: 0.6, rMax: 2.4 } },
+      { type: 'rayures_fines', p: { n: 40, couleur: [15, 15, 14], alphaMin: 0.05, alphaMax: 0.12 } },
+    ];
+  },
+  corail: function(t) {   // texture organique + lumiere sous-marine
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'taches_organiques', p: { n: 130, rMin: 4, rMax: 16, couleurFn: function() {
+        return 'rgba(' + Math.round(200 + Math.random()*50) + ',' + Math.round(100 + Math.random()*60) + ',' + Math.round(80 + Math.random()*50) + ',0.18)';
+      } } },
+      { type: 'caustiques', p: { n: 8, couleur: [255, 220, 210], alphaMax: 0.12, rMin: 26, rMax: 65 } },
+    ];
+  },
+  glace: function(t) {   // fissures pales + reflets froids
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'veines_turbulentes', p: { n: 10, couleur: [255, 255, 255], alphaMin: 0.10, alphaMax: 0.24, largeurMin: 0.8, largeurMax: 2.2 } },
+      { type: 'caustiques', p: { n: 10, couleur: [220, 245, 255], alphaMax: 0.16, rMin: 22, rMax: 60 } },
+      { type: 'reflet_diagonal', p: { couleur: [255, 255, 255], alphaPic: 0.22 } },
+    ];
+  },
+  carbone: function(t) {   // laque noire profonde + reflet net
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'rayures_fines', p: { n: 500, couleur: [90, 90, 100], alphaMin: 0.02, alphaMax: 0.07 } },
+      { type: 'reflet_diagonal', p: { couleur: [180, 190, 220], alphaPic: 0.30 } },
+    ];
   },
 };
 
@@ -17225,8 +17391,11 @@ let camHistory = [];
 function switchCamMode(mode) {
   document.getElementById('tab-upload').classList.toggle('active', mode==='upload');
   document.getElementById('tab-live').classList.toggle('active', mode==='live');
+  document.getElementById('tab-ar').classList.toggle('active', mode==='ar');
   document.getElementById('mode-upload').style.display = mode==='upload' ? 'block' : 'none';
   document.getElementById('mode-live').style.display = mode==='live' ? 'block' : 'none';
+  document.getElementById('mode-ar').style.display = mode==='ar' ? 'block' : 'none';
+  if (mode !== 'ar' && typeof arStopCamera === 'function') arStopCamera();
   clearAll();
 }
 
@@ -17305,7 +17474,18 @@ function processImagePrivacy(imgEl, crop, blurEdges) {
   return { dataUrl: dataUrl, mime: 'image/jpeg', name: 'plateau-' + stamp + '.jpg' };
 }
 
+// Taille max acceptée pour une photo de plateau : au-delà, readAsDataURL()
+// charge tout le fichier en mémoire (en base64, ~+33% de poids) et peut
+// geler l'onglet sur un fichier énorme. 10 Mo est largement suffisant pour
+// une photo de plateau (même en haute résolution) et reste confortable.
+const MAX_PHOTO_BYTES = 10 * 1024 * 1024; // 10 Mo
+
 function loadImageFile(file) {
+  if (file && file.size > MAX_PHOTO_BYTES) {
+    const mo = (file.size / (1024 * 1024)).toFixed(1);
+    if (typeof showToast === 'function') showToast('📷 Photo trop lourde (' + mo + ' Mo) — 10 Mo maximum');
+    return;
+  }
   const reader = new FileReader();
   reader.onload = ev => {
     const dataUrl = ev.target.result;
@@ -17506,6 +17686,427 @@ function clearAll() {
 function hideResults() {
   document.getElementById('result-panel').classList.remove('show');
   document.getElementById('analyzing-block').classList.remove('show');
+}
+
+/* ═══════════════════════════════════════════
+   MODE AR — flux vidéo continu + overlay temps réel
+   Principe : même calibration à 4 coins que la détection photo (haut-g,
+   haut-d, bas-d, bas-g), même homographie (detComputeHomography /
+   detApplyHomography), même classification colorimétrique (detSamplePatch /
+   detClassify) — rien n'est réinventé, tout est réutilisé tel quel.
+   Pour les coups légaux et le meilleur coup : le "board" global du jeu réel
+   est échangé pour le board AR le temps d'un calcul SYNCHRONE (jamais de
+   await entre l'échange et la restauration, donc aucune interférence
+   possible avec une partie en cours ailleurs dans l'app), puis restauré.
+   validateMove / applyMove / evaluateBoard sont donc les VRAIES fonctions
+   du moteur, pas une réimplémentation.
+═══════════════════════════════════════════ */
+let _arStream = null;
+let _arRAF = null;
+let _arCorners = [];              // jusqu'à 4 points tapés {x,y} en px canvas (CSS)
+let _arDraggingCorner = -1;
+let _arHomography = null;
+let _arRcList = [];               // 61 {r,c} dans l'ordre du plateau
+let _arHolePos = [];              // 61 positions projetées {x,y} (px canvas), parallèle à _arRcList
+let _arBoard = {};                // akey(r,c) -> 'black'|'white', board AR détecté
+let _arSelectedIdx = -1;
+let _arMoves = [];                // coups légaux calculés pour la bille sélectionnée
+let _arBestMove = null;
+let _arFrozen = false;
+let _arPlayer = 'black';
+const AR_GOLD = '#d6b15e';
+
+function arBuildRcList() {
+  const list = [];
+  for (let r = 0; r < 9; r++) { const n = DET_ROWS[r]; for (let c = 0; c < n; c++) list.push({ r, c }); }
+  return list;
+}
+
+async function arStartCamera() {
+  try {
+    _arStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+    const video = document.getElementById('ar-video');
+    video.srcObject = _arStream;
+    await video.play().catch(()=>{});
+    document.getElementById('ar-start-block').style.display = 'none';
+    document.getElementById('ar-live-wrap').style.display = 'block';
+    document.getElementById('ar-controls').style.display = 'flex';
+    _arRcList = arBuildRcList();
+    _arCorners = []; _arHomography = null; _arHolePos = []; _arBoard = {}; _arSelectedIdx = -1; _arMoves = []; _arBestMove = null; _arFrozen = false;
+    arSetupCanvasEvents();
+    arResizeCanvas();
+    window.addEventListener('resize', arResizeCanvas);
+    if (_arRAF) cancelAnimationFrame(_arRAF);
+    _arRAF = requestAnimationFrame(arDrawLoop);
+  } catch (err) {
+    showToast('❌ Caméra AR inaccessible — vérifiez les permissions');
+  }
+}
+
+function arStopCamera() {
+  if (_arStream) { _arStream.getTracks().forEach(t => t.stop()); _arStream = null; }
+  if (_arRAF) { cancelAnimationFrame(_arRAF); _arRAF = null; }
+  window.removeEventListener('resize', arResizeCanvas);
+  const wrap = document.getElementById('ar-live-wrap');
+  const startBlock = document.getElementById('ar-start-block');
+  const ctrls = document.getElementById('ar-controls');
+  if (wrap) wrap.style.display = 'none';
+  if (startBlock) startBlock.style.display = 'flex';
+  if (ctrls) ctrls.style.display = 'none';
+}
+
+function arResizeCanvas() {
+  const canvas = document.getElementById('ar-canvas');
+  const video = document.getElementById('ar-video');
+  if (!canvas || !video) return;
+  const rect = video.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(rect.width * dpr);
+  canvas.height = Math.round(rect.height * dpr);
+  if (_arCorners.length === 4) arComputeHomographyAndProject();
+}
+
+// Dessine la vidéo (ou l'image gelée si Freeze) dans un canvas hors-écran en
+// respectant le même recadrage "cover" que l'affichage CSS (object-fit:cover),
+// pour que les coordonnées d'échantillonnage colorimétrique correspondent
+// exactement aux points projetés à l'écran.
+function arDrawCoverFrame(ctx, video, dispW, dispH) {
+  const vw = video.videoWidth, vh = video.videoHeight;
+  if (!vw || !vh) return false;
+  const scale = Math.max(dispW / vw, dispH / vh);
+  const w = vw * scale, h = vh * scale;
+  const x = (dispW - w) / 2, y = (dispH - h) / 2;
+  ctx.drawImage(video, x, y, w, h);
+  return true;
+}
+
+function arSetupCanvasEvents() {
+  const canvas = document.getElementById('ar-canvas');
+  if (!canvas || canvas._arBound) return;
+  canvas._arBound = true;
+  canvas.addEventListener('pointerdown', arOnPointerDown);
+  canvas.addEventListener('pointermove', arOnPointerMove);
+  canvas.addEventListener('pointerup', arOnPointerUp);
+}
+
+function arCanvasPoint(e) {
+  const canvas = document.getElementById('ar-canvas');
+  const rect = canvas.getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+
+function arOnPointerDown(e) {
+  const p = arCanvasPoint(e);
+  // Coin déjà posé à proximité → on le saisit pour le glisser (ajustement fin)
+  for (let i = 0; i < _arCorners.length; i++) {
+    if (Math.hypot(_arCorners[i].x - p.x, _arCorners[i].y - p.y) < 22) {
+      _arDraggingCorner = i;
+      e.target.setPointerCapture(e.pointerId);
+      return;
+    }
+  }
+  if (_arCorners.length < 4) {
+    _arCorners.push(p);
+    const labels = ['haut-gauche','haut-droit','bas-droit','bas-gauche'];
+    const st = document.getElementById('ar-status');
+    if (_arCorners.length < 4) { if (st) st.textContent = 'Coin ' + _arCorners.length + '/4 posé — tape le coin ' + labels[_arCorners.length]; }
+    else arComputeHomographyAndProject();
+    return;
+  }
+  // 4 coins déjà posés : tap sur un trou → sélection
+  if (_arHolePos.length === 61) {
+    let best = -1, bestD = 26;
+    for (let i = 0; i < _arHolePos.length; i++) {
+      const d = Math.hypot(_arHolePos[i].x - p.x, _arHolePos[i].y - p.y);
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    arSelectHole(best);
+  }
+}
+function arOnPointerMove(e) {
+  if (_arDraggingCorner < 0) return;
+  const p = arCanvasPoint(e);
+  _arCorners[_arDraggingCorner] = p;
+  if (_arCorners.length === 4) arComputeHomographyAndProject();
+}
+function arOnPointerUp() { _arDraggingCorner = -1; }
+
+function arRecalibrate() {
+  _arCorners = []; _arHomography = null; _arHolePos = []; _arSelectedIdx = -1; _arMoves = []; _arBestMove = null;
+  const st = document.getElementById('ar-status');
+  if (st) { st.style.display = 'block'; st.textContent = 'Calibration : tape les 4 coins (haut-gauche → haut-droit → bas-droit → bas-gauche)'; }
+}
+
+// Calcule l'homographie à partir des 4 coins tapés (réutilise EXACTEMENT le
+// moteur de la détection photo : mêmes DET_CORNERS, même detCellFlatPos,
+// même detComputeHomography/detApplyHomography) puis projette les 61 trous.
+function arComputeHomographyAndProject() {
+  if (_arCorners.length !== 4) return;
+  const srcPts = DET_CORNERS.map(function(cc) { return detCellFlatPos(cc.r, cc.c); });
+  const canvas = document.getElementById('ar-canvas');
+  const dpr = window.devicePixelRatio || 1;
+  // detApplyHomography attend le même repère que dstPts ; on travaille en px
+  // CSS (canvas.width est en px physiques, on redivise par dpr pour rester
+  // cohérent avec arCanvasPoint qui donne des coordonnées CSS).
+  const dstPts = _arCorners;
+  const H = detComputeHomography(srcPts, dstPts);
+  if (!H) { const st = document.getElementById('ar-status'); if (st) st.textContent = 'Calibration invalide (coins alignés ?) — recalibre'; return; }
+  _arHomography = H;
+  _arHolePos = _arRcList.map(function(rc) { return detApplyHomography(H, detCellFlatPos(rc.r, rc.c)); });
+  const st = document.getElementById('ar-status');
+  if (st) { st.textContent = 'Calibré • tape une bille pour voir ses coups'; setTimeout(function(){ if (st) st.style.display = 'none'; }, 2500); }
+}
+
+// Détecte les billes : capture la frame courante (ou l'image gelée) dans un
+// canvas hors-écran avec le même recadrage "cover" que l'affichage, puis
+// réutilise TEL QUEL detSamplePatch + detClassify (déjà validés à 100% sur
+// 4 scénarios par la détection photo — même code, pas une resimplification).
+function arDetectBalls() {
+  if (_arHolePos.length !== 61) { showToast('⚠️ Calibre d\'abord les 4 coins'); return; }
+  const video = document.getElementById('ar-video');
+  const canvas = document.getElementById('ar-canvas');
+  const dpr = window.devicePixelRatio || 1;
+  const dispW = canvas.width / dpr, dispH = canvas.height / dpr;
+  let off = document.getElementById('ar-offscreen');
+  if (!off) { off = document.createElement('canvas'); off.id = 'ar-offscreen'; off.style.display = 'none'; document.body.appendChild(off); }
+  off.width = Math.round(dispW); off.height = Math.round(dispH);
+  const octx = off.getContext('2d', { willReadFrequently: true });
+  if (!arDrawCoverFrame(octx, video, off.width, off.height)) { showToast('⚠️ Vidéo pas prête'); return; }
+  const imageData = octx.getImageData(0, 0, off.width, off.height);
+  const samples = _arHolePos.map(function(p, i) {
+    const s = detSamplePatch(imageData, p.x, p.y, 5);
+    return s ? { key: i, r: s.r, g: s.g, b: s.b, lum: s.lum } : { key: i, r: 0, g: 0, b: 0, lum: 0 };
+  });
+  const labels = detClassify(samples);
+  const newBoard = {};
+  let nb = 0, nw = 0, ne = 0;
+  _arRcList.forEach(function(rc, i) {
+    const lab = labels[i];
+    if (lab === 'black') { newBoard[akey(rc.r, rc.c)] = 'black'; nb++; }
+    else if (lab === 'white') { newBoard[akey(rc.r, rc.c)] = 'white'; nw++; }
+    else ne++;
+  });
+  _arBoard = newBoard;
+  _arSelectedIdx = -1; _arMoves = []; _arBestMove = null;
+  showToast('🔍 Détection : ' + nb + '⚫ ' + nw + '⚪ ' + ne + ' vides');
+}
+
+/* ── Échange temporaire du board global : voir l'en-tête du module pour la
+   garantie de synchronicité (jamais de await entre swap et restore). ── */
+let _arSavedBoard = null, _arSavedCapB = 0, _arSavedCapW = 0;
+function arSwapBoard() {
+  _arSavedBoard = board; _arSavedCapB = capturedByBlack; _arSavedCapW = capturedByWhite;
+  board = _arBoard; capturedByBlack = 0; capturedByWhite = 0;
+}
+function arRestoreBoard() {
+  board = _arSavedBoard; capturedByBlack = _arSavedCapB; capturedByWhite = _arSavedCapW;
+}
+
+// Construit les sélections candidates (1, 2 ou 3 billes alignées) passant
+// par (r,c), une par axe et par sens — même principe que la sélection
+// manuelle du joueur, mais générée automatiquement pour l'overlay AR.
+function arCandidateSelections(r, c, color) {
+  const ax0 = rcToAxial(r, c);
+  const sels = [[{ r, c }]];
+  const axes = [[{q:1,r:0},{q:-1,r:0}], [{q:0,r:1},{q:0,r:-1}], [{q:1,r:-1},{q:-1,r:1}]];
+  axes.forEach(function(pair) {
+    const d1 = pair[0], d2 = pair[1];
+    const back = [], fwd = [];
+    let cur = { q: ax0.q + d2.q, r: ax0.r + d2.r };
+    for (let i = 0; i < 2; i++) {
+      const rc = axialToRc(cur.q, cur.r);
+      if (!rc || _arBoard[akey(rc.r, rc.c)] !== color) break;
+      back.push(rc); cur = { q: cur.q + d2.q, r: cur.r + d2.r };
+    }
+    cur = { q: ax0.q + d1.q, r: ax0.r + d1.r };
+    for (let i = 0; i < 2; i++) {
+      const rc = axialToRc(cur.q, cur.r);
+      if (!rc || _arBoard[akey(rc.r, rc.c)] !== color) break;
+      fwd.push(rc); cur = { q: cur.q + d1.q, r: cur.r + d1.r };
+    }
+    if (back.length >= 1) sels.push([back[0], { r, c }]);
+    if (fwd.length >= 1) sels.push([{ r, c }, fwd[0]]);
+    if (back.length >= 1 && fwd.length >= 1) sels.push([back[0], { r, c }, fwd[0]]);
+    if (back.length >= 2) sels.push([back[1], back[0], { r, c }]);
+    if (fwd.length >= 2) sels.push([{ r, c }, fwd[0], fwd[1]]);
+  });
+  return sels;
+}
+
+// Calcule tous les coups légaux pour la bille (r,c) en réutilisant
+// validateMove() du VRAI moteur, sur le board AR échangé temporairement.
+function arComputeMovesForRc(r, c) {
+  const color = _arBoard[akey(r, c)];
+  if (!color) return [];
+  const sels = arCandidateSelections(r, c, color);
+  const seen = new Set();
+  const moves = [];
+  arSwapBoard();
+  try {
+    sels.forEach(function(sel) {
+      const selKey = sel.map(function(s){ return akey(s.r, s.c); }).sort().join('|');
+      AX_DIRS.forEach(function(dir) {
+        const dkey = selKey + '>' + dir.q + ',' + dir.r;
+        if (seen.has(dkey)) return;
+        const info = validateMove(sel, dir, color);
+        if (info.valid) { seen.add(dkey); moves.push({ cells: sel, dir: dir, info: info, color: color }); }
+      });
+    });
+  } finally { arRestoreBoard(); }
+  return moves;
+}
+
+function arSelectHole(idx) {
+  const rc = _arRcList[idx];
+  const color = _arBoard[akey(rc.r, rc.c)];
+  if (!color) { _arSelectedIdx = -1; _arMoves = []; return; }
+  _arSelectedIdx = idx;
+  _arMoves = arComputeMovesForRc(rc.r, rc.c);
+  _arBestMove = null;
+}
+
+// Meilleur coup toutes billes confondues pour la couleur au trait :
+// réutilise applyMove/undoMove/evaluateBoard — les mêmes fonctions que le
+// moteur de recherche du jeu réel, jamais une évaluation maison.
+function arShowBestMove() {
+  if (_arHolePos.length !== 61) { showToast('⚠️ Calibre d\'abord les 4 coins'); return; }
+  let allMoves = [];
+  _arRcList.forEach(function(rc) {
+    if (_arBoard[akey(rc.r, rc.c)] === _arPlayer) allMoves = allMoves.concat(arComputeMovesForRc(rc.r, rc.c));
+  });
+  if (!allMoves.length) { showToast('Aucun coup trouvé pour ' + (_arPlayer === 'black' ? 'les Noirs' : 'les Blancs')); _arBestMove = null; return; }
+  arSwapBoard();
+  let best = null, bestScore = -Infinity;
+  try {
+    allMoves.forEach(function(m) {
+      const undo = applyMove(m, _arPlayer);
+      const score = evaluateBoard(_arPlayer);
+      undoMove(undo);
+      if (score > bestScore) { bestScore = score; best = m; }
+    });
+  } finally { arRestoreBoard(); }
+  _arBestMove = best;
+  showToast('★ Meilleur coup calculé (score ' + bestScore.toFixed(0) + ')');
+}
+
+function arSwitchPlayer() {
+  _arPlayer = _arPlayer === 'black' ? 'white' : 'black';
+  const btn = document.getElementById('ar-player-btn');
+  if (btn) btn.textContent = _arPlayer === 'black' ? '⚫ Noirs' : '⚪ Blancs';
+  _arBestMove = null;
+}
+
+function arToggleFreeze() {
+  _arFrozen = !_arFrozen;
+  const video = document.getElementById('ar-video');
+  const btn = document.getElementById('ar-freeze-btn');
+  if (video) { if (_arFrozen) video.pause(); else video.play().catch(function(){}); }
+  if (btn) { btn.textContent = _arFrozen ? '▶️ Reprendre' : '❄️ Freeze'; btn.style.borderColor = _arFrozen ? 'var(--gold)' : ''; }
+}
+
+function arDrawLoop(ts) {
+  _arRAF = requestAnimationFrame(arDrawLoop);
+  const canvas = document.getElementById('ar-canvas');
+  const video = document.getElementById('ar-video');
+  if (!canvas || !video) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const w = canvas.width / dpr, h = canvas.height / dpr;
+  ctx.clearRect(0, 0, w, h);
+  const pulse = 0.5 + 0.5 * Math.sin((ts || 0) * 0.005);
+
+  // Coins de calibration
+  if (_arCorners.length > 0) {
+    ctx.lineWidth = 2; ctx.strokeStyle = _arCorners.length === 4 ? '#22c55e' : '#ef4444';
+    ctx.beginPath();
+    _arCorners.forEach(function(p, i) { if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); });
+    if (_arCorners.length === 4) ctx.closePath();
+    ctx.stroke();
+    const labels = ['TL','TR','BR','BL'];
+    _arCorners.forEach(function(p, i) {
+      ctx.fillStyle = i === 0 ? '#facc15' : (_arCorners.length === 4 ? '#22c55e' : '#ef4444');
+      ctx.beginPath(); ctx.arc(p.x, p.y, i === _arDraggingCorner ? 13 : 9, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#000'; ctx.font = '11px monospace'; ctx.fillText(labels[i] || '', p.x + 12, p.y - 10);
+    });
+  }
+
+  // Trous projetés + billes détectées
+  if (_arHolePos.length === 61) {
+    _arHolePos.forEach(function(p, i) {
+      const rc = _arRcList[i];
+      const col = _arBoard[akey(rc.r, rc.c)];
+      const isSel = i === _arSelectedIdx;
+      const rad = 9 + (isSel ? 4 : 0);
+      ctx.beginPath(); ctx.arc(p.x, p.y, rad, 0, Math.PI*2);
+      if (col === 'black') { ctx.fillStyle = '#0a0a0a'; ctx.fill(); ctx.strokeStyle = isSel ? AR_GOLD : '#555'; ctx.lineWidth = isSel ? 2.5 : 1.2; ctx.stroke(); }
+      else if (col === 'white') { ctx.fillStyle = '#f7f3e8'; ctx.fill(); ctx.strokeStyle = isSel ? AR_GOLD : '#333'; ctx.lineWidth = isSel ? 2.5 : 1.2; ctx.stroke(); }
+      else { ctx.strokeStyle = isSel ? AR_GOLD : 'rgba(255,255,255,0.22)'; ctx.lineWidth = isSel ? 2 : 0.8; ctx.stroke(); }
+      if (isSel) { ctx.strokeStyle = 'rgba(214,177,94,' + (0.3+0.5*pulse) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(p.x, p.y, rad+8+4*pulse, 0, Math.PI*2); ctx.stroke(); }
+    });
+
+    // Coups légaux de la bille sélectionnée : vert = destination, orange+rouge = sumito
+    _arMoves.forEach(function(m) {
+      const lead = m.cells[m.cells.length-1];
+      const leadAx = rcToAxial(lead.r, lead.c);
+      const frontAx = { q: leadAx.q + m.dir.q, r: leadAx.r + m.dir.r };
+      const frontRc = axialToRc(frontAx.q, frontAx.r);
+      if (m.info.type === 'push') {
+        const startRc = axialToRc(m.info.oppStart.q, m.info.oppStart.r);
+        if (!startRc) return;
+        const idxStart = _arRcList.findIndex(function(x){ return x.r===startRc.r && x.c===startRc.c; });
+        if (idxStart < 0) return;
+        const pStart = _arHolePos[idxStart];
+        const leadIdx = _arRcList.findIndex(function(x){ return x.r===lead.r && x.c===lead.c; });
+        const pLead = _arHolePos[leadIdx];
+        ctx.strokeStyle = 'rgba(249,115,22,0.85)'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(pLead.x, pLead.y); ctx.lineTo(pStart.x, pStart.y); ctx.stroke();
+        const ang = Math.atan2(pStart.y-pLead.y, pStart.x-pLead.x);
+        ctx.fillStyle = '#f97316'; ctx.beginPath();
+        ctx.moveTo(pStart.x, pStart.y);
+        ctx.lineTo(pStart.x-12*Math.cos(ang-0.4), pStart.y-12*Math.sin(ang-0.4));
+        ctx.lineTo(pStart.x-12*Math.cos(ang+0.4), pStart.y-12*Math.sin(ang+0.4));
+        ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = 'rgba(239,68,68,0.9)'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(pStart.x, pStart.y, 11, 0, Math.PI*2); ctx.stroke();
+      } else if (frontRc) {
+        const idxF = _arRcList.findIndex(function(x){ return x.r===frontRc.r && x.c===frontRc.c; });
+        if (idxF < 0) return;
+        const pf = _arHolePos[idxF];
+        ctx.fillStyle = 'rgba(34,197,94,' + (0.25+0.35*pulse) + ')';
+        ctx.beginPath(); ctx.arc(pf.x, pf.y, 14, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = 'rgba(34,197,94,' + (0.6+0.4*pulse) + ')'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(pf.x, pf.y, 14, 0, Math.PI*2); ctx.stroke();
+      }
+    });
+
+    // Meilleur coup : flèche or en tirets
+    if (_arBestMove) {
+      const m = _arBestMove;
+      const lead = m.cells[m.cells.length-1];
+      const leadIdx = _arRcList.findIndex(function(x){ return x.r===lead.r && x.c===lead.c; });
+      const pLead = _arHolePos[leadIdx];
+      let pTarget = null;
+      if (m.info.type === 'push') {
+        const startRc = axialToRc(m.info.oppStart.q, m.info.oppStart.r);
+        const idxStart = startRc ? _arRcList.findIndex(function(x){ return x.r===startRc.r && x.c===startRc.c; }) : -1;
+        if (idxStart >= 0) pTarget = _arHolePos[idxStart];
+      } else {
+        const leadAx = rcToAxial(lead.r, lead.c);
+        const frontAx = { q: leadAx.q + m.dir.q, r: leadAx.r + m.dir.r };
+        const frontRc = axialToRc(frontAx.q, frontAx.r);
+        const idxF = frontRc ? _arRcList.findIndex(function(x){ return x.r===frontRc.r && x.c===frontRc.c; }) : -1;
+        if (idxF >= 0) pTarget = _arHolePos[idxF];
+      }
+      if (pTarget && pLead) {
+        ctx.strokeStyle = AR_GOLD; ctx.lineWidth = 4; ctx.setLineDash([8,6]);
+        ctx.beginPath(); ctx.moveTo(pLead.x, pLead.y); ctx.lineTo(pTarget.x, pTarget.y); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = AR_GOLD; ctx.beginPath(); ctx.arc(pTarget.x, pTarget.y, 8, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#000'; ctx.font = 'bold 11px sans-serif'; ctx.fillText('★', pTarget.x-5, pTarget.y+4);
+      }
+    }
+  }
 }
 
 /* ─── LIVE CAMERA ─── */
@@ -19206,6 +19807,16 @@ function applyMarbleSkin() {
 let kidsMode = !!(typeof progress !== 'undefined' && progress.kidsMode);
 let _kidsPrevSkin = null;
 let _kidsExitAnswer = null;
+// Rate-limit sur la sortie du Mode Enfant : le calcul seul se devine vite
+// par tâtonnement (un enfant curieux qui tape des nombres au hasard finit
+// par tomber juste en une dizaine d'essais). 3 essais puis 5s de blocage
+// ajoute juste assez de friction pour que ça reste peu pratique sans gêner
+// un adulte qui se trompe une fois de frappe.
+const KIDS_EXIT_MAX_ATTEMPTS = 3;
+const KIDS_EXIT_COOLDOWN_MS = 5000;
+let _kidsExitAttempts = 0;
+let _kidsExitLockedUntil = 0;
+let _kidsExitCooldownTimer = null;
 
 function toggleKidsMode() {
   if (kidsMode) { _kidsExitPrompt(); return; }
@@ -19246,23 +19857,70 @@ function _kidsExitPrompt() {
   const inp = document.getElementById('kids-exit-answer');
   if (inp) { inp.value = ''; }
   const m = document.getElementById('kids-exit-modal');
-  if (m) { m.style.display = 'flex'; if (inp) setTimeout(function(){ inp.focus(); }, 50); }
+  if (m) { m.style.display = 'flex'; }
+  // Si un blocage est en cours (fenêtre ouverte/fermée pendant le cooldown),
+  // on le montre tout de suite au lieu de laisser croire que le champ marche.
+  if (Date.now() < _kidsExitLockedUntil) {
+    _kidsExitShowLock();
+  } else {
+    _kidsExitSetLocked(false);
+    if (inp) setTimeout(function(){ inp.focus(); }, 50);
+  }
+}
+
+function _kidsExitSetLocked(locked) {
+  const inp = document.getElementById('kids-exit-answer');
+  const btn = document.getElementById('kids-exit-submit');
+  if (inp) inp.disabled = locked;
+  if (btn) { btn.disabled = locked; btn.style.opacity = locked ? '0.45' : ''; btn.style.cursor = locked ? 'not-allowed' : ''; }
+}
+
+function _kidsExitShowLock() {
+  _kidsExitSetLocked(true);
+  const err = document.getElementById('kids-exit-error');
+  clearInterval(_kidsExitCooldownTimer);
+  const tick = function() {
+    const remaining = Math.max(0, Math.ceil((_kidsExitLockedUntil - Date.now()) / 1000));
+    if (remaining <= 0) {
+      clearInterval(_kidsExitCooldownTimer);
+      _kidsExitAttempts = 0;
+      if (err) err.style.display = 'none';
+      _kidsExitSetLocked(false);
+      const inp = document.getElementById('kids-exit-answer');
+      if (inp) inp.focus();
+      return;
+    }
+    if (err) { err.textContent = '⏳ Trop d\'essais — réessaie dans ' + remaining + 's.'; err.style.display = 'block'; }
+  };
+  tick();
+  _kidsExitCooldownTimer = setInterval(tick, 250);
 }
 
 function _kidsExitCancel() {
   const m = document.getElementById('kids-exit-modal');
   if (m) m.style.display = 'none';
   _kidsExitAnswer = null;
+  clearInterval(_kidsExitCooldownTimer);
 }
 
 function _kidsExitCheck() {
+  if (Date.now() < _kidsExitLockedUntil) return;   // bouton normalement désactivé, filet de sécurité
   const inp = document.getElementById('kids-exit-answer');
   const given = inp ? parseInt(inp.value, 10) : NaN;
   if (given !== _kidsExitAnswer) {
-    const err = document.getElementById('kids-exit-error');
-    if (err) err.style.display = 'block';
+    _kidsExitAttempts++;
+    if (_kidsExitAttempts >= KIDS_EXIT_MAX_ATTEMPTS) {
+      _kidsExitLockedUntil = Date.now() + KIDS_EXIT_COOLDOWN_MS;
+      _kidsExitShowLock();
+    } else {
+      const err = document.getElementById('kids-exit-error');
+      if (err) { err.textContent = 'Ce n\'est pas la bonne réponse — réessaie.'; err.style.display = 'block'; }
+    }
     return;
   }
+  _kidsExitAttempts = 0;
+  _kidsExitLockedUntil = 0;
+  clearInterval(_kidsExitCooldownTimer);
   _kidsExitCancel();
   kidsMode = false;
   progress.kidsMode = false; saveProgress(progress);
@@ -19344,6 +20002,16 @@ function setBoardTheme(theme, btn) {
     marble: { bg1:'#2a2a2a', bg2:'#1a1a1a' },
     gold:   { bg1:'#2e200a', bg2:'#1a1005' },
     wood:   { bg1:'#2a1c10', bg2:'#150d06' },
+    metal:   { bg1:'#3a3d42', bg2:'#1e2024' },
+    bronze:  { bg1:'#3a2810', bg2:'#1c1408' },
+    cuivre:  { bg1:'#4a2412', bg2:'#22100a' },
+    ardoise: { bg1:'#242c30', bg2:'#12161a' },
+    granite: { bg1:'#303034', bg2:'#18181a' },
+    verre:   { bg1:'#123044', bg2:'#08161e' },
+    beton:   { bg1:'#2e2e2a', bg2:'#161614' },
+    corail:  { bg1:'#4a1e2c', bg2:'#200c12' },
+    glace:   { bg1:'#183842', bg2:'#0a1a20' },
+    carbone: { bg1:'#141416', bg2:'#020202' },
   };
   Object.assign(boardTheme, themes[theme]||themes.dark);
   boardTheme.theme = theme;   // nom du theme, pas seulement le booleen bois — necessaire pour BOARD_SURFACE_THEMES
@@ -24929,7 +25597,7 @@ window.refresh3DIfActive = function() {
     <div id="kids-exit-error" style="color:#e06060;font-size:12px;margin-bottom:10px;display:none">Ce n'est pas la bonne réponse — réessaie.</div>
     <div style="display:flex;gap:8px">
       <button class="ctrl-btn" style="flex:1" onclick="_kidsExitCancel()">Annuler</button>
-      <button class="ctrl-btn primary" style="flex:1" onclick="_kidsExitCheck()">Valider</button>
+      <button class="ctrl-btn primary" id="kids-exit-submit" style="flex:1" onclick="_kidsExitCheck()">Valider</button>
     </div>
   </div>
 </div>
