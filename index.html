@@ -3384,6 +3384,7 @@ document.addEventListener('keydown', function(e){
         <div class="game-controls">
           <button class="ctrl-btn" id="game-suggest-btn" onclick="gameShowBestMove()" style="width:100%;margin-bottom:8px;background:rgba(200,168,75,0.1);border-color:var(--gold-dim);color:var(--gold)">💡 Suggérer un coup</button>
           <button class="ctrl-btn" id="coach-toggle-btn" onclick="toggleCoachMode()" style="width:100%;margin-bottom:8px;opacity:0.6">🎓 Coach</button>
+          <button class="ctrl-btn" id="ai-explain-toggle-btn" onclick="toggleAIExplain()" style="width:100%;margin-bottom:8px;opacity:0.6" title="Affiche les composantes de l'évaluation qui ont motivé le coup de l'IA">🧠 Pourquoi ce coup ?</button>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
             <button class="ctrl-btn" onclick="replayStep(-1)">⟨ Précédent</button>
             <button class="ctrl-btn" onclick="replayStep(1)">Suivant ⟩</button>
@@ -13787,7 +13788,7 @@ const EVAL_CENTER = { q:0, r:0 };  // centre du plateau en axial
 function axHexDist(a, b) {
   return (Math.abs(a.q-b.q) + Math.abs(a.q+a.r-b.q-b.r) + Math.abs(a.r-b.r)) / 2;
 }
-function evaluateBoard(color) {
+function evaluateBoard(color, detail) {
   const enemy = color === 'white' ? 'black' : 'white';
   let myCount=0, enCount=0, myCenter=0, enCenter=0, myCohesion=0, enCohesion=0, myEdge=0, enEdge=0;
   let myMob=0, enMob=0, myIso=0, enIso=0, myDng=0, enDng=0;   // V13 : mobilité, isolation, danger d'éjection
@@ -13822,7 +13823,17 @@ function evaluateBoard(color) {
   const mobScore   = (myMob - enMob) * 2;       // V13 : plus de cases libres autour de mes billes
   const isoScore   = (enIso - myIso) * 18;      // V13 : billes adverses isolées = bon (divide & conquer)
   const dngScore   = (enDng - myDng) * 14;      // V13 : billes adverses en danger d'éjection = bon
-  return material + centerScr + cohesion + edgePenalty + capScore + mobScore + isoScore + dngScore;
+  const total = material + centerScr + cohesion + edgePenalty + capScore + mobScore + isoScore + dngScore;
+  /* detail=true : renvoie la decomposition COMPLETE plutot que le seul total
+     — utilise par l'explication "Pourquoi ce coup ?" (calculerExplicationCoup,
+     plus bas) pour montrer EXACTEMENT les memes composantes que celles qui
+     ont servi a la decision, jamais une re-derivation separee qui pourrait
+     diverger. Les appels existants (un seul argument) ne sont pas affectes :
+     ils recoivent toujours juste le total, comme avant. */
+  if (detail) {
+    return { total, material, centerScr, cohesion, edgePenalty, capScore, mobScore, isoScore, dngScore };
+  }
+  return total;
 }
 
 // Generate all legal moves for a color
@@ -13940,6 +13951,44 @@ function undoMove(undo) {
     if (entry.v === undefined) delete board[entry.k];
     else board[entry.k] = entry.v;
   });
+}
+
+/* Pourquoi ce coup ? Decompose l'effet REEL d'un coup sur les memes
+   composantes que celles utilisees par evaluateBoard() pour choisir ce
+   coup — jamais une estimation separee qui pourrait diverger de la vraie
+   decision. Applique le coup avec applyMove/undoMove (les memes fonctions
+   que le moteur de recherche utilise en interne, deja utilisees des
+   milliers de fois par coup dans minimax), compare l'evaluation detaillee
+   avant/apres, annule proprement. */
+const LABELS_EXPLICATION = {
+  material:    'Matériel',
+  centerScr:   'Centre',
+  cohesion:    'Cohésion',
+  edgePenalty: 'Bord adverse',
+  capScore:    'Capture',
+  mobScore:    'Mobilité',
+  isoScore:    'Isolement adverse',
+  dngScore:    'Danger d\'éjection adverse',
+};
+function calculerExplicationCoup(move, color) {
+  const avant = evaluateBoard(color, true);
+  const undo = applyMove(move, color);
+  const apres = evaluateBoard(color, true);
+  undoMove(undo);
+  const deltas = {};
+  Object.keys(LABELS_EXPLICATION).forEach(function(cle) { deltas[cle] = apres[cle] - avant[cle]; });
+  return { total: apres.total - avant.total, composantes: deltas };
+}
+// Formate l'explication en une phrase courte : les composantes non nulles,
+// triees par poids absolu decroissant, les 3 plus significatives seulement.
+function formaterExplicationCoup(explication) {
+  const entrees = Object.keys(explication.composantes)
+    .map(function(cle) { return { label: LABELS_EXPLICATION[cle], valeur: explication.composantes[cle] }; })
+    .filter(function(e) { return e.valeur !== 0; })
+    .sort(function(a, b) { return Math.abs(b.valeur) - Math.abs(a.valeur); })
+    .slice(0, 3);
+  if (!entrees.length) return 'Coup neutre selon l\'évaluation actuelle.';
+  return entrees.map(function(e) { return e.label + ' ' + (e.valeur > 0 ? '+' : '') + e.valeur; }).join(' · ');
 }
 
 // ═══════════════════════════════════════════
@@ -16431,6 +16480,10 @@ function executeAIMove(chosen) {
   if (gameOver || !chosen) return;
   const ai = aiColor();              // couleur de l'IA
   const human = humanColor;          // couleur de l'humain (= victime des éjections de l'IA)
+  // Calculee ICI, AVANT abApplyMove : calculerExplicationCoup simule le coup
+  // avec applyMove/undoMove, qui exigent le plateau dans son etat D'AVANT
+  // le coup (sans quoi la comparaison avant/apres n'aurait pas de sens).
+  const explicationIA = aiExplainEnabled ? calculerExplicationCoup(chosen, ai) : null;
   pushUndoState();
   abApplyMove(chosen.cells, chosen.dir, ai, chosen.info);
   if (chosen.info.type === 'push' && chosen.info.ejection) {
@@ -16473,6 +16526,7 @@ function executeAIMove(chosen) {
     moveCount: moveCount, capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite });
   if (!gameOver) playSfx('occ_change');   // 🔊 « c'est ton tour »
   updateStatus(); drawBoard();
+  if (explicationIA && !gameOver) showAIExplainBubble(explicationIA);
   // Mode Coach : avertit le joueur si l'IA menace une éjection
   if (coachEnabled && !gameOver) {
     setTimeout(function() {
@@ -20689,6 +20743,48 @@ function showCoachBubble(comment) {
 
 function hideCoachBubble() {
   const bubble = document.getElementById('coach-bubble');
+  if (bubble) { bubble.style.opacity = '0'; setTimeout(function(){ if(bubble) bubble.style.display='none'; }, 300); }
+}
+
+/* "Pourquoi ce coup ?" — affiche la decomposition REELLE de l'evaluation
+   qui a motive le dernier coup de l'IA (calculerExplicationCoup, calculee
+   AVANT que le coup soit applique au plateau reel, dans executeAIMove).
+   Meme patron visuel que la bulle du mode Coach, mais un element separe :
+   les deux peuvent en principe etre actifs en meme temps (l'un commente
+   TES coups, l'autre EXPLIQUE ceux de l'IA — deux sujets differents). */
+let aiExplainEnabled = false;
+try { aiExplainEnabled = localStorage.getItem('abalone_ai_explain') === '1'; } catch(e) {}
+if (aiExplainEnabled) {
+  document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('ai-explain-toggle-btn');
+    if (btn) { btn.style.opacity = '1'; btn.textContent = '🧠 Explication activée'; }
+  });
+}
+function toggleAIExplain() {
+  aiExplainEnabled = !aiExplainEnabled;
+  try { localStorage.setItem('abalone_ai_explain', aiExplainEnabled ? '1' : '0'); } catch(e) {}
+  const btn = document.getElementById('ai-explain-toggle-btn');
+  if (btn) { btn.style.opacity = aiExplainEnabled ? '1' : '0.6'; btn.textContent = aiExplainEnabled ? '🧠 Explication activée' : '🧠 Pourquoi ce coup ?'; }
+  showToast(aiExplainEnabled ? '🧠 J\'expliquerai mes coups' : 'Explication des coups IA désactivée');
+  if (!aiExplainEnabled) hideAIExplainBubble();
+}
+function showAIExplainBubble(explication) {
+  let bubble = document.getElementById('ai-explain-bubble');
+  if (!bubble) {
+    bubble = document.createElement('div');
+    bubble.id = 'ai-explain-bubble';
+    bubble.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:2400;max-width:380px;padding:14px 18px;border-radius:12px;background:var(--surface);border:1px solid var(--gold-dim);box-shadow:0 8px 30px rgba(0,0,0,0.4);font-size:14px;line-height:1.5;display:flex;align-items:flex-start;gap:10px;transition:opacity 0.3s';
+    document.body.appendChild(bubble);
+  }
+  const texte = formaterExplicationCoup(explication);
+  bubble.innerHTML = '<span style="font-size:20px">🧠</span><span style="color:var(--text)">' + texte + '</span>';
+  bubble.style.opacity = '1';
+  bubble.style.display = 'flex';
+  clearTimeout(bubble._hideTimer);
+  bubble._hideTimer = setTimeout(hideAIExplainBubble, 6000);
+}
+function hideAIExplainBubble() {
+  const bubble = document.getElementById('ai-explain-bubble');
   if (bubble) { bubble.style.opacity = '0'; setTimeout(function(){ if(bubble) bubble.style.display='none'; }, 300); }
 }
 
