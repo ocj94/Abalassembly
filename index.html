@@ -12200,8 +12200,53 @@ function animateEjection(fromX, fromY, color, slotIndex) {
     start: performance.now(),
     dur: 1100,
     phase1: 0.45,
+    lavaTrail: [],          // {x,y,vie} — uniquement pour le theme Volcanique
+    explosionFaite: false,
   };
   requestAnimationFrame(ejectAnimStep);
+}
+
+// Traînée + explosion de lave — reservees au theme Volcanique, cosmetique
+// pure : ne touche a aucune regle, juste a ejectAnimStep() deja existante.
+// Reutilise les memes fonctions ease deja en place, aucun nouveau moteur.
+function _volcaniqueActif() {
+  return typeof boardTheme !== 'undefined' && boardTheme && boardTheme.theme === 'volcanique';
+}
+function _ajouterParticuleLave(a, x, y) {
+  if (!_volcaniqueActif()) return;
+  a.lavaTrail.push({ x: x + (Math.random()-0.5)*3, y: y + (Math.random()-0.5)*3, vie: 1, taille: 3.5 + Math.random()*3.5 });
+  if (a.lavaTrail.length > 40) a.lavaTrail.shift();   // budget memoire fixe, pas de fuite sur une longue trajectoire
+}
+function _dessinerTraineeLave(ctx, a) {
+  for (let i = a.lavaTrail.length - 1; i >= 0; i--) {
+    const p = a.lavaTrail[i];
+    p.vie -= 0.045;
+    if (p.vie <= 0) { a.lavaTrail.splice(i, 1); continue; }
+    // halo large et doux (glow) + coeur petit et vif (braise) — le halo seul
+    // se confondait avec les fissures peintes du theme (meme teinte, meme
+    // largeur) ; le coeur vif est ce qui rend la trainee lisible en mouvement.
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.taille * 2.2 * p.vie, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,80,10,' + (p.vie*0.35).toFixed(2) + ')';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.taille * p.vie, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,' + Math.round(200 + 55*p.vie) + ',' + Math.round(80*p.vie) + ',' + (p.vie).toFixed(2) + ')';
+    ctx.fill();
+  }
+}
+function _dessinerExplosionLave(ctx, x, y, t) {
+  // t va de 0 (impact) a 1 (dissipee) sur une courte fenetre independante de la trajectoire
+  const rayon = 6 + t * 30;
+  const alpha = Math.max(0, 1 - t);
+  const g = ctx.createRadialGradient(x, y, 0, x, y, rayon);
+  g.addColorStop(0, 'rgba(255,240,180,' + alpha.toFixed(2) + ')');
+  g.addColorStop(0.35, 'rgba(255,130,30,' + (alpha*0.9).toFixed(2) + ')');
+  g.addColorStop(1, 'rgba(255,60,0,0)');
+  ctx.beginPath();
+  ctx.arc(x, y, rayon, 0, Math.PI * 2);
+  ctx.fillStyle = g;
+  ctx.fill();
 }
 
 function easeOutQuad(t){ return 1 - (1-t)*(1-t); }
@@ -12215,6 +12260,9 @@ function ejectAnimStep(now) {
   drawBoard();
   const canvas = document.getElementById('board');
   const ctx = canvas.getContext('2d');
+  const scale = canvas.width / 640;
+  ctx.save();
+  ctx.scale(scale, scale);
 
   let x, y;
   if (t < a.phase1) {
@@ -12223,6 +12271,7 @@ function ejectAnimStep(now) {
     const e = easeInQuad(tp);
     x = a.fromX + (a.targetX - a.fromX) * e;
     y = a.fromY + (a.targetY - a.fromY) * e;
+    _ajouterParticuleLave(a, x, y);
   } else {
     // Phase 2 : petit rebond/arrivée à la position finale (décélération)
     const tp = (t - a.phase1) / (1 - a.phase1);
@@ -12231,8 +12280,17 @@ function ejectAnimStep(now) {
     // interpole directement vers la cible (déjà quasi atteinte)
     x = a.targetX; y = a.targetY;
     // (la phase 2 sert juste de petite pause visuelle à l'arrivée)
+    if (!a.explosionFaite) { a.explosionFaite = true; a.explosionStart = now; }
+  }
+  if (_volcaniqueActif()) {
+    _dessinerTraineeLave(ctx, a);
+    if (a.explosionFaite) {
+      const te = Math.min(1, (now - a.explosionStart) / 380);
+      _dessinerExplosionLave(ctx, a.targetX, a.targetY, te);
+    }
   }
   drawSmallMarble(ctx, x, y, a.gr, a.color);
+  ctx.restore();
 
   if (t < 1) {
     requestAnimationFrame(ejectAnimStep);
