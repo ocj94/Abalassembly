@@ -2906,6 +2906,7 @@ document.addEventListener('keydown', function(e){
           <button class="cam-btn outline" onclick="arDetectBalls()">🔍 Détecter billes</button>
           <button class="cam-btn outline" id="ar-best-btn" onclick="arShowBestMove()">★ Meilleur coup</button>
           <button class="cam-btn outline" id="ar-freeze-btn" onclick="arToggleFreeze()">❄️ Freeze</button>
+          <button class="cam-btn outline" onclick="arExportPosition()">📋 Exporter position</button>
           <button class="cam-btn outline" onclick="arSwitchPlayer()" id="ar-player-btn" style="margin-left:auto">⚫ Noirs</button>
           <button class="cam-btn outline" onclick="arStopCamera()">⏹ Arrêter</button>
         </div>
@@ -4595,6 +4596,54 @@ document.addEventListener('keydown', function(e){
               <button onclick="setBoardTheme('carbone',this)" class="bg-swatch" style="background:linear-gradient(135deg,#38383e,#050506)" title="Carbone (laque noire)"></button>
               <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Carbone</span>
             </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('onyx',this)" class="bg-swatch" style="background:linear-gradient(135deg,#ff8c00,#0a0500)" title="Onyx doré"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Onyx</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('jade',this)" class="bg-swatch" style="background:linear-gradient(135deg,#4a8a4a,#0a1208)" title="Jade"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Jade</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('stardust',this)" class="bg-swatch" style="background:linear-gradient(135deg,#7a8aaa,#0a0a1a)" title="Poussière d'étoiles"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Stardust</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('terracotta',this)" class="bg-swatch" style="background:linear-gradient(135deg,#ba7a5a,#2a1005)" title="Terre cuite"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Terracotta</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('banquise',this)" class="bg-swatch" style="background:linear-gradient(135deg,#7ab0d0,#0a1a2a)" title="Banquise"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Banquise</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('nacre',this)" class="bg-swatch" style="background:linear-gradient(135deg,#b098c8,#1a0a2a)" title="Nacre"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Nacre</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('patina',this)" class="bg-swatch" style="background:linear-gradient(135deg,#6a9a7a,#0a0a08)" title="Cuivre patiné"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Patine</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('desert',this)" class="bg-swatch" style="background:linear-gradient(135deg,#c89860,#1a1008)" title="Désert de sable"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Désert</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('abyss',this)" class="bg-swatch" style="background:linear-gradient(135deg,#2a6a8a,#04080c)" title="Abysses"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Abysses</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('lava',this)" class="bg-swatch" style="background:linear-gradient(135deg,#e86040,#0a0202)" title="Lave"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Lave</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('marble_white',this)" class="bg-swatch" style="background:linear-gradient(135deg,#b0b0b0,#2a2a2a)" title="Marbre blanc"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Marbre blanc</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px">
+              <button onclick="setBoardTheme('pastel',this)" class="bg-swatch" style="background:linear-gradient(135deg,#d0b0d0,#1a1a20)" title="Pastel"></button>
+              <span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Pastel</span>
+            </div>
           </div>
           <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">Chaque thème change réellement la couleur du plateau — feutre, gouttière et contour — aussi bien en 2D qu'en 3D.</div>
           <!-- Jour/Nuit : pour l'instant, seul Volcanique a une variante nuit
@@ -4619,7 +4668,7 @@ document.addEventListener('keydown', function(e){
              par theme. La 3D en herite automatiquement, exactement comme
              les 10 themes de la v1.48 — meme THEME_RECIPES consulte des
              deux cotes. -->
-        <details style="margin-top:16px;background:rgba(0,0,0,0.15);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+        <details style="margin-top:16px;background:rgba(0,0,0,0.15);border:1px solid var(--border);border-radius:10px;overflow:hidden" ontoggle="if(this.open && typeof creatorInit3DPreview==='function') creatorInit3DPreview()">
           <summary style="padding:14px 18px;font-size:13px;font-weight:600;color:var(--white);cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between">
             🧪 Créateur de plateau
             <span style="font-size:11px;color:var(--muted);font-weight:400">Base + couleurs + densité — aperçu en direct</span>
@@ -4627,7 +4676,12 @@ document.addEventListener('keydown', function(e){
           <div style="padding:18px;border-top:1px solid var(--border);display:flex;gap:20px;flex-wrap:wrap">
             <div style="flex:0 0 200px">
               <canvas id="creator-preview" width="200" height="200" style="width:200px;height:200px;border-radius:12px;border:1px solid var(--border);display:block"></canvas>
-              <div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center">Aperçu 2D — la 3D utilise la même recette</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center">Aperçu 2D</div>
+              <div id="creator-preview-3d-wrap" style="position:relative;width:200px;height:200px;margin-top:10px;border-radius:12px;border:1px solid var(--border);overflow:hidden;background:#14141a">
+                <canvas id="creator-preview-3d-canvas" width="200" height="200" style="width:200px;height:200px;display:block"></canvas>
+                <div id="creator-3d-loader" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;text-align:center;padding:10px">Ouvre le panneau pour charger l'aperçu 3D…</div>
+              </div>
+              <div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center">Aperçu 3D — même recette, même moteur</div>
             </div>
             <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:12px">
               <div>
@@ -4649,6 +4703,18 @@ document.addEventListener('keydown', function(e){
                   <option value="corail">Corail</option>
                   <option value="glace">Glace</option>
                   <option value="carbone">Carbone</option>
+                  <option value="onyx">Onyx</option>
+                  <option value="jade">Jade</option>
+                  <option value="stardust">Stardust</option>
+                  <option value="terracotta">Terracotta</option>
+                  <option value="banquise">Banquise</option>
+                  <option value="nacre">Nacre</option>
+                  <option value="patina">Cuivre patiné</option>
+                  <option value="desert">Désert</option>
+                  <option value="abyss">Abysses</option>
+                  <option value="lava">Lave</option>
+                  <option value="marble_white">Marbre blanc</option>
+                  <option value="pastel">Pastel</option>
                 </select>
               </div>
               <div style="display:flex;gap:12px">
@@ -10980,6 +11046,36 @@ const BOARD_SURFACE_THEMES = {
   corail:   { gutterOuter:'#3a1622', gutGrad:['#6a2a3c','#2a0e16'], trim:'#1a0810', surf:['#e28a7a','#c4604e','#8e3c34'] },
   glace:    { gutterOuter:'#0e2a34', gutGrad:['#1e4a58','#0a1e26'], trim:'#04141a', surf:['#dff4f8','#b0dce8','#7fbcd0'] },
   carbone:  { gutterOuter:'#0a0a0c', gutGrad:['#1a1a1e','#050506'], trim:'#000000', surf:['#38383e','#242428','#141416'] },   // laque noire / fibre de carbone
+  /* 6 themes supplementaires. Palettes reprises telles quelles d'une
+     proposition externe (le format etait correct) ; les RECETTES en
+     revanche etaient cassees (parametres inventes n'existant dans aucune
+     fonction de LAYER_TYPES — alpha/epaisseur/turbulence/graine/couleur1/
+     couleur2 au lieu des vrais alphaMin/alphaMax/largeurMin/largeurMax/
+     couleur[r,g,b]) : 13 couches sur 31 plantaient a l'execution reelle,
+     5 autres s'executaient en ignorant silencieusement leurs parametres.
+     Verifie par execution contre le vrai LAYER_TYPES avant d'ecrire quoi
+     que ce soit ici — voir test_new_material_themes.js pour la suite. */
+  onyx:       { gutterOuter:'#1a0e08', gutGrad:['#2a1a0a','#0a0500'], trim:'#ff8c00', surf:['#1a0e08','#2a1a0a','#0a0500'] },   // noir + veines d'or
+  jade:       { gutterOuter:'#0a1208', gutGrad:['#1a2a1a','#0a1208'], trim:'#4a8a4a', surf:['#0a1208','#1a2a1a','#0d1a0d'] },
+  stardust:   { gutterOuter:'#0a0a1a', gutGrad:['#1a1a2e','#0a0a1a'], trim:'#7a8aaa', surf:['#0a0a1a','#1a1a2e','#12122a'] },
+  terracotta: { gutterOuter:'#3a1a0a', gutGrad:['#7a4a2a','#3a1a0a'], trim:'#ba7a5a', surf:['#3a1a0a','#5a3a1a','#2a1005'] },
+  banquise:   { gutterOuter:'#0a1a2a', gutGrad:['#1a3a5a','#0a1a2a'], trim:'#7ab0d0', surf:['#0a1a2a','#1a3a5a','#0d253a'] },
+  nacre:      { gutterOuter:'#1a0a2a', gutGrad:['#3a2a4a','#1a0a2a'], trim:'#b098c8', surf:['#1a0a2a','#3a2a4a','#251535'] },
+  /* 2e serie de 6 themes, meme methode : palettes reprises (correctes),
+     recettes reecrites avec les vrais parametres — 23 des 37 couches
+     soumises plantaient ou etaient cassees/ignorees a l'execution reelle
+     (memes causes que la 1ere serie : alpha/epaisseur/turbulence/graine/
+     couleur1/couleur2/amplitude/frequence n'existent dans aucune fonction
+     reelle). "lava" differencie volontairement de "volcanique" (veines de
+     lave en mouvement plutot que roche craquelee) et "marble_white" de
+     "marble" (plus clair, grain different) — verifie par distance de
+     pixels, pas suppose. */
+  patina:       { gutterOuter:'#1a1a14', gutGrad:['#2a2a1a','#0a0a08'], trim:'#6a9a7a', surf:['#1a1a14','#2a2a1a','#0f0f0c'] },   // cuivre patine, vert-de-gris
+  desert:       { gutterOuter:'#3a2a1a', gutGrad:['#6a4a2a','#2a1a0a'], trim:'#c89860', surf:['#3a2a1a','#5a3a1a','#1a1008'] },
+  abyss:        { gutterOuter:'#080c1a', gutGrad:['#0a1a2a','#04080c'], trim:'#2a6a8a', surf:['#080c1a','#0a1a2a','#05080c'] },
+  lava:         { gutterOuter:'#1a0808', gutGrad:['#3a0a0a','#0a0202'], trim:'#e86040', surf:['#1a0808','#2a0a0a','#0a0202'] },
+  marble_white: { gutterOuter:'#2a2a2a', gutGrad:['#4a4a4a','#2a2a2a'], trim:'#b0b0b0', surf:['#3a3a3a','#5a5a5a','#2a2a2a'] },
+  pastel:       { gutterOuter:'#1a1a20', gutGrad:['#2a2a3a','#1a1a20'], trim:'#d0b0d0', surf:['#1a1a20','#2a2a3a','#151520'] },
   /* Volcanique : PREMIER theme avec variante jour/nuit (les 5 autres n'en
      ont pas encore — "on fera les autres apres", demande d'Olivier).
      Couleurs RE-ECHANTILLONNEES directement sur la photo de reference
@@ -11304,6 +11400,110 @@ window.THEME_RECIPES = {
       { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
       { type: 'rayures_fines', p: { n: 500, couleur: [90, 90, 100], alphaMin: 0.02, alphaMax: 0.07 } },
       { type: 'reflet_diagonal', p: { couleur: [180, 190, 220], alphaPic: 0.30 } },
+    ];
+  },
+  onyx: function(t) {   // pierre noire veinee d'or
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'veines_turbulentes', p: { n: 5, couleur: [255, 140, 0], alphaMin: 0.10, alphaMax: 0.28, largeurMin: 0.8, largeurMax: 2.2 } },
+      { type: 'poussiere', p: { n: 70, couleur: [255, 180, 60], alphaMin: 0.05, alphaMax: 0.16, rMin: 0.5, rMax: 2 } },
+      { type: 'reflet_diagonal', p: { couleur: [255, 160, 60], alphaPic: 0.18 } },
+    ];
+  },
+  jade: function(t) {   // pierre organique verte
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'taches_organiques', p: { n: 90, rMin: 5, rMax: 18, couleurFn: function() {
+        return 'rgba(' + Math.round(50 + Math.random()*60) + ',' + Math.round(110 + Math.random()*70) + ',' + Math.round(50 + Math.random()*50) + ',0.16)';
+      } } },
+      { type: 'veines_turbulentes', p: { n: 8, couleur: [20, 60, 20], alphaMin: 0.12, alphaMax: 0.28, largeurMin: 0.6, largeurMax: 1.8 } },
+      { type: 'pores', p: { n: 70, alphaMin: 0.06, alphaMax: 0.16, rMin: 1, rMax: 2.5 } },
+    ];
+  },
+  stardust: function(t) {   // nuit etoilee
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'poussiere', p: { n: 260, couleur: [255, 255, 255], alphaMin: 0.03, alphaMax: 0.14, rMin: 0.4, rMax: 1.6 } },
+      { type: 'caustiques', p: { n: 8, couleur: [150, 170, 220], alphaMax: 0.14, rMin: 24, rMax: 60 } },
+      { type: 'reflet_diagonal', p: { couleur: [170, 190, 230], alphaPic: 0.14 } },
+    ];
+  },
+  terracotta: function(t) {   // argile mediterraneenne
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'poussiere', p: { n: 220, couleur: [200, 140, 90], alphaMin: 0.05, alphaMax: 0.16, rMin: 0.5, rMax: 2.4 } },
+      { type: 'veines_turbulentes', p: { n: 9, couleur: [110, 55, 25], alphaMin: 0.12, alphaMax: 0.26, largeurMin: 0.8, largeurMax: 2 } },
+      { type: 'pores', p: { n: 100, alphaMin: 0.05, alphaMax: 0.14, rMin: 1, rMax: 2.6 } },
+    ];
+  },
+  banquise: function(t) {   // glace de mer arctique — distinct de "glace" (fissures) : ici vagues + reflets
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'vagues', p: { n: 16, couleur: [190, 225, 245], alphaMin: 0.06, alphaMax: 0.16 } },
+      { type: 'caustiques', p: { n: 12, couleur: [210, 235, 250], alphaMax: 0.16, rMin: 26, rMax: 70 } },
+      { type: 'reflet_diagonal', p: { couleur: [255, 255, 255], alphaPic: 0.20 } },
+    ];
+  },
+  nacre: function(t) {   // irise, perle violette
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'courbes_larges', p: { n: 6, couleur: 'rgba(190,170,220,0.18)', largeurMin: 14, largeurMax: 34 } },
+      { type: 'poussiere', p: { n: 160, couleur: [210, 190, 230], alphaMin: 0.04, alphaMax: 0.13, rMin: 0.5, rMax: 2 } },
+      { type: 'reflet_diagonal', p: { couleur: [220, 200, 240], alphaPic: 0.22 } },
+    ];
+  },
+  patina: function(t) {   // cuivre patine, oxydation verte
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'taches_organiques', p: { n: 60, rMin: 5, rMax: 20, couleurFn: function() {
+        return 'rgba(' + Math.round(70 + Math.random()*40) + ',' + Math.round(130 + Math.random()*50) + ',' + Math.round(95 + Math.random()*40) + ',0.15)';
+      } } },
+      { type: 'veines_turbulentes', p: { n: 7, couleur: [90, 150, 120], alphaMin: 0.10, alphaMax: 0.22, largeurMin: 0.8, largeurMax: 2 } },
+      { type: 'pores', p: { n: 80, alphaMin: 0.05, alphaMax: 0.14, rMin: 1, rMax: 2.5 } },
+    ];
+  },
+  desert: function(t) {   // dunes de sable chaud
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'poussiere', p: { n: 240, couleur: [200, 160, 100], alphaMin: 0.05, alphaMax: 0.18, rMin: 0.5, rMax: 3 } },
+      { type: 'courbes_larges', p: { n: 5, couleur: 'rgba(140,100,60,0.20)', largeurMin: 20, largeurMax: 46 } },
+      { type: 'reflet_diagonal', p: { couleur: [220, 180, 130], alphaPic: 0.16 } },
+    ];
+  },
+  abyss: function(t) {   // fond marin, tres sombre, lueur rare
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'vagues', p: { n: 10, couleur: [30, 80, 110], alphaMin: 0.08, alphaMax: 0.20 } },
+      { type: 'caustiques', p: { n: 6, couleur: [60, 140, 170], alphaMax: 0.10, rMin: 20, rMax: 55 } },
+      { type: 'poussiere', p: { n: 90, couleur: [100, 180, 210], alphaMin: 0.02, alphaMax: 0.08, rMin: 0.4, rMax: 1.4 } },
+    ];
+  },
+  lava: function(t) {   // veines de lave EN MOUVEMENT (distinct de "volcanique" : roche craquelee statique)
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'veines_turbulentes', p: { n: 14, couleur: [232, 96, 64], alphaMin: 0.22, alphaMax: 0.42, largeurMin: 1.5, largeurMax: 3.5 } },
+      { type: 'taches_organiques', p: { n: 35, rMin: 5, rMax: 16, couleurFn: function() {
+        return 'rgba(' + Math.round(210 + Math.random()*40) + ',' + Math.round(60 + Math.random()*50) + ',' + Math.round(30 + Math.random()*30) + ',0.22)';
+      } } },
+      { type: 'reflet_diagonal', p: { couleur: [255, 120, 80], alphaPic: 0.26 } },
+    ];
+  },
+  marble_white: function(t) {   // marbre clair, distinct de "marble" (plus sombre, un seul type de veine)
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'veines_turbulentes', p: { n: 10, couleur: [140, 140, 140], alphaMin: 0.08, alphaMax: 0.20, largeurMin: 0.6, largeurMax: 2 } },
+      { type: 'rayures_fines', p: { n: 200, couleur: [230, 230, 230], alphaMin: 0.02, alphaMax: 0.08 } },
+      { type: 'taches_organiques', p: { n: 20, rMin: 8, rMax: 24, couleurFn: function() { return 'rgba(210,210,210,0.06)'; } } },
+    ];
+  },
+  pastel: function(t) {   // doux, teintes claires
+    return [
+      { type: 'degrade', p: { c1: t.surf[0], c2: t.surf[2] } },
+      { type: 'courbes_larges', p: { n: 6, couleur: 'rgba(176,144,176,0.16)', largeurMin: 18, largeurMax: 40 } },
+      { type: 'taches_organiques', p: { n: 40, rMin: 6, rMax: 18, couleurFn: function() {
+        return 'rgba(' + Math.round(190 + Math.random()*30) + ',' + Math.round(160 + Math.random()*30) + ',' + Math.round(190 + Math.random()*30) + ',0.12)';
+      } } },
+      { type: 'pores', p: { n: 50, alphaMin: 0.03, alphaMax: 0.09, rMin: 1, rMax: 2.4 } },
     ];
   },
 };
@@ -18082,6 +18282,32 @@ function arSwitchPlayer() {
   _arBestMove = null;
 }
 
+// Exporte le plateau AR detecte en notation officielle (A-I / 1-9) — meme
+// fonction coordToABAPRO() et meme format que exportEditorPosition() dans
+// l'editeur de position, pour que le texte copie soit directement
+// compatible avec le reste du jeu (partage, import futur, etc.), pas un
+// format maison propre au mode AR.
+function arExportPosition() {
+  if (_arRcList.length !== 61 || Object.keys(_arBoard).length === 0) {
+    showToast('⚠️ Detecte d\'abord les billes avant d\'exporter');
+    return;
+  }
+  const blacks = [], whites = [];
+  _arRcList.forEach(function(rc) {
+    const couleur = _arBoard[akey(rc.r, rc.c)];
+    if (couleur === 'black') blacks.push(coordToABAPRO(rc.r, rc.c));
+    else if (couleur === 'white') whites.push(coordToABAPRO(rc.r, rc.c));
+  });
+  const code = 'Noirs: ' + (blacks.join(' ') || '(aucune)') + '\nBlancs: ' + (whites.join(' ') || '(aucune)');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(code).then(function(){
+      showToast('📋 Position AR copiée (notation A-I / 1-9)');
+    }, function(){ showToast(code); });
+  } else {
+    showToast('📋 ' + code);
+  }
+}
+
 function arToggleFreeze() {
   _arFrozen = !_arFrozen;
   const video = document.getElementById('ar-video');
@@ -19532,10 +19758,98 @@ const botReplies = [
   'Intéressant...', 'Bon coup !', 'Hmm, je dois réfléchir.', 'Tu joues bien !',
   'Je ne l\u2019avais pas vu venir !', 'C\u2019est tendu !', '🤔', 'Belle pression au centre !',
 ];
+/* ═══════════════════════════════════════════
+   MODÉRATION DU CHAT — insultes, appel à la haine, violence/menaces
+   Filtre local, hors-ligne (aucun appel reseau, coherent avec le principe
+   du projet mono-fichier). Normalise le texte (accents, ponctuation,
+   lettres repetees) avant comparaison pour limiter les contournements
+   simples les plus courants ("cccooonnnnard", "c.o.n.n.a.r.d") — un vrai
+   filtre exhaustif necessiterait un service serveur, hors de portee d'un
+   fichier unique offline. Le Mode Enfant masque deja entierement le chat
+   (voir togglePage : "chat n'est pas disponible en mode Enfant"), donc ce
+   filtre protege les echanges adultes/communaute, pas les enfants
+   specifiquement — deux protections differentes, pas redondantes.
+   Escalade : message bloque -> avertissement ; 3 messages bloques
+   d'affilee -> chat coupe 60s (meme logique de friction dissuasive que
+   le rate-limit deja applique a la sortie du Mode Enfant). ═══════════════════════════════════════════ */
+const MODERATION_PATTERNS = {
+  // Priorite : menace > haine > insulte (le motif le plus grave d'abord si plusieurs matchent)
+  menace: [
+    'je vais te tuer', 'je te tue\\b', 'je vais te (frapper|defoncer|niquer|eclater|buter|crever)',
+    'je te retrouve', 'je sais ou tu habites', 'tu vas mourir', 'va te pendre',
+    'va te suicider', 'tue toi', 'menace de mort', 'je te fais la peau',
+  ],
+  haine: [
+    'sale (noir|arabe|juif|blanc|chinois|musulman|chretien)',
+    'espece de (negre|bougnoule|youpin|bride)',
+    'retourne dans ton pays', 'sale race', 'sous homme', 'negre\\b', 'bougnoule',
+  ],
+  insulte: [
+    'conard', 'conasse', 'encule', 'enfoire', 'salope', 'pute\\b', 'batard',
+    'abruti', 'cretin', 'debile', 'cone\\b', '\\bcon\\b', 'merde', 'ta gueule',
+    'ferme ta gueule', 'trouduc', '\\bntm\\b', '\\bfdp\\b', 'idiot',
+  ],
+};
+// Enleve les accents, la ponctuation, et reduit TOUTE repetition de lettre a
+// une seule occurrence (des deux cotes : texte saisi ET motifs ci-dessus,
+// ecrits sans doubles) — plus robuste que collapser a 2 : "coonnnnard",
+// "conneeeard" ou "connnnard" convergent tous vers la meme forme "conard"
+// et sont donc tous detectes, sans avoir a deviner combien de lettres
+// doublees le mot original comportait.
+function normaliserTexteModeration(s) {
+  return String(s || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/(.)\1+/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+function detecterContenuProbleme(texte) {
+  const norm = normaliserTexteModeration(texte);
+  for (const categorie of ['menace', 'haine', 'insulte']) {
+    for (const motif of MODERATION_PATTERNS[categorie]) {
+      if (new RegExp(motif.includes('\\b') || motif.includes(' ') ? motif : '\\b' + motif + '\\b', 'i').test(norm)) {
+        return categorie;
+      }
+    }
+  }
+  return null;
+}
+let _moderationViolations = 0;
+let _moderationMuteUntil = 0;
+// Renvoie true si le message peut partir, false s'il a ete bloque (le
+// message reste dans le champ de saisie pour que l'utilisateur puisse le
+// corriger, plutot que de l'effacer purement et simplement).
+function verifierMessageChat(msg) {
+  const maintenant = Date.now();
+  if (maintenant < _moderationMuteUntil) {
+    const reste = Math.ceil((_moderationMuteUntil - maintenant) / 1000);
+    showToast('⏳ Chat temporairement coupé — réessaie dans ' + reste + 's');
+    return false;
+  }
+  const categorie = detecterContenuProbleme(msg);
+  if (!categorie) { _moderationViolations = 0; return true; }
+  _moderationViolations++;
+  const messages = {
+    menace: '🚫 Message bloqué — les menaces ne sont pas tolérées ici.',
+    haine: '🚫 Message bloqué — les propos haineux ne sont pas tolérés ici.',
+    insulte: '🚫 Message bloqué — merci de rester courtois.',
+  };
+  showToast(messages[categorie]);
+  if (_moderationViolations >= 3) {
+    _moderationMuteUntil = maintenant + 60000;
+    _moderationViolations = 0;
+    showToast('⏳ Chat coupé 60s après plusieurs messages bloqués d\'affilée');
+  }
+  return false;
+}
+
 function sendChatMsg(preset) {
   const input = document.getElementById('chat-input');
   const msg = preset || input.value.trim();
   if (!msg) return;
+  if (!verifierMessageChat(msg)) return;
   const box = document.getElementById('chat-messages');
   const name = currentUser ? currentUser.username : 'Vous';
   box.innerHTML += '<div class="chat-msg me"><span class="chat-author">'+escapeHtml(name)+'</span><span class="chat-text">'+escapeHtml(msg)+'</span></div>';
@@ -19562,6 +19876,7 @@ function sendGeneralChat() {
   if (!input) return;
   const msg = input.value.trim();
   if (!msg) return;
+  if (!verifierMessageChat(msg)) return;
   const box = document.getElementById('gchat-messages');
   const name = currentUser ? currentUser.username : 'Vous';
   const now = new Date();
@@ -20098,6 +20413,18 @@ function setBoardTheme(theme, btn) {
     corail:  { bg1:'#4a1e2c', bg2:'#200c12' },
     glace:   { bg1:'#183842', bg2:'#0a1a20' },
     carbone: { bg1:'#141416', bg2:'#020202' },
+    onyx:       { bg1:'#2a1a0a', bg2:'#140a04' },
+    jade:       { bg1:'#1a2a1a', bg2:'#0a1208' },
+    stardust:   { bg1:'#1a1a2e', bg2:'#0a0a1a' },
+    terracotta: { bg1:'#5a3a1a', bg2:'#2a1005' },
+    banquise:   { bg1:'#1a3a5a', bg2:'#0a1a2a' },
+    nacre:      { bg1:'#3a2a4a', bg2:'#1a0a2a' },
+    patina:       { bg1:'#2a2a1a', bg2:'#0a0a08' },
+    desert:       { bg1:'#6a4a2a', bg2:'#2a1a0a' },
+    abyss:        { bg1:'#0a1a2a', bg2:'#04080c' },
+    lava:         { bg1:'#3a0a0a', bg2:'#0a0202' },
+    marble_white: { bg1:'#4a4a4a', bg2:'#2a2a2a' },
+    pastel:       { bg1:'#2a2a3a', bg2:'#1a1a20' },
   };
   Object.assign(boardTheme, themes[theme] || (theme === 'perso' && BOARD_SURFACE_THEMES.perso ? { bg1: BOARD_SURFACE_THEMES.perso.surf[0], bg2: BOARD_SURFACE_THEMES.perso.gutterOuter } : themes.dark));
   boardTheme.theme = theme;   // nom du theme, pas seulement le booleen bois — necessaire pour BOARD_SURFACE_THEMES
@@ -20184,6 +20511,7 @@ function creatorUpdate() {
   window.peindreCouches(offCtx, recette(t, false));
   ctx.clearRect(0, 0, 200, 200);
   ctx.drawImage(off, 0, 0, 640, 640, 0, 0, 200, 200);
+  if (typeof window.creatorUpdate3DPreview === 'function') window.creatorUpdate3DPreview(off, ctrl.base);
   creatorSaveToStorage(ctrl);
 }
 function creatorSaveToStorage(ctrl) {
@@ -24898,6 +25226,29 @@ window.refresh1DIfActive = function () {
   if (window._boardView === '1d') window.render1D();
 };
 
+// Charge Three.js une seule fois (via CDN avec repli local en premier) et
+// appelle onReady(THREE). Reutilisee par la vraie vue 3D (init3DView) ET
+// par l'apercu 3D du Createur de plateau — un seul point de chargement,
+// une seule liste de sources, pas deux copies qui pourraient diverger.
+function ensureThreeLoaded(onReady, onFail) {
+  if (window._three) { onReady(window._three); return; }
+  const THREE_SOURCES = [
+    './vendor/three.module.js',
+    'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js',
+    'https://unpkg.com/three@0.160.0/build/three.module.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.module.min.js'
+  ];
+  (function tenter(i) {
+    if (i >= THREE_SOURCES.length) { if (onFail) onFail(); return; }
+    import(THREE_SOURCES[i])
+      .then(function(THREE) { window._three = THREE; onReady(THREE); })
+      .catch(function(err) {
+        console.warn('Three.js : source indisponible, essai suivant →', THREE_SOURCES[i], err);
+        tenter(i + 1);
+      });
+  })(0);
+}
+
 // Charge Three.js dynamiquement (depuis le CDN) puis initialise la scène
 function init3DView() {
   const status = document.getElementById('board-3d');
@@ -24911,40 +25262,174 @@ function init3DView() {
     loader.textContent = '⏳ Chargement de la 3D…';
     status.appendChild(loader);
   }
-  // Charge Three.js en essayant plusieurs CDN dans l'ordre (repli si l'un échoue/est bloqué)
-  // Three.js est charge par import() dynamique : l'attribut integrity (SRI)
-  // ne s'applique pas aux modules. La copie locale, servie depuis notre propre
-  // origine, resout le probleme autrement et mieux : rien a verifier puisque
-  // rien ne vient d'un tiers, et le Service Worker la met en cache — la vue 3D
-  // fonctionne donc hors-ligne des la deuxieme visite. Les CDN ne restent que
-  // comme filet si le fichier local venait a manquer.
-  const THREE_SOURCES = [
-    './vendor/three.module.js',
-    'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js',
-    'https://unpkg.com/three@0.160.0/build/three.module.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.module.min.js'
-  ];
-  (function loadThree(i){
-    if (i >= THREE_SOURCES.length) {
+  ensureThreeLoaded(
+    function(THREE) { if (loader) loader.remove(); start3DScene(); },
+    function() {
       if (loader) loader.innerHTML = '⚠️ 3D indisponible — la librairie Three.js n\'a pas pu être chargée,'
         + '<br>ni en local ni depuis les sources de secours. Le reste du jeu fonctionne normalement.';
       console.error('Three.js : toutes les sources ont échoué (réseau bloqué ou hors-ligne ?)');
-      return;
     }
-    import(THREE_SOURCES[i])
-      .then(function(THREE) {
-        window._three = THREE;
-        if (loader) loader.remove();
-        start3DScene();
-      })
-      .catch(function(err) {
-        console.warn('Three.js : source indisponible, essai suivant →', THREE_SOURCES[i], err);
-        loadThree(i + 1);
-      });
-  })(0);
+  );
 }
 
 // Construit/relance la scène 3D et synchronise avec la position courante
+/* Carte de normales PROCEDURALE, generee depuis la texture peinte
+   elle-meme — aucun asset externe, aucune photo, coherent avec le
+   principe "un seul fichier, zero dependance". Principe : la luminance
+   de chaque pixel EST deja une carte de hauteur implicite (une veine plus
+   sombre = un creux, un reflet plus clair = une bosse) — un filtre de
+   Sobel calcule le gradient horizontal/vertical de cette luminance, dont
+   on tire un vecteur normal encode en RGB (convention standard : x=R,
+   y=G, z=B, chaque composante remappee de [-1,1] vers [0,255]). C'est ce
+   qui permet a l'eclairage 3D de vraiment accrocher le relief peint —
+   avant cette fonction, toute la texture etait plate en 3D (juste une
+   couleur diffuse), le relief n'existait qu'en illusion 2D. */
+function genererNormalMap(cv, force) {
+  const w = cv.width, h = cv.height;
+  const src = cv.getContext('2d').getImageData(0, 0, w, h).data;
+  function lum(x, y) {
+    x = x < 0 ? 0 : (x >= w ? w - 1 : x);
+    y = y < 0 ? 0 : (y >= h ? h - 1 : y);
+    const i = (y * w + x) * 4;
+    return (src[i] * 0.299 + src[i+1] * 0.587 + src[i+2] * 0.114) / 255;
+  }
+  const out = document.createElement('canvas');
+  out.width = w; out.height = h;
+  const octx = out.getContext('2d');
+  const imgOut = octx.createImageData(w, h);
+  const dst = imgOut.data;
+  const k = force || 2.6;   // force du relief — trop haut = bruit metallique, trop bas = invisible
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      // Noyaux de Sobel 3x3 : gradient horizontal (dx) et vertical (dy) de la luminance
+      const tl = lum(x-1,y-1), tc = lum(x,y-1), tr = lum(x+1,y-1);
+      const ml = lum(x-1,y),                     mr = lum(x+1,y);
+      const bl = lum(x-1,y+1), bc = lum(x,y+1), br = lum(x+1,y+1);
+      const dx = (tr + 2*mr + br) - (tl + 2*ml + bl);
+      const dy = (bl + 2*bc + br) - (tl + 2*tc + tr);
+      let nx = -dx * k, ny = -dy * k, nz = 1.0;
+      const len = Math.sqrt(nx*nx + ny*ny + nz*nz) || 1;
+      nx /= len; ny /= len; nz /= len;
+      const i = (y * w + x) * 4;
+      dst[i]   = (nx * 0.5 + 0.5) * 255;
+      dst[i+1] = (ny * 0.5 + 0.5) * 255;
+      dst[i+2] = (nz * 0.5 + 0.5) * 255;
+      dst[i+3] = 255;
+    }
+  }
+  octx.putImageData(imgOut, 0, 0);
+  return out;
+}
+/* roughness/metalness PAR THEME — jusqu'ici une seule valeur fixe (0.45 /
+   0.35) pour TOUS les materiaux : le verre et la pierre avaient la meme
+   rugosite physique que le metal. Ces valeurs viennent s'ajouter aux
+   normal maps procedurales deja en place : ensemble, elles permettent a
+   la lumiere 3D de vraiment reagir differemment selon la matiere (le
+   verre accroche des reflets nets et etroits, la pierre les diffuse
+   largement) — avant, seule la couleur changeait entre deux themes, la
+   reponse a la lumiere restait identique. */
+const THEME_PHYSIQUE = {
+  dark:{roughness:0.55,metalness:0.10}, ocean:{roughness:0.40,metalness:0.10}, marble:{roughness:0.35,metalness:0.05},
+  gold:{roughness:0.25,metalness:0.85}, forest:{roughness:0.60,metalness:0.05}, volcanique:{roughness:0.50,metalness:0.15},
+  metal:{roughness:0.35,metalness:0.85}, bronze:{roughness:0.30,metalness:0.75}, cuivre:{roughness:0.30,metalness:0.80},
+  ardoise:{roughness:0.75,metalness:0.05}, granite:{roughness:0.65,metalness:0.05}, verre:{roughness:0.05,metalness:0.05},
+  beton:{roughness:0.85,metalness:0.02}, corail:{roughness:0.60,metalness:0.05}, glace:{roughness:0.12,metalness:0.05},
+  carbone:{roughness:0.30,metalness:0.40},
+  onyx:{roughness:0.30,metalness:0.30}, jade:{roughness:0.35,metalness:0.05}, stardust:{roughness:0.50,metalness:0.10},
+  terracotta:{roughness:0.80,metalness:0.02}, banquise:{roughness:0.15,metalness:0.05}, nacre:{roughness:0.25,metalness:0.15},
+  patina:{roughness:0.60,metalness:0.40}, desert:{roughness:0.85,metalness:0.02}, abyss:{roughness:0.30,metalness:0.10},
+  lava:{roughness:0.45,metalness:0.10}, marble_white:{roughness:0.30,metalness:0.05}, pastel:{roughness:0.50,metalness:0.05},
+};
+const PHYSIQUE_PAR_DEFAUT = { roughness: 0.45, metalness: 0.35 };   // ancienne valeur fixe, repli si theme inconnu
+const PHYSIQUE_BOIS = { roughness: 0.55, metalness: 0.05 };
+
+/* ═══════════════════════════════════════════
+   APERCU 3D DU CREATEUR DE PLATEAU
+   Mini-scene independante de la vraie vue 3D (elle reste ouverte meme
+   quand on est sur 1D/2D), mais qui reutilise TOUT ce qui existe deja :
+   - ensureThreeLoaded() : meme chargement Three.js que la vraie vue,
+     aucune deuxieme liste de CDN
+   - le canvas peint par creatorUpdate() (2D, autre bloc <script>) EST
+     directement reutilise comme texture diffuse ET comme source pour
+     genererNormalMap() — jamais repeint une deuxieme fois avec un code
+     different
+   - THEME_PHYSIQUE / PHYSIQUE_PAR_DEFAUT : les memes valeurs
+     roughness/metalness que le vrai plateau, pas des valeurs inventees
+     pour l'apercu
+   Un seul point d'entree expose sur window (creatorUpdate3DPreview),
+   appele par creatorUpdate() dans l'autre bloc <script> — meme
+   convention deja utilisee ailleurs dans ce fichier pour parler entre
+   blocs (voir les commentaires "autre bloc <script>" plus haut). ═══════════════════════════════════════════ */
+let _creator3D = null;   // { scene, camera, renderer, mesh, raf }
+function creatorInit3DPreview() {
+  const canvas = document.getElementById('creator-preview-3d-canvas');
+  const loaderEl = document.getElementById('creator-3d-loader');
+  if (!canvas) return;
+  if (_creator3D) { if (loaderEl) loaderEl.style.display = 'none'; return; }   // deja construit
+  ensureThreeLoaded(function(THREE) {
+    if (loaderEl) loaderEl.remove();
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x14141a);
+    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 20);
+    camera.position.set(0, 2.6, 3.4);
+    camera.lookAt(0, 0, 0);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+    const key = new THREE.DirectionalLight(0xfff0d8, 2.0);
+    key.position.set(3, 5, 2);
+    scene.add(key);
+    const rim = new THREE.DirectionalLight(0x88aaff, 0.6);
+    rim.position.set(-3, 2, -2);
+    scene.add(rim);
+    // Un simple disque (pas le vrai contour hexagonal) : suffisant pour
+    // juger l'apparence de la matiere sous eclairage reel, sans dupliquer
+    // toute la geometrie du plateau uniquement pour un apercu 200x200.
+    const geo = new THREE.CylinderGeometry(1.5, 1.5, 0.25, 48);
+    const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.45, metalness: 0.35 });
+    const mesh = new THREE.Mesh(geo, mat);
+    scene.add(mesh);
+    _creator3D = { THREE: THREE, scene: scene, camera: camera, renderer: renderer, mesh: mesh, raf: null };
+    function boucle() {
+      _creator3D.raf = requestAnimationFrame(boucle);
+      mesh.rotation.y += 0.006;
+      renderer.render(scene, camera);
+    }
+    boucle();
+    if (typeof window.creatorApplyPending3D === 'function') window.creatorApplyPending3D();
+  }, function() {
+    if (loaderEl) loaderEl.textContent = '⚠️ 3D indisponible dans cet aperçu (le reste du créateur fonctionne normalement)';
+  });
+}
+// Applique le canvas 2D deja peint (off, 640x640) comme texture diffuse +
+// normal map du disque d'apercu, avec le roughness/metalness du theme de
+// base choisi — appele par creatorUpdate() (autre bloc <script>) juste
+// apres avoir peint "off", jamais recalcule independamment.
+function creatorUpdate3DPreview(offCanvas, baseTheme) {
+  if (!_creator3D) { window._creatorPending3D = { off: offCanvas, base: baseTheme }; return; }
+  const THREE = _creator3D.THREE;
+  const mat = _creator3D.mesh.material;
+  if (mat.map) mat.map.dispose();
+  if (mat.normalMap) mat.normalMap.dispose();
+  mat.map = new THREE.CanvasTexture(offCanvas);
+  mat.normalMap = new THREE.CanvasTexture(genererNormalMap(offCanvas, 2.0));
+  mat.normalScale.set(0.8, 0.8);
+  const physique = THEME_PHYSIQUE[baseTheme] || PHYSIQUE_PAR_DEFAUT;
+  mat.roughness = physique.roughness;
+  mat.metalness = physique.metalness;
+  mat.color.set('#ffffff');
+  mat.needsUpdate = true;
+}
+// Si creatorUpdate() (2D) tourne AVANT que la scene 3D ait fini de
+// charger (l'utilisateur bouge un curseur pendant le chargement), on
+// memorise la derniere demande et on l'applique des que la scene existe.
+window.creatorApplyPending3D = function() {
+  if (window._creatorPending3D) { creatorUpdate3DPreview(window._creatorPending3D.off, window._creatorPending3D.base); window._creatorPending3D = null; }
+};
+window.creatorInit3DPreview = creatorInit3DPreview;
+window.creatorUpdate3DPreview = creatorUpdate3DPreview;
+
 function start3DScene() {
   const THREE = window._three;
   if (!THREE) return;
@@ -25233,6 +25718,8 @@ function start3DScene() {
      coup, refaire ce dessin a chaque fois serait couteux pour rien — seul
      un changement REEL de theme doit la (re)generer. Signale par Olivier. */
   let woodTexture = null;
+  let woodNormalMap = null;
+
   function getWoodTexture() {
     if (woodTexture) return woodTexture;
     /* 640x640, mx=my=320 : EXACTEMENT le canvas et le centre de reference du
@@ -25266,7 +25753,13 @@ function start3DScene() {
 
     woodTexture = new THREE.CanvasTexture(cv);
     woodTexture.needsUpdate = true;
+    woodNormalMap = new THREE.CanvasTexture(genererNormalMap(cv, 2.2));
+    woodNormalMap.needsUpdate = true;
     return woodTexture;
+  }
+  function getWoodNormalMap() {
+    if (!woodNormalMap) getWoodTexture();   // genere les deux ensemble, la normal map depend du meme canvas peint
+    return woodNormalMap;
   }
   /* Textures procedurales des 6 themes de plateau (une par matiere : verre
      volcanique lisse, ondulations d'eau, veines de marbre, metal brosse,
@@ -25288,6 +25781,7 @@ function start3DScene() {
      une texture identique. Signale par Olivier — "je veux ca pour chaque
      theme". */
   const themeTextures = {};
+  const themeNormalMaps = {};
   function peindreTextureTheme(nom, night) {
     const cv = document.createElement('canvas');
     cv.width = 640; cv.height = 640;
@@ -25305,6 +25799,10 @@ function start3DScene() {
     if (recette) window.peindreCouches(c2, recette(t, night, nom === 'volcanique' ? { sansFissures: true } : undefined));
     const tex = new THREE.CanvasTexture(cv);
     tex.needsUpdate = true;
+    const cle = nom + (night ? '_nuit' : '_jour');
+    const normTex = new THREE.CanvasTexture(genererNormalMap(cv));
+    normTex.needsUpdate = true;
+    themeNormalMaps[cle] = normTex;
     return tex;
   }
   function getThemeTexture(nom, night) {
@@ -25312,6 +25810,11 @@ function start3DScene() {
     if (themeTextures[cle]) return themeTextures[cle];
     themeTextures[cle] = peindreTextureTheme(nom, night);
     return themeTextures[cle];
+  }
+  function getThemeNormalMap(nom, night) {
+    const cle = nom + (night ? '_nuit' : '_jour');
+    if (!themeNormalMaps[cle]) getThemeTexture(nom, night);   // genere les deux ensemble
+    return themeNormalMaps[cle];
   }
   /* Rivieres d'epoxy : VRAIE geometrie 3D (un ruban extrude par riviere),
      pas une texture plate — corrige une premiere version qui les peignait
@@ -25405,6 +25908,7 @@ function start3DScene() {
     return meshes;
   }
   let lavaCracksActive = null;
+
   function syncBoardTheme3D() {
     const bois = typeof boardTheme !== 'undefined' && !!boardTheme.wood;
     if (bois) {
@@ -25412,6 +25916,10 @@ function start3DScene() {
       scene.background = new THREE.Color('#241a10');
       if (scene.fog) scene.fog.color.set('#241a10');
       top.material.map = getWoodTexture();
+      top.material.normalMap = getWoodNormalMap();
+      top.material.normalScale.set(0.7, 0.7);
+      top.material.roughness = PHYSIQUE_BOIS.roughness;
+      top.material.metalness = PHYSIQUE_BOIS.metalness;
       top.material.color.set('#ffffff');   // laisse la texture porter la couleur, pas de teinte multiplicative dessus
       top.material.needsUpdate = true;
       base.material.map = null;
@@ -25429,6 +25937,11 @@ function start3DScene() {
     scene.background = new THREE.Color(t.gutterOuter);
     if (scene.fog) scene.fog.color.set(t.gutterOuter);
     top.material.map = getThemeTexture(nom, estNuit);
+    top.material.normalMap = getThemeNormalMap(nom, estNuit);
+    top.material.normalScale.set(0.9, 0.9);
+    const physique = THEME_PHYSIQUE[nom] || PHYSIQUE_PAR_DEFAUT;
+    top.material.roughness = physique.roughness;
+    top.material.metalness = physique.metalness;
     top.material.color.set('#ffffff');   // laisse la texture porter la couleur, comme le bois
     /* Lueur (emissive) : Volcanique seulement pour l'instant (les 5 autres
        themes n'en ont pas — meme logique progressive que jour/nuit, "on
