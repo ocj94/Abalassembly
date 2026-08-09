@@ -13942,6 +13942,7 @@ const AX_DIRS = [
   { q:0, r:-1 }, { q:1, r:-1 },
   { q:0, r:1 }, { q:-1, r:1 },
 ];
+const EVAL_AXES = [[0,1],[2,4],[3,5]];   // les 3 axes hexagonaux, en paires de directions opposees
 const akey = (r,c) => r + ',' + c;
 
 // Les billes sélectionnées forment-elles une ligne contiguë ? → {dir, ordered} | null
@@ -14302,6 +14303,7 @@ function evaluateBoard(color, detail) {
   const enemy = color === 'white' ? 'black' : 'white';
   let myCount=0, enCount=0, myCenter=0, enCenter=0, myCohesion=0, enCohesion=0, myEdge=0, enEdge=0;
   let myMob=0, enMob=0, myIso=0, enIso=0, myDng=0, enDng=0;   // V13 : mobilité, isolation, danger d'éjection
+  let myChain=0, enChain=0, myFort=0, enFort=0;                // chaînes alignées + forteresses (4+ voisins)
   for (const k in board) {
     const v = board[k];
     if (!v) continue;
@@ -14320,8 +14322,24 @@ function evaluateBoard(color, detail) {
     }
     const iso = allies === 0;                    // bille totalement isolée
     const dng = isEdge && allies <= 1;           // au bord et peu soutenue = risque d'éjection
-    if (v === color) { myCount++; myCenter += (4-dist); myCohesion += allies; if (isEdge) myEdge++; myMob += emptyN; if (iso) myIso++; if (dng) myDng++; }
-    else             { enCount++; enCenter += (4-dist); enCohesion += allies; if (isEdge) enEdge++; enMob += emptyN; if (iso) enIso++; if (dng) enDng++; }
+    const fort = allies >= 4;                    // formation dense (forteresse)
+    let chainLinks = 0;                          // longueur des alignements sur les 3 axes hexagonaux
+    for (const [fwd, bwd] of EVAL_AXES) {
+      const bd = AX_DIRS[bwd], bn = axialToRc(ax.q+bd.q, ax.r+bd.r);
+      if (bn && board[akey(bn.r,bn.c)] === v) continue;   // pas la queue de la chaîne sur cet axe
+      const fd = AX_DIRS[fwd];
+      let aq = ax.q, ar = ax.r, len = 1;
+      while (true) {
+        aq += fd.q; ar += fd.r;
+        const nrc = axialToRc(aq, ar);
+        if (!nrc) break;
+        if (board[akey(nrc.r,nrc.c)] !== v) break;
+        len++;
+      }
+      if (len >= 2) chainLinks += (len-1);
+    }
+    if (v === color) { myCount++; myCenter += (4-dist); myCohesion += allies; if (isEdge) myEdge++; myMob += emptyN; if (iso) myIso++; if (dng) myDng++; if (fort) myFort++; myChain += chainLinks; }
+    else             { enCount++; enCenter += (4-dist); enCohesion += allies; if (isEdge) enEdge++; enMob += emptyN; if (iso) enIso++; if (dng) enDng++; if (fort) enFort++; enChain += chainLinks; }
   }
   const material   = (myCount - enCount) * 1000;
   const centerScr  = (myCenter - enCenter) * 6;
@@ -14333,7 +14351,9 @@ function evaluateBoard(color, detail) {
   const mobScore   = (myMob - enMob) * 2;       // V13 : plus de cases libres autour de mes billes
   const isoScore   = (enIso - myIso) * 18;      // V13 : billes adverses isolées = bon (divide & conquer)
   const dngScore   = (enDng - myDng) * 14;      // V13 : billes adverses en danger d'éjection = bon
-  const total = material + centerScr + cohesion + edgePenalty + capScore + mobScore + isoScore + dngScore;
+  const chainScore = (myChain - enChain) * 10;  // alignements sur les 3 axes hexagonaux
+  const fortScore  = (myFort - enFort) * 20;    // formations denses (4+ voisins alliés)
+  const total = material + centerScr + cohesion + edgePenalty + capScore + mobScore + isoScore + dngScore + chainScore + fortScore;
   /* detail=true : renvoie la decomposition COMPLETE plutot que le seul total
      — utilise par l'explication "Pourquoi ce coup ?" (calculerExplicationCoup,
      plus bas) pour montrer EXACTEMENT les memes composantes que celles qui
@@ -14341,7 +14361,7 @@ function evaluateBoard(color, detail) {
      diverger. Les appels existants (un seul argument) ne sont pas affectes :
      ils recoivent toujours juste le total, comme avant. */
   if (detail) {
-    return { total, material, centerScr, cohesion, edgePenalty, capScore, mobScore, isoScore, dngScore };
+    return { total, material, centerScr, cohesion, edgePenalty, capScore, mobScore, isoScore, dngScore, chainScore, fortScore };
   }
   return total;
 }
@@ -14479,6 +14499,8 @@ const LABELS_EXPLICATION = {
   mobScore:    'Mobilité',
   isoScore:    'Isolement adverse',
   dngScore:    'Danger d\'éjection adverse',
+  chainScore:  'Alignements',
+  fortScore:   'Forteresse',
 };
 function calculerExplicationCoup(move, color) {
   const avant = evaluateBoard(color, true);
@@ -14665,7 +14687,8 @@ const akey=(r,c)=>r+','+c;
 function rcToAxial(row,col){ return {q: row<=4?col-row:col-4, r:row-4}; }
 function axialToRc(q,rAx){ const row=rAx+4; if(row<0||row>8)return null; let col=row<=4?q+row:q+4; if(col<0||col>=ROWS[row])return null; return {r:row,c:col}; }
 let board={}, capturedByBlack=0, capturedByWhite=0;
-let EVAL_W={center:6,cohesion:4,edge:8,mob:2,iso:18,dng:14};   // poids d'éval, adaptés au style adverse
+let EVAL_W={center:6,cohesion:4,edge:8,mob:2,iso:18,dng:14,chain:10,fortress:20};   // poids d'éval, adaptés au style adverse
+const EVAL_AXES=[[0,1],[2,4],[3,5]];   // les 3 axes hexagonaux, en paires de directions opposees (AX_DIRS)
 
 function selectionLine(sel){
   if(sel.length===1)return{dir:null,ordered:sel.slice()};
@@ -14754,16 +14777,25 @@ function undoMove(undo){
 const EVAL_CENTER={q:0,r:0};
 function axHexDist(a,b){return(Math.abs(a.q-b.q)+Math.abs(a.q+a.r-b.q-b.r)+Math.abs(a.r-b.r))/2;}
 function evaluateBoard(color){
-  let myCount=0,enCount=0,myCenter=0,enCenter=0,myCoh=0,enCoh=0,myEdge=0,enEdge=0,myMob=0,enMob=0,myIso=0,enIso=0,myDng=0,enDng=0;
+  let myCount=0,enCount=0,myCenter=0,enCenter=0,myCoh=0,enCoh=0,myEdge=0,enEdge=0,myMob=0,enMob=0,myIso=0,enIso=0,myDng=0,enDng=0,myChain=0,enChain=0,myFort=0,enFort=0;
   for(const k in board){const v=board[k];if(!v)continue;
     const p=k.split(',');const ax=rcToAxial(+p[0],+p[1]);const dist=axHexDist(ax,EVAL_CENTER);const isEdge=dist>=4;
     let allies=0,emptyN=0;for(const d of AX_DIRS){const n=axialToRc(ax.q+d.q,ax.r+d.r);if(!n)continue;const nv=board[akey(n.r,n.c)];if(nv===v)allies++;else if(!nv)emptyN++;}
-    const iso=allies===0;const dng=isEdge&&allies<=1;
-    if(v===color){myCount++;myCenter+=(4-dist);myCoh+=allies;if(isEdge)myEdge++;myMob+=emptyN;if(iso)myIso++;if(dng)myDng++;}
-    else{enCount++;enCenter+=(4-dist);enCoh+=allies;if(isEdge)enEdge++;enMob+=emptyN;if(iso)enIso++;if(dng)enDng++;}}
+    const iso=allies===0;const dng=isEdge&&allies<=1;const fort=allies>=4;
+    let chainLinks=0;
+    for(const[fwd,bwd] of EVAL_AXES){
+      const bd=AX_DIRS[bwd];const bn=axialToRc(ax.q+bd.q,ax.r+bd.r);
+      if(bn&&board[akey(bn.r,bn.c)]===v)continue;   // pas la queue de la chaine sur cet axe
+      const fd=AX_DIRS[fwd];let aq=ax.q,ar=ax.r,len=1;
+      while(true){aq+=fd.q;ar+=fd.r;const nrc=axialToRc(aq,ar);if(!nrc)break;if(board[akey(nrc.r,nrc.c)]!==v)break;len++;}
+      if(len>=2)chainLinks+=(len-1);
+    }
+    if(v===color){myCount++;myCenter+=(4-dist);myCoh+=allies;if(isEdge)myEdge++;myMob+=emptyN;if(iso)myIso++;if(dng)myDng++;if(fort)myFort++;myChain+=chainLinks;}
+    else{enCount++;enCenter+=(4-dist);enCoh+=allies;if(isEdge)enEdge++;enMob+=emptyN;if(iso)enIso++;if(dng)enDng++;if(fort)enFort++;enChain+=chainLinks;}}
   return (myCount-enCount)*1000+(myCenter-enCenter)*EVAL_W.center+(myCoh-enCoh)*EVAL_W.cohesion+(enEdge-myEdge)*EVAL_W.edge
     +((color==='white'?(capturedByWhite-capturedByBlack):(capturedByBlack-capturedByWhite))*1000)
-    +(myMob-enMob)*EVAL_W.mob+(enIso-myIso)*EVAL_W.iso+(enDng-myDng)*EVAL_W.dng;
+    +(myMob-enMob)*EVAL_W.mob+(enIso-myIso)*EVAL_W.iso+(enDng-myDng)*EVAL_W.dng
+    +(myChain-enChain)*EVAL_W.chain+(myFort-enFort)*EVAL_W.fortress;
 }
 function _rand32(){return(Math.random()*0xFFFFFFFF)>>>0;}
 const ZOBRIST={};for(let r=0;r<9;r++)for(let c=0;c<ROWS[r];c++)ZOBRIST[akey(r,c)]={black:_rand32(),white:_rand32()};
@@ -15545,10 +15577,12 @@ function getOpeningMove(aiCol, legalMoves) {
    pour que le coach et l'analyse de style restent stables).
 ═══════════════════════════════════════════ */
 const AI_WEIGHT_PRESETS = {
-  balanced:  { center:6, cohesion:4, edge:8,  mob:2, iso:18, dng:14, label:'équilibré' },
-  defensive: { center:5, cohesion:8, edge:12, mob:2, iso:14, dng:10, label:'défensif' },   // vs joueur agressif
-  aggressive:{ center:8, cohesion:3, edge:6,  mob:2, iso:20, dng:22, label:'agressif' },   // vs joueur passif
-  divide:    { center:6, cohesion:3, edge:8,  mob:3, iso:30, dng:16, label:'division' }    // vs joueur qui s'expose
+  // chain/fortress : extrapolés à la main (pas SPSA-tunés comme les 4 autres poids historiques),
+  // dans le même sens que cohesion pour chaque style — a affiner par le Labo si besoin.
+  balanced:  { center:6, cohesion:4, edge:8,  mob:2, iso:18, dng:14, chain:10, fortress:20, label:'équilibré' },
+  defensive: { center:5, cohesion:8, edge:12, mob:2, iso:14, dng:10, chain:14, fortress:26, label:'défensif' },   // vs joueur agressif
+  aggressive:{ center:8, cohesion:3, edge:6,  mob:2, iso:20, dng:22, chain:6,  fortress:12, label:'agressif' },   // vs joueur passif
+  divide:    { center:6, cohesion:3, edge:8,  mob:3, iso:30, dng:16, chain:8,  fortress:14, label:'division' }    // vs joueur qui s'expose
 };
 let aiAdaptive = true;     // profilage activé par défaut
 let _aiMode = 'balanced';
@@ -16132,7 +16166,7 @@ const LAB_CFG_DEFAULT={
   openingPlies:6, balanceWindow:600, maxGen:20, adaptive:1,
   mode:'sprt',                 // 'sprt' (test A/B à seuil) ou 'spsa' (optimisation continue)
   spsaA:60, spsaC:1.2, spsaAlpha:0.602, spsaGamma:0.101, spsaPairs:1, spsaIters:200,
-  keys:['center','cohesion','edge','mob','iso','dng']
+  keys:['center','cohesion','edge','mob','iso','dng','chain','fortress']
 };
 let LAB_CFG=Object.assign({}, LAB_CFG_DEFAULT);
 function labCfgLoad(){ try{ const s=JSON.parse(localStorage.getItem('abaLabCfg')||'null'); if(s) LAB_CFG=Object.assign({}, LAB_CFG_DEFAULT, s); }catch(e){} return LAB_CFG; }
@@ -16197,7 +16231,7 @@ const LAB_RECIPES=[
 ];
 function _labMkMutant(ch, key, nv){
   if(nv===ch[key] || nv<0) return null;
-  const w={center:ch.center,cohesion:ch.cohesion,edge:ch.edge,mob:ch.mob,iso:ch.iso,dng:ch.dng};
+  const w={center:ch.center,cohesion:ch.cohesion,edge:ch.edge,mob:ch.mob,iso:ch.iso,dng:ch.dng,chain:ch.chain,fortress:ch.fortress};
   w[key]=nv;
   return {name:key+' '+ch[key]+'\u2192'+nv, w:w, key:key, done:0, target:LAB_CFG.screenTarget, score:0, W:0, D:0, L:0, stop:false};
 }
@@ -16232,7 +16266,7 @@ function _spsaInit(theta){
            pending:null, wins:0, draws:0, losses:0 };
 }
 function _labDefaultState(){
-  const champ={center:6,cohesion:4,edge:8,mob:2,iso:18,dng:14};
+  const champ={center:6,cohesion:4,edge:8,mob:2,iso:18,dng:14,chain:10,fortress:20};
   return { v:3, gen:2, champion:champ, phase:'screen', cands:labMutants(champ,2), confirm:null, totalGames:0,
     eloCurve:[{gen:1,elo:0}], cumElo:0, gameLog:[], lastGood:null, spsa:_spsaInit(champ),
     history:[{gen:1,type:'banc externe',name:'iso26/dng20/center9/cohesion6 test\u00e9s \u2014 finaliste cohesion 6 : 17,5/32 (54,7 %) < seuil',score:null,games:60}] };
@@ -16275,13 +16309,13 @@ function resetLab(){
   if(!confirm('R\u00e9initialiser le Labo ? (champion, historique et progression effac\u00e9s ; les poids par d\u00e9faut reviennent)')) return;
   pauseLab(); _labKillWorker();
   localStorage.removeItem('abaLabState'); localStorage.removeItem('abaLabChampion'); localStorage.removeItem('abaLabAutoRun');
-  if(typeof AI_WEIGHT_PRESETS!=='undefined') Object.assign(AI_WEIGHT_PRESETS.balanced,{center:6,cohesion:4,edge:8,mob:2,iso:18,dng:14});
+  if(typeof AI_WEIGHT_PRESETS!=='undefined') Object.assign(AI_WEIGHT_PRESETS.balanced,{center:6,cohesion:4,edge:8,mob:2,iso:18,dng:14,chain:10,fortress:20});
   renderLab(); showToast('Labo r\u00e9initialis\u00e9');
 }
 function labToggleUse(el){
   localStorage.setItem('abaLabUse', el.checked?'1':'0');
   if(el.checked){ applyLabChampion(); showToast('Poids du Labo appliqu\u00e9s \u00e0 l\u2019IA'); }
-  else { if(typeof AI_WEIGHT_PRESETS!=='undefined') Object.assign(AI_WEIGHT_PRESETS.balanced,{center:6,cohesion:4,edge:8,mob:2,iso:18,dng:14}); showToast('Poids par d\u00e9faut restaur\u00e9s'); }
+  else { if(typeof AI_WEIGHT_PRESETS!=='undefined') Object.assign(AI_WEIGHT_PRESETS.balanced,{center:6,cohesion:4,edge:8,mob:2,iso:18,dng:14,chain:10,fortress:20}); showToast('Poids par d\u00e9faut restaur\u00e9s'); }
 }
 function _labCurrentJob(st){
   if(st.phase==='screen'){
@@ -16293,9 +16327,9 @@ function _labCurrentJob(st){
   return null;
 }
 // ══ MODE SPSA : optimisation stochastique multi-dimensions (méthode des tuners d'échecs) ══
-const SPSA_KEYS=['center','cohesion','edge','mob','iso','dng'];
-const SPSA_MIN={center:0,cohesion:0,edge:0,mob:0,iso:0,dng:0};
-const SPSA_MAX={center:40,cohesion:40,edge:40,mob:20,iso:60,dng:60};
+const SPSA_KEYS=['center','cohesion','edge','mob','iso','dng','chain','fortress'];
+const SPSA_MIN={center:0,cohesion:0,edge:0,mob:0,iso:0,dng:0,chain:0,fortress:0};
+const SPSA_MAX={center:40,cohesion:40,edge:40,mob:20,iso:60,dng:60,chain:40,fortress:60};
 function _spsaClamp(w){ const o={}; SPSA_KEYS.forEach(function(k){ o[k]=Math.max(SPSA_MIN[k],Math.min(SPSA_MAX[k], Math.round(w[k]*10)/10)); }); return o; }
 // Génère la perturbation ±δ (Rademacher) et les deux points θ+ / θ- à tester
 function _spsaPerturb(sp){
@@ -16582,11 +16616,11 @@ function _dl(filename, text, mime){
     return true;
   }catch(e){ try{ navigator.clipboard.writeText(text); showToast('\ud83d\udccb Copi\u00e9 (t\u00e9l\u00e9chargement indisponible)'); }catch(e2){} return false; }
 }
-// Export CSV : une ligne par partie, colonnes plates (les 6 poids A et B \u00e9clat\u00e9s)
+// Export CSV : une ligne par partie, colonnes plates (les poids A et B \u00e9clat\u00e9s)
 function labExportCSV(){
   const log=_labDataLoad();
   if(!log.length){ showToast('Aucune partie \u00e0 exporter \u2014 lance le Labo'); return; }
-  const keys=['center','cohesion','edge','mob','iso','dng'];
+  const keys=SPSA_KEYS;
   const head=['iso_time','gen','phase','mutant','mut_key','winner','why','plies','cap_black','cap_white','colorA','seed']
     .concat(keys.map(function(k){return 'A_'+k;})).concat(keys.map(function(k){return 'B_'+k;}));
   const rows=[head.join(',')];
@@ -16698,7 +16732,7 @@ function renderLabAdvanced(){
     +'<button class="ctrl-btn" onclick="labSetMode(\'spsa\')" style="flex:1;padding:5px;font-size:11px;'+(c.mode==='spsa'?'border-color:var(--gold);color:var(--gold)':'')+'">SPSA (continu)</button></div>';
   h+='<div style="font-size:10px;color:var(--muted);margin-bottom:8px">'
     +(c.mode==='spsa'
-      ? 'SPSA : perturbe les 6 poids simultan\u00e9ment, joue \u03b8+ vs \u03b8-, pousse tous les poids vers l\'am\u00e9lioration. Trouve les interactions entre poids.'
+      ? 'SPSA : perturbe les '+SPSA_KEYS.length+' poids simultan\u00e9ment, joue \u03b8+ vs \u03b8-, pousse tous les poids vers l\'am\u00e9lioration. Trouve les interactions entre poids.'
       : 'SPRT : teste une mutation \u00e0 la fois avec arr\u00eat s\u00e9quentiel. Verdict binaire adopt\u00e9/rejet\u00e9.')+'</div>';
 
   // Bloc état SPSA (si mode actif)
@@ -16706,13 +16740,13 @@ function renderLabAdvanced(){
     const sp=st.spsa;
     h+='<div style="background:var(--surface);border-radius:8px;padding:8px;margin-bottom:8px">';
     h+='<div style="font-size:12px;font-weight:700">\ud83e\uddec It\u00e9ration '+sp.iter+' / '+c.spsaIters+'</div>';
-    h+='<div style="font-size:11px;color:var(--muted);margin:4px 0">\u03b8 courant : <code>c'+sp.theta.center.toFixed(1)+' coh'+sp.theta.cohesion.toFixed(1)+' e'+sp.theta.edge.toFixed(1)+' m'+sp.theta.mob.toFixed(1)+' iso'+sp.theta.iso.toFixed(1)+' dng'+sp.theta.dng.toFixed(1)+'</code></div>';
+    h+='<div style="font-size:11px;color:var(--muted);margin:4px 0">\u03b8 courant : <code>c'+sp.theta.center.toFixed(1)+' coh'+sp.theta.cohesion.toFixed(1)+' e'+sp.theta.edge.toFixed(1)+' m'+sp.theta.mob.toFixed(1)+' iso'+sp.theta.iso.toFixed(1)+' dng'+sp.theta.dng.toFixed(1)+' cha'+sp.theta.chain.toFixed(1)+' for'+sp.theta.fortress.toFixed(1)+'</code></div>';
     // mini-graphe : évolution d'un poids représentatif (cohesion) au fil des itérations
     const H=sp.thetaHist||[];
     if(H.length>=2){
       const W=260,HH=44,pad=4;
       SPSA_KEYS.forEach(function(key,ki){
-        const cols=['#d4af37','#4a9463','#c0653b','#5b8bd4','#a069c0','#c94f6d'];
+        const cols=['#d4af37','#4a9463','#c0653b','#5b8bd4','#a069c0','#c94f6d','#4fb8a8','#e0955f'];
         const vals=H.map(function(p){return p.theta[key];});
         const mn=Math.min.apply(null,vals), mx=Math.max.apply(null,vals), sp2=Math.max(0.1,mx-mn);
         const pts=H.map(function(p,i){ const x=pad+i/(H.length-1)*(W-2*pad); const y=HH-pad-((p.theta[key]-mn)/sp2)*(HH-2*pad); return x.toFixed(1)+','+y.toFixed(1); }).join(' ');
@@ -16720,7 +16754,7 @@ function renderLabAdvanced(){
         h+='<polyline points="'+pts+'" fill="none" stroke="'+cols[ki]+'" stroke-width="1.2" opacity="0.85"/>';
         if(ki===SPSA_KEYS.length-1) h+='</svg>';
       });
-      h+='<div style="font-size:9px;color:var(--muted)">trajectoire des 6 poids (normalis\u00e9e) \u00b7 W/D/L \u03b8+ : '+sp.wins+'/'+sp.draws+'/'+sp.losses+'</div>';
+      h+='<div style="font-size:9px;color:var(--muted)">trajectoire des '+SPSA_KEYS.length+' poids (normalis\u00e9e) \u00b7 W/D/L \u03b8+ : '+sp.wins+'/'+sp.draws+'/'+sp.losses+'</div>';
     }
     h+='<button class="ctrl-btn" onclick="labSpsaReset()" style="width:auto;padding:3px 10px;font-size:11px;margin-top:4px">\u21ba R\u00e9init SPSA</button>';
     h+='</div>';
@@ -16955,7 +16989,7 @@ function renderLab(){
   h+='<span style="font-weight:700">'+(_labRunning?'\ud83d\udd04 En cours':'\u23f8 En pause')+' \u00b7 G\u00e9n\u00e9ration '+st.gen+' \u00b7 '+(st.phase==='screen'?'Screening':(st.phase==='confirm'?'Confirmation (SPRT)':'Termin\u00e9'))+'</span>';
   h+='<span style="font-size:11px;color:var(--muted)">'+st.totalGames+' parties \u00b7 \u00e9cran ~20 s \u00b7 confirm. ~40 s/partie</span></div>';
   h+='<div id="lab-live" style="font-size:11px;margin-top:6px;color:var(--muted)"></div>';
-  h+='<div style="margin:8px 0;font-size:12px">Champion actuel : <code>center '+ch.center+' \u00b7 cohesion '+ch.cohesion+' \u00b7 edge '+ch.edge+' \u00b7 mob '+ch.mob+' \u00b7 iso '+ch.iso+' \u00b7 dng '+ch.dng+'</code></div>';
+  h+='<div style="margin:8px 0;font-size:12px">Champion actuel : <code>center '+ch.center+' \u00b7 cohesion '+ch.cohesion+' \u00b7 edge '+ch.edge+' \u00b7 mob '+ch.mob+' \u00b7 iso '+ch.iso+' \u00b7 dng '+ch.dng+' \u00b7 chain '+ch.chain+' \u00b7 fortress '+ch.fortress+'</code></div>';
   function bar(name,score,done,target){
     const pct=target?Math.round(100*done/target):0;
     const wr=done?Math.round(100*score/done):0;
