@@ -5843,6 +5843,7 @@ document.addEventListener('keydown', function(e){
       <div class="section-label">Certitude</div>
       <h2>Tables de finale</h2>
       <p style="color:var(--muted);font-size:14px;max-width:660px">Ici, rien n'est estimé. Les réponses de cette page sont des résultats démontrés, ou un franc « aucune preuve ». Aucune évaluation heuristique n'intervient.</p>
+      <button class="tech-toggle-btn btn" style="margin-top:10px;font-size:12px;padding:6px 12px" onclick="toggleTechMode()">🔬 Voir le détail technique</button>
     </div>
 
     <div style="padding:24px 60px 60px;max-width:900px">
@@ -5873,6 +5874,37 @@ document.addEventListener('keydown', function(e){
       <div style="background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.2);border-radius:10px;padding:18px 20px">
         <strong style="color:var(--gold);font-size:14px">Ce que ça apprend sur Abalone</strong>
         <p style="margin:10px 0 0;font-size:13px;color:var(--muted);line-height:1.7">En 2 contre 2, les seuls gains sont les éjections immédiates : deux billes collées ne peuvent jamais être poussées, et elles peuvent toujours bouger. En 3 contre 2, le camp fort ne force presque jamais l'éjection. Contrairement aux échecs où le roi finit acculé, le plateau reste immense face au matériel restant — le défenseur garde toujours une cinquantaine de cases pour fuir. C'est pourquoi Abalone n'a pas besoin de tables de finale, et cette page le démontre plutôt qu'elle ne l'affirme.</p>
+      </div>
+
+      <div class="tech-detail" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-top:20px">
+        <h3 style="margin:0 0 12px;color:var(--white);font-size:17px">Pour aller plus loin — chiffré, pas laissé de côté par oubli</h3>
+        <p style="margin:0 0 14px;font-size:13px;color:var(--muted);line-height:1.7">Les classes de matériel plus grandes ont été estimées avant d'être écartées, pas ignorées. Au-delà, la taille dépasse ce qu'un navigateur peut charger ou qu'un calcul en JavaScript peut résoudre dans un temps raisonnable.</p>
+        <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <tr style="color:var(--gold);text-align:left"><th style="padding:8px 6px">Classe</th><th style="padding:8px 6px">Positions (après symétries)</th><th style="padding:8px 6px">Faisabilité</th></tr>
+          <tr style="border-top:1px solid var(--border)"><td style="padding:8px 6px">3 contre 3</td><td style="padding:8px 6px">~185 M</td><td style="padding:8px 6px">quelques heures hors ligne, ~200 Mo bruts</td></tr>
+          <tr style="border-top:1px solid var(--border)"><td style="padding:8px 6px">4 contre 2</td><td style="padding:8px 6px">~2,5 G</td><td style="padding:8px 6px">cluster ou indexation combinatoire sérieuse</td></tr>
+          <tr style="border-top:1px solid var(--border)"><td style="padding:8px 6px">4 contre 3</td><td style="padding:8px 6px">~30 G</td><td style="padding:8px 6px">hors de portée en JavaScript</td></tr>
+        </table>
+        </div>
+        <p style="margin:14px 0 0;font-size:13px;color:var(--muted);line-height:1.7">Au vu des résultats 2v2 et 3v2 ci-dessus, la probabilité que 3v3 change la conclusion est faible : ajouter des billes augmente la mobilité du défenseur autant que la puissance de l'attaquant. Rappel important : ces classes n'existent de toute façon qu'en mode Découverte — en Abalone standard, la perte survient à 6 billes éjectées, donc un camp a toujours entre 9 et 14 billes sur le plateau. Aucune position à 6 ou 7 billes au total ne peut jamais y survenir.</p>
+
+        <h3 style="margin:22px 0 6px;color:var(--white);font-size:15px">Les 36 effectifs possibles en partie standard</h3>
+        <p style="margin:0 0 14px;font-size:13px;color:var(--muted);line-height:1.7">Chaque camp a entre 9 et 14 billes tant que la partie continue — toutes les combinaisons ci-dessous, et rien en dehors.</p>
+        <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;text-align:center">
+          <tr style="color:var(--gold)"><th style="padding:6px 8px">Noir \ Blanc</th><th style="padding:6px 8px">9</th><th style="padding:6px 8px">10</th><th style="padding:6px 8px">11</th><th style="padding:6px 8px">12</th><th style="padding:6px 8px">13</th><th style="padding:6px 8px">14</th></tr>
+          <tr style="border-top:1px solid var(--border)"><td style="padding:6px 8px;color:var(--gold)">9</td><td style="padding:6px 8px">9v9</td><td style="padding:6px 8px">9v10</td><td style="padding:6px 8px">9v11</td><td style="padding:6px 8px">9v12</td><td style="padding:6px 8px">9v13</td><td style="padding:6px 8px">9v14</td></tr>
+          <tr style="border-top:1px solid var(--border)"><td style="padding:6px 8px;color:var(--gold)">10</td><td style="padding:6px 8px">10v9</td><td style="padding:6px 8px">10v10</td><td style="padding:6px 8px">10v11</td><td style="padding:6px 8px">10v12</td><td style="padding:6px 8px">10v13</td><td style="padding:6px 8px">10v14</td></tr>
+          <tr style="border-top:1px solid var(--border)"><td style="padding:6px 8px;color:var(--gold)">11</td><td style="padding:6px 8px">11v9</td><td style="padding:6px 8px">11v10</td><td style="padding:6px 8px">11v11</td><td style="padding:6px 8px">11v12</td><td style="padding:6px 8px">11v13</td><td style="padding:6px 8px">11v14</td></tr>
+          <tr style="border-top:1px solid var(--border)"><td style="padding:6px 8px;color:var(--gold)">12</td><td style="padding:6px 8px">12v9</td><td style="padding:6px 8px">12v10</td><td style="padding:6px 8px">12v11</td><td style="padding:6px 8px">12v12</td><td style="padding:6px 8px">12v13</td><td style="padding:6px 8px">12v14</td></tr>
+          <tr style="border-top:1px solid var(--border)"><td style="padding:6px 8px;color:var(--gold)">13</td><td style="padding:6px 8px">13v9</td><td style="padding:6px 8px">13v10</td><td style="padding:6px 8px">13v11</td><td style="padding:6px 8px">13v12</td><td style="padding:6px 8px">13v13</td><td style="padding:6px 8px">13v14</td></tr>
+          <tr style="border-top:1px solid var(--border)"><td style="padding:6px 8px;color:var(--gold)">14</td><td style="padding:6px 8px">14v9</td><td style="padding:6px 8px">14v10</td><td style="padding:6px 8px">14v11</td><td style="padding:6px 8px">14v12</td><td style="padding:6px 8px">14v13</td><td style="padding:6px 8px">14v14</td></tr>
+        </table>
+        </div>
+        <p style="margin:14px 0 0;font-size:13px;color:var(--muted);line-height:1.7">Même la plus petite de ces 36 classes (9 contre 9) représente environ 10¹⁹ positions après réduction par les symétries — plusieurs exaoctets. L'écart avec la plus grosse classe envisagée pour Découverte (4 contre 3, ~30 milliards, déjà hors de portée) n'est pas de quelques crans : il est de plusieurs ordres de grandeur. Une tablebase d'Abalone standard n'est pas seulement non prioritaire, elle est hors d'atteinte par principe.</p>
+
+        <p style="margin:14px 0 0;font-size:12px;color:var(--muted);line-height:1.6">Méthode complète, code du générateur et validation détaillée : <a href="https://github.com/ocj94/Abalassembly/blob/main/tablebase/RESULTS.md" target="_blank" rel="noopener noreferrer" style="color:var(--gold)">tablebase/RESULTS.md</a> sur le dépôt.</p>
       </div>
 
     </div>
@@ -23662,6 +23694,7 @@ document.addEventListener('DOMContentLoaded', function() {
   initSession();
   initSidebar();
   loadA11Y();
+  applyTechMode();
   renderStreak();
   updateTopBar();
   initPWA();
@@ -23699,6 +23732,36 @@ document.addEventListener('DOMContentLoaded', function() {
     if (nh) nh.classList.add('active');
   }
 });
+
+/* ═══════════════════════════════════════════
+   MODE TECHNIQUE — plusieurs niveaux de lecture
+   Beaucoup de pages ont un contenu "joueur" (ce que ça veut dire pour jouer)
+   et un contenu "développeur" (comment c'est calculé, les limites, les
+   chiffres bruts). Plutôt que choisir un seul niveau ou tout mettre en même
+   temps, un réglage global — comme A11Y ci-dessous — bascule l'affichage
+   des blocs marqués class="tech-detail" (masqués par défaut).
+   Usage dans une page :
+     <button class="tech-toggle-btn" onclick="toggleTechMode()">...</button>
+     <div class="tech-detail" style="display:none">... contenu détaillé ...</div>
+   applyTechMode() gère le texte du bouton et l'affichage ; à rappeler après
+   tout rendu dynamique d'une page qui contient des blocs tech-detail.
+═══════════════════════════════════════════ */
+function isTechMode() {
+  try { return localStorage.getItem('abalone_techmode') === '1'; } catch(e) { return false; }
+}
+function toggleTechMode() { setTechMode(!isTechMode()); }
+function setTechMode(on) {
+  try { localStorage.setItem('abalone_techmode', on ? '1' : '0'); } catch(e) {}
+  applyTechMode();
+}
+function applyTechMode() {
+  const on = isTechMode();
+  document.querySelectorAll('.tech-detail').forEach(function(el){ el.style.display = on ? '' : 'none'; });
+  document.querySelectorAll('.tech-toggle-btn').forEach(function(btn){
+    btn.textContent = on ? '👁 Vue joueur' : '🔬 Voir le détail technique';
+    btn.classList.toggle('active', on);
+  });
+}
 
 /* ═══════════════════════════════════════════
    ACCESSIBILITÉ & NUANCES
