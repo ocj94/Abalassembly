@@ -15439,232 +15439,263 @@ function moveToPlayStrategy(sel, dir, type) {
 
 // Base d'ouvertures (séquences extraites de 45+ parties de l'élite : vincent, Airisson, ocj94, eobllor…)
 // Clé = coups joués jusqu'ici (style livre, séparés par des virgules) ; valeur = coups suivants {from,to,freq}.
+const OPENING_BOOK_STD_ENCODED = `0||a1d4:143,a5d5:96,a2d5:43,a4d4:27,a3d3:6,a2c2:5
+0|a1d4|i5f5:44,i9f6:36,i8f5:13,i6f6:10,i7f4:5,g5f5:3
+4|,g5f5|a2d5:1,a5d5:1,b2e5:1
+7|g6f5|a2d5:1,a5d5:1
+8|7f4|a2d5:1,a3d3:1,a5d5:1
+10|5|b2e5:7,a5d5:5,a2d5:2,a3d6:1
+11|,b2e5|i9g7:3,i5g5:1
+16|,h7h9g6|a5d5:2
+23|,a5d5|h6e6:1
+17|i9g7|a2d5:2,a5d5:1
+21|,a2d5|i6g6:1
+6|6g7f5|a2d5:2
+11|,a2d5|h5e5:1
+6|7f6|a2d5:1,b2e5:1
+5|i5f5|a2d5:23,a5d5:17,b2e5:1,b4e4:1
+9|,a2d5|i9f6:10,i6f6:7,h5e5:2,g6f6:1,h9g8:1,i7f4:1
+14|,h5e5|b2e5:2
+19|,b2e5|i7f7:2
+24|,i7f7|a4c6:1,a3d6:1
+15|i6f6|b2e5:4,b5e5:2,c5d6:1
+19|,b2e5|i7f7:4
+24|,i7f7|a3d6:2,b3e6:1,a3d3:1
+29|,a3d6|h9g8:1,i8g8:1
+21|5e5|i7f7:2
+24|,i7f7|b4e4:1,a3d6:1
+16|9f6|b2e5:4,b5e5:4,a3d6:2
+19|,a3d6|h5e5:1,h8e5:1
+20|b2e5|i7f7:1,i8g8:1,h9g8:1,h6e6:1
+21|5e5|h7e4:2,h6e6:1,i7f7:1
+24|,h7e4|b4e4:2
+29|,b4e4|g6e4:2
+34|,g6e4,a4a5b4|h4g4:1
+11|5d5|i9f6:10,i6f6:5,h5e5:1,i7f4:1
+14|,i6f6|b2e5:2,b5e5:2,c4e4:1
+19|,b2e5|i7f7:2
+24|,i7f7|a4c6:1,a3d6:1
+21|5e5|i7f7:2
+24|,i7f7|b4e4:2
+29|,b4e4|h7e4:1,i9i7:1
+16|9f6|b2e5:3,a2c2:2,a4c6:2,b5e5:2,a3d6:1
+19|,a2c2|h5e5:1,h7e4:1
+21|4c6|h6e6:1,i7f4:1
+20|b2e5|i7f7:2,h9g8:1
+24|,i7f7|b1c2:1,b4e4:1
+21|5e5|h4i5:1,i7f4:1
+10|c4d4d5|i8g8:1,i9f6:1
+6|6f6|a2d5:4,a5d5:3,b2e5:3
+9|,a2d5|i5f5:2,h8e5:1,i7f7:1
+14|,i5f5|b2e5:1,b5e5:1
+11|5d5|i5f5:2,i8f5:1
+14|,i5f5|b5e5:2
+19|,b5e5|h6e6:1,i7f7:1
+10|b2e5|i5f5:2,i8f5:1
+14|,i5f5|a2d5:2
+19|,a2d5|i7f7:2
+24|,i7f7|a3d3:1,a3d6:1
+6|7f4|a3d3:2,b2e5:2,a2d5:1
+9|,a3d3|i6f6:1,i8f5:1
+10|b2e5|i6f6:1,i8f5:1
+8|7|a5d5:2
+9|,a5d5|i6f6:1,i9f6:1
+6|8f5|a2d5:7,a5d5:4,b2e5:2
+9|,a2d5|h5e5:2,i6f6:2,i7f4:1,i9f6:1
+14|,h5e5|b2e5:2
+19|,b2e5|i6h5:1
+15|i6f6|b2e5:1,b5e5:1
+11|5d5|i6f6:3,i9f6:1
+14|,i6f6|b2e5:2,a2c2:1
+19|,b2e5|h7e4:1,i7f7:1
+10|b2e5|h5e5:1,i9f6:1
+6|9f6|a5d5:16,a2d5:10,b2e5:10
+9|,a2d5|i8f5:8,h8e5:1,i7f7:1
+14|,i8f5|b5e5:4,a3d6:2,b2e5:2
+19|,a3d6|h8e5:2
+24|,h8e5|a4c6:2
+29|,a4c6|h6e6:1,i7f4:1
+20|b2e5|h7e4:1,i7f4:1
+21|5e5|i7f4:3,i7f7:1
+24|,i7f4|b3e6:1,b4e4:1
+11|5d5|h8e5:7,i5f5:5,i8f5:3
+14|,h8e5|b6c6:2,a2c2:1,a3d6:1,b4e4:1,b5e5:1
+19|,b6c6|i5f5:1,i8f5:1
+15|i5f5|b5e5:5
+19|,b5e5|h7e4:1,h9g8:1,h9i9:1,i7f4:1,i7f7:1
+16|8f5|a2c2:1,b5e5:1,b6a5:1
+10|b2e5|i5f5:6,i8f5:3,i7f7:1
+14|,i5f5|a2d5:5,a5d5:1
+19|,a2d5|i7f4:3,h9g8:1,i7f7:1
+24|,i7f4|a3d6:2,a4c6:1
+29|,a3d6|h4g4:1,i6g4:1
+16|8f5|a5d5:2,a2d5:1
+19|,a5d5|i7f4:1
+1|2c2|i5f5:2,i8f5:2,i9f6:1
+4|,i5f5|a3d3:1,a5d5:1
+6|8f5|a1d4:1,a3d3:1
+2|d5|i5f5:10,i6f6:7,i9f6:7,i8f5:6,g5f5:1,g6f6:1
+4|,g5g7f4|a1d4:1,a4d4:1,b5e5:1
+5|i5f5|a4d4:2,b5e5:2,a1d4:1,a3d6:1
+9|,a4d4|i6f6:2
+14|,i6f6|b5e5:2
+19|,b5e5|h6e6:1,i7f7:1
+10|b5e5|i6f6:1,i9f6:1
+10|c4d5d4|i9f6:2,i6f6:1,i7f7:1
+16|,i9f6|a5d5:2
+21|,a5d5|h4i5:2
+26|,h4i5|a3d3:1,a3d6:1
+6|6f6|a4d4:2,b5e5:2,a1d4:1
+9|,a4d4|i7f4:1,i8f5:1
+10|b5e5|h8e5:1,i5f5:1
+10|c4d5d4|i5f5:1,i8f5:1
+6|8f5|a1d4:1,a4d4:1,b5e5:1
+9|,c4d5d4|i6f6:1,i7f4:1,i9f6:1
+6|9f6|a4d4:2,b5e5:2,a1d4:1
+9|,a4d4|h8e5:1,i5f5:1
+10|b5e5|i5f5:1
+10|c4d5d4|i5f5:1,i8f5:1
+1|3d3|i5f5:2,g7f7:1,i9f6:1
+4|,g5g7f5|a5d5:1
+5|i5f5|a2c2:1,a5d5:1
+3|6|i5f5:1,i6f6:1,i9f6:1
+1|4d4|i5f5:8,i9f6:5,i6f6:2,i8f5:2,h8g8:1,i7f4:1
+4|,g5g7f5|a2d5:1,a5d5:1,b2e5:1,d4a4:1
+6|6g7f5|a2d5:1,a5d5:1
+5|i5f5|a2d5:4,a5d5:2,b2e5:2
+9|,a2d5|i9f6:2,i6f6:1,i7f4:1
+14|,i9f6|a5a4:1,b5e5:1
+11|5d5|i6f6:1,i9f6:1
+10|b2e5|h5e5:2
+14|,h5e5|b1b2:1,b3e6:1
+6|6f6|b2e5:2
+9|,b2e5|i8f5:2
+14|,i8f5|a5d5:2
+19|,a5d5|i7f7:2
+24|,i7f7|b4e4:2
+29|,b4e4|f7f4:1,h9g8:1
+6|8f5|a2d5:2
+9|,a2d5|h7e4:1,i6f6:1
+6|9f6|a5d5:2,a2d5:1,b2e5:1,c5d5:1
+9|,a5d5|h6e6:1,i8f5:1
+1|5d5|i5f5:23,i9f6:19,i8f5:16,i6f6:5,i7f4:4,g5f4:2
+4|,g5f4|a1d4:2
+9|,a1d4|h9g8:1,i5g5:1
+8|5|b5e5:2
+9|,b5e5|f5e4:1,i5g5:1
+7|g6f5|b5e5:3,a1d4:1,a4d4:1,a4c6:1
+11|,b5e5|h8e5:2,g7f7:1
+16|,h8e5|b4e4:1,b6b5:1
+8|7f4|a4d4:4,a1d4:3,b5e5:2
+11|,a4d4,h6h8g5|b5e5:1
+12|b5e5|i5g5:1
+10|5|a1d4:2,b5e5:1
+5|i5f5|b5e5:12,a1d4:6,a4d4:3,b6a5:1,b6c6:1
+9|,a1d4|i6f6:3,i9f6:3
+14|,i6f6|b2e5:2,b5e5:1
+19|,b2e5|h7e4:1,i7f7:1
+16|9f6|b5e5:2,b1a1:1
+19|,b5e5|h6e6:1,h9g8:1
+11|4d4|i9f6:2,i6f6:1
+14|,i9f6|a3d3:2
+19|,a3d3|h5e5:2
+24|,h5e5|a2c2:1,b1c2:1
+10|b5e5|i9f6:6,i6f6:5,h4i5:1
+14|,i6f6|a1d4:3,a4d4:2
+19|,a1d4|i7f7:2,i7f4:1
+24|,i7f7|b6b5:1,b6c6:1
+21|4d4|i7f7:2
+24|,i7f7|b3e6:1,b4e4:1
+16|9f6|a4d4:4,a1d4:1,b2d4:1
+19|,a4d4|h4i5:1,h7e4:1,i6g4:1,i7f4:1
+6|6f6|b5e5:3,a1d4:1,a4d4:1
+9|,b5e5|h8e5:1,i5f5:1,i8f5:1
+7|g4|b5e5:2
+9|,b5e5|i8g8:2
+14|,i8g8|a1d4:1,b3e6:1
+6|7f4|a1d4:2,a4d4:1,b5e5:1
+9|,a1d4|i5f5:1,i8f5:1
+6|8f5|b5e5:6,a1d4:5,a4d4:3,a2c2:1,d5d4:1
+9|,a1d4|i9f6:3,i6f6:1,i7f4:1
+14|,i9f6|b5e5:2,a3d6:1
+19|,b5e5|h7e4:1,i7f4:1
+11|4d4|g6f6:1,h7e4:1,i7f4:1
+10|b5e5|i9f6:4,h7e4:1,i7f4:1
+14|,i9f6|a4d4:3,a1d4:1
+19|,a4d4|i7f4:2,h7e4:1
+24|,i7f4|b4e4:2
+29|,b4e4|h7e4:1,i6g4:1
+6|9f6|a4d4:8,a1d4:7,b5e5:3
+9|,a1d4|i8f5:3,i5f5:2,h8e5:1
+14|,i5f5|b5e5:2
+19|,b5e5|h4g4:1,i7f4:1
+16|8f5|a3d6:1,b2e5:1,b5e5:1
+11|4d4|i5f5:4,h8e5:3,i8f5:1
+14|,h8e5|b3e6:1,b4e4:1,b5e5:1
+15|i5f5|b5e5:3
+19|,b5e5|h6e6:1,i6g4:1,i7f4:1
+10|b5e5|h8e5:2,i8f5:1
+14|,h8e5|b6b5:1,c5e5:1
+0|b1c1|i7f4:1,i8f5:1
+3|2|i5f5:2,i6f6:1,i9f6:1
+4|,i5f5|a5d5:1,c2d2:1
+1|6c6|i5f5:2,g7f7:1,h8f6:1
+4|,i5f5|b1c2:1,c6d6:1
+0|c3c4d4|i8f5:4,g7f6:2,g5f5:1,h8f6:1,i5f5:1,i6f6:1
+6|,g7f6|b5e5:1
+7|i8f5|b5e5:1
+11|,b1b3c1|i6f6:1,i9f6:1
+3|5d3|i5f5:3,i7f4:1
+5|4|i5f5:6,i8f5:4,i9f6:4,i6f6:3,g6f6:1,g6g8:1
+6|,i5f5|a1c3:1
+11|,b1b3c2|h5e5:1,i9f6:1
+13|2b4c3|i6f6:1,i9f6:1
+8|6f6,b3b5c3|i5f5:2
+18|,i5f5|b2e5:1
+8|8f5,b3b5c3|i6f6:2
+18|,i6f6|b2e5:2
+23|,b2e5|h9g8:1,i7f7:1
+8|9f6|b2c2:1
+2|d3|i5f5:2,g7f6:1
+4|,i5f5|a5d5:1,d3e4:1
+1|5d5|i5f5:1,i8f5:1,i9f6:1
+4|,g5g7f4|a1d4:2
+11|,a1d4,h4h6g4|b2e5:2
+23|,b2e5|i7g7:1`;
+// Decodage front-coding : chaque ligne = (longueur du prefixe partage avec la
+// cle precedente | suffixe | coups "label:freq" separes par des virgules).
+// Reduit le bloc 'standard' de 23 7 Ko a 5,3 Ko de texte source (77,6%), en
+// exploitant que les cles s'etendent les unes les autres par construction
+// (\'a1d4\' -> \'a1d4,i5f5\' -> ...). Purement synchrone, aucune dependance a
+// DecompressionStream : le book doit etre pret immediatement pour le tout
+// premier coup de l'IA, pas charge en differe comme les banques de parties.
+// Verifie par aller-retour strict contre les 223 entrees d'origine avant
+// integration (0 divergence).
+function _decodeFrontCodedBook(text) {
+  const out = {};
+  let prev = '';
+  const lines = text.split('\n');
+  for (const line of lines) {
+    if (!line) continue;
+    const i1 = line.indexOf('|');
+    const i2 = line.indexOf('|', i1+1);
+    const prefixLen = parseInt(line.slice(0, i1), 10);
+    const suffix = line.slice(i1+1, i2);
+    const movesStr = line.slice(i2+1);
+    const key = prev.slice(0, prefixLen) + suffix;
+    const moves = movesStr ? movesStr.split(',').map(function(m){
+      const ci = m.indexOf(':');
+      const label = m.slice(0, ci);
+      const freq = parseInt(m.slice(ci+1), 10);
+      return { from: label.slice(0,2), to: label.slice(2,4), freq: freq };
+    }) : [];
+    out[key] = { moves: moves };
+    prev = key;
+  }
+  return out;
+}
 const OPENING_BOOK = {
-  'standard': {
-    '': { moves: [ {from:'a1',to:'d4',freq:143}, {from:'a5',to:'d5',freq:96}, {from:'a2',to:'d5',freq:43}, {from:'a4',to:'d4',freq:27}, {from:'a3',to:'d3',freq:6}, {from:'a2',to:'c2',freq:5} ] },
-    'a1d4': { moves: [ {from:'i5',to:'f5',freq:44}, {from:'i9',to:'f6',freq:36}, {from:'i8',to:'f5',freq:13}, {from:'i6',to:'f6',freq:10}, {from:'i7',to:'f4',freq:5}, {from:'g5',to:'f5',freq:3} ] },
-    'a1d4,i5f5': { moves: [ {from:'a2',to:'d5',freq:23}, {from:'a5',to:'d5',freq:17}, {from:'b2',to:'e5',freq:1}, {from:'b4',to:'e4',freq:1} ] },
-    'a5d5': { moves: [ {from:'i5',to:'f5',freq:23}, {from:'i9',to:'f6',freq:19}, {from:'i8',to:'f5',freq:16}, {from:'i6',to:'f6',freq:5}, {from:'i7',to:'f4',freq:4}, {from:'g5',to:'f4',freq:2} ] },
-    'a1d4,i9f6': { moves: [ {from:'a5',to:'d5',freq:16}, {from:'a2',to:'d5',freq:10}, {from:'b2',to:'e5',freq:10} ] },
-    'a5d5,i5f5': { moves: [ {from:'b5',to:'e5',freq:12}, {from:'a1',to:'d4',freq:6}, {from:'a4',to:'d4',freq:3}, {from:'b6',to:'a5',freq:1}, {from:'b6',to:'c6',freq:1} ] },
-    'a1d4,i5f5,a2d5': { moves: [ {from:'i9',to:'f6',freq:10}, {from:'i6',to:'f6',freq:7}, {from:'h5',to:'e5',freq:2}, {from:'g6',to:'f6',freq:1}, {from:'h9',to:'g8',freq:1}, {from:'i7',to:'f4',freq:1} ] },
-    'a1d4,i5f5,a5d5': { moves: [ {from:'i9',to:'f6',freq:10}, {from:'i6',to:'f6',freq:5}, {from:'h5',to:'e5',freq:1}, {from:'i7',to:'f4',freq:1} ] },
-    'a2d5': { moves: [ {from:'i5',to:'f5',freq:10}, {from:'i6',to:'f6',freq:7}, {from:'i9',to:'f6',freq:7}, {from:'i8',to:'f5',freq:6}, {from:'g5',to:'f5',freq:1}, {from:'g6',to:'f6',freq:1} ] },
-    'a1d4,i9f6,a2d5': { moves: [ {from:'i8',to:'f5',freq:8}, {from:'h8',to:'e5',freq:1}, {from:'i7',to:'f7',freq:1} ] },
-    'a4d4': { moves: [ {from:'i5',to:'f5',freq:8}, {from:'i9',to:'f6',freq:5}, {from:'i6',to:'f6',freq:2}, {from:'i8',to:'f5',freq:2}, {from:'h8',to:'g8',freq:1}, {from:'i7',to:'f4',freq:1} ] },
-    'a5d5,i9f6': { moves: [ {from:'a4',to:'d4',freq:8}, {from:'a1',to:'d4',freq:7}, {from:'b5',to:'e5',freq:3} ] },
-    'a1d4,g5g7f5': { moves: [ {from:'b2',to:'e5',freq:7}, {from:'a5',to:'d5',freq:5}, {from:'a2',to:'d5',freq:2}, {from:'a3',to:'d6',freq:1} ] },
-    'a1d4,i8f5': { moves: [ {from:'a2',to:'d5',freq:7}, {from:'a5',to:'d5',freq:4}, {from:'b2',to:'e5',freq:2} ] },
-    'a1d4,i9f6,a5d5': { moves: [ {from:'h8',to:'e5',freq:7}, {from:'i5',to:'f5',freq:5}, {from:'i8',to:'f5',freq:3} ] },
-    'a1d4,i9f6,b2e5': { moves: [ {from:'i5',to:'f5',freq:6}, {from:'i8',to:'f5',freq:3}, {from:'i7',to:'f7',freq:1} ] },
-    'a5d5,i5f5,b5e5': { moves: [ {from:'i9',to:'f6',freq:6}, {from:'i6',to:'f6',freq:5}, {from:'h4',to:'i5',freq:1} ] },
-    'a5d5,i8f5': { moves: [ {from:'b5',to:'e5',freq:6}, {from:'a1',to:'d4',freq:5}, {from:'a4',to:'d4',freq:3}, {from:'a2',to:'c2',freq:1}, {from:'d5',to:'d4',freq:1} ] },
-    'c3c5d4': { moves: [ {from:'i5',to:'f5',freq:6}, {from:'i8',to:'f5',freq:4}, {from:'i9',to:'f6',freq:4}, {from:'i6',to:'f6',freq:3}, {from:'g6',to:'f6',freq:1}, {from:'g6',to:'g8',freq:1} ] },
-    'a1d4,i9f6,a5d5,i5f5': { moves: [ {from:'b5',to:'e5',freq:5} ] },
-    'a1d4,i9f6,b2e5,i5f5': { moves: [ {from:'a2',to:'d5',freq:5}, {from:'a5',to:'d5',freq:1} ] },
-    'a1d4,i5f5,a2d5,i6f6': { moves: [ {from:'b2',to:'e5',freq:4}, {from:'b5',to:'e5',freq:2}, {from:'c5',to:'d6',freq:1} ] },
-    'a1d4,i5f5,a2d5,i6f6,b2e5': { moves: [ {from:'i7',to:'f7',freq:4} ] },
-    'a1d4,i5f5,a2d5,i9f6': { moves: [ {from:'b2',to:'e5',freq:4}, {from:'b5',to:'e5',freq:4}, {from:'a3',to:'d6',freq:2} ] },
-    'a1d4,i6f6': { moves: [ {from:'a2',to:'d5',freq:4}, {from:'a5',to:'d5',freq:3}, {from:'b2',to:'e5',freq:3} ] },
-    'a1d4,i9f6,a2d5,i8f5': { moves: [ {from:'b5',to:'e5',freq:4}, {from:'a3',to:'d6',freq:2}, {from:'b2',to:'e5',freq:2} ] },
-    'a4d4,i5f5': { moves: [ {from:'a2',to:'d5',freq:4}, {from:'a5',to:'d5',freq:2}, {from:'b2',to:'e5',freq:2} ] },
-    'a5d5,g5g7f4': { moves: [ {from:'a4',to:'d4',freq:4}, {from:'a1',to:'d4',freq:3}, {from:'b5',to:'e5',freq:2} ] },
-    'a5d5,i5f5,b5e5,i9f6': { moves: [ {from:'a4',to:'d4',freq:4}, {from:'a1',to:'d4',freq:1}, {from:'b2',to:'d4',freq:1} ] },
-    'a5d5,i8f5,b5e5': { moves: [ {from:'i9',to:'f6',freq:4}, {from:'h7',to:'e4',freq:1}, {from:'i7',to:'f4',freq:1} ] },
-    'a5d5,i9f6,a4d4': { moves: [ {from:'i5',to:'f5',freq:4}, {from:'h8',to:'e5',freq:3}, {from:'i8',to:'f5',freq:1} ] },
-    'c3c4d4': { moves: [ {from:'i8',to:'f5',freq:4}, {from:'g7',to:'f6',freq:2}, {from:'g5',to:'f5',freq:1}, {from:'h8',to:'f6',freq:1}, {from:'i5',to:'f5',freq:1}, {from:'i6',to:'f6',freq:1} ] },
-    'a1d4,g5g7f5,b2e5': { moves: [ {from:'i9',to:'g7',freq:3}, {from:'i5',to:'g5',freq:1} ] },
-    'a1d4,i5f5,a5d5,i9f6': { moves: [ {from:'b2',to:'e5',freq:3}, {from:'a2',to:'c2',freq:2}, {from:'a4',to:'c6',freq:2}, {from:'b5',to:'e5',freq:2}, {from:'a3',to:'d6',freq:1} ] },
-    'a1d4,i8f5,a5d5': { moves: [ {from:'i6',to:'f6',freq:3}, {from:'i9',to:'f6',freq:1} ] },
-    'a1d4,i9f6,a2d5,i8f5,b5e5': { moves: [ {from:'i7',to:'f4',freq:3}, {from:'i7',to:'f7',freq:1} ] },
-    'a1d4,i9f6,b2e5,i5f5,a2d5': { moves: [ {from:'i7',to:'f4',freq:3}, {from:'h9',to:'g8',freq:1}, {from:'i7',to:'f7',freq:1} ] },
-    'a5d5,g5g6f5': { moves: [ {from:'b5',to:'e5',freq:3}, {from:'a1',to:'d4',freq:1}, {from:'a4',to:'d4',freq:1}, {from:'a4',to:'c6',freq:1} ] },
-    'a5d5,i5f5,a1d4': { moves: [ {from:'i6',to:'f6',freq:3}, {from:'i9',to:'f6',freq:3} ] },
-    'a5d5,i5f5,b5e5,i6f6': { moves: [ {from:'a1',to:'d4',freq:3}, {from:'a4',to:'d4',freq:2} ] },
-    'a5d5,i6f6': { moves: [ {from:'b5',to:'e5',freq:3}, {from:'a1',to:'d4',freq:1}, {from:'a4',to:'d4',freq:1} ] },
-    'a5d5,i8f5,a1d4': { moves: [ {from:'i9',to:'f6',freq:3}, {from:'i6',to:'f6',freq:1}, {from:'i7',to:'f4',freq:1} ] },
-    'a5d5,i8f5,b5e5,i9f6': { moves: [ {from:'a4',to:'d4',freq:3}, {from:'a1',to:'d4',freq:1} ] },
-    'a5d5,i9f6,a1d4': { moves: [ {from:'i8',to:'f5',freq:3}, {from:'i5',to:'f5',freq:2}, {from:'h8',to:'e5',freq:1} ] },
-    'a5d5,i9f6,a4d4,i5f5': { moves: [ {from:'b5',to:'e5',freq:3} ] },
-    'c3c5d3': { moves: [ {from:'i5',to:'f5',freq:3}, {from:'i7',to:'f4',freq:1} ] },
-    'a1d4,g5g7f5,b2e5,h7h9g6': { moves: [ {from:'a5',to:'d5',freq:2} ] },
-    'a1d4,g5g7f5,b2e5,i9g7': { moves: [ {from:'a2',to:'d5',freq:2}, {from:'a5',to:'d5',freq:1} ] },
-    'a1d4,g6g7f5': { moves: [ {from:'a2',to:'d5',freq:2} ] },
-    'a1d4,i5f5,a2d5,h5e5': { moves: [ {from:'b2',to:'e5',freq:2} ] },
-    'a1d4,i5f5,a2d5,h5e5,b2e5': { moves: [ {from:'i7',to:'f7',freq:2} ] },
-    'a1d4,i5f5,a2d5,i6f6,b2e5,i7f7': { moves: [ {from:'a3',to:'d6',freq:2}, {from:'b3',to:'e6',freq:1}, {from:'a3',to:'d3',freq:1} ] },
-    'a1d4,i5f5,a2d5,i6f6,b5e5': { moves: [ {from:'i7',to:'f7',freq:2} ] },
-    'a1d4,i5f5,a2d5,i9f6,b5e5': { moves: [ {from:'h7',to:'e4',freq:2}, {from:'h6',to:'e6',freq:1}, {from:'i7',to:'f7',freq:1} ] },
-    'a1d4,i5f5,a2d5,i9f6,b5e5,h7e4': { moves: [ {from:'b4',to:'e4',freq:2} ] },
-    'a1d4,i5f5,a2d5,i9f6,b5e5,h7e4,b4e4': { moves: [ {from:'g6',to:'e4',freq:2} ] },
-    'a1d4,i5f5,a5d5,i6f6': { moves: [ {from:'b2',to:'e5',freq:2}, {from:'b5',to:'e5',freq:2}, {from:'c4',to:'e4',freq:1} ] },
-    'a1d4,i5f5,a5d5,i6f6,b2e5': { moves: [ {from:'i7',to:'f7',freq:2} ] },
-    'a1d4,i5f5,a5d5,i6f6,b5e5': { moves: [ {from:'i7',to:'f7',freq:2} ] },
-    'a1d4,i5f5,a5d5,i6f6,b5e5,i7f7': { moves: [ {from:'b4',to:'e4',freq:2} ] },
-    'a1d4,i5f5,a5d5,i9f6,b2e5': { moves: [ {from:'i7',to:'f7',freq:2}, {from:'h9',to:'g8',freq:1} ] },
-    'a1d4,i6f6,a2d5': { moves: [ {from:'i5',to:'f5',freq:2}, {from:'h8',to:'e5',freq:1}, {from:'i7',to:'f7',freq:1} ] },
-    'a1d4,i6f6,a5d5': { moves: [ {from:'i5',to:'f5',freq:2}, {from:'i8',to:'f5',freq:1} ] },
-    'a1d4,i6f6,a5d5,i5f5': { moves: [ {from:'b5',to:'e5',freq:2} ] },
-    'a1d4,i6f6,b2e5': { moves: [ {from:'i5',to:'f5',freq:2}, {from:'i8',to:'f5',freq:1} ] },
-    'a1d4,i7f4': { moves: [ {from:'a3',to:'d3',freq:2}, {from:'b2',to:'e5',freq:2}, {from:'a2',to:'d5',freq:1} ] },
-    'a1d4,i7f7': { moves: [ {from:'a5',to:'d5',freq:2} ] },
-    'a1d4,i8f5,a2d5': { moves: [ {from:'h5',to:'e5',freq:2}, {from:'i6',to:'f6',freq:2}, {from:'i7',to:'f4',freq:1}, {from:'i9',to:'f6',freq:1} ] },
-    'a1d4,i8f5,a2d5,h5e5': { moves: [ {from:'b2',to:'e5',freq:2} ] },
-    'a1d4,i8f5,a5d5,i6f6': { moves: [ {from:'b2',to:'e5',freq:2}, {from:'a2',to:'c2',freq:1} ] },
-    'a1d4,i9f6,a2d5,i8f5,a3d6': { moves: [ {from:'h8',to:'e5',freq:2} ] },
-    'a1d4,i9f6,a2d5,i8f5,a3d6,h8e5': { moves: [ {from:'a4',to:'c6',freq:2} ] },
-    'a1d4,i9f6,a5d5,h8e5': { moves: [ {from:'b6',to:'c6',freq:2}, {from:'a2',to:'c2',freq:1}, {from:'a3',to:'d6',freq:1}, {from:'b4',to:'e4',freq:1}, {from:'b5',to:'e5',freq:1} ] },
-    'a1d4,i9f6,b2e5,i5f5,a2d5,i7f4': { moves: [ {from:'a3',to:'d6',freq:2}, {from:'a4',to:'c6',freq:1} ] },
-    'a1d4,i9f6,b2e5,i8f5': { moves: [ {from:'a5',to:'d5',freq:2}, {from:'a2',to:'d5',freq:1} ] },
-    'a2c2': { moves: [ {from:'i5',to:'f5',freq:2}, {from:'i8',to:'f5',freq:2}, {from:'i9',to:'f6',freq:1} ] },
-    'a2d5,i5f5': { moves: [ {from:'a4',to:'d4',freq:2}, {from:'b5',to:'e5',freq:2}, {from:'a1',to:'d4',freq:1}, {from:'a3',to:'d6',freq:1} ] },
-    'a2d5,i5f5,a4d4': { moves: [ {from:'i6',to:'f6',freq:2} ] },
-    'a2d5,i5f5,a4d4,i6f6': { moves: [ {from:'b5',to:'e5',freq:2} ] },
-    'a2d5,i5f5,c4d5d4': { moves: [ {from:'i9',to:'f6',freq:2}, {from:'i6',to:'f6',freq:1}, {from:'i7',to:'f7',freq:1} ] },
-    'a2d5,i5f5,c4d5d4,i9f6': { moves: [ {from:'a5',to:'d5',freq:2} ] },
-    'a2d5,i5f5,c4d5d4,i9f6,a5d5': { moves: [ {from:'h4',to:'i5',freq:2} ] },
-    'a2d5,i6f6': { moves: [ {from:'a4',to:'d4',freq:2}, {from:'b5',to:'e5',freq:2}, {from:'a1',to:'d4',freq:1} ] },
-    'a2d5,i9f6': { moves: [ {from:'a4',to:'d4',freq:2}, {from:'b5',to:'e5',freq:2}, {from:'a1',to:'d4',freq:1} ] },
-    'a3d3': { moves: [ {from:'i5',to:'f5',freq:2}, {from:'g7',to:'f7',freq:1}, {from:'i9',to:'f6',freq:1} ] },
-    'a4d4,i5f5,a2d5': { moves: [ {from:'i9',to:'f6',freq:2}, {from:'i6',to:'f6',freq:1}, {from:'i7',to:'f4',freq:1} ] },
-    'a4d4,i5f5,b2e5': { moves: [ {from:'h5',to:'e5',freq:2} ] },
-    'a4d4,i6f6': { moves: [ {from:'b2',to:'e5',freq:2} ] },
-    'a4d4,i6f6,b2e5': { moves: [ {from:'i8',to:'f5',freq:2} ] },
-    'a4d4,i6f6,b2e5,i8f5': { moves: [ {from:'a5',to:'d5',freq:2} ] },
-    'a4d4,i6f6,b2e5,i8f5,a5d5': { moves: [ {from:'i7',to:'f7',freq:2} ] },
-    'a4d4,i6f6,b2e5,i8f5,a5d5,i7f7': { moves: [ {from:'b4',to:'e4',freq:2} ] },
-    'a4d4,i8f5': { moves: [ {from:'a2',to:'d5',freq:2} ] },
-    'a4d4,i9f6': { moves: [ {from:'a5',to:'d5',freq:2}, {from:'a2',to:'d5',freq:1}, {from:'b2',to:'e5',freq:1}, {from:'c5',to:'d5',freq:1} ] },
-    'a5d5,g5f4': { moves: [ {from:'a1',to:'d4',freq:2} ] },
-    'a5d5,g5f5': { moves: [ {from:'b5',to:'e5',freq:2} ] },
-    'a5d5,g5g6f5,b5e5': { moves: [ {from:'h8',to:'e5',freq:2}, {from:'g7',to:'f7',freq:1} ] },
-    'a5d5,g5g7f5': { moves: [ {from:'a1',to:'d4',freq:2}, {from:'b5',to:'e5',freq:1} ] },
-    'a5d5,i5f5,a1d4,i6f6': { moves: [ {from:'b2',to:'e5',freq:2}, {from:'b5',to:'e5',freq:1} ] },
-    'a5d5,i5f5,a1d4,i9f6': { moves: [ {from:'b5',to:'e5',freq:2}, {from:'b1',to:'a1',freq:1} ] },
-    'a5d5,i5f5,a4d4': { moves: [ {from:'i9',to:'f6',freq:2}, {from:'i6',to:'f6',freq:1} ] },
-    'a5d5,i5f5,a4d4,i9f6': { moves: [ {from:'a3',to:'d3',freq:2} ] },
-    'a5d5,i5f5,a4d4,i9f6,a3d3': { moves: [ {from:'h5',to:'e5',freq:2} ] },
-    'a5d5,i5f5,b5e5,i6f6,a1d4': { moves: [ {from:'i7',to:'f7',freq:2}, {from:'i7',to:'f4',freq:1} ] },
-    'a5d5,i5f5,b5e5,i6f6,a4d4': { moves: [ {from:'i7',to:'f7',freq:2} ] },
-    'a5d5,i6g4': { moves: [ {from:'b5',to:'e5',freq:2} ] },
-    'a5d5,i6g4,b5e5': { moves: [ {from:'i8',to:'g8',freq:2} ] },
-    'a5d5,i7f4': { moves: [ {from:'a1',to:'d4',freq:2}, {from:'a4',to:'d4',freq:1}, {from:'b5',to:'e5',freq:1} ] },
-    'a5d5,i8f5,a1d4,i9f6': { moves: [ {from:'b5',to:'e5',freq:2}, {from:'a3',to:'d6',freq:1} ] },
-    'a5d5,i8f5,b5e5,i9f6,a4d4': { moves: [ {from:'i7',to:'f4',freq:2}, {from:'h7',to:'e4',freq:1} ] },
-    'a5d5,i8f5,b5e5,i9f6,a4d4,i7f4': { moves: [ {from:'b4',to:'e4',freq:2} ] },
-    'a5d5,i9f6,a1d4,i5f5': { moves: [ {from:'b5',to:'e5',freq:2} ] },
-    'a5d5,i9f6,b5e5': { moves: [ {from:'h8',to:'e5',freq:2}, {from:'i8',to:'f5',freq:1} ] },
-    'b1c2': { moves: [ {from:'i5',to:'f5',freq:2}, {from:'i6',to:'f6',freq:1}, {from:'i9',to:'f6',freq:1} ] },
-    'b6c6': { moves: [ {from:'i5',to:'f5',freq:2}, {from:'g7',to:'f7',freq:1}, {from:'h8',to:'f6',freq:1} ] },
-    'c3c5d4,i6f6,b3b5c3': { moves: [ {from:'i5',to:'f5',freq:2} ] },
-    'c3c5d4,i8f5,b3b5c3': { moves: [ {from:'i6',to:'f6',freq:2} ] },
-    'c3c5d4,i8f5,b3b5c3,i6f6': { moves: [ {from:'b2',to:'e5',freq:2} ] },
-    'c3d3': { moves: [ {from:'i5',to:'f5',freq:2}, {from:'g7',to:'f6',freq:1} ] },
-    'c5d5,g5g7f4': { moves: [ {from:'a1',to:'d4',freq:2} ] },
-    'c5d5,g5g7f4,a1d4,h4h6g4': { moves: [ {from:'b2',to:'e5',freq:2} ] },
-    'a1d4,i6f6,b2e5,i5f5': { moves: [ {from:'a2',to:'d5',freq:2} ] },
-    'a1d4,i6f6,b2e5,i5f5,a2d5': { moves: [ {from:'i7',to:'f7',freq:2} ] },
-    'a1d4,g5f5': { moves: [ {from:'a2',to:'d5',freq:1}, {from:'a5',to:'d5',freq:1}, {from:'b2',to:'e5',freq:1} ] },
-    'a1d4,g5g6f5': { moves: [ {from:'a2',to:'d5',freq:1}, {from:'a5',to:'d5',freq:1} ] },
-    'a1d4,g5g7f4': { moves: [ {from:'a2',to:'d5',freq:1}, {from:'a3',to:'d3',freq:1}, {from:'a5',to:'d5',freq:1} ] },
-    'a1d4,g5g7f5,b2e5,h7h9g6,a5d5': { moves: [ {from:'h6',to:'e6',freq:1} ] },
-    'a1d4,g5g7f5,b2e5,i9g7,a2d5': { moves: [ {from:'i6',to:'g6',freq:1} ] },
-    'a1d4,g6g7f5,a2d5': { moves: [ {from:'h5',to:'e5',freq:1} ] },
-    'a1d4,g7f6': { moves: [ {from:'a2',to:'d5',freq:1}, {from:'b2',to:'e5',freq:1} ] },
-    'a1d4,i5f5,a2d5,h5e5,b2e5,i7f7': { moves: [ {from:'a4',to:'c6',freq:1}, {from:'a3',to:'d6',freq:1} ] },
-    'a1d4,i5f5,a2d5,i6f6,b2e5,i7f7,a3d6': { moves: [ {from:'h9',to:'g8',freq:1}, {from:'i8',to:'g8',freq:1} ] },
-    'a1d4,i5f5,a2d5,i6f6,b5e5,i7f7': { moves: [ {from:'b4',to:'e4',freq:1}, {from:'a3',to:'d6',freq:1} ] },
-    'a1d4,i5f5,a2d5,i9f6,a3d6': { moves: [ {from:'h5',to:'e5',freq:1}, {from:'h8',to:'e5',freq:1} ] },
-    'a1d4,i5f5,a2d5,i9f6,b2e5': { moves: [ {from:'i7',to:'f7',freq:1}, {from:'i8',to:'g8',freq:1}, {from:'h9',to:'g8',freq:1}, {from:'h6',to:'e6',freq:1} ] },
-    'a1d4,i5f5,a2d5,i9f6,b5e5,h7e4,b4e4,g6e4,a4a5b4': { moves: [ {from:'h4',to:'g4',freq:1} ] },
-    'a1d4,i5f5,a5d5,i6f6,b2e5,i7f7': { moves: [ {from:'a4',to:'c6',freq:1}, {from:'a3',to:'d6',freq:1} ] },
-    'a1d4,i5f5,a5d5,i6f6,b5e5,i7f7,b4e4': { moves: [ {from:'h7',to:'e4',freq:1}, {from:'i9',to:'i7',freq:1} ] },
-    'a1d4,i5f5,a5d5,i9f6,a2c2': { moves: [ {from:'h5',to:'e5',freq:1}, {from:'h7',to:'e4',freq:1} ] },
-    'a1d4,i5f5,a5d5,i9f6,a4c6': { moves: [ {from:'h6',to:'e6',freq:1}, {from:'i7',to:'f4',freq:1} ] },
-    'a1d4,i5f5,a5d5,i9f6,b2e5,i7f7': { moves: [ {from:'b1',to:'c2',freq:1}, {from:'b4',to:'e4',freq:1} ] },
-    'a1d4,i5f5,a5d5,i9f6,b5e5': { moves: [ {from:'h4',to:'i5',freq:1}, {from:'i7',to:'f4',freq:1} ] },
-    'a1d4,i5f5,c4d4d5': { moves: [ {from:'i8',to:'g8',freq:1}, {from:'i9',to:'f6',freq:1} ] },
-    'a1d4,i6f6,a2d5,i5f5': { moves: [ {from:'b2',to:'e5',freq:1}, {from:'b5',to:'e5',freq:1} ] },
-    'a1d4,i6f6,a5d5,i5f5,b5e5': { moves: [ {from:'h6',to:'e6',freq:1}, {from:'i7',to:'f7',freq:1} ] },
-    'a1d4,i7f4,a3d3': { moves: [ {from:'i6',to:'f6',freq:1}, {from:'i8',to:'f5',freq:1} ] },
-    'a1d4,i7f4,b2e5': { moves: [ {from:'i6',to:'f6',freq:1}, {from:'i8',to:'f5',freq:1} ] },
-    'a1d4,i7f7,a5d5': { moves: [ {from:'i6',to:'f6',freq:1}, {from:'i9',to:'f6',freq:1} ] },
-    'a1d4,i8f5,a2d5,h5e5,b2e5': { moves: [ {from:'i6',to:'h5',freq:1} ] },
-    'a1d4,i8f5,a2d5,i6f6': { moves: [ {from:'b2',to:'e5',freq:1}, {from:'b5',to:'e5',freq:1} ] },
-    'a1d4,i8f5,a5d5,i6f6,b2e5': { moves: [ {from:'h7',to:'e4',freq:1}, {from:'i7',to:'f7',freq:1} ] },
-    'a1d4,i8f5,b2e5': { moves: [ {from:'h5',to:'e5',freq:1}, {from:'i9',to:'f6',freq:1} ] },
-    'a1d4,i9f6,a2d5,i8f5,a3d6,h8e5,a4c6': { moves: [ {from:'h6',to:'e6',freq:1}, {from:'i7',to:'f4',freq:1} ] },
-    'a1d4,i9f6,a2d5,i8f5,b2e5': { moves: [ {from:'h7',to:'e4',freq:1}, {from:'i7',to:'f4',freq:1} ] },
-    'a1d4,i9f6,a2d5,i8f5,b5e5,i7f4': { moves: [ {from:'b3',to:'e6',freq:1}, {from:'b4',to:'e4',freq:1} ] },
-    'a1d4,i9f6,a5d5,h8e5,b6c6': { moves: [ {from:'i5',to:'f5',freq:1}, {from:'i8',to:'f5',freq:1} ] },
-    'a1d4,i9f6,a5d5,i5f5,b5e5': { moves: [ {from:'h7',to:'e4',freq:1}, {from:'h9',to:'g8',freq:1}, {from:'h9',to:'i9',freq:1}, {from:'i7',to:'f4',freq:1}, {from:'i7',to:'f7',freq:1} ] },
-    'a1d4,i9f6,a5d5,i8f5': { moves: [ {from:'a2',to:'c2',freq:1}, {from:'b5',to:'e5',freq:1}, {from:'b6',to:'a5',freq:1} ] },
-    'a1d4,i9f6,b2e5,i5f5,a2d5,i7f4,a3d6': { moves: [ {from:'h4',to:'g4',freq:1}, {from:'i6',to:'g4',freq:1} ] },
-    'a1d4,i9f6,b2e5,i8f5,a5d5': { moves: [ {from:'i7',to:'f4',freq:1} ] },
-    'a2c2,i5f5': { moves: [ {from:'a3',to:'d3',freq:1}, {from:'a5',to:'d5',freq:1} ] },
-    'a2c2,i8f5': { moves: [ {from:'a1',to:'d4',freq:1}, {from:'a3',to:'d3',freq:1} ] },
-    'a2d5,g5g7f4': { moves: [ {from:'a1',to:'d4',freq:1}, {from:'a4',to:'d4',freq:1}, {from:'b5',to:'e5',freq:1} ] },
-    'a2d5,i5f5,a4d4,i6f6,b5e5': { moves: [ {from:'h6',to:'e6',freq:1}, {from:'i7',to:'f7',freq:1} ] },
-    'a2d5,i5f5,b5e5': { moves: [ {from:'i6',to:'f6',freq:1}, {from:'i9',to:'f6',freq:1} ] },
-    'a2d5,i5f5,c4d5d4,i9f6,a5d5,h4i5': { moves: [ {from:'a3',to:'d3',freq:1}, {from:'a3',to:'d6',freq:1} ] },
-    'a2d5,i6f6,a4d4': { moves: [ {from:'i7',to:'f4',freq:1}, {from:'i8',to:'f5',freq:1} ] },
-    'a2d5,i6f6,b5e5': { moves: [ {from:'h8',to:'e5',freq:1}, {from:'i5',to:'f5',freq:1} ] },
-    'a2d5,i6f6,c4d5d4': { moves: [ {from:'i5',to:'f5',freq:1}, {from:'i8',to:'f5',freq:1} ] },
-    'a2d5,i8f5': { moves: [ {from:'a1',to:'d4',freq:1}, {from:'a4',to:'d4',freq:1}, {from:'b5',to:'e5',freq:1} ] },
-    'a2d5,i8f5,c4d5d4': { moves: [ {from:'i6',to:'f6',freq:1}, {from:'i7',to:'f4',freq:1}, {from:'i9',to:'f6',freq:1} ] },
-    'a2d5,i9f6,a4d4': { moves: [ {from:'h8',to:'e5',freq:1}, {from:'i5',to:'f5',freq:1} ] },
-    'a2d5,i9f6,b5e5': { moves: [ {from:'i5',to:'f5',freq:1} ] },
-    'a2d5,i9f6,c4d5d4': { moves: [ {from:'i5',to:'f5',freq:1}, {from:'i8',to:'f5',freq:1} ] },
-    'a3d3,g5g7f5': { moves: [ {from:'a5',to:'d5',freq:1} ] },
-    'a3d3,i5f5': { moves: [ {from:'a2',to:'c2',freq:1}, {from:'a5',to:'d5',freq:1} ] },
-    'a3d6': { moves: [ {from:'i5',to:'f5',freq:1}, {from:'i6',to:'f6',freq:1}, {from:'i9',to:'f6',freq:1} ] },
-    'a4d4,g5g7f5': { moves: [ {from:'a2',to:'d5',freq:1}, {from:'a5',to:'d5',freq:1}, {from:'b2',to:'e5',freq:1}, {from:'d4',to:'a4',freq:1} ] },
-    'a4d4,g6g7f5': { moves: [ {from:'a2',to:'d5',freq:1}, {from:'a5',to:'d5',freq:1} ] },
-    'a4d4,i5f5,a2d5,i9f6': { moves: [ {from:'a5',to:'a4',freq:1}, {from:'b5',to:'e5',freq:1} ] },
-    'a4d4,i5f5,a5d5': { moves: [ {from:'i6',to:'f6',freq:1}, {from:'i9',to:'f6',freq:1} ] },
-    'a4d4,i5f5,b2e5,h5e5': { moves: [ {from:'b1',to:'b2',freq:1}, {from:'b3',to:'e6',freq:1} ] },
-    'a4d4,i6f6,b2e5,i8f5,a5d5,i7f7,b4e4': { moves: [ {from:'f7',to:'f4',freq:1}, {from:'h9',to:'g8',freq:1} ] },
-    'a4d4,i8f5,a2d5': { moves: [ {from:'h7',to:'e4',freq:1}, {from:'i6',to:'f6',freq:1} ] },
-    'a4d4,i9f6,a5d5': { moves: [ {from:'h6',to:'e6',freq:1}, {from:'i8',to:'f5',freq:1} ] },
-    'a5d5,g5f4,a1d4': { moves: [ {from:'h9',to:'g8',freq:1}, {from:'i5',to:'g5',freq:1} ] },
-    'a5d5,g5f5,b5e5': { moves: [ {from:'f5',to:'e4',freq:1}, {from:'i5',to:'g5',freq:1} ] },
-    'a5d5,g5g6f5,b5e5,h8e5': { moves: [ {from:'b4',to:'e4',freq:1}, {from:'b6',to:'b5',freq:1} ] },
-    'a5d5,g5g7f4,a4d4,h6h8g5': { moves: [ {from:'b5',to:'e5',freq:1} ] },
-    'a5d5,g5g7f4,b5e5': { moves: [ {from:'i5',to:'g5',freq:1} ] },
-    'a5d5,i5f5,a1d4,i6f6,b2e5': { moves: [ {from:'h7',to:'e4',freq:1}, {from:'i7',to:'f7',freq:1} ] },
-    'a5d5,i5f5,a1d4,i9f6,b5e5': { moves: [ {from:'h6',to:'e6',freq:1}, {from:'h9',to:'g8',freq:1} ] },
-    'a5d5,i5f5,a4d4,i9f6,a3d3,h5e5': { moves: [ {from:'a2',to:'c2',freq:1}, {from:'b1',to:'c2',freq:1} ] },
-    'a5d5,i5f5,b5e5,i6f6,a1d4,i7f7': { moves: [ {from:'b6',to:'b5',freq:1}, {from:'b6',to:'c6',freq:1} ] },
-    'a5d5,i5f5,b5e5,i6f6,a4d4,i7f7': { moves: [ {from:'b3',to:'e6',freq:1}, {from:'b4',to:'e4',freq:1} ] },
-    'a5d5,i5f5,b5e5,i9f6,a4d4': { moves: [ {from:'h4',to:'i5',freq:1}, {from:'h7',to:'e4',freq:1}, {from:'i6',to:'g4',freq:1}, {from:'i7',to:'f4',freq:1} ] },
-    'a5d5,i6g4,b5e5,i8g8': { moves: [ {from:'a1',to:'d4',freq:1}, {from:'b3',to:'e6',freq:1} ] },
-    'a5d5,i6f6,b5e5': { moves: [ {from:'h8',to:'e5',freq:1}, {from:'i5',to:'f5',freq:1}, {from:'i8',to:'f5',freq:1} ] },
-    'a5d5,i7f4,a1d4': { moves: [ {from:'i5',to:'f5',freq:1}, {from:'i8',to:'f5',freq:1} ] },
-    'a5d5,i8f5,a1d4,i9f6,b5e5': { moves: [ {from:'h7',to:'e4',freq:1}, {from:'i7',to:'f4',freq:1} ] },
-    'a5d5,i8f5,a4d4': { moves: [ {from:'g6',to:'f6',freq:1}, {from:'h7',to:'e4',freq:1}, {from:'i7',to:'f4',freq:1} ] },
-    'a5d5,i8f5,b5e5,i9f6,a4d4,i7f4,b4e4': { moves: [ {from:'h7',to:'e4',freq:1}, {from:'i6',to:'g4',freq:1} ] },
-    'a5d5,i9f6,a1d4,i5f5,b5e5': { moves: [ {from:'h4',to:'g4',freq:1}, {from:'i7',to:'f4',freq:1} ] },
-    'a5d5,i9f6,a1d4,i8f5': { moves: [ {from:'a3',to:'d6',freq:1}, {from:'b2',to:'e5',freq:1}, {from:'b5',to:'e5',freq:1} ] },
-    'a5d5,i9f6,a4d4,h8e5': { moves: [ {from:'b3',to:'e6',freq:1}, {from:'b4',to:'e4',freq:1}, {from:'b5',to:'e5',freq:1} ] },
-    'a5d5,i9f6,a4d4,i5f5,b5e5': { moves: [ {from:'h6',to:'e6',freq:1}, {from:'i6',to:'g4',freq:1}, {from:'i7',to:'f4',freq:1} ] },
-    'a5d5,i9f6,b5e5,h8e5': { moves: [ {from:'b6',to:'b5',freq:1}, {from:'c5',to:'e5',freq:1} ] },
-    'b1c1': { moves: [ {from:'i7',to:'f4',freq:1}, {from:'i8',to:'f5',freq:1} ] },
-    'b1c2,i5f5': { moves: [ {from:'a5',to:'d5',freq:1}, {from:'c2',to:'d2',freq:1} ] },
-    'b6c6,i5f5': { moves: [ {from:'b1',to:'c2',freq:1}, {from:'c6',to:'d6',freq:1} ] },
-    'c3c4d4,g7f6': { moves: [ {from:'b5',to:'e5',freq:1} ] },
-    'c3c4d4,i8f5': { moves: [ {from:'b5',to:'e5',freq:1} ] },
-    'c3c4d4,i8f5,b1b3c1': { moves: [ {from:'i6',to:'f6',freq:1}, {from:'i9',to:'f6',freq:1} ] },
-    'c3c5d4,i5f5': { moves: [ {from:'a1',to:'c3',freq:1} ] },
-    'c3c5d4,i5f5,b1b3c2': { moves: [ {from:'h5',to:'e5',freq:1}, {from:'i9',to:'f6',freq:1} ] },
-    'c3c5d4,i5f5,b2b4c3': { moves: [ {from:'i6',to:'f6',freq:1}, {from:'i9',to:'f6',freq:1} ] },
-    'c3c5d4,i6f6,b3b5c3,i5f5': { moves: [ {from:'b2',to:'e5',freq:1} ] },
-    'c3c5d4,i8f5,b3b5c3,i6f6,b2e5': { moves: [ {from:'h9',to:'g8',freq:1}, {from:'i7',to:'f7',freq:1} ] },
-    'c3c5d4,i9f6': { moves: [ {from:'b2',to:'c2',freq:1} ] },
-    'c3d3,i5f5': { moves: [ {from:'a5',to:'d5',freq:1}, {from:'d3',to:'e4',freq:1} ] },
-    'c5d5': { moves: [ {from:'i5',to:'f5',freq:1}, {from:'i8',to:'f5',freq:1}, {from:'i9',to:'f6',freq:1} ] },
-    'c5d5,g5g7f4,a1d4,h4h6g4,b2e5': { moves: [ {from:'i7',to:'g7',freq:1} ] },
-    'a1d4,i6f6,b2e5,i5f5,a2d5,i7f7': { moves: [ {from:'a3',to:'d3',freq:1}, {from:'a3',to:'d6',freq:1} ] }
-  },
+  'standard': _decodeFrontCodedBook(OPENING_BOOK_STD_ENCODED),
   'belgian': {
     'a1d4': { moves: [ {from:'i5',to:'f5',freq:18} ] },
     'a1d4,i5f5': { moves: [ {from:'a2',to:'c4',freq:18} ] },
