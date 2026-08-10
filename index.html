@@ -6179,57 +6179,48 @@ document.addEventListener('keydown', function(e){
           <div style="font-family:'Playfair Display',serif;font-size:32px;font-weight:900;color:var(--gold)" id="stats-elo">—</div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:14px;color:var(--accent-green-light);font-weight:600" id="stats-elo-delta">↑ +24</div>
+          <div style="font-size:14px;color:var(--accent-green-light);font-weight:600" id="stats-elo-delta">—</div>
           <div style="font-size:11px;color:var(--muted)">vs période précédente</div>
         </div>
       </div>
-      <svg viewBox="0 0 400 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" id="stats-chart">
-        <defs>
-          <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#c8a84b" stop-opacity="0.3"/>
-            <stop offset="100%" stop-color="#c8a84b" stop-opacity="0"/>
-          </linearGradient>
-        </defs>
-        <path d="M0,85 L40,78 L80,65 L120,70 L160,55 L200,45 L240,38 L280,30 L320,22 L360,15 L400,10" fill="none" stroke="#c8a84b" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M0,85 L40,78 L80,65 L120,70 L160,55 L200,45 L240,38 L280,30 L320,22 L360,15 L400,10 L400,100 L0,100Z" fill="url(#sg)"/>
-      </svg>
+      <div id="stats-elo-chart-host"></div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
-        <div style="text-align:center">
+        <div style="text-align:center" title="Nécessite un compte en ligne — le backend n'est pas activé sur ce site">
           <div style="font-size:11px;color:var(--muted)">Classement global</div>
-          <div style="font-family:'DM Mono',monospace;font-size:14px;color:var(--text);margin-top:3px" id="stats-rank-global">#4,218</div>
+          <div style="font-family:'DM Mono',monospace;font-size:14px;color:var(--text);margin-top:3px" id="stats-rank-global">—</div>
         </div>
-        <div style="text-align:center;border-left:1px solid var(--border);border-right:1px solid var(--border)">
+        <div style="text-align:center;border-left:1px solid var(--border);border-right:1px solid var(--border)" title="Nécessite un compte en ligne — le backend n'est pas activé sur ce site">
           <div style="font-size:11px;color:var(--muted)">Rang amis</div>
-          <div style="font-family:'DM Mono',monospace;font-size:14px;color:var(--gold);margin-top:3px">#3</div>
+          <div style="font-family:'DM Mono',monospace;font-size:14px;color:var(--gold);margin-top:3px" id="stats-rank-friends">—</div>
         </div>
-        <div style="text-align:center">
+        <div style="text-align:center" title="Nécessite un compte en ligne — le backend n'est pas activé sur ce site">
           <div style="font-size:11px;color:var(--muted)">Top %</div>
-          <div style="font-family:'DM Mono',monospace;font-size:14px;color:var(--accent-green-light);margin-top:3px">Top 15%</div>
+          <div style="font-family:'DM Mono',monospace;font-size:14px;color:var(--accent-green-light);margin-top:3px" id="stats-top-pct">—</div>
         </div>
       </div>
     </div>
 
     <!-- Stats grid -->
     <div class="stats-grid" id="stats-grid">
-      <div class="stat-card"><div class="stat-card-icon">🎮</div><div class="stat-card-val" id="sg-games">0</div><div class="stat-card-label">Parties</div><div class="stat-card-delta up">↑ +12 ce mois</div></div>
-      <div class="stat-card"><div class="stat-card-icon">🧩</div><div class="stat-card-val" id="sg-puzzles">0</div><div class="stat-card-label">Puzzles</div><div class="stat-card-delta up">↑ +23 ce mois</div></div>
-      <div class="stat-card"><div class="stat-card-icon">🏆</div><div class="stat-card-val" id="sg-wins">0</div><div class="stat-card-label">Victoires</div><div class="stat-card-delta up">54%</div></div>
-      <div class="stat-card"><div class="stat-card-icon">🔥</div><div class="stat-card-val" id="sg-streak">0</div><div class="stat-card-label">Série active</div><div class="stat-card-delta up">↑ Record: 23</div></div>
-      <div class="stat-card"><div class="stat-card-icon">⏱</div><div class="stat-card-val">0h00</div><div class="stat-card-label">Temps de jeu</div><div class="stat-card-delta up">ce mois</div></div>
-      <div class="stat-card"><div class="stat-card-icon">⚡</div><div class="stat-card-val">0</div><div class="stat-card-label">XP Total</div><div class="stat-card-delta up">↑ +719 ce mois</div></div>
+      <div class="stat-card"><div class="stat-card-icon">🎮</div><div class="stat-card-val" id="sg-games">0</div><div class="stat-card-label">Parties</div></div>
+      <div class="stat-card"><div class="stat-card-icon">🧩</div><div class="stat-card-val" id="sg-puzzles">0</div><div class="stat-card-label">Puzzles</div></div>
+      <div class="stat-card"><div class="stat-card-icon">🏆</div><div class="stat-card-val" id="sg-wins">0</div><div class="stat-card-label">Victoires</div><div class="stat-card-delta up" id="stat-winrate">—</div></div>
+      <div class="stat-card"><div class="stat-card-icon">🔥</div><div class="stat-card-val" id="sg-streak">0</div><div class="stat-card-label">Série active</div><div class="stat-card-delta up" id="stat-streak-record">—</div></div>
+      <div class="stat-card"><div class="stat-card-icon">⏱</div><div class="stat-card-val">—</div><div class="stat-card-label">Temps de jeu</div><div class="stat-card-delta" style="color:var(--muted)" title="Pas encore suivi par le site">non suivi</div></div>
+      <div class="stat-card"><div class="stat-card-icon">⚡</div><div class="stat-card-val" id="sg-xp">0</div><div class="stat-card-label">XP Total</div><div class="stat-card-delta up" id="stat-xp-delta">—</div></div>
     </div>
 
     <!-- ELO max record -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center">
         <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">ELO Max</div>
-        <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:700;color:var(--gold)" id="stats-elo-max">1489</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:3px">26 avril 2026</div>
+        <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:700;color:var(--gold)" id="stats-elo-max">—</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px" id="stats-elo-max-date">—</div>
       </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center" title="Pas encore suivi par le site">
         <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Temps compétitif</div>
-        <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:700;color:var(--text)">6h 18m</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:3px">36 min ce mois</div>
+        <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:700;color:var(--text)">—</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">non suivi</div>
       </div>
     </div>
   </div>
@@ -23548,6 +23539,49 @@ function renderStats() {
   el('sg-games', u.games||0);
   el('sg-wins', u.wins||0);
   el('sg-streak', u.streak||0);
+
+  // Le reste vient de progress (compteurs reels : puzzles, XP, historique elo/xp).
+  // Rien ci-dessous n'est invente : la ou aucune donnee reelle n'existe (classement,
+  // temps de jeu — cote serveur, backend dormant), l'affichage reste "—" plutot
+  // que de fabriquer un chiffre plausible. Voir defaultProgress() pour la liste
+  // complete des champs reellement suivis.
+  el('sg-puzzles', progress.puzzlesSolved||0);
+  el('sg-xp', progress.xp||0);
+  el('stat-streak-record', progress.bestStreak ? ('Record : '+progress.bestStreak) : '—');
+
+  const winRate = (u.games>0) ? Math.round((u.wins||0)/u.games*100) : null;
+  el('stat-winrate', winRate!==null ? (winRate+'%') : '—');
+
+  const eh = progress.eloHistory||[];
+  if (eh.length>=2) {
+    const delta = (u.elo||1200) - eh[0].elo;
+    el('stats-elo-delta', (delta>=0?'↑ +':'↓ ')+delta);
+  } else {
+    el('stats-elo-delta', '—');
+  }
+  if (eh.length) {
+    let maxEntry = eh[0];
+    eh.forEach(function(h){ if (h.elo > maxEntry.elo) maxEntry = h; });
+    el('stats-elo-max-date', ((u.eloMax||0) <= maxEntry.elo) ? (maxEntry.date || '—') : '—');
+  } else {
+    el('stats-elo-max-date', '—');
+  }
+
+  const hist = progress.history||[];
+  if (hist.length>=2) {
+    const monthAgo = new Date(); monthAgo.setDate(monthAgo.getDate()-30);
+    const monthAgoStr = monthAgo.getFullYear()+'-'+String(monthAgo.getMonth()+1).padStart(2,'0')+'-'+String(monthAgo.getDate()).padStart(2,'0');
+    const past = hist.filter(function(h){ return h.date <= monthAgoStr; });
+    const xpMonthAgo = past.length ? past[past.length-1].xp : hist[0].xp;
+    const xpDelta = (progress.xp||0) - xpMonthAgo;
+    el('stat-xp-delta', (xpDelta>=0?'↑ +':'↓ ')+xpDelta+' ce mois');
+  } else {
+    el('stat-xp-delta', '—');
+  }
+
+  const chartHost = document.getElementById('stats-elo-chart-host');
+  if (chartHost && typeof sparkline === 'function') chartHost.innerHTML = sparkline(eh, 400, 100, '#c8a84b');
+
   const av = document.getElementById('stats-avatar');
   if (av) { av.textContent=(u.username||'?')[0].toUpperCase(); av.style.background=u.color||'#2d5a3d'; }
 }
