@@ -15163,10 +15163,18 @@ function playDuelGame(wA,wB,colorA,seed,msPerMove,maxPlies,drawWin){
   for(t=0;t<10;t++){
     _duelSetup(); hist=[]; col='black'; plies=0;
     var rnd=_mb32((seed||1)+t*1000003);
+    var openingMoves=[];   // coups d'ouverture ALEATOIRES de CETTE tentative — commis a _recMoves
+                            // seulement si elle reussit (balanced=true), sinon jetes avec le reste
     for(i=0;i<6;i++){ var ms=getAllMovesForColor(col).filter(function(x){return !x.eject;}); if(!ms.length)break;
-      m=ms[Math.floor(rnd()*ms.length)]; applyMove(m,col); hist.push(_repKeyOf(board)); col=(col==='black'?'white':'black'); plies++; }
+      m=ms[Math.floor(rnd()*ms.length)];
+      openingMoves.push({cells:m.cells.map(function(x){return{r:x.r,c:x.c};}),dir:{q:m.dir.q,r:m.dir.r},col:col});
+      applyMove(m,col); hist.push(_repKeyOf(board)); col=(col==='black'?'white':'black'); plies++; }
     EVAL_W=wB; var e0=evaluateBoard('black');
-    if(e0>-600 && e0<600){ balanced=true; break; }
+    if(e0>-600 && e0<600){
+      balanced=true;
+      if(_recMoves){ for(var oi=0;oi<openingMoves.length;oi++) _recMoves.push(openingMoves[oi]); }
+      break;
+    }
   }
   for(i=0;i<maxPlies;i++){
     EVAL_W = (col===colorA)? wA : wB;
@@ -15653,8 +15661,21 @@ function getOpeningMove(aiCol, legalMoves) {
     if (!book) return null;
     const key = openingKeyFromHistory();
     if (key === null) return null;
-    const entry = book[key];
-    if (!entry || !entry.moves || !entry.moves.length) return null;
+    let entry = book[key];
+    if (!entry || !entry.moves || !entry.moves.length) {
+      // Repli sur le book issu du Labo (parties reelles jouees par le moteur
+      // lui-meme) UNIQUEMENT si le book historique n'a rien pour cette
+      // position — jamais fusionne aux frequences historiques, jamais
+      // prioritaire sur elles (voir _labMineBook).
+      try {
+        const labBook = JSON.parse(localStorage.getItem(LAB_BOOK_KEY) || '{}');
+        const labEntry = labBook[layout] && labBook[layout][key];
+        if (labEntry && labEntry) entry = { moves: Object.keys(labEntry).map(function(lbl){
+          return { from: lbl.slice(0,2), to: lbl.slice(2,4), freq: labEntry[lbl] };
+        }) };
+      } catch(e) {}
+      if (!entry || !entry.moves || !entry.moves.length) return null;
+    }
     // Index des coups légaux par étiquette style-livre
     const legal = legalMoves || getAllMovesForColor(aiCol);
     const byLabel = {};
@@ -16549,6 +16570,55 @@ function labStep(){
   w.postMessage({duelGame:true, wA:cur.job.w, wB:st.champion, colorA:colorA, seed:seed, msPerMove:cfg.ms, maxPlies:cfg.maxPlies, drawWin:cfg.drawWin, id:Date.now()});
   _labHBstart();
 }
+// Book issu du Labo — couche SEPAREE du OPENING_BOOK historique (mine des
+// vraies parties AO/MIGS), jamais melangee a lui. Consultee uniquement en
+// repli quand le book historique n'a rien pour la position (voir
+// getOpeningMove). Les 6 premiers coups de chaque partie du Labo sont un
+// tirage ALEATOIRE (diversification voulue, pas un choix de qualite) — les
+// enregistrer quand meme est necessaire pour que les cles s'alignent avec
+// celles du book historique (qui partent du ply 0), mais leur valeur en tant
+// que "theorie" reste faible. D'ou la separation stricte : jamais fusionne
+// aux frequences reelles, seulement un dernier recours.
+const LAB_BOOK_KEY = 'abaLabBookLearned';
+const LAB_BOOK_MAX_PLY = 10;   // meme profondeur que le book historique
+function _labMineBook(moves) {
+  if (!moves || !moves.length) return;
+  const savedBoard = board, savedCB = capturedByBlack, savedCW = capturedByWhite;
+  try {
+    board = {}; capturedByBlack = 0; capturedByWhite = 0;
+    // Meme position de depart standard que _duelSetup (cote worker) — verifiee
+    // par decodage direct de sa chaine de depart : NOIR est en bas (lignes 6-8),
+    // BLANC en haut (lignes 0-2). Sens inverse de ce a quoi on pourrait s'attendre
+    // par habitude — corrige apres l'avoir eu a l'envers au premier jet, attrape
+    // par le test unitaire (le coup mine ne correspondait a aucun coup legal reel).
+    const rowsBlack=["6,2","6,3","6,4","7,0","7,1","7,2","7,3","7,4","7,5","8,0","8,1","8,2","8,3","8,4"];
+    const rowsWhite=["0,0","0,1","0,2","0,3","0,4","1,0","1,1","1,2","1,3","1,4","1,5","2,2","2,3","2,4"];
+    rowsBlack.forEach(function(k){ board[k]='black'; }); rowsWhite.forEach(function(k){ board[k]='white'; });
+
+    let overlay = {};
+    try { overlay = JSON.parse(localStorage.getItem(LAB_BOOK_KEY) || '{}'); } catch(e) { overlay = {}; }
+    if (!overlay.standard) overlay.standard = {};
+
+    const playedLabels = [];
+    for (let i = 0; i < moves.length && i < LAB_BOOK_MAX_PLY; i++) {
+      const mv = moves[i];
+      const info = validateMove(mv.cells, mv.dir, mv.col);
+      if (!info || !info.valid) break;
+      const label = moveToPlayStrategy(mv.cells, mv.dir, info.type);
+      if (!label) break;
+      const key = playedLabels.join(',');
+      if (!overlay.standard[key]) overlay.standard[key] = {};
+      overlay.standard[key][label] = (overlay.standard[key][label] || 0) + 1;
+      playedLabels.push(label);
+      applyMove({ cells: mv.cells, dir: mv.dir, info: info, type: info.type, eject: info.ejection }, mv.col);
+    }
+    try { localStorage.setItem(LAB_BOOK_KEY, JSON.stringify(overlay)); } catch(e) {}
+  } catch(e) {
+    // jamais bloquant pour le Labo — une erreur de minage ne doit pas arreter les duels
+  } finally {
+    board = savedBoard; capturedByBlack = savedCB; capturedByWhite = savedCW;
+  }
+}
 function _labOnMsg(e){
   const d=e.data; if(!d) return;
   if(d.pong){ _labPingOk=true; if(_labRunning){ _labStatus('\u2705 Worker OK \u2014 lancement de la 1\u02b3\u1d49 partie\u2026'); labStep(); } return; }
@@ -16560,6 +16630,7 @@ function _labOnMsg(e){
     _spsaOnResult(st, d.result||{winner:'D'});
     st.gameLog=st.gameLog||[]; const rr=d.result||{winner:'D'};
     st.gameLog.unshift({ phase:'spsa', name:'SPSA θ+ vs θ-', w:(rr.winner==='A'?'θ+':(rr.winner==='D'?'nulle':'θ-')), why:rr.why||'?', plies:rr.plies||0, moves:(d.moves&&d.moves.length<=90)?d.moves:null, seed:_labLastDuel?_labLastDuel.seed:null, colorA:_labLastDuel?_labLastDuel.colorA:'black' });
+    if(d.moves && d.moves.length) _labMineBook(d.moves);
     if(st.gameLog.length>12) st.gameLog.length=12;
     labSave(st); renderLab();
     if(_labRunning) setTimeout(labStep,300);
@@ -16579,6 +16650,7 @@ function _labOnMsg(e){
       seed: _labLastDuel ? _labLastDuel.seed : null,
       colorA: _labLastDuel ? _labLastDuel.colorA : 'black',
       moves: (d.moves && d.moves.length<=90) ? d.moves : null });
+    if(d.moves && d.moves.length) _labMineBook(d.moves);
     if(st.gameLog.length>12) st.gameLog.length=12;
     // Journal data complet (pour analyse/export) — une ligne structurée par partie
     _labDataPush({
