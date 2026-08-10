@@ -16227,7 +16227,9 @@ const LAB_RECIPES=[
   ['mob', function(v){return v*2;}],      ['iso', function(v){return Math.max(4,Math.round(v*0.8));}],
   ['dng', function(v){return Math.round(v*1.3);}], ['center', function(v){return v+2;}],
   ['cohesion', function(v){return v+2;}], ['iso', function(v){return Math.round(v*1.3);}],
-  ['edge', function(v){return Math.round(v*1.25);}]
+  ['edge', function(v){return Math.round(v*1.25);}],
+  ['chain', function(v){return v+2;}],    ['chain', function(v){return Math.round(v*1.3);}],
+  ['fortress', function(v){return v+4;}], ['fortress', function(v){return Math.max(4,Math.round(v*0.75));}]
 ];
 function _labMkMutant(ch, key, nv){
   if(nv===ch[key] || nv<0) return null;
