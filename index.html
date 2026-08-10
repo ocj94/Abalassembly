@@ -24528,10 +24528,19 @@ function handleEditorClick(r, c) {
   if (editorTool === 'erase') {
     delete editorBoard[key];
   } else {
-    // si la case a déjà la couleur de l'outil → on efface (toggle)
+    // si la case a déjà la couleur de l'outil → on efface (toggle), jamais bloqué
     if (editorBoard[key] === editorTool) {
       delete editorBoard[key];
     } else {
+      // sinon on ajoute une bille : refuse au-delà de 14 par couleur (limite réelle du
+      // jeu physique) plutôt que de laisser faire et se plaindre seulement au moment
+      // de jouer la position (playFromEditor) — bug signalé par Olivier, confirmé par
+      // lecture de code : rien ici n'empêchait auparavant de dépasser 14.
+      const count = Object.values(editorBoard).filter(function(v){ return v === editorTool; }).length;
+      if (count >= 14) {
+        showToast('⚠️ Maximum 14 billes ' + (editorTool === 'black' ? 'noires' : 'blanches'));
+        return;
+      }
       editorBoard[key] = editorTool;
     }
   }
