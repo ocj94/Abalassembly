@@ -5940,6 +5940,13 @@ document.addEventListener('keydown', function(e){
         <p style="margin:10px 0 0;font-size:13px;color:var(--muted);line-height:1.7">Contrairement aux échecs, l'Abalone n'a pas de dictionnaire d'ouvertures nommées. Les noms attestés — Marguerite belge, allemande, Standard — désignent des <em>positions de départ</em>, pas des suites de coups. Les lignes sont donc identifiées ici par leurs coups et leur taux de gain réel. Rien n'est inventé.</p>
       </div>
 
+      <button class="tech-toggle-btn btn" style="margin-top:20px;font-size:12px;padding:6px 12px" onclick="toggleTechMode()">🔬 Voir le détail technique</button>
+      <div class="tech-detail" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-top:16px">
+        <h3 style="margin:0 0 12px;color:var(--white);font-size:17px">Deux répertoires distincts, à ne pas confondre</h3>
+        <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">Cette page (AbaOpening)</strong> : arbre embarqué de 90 positions, 16 819 parties de tournoi réelles en Marguerite belge uniquement — pure statistique d'observation, jamais consulté par le moteur IA.</p>
+        <p style="margin:0;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">Le book du moteur (OPENING_BOOK)</strong> : ce que l'IA consulte réellement en partie. Pour la variante Standard, miné depuis 398 vraies parties (10 demi-coups de profondeur), remplaçant un ancien book codé à la main. Belgian/German restent codés en dur (pas encore minés depuis des données réelles). Un troisième niveau existe en repli, jamais prioritaire sur les deux premiers : les propres parties auto-jouées du Labo d'auto-amélioration, consultées seulement quand ni le book réel ni le book codé en dur n'ont de réponse pour la position.</p>
+      </div>
+
     </div>
   </div>
 </div>
@@ -5952,6 +5959,13 @@ document.addEventListener('keydown', function(e){
       <div class="section-label">Moteur</div>
       <h2>Labo d'auto-amélioration récursive</h2>
       <p style="color:var(--muted);font-size:14px;max-width:680px">Duels réels moteur contre moteur, dans un worker dédié — tu peux continuer à jouer pendant.</p>
+      <button class="tech-toggle-btn btn" style="margin-top:10px;font-size:12px;padding:6px 12px" onclick="toggleTechMode()">🔬 Voir le détail technique</button>
+      <div class="tech-detail" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-top:16px;max-width:680px">
+        <h3 style="margin:0 0 10px;color:var(--white);font-size:16px">Deux méthodes, deux logiques</h3>
+        <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">SPSA</strong> (Simultaneous Perturbation Stochastic Approximation) : perturbe les 8 poids d'évaluation à la fois (θ+ et θ−), joue un duel entre les deux, met à jour tous les poids dans le sens du gagnant. Trouve les interactions entre poids qu'une exploration coup par coup manquerait.</p>
+        <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">SPRT</strong> (Sequential Probability Ratio Test, méthodologie façon Fishtest/Stockfish) : teste un seul changement à la fois contre le champion actuel, jusqu'à franchir une borne statistique — pas un nombre de parties fixé à l'avance.</p>
+        <p style="margin:0;font-size:13px;color:var(--muted);line-height:1.7">Les 8 poids (centre, cohésion, bord, mobilité, isolement, danger, alignements, forteresse) sont partagés entre les deux méthodes et avec le moteur de jeu réel — un changement validé par le Labo s'applique directement à l'IA que tu affrontes.</p>
+      </div>
     </div>
     <div id="page-lab-host" style="padding:24px 60px 60px;max-width:900px"></div>
   </div>
@@ -6130,6 +6144,11 @@ document.addEventListener('keydown', function(e){
   <div class="page-header" style="padding-bottom:32px">
     <div class="section-label">Votre progression</div>
     <h2>Statistiques</h2>
+    <button class="tech-toggle-btn btn" style="margin-top:10px;font-size:12px;padding:6px 12px" onclick="toggleTechMode()">🔬 Voir le détail technique</button>
+    <div class="tech-detail" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-top:14px;max-width:680px">
+      <strong style="color:var(--gold);font-size:13px">Comment le "Top %" est calculé</strong>
+      <p style="margin:8px 0 0;font-size:13px;color:var(--muted);line-height:1.7">Interpolation linéaire entre points de référence d'une distribution cumulative (CDF) : la valeur exacte entre deux points connus est estimée proportionnellement, pas juste arrondie au point le plus proche. L'arrondi n'intervient qu'à l'affichage — le calcul lui-même reste exact.</p>
+    </div>
   </div>
   <div style="padding:0 60px 80px;max-width:800px">
 
