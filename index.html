@@ -368,6 +368,18 @@ nav#top-nav {
 /* HIDDEN — mobile */
 .sidebar.sidebar-hidden { width: 0; border-right: none; }
 
+/* ── RTL (hébreu) : la sidebar passe à droite, pas seulement le texte ──
+   Portée volontairement limitée aux points structurels identifiés (sidebar,
+   dropdowns qui s'ancrent left:0, padding du contenu) — pas une passe RTL
+   complète du fichier. Les flèches directionnelles (→ › ▶) ne sont PAS
+   retournées ici : ce sont des caractères Unicode "bidi-mirrored", le
+   navigateur les retourne déjà tout seul dès que dir="rtl" est posé sur
+   <html>, sans qu'il faille toucher au texte. */
+html[dir="rtl"] .sidebar { left: auto; right: 0; border-right: none; border-left: 1px solid var(--border); }
+html[dir="rtl"] .sidebar.sidebar-hidden { border-left: none; }
+html[dir="rtl"] .lang-menu, html[dir="rtl"] .help-menu { left: auto; right: 0; }
+html[dir="rtl"] .lang-option { text-align: right; }
+
 /* Items */
 .sidebar-items {
   flex: 1; overflow-y: auto; overflow-x: hidden;
@@ -425,6 +437,8 @@ nav#top-nav {
 
 body.sidebar-expanded-body { padding-left: 220px; }
 body.sidebar-hidden-body   { padding-left: 0; }
+html[dir="rtl"] body.sidebar-expanded-body { padding-left: 0; padding-right: 220px; }
+html[dir="rtl"] body.sidebar-hidden-body   { padding-right: 0; }
 
 /* ── Logo in top-nav ── */
 nav#top-nav .logo {
@@ -440,6 +454,7 @@ nav#top-nav .logo {
   .sidebar { width: 220px; }
   .sidebar .s-label { display: inline; }
   body { padding-left: 220px; }
+  html[dir="rtl"] body { padding-left: 0; padding-right: 220px; }
   .sidebar-toggle-btn { display: none; }
 }
 @media (min-width: 600px) and (max-width: 1199px) {
@@ -447,6 +462,7 @@ nav#top-nav .logo {
   .sidebar { width: 52px; }
   .sidebar .s-label { display: none; }
   body { padding-left: 52px; }
+  html[dir="rtl"] body { padding-left: 0; padding-right: 52px; }
 }
 @media (max-width: 599px) {
   /* Mobile: sidebar hidden by default, hamburger visible */
@@ -454,6 +470,8 @@ nav#top-nav .logo {
   .sidebar.sidebar-mobile-open { width: 220px !important; border-right: 1px solid var(--border) !important; }
   .sidebar.sidebar-mobile-open .s-label { display: inline; }
   body { padding-left: 0 !important; }
+  html[dir="rtl"] .sidebar.sidebar-mobile-open { border-right: none !important; border-left: 1px solid var(--border) !important; }
+  html[dir="rtl"] body { padding-left: 0 !important; padding-right: 0 !important; }
 
   /* Hamburger toujours visible */
   .sidebar-toggle-btn { display: flex !important; }
@@ -22852,23 +22870,30 @@ function applySidebarState() {
   const sb = document.getElementById('sidebar');
   const body = document.body;
   const w = window.innerWidth;
+  const rtl = (typeof isRTL === 'function') && isRTL();
+  function setPad(val) {
+    // padding JS = style inline, prioritaire sur le CSS [dir="rtl"] — donc on doit
+    // choisir le bon côté ici même, pas seulement dans la feuille de style.
+    if (rtl) { body.style.paddingLeft = '0'; body.style.paddingRight = val; }
+    else { body.style.paddingRight = '0'; body.style.paddingLeft = val; }
+  }
 
   if (w >= 1200) {
     // Large: expanded unless user forced compact
     const expand = sidebarState !== 'compact';
     sb.className = 'sidebar ' + (expand ? 'sidebar-expanded' : 'sidebar-compact');
-    body.style.paddingLeft = expand ? '220px' : '52px';
+    setPad(expand ? '220px' : '52px');
     updateExpandBtn(expand);
   } else if (w >= 600) {
     // Medium: compact icons only unless user forced expanded
     const expand = sidebarState === 'expanded';
     sb.className = 'sidebar ' + (expand ? 'sidebar-expanded' : 'sidebar-compact');
-    body.style.paddingLeft = expand ? '220px' : '52px';
+    setPad(expand ? '220px' : '52px');
     updateExpandBtn(expand);
   } else {
     // Mobile: hidden by default
     sb.className = 'sidebar sidebar-hidden';
-    body.style.paddingLeft = '0';
+    setPad('0');
   }
 }
 
@@ -22883,6 +22908,9 @@ function updateExpandBtn(expanded) {
 function currentLang() {
   try { return localStorage.getItem('abalone_lang') || 'FR'; } catch(e) { return 'FR'; }
 }
+// Seule langue RTL du sélecteur pour l'instant. Centralisé ici pour que tout
+// le reste (CSS via [dir="rtl"], JS via cette fonction) parte d'une source unique.
+function isRTL() { return currentLang() === 'HE'; }
 
 // Restaure la langue choisie au chargement (dictionnaire nav persistant)
 if (currentLang() !== 'FR') { try { applyTranslations(); } catch(e){} }
@@ -22974,6 +23002,7 @@ const TRANSLATIONS = {
 // La langue FR utilise le texte original déjà présent dans le HTML.
 function applyTranslations() {
   const lang = currentLang();
+  document.documentElement.dir = isRTL() ? 'rtl' : 'ltr';
   const dict = TRANSLATIONS[lang];
   // Éléments texte simple
   document.querySelectorAll('[data-i18n]').forEach(function(el) {
@@ -23023,6 +23052,10 @@ function setLanguage(code) {
   // Applique le dictionnaire intégré (navigation) : instantané, sans navigateur.
   // currentLang() lit le localStorage qu'on vient d'écrire.
   if (typeof applyTranslations === 'function') applyTranslations();
+  // Re-applique la sidebar : le padding du <body> est un style inline (JS), pas
+  // seulement du CSS, donc un simple [dir="rtl"] ne suffit pas à le faire basculer
+  // — sans cet appel, passer HE↔LTR ne bascule le bon côté qu'après un resize.
+  if (typeof applySidebarState === 'function') applySidebarState();
   // Le français est la langue native du site → pas de traduction nécessaire
   if (code === 'FR') {
     if (typeof showToast === 'function') showToast(sel.flag + ' Français');
