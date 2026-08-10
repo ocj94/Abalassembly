@@ -73,7 +73,7 @@ Ce qu'il masque : le **chat**, le **Labo IA**, les **paramètres** et les **lien
 - Bots conseillers (Bot Noir / Bot Blanc), duels de bots, skins de billes à débloquer, vue 3D à la demande
 - **Vue à la première personne** : avec les blancs, le plateau se retourne pour que votre camp soit toujours en bas. La notation, elle, reste absolue — `e5` désigne `e5` quelle que soit l'orientation
 - **Mode Enfant** (voir plus haut) : plateau allégé, aide au coup, sortie protégée
-- **Mode technique** — réglage global qui bascule l'affichage de contenu détaillé (méthode, chiffres bruts, limites) sur les pages qui en ont, sans encombrer la vue joueur par défaut. Première page équipée : Tables de finale
+- **Mode technique** — réglage global qui bascule l'affichage de contenu détaillé (méthode, chiffres bruts, limites) sur les pages qui en ont, sans encombrer la vue joueur par défaut. Pages équipées : Tables de finale, Ouvertures, Labo, Statistiques
 - **12 langues au sélecteur** — français natif ; anglais et hébreu avec traduction embarquée de la navigation (instantanée, sans réseau) ; les 9 autres s'appuient sur la traduction native du navigateur, avec un guide adapté selon Chrome/Firefox/Safari/Edge. **Hébreu en RTL** : sidebar, mise en page et menus déroulants basculent à droite ; les flèches directionnelles se retournent nativement (caractères Unicode *bidi-mirrored*, aucun texte réécrit)
 
 **Apprendre**
