@@ -13163,7 +13163,7 @@ function resetGame() {
   lastMoveTime = Date.now();
   resetStyleGame();   // remet à zéro le profil de style pour la nouvelle partie
   _aiGen++;               // invalide tout calcul IA en cours (résultats périmés ignorés)
-  terminateAIWorker();    // worker neuf à la prochaine partie : pas de fuite, pas de coup fantôme
+  terminateAIWorker(); terminateAIWorkerPool();    // worker(s) neuf(s) à la prochaine partie : pas de fuite, pas de coup fantôme
   showAIThinking(false);  // masque l'indicateur si l'IA réfléchissait encore
   if (typeof armInactivityCancel === 'function') armInactivityCancel();  // annule la partie si personne ne joue dans la 1re minute
   _emitAbaEvent('positionChanged', { layout: (typeof currentLayout !== 'undefined') ? currentLayout : null });
@@ -15091,12 +15091,14 @@ function search(depth,alpha,beta,maxi,pov,prevKey){
 }
 function _repKeyOf(bd){let s='';for(let r=0;r<9;r++){for(let c=0;c<ROWS[r];c++){const v=bd[r+','+c];s+=v?(v==='black'?'b':'w'):'-';}}return s;}
 function _repCountMap(h){if(!h||!h.length)return null;const m=new Map();for(const k of h)m.set(k,(m.get(k)||0)+1);return m;}
-function searchBestMove(pov,maxDepth,timeLimit,hist){
-  const start=Date.now();let bestMove=null,reached=0,lastRoots=null;
+function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
+  const start=Date.now();let bestMove=null,bestScore=-Infinity,reached=0,lastRoots=null;
   killerMoves={};historyTable={};counterMove={};TT.clear();_nodes=0;_ttLk=0;_ttHit=0;
   const repCount=_repCountMap(hist);
+  const split=(workerCount>1);   // partage des racines entre plusieurs workers (voir requestAIMovePooled)
   for(let d=1;d<=maxDepth;d++){
     let moves=getAllMovesForColor(pov);if(!moves.length)break;
+    if(split){moves=moves.filter(function(m,idx){return idx%workerCount===workerIndex;});if(!moves.length)break;}
     moves=orderMoves(moves,d,null);
     let lb=null,ls=-Infinity,alpha=-Infinity,roots=[],cut=false;
     for(const m of moves){const mk=moveKey(m);const u=applyMove(m,pov);let s=search(d-1,-Infinity,Infinity,false,pov,mk);
@@ -15104,9 +15106,17 @@ function searchBestMove(pov,maxDepth,timeLimit,hist){
       undoMove(u);
       roots.push({cells:m.cells,dir:m.dir,type:m.type,eject:m.eject,score:s});
       if(s>ls){ls=s;lb=m;}if(s>alpha)alpha=s;if(Date.now()-start>timeLimit){cut=true;break;}}
-    if(lb){bestMove=lb;reached=d;if(!cut)lastRoots=roots;}if(Date.now()-start>timeLimit)break;}
+    // bestScore=ls (pas lastRoots[0].score) : correct meme si cette profondeur a
+    // ete coupee par le minuteur avant d'explorer tous les coups — lastRoots ne
+    // change alors pas (garde la profondeur precedente, complete), donc le lire
+    // pour "le score du coup choisi" donnerait un score d'une AUTRE profondeur
+    // que celle qui a reellement produit bestMove. Trouve et corrige en testant
+    // le partage multi-worker (requestAIMovePooled) : le meme coup rapportait
+    // deux scores differents (0 vs 38) selon qu'il venait d'une recherche coupee
+    // ou complete — pas un bug de calcul, un bug de RAPPORT du score correct.
+    if(lb){bestMove=lb;bestScore=ls;reached=d;if(!cut)lastRoots=roots;}if(Date.now()-start>timeLimit)break;}
   const top=lastRoots?lastRoots.slice().sort((a,b)=>b.score-a.score).slice(0,5):null;
-  _metrics={nodes:_nodes,depth:reached,time:Date.now()-start,ttHit:_ttLk?Math.round(100*_ttHit/_ttLk):0,rootMoves:top};
+  _metrics={nodes:_nodes,depth:reached,time:Date.now()-start,ttHit:_ttLk?Math.round(100*_ttHit/_ttLk):0,rootMoves:top,bestScore:bestScore};
   return bestMove;
 }
 function analyzePosition(pov,depth,played){
@@ -15195,7 +15205,7 @@ self.onmessage=function(e){
     self.postMessage({analyze:true,index:d.index,best:r.bestScore,played:r.playedScore,rank:r.rank,total:r.total,bestMove:r.bestMove});
     return;
   }
-  const move=searchBestMove(d.color, d.depth, d.time, d.hist);
+  const move=searchBestMove(d.color, d.depth, d.time, d.hist, d.workerIndex, d.workerCount);
   self.postMessage({move:move, metrics:_metrics});
 };
 `;
@@ -15218,6 +15228,86 @@ function getAIWorker() {
 function terminateAIWorker() {
   if (_aiWorker) { try { _aiWorker.terminate(); } catch(e){} _aiWorker = null; }
   if (_aiWorkerURL) { try { URL.revokeObjectURL(_aiWorkerURL); } catch(e){} _aiWorkerURL = null; }
+}
+
+/* ═══════════════════════════════════════════
+   RECHERCHE MULTI-WORKER (partage de racines, même appareil)
+   Pas de Lazy SMP (mémoire partagée) — bloqué par l'absence des en-têtes
+   COOP/COEP sur GitHub Pages, nécessaires à SharedArrayBuffer. Ceci est plus
+   simple : plusieurs Workers indépendants (postMessage, pas de mémoire
+   partagée), chacun explore une tranche différente des coups racine sur SA
+   PROPRE table de transposition. S'adapte à l'appareil (téléphone/tablette/
+   PC) via navigator.hardwareConcurrency — un appareil à 2 cœurs ne lance
+   qu'1 worker (= comportement actuel, inchangé) ; un PC à 8+ cœurs en lance
+   jusqu'à 4 (plafonné volontairement : rendements décroissants + chaleur/
+   batterie sur portable).
+═══════════════════════════════════════════ */
+let _aiWorkerPool = [];
+function detectAIWorkerCount() {
+  const cores = (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) ? navigator.hardwareConcurrency : 2;
+  return Math.max(1, Math.min(cores - 1, 4));
+}
+function getAIWorkerPool(n) {
+  while (_aiWorkerPool.length < n) {
+    try {
+      const blob = new Blob([AI_WORKER_CODE], { type: 'application/javascript' });
+      const url = URL.createObjectURL(blob);
+      const w = new Worker(url);
+      w._blobUrl = url;
+      _aiWorkerPool.push(w);
+    } catch(e) { break; }   // Worker indisponible → on rend ce qu'on a (peut être vide)
+  }
+  return _aiWorkerPool.slice(0, n);
+}
+function terminateAIWorkerPool() {
+  _aiWorkerPool.forEach(function(w){
+    try { w.onmessage = null; w.terminate(); } catch(e){}
+    try { URL.revokeObjectURL(w._blobUrl); } catch(e){}
+  });
+  _aiWorkerPool = [];
+}
+/* Lance une recherche partagée entre plusieurs workers pour UNE position.
+   Retourne true si le calcul a démarré (onDone sera appelé plus tard) ;
+   retourne false si le partage n'est pas possible (appareil à 1 cœur utile,
+   ou Worker indisponible) — l'appelant doit alors utiliser le chemin
+   mono-worker existant, inchangé. */
+function requestAIMovePooled(params, onDone) {
+  const n = detectAIWorkerCount();
+  if (n <= 1) return false;
+  const workers = getAIWorkerPool(n);
+  if (workers.length <= 1) return false;
+
+  const results = new Array(workers.length).fill(null);
+  let remaining = workers.length, doneFlag = false;
+
+  function finish() {
+    if (doneFlag) return; doneFlag = true;
+    clearTimeout(timeoutId);
+    workers.forEach(function(w){ w.onmessage = null; });
+    let best = null, bestScore = -Infinity, bestMetrics = null;
+    for (const r of results) {
+      if (!r || !r.move) continue;
+      // metrics.bestScore (pas rootMoves[0].score) : le score qui correspond
+      // reellement au coup choisi, meme si la derniere profondeur a ete coupee
+      // par le minuteur avant que rootMoves ne soit mis a jour vers elle (voir
+      // le commentaire dans searchBestMove).
+      const sc = (r.metrics && typeof r.metrics.bestScore === 'number') ? r.metrics.bestScore : -Infinity;
+      if (sc > bestScore) { bestScore = sc; best = r.move; bestMetrics = r.metrics; }
+    }
+    onDone(best, bestMetrics);
+  }
+  const timeoutId = setTimeout(finish, (params.time || 2000) + 4000);
+
+  workers.forEach(function(w, i) {
+    w.onmessage = function(e) {
+      if (doneFlag) return;
+      results[i] = e.data;
+      remaining--;
+      if (remaining <= 0) finish();
+    };
+    w.postMessage(Object.assign({}, params, { workerIndex: i, workerCount: workers.length }));
+  });
+  return true;
 }
 
 /* Force l'IA à jouer maintenant — idée de Saab : quand la recherche prend
@@ -15243,6 +15333,7 @@ function forceAINow() {
   if (typeof soundForceAI === 'function') soundForceAI();
   if (typeof _aiGen !== 'undefined') _aiGen++;
   terminateAIWorker();
+  if (typeof terminateAIWorkerPool === 'function') terminateAIWorkerPool();
   showAIThinking(false);
 
   try {
@@ -17388,6 +17479,29 @@ function aiMove() {
   showAIThinking(true);
   const gen = _aiGen;   // capture la génération : si reset pendant la réflexion, ce calcul sera abandonné
   const aiW = updateAIStyle();   // poids d'éval adaptés à ton style (profilage adverse)
+
+  // Recherche multi-worker si l'appareil a plus d'un cœur utile à offrir
+  // (voir detectAIWorkerCount) — repli automatique et silencieux sur le
+  // chemin mono-worker existant si non disponible ou pas avantageux.
+  const pooledParams = {
+    board: JSON.parse(JSON.stringify(board)),
+    capturedByWhite: capturedByWhite,
+    capturedByBlack: capturedByBlack,
+    color: ai,
+    depth: config.depth,
+    time: config.time,
+    weights: aiW,
+    hist: _gameHistKeys()
+  };
+  const pooledStarted = (typeof requestAIMovePooled === 'function') && requestAIMovePooled(pooledParams, function(chosen, metrics) {
+    showAIThinking(false);
+    if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
+    if (metrics) updateAIMetrics(metrics);
+    if (gameOver) return;
+    if (!chosen) { currentTurn=human; updateStatus(); return; }
+    executeAIMove(chosen);
+  });
+  if (pooledStarted) return;
 
   const worker = getAIWorker();
   if (worker) {
