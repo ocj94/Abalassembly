@@ -116,6 +116,7 @@ Ce qu'il masque : le **chat**, le **Labo IA**, les **paramètres** et les **lien
 | **Hors-ligne d'abord** | Aucune requête réseau nécessaire. Progression, réglages et puzzles résolus vivent dans le `localStorage`. |
 | **IA dans un Worker** | La recherche tourne dans un thread séparé ; l'interface reste fluide pendant la réflexion. |
 | **Recherche multi-worker adaptative** | Sur un appareil à plusieurs cœurs, la recherche se partage entre plusieurs Workers (partage des coups racine, chacun sa propre table de transposition — pas de mémoire partagée, GitHub Pages ne pose pas les en-têtes nécessaires à `SharedArrayBuffer`). S'adapte via `navigator.hardwareConcurrency` : jusqu'à 4 workers sur un PC multi-cœurs, 1 seul (comportement identique à avant) sur un téléphone contraint. |
+| **Table de transposition plafonnée selon la RAM** | Le cache de recherche (TT) s'adapte à `navigator.deviceMemory` (repli à 4 Go si l'API est indisponible) plutôt que de grossir sans limite — pertinent surtout en mode Minimax (recherche non bornée en temps). Le plafond ne peut jamais changer un résultat, seulement l'efficacité du cache une fois atteint. |
 
 ## Backend (dormant)
 
