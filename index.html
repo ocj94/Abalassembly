@@ -14602,6 +14602,21 @@ function hashBoard(){
 }
 let TT = new Map();
 const TT_EXACT=0, TT_LOWER=1, TT_UPPER=2;
+// Plafond de taille de la TT, adapte a la RAM de l'appareil. navigator.deviceMemory
+// (Chrome/Edge) donne une estimation approximative en Go, plafonnee a 8 par le
+// navigateur lui-meme pour des raisons de confidentialite — indisponible sur
+// Firefox/Safari (undefined), d'ou le repli prudent a 4 Go par defaut. Ne
+// touche jamais a la JUSTESSE de la recherche (contrairement a Null Move/LMR,
+// abandonnes plus tot pour cette raison) : une fois le plafond atteint, on
+// arrete simplement d'ajouter de nouvelles entrees — le pire cas est un cache
+// moins efficace, jamais un resultat faux (search() gere deja normalement le
+// cas "pas dans la TT").
+const TT_MAX = (function(){
+  const gb = (typeof navigator!=='undefined' && navigator.deviceMemory) ? navigator.deviceMemory : 4;
+  const budgetBytes = gb*1024*1024*1024*0.05;   // 5% de la RAM estimee, pour la TT seule
+  const bytesPerEntry = 200;                     // estimation prudente par entree (V8)
+  return Math.max(50000, Math.floor(budgetBytes/bytesPerEntry));
+})();
 
 // — Move ordering : killer moves + history heuristic —
 let killerMoves = {};
@@ -14681,7 +14696,7 @@ function search(depth, alpha, beta, maximizing, povColor) {
   let flag = TT_EXACT;
   if (best <= alphaOrig) flag = TT_UPPER;
   else if (best >= beta) flag = TT_LOWER;
-  TT.set(h, { depth, value:best, flag, move: bestMove ? moveKey(bestMove) : null });
+  if (TT.size < TT_MAX) TT.set(h, { depth, value:best, flag, move: bestMove ? moveKey(bestMove) : null });
   return best;
 }
 
@@ -14862,6 +14877,7 @@ function _rand32(){return(Math.random()*0xFFFFFFFF)>>>0;}
 const ZOBRIST={};for(let r=0;r<9;r++)for(let c=0;c<ROWS[r];c++)ZOBRIST[akey(r,c)]={black:_rand32(),white:_rand32()};
 function hashBoard(){let h=0;for(const k in board){const v=board[k];if(v==='black')h^=ZOBRIST[k].black;else if(v==='white')h^=ZOBRIST[k].white;}return h>>>0;}
 let TT=new Map();const TT_EXACT=0,TT_LOWER=1,TT_UPPER=2;
+const TT_MAX=(function(){const gb=(typeof navigator!=='undefined'&&navigator.deviceMemory)?navigator.deviceMemory:4;const budgetBytes=gb*1024*1024*1024*0.05;const bytesPerEntry=200;return Math.max(50000,Math.floor(budgetBytes/bytesPerEntry));})();
 let killerMoves={},historyTable={},counterMove={};
 function moveKey(m){return m.cells.map(c=>c.r+','+c.c).sort().join('|')+'>'+m.dir.q+','+m.dir.r;}
 function orderMoves(moves,depth,ttMove,prevKey){
@@ -15128,7 +15144,7 @@ function search(depth,alpha,beta,maxi,pov,prevKey){
       if(prevKey)counterMove[prevKey]=mk;
       break;}}
   let flag=TT_EXACT;if(best<=ao)flag=TT_UPPER;else if(best>=beta)flag=TT_LOWER;
-  TT.set(h,{depth,value:best,flag,move:bestMove?moveKey(bestMove):null});
+  if(TT.size<TT_MAX)TT.set(h,{depth,value:best,flag,move:bestMove?moveKey(bestMove):null});
   return best;
 }
 function _repKeyOf(bd){let s='';for(let r=0;r<9;r++){for(let c=0;c<ROWS[r];c++){const v=bd[r+','+c];s+=v?(v==='black'?'b':'w'):'-';}}return s;}
