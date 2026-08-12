@@ -14563,6 +14563,204 @@ const LABELS_EXPLICATION = {
   chainScore:  'Alignements',
   fortScore:   'Forteresse',
 };
+/* ═══════════════════════════════════════════
+   MOTEUR DE COMPRÉHENSION — étage 1 : décomposition spatiale
+   Reprend exactement les mêmes grandeurs par bille que evaluateBoard
+   (allies, chainLinks, iso, danger, mobilité, forteresse) mais les
+   regroupe par ZONE plutôt que de tout sommer en un seul total global.
+   Fonction séparée d'evaluateBoard (pas dans le chemin chaud de la
+   recherche IA) : appelée seulement à l'affichage, jamais pendant
+   search()/quiescence(). Deux découpages indépendants, dans la même
+   passe :
+     - colonne : aile gauche / centre / aile droite, mesurée par la
+       position DANS SA PROPRE RANGÉE (col - (ROWS[row]-1)/2), PAS par
+       la coordonnée axiale q — q suit un axe hexagonal incliné, pas la
+       colonne écran, et donnait un découpage faux (aile droite à 0
+       bille sur une position pourtant symétrique, détecté en testant).
+     - distance au centre : cœur (0-1) / intermédiaire (2-3) / bord (4,
+       même seuil que isEdge déjà utilisé dans evaluateBoard).
+   Vérifié : totaux par couleur = 14 sur la position de départ, symétrie
+   gauche/droite confirmée, cohérence entre les deux découpages (même
+   somme de cohésion), position de contrôle asymétrique (3 billes
+   alignées) correctement classée à 100% dans la bonne zone.
+═══════════════════════════════════════════ */
+function _zoneColonne(row, col) { const cc = col - (ROWS[row]-1)/2; return cc<=-1.5 ? 'aileGauche' : (cc>=1.5 ? 'aileDroite' : 'centre'); }
+function _zoneDistance(d) { return d<=1 ? 'coeur' : (d<=3 ? 'intermediaire' : 'bord'); }
+function _zoneVide() { return { cohesion:0, danger:0, mobilite:0, isolement:0, chaines:0, forteresse:0, billes:0 }; }
+function analyzeZones(color) {
+  const zones = { colonne: { aileGauche: _zoneVide(), centre: _zoneVide(), aileDroite: _zoneVide() },
+                   distance: { coeur: _zoneVide(), intermediaire: _zoneVide(), bord: _zoneVide() } };
+  const zonesEnnemi = { colonne: { aileGauche: _zoneVide(), centre: _zoneVide(), aileDroite: _zoneVide() },
+                         distance: { coeur: _zoneVide(), intermediaire: _zoneVide(), bord: _zoneVide() } };
+  for (const k in board) {
+    const v = board[k];
+    if (!v) continue;
+    const parts = k.split(',');
+    const r = +parts[0], c = +parts[1];
+    const ax = rcToAxial(r, c);
+    const dist = axHexDist(ax, EVAL_CENTER);
+    let allies = 0, emptyN = 0;
+    for (const d of AX_DIRS) {
+      const n = axialToRc(ax.q+d.q, ax.r+d.r);
+      if (!n) continue;
+      const nv = board[akey(n.r,n.c)];
+      if (nv === v) allies++;
+      else if (!nv) emptyN++;
+    }
+    const iso = allies === 0;
+    const isEdge = dist >= 4;
+    const fort = allies >= 4;
+    let chainLinks = 0;
+    for (const pair of EVAL_AXES) {
+      const fwd = pair[0], bwd = pair[1];
+      const bd = AX_DIRS[bwd], bn = axialToRc(ax.q+bd.q, ax.r+bd.r);
+      if (bn && board[akey(bn.r,bn.c)] === v) continue;
+      const fd = AX_DIRS[fwd];
+      let aq = ax.q, ar = ax.r, len = 1;
+      while (true) {
+        aq += fd.q; ar += fd.r;
+        const nrc = axialToRc(aq, ar);
+        if (!nrc) break;
+        if (board[akey(nrc.r,nrc.c)] !== v) break;
+        len++;
+      }
+      if (len >= 2) chainLinks += (len-1);
+    }
+    const target = (v === color) ? zones : zonesEnnemi;
+    const zc = target.colonne[_zoneColonne(r, c)];
+    const zd = target.distance[_zoneDistance(dist)];
+    [zc, zd].forEach(function(z){
+      z.billes++;
+      z.cohesion += allies;
+      z.mobilite += emptyN;
+      if (iso) z.isolement++;
+      if (isEdge && allies<=1) z.danger++;
+      if (fort) z.forteresse++;
+      z.chaines += chainLinks;
+    });
+  }
+  return { moi: zones, adversaire: zonesEnnemi };
+}
+
+/* ═══ Étage 2 : faiblesse de soutien ═══
+   Soutien d'une bille = profondeur (0/1/2) de billes alliées juste derrière
+   elle, sur SON MEILLEUR axe parmi les 3 (le maximum, pas le minimum). Une
+   bille alignée sur un seul axe a normalement 0 sur les deux autres — ce
+   n'est pas une faiblesse, juste la géométrie d'une ligne droite. La vraie
+   faiblesse, c'est de n'avoir AUCUN axe avec du soutien du tout (max = 0
+   partout). Erreur trouvée en testant : ma première version prenait le
+   MINIMUM des 3 axes, ce qui classait presque toutes les billes comme
+   "faibles" (n'importe quelle ligne droite a 0 sur ses 2 axes non alignés)
+   — pas un signal utile. Vérifié sur une ligne de 3 : queue=0 (vraiment
+   faible), milieu=1, tête=2 — exactement l'attendu avec le maximum. */
+function analyzeSupport(color) {
+  const billesFaibles = [];
+  let sommeMax = 0, nb = 0;
+  for (const k in board) {
+    const v = board[k];
+    if (v !== color) continue;
+    const parts = k.split(',');
+    const r = +parts[0], c = +parts[1];
+    const ax = rcToAxial(r, c);
+    let maxSoutien = 0;
+    EVAL_AXES.forEach(function(pair, i){
+      const bwd = pair[1];
+      const bd = AX_DIRS[bwd];
+      let aq = ax.q, ar = ax.r, depth = 0;
+      while (depth < 2) {
+        aq += bd.q; ar += bd.r;
+        const nrc = axialToRc(aq, ar);
+        if (!nrc) break;
+        if (board[akey(nrc.r,nrc.c)] !== v) break;
+        depth++;
+      }
+      if (depth > maxSoutien) maxSoutien = depth;
+    });
+    nb++; sommeMax += maxSoutien;
+    if (maxSoutien === 0) billesFaibles.push({ r:r, c:c });
+  }
+  return { nbBillesSansSoutien: billesFaibles.length, billesFaibles: billesFaibles, soutienMoyen: nb?sommeMax/nb:0, totalBilles: nb };
+}
+
+/* ═══ Étage 3 : potentiel de sumito ═══
+   Pas une estimation — lecture directe des vrais coups déjà générés par
+   getAllMovesForColor. Les codes 1-6 (encodage ULA, documenté plus haut)
+   sont exactement les sumitos : 1-3 éjectent, 4-6 poussent sans éjecter. */
+function analyzeSumitoPotential(color) {
+  const moves = getAllMovesForColor(color);
+  const sumitoMoves = moves.filter(function(m){ return m.code && m.code <= 6; });
+  const parType = { '3v2':0, '3v1':0, '2v1':0 };
+  sumitoMoves.forEach(function(m){
+    if (m.code===1||m.code===4) parType['3v2']++;
+    else if (m.code===2||m.code===5) parType['3v1']++;
+    else if (m.code===3||m.code===6) parType['2v1']++;
+  });
+  return {
+    total: sumitoMoves.length,
+    ejections: sumitoMoves.filter(function(m){ return m.code<=3; }).length,
+    poussees: sumitoMoves.filter(function(m){ return m.code>=4; }).length,
+    parType: parType
+  };
+}
+
+/* ═══ Étage 4 : menace immédiate ═══
+   Vraie liste de coups adverses, pas une estimation. Réutilise exactement
+   la même marche que abApplyMove (info.oppStart, info.push) pour identifier
+   les cases concernées par un coup, sans l'exécuter. */
+function _billesViseesParCoup(m) {
+  const cells = [];
+  let cur = { q: m.info.oppStart.q, r: m.info.oppStart.r };
+  for (let i = 0; i < m.info.push; i++) {
+    cells.push({ q: cur.q, r: cur.r });
+    cur = { q: cur.q + m.dir.q, r: cur.r + m.dir.r };
+  }
+  return cells.map(function(a){ return axialToRc(a.q, a.r); }).filter(Boolean);
+}
+function analyzeMenaceImmediate(color) {
+  const enemy = color === 'black' ? 'white' : 'black';
+  const enemyMoves = getAllMovesForColor(enemy);
+  const sumitoMoves = enemyMoves.filter(function(m){ return m.code && m.code <= 6; });
+  const ejections = sumitoMoves.filter(function(m){ return m.eject; });
+  const poussees = sumitoMoves.filter(function(m){ return !m.eject; });
+  const billesToucheesSet = new Set();
+  sumitoMoves.forEach(function(m){
+    _billesViseesParCoup(m).forEach(function(rc){ billesToucheesSet.add(rc.r+','+rc.c); });
+  });
+  return {
+    nbCoupsMenacants: sumitoMoves.length,
+    nbEjections: ejections.length,
+    nbPoussees: poussees.length,
+    nbBillesMenacees: billesToucheesSet.size,
+    billesMenacees: Array.from(billesToucheesSet)
+  };
+}
+
+/* ═══ Étage 5 : profondeur tactique ═══
+   Suit une vraie ligne d'éjections en chaîne jusqu'à ce que la position
+   redevienne calme — même principe que quiescence(), mais fonction séparée :
+   celle-ci sert à l'affichage, jamais au chemin chaud de la recherche IA
+   (aucun risque de ralentir le moteur). Vérifié : le plateau est intact
+   après l'analyse (tous les applyMove sont annulés dans l'ordre inverse). */
+function analyzeProfondeurTactique(color, maxDepth) {
+  maxDepth = maxDepth || 8;
+  const undos = [];
+  const billesImpliquees = [];
+  let profondeur = 0;
+  let currentColor = color;
+  while (profondeur < maxDepth) {
+    const moves = getAllMovesForColor(currentColor).filter(function(m){ return m.eject; });
+    if (!moves.length) break;
+    const m = moves[0];
+    const u = applyMove(m, currentColor);
+    undos.push(u);
+    billesImpliquees.push(m.cells);
+    profondeur++;
+    currentColor = currentColor === 'black' ? 'white' : 'black';
+  }
+  for (let i = undos.length - 1; i >= 0; i--) undoMove(undos[i]);
+  return { profondeur: profondeur, depart: color, billesImpliquees: billesImpliquees };
+}
+
 function calculerExplicationCoup(move, color) {
   const avant = evaluateBoard(color, true);
   const undo = applyMove(move, color);
