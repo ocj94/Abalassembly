@@ -18,5 +18,6 @@ Un jeu d'Abalone complet dans un seul fichier HTML : zéro dépendance, hors-lig
 - **Vue à la première personne**, partie par code, analyse d'après-partie, puzzle du jour
 - **12 langues** au sélecteur — anglais et hébreu avec traduction embarquée de la navigation, les autres via la traduction du navigateur ; hébreu en RTL (sidebar et mise en page basculent à droite)
 - **IA multi-worker** — se partage entre plusieurs cœurs si l'appareil en offre (jusqu'à 4), sinon se comporte comme avant
+- **Cache de recherche plafonné selon la RAM** — s'adapte à l'appareil plutôt que de grossir sans limite, surtout utile en mode Minimax (recherche non bornée en temps)
 - **Mode technique** — sur les pages qui en ont (Tables de finale, Ouvertures, Labo, Statistiques), un bouton révèle méthode et chiffres bruts sans encombrer la vue par défaut
 - Suite de tests versionnée : `node tests/regression.js`
