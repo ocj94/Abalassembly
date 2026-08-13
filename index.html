@@ -5541,6 +5541,10 @@ document.addEventListener('keydown', function(e){
             <button onclick="chercherMenaceTactique()" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--text);font-size:12px">🔍 Chercher une menace tactique (recherche à la demande)</button>
             <div id="comprehension-menace-n" style="text-align:center;font-size:12px;color:var(--muted);margin-top:8px;min-height:16px"></div>
           </div>
+          <div style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px;display:flex;gap:8px">
+            <button onclick="capturerReference()" style="flex:1;padding:9px;background:transparent;border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--text);font-size:11px">📌 Capturer comme référence</button>
+            <button onclick="effacerReference()" style="padding:9px 12px;background:transparent;border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--muted);font-size:11px">🗑</button>
+          </div>
         </div>
         <!-- Liste des coups -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px">
@@ -14895,6 +14899,61 @@ function _avecPlateau(b, capB, capW, fn) {
   } finally {
     board = savedBoard; capturedByBlack = savedCapB; capturedByWhite = savedCapW;
   }
+}
+
+/* ═══ Empreinte positionnelle — étape 1 ═══
+   Vecteur de 12 dimensions, toutes déjà réelles et testées (evaluateBoard,
+   analyzeZones, analyzeSupport, etc. — rien d'inventé). Normalisées en
+   ratios (pas des sommes brutes) pour comparer des positions à effectifs
+   différents équitablement. Les zones colonne sont rapportées en
+   "forte/faible" (max/min entre aile gauche et aile droite) plutôt qu'en
+   "gauche/droite" littéral : un miroir gauche-droite de la même position
+   doit donner une empreinte quasi identique, sinon l'idée même
+   d'empreinte échoue sur son cas le plus évident.
+   Vérifié : position comparée à elle-même → distance exactement 0 ;
+   miroir gauche-droite exact de la même position → distance exactement 0
+   (le vecteur est bien invariant au miroir) ; position nettement
+   différente → distance separée d'un ordre de grandeur, pas de zone
+   grise ambiguë sur ce cas de test. */
+function calculerEmpreinte(color) {
+  const enemy = color === 'black' ? 'white' : 'black';
+  let myCount = 0, enCount = 0;
+  for (const k in board) { if (board[k] === color) myCount++; else if (board[k]) enCount++; }
+
+  const z = analyzeZones(color);
+  const s = analyzeSupport(color);
+  const su = analyzeSumitoPotential(color);
+  const me = analyzeMenaceImmediate(color);
+  const pr = analyzeProfondeurTactique(color);
+  const mo = analyzeMobilite2Coups(color);
+
+  const mesBilles = myCount || 1;
+  const mesCoupsLegaux = getAllMovesForColor(color).length || 1;
+
+  const zc = z.moi.colonne;
+  const cohForte = Math.max(zc.aileGauche.cohesion, zc.aileDroite.cohesion);
+  const cohFaible = Math.min(zc.aileGauche.cohesion, zc.aileDroite.cohesion);
+
+  return {
+    materialDiff: myCount - enCount,
+    cohesionMoyenne: (zc.aileGauche.cohesion + zc.centre.cohesion + zc.aileDroite.cohesion) / mesBilles,
+    soutienMoyen: s.soutienMoyen,
+    proportionSansSoutien: s.nbBillesSansSoutien / mesBilles,
+    zoneForteCohesion: cohForte / mesBilles,
+    zoneFaibleCohesion: cohFaible / mesBilles,
+    coeurRatio: z.moi.distance.coeur.billes / mesBilles,
+    bordRatio: z.moi.distance.bord.billes / mesBilles,
+    sumitoRatio: su.total / mesCoupsLegaux,
+    menaceRatio: me.nbCoupsMenacants / mesBilles,
+    profondeurTactique: pr.profondeur,
+    mobilite2Ratio: mo.cases2Coups / mesBilles
+  };
+}
+function distanceEmpreintes(e1, e2) {
+  const cles = Object.keys(e1);
+  let sommeCarres = 0;
+  cles.forEach(function(k){ const d = (e1[k]||0) - (e2[k]||0); sommeCarres += d*d; });
+  return Math.sqrt(sommeCarres);
 }
 
 function calculerExplicationCoup(move, color) {
@@ -25674,10 +25733,14 @@ function renderComprehensionPanel() {
         sumito: analyzeSumitoPotential(color),
         menace: analyzeMenaceImmediate(color),
         profondeur: analyzeProfondeurTactique(color),
-        mobilite: analyzeMobilite2Coups(color)
+        mobilite: analyzeMobilite2Coups(color),
+        empreinte: calculerEmpreinte(color)
       };
     });
-    if (host) host.innerHTML = _formatComprehensionSummary(data, color) + _formatComprehensionDetail(data, color);
+    _derniereEmpreinte = data.empreinte;
+    let html = _formatComprehensionSummary(data, color) + _formatComprehensionDetail(data, color);
+    if (_empreinteReference) html += _formatComparaisonEmpreinte(_empreinteReference, data.empreinte, _empreinteReferenceLabel);
+    if (host) host.innerHTML = html;
     if (typeof applyTechMode === 'function') applyTechMode();
   }, 50);
 }
@@ -25701,6 +25764,46 @@ function _formatComprehensionDetail(data, color) {
     '<div><strong style="color:var(--text)">Sumito</strong> — éjections : ' + data.sumito.ejections + ' · poussées : ' + data.sumito.poussees + ' (3v2 : ' + data.sumito.parType['3v2'] + ' · 3v1 : ' + data.sumito.parType['3v1'] + ' · 2v1 : ' + data.sumito.parType['2v1'] + ')</div>' +
     '</div>';
 }
+
+/* ═══ Comparaison de positions — étape 3 (option "sans base de données") ═══
+   Capture explicite d'une position de référence, comparaison de toute
+   position visitée ensuite à cette référence. Volontairement PAS de base
+   de vraies parties (rejouer ~20 000 parties pour reconstruire des
+   positions comparables serait un vrai chantier de données à part,
+   remis à plus tard). Montre la distance brute ET, en mode technique,
+   le détail par dimension — plutôt qu'une étiquette "similaire/pas
+   similaire" avec des seuils inventés que je n'ai aucun moyen de
+   valider sans une vraie base de comparaison. */
+let _empreinteReference = null;
+let _empreinteReferenceLabel = null;
+let _derniereEmpreinte = null;
+function capturerReference() {
+  if (!_derniereEmpreinte) { showToast('⚠️ Clique d\'abord sur "Analyser cette position"'); return; }
+  _empreinteReference = _derniereEmpreinte;
+  _empreinteReferenceLabel = (_comprehensionColor === 'black' ? '⚫' : '⚪') + ' position #' + (analysisIdx + 1);
+  showToast('📌 Position de référence enregistrée');
+  renderComprehensionPanel();
+}
+function effacerReference() {
+  _empreinteReference = null;
+  _empreinteReferenceLabel = null;
+  showToast('Référence effacée');
+  renderComprehensionPanel();
+}
+function _formatComparaisonEmpreinte(ref, actuelle, label) {
+  const d = distanceEmpreintes(ref, actuelle);
+  let html = '<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--text)">📌 Distance à <strong>' + label + '</strong> : <span style="color:var(--gold);font-family:\'DM Mono\',monospace">' + d.toFixed(2) + '</span></div>';
+  html += '<div class="tech-detail" style="display:none;margin-top:6px;font-size:11px;color:var(--muted);line-height:1.6">';
+  Object.keys(ref).forEach(function(k){
+    const diff = (actuelle[k]||0) - (ref[k]||0);
+    if (Math.abs(diff) > 0.005) {
+      html += '<div>' + k + ' : ' + ref[k].toFixed(2) + ' → ' + actuelle[k].toFixed(2) + ' (Δ' + (diff>=0?'+':'') + diff.toFixed(2) + ')</div>';
+    }
+  });
+  html += '</div>';
+  return html;
+}
+
 function chercherMenaceTactique() {
   if (Object.keys(analysisBoard).length === 0) { showToast('⚠️ Charge une position d\'abord'); return; }
   const info = document.getElementById('comprehension-menace-n');
