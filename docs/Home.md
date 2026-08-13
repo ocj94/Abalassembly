@@ -21,4 +21,5 @@ Un jeu d'Abalone complet dans un seul fichier HTML : zéro dépendance, hors-lig
 - **Cache de recherche plafonné selon la RAM** — s'adapte à l'appareil plutôt que de grossir sans limite, surtout utile en mode Minimax (recherche non bornée en temps)
 - **Mode technique** — sur les pages qui en ont (Tables de finale, Ouvertures, Labo, Statistiques, Analyse), un bouton révèle méthode et chiffres bruts sans encombrer la vue par défaut
 - **Moteur de compréhension** (page Analyse) — sur n'importe quelle position : décomposition spatiale, faiblesse de soutien, potentiel de sumito, menaces immédiates, profondeur tactique, mobilité à 2 coups, et une recherche de menace ciblée sur demande
+- **Empreinte positionnelle** (même page) — capture une position comme référence, compare toute position suivante à elle (distance + détail par dimension en mode technique). Invariant au miroir gauche-droite : deux positions en miroir exact sont reconnues comme identiques
 - Suite de tests versionnée : `node tests/regression.js`
