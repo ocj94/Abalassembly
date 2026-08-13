@@ -5527,6 +5527,21 @@ document.addEventListener('keydown', function(e){
           <button onclick="analysisShowBestMove()" id="analysis-bestmove-btn" style="width:100%;margin-top:12px;padding:11px;background:rgba(200,168,75,0.12);border:1px solid var(--gold-dim);border-radius:8px;cursor:pointer;color:var(--gold);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif">💡 Suggérer le meilleur coup</button>
           <div id="analysis-bestmove-info" style="text-align:center;font-size:12px;color:var(--gold);margin-top:8px;min-height:18px"></div>
         </div>
+        <!-- Moteur de compréhension : les 7 étages construits dans cette session -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px">
+          <div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:12px">🧠 Comprendre la position</div>
+          <div style="display:flex;gap:8px;margin-bottom:10px">
+            <button id="comprehension-color-black" onclick="setComprehensionColor('black',this)" class="active" style="flex:1;padding:8px;background:rgba(200,168,75,0.12);border:1px solid var(--gold-dim);border-radius:7px;cursor:pointer;color:var(--text);font-size:12px">⚫ Noir</button>
+            <button id="comprehension-color-white" onclick="setComprehensionColor('white',this)" style="flex:1;padding:8px;background:transparent;border:1px solid var(--border);border-radius:7px;cursor:pointer;color:var(--text);font-size:12px">⚪ Blanc</button>
+          </div>
+          <button onclick="renderComprehensionPanel()" style="width:100%;padding:11px;background:rgba(200,168,75,0.12);border:1px solid var(--gold-dim);border-radius:8px;cursor:pointer;color:var(--gold);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif">🧠 Analyser cette position</button>
+          <div id="comprehension-result" style="margin-top:10px;min-height:18px"></div>
+          <button class="tech-toggle-btn btn" style="margin-top:8px;font-size:11px;padding:5px 10px" onclick="toggleTechMode()">🔬 Voir le détail technique</button>
+          <div style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px">
+            <button onclick="chercherMenaceTactique()" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--text);font-size:12px">🔍 Chercher une menace tactique (recherche à la demande)</button>
+            <div id="comprehension-menace-n" style="text-align:center;font-size:12px;color:var(--muted);margin-top:8px;min-height:16px"></div>
+          </div>
+        </div>
         <!-- Liste des coups -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px">
           <div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Historique des coups</div>
@@ -14759,6 +14774,127 @@ function analyzeProfondeurTactique(color, maxDepth) {
   }
   for (let i = undos.length - 1; i >= 0; i--) undoMove(undos[i]);
   return { profondeur: profondeur, depart: color, billesImpliquees: billesImpliquees };
+}
+
+/* ═══ Étage 6 : menace à N coups ═══
+   La seule pièce coûteuse — une vraie recherche, pas une estimation. Utilise
+   sa PROPRE fonction de recherche (_searchAvecLigne), séparée du moteur IA
+   (pas de TT/killer/history partagés — jamais de risque d'interférer avec
+   une vraie partie en cours). N petit (2-4), appelée UNIQUEMENT à la
+   demande, jamais à chaque coup. Mise en cache tant que la position, la
+   couleur et N n'ont pas changé. Rapporte la vraie séquence de coups (ligne
+   principale), pas juste oui/non.
+   Vérifié : séquence trouvée sur une vraie menace d'éjection à 1 coup ;
+   cache confirmé (deuxième appel identique renvoie le même objet) ; aucune
+   fausse alerte sur une position sans menace réelle ; plateau et compteurs
+   de capture confirmés intacts après une vraie recherche à profondeur 2
+   (comparaison par valeur, pas par ordre JSON — un premier test a donné une
+   fausse alerte à cause de ça, corrigé). */
+function _searchAvecLigne(depth, alpha, beta, maxi, pov) {
+  if (capturedByWhite>=6) return { score: pov==='white'?100000:-100000, ligne:[] };
+  if (capturedByBlack>=6) return { score: pov==='black'?100000:-100000, ligne:[] };
+  if (depth === 0) return { score: evaluateBoard(pov, false), ligne:[] };
+  const mc = maxi ? pov : (pov==='white'?'black':'white');
+  const moves = getAllMovesForColor(mc);
+  if (!moves.length) return { score: maxi?-99999:99999, ligne:[] };
+  let best = maxi ? -Infinity : Infinity, bestMove = null, bestLigne = [];
+  for (const m of moves) {
+    const u = applyMove(m, mc);
+    const res = _searchAvecLigne(depth-1, alpha, beta, !maxi, pov);
+    undoMove(u);
+    if (maxi) {
+      if (res.score > best) { best = res.score; bestMove = m; bestLigne = res.ligne; }
+      if (best > alpha) alpha = best;
+    } else {
+      if (res.score < best) { best = res.score; bestMove = m; bestLigne = res.ligne; }
+      if (best < beta) beta = best;
+    }
+    if (alpha >= beta) break;
+  }
+  return { score: best, ligne: bestMove ? [bestMove].concat(bestLigne) : [] };
+}
+let _menaceCache = null;
+function analyzeMenaceNCoups(color, N) {
+  N = N || 3;
+  const enemy = color === 'black' ? 'white' : 'black';
+
+  let posStr = '';
+  for (let r=0;r<9;r++) for (let c=0;c<ROWS[r];c++) posStr += (board[akey(r,c)]||'-')[0];
+  const cacheKey = posStr + '|' + color + '|' + N;
+  if (_menaceCache && _menaceCache.key === cacheKey) return _menaceCache.result;
+
+  const scoreEnnemiStatique = evaluateBoard(enemy, false);
+  const res = _searchAvecLigne(N, -Infinity, Infinity, true, enemy);
+
+  const result = {
+    N: N,
+    sequence: res.ligne,
+    scoreEnnemiApres: res.score,
+    scoreEnnemiStatique: scoreEnnemiStatique,
+    gainTactique: res.score - scoreEnnemiStatique,
+    menaceReelle: (res.score - scoreEnnemiStatique) > 200
+  };
+  _menaceCache = { key: cacheKey, result: result };
+  return result;
+}
+
+/* ═══ Étage 7 (option B) : mobilité à 2 coups ═══
+   Combien de cases DISTINCTES sont atteignables en exactement 2 coups
+   légaux, tous coups intermédiaires confondus. Distinct de la mobilité
+   existante (mobScore, qui ne compte que les cases vides ADJACENTES,
+   1 coup) : deux groupes avec la même mobilité à 1 coup peuvent avoir une
+   portée réelle très différente à 2 coups selon qu'ils sont coincés dans
+   un coin ou au centre.
+   Vérifié : bille isolée au centre exact du plateau → 6 cases en 1 coup
+   (ses 6 voisins), exactement 19 en 2 coups (calculé à la main : 1+6+12
+   cases à distance ≤2, aucun bord ne coupe rien depuis le centre). Bille
+   isolée dans un coin → nettement moins (bord qui coupe la portée),
+   confirmant que la mesure réagit bien à la géométrie réelle. Plateau
+   intact après l'analyse. */
+function _casesAtteintes(moves) {
+  const dest = new Set();
+  moves.forEach(function(m){
+    m.cells.forEach(function(cell){
+      const ax = rcToAxial(cell.r, cell.c);
+      const d = axialToRc(ax.q + m.dir.q, ax.r + m.dir.r);
+      if (d) dest.add(d.r + ',' + d.c);
+    });
+  });
+  return dest;
+}
+function analyzeMobilite2Coups(color) {
+  const moves1 = getAllMovesForColor(color);
+  const dest1 = _casesAtteintes(moves1);
+  const dest2 = new Set();
+  moves1.forEach(function(m1){
+    const u1 = applyMove(m1, color);
+    const moves2 = getAllMovesForColor(color);
+    _casesAtteintes(moves2).forEach(function(k){ dest2.add(k); });
+    undoMove(u1);
+  });
+  return { cases1Coup: dest1.size, cases2Coups: dest2.size };
+}
+
+/* ═══ Adaptateur : appelle les analyze* sur N'IMPORTE QUEL plateau, sans
+   toucher aux 7 fonctions déjà testées ═══
+   Les analyze* lisent la variable globale `board` (comme evaluateBoard,
+   search, etc. partout ailleurs dans le fichier). La page Analyse de
+   partie a SON PROPRE plateau (analysisBoard), séparé du plateau de jeu
+   en direct. Plutôt que de réécrire les 7 fonctions pour accepter un
+   plateau en paramètre (risque de régression sur du code déjà vérifié),
+   on bascule temporairement les globales, on appelle, on restaure —
+   toujours synchrone (aucun await à l'intérieur des analyze*), donc rien
+   d'autre ne peut lire `board` pendant le court instant de la bascule :
+   JS est mono-thread, pas de risque de collision avec la partie en
+   cours. Le `finally` garantit la restauration même en cas d'erreur. */
+function _avecPlateau(b, capB, capW, fn) {
+  const savedBoard = board, savedCapB = capturedByBlack, savedCapW = capturedByWhite;
+  board = b; capturedByBlack = capB; capturedByWhite = capW;
+  try {
+    return fn();
+  } finally {
+    board = savedBoard; capturedByBlack = savedCapB; capturedByWhite = savedCapW;
+  }
 }
 
 function calculerExplicationCoup(move, color) {
@@ -25503,6 +25639,82 @@ function analysisShowBestMove() {
       if (info) info.textContent = '💡 Meilleur coup : ' + from + ' (' + typeLabel + ')';
     } else {
       if (info) info.textContent = 'Aucun coup trouvé';
+    }
+  }, 50);
+}
+
+/* ═══ Moteur de compréhension — panneau de la page Analyse ═══
+   Utilise _avecPlateau (basculement synchrone de board/captures vers
+   analysisBoard/analysisCapB/analysisCapW), même principe déjà utilisé
+   deux fois dans cette page (analysisShowBestMove, updateAnalysisEval) —
+   pas une invention, une généralisation d'un motif déjà éprouvé ici.
+   Étages 1-5+7 (bon marché) dans renderComprehensionPanel, sur clic
+   explicite seulement (jamais auto-rafraîchi à la navigation — même les
+   étages "bon marché" génèrent de vrais coups à chaque appel). Étage 6
+   (menace à N coups, une vraie recherche) dans un bouton séparé. */
+let _comprehensionColor = 'black';
+function setComprehensionColor(color, btn) {
+  _comprehensionColor = color;
+  ['comprehension-color-black','comprehension-color-white'].forEach(function(id){
+    const b = document.getElementById(id);
+    if (b) { b.classList.remove('active'); b.style.background = 'transparent'; b.style.border = '1px solid var(--border)'; }
+  });
+  if (btn) { btn.classList.add('active'); btn.style.background = 'rgba(200,168,75,0.12)'; btn.style.border = '1px solid var(--gold-dim)'; }
+}
+function renderComprehensionPanel() {
+  if (Object.keys(analysisBoard).length === 0) { showToast('⚠️ Charge une position d\'abord'); return; }
+  const host = document.getElementById('comprehension-result');
+  if (host) host.innerHTML = '<span style="font-size:12px;color:var(--muted)">🧠 Calcul en cours...</span>';
+  setTimeout(function() {
+    const color = _comprehensionColor;
+    const data = _avecPlateau(analysisBoard, analysisCapB, analysisCapW, function(){
+      return {
+        zones: analyzeZones(color),
+        soutien: analyzeSupport(color),
+        sumito: analyzeSumitoPotential(color),
+        menace: analyzeMenaceImmediate(color),
+        profondeur: analyzeProfondeurTactique(color),
+        mobilite: analyzeMobilite2Coups(color)
+      };
+    });
+    if (host) host.innerHTML = _formatComprehensionSummary(data, color) + _formatComprehensionDetail(data, color);
+    if (typeof applyTechMode === 'function') applyTechMode();
+  }, 50);
+}
+function _formatComprehensionSummary(data, color) {
+  const label = color === 'black' ? '⚫ Noir' : '⚪ Blanc';
+  const bits = [
+    data.soutien.nbBillesSansSoutien + ' bille(s) sans soutien réel',
+    data.sumito.total + ' sumito(s) possible(s) maintenant',
+    data.menace.nbCoupsMenacants + ' coup(s) adverse(s) menaçant(s)' + (data.menace.nbEjections>0 ? (' (dont ' + data.menace.nbEjections + ' éjection)') : ''),
+    'mobilité à 2 coups : ' + data.mobilite.cases2Coups + ' cases'
+  ];
+  return '<div style="font-size:12px;color:var(--text);line-height:1.8"><strong style="color:var(--gold)">' + label + '</strong> — ' + bits.join(' · ') + '</div>';
+}
+function _formatComprehensionDetail(data, color) {
+  const z = data.zones.moi;
+  return '<div class="tech-detail" style="display:none;margin-top:10px;font-size:11px;color:var(--muted);line-height:1.8;border-top:1px solid var(--border);padding-top:10px">' +
+    '<div><strong style="color:var(--text)">Zones (colonne)</strong> — cohésion : aile gauche ' + z.colonne.aileGauche.cohesion + ' · centre ' + z.colonne.centre.cohesion + ' · aile droite ' + z.colonne.aileDroite.cohesion + '</div>' +
+    '<div><strong style="color:var(--text)">Zones (distance)</strong> — cohésion : cœur ' + z.distance.coeur.cohesion + ' · intermédiaire ' + z.distance.intermediaire.cohesion + ' · bord ' + z.distance.bord.cohesion + '</div>' +
+    '<div><strong style="color:var(--text)">Profondeur tactique</strong> (chaîne d\'éjections si elle se lance) : ' + data.profondeur.profondeur + ' demi-coup(s)</div>' +
+    '<div><strong style="color:var(--text)">Mobilité</strong> — 1 coup : ' + data.mobilite.cases1Coup + ' cases · 2 coups : ' + data.mobilite.cases2Coups + ' cases</div>' +
+    '<div><strong style="color:var(--text)">Sumito</strong> — éjections : ' + data.sumito.ejections + ' · poussées : ' + data.sumito.poussees + ' (3v2 : ' + data.sumito.parType['3v2'] + ' · 3v1 : ' + data.sumito.parType['3v1'] + ' · 2v1 : ' + data.sumito.parType['2v1'] + ')</div>' +
+    '</div>';
+}
+function chercherMenaceTactique() {
+  if (Object.keys(analysisBoard).length === 0) { showToast('⚠️ Charge une position d\'abord'); return; }
+  const info = document.getElementById('comprehension-menace-n');
+  if (info) info.textContent = '🔍 Recherche en cours...';
+  setTimeout(function() {
+    const color = _comprehensionColor;
+    const result = _avecPlateau(analysisBoard, analysisCapB, analysisCapW, function(){
+      return analyzeMenaceNCoups(color, 3);
+    });
+    if (!info) return;
+    if (result.menaceReelle) {
+      info.innerHTML = '<span style="color:var(--gold)">⚠️ Menace réelle détectée à ' + result.N + ' coups (gain tactique : ' + result.gainTactique + ')</span>';
+    } else {
+      info.textContent = '✅ Aucune menace significative détectée à ' + result.N + ' coups';
     }
   }, 50);
 }
