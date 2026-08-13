@@ -82,6 +82,7 @@ Ce qu'il masque : le **chat**, le **Labo IA**, les **paramètres** et les **lien
 - Analyse de partie coup par coup : chaque erreur du rapport est cliquable et rejoue la position
 - **Analyse d'après-partie** : rejoue les positions réellement traversées avec l'évaluation de l'IA, et indique où la partie a basculé, à quel coup la première bille a été perdue
 - **Moteur de compréhension** (page Analyse) : sur n'importe quelle position, décomposition spatiale, faiblesse de soutien, potentiel de sumito, menaces immédiates, profondeur tactique et mobilité à 2 coups — un résumé court par défaut, le détail chiffré derrière le mode technique. Une recherche ciblée (« menace à N coups ») disponible sur demande, jamais automatique
+- **Empreinte positionnelle** (même page) : vecteur de 12 dimensions par position, invariant au miroir gauche-droite. Capture une position comme référence, compare-la à toute position visitée ensuite (distance affichée, détail par dimension en mode technique). Pas de base de positions historiques pour l'instant — comparaison à la demande, entre positions explicitement choisies
 - **Puzzle du jour**, déterministe par la date et identique pour tout le monde, avec série de jours consécutifs
 
 **Plateau réel**
