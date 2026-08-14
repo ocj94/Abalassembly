@@ -14025,6 +14025,65 @@ const AX_DIRS = [
 const EVAL_AXES = [[0,1],[2,4],[3,5]];   // les 3 axes hexagonaux, en paires de directions opposees
 const akey = (r,c) => r + ',' + c;
 
+/* ═══════════════════════════════════════════
+   MOTIFS TACTIQUES — bibliothèque de structures locales nommées
+   Contrairement aux empreintes (agrégats globaux sur tout le plateau), un
+   motif est une forme LOCALE : une petite suite de cellules, définies en
+   coordonnées relatives (axiales) à une origine, avec un rôle par cellule
+   ('attaquant' ou 'defenseur'). La détection essaie les 6 orientations de
+   AX_DIRS depuis chaque bille candidate — un motif purement linéaire (les
+   seuls gérés pour l'instant : cel.q = nombre de pas le long de l'axe,
+   cel.r toujours 0) est ainsi retrouvé quelle que soit sa rotation sur le
+   plateau, sans distinction supplémentaire de réflexion (une ligne lue à
+   l'envers est déjà couverte par la direction opposée, présente dans
+   AX_DIRS). Le nom et la description de chaque motif sont fournis par
+   Olivier — ce module se contente de les détecter et de les compter dans
+   les vraies parties, jamais de juger ou d'inventer une valeur stratégique.
+═══════════════════════════════════════════ */
+const MOTIFS_TACTIQUES = {
+  ligne3v2: {
+    nom: 'Ligne 3 vs 2 alignée',
+    description: 'Trois billes attaquantes alignées, directement suivies (même axe) par deux billes défenseures alignées — configuration de sumito 3v2.',
+    cellules: [
+      { q:0, r:0, role:'attaquant' }, { q:1, r:0, role:'attaquant' }, { q:2, r:0, role:'attaquant' },
+      { q:3, r:0, role:'defenseur' }, { q:4, r:0, role:'defenseur' }
+    ]
+  }
+};
+// Cherche un motif linéaire sur le plateau COURANT (global `board`), pour une couleur attaquante donnée.
+// Retourne la liste des occurrences : { dir, cells:[{r,c},...] }.
+function chercherMotif(motifDef, couleurAttaquant) {
+  const couleurDefenseur = couleurAttaquant === 'black' ? 'white' : 'black';
+  const occurrences = [];
+  for (const key in board) {
+    if (board[key] !== couleurAttaquant) continue;
+    const [r0, c0] = key.split(',').map(Number);
+    const origine = rcToAxial(r0, c0);
+    for (const dir of AX_DIRS) {
+      let ok = true;
+      const cells = [];
+      for (const cel of motifDef.cellules) {
+        const q = origine.q + cel.q*dir.q, r = origine.r + cel.q*dir.r;
+        const rc = axialToRc(q, r);
+        if (!rc) { ok = false; break; }
+        const couleurAttendue = cel.role === 'attaquant' ? couleurAttaquant : couleurDefenseur;
+        if (board[rc.r+','+rc.c] !== couleurAttendue) { ok = false; break; }
+        cells.push(rc);
+      }
+      if (ok) occurrences.push({ dir:dir, cells:cells });
+    }
+  }
+  return occurrences;
+}
+// Pour un motif linéaire de type "ligne NvM" (N attaquants puis M défenseurs), indique si la
+// poussée est immédiatement jouable : la cellule juste après les défenseurs doit être vide ou hors plateau.
+function motifEstJouable(occurrence, motifDef, dir) {
+  const dern = occurrence.cells[occurrence.cells.length - 1];
+  const derniereAxiale = rcToAxial(dern.r, dern.c);
+  const suivante = axialToRc(derniereAxiale.q + dir.q, derniereAxiale.r + dir.r);
+  return !suivante || !board[suivante.r+','+suivante.c];
+}
+
 // Les billes sélectionnées forment-elles une ligne contiguë ? → {dir, ordered} | null
 function selectionLine(sel) {
   if (sel.length === 1) return { dir: null, ordered: sel.slice() };
@@ -21373,6 +21432,24 @@ function runAnalysis() {
   } else {
     histoHtml = '<div style="margin-top:16px;font-size:11px;color:var(--muted)">📚 Bibliothèque historique en cours de chargement…</div>';
   }
+  // Motifs tactiques détectés sur la position actuelle (voir MOTIFS_TACTIQUES) —
+  // testés pour les deux couleurs, indique en plus si la poussée est immédiatement jouable.
+  let motifsHtml = '';
+  Object.keys(MOTIFS_TACTIQUES).forEach(function(cle){
+    const def = MOTIFS_TACTIQUES[cle];
+    ['black','white'].forEach(function(couleur){
+      const occ = chercherMotif(def, couleur);
+      occ.forEach(function(o){
+        const jouable = motifEstJouable(o, def, o.dir);
+        motifsHtml += '<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border)">'+
+          '<span>'+(couleur==='black'?'⚫':'⚪')+' '+def.nom+'</span>'+
+          '<span style="color:'+(jouable?'var(--accent-green-light)':'var(--muted)')+'">'+(jouable?'jouable':'bloqué')+'</span></div>';
+      });
+    });
+  });
+  if (motifsHtml) {
+    motifsHtml = '<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:16px 0 8px">Motifs tactiques détectés</div>' + motifsHtml;
+  }
   el.innerHTML = [
     '<div style="margin-bottom:14px">',
     '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px">',
@@ -21387,6 +21464,7 @@ function runAnalysis() {
     '<br>⚡ Coups joués: '+moveCount,
     '</div>',
     histoHtml,
+    motifsHtml,
   ].join('');
 }
 
