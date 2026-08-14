@@ -14050,6 +14050,14 @@ const MOTIFS_TACTIQUES = {
     // (ex. surcharge, manque de soutien...) — vide tant qu'un seul motif est defini : une relation
     // suppose deux motifs reels a mettre en regard, pas une liste anticipee sans donnee derriere.
     motifsAssocies: [],
+    /* Statistique reelle, precalculee hors-ligne sur les 4480 parties (rejeu complet jusqu'au
+       vainqueur reel, determine par elimination effective pour MIGS et par le champ 'win' pour
+       AO — hypothese x=noir validee empiriquement a 98,8% sur les fins par elimination claire).
+       Restreinte aux occurrences JOUABLES et aux parties dont le vainqueur est confirme (224880
+       occurrences sur ~1M au total ; les parties sans vainqueur recuperable — abandon, deco, temps,
+       nul — sont exclues, pas approximees). Correlation sur la partie entiere, pas causalite : ne
+       pas confondre avec "ce coup gagne la partie". */
+    statVictoire: { attaquantGagne: 135525, attaquantPerd: 89355 },
     cellules: [
       { q:0, r:0, role:'attaquant' }, { q:1, r:0, role:'attaquant' }, { q:2, r:0, role:'attaquant' },
       { q:3, r:0, role:'defenseur' }, { q:4, r:0, role:'defenseur' }
@@ -21447,9 +21455,17 @@ function runAnalysis() {
       const occ = chercherMotif(def, couleur);
       occ.forEach(function(o){
         const jouable = motifEstJouable(o, def, o.dir);
-        motifsHtml += '<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border)">'+
+        let statLigne = '';
+        if (jouable && def.statVictoire) {
+          const sv = def.statVictoire;
+          const total = sv.attaquantGagne + sv.attaquantPerd;
+          const pct = Math.round(1000 * sv.attaquantGagne / total) / 10;
+          statLigne = '<div style="font-size:10px;color:var(--muted);padding:0 0 6px;border-bottom:1px solid var(--border)">'+
+            'sur '+total.toLocaleString('fr-FR')+' occurrences jouables en parties réelles, l\'attaquant gagne la partie '+pct+'% du temps (corrélation, pas causalité)</div>';
+        }
+        motifsHtml += '<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:5px 0'+(statLigne?'':';border-bottom:1px solid var(--border)')+'">'+
           '<span>'+(couleur==='black'?'⚫':'⚪')+' '+def.nom+' <span style="opacity:.5;font-size:9px">'+def.id+'</span></span>'+
-          '<span style="color:'+(jouable?'var(--accent-green-light)':'var(--muted)')+'">'+(jouable?'jouable':'bloqué')+'</span></div>';
+          '<span style="color:'+(jouable?'var(--accent-green-light)':'var(--muted)')+'">'+(jouable?'jouable':'bloqué')+'</span></div>'+statLigne;
       });
     });
   });
