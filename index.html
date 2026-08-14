@@ -14042,8 +14042,14 @@ const akey = (r,c) => r + ',' + c;
 ═══════════════════════════════════════════ */
 const MOTIFS_TACTIQUES = {
   ligne3v2: {
+    id: 'ATK.LAT.3V2',
     nom: 'Ligne 3 vs 2 alignée',
+    categorie: 'Tactique',
     description: 'Trois billes attaquantes alignées, directement suivies (même axe) par deux billes défenseures alignées — configuration de sumito 3v2.',
+    // Motifs dont la co-occurrence pourrait etre interessante a etudier une fois qu'ils existeront
+    // (ex. surcharge, manque de soutien...) — vide tant qu'un seul motif est defini : une relation
+    // suppose deux motifs reels a mettre en regard, pas une liste anticipee sans donnee derriere.
+    motifsAssocies: [],
     cellules: [
       { q:0, r:0, role:'attaquant' }, { q:1, r:0, role:'attaquant' }, { q:2, r:0, role:'attaquant' },
       { q:3, r:0, role:'defenseur' }, { q:4, r:0, role:'defenseur' }
@@ -21442,7 +21448,7 @@ function runAnalysis() {
       occ.forEach(function(o){
         const jouable = motifEstJouable(o, def, o.dir);
         motifsHtml += '<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border)">'+
-          '<span>'+(couleur==='black'?'⚫':'⚪')+' '+def.nom+'</span>'+
+          '<span>'+(couleur==='black'?'⚫':'⚪')+' '+def.nom+' <span style="opacity:.5;font-size:9px">'+def.id+'</span></span>'+
           '<span style="color:'+(jouable?'var(--accent-green-light)':'var(--muted)')+'">'+(jouable?'jouable':'bloqué')+'</span></div>';
       });
     });
