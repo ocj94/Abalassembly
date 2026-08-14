@@ -14988,6 +14988,64 @@ function distanceEmpreintes(e1, e2) {
   return Math.sqrt(sommeCarres);
 }
 
+/* ═══════════════════════════════════════════
+   COMPARAISON AUX 418595 POSITIONS HISTORIQUES
+   (2589 parties MIGS + 1890 parties AbalOnline reconstruites)
+   Une seule passe : calcule à la fois le percentile de la position
+   actuelle sur chaque dimension ET les k positions historiques les
+   plus proches (même couleur au trait), sans recalcul redondant.
+═══════════════════════════════════════════ */
+const LABELS_EMPREINTE = {
+  materialDiff:          'Différence matérielle',
+  cohesionMoyenne:       'Cohésion moyenne',
+  soutienMoyen:          'Soutien moyen',
+  proportionSansSoutien: 'Billes sans soutien',
+  zoneForteCohesion:     'Zone forte cohésion',
+  zoneFaibleCohesion:    'Zone faible cohésion',
+  coeurRatio:            'Billes au cœur',
+  bordRatio:             'Billes au bord',
+  sumitoRatio:           'Potentiel sumito',
+  menaceRatio:           'Menaces subies',
+  profondeurTactique:    'Profondeur tactique',
+  mobilite2Ratio:        'Mobilité (2 coups)'
+};
+function calculerAnalyseHistorique(color, k) {
+  if (typeof EMPREINTES_HISTORIQUES === 'undefined' || !EMPREINTES_HISTORIQUES.length) return null;
+  k = k || 5;
+  const emp = calculerEmpreinte(color);
+  const stats = {};
+  EMPREINTES_CHAMPS.forEach(function(ch){ stats[ch] = { sum:0, sumSq:0, n:0, rangInf:0 }; });
+  let nMigs = 0, nAo = 0;
+  const meilleurs = [];  // liste triee croissante par distance, taille plafonnee a k
+  for (let i = 0; i < EMPREINTES_HISTORIQUES.length; i++) {
+    const p = EMPREINTES_HISTORIQUES[i];
+    if (p.c !== color) continue;
+    if (p.s === 'MIGS') nMigs++; else nAo++;
+    for (let c = 0; c < EMPREINTES_CHAMPS.length; c++) {
+      const ch = EMPREINTES_CHAMPS[c], v = p.e[ch], st = stats[ch];
+      st.sum += v; st.sumSq += v*v; st.n++;
+      if (v <= emp[ch]) st.rangInf++;
+    }
+    const d = distanceEmpreintes(emp, p.e);
+    if (meilleurs.length < k) {
+      meilleurs.push({ d:d, p:p }); meilleurs.sort(function(a,b){ return a.d-b.d; });
+    } else if (d < meilleurs[k-1].d) {
+      meilleurs[k-1] = { d:d, p:p }; meilleurs.sort(function(a,b){ return a.d-b.d; });
+    }
+  }
+  const champs = {};
+  EMPREINTES_CHAMPS.forEach(function(ch){
+    const st = stats[ch];
+    const moyenne = st.n ? st.sum/st.n : 0;
+    const variance = st.n ? Math.max(0, st.sumSq/st.n - moyenne*moyenne) : 0;
+    champs[ch] = { actuelle: emp[ch], moyenne: moyenne, ecartType: Math.sqrt(variance), percentile: st.n ? Math.round(100*st.rangInf/st.n) : null };
+  });
+  return {
+    nMigs: nMigs, nAo: nAo, nTotal: nMigs + nAo, champs: champs,
+    similaires: meilleurs.map(function(x){ return { distance:x.d, s:x.p.s, g:x.p.g, m:x.p.m }; })
+  };
+}
+
 function calculerExplicationCoup(move, color) {
   const avant = evaluateBoard(color, true);
   const undo = applyMove(move, color);
@@ -16293,6 +16351,42 @@ function pickBookMove(node, legalMoves){
   return null;
 }
 
+/* Repli "livre" par empreintes historiques : quand la position exacte n'est
+   pas connue de OPENING_TREES, on cherche parmi les 418595 empreintes
+   reconstruites la plus proche PARTAGEANT LE MEME TRAIT et un nombre de
+   coups comparable. Dans l'enregistrement trouve (ply m, couleur c), le
+   coup que ce meme camp a rejoue ENSUITE dans cette partie reelle se
+   trouve a l'indice m+2 de la sequence (m est son propre coup, m+1 la
+   reponse adverse, m+2 son coup suivant). On ne le propose QUE s'il est
+   verifie legal sur le plateau actuel (resolveAbaProToken) — jamais
+   fabrique, jamais applique aveuglement. Ne touche pas evaluateBoard :
+   la Lab a etabli qu'ajouter des criteres a la fonction d'evaluation
+   degrade ses performances ; ce repli reste un choix de coup en amont
+   de la recherche, pas une modification des poids d'evaluation. */
+function pickEmpreinteFallbackMove(color, legalMoves, moveCountActuel){
+  if (typeof EMPREINTES_HISTORIQUES === 'undefined' || !EMPREINTES_HISTORIQUES.length) return null;
+  if (!legalMoves || !legalMoves.length) return null;
+  const emp = calculerEmpreinte(color);
+  let meilleur = null, meilleureDist = Infinity;
+  for (let i = 0; i < EMPREINTES_HISTORIQUES.length; i++) {
+    const p = EMPREINTES_HISTORIQUES[i];
+    if (p.c !== color) continue;
+    if (Math.abs(p.m - moveCountActuel) > 6) continue;
+    const d = distanceEmpreintes(emp, p.e);
+    if (d < meilleureDist) { meilleureDist = d; meilleur = p; }
+  }
+  if (!meilleur) return null;
+  const jeu = meilleur.s === 'MIGS' ? MIGS_GAMES[meilleur.g] : AO_GAMES[meilleur.g];
+  if (!jeu) return null;
+  const seq = meilleur.s === 'MIGS' ? jeu[5] : jeu[6];
+  const tokens = String(seq).replace(/\d+\.-?/g, ' ').trim().split(/\s+/).filter(Boolean);
+  const token = tokens[meilleur.m + 2];
+  if (!token) return null;
+  const mv = resolveAbaProToken(token, color);
+  for (const m of legalMoves) { if (mv && canonId(m) === canonId(mv)) return m; }  // sécurité : doit être légal ici
+  return null;
+}
+
 
 /* ═══════════════════════════════════════════
    PARTIES MIGS — 2589 parties Belgian Daisy (notation ABA-PRO)
@@ -16362,6 +16456,7 @@ function ensureEmpreintesHistoriques(){
   }).catch(function(){ return false; });
   return _empreintesReady;
 }
+ensureEmpreintesHistoriques();
 
 (function(){  // sons -> Blob URLs
   if(typeof DecompressionStream==='undefined') return;
@@ -18075,6 +18170,13 @@ function aiMove() {
   if (_bookNode && _bookNode.k) {
     const statMove = pickBookMove(_bookNode, moves);
     if (statMove) { executeAIMove(statMove); return; }
+  }
+
+  // ── Repli empreintes historiques : position exacte inconnue du livre, mais une
+  //    position très proche (même trait) existe dans les 418595 empreintes réelles ──
+  if (boardSnapshots.length < 20) {
+    const empMove = pickEmpreinteFallbackMove(ai, moves, boardSnapshots.length);
+    if (empMove) { executeAIMove(empMove); return; }
   }
 
   // ── Livre d'ouvertures (début de partie) : joue un coup LÉGAL connu si disponible ──
@@ -21246,6 +21348,31 @@ function runAnalysis() {
   // Cette liste etait auparavant ecrite en dur et affichait toujours les memes
   // quatre coups, quelle que soit la partie — signale par Olivier.
   const moves = computeTopMoves(currentTurn, 3);
+  // Comparaison a la base historique reconstruite (voir calculerAnalyseHistorique) :
+  // percentile de la position sur quelques dimensions cles + positions reelles les
+  // plus proches (memes trait), avec lien direct vers la partie source pour rejouer.
+  const histo = calculerAnalyseHistorique(currentTurn, 5);
+  let histoHtml;
+  if (histo) {
+    const dimsAffichees = ['cohesionMoyenne','mobilite2Ratio','sumitoRatio','menaceRatio'];
+    histoHtml = [
+      '<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:16px 0 8px">Comparaison à '+histo.nTotal.toLocaleString('fr-FR')+' positions réelles ('+histo.nMigs.toLocaleString('fr-FR')+' MIGS + '+histo.nAo.toLocaleString('fr-FR')+' AbalOnline)</div>',
+      dimsAffichees.map(function(ch){
+        const c = histo.champs[ch];
+        return '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);padding:2px 0">'+
+          '<span>'+LABELS_EMPREINTE[ch]+'</span><span>percentile '+(c.percentile!=null?c.percentile+'ᵉ':'—')+'</span></div>';
+      }).join(''),
+      '<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:16px 0 8px">Positions historiques les plus proches</div>',
+      histo.similaires.length ? histo.similaires.map(function(s){
+        const fn = s.s === 'MIGS' ? 'loadMigsGame' : 'loadAOGame';
+        return '<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border)">'+
+          '<span>'+s.s+' · coup '+(s.m+1)+' · distance '+s.distance.toFixed(2)+'</span>'+
+          '<button class="btn-ghost" style="font-size:10px;padding:3px 10px" onclick="'+fn+'('+s.g+')">▶ voir</button></div>';
+      }).join('') : '<div style="font-size:11px;color:var(--muted)">Aucune position comparable trouvée.</div>',
+    ].join('');
+  } else {
+    histoHtml = '<div style="margin-top:16px;font-size:11px;color:var(--muted)">📚 Bibliothèque historique en cours de chargement…</div>';
+  }
   el.innerHTML = [
     '<div style="margin-bottom:14px">',
     '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px">',
@@ -21259,6 +21386,7 @@ function runAnalysis() {
     '📊 Billes éjectées — Vous: '+capturedByBlack+' · Adversaire: '+capturedByWhite,
     '<br>⚡ Coups joués: '+moveCount,
     '</div>',
+    histoHtml,
   ].join('');
 }
 
@@ -22863,6 +22991,11 @@ function runBotDuelStep() {
   if (_bookNode && _bookNode.k) {
     const bm = pickBookMove(_bookNode, moves);
     if (bm) { applyDuelMove(bm, side); next(); return; }
+  }
+  // Repli empreintes historiques (voir aiMove pour le detail du raisonnement)
+  if (boardSnapshots.length < 20) {
+    const empBm = pickEmpreinteFallbackMove(side, moves, boardSnapshots.length);
+    if (empBm) { applyDuelMove(empBm, side); next(); return; }
   }
   const depth = botDuelDepth(), time = botDuelTime();
   const rnd = function(){ return moves[Math.floor(Math.random()*moves.length)]; };
