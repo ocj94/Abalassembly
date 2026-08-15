@@ -1376,6 +1376,12 @@ footer {
   .clock-bar.active.low { animation:clockPulse 1s ease-in-out infinite; }
   @keyframes clockPulse { 50% { border-color:#e05c4b; } }
   @media (prefers-reduced-motion:reduce){ .clock-bar.active.low { animation:none; } }
+}
+/* Accolade de fermeture manquante ci-dessus : tout ce qui suit (accessibilite,
+   ecran de configuration .setup-*, etc.) etait piege par erreur a l'interieur
+   de ce @media (max-width:480px) et ne s'appliquait donc QUE sous 480px de
+   large — c'est ce qui causait des boutons non stylises au-dela de ce seuil,
+   signale par Olivier (screenshots : theme actif a 400px, casse a 481px). */
 
 /* ═══════════════════════════════════════════════════════════════════════
    CONFORT & ACCESSIBILITE
@@ -1480,6 +1486,10 @@ body.a11y-oneaction .ctrl-btn:not(.primary):not(:hover):not(:focus) { opacity: 0
   .setup-toggle input:checked + .setup-sw { background:var(--gold); }
   .setup-toggle input:checked + .setup-sw::after { left:22px; background:#0d0f0e; }
 
+/* Ces regles-ci (move-history a learn-content plus bas) etaient authentiquement
+   mobile-only dans l'original — on les remet dans leur propre @media pour ne
+   pas les rendre globales par erreur en corrigeant l'accolade manquante ci-dessus. */
+@media (max-width: 480px) {
   .move-history { padding: 10px; }
   .timer-block { font-size: 20px; }
 
