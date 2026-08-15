@@ -13112,7 +13112,7 @@ function _commentatorRefresh() {
   const p2lost = document.getElementById('commentator-p2-lost'); if (p2lost) p2lost.textContent = perdues[opp];
   const p1mv = document.getElementById('commentator-p1-moves'); if (p1mv) p1mv.textContent = _commentatorMoves[mine];
   const p2mv = document.getElementById('commentator-p2-moves'); if (p2mv) p2mv.textContent = _commentatorMoves[opp];
-  const fmt = function(t){ if (typeof t !== 'number') return '—'; const m = Math.floor(t/60), s = Math.floor(t%60); return m + ':' + (s<10?'0':'') + s; };
+  const fmt = function(t){ if (typeof _timeCtlBase !== 'undefined' && _timeCtlBase === 0) return '—'; if (typeof t !== 'number') return '—'; const m = Math.floor(t/60), s = Math.floor(t%60); return m + ':' + (s<10?'0':'') + s; };
   const tMine = (typeof myTime !== 'undefined') ? myTime : undefined;
   const tOpp = (typeof oppTime !== 'undefined') ? oppTime : undefined;
   const p1t = document.getElementById('commentator-p1-time'); if (p1t) p1t.textContent = fmt(tMine);
@@ -13251,7 +13251,13 @@ function resetGame() {
   capturedByWhite = 0;
   moveCount = 0;
   currentTurn = 'black';
-  myTime = _timeCtlBase || 600; oppTime = _timeCtlBase || 600;
+  // _timeCtlBase===0 (cadence Libre) est un "faux" en JS : "_timeCtlBase || 600"
+  // retombait donc sur 600s (10:00) meme en Libre, ce que le panneau
+  // Commentateur affichait tel quel avant sa propre verification. Comparaison
+  // explicite pour que 0 reste 0. Signale par Olivier (capture d'ecran :
+  // "Temps restant 10:00" affiche pour les deux joueurs en cadence Libre).
+  myTime = (_timeCtlBase > 0) ? _timeCtlBase : 0;
+  oppTime = (_timeCtlBase > 0) ? _timeCtlBase : 0;
   if (!_timeCtlBase && typeof _clockPaintFree === 'function') { _clockPaintFree(); }
   if (typeof _clockPaint === 'function') _clockPaint(estMonTour());
   boardSnapshots = [];
@@ -24654,6 +24660,15 @@ function _gameTimerBudgetFromControl() {
 
 function startGameTimer() {
   stopGameTimer();
+  const box = document.getElementById('game-timer-box');
+  // Cadence libre (_timeCtlBase===0) : pas de decompte a afficher, la pendule
+  // ne fait rien perdre au temps dans ce mode — l'afficher quand meme
+  // laissait croire a une limite qui n'existe pas. Signale par Olivier.
+  if (typeof _timeCtlBase !== 'undefined' && _timeCtlBase === 0) {
+    if (box) box.style.display = 'none';
+    return;
+  }
+  if (box) box.style.display = 'flex';
   gameTimerBudget = _gameTimerBudgetFromControl();
   gameTimerSeconds = gameTimerBudget;
   updateGameTimerDisplay();
