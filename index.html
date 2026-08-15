@@ -15129,6 +15129,75 @@ function calculerAnalyseHistorique(color, k) {
   };
 }
 
+/* ═══════════════════════════════════════════
+   CARTE TACTIQUE PAR CASE — 4 dimensions réelles, aucun coefficient inventé.
+   mobilité : nb de coups légaux impliquant cette bille (comptage direct).
+   soutien : profondeur de soutien réelle (0/1/2, même calcul qu'analyzeSupport).
+   menace : nb de sumitos adverses visant précisément cette bille (comptage direct
+   des coups adverses déjà générés, pas une estimation).
+   bord : fait géométrique (isEdgeCell).
+   Pas de score composite : les 4 dimensions restent séparées, à consulter une
+   par une (texte ou carte visuelle), jamais fusionnées en une note fabriquée.
+═══════════════════════════════════════════ */
+function calculerCarteTactique(color) {
+  const moves = getAllMovesForColor(color);
+  const enemy = color === 'black' ? 'white' : 'black';
+  const enemyMoves = getAllMovesForColor(enemy);
+  const enemySumito = enemyMoves.filter(function(m){ return m.code && m.code <= 6; });
+
+  const mobilite = {};
+  moves.forEach(function(m){ m.cells.forEach(function(cell){ const k = cell.r+','+cell.c; mobilite[k] = (mobilite[k]||0) + 1; }); });
+
+  const menace = {};
+  enemySumito.forEach(function(m){ _billesViseesParCoup(m).forEach(function(rc){ const k = rc.r+','+rc.c; menace[k] = (menace[k]||0) + 1; }); });
+
+  const cases = [];
+  for (const k in board) {
+    if (board[k] !== color) continue;
+    const parts = k.split(',');
+    const r = +parts[0], c = +parts[1];
+    const ax = rcToAxial(r, c);
+    let maxSoutien = 0;
+    EVAL_AXES.forEach(function(pair){
+      const bd = AX_DIRS[pair[1]];
+      let aq = ax.q, ar = ax.r, depth = 0;
+      while (depth < 2) { aq += bd.q; ar += bd.r; const nrc = axialToRc(aq, ar); if (!nrc) break; if (board[akey(nrc.r,nrc.c)] !== color) break; depth++; }
+      if (depth > maxSoutien) maxSoutien = depth;
+    });
+    cases.push({ r:r, c:c, mobilite: mobilite[k]||0, soutien: maxSoutien, menace: menace[k]||0, bord: isEdgeCell(r,c)?1:0 });
+  }
+  return cases;
+}
+const LABELS_CARTE_TACTIQUE = { mobilite:'Mobilité', soutien:'Soutien', menace:'Menace', bord:'En bordure' };
+// SVG statique (memes conventions que buildHeatmapSVG) : une seule dimension a la fois,
+// jamais de fusion — le choix de la dimension affichee reste a la personne, pas au code.
+function buildCarteTactiqueSVG(color, dim) {
+  const cases = calculerCarteTactique(color);
+  const parCle = {};
+  cases.forEach(function(c){ parCle[c.r+','+c.c] = c; });
+  let maxVal = 0;
+  cases.forEach(function(c){ if (c[dim] > maxVal) maxVal = c[dim]; });
+  const SIZE = 280, scale = SIZE/640, cellR = HEX_RADIUS*scale*0.92;
+  let svg = '';
+  for (let r=0;r<9;r++) for (let c2=0;c2<ROWS[r];c2++) {
+    const p = hexCoord(r, c2, true);
+    const x = p.x*scale, y = p.y*scale;
+    const k = r+','+c2;
+    const info = parCle[k];
+    let fill;
+    if (info) {
+      const v = info[dim];
+      const intensite = maxVal>0 ? v/maxVal : (v>0?1:0);
+      fill = heatColor(v===0?0:intensite);
+    } else {
+      fill = board[k] ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.02)';
+    }
+    svg += '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+cellR.toFixed(1)+'" fill="'+fill+'" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>';
+    if (info) svg += '<text x="'+x.toFixed(1)+'" y="'+(y+3).toFixed(1)+'" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.85)" font-weight="700">'+info[dim]+'</text>';
+  }
+  return '<svg viewBox="0 0 '+SIZE+' '+SIZE+'" width="'+SIZE+'" height="'+SIZE+'" xmlns="http://www.w3.org/2000/svg">'+svg+'</svg>';
+}
+
 function calculerExplicationCoup(move, color) {
   const avant = evaluateBoard(color, true);
   const undo = applyMove(move, color);
@@ -21462,6 +21531,27 @@ function computeTopMoves(color, n) {
   return out;
 }
 
+let _carteTactiqueVisible = false;
+let _carteTactiqueDim = 'menace';
+// Rebascule juste la carte tactique sans refaire tout runAnalysis (evite de re-choisir les coups)
+function toggleCarteTactique(cb) {
+  _carteTactiqueVisible = !!cb.checked;
+  const zone = document.getElementById('carte-tactique-zone');
+  if (zone) zone.style.display = _carteTactiqueVisible ? '' : 'none';
+  if (_carteTactiqueVisible) dessinerCarteTactique();
+}
+function choisirDimCarteTactique(dim) {
+  _carteTactiqueDim = dim;
+  dessinerCarteTactique();
+}
+function dessinerCarteTactique() {
+  const zone = document.getElementById('carte-tactique-svg');
+  if (!zone) return;
+  zone.innerHTML = buildCarteTactiqueSVG(currentTurn, _carteTactiqueDim);
+  document.querySelectorAll('.carte-dim-btn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.dim === _carteTactiqueDim);
+  });
+}
 function runAnalysis() {
   const el = document.getElementById('analyse-content');
   if (!el) return;
@@ -21548,6 +21638,28 @@ function runAnalysis() {
       }
     }
   }
+  // Carte tactique par case (voir calculerCarteTactique) : liste texte toujours
+  // visible (peu couteux), carte visuelle optionnelle via case a cocher.
+  const carteCases = calculerCarteTactique(currentTurn);
+  let carteHtml = '';
+  if (carteCases.length) {
+    const plusMenacees = carteCases.filter(function(c){ return c.menace>0; }).sort(function(a,b){ return b.menace-a.menace; }).slice(0,3);
+    const moinsMobiles = carteCases.slice().sort(function(a,b){ return a.mobilite-b.mobilite; }).slice(0,3);
+    carteHtml = '<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:16px 0 8px">Carte tactique par case</div>'+
+      (plusMenacees.length ? ('<div style="font-size:10px;color:var(--muted);margin-bottom:3px">Billes les plus menacées</div>'+
+        plusMenacees.map(function(c){ return '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);padding:1px 0"><span>case '+c.r+','+c.c+'</span><span>menacée '+c.menace+'×</span></div>'; }).join(''))
+        : '<div style="font-size:11px;color:var(--muted)">Aucune bille menacée actuellement.</div>')+
+      '<div style="font-size:10px;color:var(--muted);margin:8px 0 3px">Billes les moins mobiles</div>'+
+      moinsMobiles.map(function(c){ return '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);padding:1px 0"><span>case '+c.r+','+c.c+'</span><span>'+c.mobilite+' coup(s)</span></div>'; }).join('')+
+      '<label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11px;color:var(--text);cursor:pointer">'+
+      '<input type="checkbox" onchange="toggleCarteTactique(this)" '+(_carteTactiqueVisible?'checked':'')+'> 🗺️ Afficher la carte visuelle</label>'+
+      '<div id="carte-tactique-zone" style="display:'+(_carteTactiqueVisible?'':'none')+';margin-top:8px">'+
+      '<div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap">'+
+      Object.keys(LABELS_CARTE_TACTIQUE).map(function(d){
+        return '<button type="button" class="carte-dim-btn setup-opt'+(_carteTactiqueDim===d?' active':'')+'" style="font-size:10px;padding:4px 8px" data-dim="'+d+'" onclick="choisirDimCarteTactique(\''+d+'\')">'+LABELS_CARTE_TACTIQUE[d]+'</button>';
+      }).join('')+
+      '</div><div id="carte-tactique-svg" style="text-align:center"></div></div>';
+  }
   el.innerHTML = [
     '<div style="margin-bottom:14px">',
     '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px">',
@@ -21564,7 +21676,9 @@ function runAnalysis() {
     histoHtml,
     motifsHtml,
     grapheHtml,
+    carteHtml,
   ].join('');
+  if (_carteTactiqueVisible) dessinerCarteTactique();
 }
 
 /* ═══════════════════════════════════════════
