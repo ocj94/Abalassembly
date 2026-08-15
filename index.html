@@ -385,7 +385,12 @@ html[dir="rtl"] .lang-option { text-align: right; }
 .sidebar-items {
   flex: 1; overflow-y: auto; overflow-x: hidden;
   padding: 4px 0;
-  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  /* Utilisait var(--border) (gris) au lieu de var(--gold-dim) : sur les
+     navigateurs qui supportent la propriete standard scrollbar-color (Chrome
+     recent inclus), elle prend le pas sur la regle ::-webkit-scrollbar
+     globale et donnait donc une scrollbar grise ici, differente du reste
+     du site. Signale par Olivier. */
+  scrollbar-width: thin; scrollbar-color: var(--gold-dim) transparent;
 }
 .sidebar-bottom { padding: 4px 0 8px; }
 
