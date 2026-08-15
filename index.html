@@ -22017,6 +22017,28 @@ function applyMarbleSkin() {
   // garde la compat avec le système 2-couleurs
   boardTheme.blackGrad1 = sk.b[0]; boardTheme.blackGrad2 = sk.b[sk.b.length-1];
   boardTheme.whiteGrad1 = sk.w[0]; boardTheme.whiteGrad2 = sk.w[sk.w.length-1];
+  refreshSetupMarbleSwatches();
+}
+
+/* Les boutons "Moi/Adversaire" de l'écran de configuration utilisaient les
+   emojis ⚫/⚪ fixes, qui ne reflétaient jamais le skin de billes choisi par
+   la personne (Kintsugi, Rubis, Émeraude...). Remplace ces emojis par de
+   petits ronds dégradés utilisant les VRAIES couleurs du skin actif (mêmes
+   valeurs boardTheme.blackStops/whiteStops que le plateau réel), pour que
+   la personne reconnaisse tout de suite quelle couleur elle va jouer. */
+function refreshSetupMarbleSwatches() {
+  const bStops = (boardTheme.blackStops || MARBLE_SKINS.kintsugi.b).join(', ');
+  const wStops = (boardTheme.whiteStops || MARBLE_SKINS.kintsugi.w).join(', ');
+  const swatch = function(stops){
+    return '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;' +
+      'background:radial-gradient(circle at 35% 35%, ' + stops + ');' +
+      'box-shadow:inset -1px -1px 2px rgba(0,0,0,0.5),0 1px 2px rgba(0,0,0,0.3);' +
+      'vertical-align:-1px;margin-right:4px"></span>';
+  };
+  const btnMoi = document.querySelector('#setup-first button[onclick*="\'black\'"]');
+  const btnAdv = document.querySelector('#setup-first button[onclick*="\'white\'"]');
+  if (btnMoi) btnMoi.innerHTML = swatch(bStops) + 'Moi';
+  if (btnAdv) btnAdv.innerHTML = swatch(wStops) + 'Adversaire';
 }
 
 /* ═══════════════════════════════════════════
