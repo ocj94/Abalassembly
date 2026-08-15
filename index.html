@@ -14468,6 +14468,15 @@ const EVAL_CENTER = { q:0, r:0 };  // centre du plateau en axial
 function axHexDist(a, b) {
   return (Math.abs(a.q-b.q) + Math.abs(a.q+a.r-b.q-b.r) + Math.abs(a.r-b.r)) / 2;
 }
+/* Fonction d'évaluation heuristique de l'IA — additionne des composantes
+   pondérées (matériel, centre, cohésion, bord, capture, mobilité, isolement,
+   danger d'éjection, alignements, forteresse) en un seul score, du point de
+   vue de `color`. 8 des multiplicateurs ci-dessous (centre 6, cohésion 4,
+   bord 8, mobilité 2, isolement 18, danger 14, alignements 10, forteresse 20)
+   sont les "8 poids" ajustables par le Labo d'auto-amélioration (SPSA/SPRT,
+   voir page Labo) — les modifier ici a un effet direct sur le jeu de l'IA.
+   material et capScore restent fixes (poids 1000, largement dominants :
+   le matériel et les captures priment toujours sur tout le reste). */
 function evaluateBoard(color, detail) {
   const enemy = color === 'white' ? 'black' : 'white';
   let myCount=0, enCount=0, myCenter=0, enCenter=0, myCohesion=0, enCohesion=0, myEdge=0, enEdge=0;
@@ -14731,6 +14740,14 @@ const LABELS_EXPLICATION = {
 function _zoneColonne(row, col) { const cc = col - (ROWS[row]-1)/2; return cc<=-1.5 ? 'aileGauche' : (cc>=1.5 ? 'aileDroite' : 'centre'); }
 function _zoneDistance(d) { return d<=1 ? 'coeur' : (d<=3 ? 'intermediaire' : 'bord'); }
 function _zoneVide() { return { cohesion:0, danger:0, mobilite:0, isolement:0, chaines:0, forteresse:0, billes:0 }; }
+/* ═══ Étage 1 : décomposition spatiale ═══
+   Reprend exactement les mêmes grandeurs par bille que evaluateBoard
+   (allies, chainLinks, iso, danger, mobilité, forteresse) mais les
+   regroupe par ZONE (colonne : aile gauche/centre/aile droite ; distance :
+   coeur/intermédiaire/bord) plutôt que de tout sommer en un seul total
+   global. Sert à répondre "où sur le plateau" plutôt que juste "combien
+   au total" — fonction d'affichage, jamais appelée pendant la recherche IA.
+   moi = mes zones, adversaire = les siennes, mêmes classifications. */
 function analyzeZones(color) {
   const zones = { colonne: { aileGauche: _zoneVide(), centre: _zoneVide(), aileDroite: _zoneVide() },
                    distance: { coeur: _zoneVide(), intermediaire: _zoneVide(), bord: _zoneVide() } };
@@ -14993,6 +15010,15 @@ function _casesAtteintes(moves) {
   });
   return dest;
 }
+/* ═══ Étage 6 : mobilité à 2 coups ═══
+   cases1Coup : nombre de cases distinctes atteignables en un seul coup
+   (comptage direct des destinations, dédupliqué via un Set).
+   cases2Coups : pour chaque coup possible, on le joue VRAIMENT (applyMove),
+   on recompte les destinations atteignables depuis cette nouvelle position,
+   puis on annule (undoMove) avant de tester le coup suivant — pas une
+   estimation, une vraie exploration à 2 plis. C'est la fonction la plus
+   coûteuse de l'empreinte (voir notes de profilage : ~93% du temps total
+   de calculerEmpreinte avant optimisation v1.71). */
 function analyzeMobilite2Coups(color, movesPrecalcules) {
   const moves1 = movesPrecalcules || getAllMovesForColor(color);
   const dest1 = _casesAtteintes(moves1);
