@@ -11626,6 +11626,21 @@ function getThemeCanvas2D(nom, night, t) {
   return themeTextures2D[cle];
 }
 
+/* Dessine le plateau ENTIER sur le canvas (halo, gouttière en bois/résine,
+   triangles décoratifs, cases surlignées, coordonnées, billes éjectées, puis
+   les billes elles-mêmes plus loin dans la fonction) — appelée à chaque coup,
+   chaque rotation, chaque changement de thème/skin. Ordre de dessin (chaque
+   couche recouvre la précédente, donc l'ordre compte) :
+     1. Halo lumineux de fond
+     2. Contour hexagonal du plateau (calculé depuis les 6 coins réels)
+     3. Gouttière en bois/résine (+ rivières bleues, triangles dorés)
+     4. Indices de coups possibles (si activés)
+     5. Coordonnées des cases (a1...i9)
+     6. Billes déjà éjectées, dans la gouttière
+     7. Les 61 cases et les billes qui les occupent (plus loin dans la fonction)
+   opts permet de dessiner un plateau DIFFÉRENT du plateau de partie en cours
+   (ex: aperçu figé pour un puzzle ou une position historique) sans toucher
+   aux variables globales — voir boardData = opts.board || board plus bas. */
 function drawBoard(opts) {
   opts = opts || {};
   const canvasId = opts.canvasId || 'board';
@@ -16820,9 +16835,18 @@ function resolveAbaProToken(token,color){
   return m[0];
 }
 // Pose une position depuis une chaîne AbalOnline "Sblack_cells,Swhite_cells" (S = score = billes éjectées)
+// Installe la position de DEPART d'une partie AbalOnline (variante quelconque,
+// pas seulement Belgian Daisy) a partir du champ g[5] du format AO_GAMES.
+// Format de startStr : "<nbEjectees><cases>,<nbEjectees><cases>" — ex.
+// "0a1a2b1,0i9i8h9" = noir a a1/a2/b1, blanc a i9/i8/h9, personne n'a encore
+// perdu de bille. Retourne false si le format ne peut pas etre lu (partie
+// ignoree plutot que plantee), true si le plateau a ete installe avec succes.
 function _setupFromAOStart(startStr){
   board={}; capturedByBlack=0; capturedByWhite=0;
   const parts=String(startStr).split(','); if(parts.length!==2) return false;
+  // place() lit un segment "<nbEjectees><cases>" pour UNE couleur : le premier
+  // chiffre est le nombre de billes deja perdues par ce camp (score adverse),
+  // suivi de la liste de ses cases occupees en notation officielle (a1, i9...).
   function place(p,col){
     const m=p.match(/^(\d)(.*)$/); if(!m) return false;
     const cells=m[2].match(/[a-i][1-9]/g)||[];
