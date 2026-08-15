@@ -22,4 +22,9 @@ Un jeu d'Abalone complet dans un seul fichier HTML : zéro dépendance, hors-lig
 - **Mode technique** — sur les pages qui en ont (Tables de finale, Ouvertures, Labo, Statistiques, Analyse), un bouton révèle méthode et chiffres bruts sans encombrer la vue par défaut
 - **Moteur de compréhension** (page Analyse) — sur n'importe quelle position : décomposition spatiale, faiblesse de soutien, potentiel de sumito, menaces immédiates, profondeur tactique, mobilité à 2 coups, et une recherche de menace ciblée sur demande
 - **Empreinte positionnelle** (même page) — capture une position comme référence, compare toute position suivante à elle (distance + détail par dimension en mode technique). Invariant au miroir gauche-droite : deux positions en miroir exact sont reconnues comme identiques
+- **418 595 positions historiques** embarquées, avec pourcentile de la position courante contre ce corpus réel
+- **Bibliothèque de motifs tactiques** — détection invariante par rotation, taux de victoire réel calculé sur les vraies parties
+- **Graphe des positions** — transpositions réelles entre parties différentes, jusqu'à 20 plis
+- **Carte tactique** — mobilité, soutien, menace et proximité du bord par bille, en overlay sur le plateau
+- **Explorateur d'ouverture** navigable, avec indicateur de confiance statistique par branche
 - Suite de tests versionnée : `node tests/regression.js`
