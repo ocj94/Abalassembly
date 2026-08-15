@@ -17253,7 +17253,15 @@ function ensureGameBanks(){
     .catch(function(){ return false; });
   return _banksReady;
 }
-ensureGameBanks();
+/* Différé hors du chemin critique de rendu : OPENING_TREES est lu de façon
+   synchrone par initGame() (book d'ouvertures) sans filet "chargement en
+   cours", donc on garde le chargement auto — juste déplacé après le premier
+   rendu plutôt que bloquant sur le parsing du script. */
+(function(){
+  const start = function(){ ensureGameBanks(); };
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(start, {timeout: 2000});
+  else setTimeout(start, 300);
+})();
 
 /* ═══════════════════════════════════════════
    EMPREINTES HISTORIQUES — 418595 positions (2589 MIGS + 1890 AO)
@@ -17290,7 +17298,14 @@ function ensureEmpreintesHistoriques(){
   }).catch(function(){ return false; });
   return _empreintesReady;
 }
-ensureEmpreintesHistoriques();
+/* Différé hors du chemin critique de rendu (pas de consommateur avec
+   fallback "chargement en cours" — on garde le chargement auto, juste
+   déplacé après le premier rendu). */
+(function(){
+  const start = function(){ ensureEmpreintesHistoriques(); };
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(start, {timeout: 2000});
+  else setTimeout(start, 300);
+})();
 
 /* ═══════════════════════════════════════════
    GRAPHE DES POSITIONS — transpositions réelles (839 positions, 876 arêtes)
@@ -17314,7 +17329,13 @@ function ensurePositionsGraph(){
   _graphReady = _inflB64(GRAPH_B64).then(function(txt){ GRAFFE_POSITIONS = JSON.parse(txt); return true; }).catch(function(){ return false; });
   return _graphReady;
 }
-ensurePositionsGraph();
+/* Différé hors du chemin critique de rendu (même raison que les empreintes
+   ci-dessus : pas de fallback "chargement en cours" côté consommateur). */
+(function(){
+  const start = function(){ ensurePositionsGraph(); };
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(start, {timeout: 2000});
+  else setTimeout(start, 300);
+})();
 function hashPositionActuelle(color) {
   let s = color === 'black' ? 'B' : 'W';
   for (let r = 0; r < 9; r++) {
