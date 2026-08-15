@@ -16593,6 +16593,12 @@ function canonId(mv){
   return mv.cells.map(function(c){ return '' + c.r + c.c; }).sort().join('') + '>' + mv.dir.q + '' + mv.dir.r;
 }
 // descend dans l'arbre selon le coup joué (sort du livre si inconnu)
+// Fait avancer le pointeur dans l'arbre du livre (_bookNode) au fur et a mesure
+// que la partie se joue reellement, coup par coup — que le coup vienne de
+// l'humain ou de l'IA. Si la position sort du livre (coup jamais vu a cet
+// endroit, ou _bookNode.k absent), on "sort du livre" une bonne fois pour
+// toutes (_bookNode=null) : au-dela, ni pickBookMove ni le livre ne seront
+// plus consultes pour le reste de la partie — la recherche prend le relais.
 function bookDescend(moveInfo){
   if(!_bookNode || !_bookNode.k){ _bookNode = null; return; }
   if(!moveInfo || !moveInfo.cells || !moveInfo.dir){ _bookNode = null; return; }
@@ -16604,13 +16610,22 @@ function pickBookMove(node, legalMoves){
   const ids = Object.keys(node.k);
   if(!ids.length) return null;
   // poids = fréquence × (0.5 + taux de victoire du joueur ayant joué ce coup), borné
+  // Le "0.5 +" evite qu'un coup jamais gagnant (wr=0) ait un poids nul (donc
+  // jamais choisi) : meme un coup rare avec un mauvais historique garde une
+  // petite chance d'etre tire, pondere par sa frequence relle (n.c).
   function weight(n){
     const wr = (n.wg > 0) ? (n.w / n.wg) : 0.5;   // taux de victoire, 0.5 si inconnu
     return n.c * (0.5 + wr);
   }
+  // Tirage pondere classique : chaque candidat occupe une "tranche" proportionnelle
+  // a son poids sur [0, total], on tire un nombre au hasard dedans et on regarde
+  // dans quelle tranche il tombe (roulette).
   let total = 0; for(const id of ids) total += weight(node.k[id]);
   let pick = Math.random()*total, chosen = ids[0];
   for(const id of ids){ pick -= weight(node.k[id]); if(pick <= 0){ chosen = id; break; } }
+  // Verification de securite indispensable : l'arbre a pu etre construit sur un
+  // plateau legerement different (transposition, variante) — on ne rend le coup
+  // que s'il correspond REELLEMENT a un coup legal ICI, jamais a l'aveugle.
   for(const m of legalMoves){ if(canonId(m) === chosen) return m; }  // sécurité : doit être légal
   return null;
 }
@@ -28969,7 +28984,14 @@ var AbaOpening = (function () {
     return letter + (c + 1 + offset);
   }
 
-  /* posRef d'un seul camp. board : { "r,c": "black"|"white" }. */
+  /* posRef d'un seul camp. board : { "r,c": "black"|"white" }.
+     Principe : au lieu de lister les cases occupées une par une (ce qui
+     dépendrait de l'ordre d'itération), on regroupe par colonne (a,b,c...)
+     et on trie les numéros dans chaque colonne — deux plateaux identiques
+     donnent alors TOUJOURS exactement la même chaîne, quel que soit l'ordre
+     dans lequel les billes ont été posées. Le "14 - n" au début encode le
+     nombre de billes déjà perdues (14 = départ), donc deux positions avec
+     le même nombre de pertes mais des cases différentes ne se confondent pas. */
   function posRefSide(board, camp) {
     var groups = {}, n = 0, key, v, p, r, c, ab;
     for (key in board) {
@@ -29002,7 +29024,13 @@ var AbaOpening = (function () {
   function loadFrom(json) { TREE = json; return { positions: Object.keys(json).length }; }
 
   /* Consultation : pour la position courante, les coups d'ouverture connus.
-     L'arbre est indexe par le posRef du camp au trait (segment avant "_"). */
+     L'arbre est indexe par le posRef du camp au trait (segment avant "_") —
+     l'adversaire n'entre pas dans la clé de recherche, seulement dans le
+     posRef complet stocké ailleurs pour distinguer les transpositions.
+     Chaque coup connu à cette position a un triplet [victoires, défaites,
+     nuls] issu du CSV externe KAA ; on les transforme ici en objets plus
+     confortables à afficher (games = total, winRate = fraction de victoires),
+     triés du plus joué au moins joué. */
   function probe(board, camp) {
     if (!TREE) return null;
     var key = posRefSide(board, camp);
