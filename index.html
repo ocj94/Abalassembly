@@ -3229,9 +3229,12 @@ document.addEventListener('keydown', function(e){
       <div style="display:flex;gap:5px;flex-wrap:wrap" id="setup-diff">
         <button onclick="setupPick('diff','easy',this)" class="setup-opt active">Facile</button>
         <button onclick="setupPick('diff','medium',this)" class="setup-opt">Moyen</button>
+        <button onclick="setupPick('diff','advanced',this)" class="setup-opt">Avancé</button>
         <button onclick="setupPick('diff','hard',this)" class="setup-opt">Expert</button>
+        <button onclick="setupPick('diff','master',this)" class="setup-opt">Maître</button>
         <button onclick="setupPick('diff','minimax',this)" class="setup-opt" style="color:#b89ef0">Minimax</button>
       </div>
+      <div id="setup-diff-info" style="font-size:11px;color:var(--muted);margin-top:6px"></div>
     </div>
 
     <!-- Cadence -->
@@ -8486,6 +8489,15 @@ function setupPick(group, value, btn) {
     if (firstWrap) firstWrap.style.display = isAI ? '' : 'none';
     if (firstBox) firstBox.style.display = isAI ? '' : 'none';
   }
+  /* Indication reelle (profondeur + budget temps) sous les boutons de niveau —
+     memes chiffres EXACTS que ceux que l'IA va vraiment utiliser (meme table
+     AI_DIFFICULTY_CONFIG), pas une description vague inventee a part.
+     Demande d'Olivier : des niveaux plus progressifs + voir ce qui change. */
+  if (group === 'diff') {
+    const info = document.getElementById('setup-diff-info');
+    const cfg = (typeof AI_DIFFICULTY_CONFIG !== 'undefined') ? AI_DIFFICULTY_CONFIG[value] : null;
+    if (info && cfg) info.textContent = cfg.label;
+  }
 }
 
 function setupToggle(key, on) { _setupCfg[key] = on; }
@@ -8493,6 +8505,11 @@ function setupToggle(key, on) { _setupCfg[key] = on; }
 /* Ouvre la configuration. C'est le nouveau point d'entree de « Jouer ». */
 function openGameSetup() {
   showPage('setup');
+  // Affiche l'indication du niveau actif (Facile par defaut) des l'ouverture,
+  // pas seulement apres un clic — meme table que la decision reelle de l'IA.
+  const info = document.getElementById('setup-diff-info');
+  const cfg = (typeof AI_DIFFICULTY_CONFIG !== 'undefined') ? AI_DIFFICULTY_CONFIG[_setupCfg.diff] : null;
+  if (info && cfg) info.textContent = cfg.label;
 }
 
 /* Applique toute la configuration puis bascule sur le plateau. */
@@ -14457,6 +14474,19 @@ function setLayout(name, btn) {
    h1: center distance | h2: cohesion | h3: push threats
 ═══════════════════════════════════════════ */
 let aiDifficulty = 'medium';
+/* Table UNIQUE profondeur/budget-temps par niveau — utilisée à la fois par la
+   décision réelle de l'IA (plus bas dans aiMove) et par l'indication affichée
+   sur l'écran de configuration (setup-diff-info). Une seule source de verité :
+   changer un chiffre ici le change partout, jamais deux tables qui pourraient
+   diverger et afficher un niveau différent de ce qui est réellement joué. */
+const AI_DIFFICULTY_CONFIG = {
+  easy:     { depth:1, time:200,     label:'Coup quasi instantané, parmi les meilleurs captures/poussées disponibles, avec un peu de hasard.' },
+  medium:   { depth:2, time:600,     label:'Regarde 2 coups à l\'avance, jusqu\'à 0,6 s de réflexion.' },
+  advanced: { depth:3, time:1200,    label:'Regarde 3 coups à l\'avance, jusqu\'à 1,2 s de réflexion.' },
+  hard:     { depth:4, time:2500,    label:'Regarde 4 coups à l\'avance, jusqu\'à 2,5 s de réflexion.' },
+  master:   { depth:6, time:5000,    label:'Regarde 6 coups à l\'avance, jusqu\'à 5 s de réflexion.' },
+  minimax:  { depth:8, time:3600000, label:'Regarde 8 coups à l\'avance, sans limite de temps pratique (plafond de sécurité 1h) — le plus lent, le plus fort.' },
+};
 let aiMoveCount = 0; // track for adaptive difficulty
 
 // Center coordinates
@@ -19129,13 +19159,8 @@ function aiMove() {
     if (bookMove) { executeAIMove(bookMove); return; }
   }
 
-  // Profondeur et budget temps par difficulté
-  const config = {
-    easy:    { depth:1, time:200 },
-    medium:  { depth:2, time:600 },
-    hard:    { depth:4, time:2500 },
-    minimax: { depth:8, time:3600000 },   // α-β : profondeur 8, sans limite de temps pratique (plafond de sécurité 1h pour ne jamais figer indéfiniment)
-  }[aiDifficulty] || { depth:2, time:600 };
+  // Profondeur et budget temps par difficulté — table partagée AI_DIFFICULTY_CONFIG
+  const config = Object.assign({}, AI_DIFFICULTY_CONFIG[aiDifficulty] || AI_DIFFICULTY_CONFIG.medium);
   if (typeof _tourneyMatch!=='undefined' && _tourneyMatch && _tourneyMatch.cfg) { config.depth=_tourneyMatch.cfg.depth; config.time=_tourneyMatch.cfg.time; }
 
   // Niveau facile : décision immédiate (un peu d'aléatoire), pas besoin du worker
