@@ -15198,6 +15198,35 @@ function buildCarteTactiqueSVG(color, dim) {
   return '<svg viewBox="0 0 '+SIZE+' '+SIZE+'" width="'+SIZE+'" height="'+SIZE+'" xmlns="http://www.w3.org/2000/svg">'+svg+'</svg>';
 }
 
+/* ═══════════════════════════════════════════
+   PROFIL DE DÉCISION — pas un score composite "complexité X/100" (ça
+   demanderait des poids calibrés sur des milliers de résolutions humaines
+   réelles, données qu'on n'a pas). À la place : des mesures brutes, réelles,
+   issues du même evaluateBoard que le moteur utilise pour choisir ses coups.
+   - nbCoupsLegaux : branching brut, comptage direct.
+   - ecartMeilleurPire : écart de score entre le meilleur et le pire coup —
+     grand écart = un coup se détache nettement (décision facile) ; petit
+     écart = coups proches en valeur (décision plus disputée).
+   - nbCoupsProchesDuMeilleur : nombre de coups à moins de SEUIL_PROCHE points
+     du meilleur — seuil fixe et documenté ici, pas caché dans le calcul.
+═══════════════════════════════════════════ */
+const SEUIL_PROCHE_MEILLEUR = 30;  // points d'evaluateBoard — choix documenté, pas calibré sur des données humaines
+function calculerProfilDecision(color) {
+  let moves;
+  try { moves = getAllMovesForColor(color); } catch(e) { return null; }
+  if (!moves || !moves.length) return null;
+  const scores = [];
+  for (let i = 0; i < moves.length; i++) {
+    const undo = applyMove(moves[i], color);
+    scores.push(evaluateBoard(color));
+    undoMove(undo);
+  }
+  scores.sort(function(a,b){ return b-a; });
+  const meilleur = scores[0], pire = scores[scores.length-1];
+  const nbProches = scores.filter(function(s){ return meilleur - s <= SEUIL_PROCHE_MEILLEUR; }).length;
+  return { nbCoupsLegaux: moves.length, ecartMeilleurPire: meilleur - pire, nbCoupsProchesDuMeilleur: nbProches };
+}
+
 function calculerExplicationCoup(move, color) {
   const avant = evaluateBoard(color, true);
   const undo = applyMove(move, color);
@@ -21572,7 +21601,7 @@ function runAnalysis() {
   const histo = calculerAnalyseHistorique(currentTurn, 5);
   let histoHtml;
   if (histo) {
-    const dimsAffichees = ['cohesionMoyenne','mobilite2Ratio','sumitoRatio','menaceRatio'];
+    const dimsAffichees = ['cohesionMoyenne','mobilite2Ratio','sumitoRatio','menaceRatio','profondeurTactique'];
     histoHtml = [
       '<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:16px 0 8px">Comparaison à '+histo.nTotal.toLocaleString('fr-FR')+' positions réelles ('+histo.nMigs.toLocaleString('fr-FR')+' MIGS + '+histo.nAo.toLocaleString('fr-FR')+' AbalOnline)</div>',
       dimsAffichees.map(function(ch){
@@ -21660,6 +21689,19 @@ function runAnalysis() {
       }).join('')+
       '</div><div id="carte-tactique-svg" style="text-align:center"></div></div>';
   }
+  // Profil de decision — mesures reelles (branching, ecart de score, coups proches
+  // du meilleur), jamais fusionnees en un score "complexite X/100" fabrique.
+  const profil = calculerProfilDecision(currentTurn);
+  let profilHtml = '';
+  if (profil) {
+    profilHtml = '<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:16px 0 8px">Profil de décision</div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);padding:2px 0"><span>Coups légaux disponibles</span><span>'+profil.nbCoupsLegaux+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);padding:2px 0"><span>Écart meilleur / pire coup</span><span>'+profil.ecartMeilleurPire+' pts</span></div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);padding:2px 0"><span>Coups à ≤'+SEUIL_PROCHE_MEILLEUR+'pts du meilleur</span><span>'+profil.nbCoupsProchesDuMeilleur+'</span></div>'+
+      '<div style="font-size:10px;color:var(--muted);margin-top:4px;font-style:italic">'+
+      (profil.nbCoupsProchesDuMeilleur<=2 ? 'Décision assez claire : peu de coups rivalisent avec le meilleur.' : 'Décision disputée : plusieurs coups se valent, à trancher avec attention.')+
+      '</div>';
+  }
   el.innerHTML = [
     '<div style="margin-bottom:14px">',
     '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px">',
@@ -21677,6 +21719,7 @@ function runAnalysis() {
     motifsHtml,
     grapheHtml,
     carteHtml,
+    profilHtml,
   ].join('');
   if (_carteTactiqueVisible) dessinerCarteTactique();
 }
