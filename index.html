@@ -5959,6 +5959,12 @@ document.addEventListener('keydown', function(e){
       </div>
 
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:20px">
+        <h3 style="margin:0 0 6px;color:var(--white);font-size:17px">Explorateur</h3>
+        <p style="margin:0 0 14px;font-size:13px;color:var(--muted);line-height:1.6">Clique un coup pour descendre dans l'arbre, coup par coup — indépendant de ta partie en cours.</p>
+        <div id="op-explorer"></div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:20px">
         <h3 style="margin:0 0 6px;color:var(--white);font-size:17px">Départ — Marguerite belge</h3>
         <p style="margin:0 0 14px;font-size:13px;color:var(--muted);line-height:1.6">La position des tournois depuis 1999. Les premiers coups, classés par fréquence.</p>
         <div id="op-root"></div>
@@ -5973,7 +5979,7 @@ document.addEventListener('keydown', function(e){
       <div class="tech-detail" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-top:16px">
         <h3 style="margin:0 0 12px;color:var(--white);font-size:17px">Deux répertoires distincts, à ne pas confondre</h3>
         <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">Cette page (AbaOpening)</strong> : arbre embarqué de 90 positions, 16 819 parties de tournoi réelles en Marguerite belge uniquement — pure statistique d'observation, jamais consulté par le moteur IA.</p>
-        <p style="margin:0;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">Le book du moteur (OPENING_BOOK)</strong> : ce que l'IA consulte réellement en partie. Pour la variante Standard, miné depuis 398 vraies parties (10 demi-coups de profondeur), remplaçant un ancien book codé à la main. Belgian/German restent codés en dur (pas encore minés depuis des données réelles). Un troisième niveau existe en repli, jamais prioritaire sur les deux premiers : les propres parties auto-jouées du Labo d'auto-amélioration, consultées seulement quand ni le book réel ni le book codé en dur n'ont de réponse pour la position.</p>
+        <p style="margin:0;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">Le book du moteur (OPENING_BOOK)</strong> : ce que l'IA consulte réellement en partie. Miné depuis les vraies parties pour les trois variantes (Standard : 398 parties AbalOnline, Belgian : 2589 parties MIGS, German : 117 parties AbalOnline), remplaçant d'anciens books codés à la main. Un troisième niveau existe en repli, jamais prioritaire sur les deux premiers : les propres parties auto-jouées du Labo d'auto-amélioration, consultées seulement quand ni le book réel ni le book codé en dur n'ont de réponse pour la position.</p>
       </div>
 
     </div>
@@ -25091,7 +25097,7 @@ function closeSidebarMobile() {
 }
 
 function sidebarNav(page, btn) {
-  if (typeof page === 'string' && page === 'openings' && typeof opRenderRoot === 'function') setTimeout(opRenderRoot, 30);
+  if (typeof page === 'string' && page === 'openings' && typeof opRenderRoot === 'function') { setTimeout(opRenderRoot, 30); setTimeout(opExploreReset, 30); }
   // Highlight
   document.querySelectorAll('.sidebar-item').forEach(function(b) { b.classList.remove('active'); });
   if (btn) btn.classList.add('active');
@@ -29696,6 +29702,100 @@ function opRenderRoot() {
   LAY.black.forEach(function (p) { b[p[0] + ',' + p[1]] = 'black'; });
   LAY.white.forEach(function (p) { b[p[0] + ',' + p[1]] = 'white'; });
   el.innerHTML = _opTable(AbaOpening.probe(b, 'black'), 'Noirs au trait');
+}
+
+/* ═══════════════════════════════════════════
+   EXPLORATEUR D'OUVERTURE — arbre navigable, plateau de travail SEPARE de la
+   partie en cours (jamais de collision avec `board`/`currentTurn` du jeu réel).
+   _opPath : liste des coups appliqués depuis le départ (labels type "a1d4"),
+   pour l'affichage en fil d'ariane et pour pouvoir revenir en arrière.
+   À chaque clic sur un coup, on retrouve le VRAI coup légal correspondant sur
+   le plateau de travail (via moveToPlayStrategy, même notation que le CSV),
+   on l'applique avec applyMove — jamais une simulation approximative — puis
+   on interroge AbaOpening.probe() sur la nouvelle position.
+═══════════════════════════════════════════ */
+let _opBoard = null, _opColor = 'black', _opPath = [];
+function opExploreReset() {
+  var LAY = { black: [[8,0],[8,1],[7,0],[7,1],[7,2],[6,1],[6,2],[0,3],[0,4],[1,3],[1,4],[1,5],[2,4],[2,5]],
+              white: [[8,3],[8,4],[7,3],[7,4],[7,5],[6,4],[6,5],[0,0],[0,1],[1,0],[1,1],[1,2],[2,1],[2,2]] };
+  _opBoard = {};
+  LAY.black.forEach(function (p) { _opBoard[p[0] + ',' + p[1]] = 'black'; });
+  LAY.white.forEach(function (p) { _opBoard[p[0] + ',' + p[1]] = 'white'; });
+  _opColor = 'black';
+  _opPath = [];
+  opRenderExplorer();
+}
+// Retrouve, parmi les coups legaux du plateau de travail, celui dont le label
+// (moveToPlayStrategy) correspond exactement au libelle du CSV — meme principe
+// que resolveAbaProToken, mais pour cette autre notation (tail+headDest).
+function _opResolveLabel(label, color) {
+  const saved = board; board = _opBoard;  // getAllMovesForColor lit la variable globale `board`
+  const moves = getAllMovesForColor(color);
+  let found = null;
+  for (const mv of moves) {
+    const type = (mv.info && mv.info.type) || mv.type;
+    if (moveToPlayStrategy(mv.cells, mv.dir, type) === label) { found = mv; break; }
+  }
+  board = saved;
+  return found;
+}
+function opExploreMove(label) {
+  const mv = _opResolveLabel(label, _opColor);
+  if (!mv) { showToast('Coup introuvable sur ce plateau (transposition non gérée)'); return; }
+  const saved = board; board = _opBoard;
+  applyMove(mv, _opColor);
+  _opBoard = board; board = saved;
+  _opPath.push(label);
+  _opColor = _opColor === 'black' ? 'white' : 'black';
+  opRenderExplorer();
+}
+// Fil d'ariane : revient a un point precis du chemin (idx = -1 pour le depart)
+function opExploreBack(idx) {
+  const target = _opPath.slice(0, idx + 1);
+  opExploreReset();
+  target.forEach(function(lbl){
+    const mv = _opResolveLabel(lbl, _opColor);
+    if (!mv) return;
+    const saved = board; board = _opBoard;
+    applyMove(mv, _opColor);
+    _opBoard = board; board = saved;
+    _opPath.push(lbl);
+    _opColor = _opColor === 'black' ? 'white' : 'black';
+  });
+  opRenderExplorer();
+}
+function opRenderExplorer() {
+  const el = document.getElementById('op-explorer');
+  if (!el) return;
+  if (!_opBoard) { opExploreReset(); return; }
+  let breadcrumb = '<button class="btn-ghost" style="font-size:11px;padding:3px 8px" onclick="opExploreBack(-1)">⌂ Départ</button>';
+  _opPath.forEach(function(lbl, i){
+    breadcrumb += ' → <button class="btn-ghost" style="font-size:11px;padding:3px 8px;font-family:\'DM Mono\',monospace" onclick="opExploreBack('+i+')">'+lbl+'</button>';
+  });
+  const r = AbaOpening.probe(_opBoard, _opColor);
+  let table;
+  if (!r || !r.moves.length) {
+    table = _opColor === 'white'
+      ? '<div style="color:var(--muted);font-size:13px;margin-top:12px">Cette base ne retrace que les décisions des <strong>Noirs</strong> — les coups blancs ne sont pas trackés individuellement dans ces données. Passe au coup noir suivant.</div>'
+      : '<div style="color:var(--muted);font-size:13px;margin-top:12px">Cette branche sort du répertoire (position jamais observée dans les 16819 parties, ou trop rare pour être retenue).</div>';
+  } else {
+    let tot = 0; r.moves.forEach(function(m){ tot += m.games; });
+    table = '<div style="margin-top:12px;font-size:12px;color:var(--muted)">Trait aux ' + (_opColor==='black'?'Noirs':'Blancs') + ' · ' + tot.toLocaleString('fr-FR') + ' parties</div>' +
+      '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">' +
+      '<tr style="color:var(--gold);text-align:left"><th style="padding:7px 6px">Coup</th><th style="padding:7px 6px">Parties</th>' +
+      '<th style="padding:7px 6px">Gains</th><th style="padding:7px 6px">Confiance</th><th></th></tr>' +
+      r.moves.slice(0, 10).map(function(m){
+        const pct = Math.round(100 * m.winRate);
+        const col = pct >= 55 ? '#4a9463' : pct >= 45 ? 'var(--text)' : '#b05050';
+        const conf = _confianceOuverture(m.games);
+        return '<tr style="border-top:1px solid var(--border);cursor:pointer" onclick="opExploreMove(\''+m.move+'\')" class="op-row-clickable">' +
+          '<td style="padding:7px 6px;font-family:\'DM Mono\',monospace;color:var(--gold)">'+m.move+' ▸</td>' +
+          '<td style="padding:7px 6px">'+m.games.toLocaleString('fr-FR')+'</td>' +
+          '<td style="padding:7px 6px;color:'+col+';font-weight:600">'+pct+' %</td>' +
+          '<td style="padding:7px 6px;color:'+conf.color+';font-size:11px">'+conf.label+'</td><td></td></tr>';
+      }).join('') + '</table></div>';
+  }
+  el.innerHTML = '<div style="font-size:13px;margin-bottom:4px">' + breadcrumb + '</div>' + table;
 }
 
 /* ---------- donnees embarquees ---------- */
