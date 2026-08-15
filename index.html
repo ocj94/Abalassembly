@@ -4793,6 +4793,16 @@ document.addEventListener('keydown', function(e){
             Afficher les menaces d'éjection (billes en danger)
           </label>
           <label style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;cursor:pointer">
+            <input type="checkbox" id="show-carte-tactique-toggle" onchange="toggleCarteTactiqueOverlay(this.checked)" style="accent-color:var(--gold)">
+            Afficher la carte tactique sur le plateau (mobilité, soutien, menace, bord)
+          </label>
+          <div id="carte-tactique-overlay-dims" style="display:flex;gap:4px;margin:2px 0 4px 28px;flex-wrap:wrap">
+            <button type="button" class="carte-overlay-dim-btn setup-opt active" data-dim="menace" style="font-size:10px;padding:3px 8px" onclick="setCarteTactiqueOverlayDim('menace')">Menace</button>
+            <button type="button" class="carte-overlay-dim-btn setup-opt" data-dim="mobilite" style="font-size:10px;padding:3px 8px" onclick="setCarteTactiqueOverlayDim('mobilite')">Mobilité</button>
+            <button type="button" class="carte-overlay-dim-btn setup-opt" data-dim="soutien" style="font-size:10px;padding:3px 8px" onclick="setCarteTactiqueOverlayDim('soutien')">Soutien</button>
+            <button type="button" class="carte-overlay-dim-btn setup-opt" data-dim="bord" style="font-size:10px;padding:3px 8px" onclick="setCarteTactiqueOverlayDim('bord')">Bord</button>
+          </div>
+          <label style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;cursor:pointer">
             <input type="checkbox" id="gutter-align-toggle" onchange="setGutterAlign(this.checked ? 'bottom' : 'drop')" style="accent-color:var(--gold)">
             Ranger les billes éjectées en bas de la rigole (sinon : à leur point de sortie)
           </label>
@@ -11956,6 +11966,7 @@ function drawBoard(opts) {
   if (!opts.hideGameOverlays) {
     if (typeof drawLastMoveArrow === 'function') drawLastMoveArrow(ctx);
     if (typeof drawThreats === 'function') drawThreats(ctx);
+    if (typeof drawCarteTactiqueOverlay === 'function') drawCarteTactiqueOverlay(ctx);
   }
   ctx.restore();
 }
@@ -12129,6 +12140,11 @@ function syncDisplayToggles() {
   if (a && typeof showLastMoveArrow !== 'undefined') a.checked = !!showLastMoveArrow;
   const t = document.getElementById('show-threats-toggle');
   if (t && typeof showThreats !== 'undefined') t.checked = !!showThreats;
+  const ct = document.getElementById('show-carte-tactique-toggle');
+  if (ct && typeof showCarteTactique !== 'undefined') ct.checked = !!showCarteTactique;
+  document.querySelectorAll('.carte-overlay-dim-btn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.dim === carteTactiqueOverlayDim);
+  });
   const g = document.getElementById('gutter-align-toggle');
   if (g) g.checked = (gutterAlign === 'bottom');
 }
@@ -23076,6 +23092,63 @@ function toggleThreats(v) {
   showThreats = v;
   try { localStorage.setItem('abalone_show_threats', v ? '1' : '0'); } catch(e){}
   if (typeof drawBoard === 'function') drawBoard();
+}
+
+/* ═══════════════════════════════════════════
+   CARTE TACTIQUE EN OVERLAY — mêmes 4 dimensions réelles que le panneau
+   Analyse (calculerCarteTactique), affichées ici directement sur le plateau
+   de jeu plutôt qu'en mini-carte à part. Une seule dimension à la fois,
+   jamais fusionnées. Suit le même patron que showThreats/drawThreats.
+═══════════════════════════════════════════ */
+let showCarteTactique = (function(){ try { return localStorage.getItem('abalone_show_carte_tactique') === '1'; } catch(e){ return false; } })();
+let carteTactiqueOverlayDim = (function(){ try { return localStorage.getItem('abalone_carte_tactique_dim') || 'menace'; } catch(e){ return 'menace'; } })();
+function toggleCarteTactiqueOverlay(v) {
+  showCarteTactique = v;
+  try { localStorage.setItem('abalone_show_carte_tactique', v ? '1' : '0'); } catch(e){}
+  if (typeof drawBoard === 'function') drawBoard();
+}
+function setCarteTactiqueOverlayDim(dim) {
+  carteTactiqueOverlayDim = dim;
+  try { localStorage.setItem('abalone_carte_tactique_dim', dim); } catch(e){}
+  document.querySelectorAll('.carte-overlay-dim-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.dim === dim); });
+  if (typeof drawBoard === 'function') drawBoard();
+}
+// Dessine un halo colore + la valeur numerique sur chaque bille du joueur au
+// trait, pour la dimension choisie — meme echelle de couleur (heatColor) que
+// la heatmap personnelle et la mini-carte du panneau Analyse, pour rester
+// coherent visuellement dans toute l'appli.
+function drawCarteTactiqueOverlay(ctx) {
+  if (!showCarteTactique) return;
+  if (typeof gameOver !== 'undefined' && gameOver) return;
+  if (typeof calculerCarteTactique !== 'function' || typeof currentTurn === 'undefined') return;
+  let cases;
+  try { cases = calculerCarteTactique(currentTurn); } catch(e) { return; }
+  if (!cases || !cases.length) return;
+  const dim = carteTactiqueOverlayDim;
+  let maxVal = 0;
+  cases.forEach(function(c){ if (c[dim] > maxVal) maxVal = c[dim]; });
+  ctx.save();
+  cases.forEach(function(c){
+    const v = c[dim];
+    const intensite = maxVal > 0 ? v / maxVal : (v > 0 ? 1 : 0);
+    const p = hexCoord(c.r, c.c);
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, HEX_RADIUS - 2, 0, Math.PI * 2);
+    ctx.strokeStyle = heatColor(v === 0 ? 0 : intensite);
+    ctx.lineWidth = 5;
+    ctx.globalAlpha = 0.85;
+    ctx.stroke();
+    if (v > 0) {
+      ctx.globalAlpha = 1;
+      ctx.font = 'bold ' + (HEX_RADIUS * 0.6).toFixed(0) + 'px sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 3;
+      ctx.fillText(String(v), p.x, p.y - HEX_RADIUS * 0.9);
+      ctx.shadowBlur = 0;
+    }
+  });
+  ctx.restore();
 }
 
 function toggleLastMoveArrow(v) {
