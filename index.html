@@ -5580,6 +5580,14 @@ document.addEventListener('keydown', function(e){
       <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold)">Abalone Academy</div>
       <h2 style="margin-bottom:8px">Problèmes tactiques</h2>
 
+      <!-- BARRE DE PROGRESSION (Entraînement) -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px">
+        <div style="flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden">
+          <div id="puzzle-progress-bar" style="height:100%;width:0%;background:var(--gold);border-radius:4px;transition:width 0.3s"></div>
+        </div>
+        <div id="puzzle-progress-label" style="font-size:12px;color:var(--muted);white-space:nowrap;font-weight:600">0 / 0 résolus</div>
+      </div>
+
       <!-- PUZZLE DU JOUR -->
       <div style="background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:18px 20px;margin-bottom:16px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
@@ -23595,10 +23603,37 @@ const puzzlesData = [
 let currentPuzzleIdx = 0;
 let puzzleStartCaptured = 0;  // captures au début du puzzle (pour détecter la résolution)
 
+/* Persistance des puzzles résolus (Entraînement, puzzlesData) — clé stable :
+   le titre de chaque puzzle (tous uniques). Sans ceci, l'état "solved" en
+   mémoire se réinitialisait à chaque rechargement de page, rendant toute
+   barre de progression fausse dès le premier F5. */
+function _loadSolvedPuzzleTitles(){
+  try { return JSON.parse(localStorage.getItem('abaSolvedPuzzleTitles') || '[]'); }
+  catch(e){ return []; }
+}
+function _saveSolvedPuzzleTitle(title){
+  const solved = _loadSolvedPuzzleTitles();
+  if (solved.indexOf(title) === -1) {
+    solved.push(title);
+    try { localStorage.setItem('abaSolvedPuzzleTitles', JSON.stringify(solved)); } catch(e){}
+  }
+}
+function updatePuzzleProgressBar(){
+  const bar = document.getElementById('puzzle-progress-bar');
+  const label = document.getElementById('puzzle-progress-label');
+  if (!bar || !label) return;
+  const total = puzzlesData.length;
+  const done = puzzlesData.filter(function(p){ return p.solved; }).length;
+  label.textContent = done + ' / ' + total + ' résolus';
+  bar.style.width = (total ? (done / total * 100) : 0) + '%';
+}
+
 function renderPuzzles() {
   const list = document.getElementById('puzzle-list');
   if (!list) return;
   if (list.children.length > 0) return; // already rendered
+  const solvedTitles = _loadSolvedPuzzleTitles();
+  puzzlesData.forEach(function(p){ if (solvedTitles.indexOf(p.title) !== -1) p.solved = true; });
   list.innerHTML = puzzlesData.map(function(p, i) {
     return '<div class="puzzle-card' + (i===0?' active-puzzle':'') + '" onclick="loadPuzzle('+i+')" id="pcard-'+i+'" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:all 0.15s">' +
       '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px">' +
@@ -23607,6 +23642,7 @@ function renderPuzzles() {
       '<div id="psolved-'+i+'" style="font-size:16px">' + (p.solved?'✅':'') + '</div>' +
       '</div></div>';
   }).join('');
+  updatePuzzleProgressBar();
   // Load first puzzle
   loadPuzzle(0);
 }
@@ -23681,6 +23717,8 @@ function showPuzzleSolution() {
   sl.style.display = 'block';
   if (pz) {
     pz.solved = true;
+    _saveSolvedPuzzleTitle(pz.title);
+    updatePuzzleProgressBar();
     const si = document.getElementById('psolved-'+currentPuzzleIdx);
     if (si) si.textContent = '✅';
   }
@@ -26176,6 +26214,8 @@ function showPuzzleResult(success) {
     : 'Essayez encore ou consultez l\u2019indice.';
   if (success) {
     puzzlesData[currentPuzzleIdx].solved = true;
+    _saveSolvedPuzzleTitle(puzzlesData[currentPuzzleIdx].title);
+    updatePuzzleProgressBar();
     const si = document.getElementById('psolved-'+currentPuzzleIdx);
     if (si) si.textContent = '✅';
     if (typeof onPuzzleSolved === 'function') onPuzzleSolved();
