@@ -5539,7 +5539,7 @@ document.addEventListener('keydown', function(e){
             <span>⚫ Noirs</span><span>⚪ Blancs</span>
           </div>
           <div id="analysis-score" style="text-align:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:13px;font-family:'DM Mono',monospace">
-            <span style="color:var(--text)">⚫ Noirs 0</span><span style="color:var(--muted);margin:0 8px">—</span><span style="color:var(--text)">0 Blancs ⚪</span><span style="color:var(--muted);margin-left:10px;font-size:11px">billes éjectées</span>
+            <span style="color:var(--text)">Joueur 1 : 0</span><span style="color:var(--muted);margin:0 8px">—</span><span style="color:var(--text)">0 : Joueur 2</span><span style="color:var(--muted);margin-left:10px;font-size:11px">billes éjectées</span>
           </div>
         </div>
       </div>
@@ -5562,8 +5562,8 @@ document.addEventListener('keydown', function(e){
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px">
           <div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:12px">🧠 Comprendre la position</div>
           <div style="display:flex;gap:8px;margin-bottom:10px">
-            <button id="comprehension-color-black" onclick="setComprehensionColor('black',this)" class="active" style="flex:1;padding:8px;background:rgba(200,168,75,0.12);border:1px solid var(--gold-dim);border-radius:7px;cursor:pointer;color:var(--text);font-size:12px">⚫ Noir</button>
-            <button id="comprehension-color-white" onclick="setComprehensionColor('white',this)" style="flex:1;padding:8px;background:transparent;border:1px solid var(--border);border-radius:7px;cursor:pointer;color:var(--text);font-size:12px">⚪ Blanc</button>
+            <button id="comprehension-color-black" onclick="setComprehensionColor('black',this)" class="active" style="flex:1;padding:8px;background:rgba(200,168,75,0.12);border:1px solid var(--gold-dim);border-radius:7px;cursor:pointer;color:var(--text);font-size:12px">Joueur 1</button>
+            <button id="comprehension-color-white" onclick="setComprehensionColor('white',this)" style="flex:1;padding:8px;background:transparent;border:1px solid var(--border);border-radius:7px;cursor:pointer;color:var(--text);font-size:12px">Joueur 2</button>
           </div>
           <button onclick="renderComprehensionPanel()" style="width:100%;padding:11px;background:rgba(200,168,75,0.12);border:1px solid var(--gold-dim);border-radius:8px;cursor:pointer;color:var(--gold);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif">🧠 Analyser cette position</button>
           <div id="comprehension-result" style="margin-top:10px;min-height:18px"></div>
@@ -5610,7 +5610,7 @@ document.addEventListener('keydown', function(e){
       <!-- Plateau -->
       <div style="flex-shrink:0">
         <canvas id="editor-board" width="500" height="500" style="border-radius:12px;box-shadow:0 0 0 1px var(--border),0 12px 40px rgba(0,0,0,0.4);cursor:pointer;max-width:100%"></canvas>
-        <div id="editor-status" style="text-align:center;font-size:13px;color:var(--muted);margin-top:10px">⚫ 0 billes noires · ⚪ 0 billes blanches</div>
+        <div id="editor-status" style="text-align:center;font-size:13px;color:var(--muted);margin-top:10px">0 billes Joueur 1 · 0 billes Joueur 2</div>
       </div>
       <!-- Panneau de contrôle -->
       <div style="flex:1;min-width:280px;max-width:380px">
@@ -5620,11 +5620,11 @@ document.addEventListener('keydown', function(e){
           <div style="display:flex;gap:8px">
             <button id="edtool-black" onclick="setEditorTool('black',this)" class="editor-tool-btn" style="flex:1;padding:14px 8px;border-radius:8px;border:2px solid var(--gold);background:rgba(200,168,75,0.08);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px">
               <span style="width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#4a4a4a,#0d0d0d);display:inline-block"></span>
-              <span style="font-size:11px;color:var(--text);font-weight:600">Noir</span>
+              <span style="font-size:11px;color:var(--text);font-weight:600">Joueur 1</span>
             </button>
             <button id="edtool-white" onclick="setEditorTool('white',this)" class="editor-tool-btn" style="flex:1;padding:14px 8px;border-radius:8px;border:2px solid var(--border);background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px">
               <span style="width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,#b8b0a0);display:inline-block"></span>
-              <span style="font-size:11px;color:var(--text);font-weight:600">Blanc</span>
+              <span style="font-size:11px;color:var(--text);font-weight:600">Joueur 2</span>
             </button>
             <button id="edtool-erase" onclick="setEditorTool('erase',this)" class="editor-tool-btn" style="flex:1;padding:14px 8px;border-radius:8px;border:2px solid var(--border);background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px">
               <span style="font-size:24px;line-height:26px">🧽</span>
@@ -22655,20 +22655,40 @@ function applyMarbleSkin() {
    la personne (Kintsugi, Rubis, Émeraude...). Remplace ces emojis par de
    petits ronds dégradés utilisant les VRAIES couleurs du skin actif (mêmes
    valeurs boardTheme.blackStops/whiteStops que le plateau réel), pour que
-   la personne reconnaisse tout de suite quelle couleur elle va jouer. */
+   la personne reconnaisse tout de suite quelle couleur elle va jouer.
+   Étendu à l'Éditeur de position et à Analyse de partie (« Comprendre la
+   position ») : mêmes emojis fixes noir/blanc au même défaut, et labels
+   "Noir"/"Blanc" remplacés par "Joueur 1"/"Joueur 2" (demande d'Olivier —
+   ces pages servent aussi à préparer des positions où "noir"/"blanc" n'a
+   pas toujours de sens, ex. positions personnalisées). */
+function _marbleSwatch(stops, size) {
+  size = size || 12;
+  return '<span style="display:inline-block;width:' + size + 'px;height:' + size + 'px;border-radius:50%;' +
+    'background:radial-gradient(circle at 35% 35%, ' + stops + ');' +
+    'box-shadow:inset -1px -1px 2px rgba(0,0,0,0.5),0 1px 2px rgba(0,0,0,0.3);' +
+    'vertical-align:-1px;margin-right:4px"></span>';
+}
 function refreshSetupMarbleSwatches() {
   const bStops = (boardTheme.blackStops || MARBLE_SKINS.kintsugi.b).join(', ');
   const wStops = (boardTheme.whiteStops || MARBLE_SKINS.kintsugi.w).join(', ');
-  const swatch = function(stops){
-    return '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;' +
-      'background:radial-gradient(circle at 35% 35%, ' + stops + ');' +
-      'box-shadow:inset -1px -1px 2px rgba(0,0,0,0.5),0 1px 2px rgba(0,0,0,0.3);' +
-      'vertical-align:-1px;margin-right:4px"></span>';
-  };
   const btnMoi = document.querySelector('#setup-first button[onclick*="\'black\'"]');
   const btnAdv = document.querySelector('#setup-first button[onclick*="\'white\'"]');
-  if (btnMoi) btnMoi.innerHTML = swatch(bStops) + 'Moi';
-  if (btnAdv) btnAdv.innerHTML = swatch(wStops) + 'Adversaire';
+  if (btnMoi) btnMoi.innerHTML = _marbleSwatch(bStops) + 'Moi';
+  if (btnAdv) btnAdv.innerHTML = _marbleSwatch(wStops) + 'Adversaire';
+
+  // Éditeur de position — palette de placement
+  const edB = document.getElementById('edtool-black');
+  const edW = document.getElementById('edtool-white');
+  if (edB) { const sw = edB.querySelector('span'); if (sw) sw.style.background = 'radial-gradient(circle at 35% 35%, ' + bStops + ')'; }
+  if (edW) { const sw = edW.querySelector('span'); if (sw) sw.style.background = 'radial-gradient(circle at 35% 35%, ' + wStops + ')'; }
+  updateEditorStatus();
+
+  // Analyse de partie — sélecteur de couleur "Comprendre la position"
+  const cB = document.getElementById('comprehension-color-black');
+  const cW = document.getElementById('comprehension-color-white');
+  if (cB) cB.innerHTML = _marbleSwatch(bStops) + 'Joueur 1';
+  if (cW) cW.innerHTML = _marbleSwatch(wStops) + 'Joueur 2';
+  if (typeof updateAnalysisScore === 'function') updateAnalysisScore();
 }
 
 /* ═══════════════════════════════════════════
@@ -26649,7 +26669,9 @@ function updateEditorStatus() {
   if (el) {
     let warn = '';
     if (blacks > 14 || whites > 14) warn = ' ⚠️ Maximum 14 billes par couleur';
-    el.innerHTML = '⚫ ' + blacks + ' billes noires · ⚪ ' + whites + ' billes blanches' + warn;
+    const bStops = (typeof boardTheme !== 'undefined' && boardTheme.blackStops || MARBLE_SKINS.kintsugi.b).join(', ');
+    const wStops = (typeof boardTheme !== 'undefined' && boardTheme.whiteStops || MARBLE_SKINS.kintsugi.w).join(', ');
+    el.innerHTML = _marbleSwatch(bStops) + blacks + ' Joueur 1 · ' + _marbleSwatch(wStops) + whites + ' Joueur 2' + warn;
   }
 }
 
@@ -26815,9 +26837,11 @@ function drawAnalysisBoard() {
 function updateAnalysisScore() {
   const el = document.getElementById('analysis-score');
   if (!el) return;
-  el.innerHTML = '<span style="color:var(--text)">⚫ Noirs ' + analysisCapB + '</span>'
+  const bStops = (typeof boardTheme !== 'undefined' && boardTheme.blackStops || MARBLE_SKINS.kintsugi.b).join(', ');
+  const wStops = (typeof boardTheme !== 'undefined' && boardTheme.whiteStops || MARBLE_SKINS.kintsugi.w).join(', ');
+  el.innerHTML = '<span style="color:var(--text)">' + _marbleSwatch(bStops) + 'Joueur 1 : ' + analysisCapB + '</span>'
     + '<span style="color:var(--muted);margin:0 8px">—</span>'
-    + '<span style="color:var(--text)">' + analysisCapW + ' Blancs ⚪</span>'
+    + '<span style="color:var(--text)">' + analysisCapW + ' : Joueur 2' + _marbleSwatch(wStops) + '</span>'
     + '<span style="color:var(--muted);margin-left:10px;font-size:11px">billes éjectées</span>';
 }
 
