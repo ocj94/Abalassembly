@@ -15271,12 +15271,20 @@ function calculerAnalyseHistorique(color, k) {
    Pas de score composite : les 4 dimensions restent séparées, à consulter une
    par une (texte ou carte visuelle), jamais fusionnées en une note fabriquée.
 ═══════════════════════════════════════════ */
-function calculerCarteTactique(color) {
+function calculerCarteTactique(color, boardOverride) {
+  // boardOverride permet d'analyser un instantane du passe (navigation dans
+  // l'historique) sans jamais toucher au plateau REEL de la partie en cours.
+  const b = boardOverride || board;
   // Tous les coups legaux de la couleur analysee, et tous ceux de l'adversaire —
   // on a besoin des deux : les miens pour la mobilite, ceux d'en face pour la menace.
+  // getAllMovesForColor lit la variable globale `board` : on la substitue
+  // temporairement si un instantane different est demande, puis on la restaure.
+  const saved = board;
+  if (boardOverride) board = boardOverride;
   const moves = getAllMovesForColor(color);
   const enemy = color === 'black' ? 'white' : 'black';
   const enemyMoves = getAllMovesForColor(enemy);
+  if (boardOverride) board = saved;
   // Seuls les coups de type sumito (code <=6, meme convention que le moteur) comptent
   // comme une vraie menace d'ejection — un simple deplacement n'en est pas une.
   const enemySumito = enemyMoves.filter(function(m){ return m.code && m.code <= 6; });
@@ -15295,8 +15303,8 @@ function calculerCarteTactique(color) {
   // son soutien reel (meme logique que analyzeSupport, refaite ici en local
   // pour ne pas dependre de son format de retour agrege).
   const cases = [];
-  for (const k in board) {
-    if (board[k] !== color) continue;
+  for (const k in b) {
+    if (b[k] !== color) continue;
     const parts = k.split(',');
     const r = +parts[0], c = +parts[1];
     const ax = rcToAxial(r, c);
@@ -15306,7 +15314,7 @@ function calculerCarteTactique(color) {
     EVAL_AXES.forEach(function(pair){
       const bd = AX_DIRS[pair[1]];
       let aq = ax.q, ar = ax.r, depth = 0;
-      while (depth < 2) { aq += bd.q; ar += bd.r; const nrc = axialToRc(aq, ar); if (!nrc) break; if (board[akey(nrc.r,nrc.c)] !== color) break; depth++; }
+      while (depth < 2) { aq += bd.q; ar += bd.r; const nrc = axialToRc(aq, ar); if (!nrc) break; if (b[akey(nrc.r,nrc.c)] !== color) break; depth++; }
       if (depth > maxSoutien) maxSoutien = depth;
     });
     cases.push({ r:r, c:c, mobilite: mobilite[k]||0, soutien: maxSoutien, menace: menace[k]||0, bord: isEdgeCell(r,c)?1:0 });
@@ -15316,8 +15324,9 @@ function calculerCarteTactique(color) {
 const LABELS_CARTE_TACTIQUE = { mobilite:'Mobilité', soutien:'Soutien', menace:'Menace', bord:'En bordure' };
 // SVG statique (memes conventions que buildHeatmapSVG) : une seule dimension a la fois,
 // jamais de fusion — le choix de la dimension affichee reste a la personne, pas au code.
-function buildCarteTactiqueSVG(color, dim) {
-  const cases = calculerCarteTactique(color);
+function buildCarteTactiqueSVG(color, dim, boardOverride) {
+  const b = boardOverride || board;
+  const cases = calculerCarteTactique(color, boardOverride);
   const parCle = {};
   cases.forEach(function(c){ parCle[c.r+','+c.c] = c; });
   let maxVal = 0;
@@ -15335,7 +15344,7 @@ function buildCarteTactiqueSVG(color, dim) {
       const intensite = maxVal>0 ? v/maxVal : (v>0?1:0);
       fill = heatColor(v===0?0:intensite);
     } else {
-      fill = board[k] ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.02)';
+      fill = b[k] ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.02)';
     }
     svg += '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+cellR.toFixed(1)+'" fill="'+fill+'" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>';
     if (info) svg += '<text x="'+x.toFixed(1)+'" y="'+(y+3).toFixed(1)+'" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.85)" font-weight="700">'+info[dim]+'</text>';
@@ -22305,6 +22314,15 @@ function computeTopMoves(color, n) {
 
 let _carteTactiqueVisible = false;
 let _carteTactiqueDim = 'menace';
+/* Navigation temps reel dans la carte tactique :
+   _carteTactiqueLive=true (defaut) : suit la partie en direct, se redessine
+   automatiquement a chaque coup joue (ecoute abalassembly:movePlayed).
+   _carteTactiqueLive=false : figee sur un instantane precis de l'historique
+   (boardSnapshots, deja alimente a chaque coup — voir addMoveToHistory),
+   navigable avec ◀/▶ sans jamais toucher au plateau REEL de la partie.
+   _carteTactiqueViewIdx=-1 -> position de depart, 0..N-1 -> apres le coup N. */
+let _carteTactiqueLive = true;
+let _carteTactiqueViewIdx = -1;
 // Rebascule juste la carte tactique sans refaire tout runAnalysis (evite de re-choisir les coups)
 function toggleCarteTactique(cb) {
   _carteTactiqueVisible = !!cb.checked;
@@ -22316,14 +22334,64 @@ function choisirDimCarteTactique(dim) {
   _carteTactiqueDim = dim;
   dessinerCarteTactique();
 }
+// Retrouve {board, color} pour l'instant demande — board de depart Belgian
+// Daisy standard si idx=-1 ET qu'aucun coup n'a encore ete joue (fallback
+// honnete : au tout debut d'une partie, avant le premier coup, on ne peut
+// montrer que le plateau REEL courant, pas un instantane reconstitue).
+function _carteTactiqueSnapshotAt(idx) {
+  if (idx < 0 || typeof boardSnapshots === 'undefined' || !boardSnapshots.length) {
+    return { board: board, color: currentTurn };
+  }
+  const clamped = Math.max(0, Math.min(idx, boardSnapshots.length - 1));
+  const snap = boardSnapshots[clamped];
+  // Apres le coup snap.color, c'est a l'autre camp de jouer.
+  const nextColor = snap.color === 'black' ? 'white' : 'black';
+  return { board: snap.board, color: nextColor };
+}
+function carteTactiqueTogglePlay() {
+  _carteTactiqueLive = !_carteTactiqueLive;
+  if (_carteTactiqueLive) _carteTactiqueViewIdx = -1;   // reprendre le direct = revenir a l'instant present
+  dessinerCarteTactique();
+}
+function carteTactiqueStepBack() {
+  _carteTactiqueLive = false;   // toute navigation manuelle met en pause
+  const maxIdx = (typeof boardSnapshots !== 'undefined') ? boardSnapshots.length - 1 : -1;
+  if (_carteTactiqueViewIdx === -1) _carteTactiqueViewIdx = maxIdx;   // depuis le direct, recule d'un coup depuis la fin
+  else _carteTactiqueViewIdx = Math.max(-1, _carteTactiqueViewIdx - 1);
+  dessinerCarteTactique();
+}
+function carteTactiqueStepForward() {
+  _carteTactiqueLive = false;
+  const maxIdx = (typeof boardSnapshots !== 'undefined') ? boardSnapshots.length - 1 : -1;
+  _carteTactiqueViewIdx = Math.min(maxIdx, _carteTactiqueViewIdx + 1);
+  if (_carteTactiqueViewIdx >= maxIdx) { _carteTactiqueLive = true; _carteTactiqueViewIdx = -1; }  // au bout -> reprend le direct
+  dessinerCarteTactique();
+}
 function dessinerCarteTactique() {
   const zone = document.getElementById('carte-tactique-svg');
   if (!zone) return;
-  zone.innerHTML = buildCarteTactiqueSVG(currentTurn, _carteTactiqueDim);
+  const snap = _carteTactiqueLive ? { board: board, color: currentTurn } : _carteTactiqueSnapshotAt(_carteTactiqueViewIdx);
+  zone.innerHTML = buildCarteTactiqueSVG(snap.color, _carteTactiqueDim, _carteTactiqueLive ? null : snap.board);
   document.querySelectorAll('.carte-dim-btn').forEach(function(b){
     b.classList.toggle('active', b.dataset.dim === _carteTactiqueDim);
   });
+  const playBtn = document.getElementById('carte-tactique-play');
+  if (playBtn) playBtn.textContent = _carteTactiqueLive ? '⏸ Direct' : '▶ Reprendre le direct';
+  const posInfo = document.getElementById('carte-tactique-pos');
+  if (posInfo) {
+    const total = (typeof boardSnapshots !== 'undefined') ? boardSnapshots.length : 0;
+    posInfo.textContent = _carteTactiqueLive ? 'Position actuelle (direct)' : ('Coup ' + (_carteTactiqueViewIdx + 1) + ' / ' + total);
+  }
 }
+// Mise a jour automatique en temps reel : a chaque coup reellement joue,
+// si la carte est visible et en mode direct, elle se redessine toute seule —
+// jamais besoin de re-cliquer "Analyser cette position". Reste silencieuse
+// si la carte est fermee ou en pause sur un instantane du passe.
+document.addEventListener('abalassembly:movePlayed', function(){
+  if (_carteTactiqueVisible && _carteTactiqueLive && typeof dessinerCarteTactique === 'function') {
+    dessinerCarteTactique();
+  }
+});
 function runAnalysis() {
   const el = document.getElementById('analyse-content');
   if (!el) return;
@@ -22430,7 +22498,14 @@ function runAnalysis() {
       Object.keys(LABELS_CARTE_TACTIQUE).map(function(d){
         return '<button type="button" class="carte-dim-btn setup-opt'+(_carteTactiqueDim===d?' active':'')+'" style="font-size:10px;padding:4px 8px" data-dim="'+d+'" onclick="choisirDimCarteTactique(\''+d+'\')">'+LABELS_CARTE_TACTIQUE[d]+'</button>';
       }).join('')+
-      '</div><div id="carte-tactique-svg" style="text-align:center"></div></div>';
+      '</div><div id="carte-tactique-svg" style="text-align:center"></div>'+
+      '<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px">'+
+      '<button type="button" class="btn-ghost" style="font-size:14px;padding:4px 10px" onclick="carteTactiqueStepBack()" title="Coup précédent">◀</button>'+
+      '<button type="button" id="carte-tactique-play" class="btn-ghost" style="font-size:11px;padding:4px 10px" onclick="carteTactiqueTogglePlay()">⏸ Direct</button>'+
+      '<button type="button" class="btn-ghost" style="font-size:14px;padding:4px 10px" onclick="carteTactiqueStepForward()" title="Coup suivant">▶</button>'+
+      '</div>'+
+      '<div id="carte-tactique-pos" style="text-align:center;font-size:10px;color:var(--muted);margin-top:4px">Position actuelle (direct)</div>'+
+      '</div>';
   }
   // Profil de decision — mesures reelles (branching, ecart de score, coups proches
   // du meilleur), jamais fusionnees en un score "complexite X/100" fabrique.
