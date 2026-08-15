@@ -191,16 +191,6 @@ nav {
   left: 50%;
   transform: translateX(-50%);
   pointer-events: auto;
-  /* Fond noir uni (plus de degrade noir->blanc) */
-  background: #000000;
-  border-radius: 999px;
-  padding: 9px 30px;
-  box-shadow:
-    0 0 0 1.5px rgba(255,255,255,0.25),
-    0 0 0 3px rgba(0,0,0,0.6),
-    0 6px 24px rgba(0,0,0,0.7),
-    inset 0 1px 0 rgba(255,255,255,0.12),
-    inset 0 -1px 0 rgba(0,0,0,0.3);
 }
 .logo-text {
   font-size: 22px; font-weight: 900; letter-spacing: 3px;
@@ -224,11 +214,9 @@ nav {
   -webkit-text-fill-color: var(--gold); color: var(--gold);
 }
 @media (max-width: 900px) {
-  .logo { padding: 7px 22px; }
   .logo-text { font-size: 18px; letter-spacing: 2px; }
 }
 @media (max-width: 480px) {
-  .logo { padding: 6px 16px; }
   .logo-text { font-size: 15px; letter-spacing: 1.5px; }
 }
 @keyframes float { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-3px)} }
@@ -1303,7 +1291,7 @@ footer {
 @media (max-width: 480px) {
   nav { padding: 0 12px; height: 56px; }
   .mobile-menu { top: 56px; }
-  .logo { font-size: 13px; letter-spacing: 1px; padding: 7px 14px; }
+  .logo { font-size: 13px; letter-spacing: 1px; }
   .logo-dot { width: 6px; height: 6px; }
 
   /* compacter la barre du haut : juste les icônes (drapeau + ?) pour gagner de la place */
