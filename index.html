@@ -37,7 +37,7 @@
 <!-- ════════════════════════════════════════════════
      SEO — Référencement moteurs de recherche
      ════════════════════════════════════════════════ -->
-<meta name="description" content="Abalassembly : la plateforme de référence pour jouer, apprendre et progresser au jeu de stratégie Abalone. Affrontez des joueurs du monde entier, résolvez des puzzles, suivez des leçons et grimpez au classement ELO.">
+<meta name="description" content="Abalassembly : jouez à Abalone hors-ligne, contre une IA avancée ou à deux joueurs. Résolvez des puzzles, suivez des leçons et analysez vos parties. 100% gratuit, aucune installation.">
 <meta name="keywords" content="abalone, jeu abalone, jeu de stratégie, jeu de billes, abalone en ligne, jouer abalone, règles abalone, puzzles abalone, abalone multijoueur, sumito, belgian daisy, abalone classement, ABA-PRO, stratégie abalone, jeu de plateau hexagonal">
 <meta name="author" content="Abalassembly">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
@@ -67,7 +67,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Abalassembly">
 <meta property="og:title" content="Abalassembly — Le jeu stratégique de référence">
-<meta property="og:description" content="Jouez, apprenez et progressez au jeu de stratégie Abalone. Affrontez des joueurs du monde entier, résolvez des puzzles et grimpez au classement.">
+<meta property="og:description" content="Jouez, apprenez et progressez au jeu de stratégie Abalone — hors-ligne, contre l'IA ou à deux. Résolvez des puzzles et analysez vos parties.">
 <meta property="og:url" content="https://ocj94.github.io/Abalassembly/">
 <meta property="og:locale" content="fr_FR">
 <meta property="og:image" content="https://ocj94.github.io/Abalassembly/og-image.png">
@@ -80,7 +80,7 @@
      ════════════════════════════════════════════════ -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Abalassembly — Le jeu stratégique de référence">
-<meta name="twitter:description" content="Jouez, apprenez et progressez au jeu de stratégie Abalone. Affrontez des joueurs du monde entier.">
+<meta name="twitter:description" content="Jouez, apprenez et progressez au jeu de stratégie Abalone — hors-ligne, contre l'IA ou à deux.">
 <meta name="twitter:image" content="https://ocj94.github.io/Abalassembly/og-image.png">
 <meta name="twitter:image:alt" content="Plateau de jeu Abalone">
 
@@ -2508,7 +2508,7 @@ document.addEventListener('keydown', function(e){
     </button>
 
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-camera" onclick="sidebarNav('camera',this)">
-      <span class="s-icon">📷</span><span class="s-label" data-i18n="nav.camera">Détection IA</span>
+      <span class="s-icon">📷</span><span class="s-label" data-i18n="nav.camera">Détection photo / plateau</span>
     </button>
 
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-stats" onclick="sidebarNav('stats',this)">
@@ -2581,11 +2581,12 @@ document.addEventListener('keydown', function(e){
         </div>
       </div>
       <h1>Maîtrisez<br>l'art de<br><span>l'Abalone !</span></h1>
-      <p class="hero-sub">La plateforme de référence pour jouer, apprendre et progresser au jeu de stratégie Abalone. Affrontez des joueurs du monde entier.</p>
+      <p class="hero-sub">La plateforme de référence pour jouer, apprendre et progresser au jeu de stratégie Abalone. Jouez hors-ligne, contre l'IA ou à deux sur le même appareil — aucune connexion requise.</p>
       <div class="hero-cta">
         <button class="btn-xl gold" onclick="playGame()">🎮 Jouer maintenant</button>
         <button class="btn-xl outline" onclick="showPage('learn')">📖 Apprendre les règles</button>
       </div>
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Abalone dans le monde — chiffres communauté (source : BGA)</div>
       <div class="hero-stats">
         <div class="stat-item">
           <div class="stat-num">48K</div>
@@ -2768,7 +2769,7 @@ document.addEventListener('keydown', function(e){
     <!-- MAIN COLUMN -->
     <div class="camera-main">
       <div>
-        <div class="cam-section-title">Détection par IA</div>
+        <div class="cam-section-title">Détection photo / plateau</div>
         <h1 class="cam-title">Analyse de<br>plateau <span style="color:var(--gold)">réel</span></h1>
         <p class="cam-sub">Photographiez ou filmez votre plateau physique — indiquez les 4 coins, la position se reconstitue automatiquement sur le plateau numérique. 100% hors-ligne, sans IA, sans connexion.</p>
       </div>
@@ -4937,7 +4938,7 @@ document.addEventListener('keydown', function(e){
               <div>
                 <div class="perm-name">Caméra</div>
                 <div class="perm-desc">Utilisée pour la détection de plateau en temps réel — page "Détection IA"</div>
-                <div class="perm-where">Utilisée dans : <strong>Détection plateau (📷 IA)</strong></div>
+                <div class="perm-where">Utilisée dans : <strong>Détection photo / plateau (📷)</strong></div>
               </div>
             </div>
             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
@@ -5713,7 +5714,7 @@ document.addEventListener('keydown', function(e){
           <span style="font-size:20px">🌍</span>
           <div>
             <div style="font-size:15px;font-weight:700;color:var(--white)">Chat général</div>
-            <div style="font-size:11px;color:var(--muted)"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#4a9463;margin-right:5px"></span>247 joueurs en ligne</div>
+            <div style="font-size:11px;color:var(--muted)"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--muted);margin-right:5px"></span>Mode hors-ligne — chat multijoueur à venir (nécessite un backend, non déployé)</div>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
@@ -5993,7 +5994,7 @@ document.addEventListener('keydown', function(e){
   <div class="page-header">
     <div class="section-label">Compétition officielle</div>
     <h2>Tournoi Abalone</h2>
-    <p style="color:var(--muted);font-size:15px;margin-top:12px;max-width:560px">Participez au tournoi mensuel en ligne ou suivez le bracket du championnat mondial. Classement ELO mis à jour en temps réel.</p>
+    <p style="color:var(--muted);font-size:15px;margin-top:12px;max-width:560px">Aperçu du système de tournoi. Les inscriptions ouvriront quand le backend multijoueur sera déployé — pour l'instant, cette page présente le concept.</p>
   </div>
   <div style="padding:0 80px 80px">
 
@@ -6235,22 +6236,26 @@ document.addEventListener('keydown', function(e){
 ══════════════════════════════════════════ -->
 <div class="page" id="page-observe">
   <div class="page-header" style="padding-bottom:32px">
-    <div class="section-label">En direct</div>
+    <div class="section-label">Aperçu du concept</div>
     <h2>👁 Observer</h2>
   </div>
   <div style="padding:0 60px 80px;max-width:800px">
 
+    <div style="padding:12px 16px;background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.2);border-radius:8px;font-size:12px;color:var(--muted);margin-bottom:20px">
+      🔒 Démonstration hors-ligne — le backend de diffusion n'est pas déployé. Ces événements sont des exemples, pas des parties réelles en cours.
+    </div>
+
     <!-- Live events -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
       <div style="font-size:13px;font-weight:700;color:var(--white)">Événements du jour</div>
-      <div style="font-size:10px;padding:2px 8px;background:#e05c4b;color:#fff;border-radius:4px;font-weight:800;letter-spacing:1px">EN DIRECT</div>
+      <div style="font-size:10px;padding:2px 8px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:4px;font-weight:800;letter-spacing:1px">DÉMO</div>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:32px">
       <div class="event-card" onclick="showToast('🎮 Ouverture du stream MSO 2026...')">
         <div class="event-thumb" style="background:rgba(200,168,75,0.1)">🏆</div>
         <div style="flex:1">
-          <div style="font-size:14px;font-weight:700;color:var(--white)">MSO Abalone 2026 — Demi-finales<span class="event-live-badge">LIVE</span></div>
-          <div style="font-size:12px;color:var(--muted);margin-top:3px">SumitoPro 🇩🇪 vs StonePusher99 🇺🇸 · 142 spectateurs</div>
+          <div style="font-size:14px;font-weight:700;color:var(--white)">MSO Abalone 2026 — Demi-finales<span class="event-live-badge">EXEMPLE</span></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">SumitoPro 🇩🇪 vs StonePusher99 🇺🇸 · démonstration, pas une partie réelle</div>
         </div>
         <div style="font-size:20px">▶</div>
       </div>
