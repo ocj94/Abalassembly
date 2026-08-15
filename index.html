@@ -427,6 +427,19 @@ html[dir="rtl"] .lang-option { text-align: right; }
   margin: 6px 0;
 }
 
+/* Group headers + collapsible "En ligne (bientôt)" section */
+.sidebar-group-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--muted); padding: 14px 12px 6px; opacity: 0.75;
+}
+.sidebar-items > .sidebar-group-label:first-child { padding-top: 0; }
+.sidebar-collapse { display: block; }
+.sidebar-collapse summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.sidebar-collapse summary::-webkit-details-marker { display: none; }
+.sidebar-collapse-summary:hover { opacity: 1; color: var(--text); }
+.sidebar-collapse-chevron { font-size: 10px; transition: transform 0.15s; margin-left: auto; }
+.sidebar-collapse[open] .sidebar-collapse-chevron { transform: rotate(180deg); }
+
 /* ── Content area pushed right by sidebar ── */
 
 body.sidebar-expanded-body { padding-left: 220px; }
@@ -2423,105 +2436,90 @@ document.addEventListener('keydown', function(e){
   <!-- Nav items -->
   <div class="sidebar-items">
 
+    <div class="sidebar-group-label">🎮 Jouer</div>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item active" id="sid-home" onclick="sidebarNav('home',this)">
       <span class="s-icon">🏠</span><span class="s-label" data-i18n="nav.home">Accueil</span>
     </button>
-
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-game" onclick="sidebarNav('setup',this)">
       <span class="s-icon"><span class="marble-gold"></span></span><span class="s-label" data-i18n="nav.play">Jouer</span>
     </button>
-
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-lab" onclick="openLabFromMenu(this)">
-      <span class="s-icon">🧪</span><span class="s-label">Labo IA</span>
-    </button>
-
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-puzzles" onclick="sidebarNav('puzzles',this)">
       <span class="s-icon">🧩</span><span class="s-label" data-i18n="nav.puzzles">Problèmes</span>
     </button>
-
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-editor" onclick="sidebarNav('editor',this)">
       <span class="s-icon">✏️</span><span class="s-label" data-i18n="nav.editor">Éditeur</span>
     </button>
-
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-library" onclick="openMigsBrowser()">
-      <span class="s-icon">📚</span><span class="s-label">Bibliothèque</span>
-    </button>
-
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-analysis" onclick="sidebarNav('analysis',this)">
-      <span class="s-icon">🔬</span><span class="s-label" data-i18n="nav.analysis">Analyse</span>
-    </button>
-
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-tablebase" onclick="sidebarNav('tablebase',this)">
-      <span class="s-icon">🧮</span><span class="s-label">Tables de finale</span>
-    </button>
-
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-openings" onclick="sidebarNav('openings',this)">
-      <span class="s-icon">📖</span><span class="s-label">Ouvertures</span>
-    </button>
-
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-learn" onclick="sidebarNav('learn',this)">
-      <span class="s-icon">📖</span><span class="s-label" data-i18n="nav.rules">Règles du jeu</span>
-    </button>
-
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-academy" onclick="sidebarNav('academy',this)">
-      <span class="s-icon">🎓</span><span class="s-label" data-i18n="nav.academy">Abalone Academy</span>
-    </button>
-
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-variants" onclick="sidebarNav('variants',this)">
       <span class="s-icon">🎲</span><span class="s-label" data-i18n="nav.variants">Variantes</span>
     </button>
 
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-github" onclick="sidebarNav('github',this)">
-      <span class="s-icon">🔬</span><span class="s-label" data-i18n="nav.github">Insights GitHub</span>
+    <div class="sidebar-group-label">📖 Progresser</div>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-learn" onclick="sidebarNav('learn',this)">
+      <span class="s-icon">📖</span><span class="s-label" data-i18n="nav.rules">Règles du jeu</span>
     </button>
-
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-leaderboard" onclick="sidebarNav('leaderboard',this)">
-      <span class="s-icon">🏆</span><span class="s-label" data-i18n="nav.leaderboard">Classement</span>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-academy" onclick="sidebarNav('academy',this)">
+      <span class="s-icon">🎓</span><span class="s-label" data-i18n="nav.academy">Abalone Academy</span>
     </button>
-
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-observe" onclick="sidebarNav('observe',this)">
-      <span class="s-icon">👁</span><span class="s-label" data-i18n="nav.observe">Observer</span>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-openings" onclick="sidebarNav('openings',this)">
+      <span class="s-icon">📖</span><span class="s-label">Ouvertures</span>
     </button>
-
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-community" onclick="sidebarNav('community',this)">
-      <span class="s-icon">👥</span><span class="s-label" data-i18n="nav.community">Communauté</span>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-analysis" onclick="sidebarNav('analysis',this)">
+      <span class="s-icon">🔬</span><span class="s-label" data-i18n="nav.analysis">Analyse</span>
     </button>
-
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-tournament" onclick="sidebarNav('tournament',this)">
-      <span class="s-icon">⚔️</span><span class="s-label" data-i18n="nav.tournament">Tournoi</span>
-    </button>
-
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-trombi" onclick="sidebarNav('trombi',this)">
-      <span class="s-icon">🎭</span><span class="s-label" data-i18n="nav.trombi">Trombinoscope</span>
-    </button>
-
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-museum" onclick="sidebarNav('museum',this)">
-      <span class="s-icon">🏛</span><span class="s-label" data-i18n="nav.museum">Musée</span>
-    </button>
-
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-pioneers" onclick="sidebarNav('pioneers',this)">
-      <span class="s-icon">🎖️</span><span class="s-label" data-i18n="nav.pioneers">Pionniers</span>
-    </button>
-
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-biblio" onclick="sidebarNav('biblio',this)">
-      <span class="s-icon">📚</span><span class="s-label" data-i18n="nav.biblio">Bibliothèque</span>
-    </button>
-
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-camera" onclick="sidebarNav('camera',this)">
-      <span class="s-icon">📷</span><span class="s-label" data-i18n="nav.camera">Détection photo / plateau</span>
-    </button>
-
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-stats" onclick="sidebarNav('stats',this)">
       <span class="s-icon">📊</span><span class="s-label" data-i18n="nav.stats">Statistiques</span>
     </button>
 
+    <div class="sidebar-group-label">🧪 Explorer</div>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-lab" onclick="openLabFromMenu(this)">
+      <span class="s-icon">🧪</span><span class="s-label">Labo IA</span>
+    </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-library" onclick="openMigsBrowser()">
+      <span class="s-icon">📚</span><span class="s-label">Bibliothèque de parties</span>
+    </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-tablebase" onclick="sidebarNav('tablebase',this)">
+      <span class="s-icon">🧮</span><span class="s-label">Tables de finale</span>
+    </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-camera" onclick="sidebarNav('camera',this)">
+      <span class="s-icon">📷</span><span class="s-label" data-i18n="nav.camera">Détection photo / plateau</span>
+    </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-biblio" onclick="sidebarNav('biblio',this)">
+      <span class="s-icon">📚</span><span class="s-label">Documentation</span>
+    </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-github" onclick="sidebarNav('github',this)">
+      <span class="s-icon">🔬</span><span class="s-label" data-i18n="nav.github">Insights GitHub</span>
+    </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-museum" onclick="sidebarNav('museum',this)">
+      <span class="s-icon">🏛</span><span class="s-label" data-i18n="nav.museum">Musée</span>
+    </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-pioneers" onclick="sidebarNav('pioneers',this)">
+      <span class="s-icon">🎖️</span><span class="s-label" data-i18n="nav.pioneers">Pionniers</span>
+    </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-trombi" onclick="sidebarNav('trombi',this)">
+      <span class="s-icon">🎭</span><span class="s-label" data-i18n="nav.trombi">Trombinoscope</span>
+    </button>
+
+    <details class="sidebar-collapse">
+      <summary class="sidebar-group-label sidebar-collapse-summary">🌐 En ligne (bientôt) <span class="sidebar-collapse-chevron">▾</span></summary>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-leaderboard" onclick="sidebarNav('leaderboard',this)">
+      <span class="s-icon">🏆</span><span class="s-label" data-i18n="nav.leaderboard">Classement</span>
+    </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-observe" onclick="sidebarNav('observe',this)">
+      <span class="s-icon">👁</span><span class="s-label" data-i18n="nav.observe">Observer</span>
+    </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-community" onclick="sidebarNav('community',this)">
+      <span class="s-icon">👥</span><span class="s-label" data-i18n="nav.community">Communauté</span>
+    </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-tournament" onclick="sidebarNav('tournament',this)">
+      <span class="s-icon">⚔️</span><span class="s-label" data-i18n="nav.tournament">Tournoi</span>
+    </button>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-compare" onclick="sidebarNav('compare',this)">
       <span class="s-icon">⚖️</span><span class="s-label" data-i18n="nav.compare">Comparer</span>
     </button>
-
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-friends" onclick="sidebarNav('friends',this)">
       <span class="s-icon">🤝</span><span class="s-label" data-i18n="nav.friends">Amis</span>
     </button>
+    </details>
 
     <!-- Separator -->
     <div class="sidebar-sep"></div>
@@ -2710,28 +2708,26 @@ document.addEventListener('keydown', function(e){
         </div>
         <span style="font-family:'Playfair Display',serif;font-size:22px;font-weight:900;background:linear-gradient(to right,#ffffff 0%,#ffffff 38%,#f0e3c0 50%,#d8b860 70%,#c8a84b 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;color:transparent">ABALASSEMBLY</span>
       </div>
-      <p class="footer-desc">La première plateforme mondiale dédiée au jeu Abalone. Stratégie, communauté et excellence.</p>
+      <p class="footer-desc">Jouer, apprendre et progresser au jeu de stratégie Abalone — hors-ligne, gratuit, sans compte.</p>
     </div>
     <div class="footer-col">
       <h5>Jeu</h5>
       <a onclick="openGameSetup()">Jouer</a>
-      <a>Puzzles</a>
-      <a>Tournois</a>
-      <a>Analyse</a>
+      <a onclick="showPage('puzzles')">Puzzles</a>
+      <a onclick="showPage('variants')">Variantes</a>
+      <a onclick="showPage('analysis')">Analyse</a>
     </div>
     <div class="footer-col">
       <h5>Apprendre</h5>
       <a onclick="showPage('learn')">Règles du jeu</a>
-      <a>Tactiques</a>
-      <a>Ouvertures</a>
-      <a>Vidéos</a>
+      <a onclick="showPage('academy')">Abalone Academy</a>
+      <a onclick="showPage('openings')">Ouvertures</a>
     </div>
     <div class="footer-col">
-      <h5>Communauté</h5>
-      <a onclick="showPage('leaderboard')">Classement</a>
-      <a>Forums</a>
-      <a>Clubs</a>
-      <a>Événements</a>
+      <h5>Explorer</h5>
+      <a onclick="showPage('tablebase')">Tables de finale</a>
+      <a onclick="showPage('museum')">Musée</a>
+      <a onclick="showPage('pioneers')">Pionniers</a>
     </div>
     <div class="footer-col">
       <h5>Ressources</h5>
