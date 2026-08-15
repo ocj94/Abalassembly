@@ -14635,8 +14635,15 @@ function isOffBoard(r, c) {
 }
 
 // Applique un coup (nouveau format) au plateau, retourne une fonction d'annulation
+// Applique un coup (nouveau format) au plateau, retourne une fonction d'annulation.
+// Principe : au lieu de recalculer tout le plateau pour annuler, on note juste
+// la valeur AVANT modification de chaque case touchée (touched), pour pouvoir
+// la restaurer exactement telle quelle dans undoMove — beaucoup plus rapide que
+// cloner tout le board a chaque coup essaye pendant la recherche minimax.
 function applyMove(move, color) {
   const touched = new Set();
+  // Les cases de depart des billes qui bougent, ET leur case d'arrivee (destination
+  // dans la direction du coup) doivent etre suivies pour pouvoir tout restaurer.
   move.cells.forEach(c => {
     touched.add(akey(c.r,c.c));
     const ax = rcToAxial(c.r,c.c);
@@ -14644,6 +14651,9 @@ function applyMove(move, color) {
     if (d) touched.add(akey(d.r,d.c));
   });
   if (move.info.type === 'push') {
+    // En cas de poussee (sumito), il faut aussi suivre TOUTE la chaine de billes
+    // adverses poussees, jusqu'a la case au-dela (vide, bord, ou ejection) —
+    // sinon on ne pourrait pas annuler correctement une poussee.
     let cur = { ...move.info.oppStart };
     for (let i=0; i<=move.info.push+1; i++) {
       const rc = axialToRc(cur.q, cur.r);
@@ -14651,6 +14661,8 @@ function applyMove(move, color) {
       cur = { q:cur.q+move.dir.q, r:cur.r+move.dir.r };
     }
   }
+  // Capture l'etat AVANT modification de chaque case suivie — c'est le
+  // journal d'annulation que undoMove rejouera a l'envers.
   const undo = [];
   touched.forEach(k => undo.push({ k, v: board[k] }));
   undo.__captured = null;
@@ -14659,10 +14671,14 @@ function applyMove(move, color) {
     if (color === 'white') { capturedByWhite++; undo.__captured = 'white'; }
     else                   { capturedByBlack++; undo.__captured = 'black'; }
   }
+  // abApplyMove fait la modification reelle du board (deplacement/poussee/ejection) —
+  // toute la logique de detection ci-dessus ne sert qu'a preparer l'annulation.
   abApplyMove(move.cells, move.dir, color, move.info);
   return undo;
 }
 
+// Annule exactement le coup applique par applyMove, en restaurant chaque case
+// suivie a sa valeur d'avant (v===undefined signifie que la case etait vide).
 function undoMove(undo) {
   if (undo.__captured === 'white') capturedByWhite--;
   else if (undo.__captured === 'black') capturedByBlack--;
@@ -16541,6 +16557,12 @@ const TREES_B64='rV3Lju02DvyXs+4AesvO4v5LJgkywcxkkTuDLIL8+xwfSz4iWSWrk/SiG2gIsiV
 let _bookNode = null;
 
 // id canonique d'un coup (identique à celui ayant servi à bâtir l'arbre)
+// Identifiant canonique et stable d'un coup : les cellules impliquees (triees,
+// pour que l'ordre de decouverte du groupe n'ait pas d'importance) + la direction.
+// Sert de cle pour comparer/dedupliquer des coups (livre d'ouvertures, securite
+// "ce coup propose est-il bien present dans les coups legaux actuels ?", etc.)
+// — deux coups avec le meme canonId deplacent exactement le meme groupe de
+// billes dans la meme direction, donc sont le meme coup au sens du jeu.
 function canonId(mv){
   return mv.cells.map(function(c){ return '' + c.r + c.c; }).sort().join('') + '>' + mv.dir.q + '' + mv.dir.r;
 }
@@ -16740,10 +16762,19 @@ function abaproOfficialLabels(mv){
   if(!td)return [];
   return [coordToABAPRO(tail.r,tail.c)+coordToABAPRO(td.r,td.c)];
 }
+// Retrouve, parmi les coups legaux ACTUELS du plateau, celui qui correspond a
+// un token de notation ABA-PRO textuelle (ex: "d1d3") venant d'une partie
+// enregistree (MIGS/AO) ou du livre d'ouvertures. Fonctionne sur n'importe
+// quel plateau (pas seulement celui d'origine) car la notation ABA-PRO est
+// en coordonnees absolues, pas relatives — d'ou son usage aussi pour le
+// repli empreintes historiques (verifie qu'un coup historique est LEGAL ici).
 function resolveAbaProToken(token,color){
   const legal=getAllMovesForColor(color);
+  // abaproOfficialLabels(mv) genere tous les libelles textuels valides pour
+  // ce coup (un meme coup peut avoir plusieurs notations equivalentes selon
+  // la bille de reference choisie dans le groupe) — on cherche le token dedans.
   const m=legal.filter(function(mv){ return abaproOfficialLabels(mv).indexOf(token)!==-1; });
-  if(!m.length)return null;
+  if(!m.length)return null;   // token illisible ou coup illegal sur CE plateau
   m.sort(function(a,b){ return b.cells.length-a.cells.length; });  // ligne maximale si ambigu
   return m[0];
 }
