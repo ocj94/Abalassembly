@@ -3595,6 +3595,16 @@ document.addEventListener('keydown', function(e){
         <h2>Remporter la partie</h2>
         <p>L'objectif est d'éjecter 6 billes adverses hors du plateau hexagonal. Dès que la 6ème bille adverse est poussée à l'extérieur, la partie s'arrête et vous êtes déclaré vainqueur.</p>
         <p>Chaque bille éjectée tombe dans le creux entourant le plateau. Un compteur suit les billes perdues par chaque camp. La victoire s'obtient en éjectant 6 billes adverses ; une partie peut aussi se conclure par une nulle, par accord entre les deux joueurs ou par répétition de position — comme en tournoi.</p>
+        <div style="overflow-x:auto;margin-top:16px">
+          <table style="width:100%;max-width:480px;border-collapse:collapse;font-size:13px">
+            <tr style="color:var(--gold);text-align:left"><th style="padding:8px 6px">Camp</th><th style="padding:8px 6px">Billes de départ</th><th style="padding:8px 6px">Billes éjectées</th><th style="padding:8px 6px">Billes restantes</th></tr>
+            <tr style="border-top:1px solid var(--border)"><td style="padding:8px 6px">Vainqueur</td><td style="padding:8px 6px">14</td><td style="padding:8px 6px">0 à 5</td><td style="padding:8px 6px">9 à 14</td></tr>
+            <tr style="border-top:1px solid var(--border)"><td style="padding:8px 6px">Perdant</td><td style="padding:8px 6px">14</td><td style="padding:8px 6px">6</td><td style="padding:8px 6px">8</td></tr>
+          </table>
+        </div>
+        <div class="tip-box" style="margin-top:14px">
+          <strong>📊 En chiffres :</strong> chaque camp démarre avec 14 billes. La partie s'arrête dès la 6ème éjection — le perdant termine donc toujours avec 8 billes sur le plateau, jamais moins.
+        </div>
       </div>
 
       <div class="learn-section" id="learn-moves">
