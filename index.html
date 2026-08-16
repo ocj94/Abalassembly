@@ -15317,10 +15317,26 @@ function buildCarteTactiqueSVG(color, dim, boardOverride) {
   let maxVal = 0;
   cases.forEach(function(c){ if (c[dim] > maxVal) maxVal = c[dim]; });
   const SIZE = 280, scale = SIZE/640, cellR = HEX_RADIUS*scale*0.92;
+  /* La carte doit suivre le retournement POV (0°/180° selon monCamp(), voir
+     applyPovOrientation) pour rester dans le meme sens que le plateau
+     affiche au joueur -- signale : en jouant les blancs, la carte restait
+     orientee cote noir. Mais elle ne doit PAS suivre la rotation manuelle
+     Y↺/Y↻ (qui s'accumule EN PLUS du POV dans boardRotation) : ignorerRotation
+     bloque bien cette part-la, comme pour buildHeatmapSVG. On calcule donc
+     ici le seul angle POV, separement de boardRotation. */
+  const povDeg = (typeof monCamp === 'function' && monCamp() === 'white') ? 180 : 0;
+  const povRad = povDeg * Math.PI / 180;
+  const cx0 = 320, cy0 = 320;
   let svg = '';
   for (let r=0;r<9;r++) for (let c2=0;c2<ROWS[r];c2++) {
-    const p = hexCoord(r, c2, true);
-    const x = p.x*scale, y = p.y*scale;
+    const p0 = hexCoord(r, c2, true);
+    let px = p0.x, py = p0.y;
+    if (povDeg) {
+      const dx = px - cx0, dy = py - cy0;
+      px = cx0 + dx * Math.cos(povRad) - dy * Math.sin(povRad);
+      py = cy0 + dx * Math.sin(povRad) + dy * Math.cos(povRad);
+    }
+    const x = px*scale, y = py*scale;
     const k = r+','+c2;
     const info = parCle[k];
     let fill;
