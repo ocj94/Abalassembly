@@ -25656,6 +25656,12 @@ function gymMarbleGradient(color){
   const stops = sk ? (color === 'black' ? sk.b : sk.w).join(', ') : (color === 'black' ? '#1a1a1a' : '#e8e0d0');
   return 'radial-gradient(circle at 35% 35%, ' + stops + ')';
 }
+/* Petite pastille inline aux vraies couleurs du skin actif, pour ne plus
+   écrire "NOIRES"/"BLANCHES" en toutes lettres dans les indices -- le
+   joueur voit directement la couleur qu'il joue avec son skin choisi. */
+function gymColorSwatch(color){
+  return '<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:' + gymMarbleGradient(color) + ';box-shadow:inset -1px -1px 2px rgba(0,0,0,0.5),0 1px 2px rgba(0,0,0,0.3);vertical-align:-2px;margin:0 2px"></span>';
+}
 
 /* Rendu du plateau complet (61 cases, formes de rangée réelles). */
 function gymRenderBoard(containerId, board, onCellClick, highlightSet){
@@ -25951,7 +25957,7 @@ function gymStartInhibition(level){
     gymFinish('inhibition', chose_bad ? 0 : 100, chose_bad ? 'piège ! cette case t\'expose' : 'bon réflexe, coup sûr');
   }, hl);
   const hintEl = document.getElementById('gym-exercise-hint');
-  if (hintEl) hintEl.textContent = 'Deux cases surlignées sont possibles pour la bille noire. Une seule est sûre.';
+  if (hintEl) hintEl.innerHTML = 'Deux cases surlignées sont possibles pour la bille ' + gymColorSwatch('black') + '. Une seule est sûre.';
 }
 
 /* ─── 6. FLEXIBILITÉ — cible change de couleur en cours d'exercice ─── */
@@ -25970,7 +25976,7 @@ function gymStartFlexibility(level){
   let switched = false;
   let switchTime = null;
   const hintEl = document.getElementById('gym-exercise-hint');
-  function updateHint(){ if (hintEl) hintEl.textContent = 'Clique toutes les billes ' + (targetColor==='black'?'NOIRES':'BLANCHES') + '.'; }
+  function updateHint(){ if (hintEl) hintEl.innerHTML = 'Clique toutes les billes ' + gymColorSwatch(targetColor) + '.'; }
   updateHint();
   gymRenderBoard('gym-exercise-board', board, function(k){
     if (board.get(k) !== targetColor || found.has(k)) return;
@@ -26107,6 +26113,9 @@ function gymSetLevel(level){
     btn.style.borderColor = active ? 'var(--gold)' : 'var(--border)';
     btn.style.fontWeight = active ? '700' : '400';
   });
+  // Relance l'exercice en cours au nouveau niveau (sinon changer de niveau
+  // n'avait aucun effet visible tant qu'on ne relançait pas manuellement).
+  if (_gymLastExerciseId) startGymExercise(_gymLastExerciseId);
 }
 
 function renderCompare() {
