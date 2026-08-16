@@ -15297,6 +15297,16 @@ function calculerCarteTactique(color, boardOverride) {
   return cases;
 }
 const LABELS_CARTE_TACTIQUE = { mobilite:'Mobilité', soutien:'Soutien', menace:'Menace', bord:'En bordure' };
+/* Explications affichées sous la carte -- calquées précisément sur le calcul
+   réel de calculerCarteTactique() ci-dessus, pas des descriptions génériques.
+   Ajouté suite à un retour : le sens des chiffres et des couleurs n'était
+   pas clair sans lire le code. */
+const EXPLICATIONS_CARTE_TACTIQUE = {
+  mobilite: 'Nombre de coups légaux qui font bouger cette bille. Chiffre haut et couleur claire = beaucoup d\'options de déplacement pour cette bille.',
+  soutien:  'Nombre de billes alliées alignées juste derrière cette bille, sur un même axe (0, 1 ou 2 au maximum). Plus il y en a, plus la bille est protégée contre un sumito adverse.',
+  menace:   'Nombre de coups adverses (sumito) qui visent précisément cette bille pour l\'éjecter. 0 = aucune menace immédiate sur cette bille.',
+  bord:     '1 si la bille est sur une case du bord du plateau (moins de cases de repli en cas de poussée adverse), 0 si elle est plus au centre.'
+};
 // SVG statique (memes conventions que buildHeatmapSVG) : une seule dimension a la fois,
 // jamais de fusion — le choix de la dimension affichee reste a la personne, pas au code.
 function buildCarteTactiqueSVG(color, dim, boardOverride) {
@@ -22378,6 +22388,18 @@ function dessinerCarteTactique() {
     const total = (typeof boardSnapshots !== 'undefined') ? boardSnapshots.length : 0;
     posInfo.textContent = _carteTactiqueLive ? 'Position actuelle (direct)' : ('Coup ' + (_carteTactiqueViewIdx + 1) + ' / ' + total);
   }
+  const legendEl = document.getElementById('carte-tactique-legend');
+  if (legendEl) {
+    const stops = HEATMAP_SCALE.map(function(c, i){
+      return c + ' ' + Math.round((i / (HEATMAP_SCALE.length - 1)) * 100) + '%';
+    }).join(',');
+    const bar = 'background:linear-gradient(90deg,' + HEATMAP_EMPTY + ' 0%,' + stops + ')';
+    legendEl.innerHTML =
+      '<div style="font-size:11px;color:var(--text);line-height:1.5;margin-bottom:6px">' + EXPLICATIONS_CARTE_TACTIQUE[_carteTactiqueDim] + '</div>' +
+      '<div style="height:8px;border-radius:4px;border:1px solid var(--border);' + bar + '"></div>' +
+      '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px"><span>0 / faible</span><span>élevé</span></div>' +
+      '<div style="font-size:10px;color:var(--muted);margin-top:8px">⚪ Bille claire sans chiffre = bille adverse, non analysée par cette carte (seules vos billes sont mesurées ici).</div>';
+  }
 }
 // Mise a jour automatique en temps reel : a chaque coup reellement joue,
 // si la carte est visible et en mode direct, elle se redessine toute seule —
@@ -22501,6 +22523,7 @@ function runAnalysis() {
       '<button type="button" class="btn-ghost" style="font-size:14px;padding:4px 10px" onclick="carteTactiqueStepForward()" title="Coup suivant">▶</button>'+
       '</div>'+
       '<div id="carte-tactique-pos" style="text-align:center;font-size:10px;color:var(--muted);margin-top:4px">Position actuelle (direct)</div>'+
+      '<div id="carte-tactique-legend" style="margin-top:10px;max-width:280px;margin-left:auto;margin-right:auto;text-align:left"></div>'+
       '</div>';
   }
   // Profil de decision — mesures reelles (branching, ecart de score, coups proches
