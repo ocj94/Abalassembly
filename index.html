@@ -25613,55 +25613,71 @@ function _saveGymProgress(data){
    60°, détection de menace par ligne) -- rien n'est pré-écrit ni simulé.
 ═══════════════════════════════════════════ */
 
-const GYM_DIRS = [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
+/* ═══════════════════════════════════════════
+   GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)
+   Réutilise directement ROWS, neighbors(r,c), rcToAxial/axialToRc et
+   AX_DIRS du moteur réel (définis plus haut dans ce fichier) au lieu
+   d'un système de coordonnées inventé -- même plateau, mêmes voisins
+   que la vraie partie.
+═══════════════════════════════════════════ */
 
 function gymCells(){
   const cells = [];
-  for (let q=-2; q<=2; q++){
-    const rMin = Math.max(-2, -q-2), rMax = Math.min(2, -q+2);
-    for (let r=rMin; r<=rMax; r++) cells.push([q,r]);
+  for (let r=0; r<9; r++){
+    for (let c=0; c<ROWS[r]; c++) cells.push([r,c]);
   }
-  return cells; // 19 cells
+  return cells; // 61 cases, le vrai plateau
 }
-function gymKey(q,r){ return q+','+r; }
-function gymInBounds(q,r){
-  return q>=-2 && q<=2 && r>=Math.max(-2,-q-2) && r<=Math.min(2,-q+2);
-}
-function gymNeighbors(q,r){
-  return GYM_DIRS.map(function(d){ return [q+d[0], r+d[1]]; }).filter(function(c){ return gymInBounds(c[0],c[1]); });
-}
-function gymRotate60cw(q,r){
-  const x=q, z=r, y=-q-r;
-  const rx=-y, ry=-z, rz=-x;
-  return [rx, rz];
+function gymKey(r,c){ return r+','+c; }
+function gymInBounds(r,c){ return r>=0 && r<9 && c>=0 && c<ROWS[r]; }
+function gymNeighbors(r,c){
+  return neighbors(r,c).map(function(n){ return [n.r, n.c]; });
 }
 function gymRandCell(exclude){
   const cells = gymCells().filter(function(c){ return !exclude || !exclude.has(gymKey(c[0],c[1])); });
   return cells[Math.floor(Math.random()*cells.length)];
 }
+/* Rotation 60° horaire -- opère sur des offsets axiaux (q,r), pas des r,c.
+   Formule vérifiée par test contre le cycle des 6 directions AX_DIRS avant
+   usage (dir i -> dir (i+1) dans l'ordre cyclique réel du moteur). */
+function gymRotate60cw(q,r){
+  const x=q, z=r, y=-q-r;
+  const rx=-y, ry=-z, rz=-x;
+  return [rx, rz];
+}
 
-/* Rendu du mini-plateau. board = Map('q,r' -> 'black'|'white') */
+/* Couleur des billes = skin actif du joueur (boardTheme.marbleSkin), pas
+   des couleurs fixes -- mêmes valeurs que le vrai plateau et que
+   _marbleSwatch() utilisé ailleurs sur le site (setup, éditeur, analyse). */
+function gymMarbleGradient(color){
+  const sk = (typeof MARBLE_SKINS !== 'undefined' && typeof boardTheme !== 'undefined' && MARBLE_SKINS[boardTheme.marbleSkin])
+    ? MARBLE_SKINS[boardTheme.marbleSkin]
+    : (typeof MARBLE_SKINS !== 'undefined' ? MARBLE_SKINS.kintsugi : null);
+  const stops = sk ? (color === 'black' ? sk.b : sk.w).join(', ') : (color === 'black' ? '#1a1a1a' : '#e8e0d0');
+  return 'radial-gradient(circle at 35% 35%, ' + stops + ')';
+}
+
+/* Rendu du plateau complet (61 cases, formes de rangée réelles). */
 function gymRenderBoard(containerId, board, onCellClick, highlightSet){
   const el = document.getElementById(containerId);
   if (!el) return;
-  const cells = gymCells();
-  const rows = {};
-  cells.forEach(function(c){ (rows[c[1]] = rows[c[1]] || []).push(c); });
-  const rKeys = Object.keys(rows).map(Number).sort(function(a,b){return a-b;});
-  let html = '<div style="display:flex;flex-direction:column;align-items:center;gap:4px">';
-  rKeys.forEach(function(r){
-    const rowCells = rows[r].sort(function(a,b){ return a[0]-b[0]; });
-    html += '<div style="display:flex;gap:4px;margin-left:'+(Math.abs(r)*18)+'px">';
-    rowCells.forEach(function(c){
-      const k = gymKey(c[0],c[1]);
+  const cellSize = 20;
+  let html = '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">';
+  for (let r=0; r<9; r++){
+    html += '<div style="display:flex;gap:2px;justify-content:center">';
+    for (let c=0; c<ROWS[r]; c++){
+      const k = gymKey(r,c);
       const piece = board.get(k);
       const hl = highlightSet && highlightSet.has(k);
-      const bg = piece==='black' ? '#1a1a1a' : piece==='white' ? '#e8e0d0' : 'var(--surface2)';
       const border = hl ? '2px solid var(--gold)' : '1px solid var(--border)';
-      html += '<div class="gym-cell" data-k="'+k+'" style="width:32px;height:32px;border-radius:50%;background:'+bg+';border:'+border+';cursor:pointer"></div>';
-    });
+      let inner = '';
+      if (piece){
+        inner = '<div style="width:100%;height:100%;border-radius:50%;background:' + gymMarbleGradient(piece) + ';box-shadow:inset -1px -1px 2px rgba(0,0,0,0.5),0 1px 2px rgba(0,0,0,0.3)"></div>';
+      }
+      html += '<div class="gym-cell" data-k="' + k + '" style="width:' + cellSize + 'px;height:' + cellSize + 'px;border-radius:50%;background:var(--surface2);border:' + border + ';cursor:pointer;overflow:hidden">' + inner + '</div>';
+    }
     html += '</div>';
-  });
+  }
   html += '</div>';
   el.innerHTML = html;
   if (onCellClick){
@@ -25825,22 +25841,24 @@ function gymStartAcuity(level){
   setTimeout(function(){ if (!answered){ answered = true; gymFinish('acuity', 0, 'temps écoulé'); } }, timerMs);
 }
 
-/* ─── 3. RÉFLEXE — repérer la bille menacée (2 ennemis alignés derrière) ─── */
+/* ─── 3. RÉFLEXE — bille menacée (2 ennemis alignés derrière, via axiales) ─── */
 function gymStartReflex(level){
   level = level || _gymLevel;
   const timerMs = level===1?5000:level===3?2000:3000;
   const decorCount = level===1?2:level===3?5:3;
+  let target=null, back1=null, back2=null;
+  for (let attempt=0; attempt<50 && !target; attempt++){
+    const cell = gymRandCell();
+    const ax = rcToAxial(cell[0], cell[1]);
+    const dir = AX_DIRS[Math.floor(Math.random()*6)];
+    const b1ax = { q: ax.q - dir.q, r: ax.r - dir.r };
+    const b2ax = { q: ax.q - dir.q*2, r: ax.r - dir.r*2 };
+    const b1rc = axialToRc(b1ax.q, b1ax.r);
+    const b2rc = axialToRc(b2ax.q, b2ax.r);
+    if (b1rc && b2rc){ target = cell; back1 = [b1rc.r, b1rc.c]; back2 = [b2rc.r, b2rc.c]; }
+  }
+  if (!target){ gymFinish('reflex', 0, 'position invalide, réessaie'); return; }
   const board = new Map();
-  const dir = GYM_DIRS[Math.floor(Math.random()*6)];
-  const edgeCandidates = gymCells().filter(function(c){
-    const back1 = [c[0]-dir[0], c[1]-dir[1]];
-    const back2 = [c[0]-dir[0]*2, c[1]-dir[1]*2];
-    return gymInBounds(back1[0],back1[1]) && gymInBounds(back2[0],back2[1]);
-  });
-  if (!edgeCandidates.length){ gymFinish('reflex', 0, 'position invalide, réessaie'); return; }
-  const target = edgeCandidates[Math.floor(Math.random()*edgeCandidates.length)];
-  const back1 = [target[0]-dir[0], target[1]-dir[1]];
-  const back2 = [target[0]-dir[0]*2, target[1]-dir[1]*2];
   board.set(gymKey(target[0],target[1]), 'white');
   board.set(gymKey(back1[0],back1[1]), 'black');
   board.set(gymKey(back2[0],back2[1]), 'black');
@@ -25874,8 +25892,8 @@ function gymStartAnticipation(level){
   }
   const keys = Array.from(used);
   const moved = keys[0];
-  const [q1,r1] = moved.split(',').map(Number);
-  const emptyNeigh = gymNeighbors(q1,r1).filter(function(c){ return !board.has(gymKey(c[0],c[1])); });
+  const [mr,mc] = moved.split(',').map(Number);
+  const emptyNeigh = gymNeighbors(mr,mc).filter(function(c){ return !board.has(gymKey(c[0],c[1])); });
   if (!emptyNeigh.length){ gymFinish('anticipation', 0, 'position invalide, réessaie'); return; }
   const dest = emptyNeigh[Math.floor(Math.random()*emptyNeigh.length)];
   const destKey = gymKey(dest[0],dest[1]);
@@ -25972,28 +25990,40 @@ function gymStartFlexibility(level){
   }, null);
 }
 
-/* ─── 7. SPATIAL — rotation mentale 60° horaire, N billes ─── */
+/* ─── 7. SPATIAL — rotation mentale 60° horaire, N billes (via axiales) ─── */
 function gymStartSpatial(level){
   level = level || _gymLevel;
   const armCount = level===1?1:level===3?3:2;
-  const center = [0,0];
-  const usedDirs = [];
-  while (usedDirs.length < armCount){
-    const idx = Math.floor(Math.random()*6);
-    if (usedDirs.indexOf(idx) === -1) usedDirs.push(idx);
+  let center=null, points=null, answers=null;
+  for (let attempt=0; attempt<50 && !center; attempt++){
+    const c = gymRandCell();
+    const cax = rcToAxial(c[0], c[1]);
+    const dirIdxs = [];
+    while (dirIdxs.length < armCount){
+      const idx = Math.floor(Math.random()*6);
+      if (dirIdxs.indexOf(idx) === -1) dirIdxs.push(idx);
+    }
+    const pts = [], ans = [];
+    let ok = true;
+    for (let i=0; i<dirIdxs.length; i++){
+      const d = AX_DIRS[dirIdxs[i]];
+      const pax = { q: cax.q+d.q, r: cax.r+d.r };
+      const prc = axialToRc(pax.q, pax.r);
+      if (!prc){ ok = false; break; }
+      const rot = gymRotate60cw(d.q, d.r);
+      const aax = { q: cax.q+rot[0], r: cax.r+rot[1] };
+      const arc = axialToRc(aax.q, aax.r);
+      if (!arc){ ok = false; break; }
+      pts.push([prc.r, prc.c]);
+      ans.push(gymKey(arc.r, arc.c));
+    }
+    if (ok && new Set(ans).size === armCount){ center = c; points = pts; answers = ans; }
   }
+  if (!center){ gymFinish('spatial', 0, 'position invalide, réessaie'); return; }
   const board = new Map();
-  board.set(gymKey(center[0],center[1]), 'black');
-  const points = usedDirs.map(function(idx){
-    const d = GYM_DIRS[idx];
-    return [center[0]+d[0], center[1]+d[1]];
-  });
+  const centerKey = gymKey(center[0],center[1]);
+  board.set(centerKey, 'black');
   points.forEach(function(p){ board.set(gymKey(p[0],p[1]), 'black'); });
-  const answers = points.map(function(p){
-    const rel = [p[0]-center[0], p[1]-center[1]];
-    const rot = gymRotate60cw(rel[0], rel[1]);
-    return gymKey(center[0]+rot[0], center[1]+rot[1]);
-  });
   const answerSet = new Set(answers);
   const hintEl = document.getElementById('gym-exercise-hint');
   if (hintEl) hintEl.textContent = armCount===1
@@ -26001,9 +26031,9 @@ function gymStartSpatial(level){
     : 'Si on tourne ces ' + armCount + ' billes de 60° dans le sens horaire autour du centre, clique leurs ' + armCount + ' nouvelles cases.';
   let picked = new Set();
   function onPick(k){
-    if (k === gymKey(center[0],center[1])) return; // le centre ne bouge pas
+    if (k === centerKey) return;
     if (picked.has(k)) picked.delete(k); else picked.add(k);
-    gymRenderBoard('gym-exercise-board', board, onPick, new Set([gymKey(center[0],center[1])].concat(Array.from(picked))));
+    gymRenderBoard('gym-exercise-board', board, onPick, new Set([centerKey].concat(Array.from(picked))));
     if (picked.size === armCount){
       let correct = 0;
       picked.forEach(function(k){ if (answerSet.has(k)) correct++; });
@@ -26011,7 +26041,7 @@ function gymStartSpatial(level){
       gymFinish('spatial', score, correct + '/' + armCount + ' correctes');
     }
   }
-  gymRenderBoard('gym-exercise-board', board, onPick, new Set([gymKey(center[0],center[1])]));
+  gymRenderBoard('gym-exercise-board', board, onPick, new Set([centerKey]));
 }
 
 const GYM_STARTERS = {
