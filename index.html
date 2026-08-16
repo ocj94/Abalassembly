@@ -3442,6 +3442,7 @@ document.addEventListener('keydown', function(e){
           </div>
         </div>
         <button onclick="runAnalysis()" class="ctrl-btn primary" style="margin-top:12px;width:100%">🔍 Analyser cette position</button>
+        <button onclick="exportGameNotation()" class="ctrl-btn" style="margin-top:8px;width:100%" title="Copie la séquence de coups (Aba-Pro ou Nacre) dans le presse-papier">📋 Exporter la partie</button>
         </div>
       </div>
 
@@ -5552,6 +5553,28 @@ document.addEventListener('keydown', function(e){
             </button>
           </div>
           <div style="font-size:11px;color:var(--muted);margin-top:10px;text-align:center">Astuce : reclique une bille pour l'effacer</div>
+        </div>
+
+        <!-- Billes déjà éjectées -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px">
+          <div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:4px">Billes déjà éjectées</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Pour construire une position de fin de partie (ex : puzzle où un camp est proche de la défaite).</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <span style="font-size:12px;color:var(--text)">Joueur 1</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button onclick="editorAdjustCaptured('black',-1)" style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer">−</button>
+              <span id="editor-captured-black" style="min-width:16px;text-align:center;font-weight:700;color:var(--gold)">0</span>
+              <button onclick="editorAdjustCaptured('black',1)" style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer">+</button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:12px;color:var(--text)">Joueur 2</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button onclick="editorAdjustCaptured('white',-1)" style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer">−</button>
+              <span id="editor-captured-white" style="min-width:16px;text-align:center;font-weight:700;color:var(--gold)">0</span>
+              <button onclick="editorAdjustCaptured('white',1)" style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer">+</button>
+            </div>
+          </div>
         </div>
 
         <!-- Positions prédéfinies -->
@@ -9460,11 +9483,11 @@ function applyTrombiFilter() {
   if (!filtered.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--muted)">Aucun joueur trouvé</div>'; return; }
   grid.innerHTML = filtered.map((p,i) => `
     <div class="trombi-card" onclick="showTrombiModal(${trombiData.indexOf(p)})">
-      <div class="trombi-avatar" style="background:${p.color}">${p.name[0].toUpperCase()}</div>
-      <div class="trombi-name">${p.name}</div>
-      <div class="trombi-handle">@${p.handle} ${p.country}</div>
-      <div class="trombi-elo">ELO ${p.elo}</div>
-      <div class="trombi-role" style="background:${p.roleBg};color:${p.roleColor};border:1px solid ${p.roleColor}40">${p.role}</div>
+      <div class="trombi-avatar" style="background:${p.color}">${escapeHtml(p.name[0].toUpperCase())}</div>
+      <div class="trombi-name">${escapeHtml(p.name)}</div>
+      <div class="trombi-handle">@${escapeHtml(p.handle)} ${escapeHtml(p.country)}</div>
+      <div class="trombi-elo">ELO ${escapeHtml(String(p.elo))}</div>
+      <div class="trombi-role" style="background:${p.roleBg};color:${p.roleColor};border:1px solid ${p.roleColor}40">${escapeHtml(p.role)}</div>
     </div>`).join('');
 }
 
@@ -9482,14 +9505,14 @@ function showTrombiModal(idx) {
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px;width:440px;max-width:94vw;position:relative;animation:slideUp 0.3s ease">
       <button onclick="document.getElementById('trombi-modal').style.display='none'" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:22px;color:var(--muted);cursor:pointer">x</button>
       <div style="display:flex;align-items:center;gap:16px;margin-bottom:22px">
-        <div style="width:68px;height:68px;border-radius:50%;background:${p.color};display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;font-family:'Playfair Display',serif;color:var(--gold);border:2px solid rgba(200,168,75,0.3);flex-shrink:0">${p.name[0].toUpperCase()}</div>
+        <div style="width:68px;height:68px;border-radius:50%;background:${p.color};display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;font-family:'Playfair Display',serif;color:var(--gold);border:2px solid rgba(200,168,75,0.3);flex-shrink:0">${escapeHtml(p.name[0].toUpperCase())}</div>
         <div>
-          <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:var(--white)">${p.name}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:3px">@${p.handle} ${p.country}</div>
-          <span class="trombi-role" style="background:${p.roleBg};color:${p.roleColor};border:1px solid ${p.roleColor}40;margin-top:6px">${p.role}</span>
+          <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:var(--white)">${escapeHtml(p.name)}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">@${escapeHtml(p.handle)} ${escapeHtml(p.country)}</div>
+          <span class="trombi-role" style="background:${p.roleBg};color:${p.roleColor};border:1px solid ${p.roleColor}40;margin-top:6px">${escapeHtml(p.role)}</span>
         </div>
       </div>
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:16px">${p.bio}</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:16px">${escapeHtml(p.bio)}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
         <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center">
           <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:700;color:var(--gold)">${p.elo}</div>
@@ -10588,10 +10611,10 @@ function openPlayerStats(idx) {
   const wr = Math.round(p.w / p.games * 100);
   document.getElementById('stats-modal-content').innerHTML = `
     <div style="display:flex;align-items:center;gap:18px;margin-bottom:28px">
-      <div style="width:56px;height:56px;border-radius:50%;background:${p.color};color:var(--cream);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;border:2px solid var(--border)">${p.init}</div>
+      <div style="width:56px;height:56px;border-radius:50%;background:${p.color};color:var(--cream);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;border:2px solid var(--border)">${escapeHtml(p.init)}</div>
       <div>
-        <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:900;color:var(--white)">${p.name}</div>
-        <div style="font-size:13px;color:var(--muted)">${p.country} · <span class="badge-gm ${p.badge}">${p.label}</span></div>
+        <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:900;color:var(--white)">${escapeHtml(p.name)}</div>
+        <div style="font-size:13px;color:var(--muted)">${escapeHtml(p.country)} · <span class="badge-gm ${p.badge}">${escapeHtml(p.label)}</span></div>
       </div>
       <div style="margin-left:auto;text-align:right">
         <div style="font-family:'DM Mono',monospace;font-size:28px;font-weight:700;color:var(--gold)">${p.elo}</div>
@@ -10708,15 +10731,15 @@ function renderLeaderboard() {
       <td><span class="lb-rank ${rankClass}">${medal}</span></td>
       <td>
         <div class="lb-player">
-          <div class="lb-avatar" style="background:${p.color};color:var(--cream)">${p.init}</div>
+          <div class="lb-avatar" style="background:${p.color};color:var(--cream)">${escapeHtml(p.init)}</div>
           <div>
-            <div class="lb-name">${p.name}</div>
-            <div class="lb-country">${p.country}</div>
+            <div class="lb-name">${escapeHtml(p.name)}</div>
+            <div class="lb-country">${escapeHtml(p.country)}</div>
           </div>
         </div>
       </td>
       <td><span class="lb-rating">${p.elo}</span></td>
-      <td><span class="badge-gm ${p.badge}">${p.label}</span></td>
+      <td><span class="badge-gm ${p.badge}">${escapeHtml(p.label)}</span></td>
       <td><span class="lb-winrate"><span>${p.w}V</span> / ${p.l}N / ${p.d}D — <span>${wr}%</span></span></td>
       <td><span class="lb-games">${p.games}</span></td>
       <td><span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--text)">${p.avgTime}</span></td>
@@ -27337,6 +27360,14 @@ function checkTutorialStep() {
 ═══════════════════════════════════════════ */
 let editorBoard = {};
 let editorTool = 'black';  // outil courant : 'black', 'white', 'erase'
+/* Billes déjà éjectées par camp -- séparé du placement sur le plateau, pour
+   pouvoir construire des positions de fin de partie réalistes (ex: puzzle
+   où un camp a déjà perdu 5 billes, il n'en reste qu'une). Signalé : rien
+   ne permettait de déclarer ça, playFromEditor() remettait toujours les
+   deux compteurs à zéro peu importe le nombre de billes posées. */
+let editorCapturedBlack = 0;
+let editorCapturedWhite = 0;
+const EDITOR_MAX_CAPTURED = 5;  // 6 billes perdues = partie déjà finie, donc max 5 avant de jouer
 
 function setEditorTool(tool, btn) {
   editorTool = tool;
@@ -27352,6 +27383,9 @@ function setEditorTool(tool, btn) {
 
 function loadEditorPreset(preset) {
   editorBoard = {};
+  editorCapturedBlack = 0; editorCapturedWhite = 0;  // nouvelle position -> repart de zéro
+  const cb = document.getElementById('editor-captured-black'); if (cb) cb.textContent = '0';
+  const cw = document.getElementById('editor-captured-white'); if (cw) cw.textContent = '0';
   if (preset !== 'empty' && LAYOUTS[preset]) {
     LAYOUTS[preset].black.forEach(function(p){ editorBoard[p[0]+','+p[1]] = 'black'; });
     LAYOUTS[preset].white.forEach(function(p){ editorBoard[p[0]+','+p[1]] = 'white'; });
@@ -27359,6 +27393,24 @@ function loadEditorPreset(preset) {
   // 'empty' → rien
   drawEditorBoard();
   updateEditorStatus();
+}
+
+/* Ajuste le compteur de billes déjà éjectées d'un camp. Borné à
+   [0, EDITOR_MAX_CAPTURED] et au nombre de billes qu'il reste physiquement
+   possible d'avoir perdues : billes sur le plateau + déjà éjectées ne peut
+   jamais dépasser 14 (total réel de billes par camp). */
+function editorAdjustCaptured(color, delta) {
+  const onBoard = Object.values(editorBoard).filter(function(v){ return v === color; }).length;
+  const current = (color === 'black') ? editorCapturedBlack : editorCapturedWhite;
+  let next = current + delta;
+  next = Math.max(0, Math.min(EDITOR_MAX_CAPTURED, next));
+  if (onBoard + next > 14) {
+    showToast('⚠️ Billes sur le plateau + éjectées ne peut pas dépasser 14');
+    return;
+  }
+  if (color === 'black') editorCapturedBlack = next; else editorCapturedWhite = next;
+  const el = document.getElementById('editor-captured-' + color);
+  if (el) el.textContent = String(next);
 }
 
 function drawEditorBoard() {
@@ -27380,10 +27432,12 @@ function updateEditorStatus() {
   const el = document.getElementById('editor-status');
   if (el) {
     let warn = '';
-    if (blacks > 14 || whites > 14) warn = ' ⚠️ Maximum 14 billes par couleur';
+    if (blacks + editorCapturedBlack > 14 || whites + editorCapturedWhite > 14) warn = ' ⚠️ Maximum 14 billes par couleur (plateau + éjectées)';
     const bStops = (typeof boardTheme !== 'undefined' && boardTheme.blackStops || MARBLE_SKINS.kintsugi.b).join(', ');
     const wStops = (typeof boardTheme !== 'undefined' && boardTheme.whiteStops || MARBLE_SKINS.kintsugi.w).join(', ');
-    el.innerHTML = _marbleSwatch(bStops) + blacks + ' Joueur 1 · ' + _marbleSwatch(wStops) + whites + ' Joueur 2' + warn;
+    const ejB = editorCapturedBlack ? ' (+' + editorCapturedBlack + ' éjectées)' : '';
+    const ejW = editorCapturedWhite ? ' (+' + editorCapturedWhite + ' éjectées)' : '';
+    el.innerHTML = _marbleSwatch(bStops) + blacks + ' Joueur 1' + ejB + ' · ' + _marbleSwatch(wStops) + whites + ' Joueur 2' + ejW + warn;
   }
 }
 
@@ -27396,13 +27450,13 @@ function handleEditorClick(r, c) {
     if (editorBoard[key] === editorTool) {
       delete editorBoard[key];
     } else {
-      // sinon on ajoute une bille : refuse au-delà de 14 par couleur (limite réelle du
-      // jeu physique) plutôt que de laisser faire et se plaindre seulement au moment
-      // de jouer la position (playFromEditor) — bug signalé par Olivier, confirmé par
-      // lecture de code : rien ici n'empêchait auparavant de dépasser 14.
+      // sinon on ajoute une bille : refuse au-delà de 14 par couleur EN COMPTANT les
+      // billes déjà déclarées éjectées (editorCapturedBlack/White) -- limite réelle
+      // du jeu physique (14 billes au total, sur le plateau ou éjectées).
       const count = Object.values(editorBoard).filter(function(v){ return v === editorTool; }).length;
-      if (count >= 14) {
-        showToast('⚠️ Maximum 14 billes ' + (editorTool === 'black' ? 'noires' : 'blanches'));
+      const captured = (editorTool === 'black') ? editorCapturedBlack : editorCapturedWhite;
+      if (count + captured >= 14) {
+        showToast('⚠️ Maximum 14 billes ' + (editorTool === 'black' ? 'noires' : 'blanches') + ' (plateau + éjectées)');
         return;
       }
       editorBoard[key] = editorTool;
@@ -27429,7 +27483,7 @@ function playFromEditor() {
   showPage('game');
   setTimeout(function() {
     board = JSON.parse(JSON.stringify(editorBoard));
-    capturedByWhite = 0; capturedByBlack = 0;
+    capturedByWhite = editorCapturedWhite; capturedByBlack = editorCapturedBlack;
     currentTurn = 'black'; moveCount = 0; gameOver = false;
     selected = [];
     if (typeof updateCaptures === 'function') updateCaptures();
