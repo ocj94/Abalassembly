@@ -2469,6 +2469,9 @@ document.addEventListener('keydown', function(e){
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-stats" onclick="sidebarNav('stats',this)">
       <span class="s-icon">📊</span><span class="s-label" data-i18n="nav.stats">Statistiques</span>
     </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-gym" onclick="sidebarNav('gym',this)">
+      <span class="s-icon">🧠</span><span class="s-label">Gym Cerveau</span>
+    </button>
 
     <div class="sidebar-group-label">🧪 Explorer</div>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-lab" onclick="openLabFromMenu(this)">
@@ -6199,6 +6202,26 @@ document.addEventListener('keydown', function(e){
         <div style="font-size:11px;color:var(--muted);margin-top:3px">non suivi</div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGE: GYM CERVEAU
+══════════════════════════════════════════ -->
+<div class="page" id="page-gym">
+  <div class="page-header" style="padding-bottom:32px">
+    <div class="section-label">Apprentissage</div>
+    <h2>🧠 Gym Cerveau</h2>
+    <p style="color:var(--muted);font-size:14px;max-width:640px;margin-top:8px">
+      Abalone sollicite plusieurs capacités à la fois : mémoire, repérage visuel, anticipation, contrôle de l'impulsion, changement de plan. Chaque exercice ci-dessous isole l'une d'elles avec une petite tâche mesurable, basée sur de vraies positions et sur le moteur du site.
+    </p>
+    <div style="padding:12px 16px;background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.2);border-radius:8px;font-size:12px;color:var(--muted);margin-top:14px;max-width:640px">
+      🔒 Ce sont des exercices de jeu, pas un outil médical : ils ne diagnostiquent ni ne traitent rien. Les scores mesurent la performance à l'exercice précis, pas une capacité générale.
+    </div>
+  </div>
+
+  <div style="padding:0 60px 80px">
+    <div id="gym-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;max-width:1000px"></div>
   </div>
 </div>
 
@@ -25368,6 +25391,7 @@ function showPage(name) {
     trombi:     function(){ renderTrombi(); },
     settings:   function(){ renderProfile(); if(typeof syncRadarToggle==='function') syncRadarToggle(); if(typeof syncDisplayToggles==='function') syncDisplayToggles(); if(typeof syncViewAVFXToggles==='function') syncViewAVFXToggles(); },
     stats:      function(){ renderStats(); },
+    gym:        function(){ if (typeof renderGymCerveau === 'function') renderGymCerveau(); },
     compare:    function(){ renderCompare(); },
     friends:    function(){ renderFriends(); },
     editor:     function(){ if(Object.keys(editorBoard).length===0) loadEditorPreset('standard'); else drawEditorBoard(); setEditorTool('black'); },
@@ -25530,6 +25554,50 @@ function showCompareResult(name, profile) {
       '</div>',
       '</div>'
     ].join('');
+  }).join('');
+}
+
+const GYM_ZONES = [
+  { id: 'memory',      icon: '🧠', name: 'Mémoire',      zone: 'Hippocampe',      desc: 'Mémoriser une position brève puis la reconstituer.' },
+  { id: 'acuity',      icon: '👁️', name: 'Acuité',       zone: 'Cortex visuel',   desc: 'Repérer rapidement une bille ou une menace précise.' },
+  { id: 'reflex',      icon: '⚡', name: 'Réflexe',      zone: 'Vitesse de traitement', desc: 'Réagir à une menace sous contrainte de temps.' },
+  { id: 'anticipation',icon: '🔮', name: 'Anticipation', zone: 'Préfrontal',      desc: 'Prévoir une position après plusieurs coups.' },
+  { id: 'inhibition',  icon: '🛑', name: 'Inhibition',   zone: 'Contrôle',        desc: 'Résister au coup évident quand il est mauvais.' },
+  { id: 'flexibility', icon: '🧩', name: 'Flexibilité',  zone: 'Shift cognitif',  desc: 'Changer de plan ou de camp à la demande.' },
+  { id: 'spatial',     icon: '🌀', name: 'Spatial',      zone: 'Parietal',        desc: 'Se reperer dans les relations entre billes sur le plateau.' }
+];
+
+function _loadGymProgress(){
+  try { return JSON.parse(localStorage.getItem('abaGymCerveau') || '{}'); }
+  catch(e){ return {}; }
+}
+function _saveGymProgress(data){
+  try { localStorage.setItem('abaGymCerveau', JSON.stringify(data)); } catch(e){}
+}
+
+function renderGymCerveau(){
+  const grid = document.getElementById('gym-grid');
+  if (!grid) return;
+  const progress = _loadGymProgress();
+  grid.innerHTML = GYM_ZONES.map(function(z){
+    const stat = progress[z.id];
+    const scoreLabel = stat && typeof stat.best === 'number' ? stat.best + ' / 100' : '—';
+    const sessionsLabel = stat && stat.sessions ? stat.sessions + ' seance' + (stat.sessions>1?'s':'') : 'Aucune seance';
+    const html = [];
+    html.push('<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:8px">');
+    html.push('<div style="display:flex;align-items:center;gap:10px">');
+    html.push('<span style="font-size:22px">' + z.icon + '</span>');
+    html.push('<div><div style="font-weight:700;color:var(--white);font-size:14px">' + z.name + '</div>');
+    html.push('<div style="font-size:11px;color:var(--muted)">' + z.zone + '</div></div>');
+    html.push('</div>');
+    html.push('<div style="font-size:12px;color:var(--muted);flex:1">' + z.desc + '</div>');
+    html.push('<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">');
+    html.push('<div><div style="font-size:15px;font-weight:700;color:var(--gold)">' + scoreLabel + '</div>');
+    html.push('<div style="font-size:10px;color:var(--muted)">' + sessionsLabel + '</div></div>');
+    html.push('<span style="font-size:10px;padding:3px 9px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:4px;font-weight:700;letter-spacing:0.5px">BIENTOT</span>');
+    html.push('</div>');
+    html.push('</div>');
+    return html.join('');
   }).join('');
 }
 
