@@ -6220,10 +6220,20 @@ document.addEventListener('keydown', function(e){
     </div>
   </div>
 
-  <div style="padding:0 60px 80px">
-    <div id="gym-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;max-width:1000px"></div>
+  <div style="padding:0 60px 80px;display:grid;grid-template-columns:1fr 360px;gap:24px;max-width:1200px">
+    <div id="gym-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;align-content:start"></div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;position:sticky;top:80px;align-self:start">
+      <div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Exercice en cours</div>
+      <div id="gym-exercise-board" style="min-height:180px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px">Choisis une zone à gauche pour commencer.</div>
+      <div id="gym-exercise-hint" style="font-size:12px;color:var(--muted);margin-top:12px;min-height:16px"></div>
+      <button id="gym-exercise-submit" class="btn" style="display:none;margin-top:12px;width:100%">Valider</button>
+      <div id="gym-exercise-result" style="font-size:13px;color:var(--gold);font-weight:700;margin-top:12px;min-height:18px"></div>
+    </div>
   </div>
 </div>
+
+
 
 <!-- ══════════════════════════════════════════
      PAGE: COMPARER
@@ -25575,6 +25585,339 @@ function _saveGymProgress(data){
   try { localStorage.setItem('abaGymCerveau', JSON.stringify(data)); } catch(e){}
 }
 
+/* ═══════════════════════════════════════════
+   GYM CERVEAU — moteur d'exercices (radius-2, 19 cases)
+   Toutes les positions sont générées aléatoirement à l'exécution et
+   vérifiées par du vrai calcul géométrique hexagonal (voisins, rotation
+   60°, détection de menace par ligne) -- rien n'est pré-écrit ni simulé.
+═══════════════════════════════════════════ */
+
+const GYM_DIRS = [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
+
+function gymCells(){
+  const cells = [];
+  for (let q=-2; q<=2; q++){
+    const rMin = Math.max(-2, -q-2), rMax = Math.min(2, -q+2);
+    for (let r=rMin; r<=rMax; r++) cells.push([q,r]);
+  }
+  return cells; // 19 cells
+}
+function gymKey(q,r){ return q+','+r; }
+function gymInBounds(q,r){
+  return q>=-2 && q<=2 && r>=Math.max(-2,-q-2) && r<=Math.min(2,-q+2);
+}
+function gymNeighbors(q,r){
+  return GYM_DIRS.map(function(d){ return [q+d[0], r+d[1]]; }).filter(function(c){ return gymInBounds(c[0],c[1]); });
+}
+function gymRotate60cw(q,r){
+  const x=q, z=r, y=-q-r;
+  const rx=-y, ry=-z, rz=-x;
+  return [rx, rz];
+}
+function gymRandCell(exclude){
+  const cells = gymCells().filter(function(c){ return !exclude || !exclude.has(gymKey(c[0],c[1])); });
+  return cells[Math.floor(Math.random()*cells.length)];
+}
+
+/* Rendu du mini-plateau. board = Map('q,r' -> 'black'|'white') */
+function gymRenderBoard(containerId, board, onCellClick, highlightSet){
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const cells = gymCells();
+  const rows = {};
+  cells.forEach(function(c){ (rows[c[1]] = rows[c[1]] || []).push(c); });
+  const rKeys = Object.keys(rows).map(Number).sort(function(a,b){return a-b;});
+  let html = '<div style="display:flex;flex-direction:column;align-items:center;gap:4px">';
+  rKeys.forEach(function(r){
+    const rowCells = rows[r].sort(function(a,b){ return a[0]-b[0]; });
+    html += '<div style="display:flex;gap:4px;margin-left:'+(Math.abs(r)*18)+'px">';
+    rowCells.forEach(function(c){
+      const k = gymKey(c[0],c[1]);
+      const piece = board.get(k);
+      const hl = highlightSet && highlightSet.has(k);
+      const bg = piece==='black' ? '#1a1a1a' : piece==='white' ? '#e8e0d0' : 'var(--surface2)';
+      const border = hl ? '2px solid var(--gold)' : '1px solid var(--border)';
+      html += '<div class="gym-cell" data-k="'+k+'" style="width:32px;height:32px;border-radius:50%;background:'+bg+';border:'+border+';cursor:pointer"></div>';
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
+  if (onCellClick){
+    el.querySelectorAll('.gym-cell').forEach(function(cellEl){
+      cellEl.addEventListener('click', function(){ onCellClick(cellEl.getAttribute('data-k')); });
+    });
+  }
+}
+
+function gymFinish(exerciseId, scorePct, meta){
+  const progress = _loadGymProgress();
+  const prev = progress[exerciseId] || { best: 0, sessions: 0 };
+  progress[exerciseId] = {
+    best: Math.max(prev.best || 0, Math.round(scorePct)),
+    sessions: (prev.sessions || 0) + 1,
+    last: Math.round(scorePct)
+  };
+  _saveGymProgress(progress);
+  renderGymCerveau();
+  const resultEl = document.getElementById('gym-exercise-result');
+  if (resultEl){
+    resultEl.textContent = 'Score : ' + Math.round(scorePct) + ' / 100' + (meta ? ' — ' + meta : '');
+  }
+}
+
+/* ─── 1. MÉMOIRE — flash 5 billes 3s, puis reproduire ─── */
+function gymStartMemory(){
+  const board = new Map();
+  const used = new Set();
+  const n = 5;
+  for (let i=0;i<n;i++){
+    const c = gymRandCell(used);
+    used.add(gymKey(c[0],c[1]));
+    board.set(gymKey(c[0],c[1]), Math.random()<0.5 ? 'black' : 'white');
+  }
+  gymRenderBoard('gym-exercise-board', board, null, null);
+  setTimeout(function(){
+    const empty = new Map();
+    let picked = new Set();
+    function onPick(k){
+      if (picked.has(k)) picked.delete(k); else picked.add(k);
+      gymRenderBoard('gym-exercise-board', empty, onPick, new Set(picked));
+    }
+    gymRenderBoard('gym-exercise-board', empty, onPick, null);
+    const submitBtn = document.getElementById('gym-exercise-submit');
+    if (submitBtn){
+      submitBtn.style.display = 'inline-block';
+      submitBtn.onclick = function(){
+        let correct = 0;
+        used.forEach(function(k){ if (picked.has(k)) correct++; });
+        let wrong = 0;
+        picked.forEach(function(k){ if (!used.has(k)) wrong++; });
+        const score = Math.max(0, (correct - wrong) / n * 100);
+        gymFinish('memory', score, correct+'/'+n+' correctes');
+        submitBtn.style.display = 'none';
+      };
+    }
+  }, 3000);
+}
+
+/* ─── 2. ACUITÉ — trouver la bille isolée (aucun voisin de sa couleur) ─── */
+function gymStartAcuity(){
+  const board = new Map();
+  const used = new Set();
+  // place un groupe de 4-5 billes connectées + 1 bille isolée garantie
+  let start = gymRandCell();
+  used.add(gymKey(start[0],start[1]));
+  board.set(gymKey(start[0],start[1]), 'black');
+  let frontier = [start];
+  while (used.size < 6 && frontier.length){
+    const from = frontier[Math.floor(Math.random()*frontier.length)];
+    const neigh = gymNeighbors(from[0],from[1]).filter(function(c){ return !used.has(gymKey(c[0],c[1])); });
+    if (!neigh.length){ frontier = frontier.filter(function(f){return f!==from;}); continue; }
+    const c = neigh[Math.floor(Math.random()*neigh.length)];
+    used.add(gymKey(c[0],c[1]));
+    board.set(gymKey(c[0],c[1]), 'black');
+    frontier.push(c);
+  }
+  // bille isolée : une case vide dont aucun voisin n'est occupé
+  const candidates = gymCells().filter(function(c){
+    const k = gymKey(c[0],c[1]);
+    if (used.has(k)) return false;
+    return gymNeighbors(c[0],c[1]).every(function(n){ return !used.has(gymKey(n[0],n[1])); });
+  });
+  if (!candidates.length){ gymFinish('acuity', 0, 'position invalide, réessaie'); return; }
+  const isolated = candidates[Math.floor(Math.random()*candidates.length)];
+  board.set(gymKey(isolated[0],isolated[1]), 'white');
+  const isoKey = gymKey(isolated[0],isolated[1]);
+
+  let answered = false;
+  const deadline = Date.now() + 5000;
+  gymRenderBoard('gym-exercise-board', board, function(k){
+    if (answered) return; answered = true;
+    const score = k === isoKey ? 100 : 0;
+    gymFinish('acuity', score, k===isoKey ? 'trouvée !' : 'ce n\'était pas celle-ci');
+  }, null);
+  setTimeout(function(){ if (!answered){ answered = true; gymFinish('acuity', 0, 'temps écoulé'); } }, 5000);
+}
+
+/* ─── 3. RÉFLEXE — repérer la bille menacée (2 ennemis alignés derrière) sous 3s ─── */
+function gymStartReflex(){
+  const board = new Map();
+  const dir = GYM_DIRS[Math.floor(Math.random()*6)];
+  // cherche une case bord dont on peut aligner 2 cases "derrière" dans le plateau
+  const edgeCandidates = gymCells().filter(function(c){
+    const back1 = [c[0]-dir[0], c[1]-dir[1]];
+    const back2 = [c[0]-dir[0]*2, c[1]-dir[1]*2];
+    return gymInBounds(back1[0],back1[1]) && gymInBounds(back2[0],back2[1]);
+  });
+  if (!edgeCandidates.length){ gymFinish('reflex', 0, 'position invalide, réessaie'); return; }
+  const target = edgeCandidates[Math.floor(Math.random()*edgeCandidates.length)];
+  const back1 = [target[0]-dir[0], target[1]-dir[1]];
+  const back2 = [target[0]-dir[0]*2, target[1]-dir[1]*2];
+  board.set(gymKey(target[0],target[1]), 'white');
+  board.set(gymKey(back1[0],back1[1]), 'black');
+  board.set(gymKey(back2[0],back2[1]), 'black');
+  // quelques billes de décor sans créer d'autre menace
+  const used = new Set([gymKey(target[0],target[1]), gymKey(back1[0],back1[1]), gymKey(back2[0],back2[1])]);
+  for (let i=0;i<3;i++){
+    const c = gymRandCell(used);
+    used.add(gymKey(c[0],c[1]));
+    board.set(gymKey(c[0],c[1]), Math.random()<0.5?'black':'white');
+  }
+  const targetKey = gymKey(target[0],target[1]);
+  let answered = false;
+  gymRenderBoard('gym-exercise-board', board, function(k){
+    if (answered) return; answered = true;
+    const score = k === targetKey ? 100 : 0;
+    gymFinish('reflex', score, k===targetKey ? 'menace repérée !' : 'raté');
+  }, null);
+  setTimeout(function(){ if (!answered){ answered = true; gymFinish('reflex', 0, 'temps écoulé (3s)'); } }, 3000);
+}
+
+/* ─── 4. ANTICIPATION — mémoriser une direction de déplacement, puis prévoir la case d'arrivée ─── */
+function gymStartAnticipation(){
+  const board = new Map();
+  const used = new Set();
+  for (let i=0;i<4;i++){
+    const c = gymRandCell(used);
+    used.add(gymKey(c[0],c[1]));
+    board.set(gymKey(c[0],c[1]), i===0?'black':(i%2===0?'black':'white'));
+  }
+  const keys = Array.from(used);
+  const moved = keys[0];
+  const [q1,r1] = moved.split(',').map(Number);
+  const emptyNeigh = gymNeighbors(q1,r1).filter(function(c){ return !board.has(gymKey(c[0],c[1])); });
+  if (!emptyNeigh.length){ gymFinish('anticipation', 0, 'position invalide, réessaie'); return; }
+  const dest = emptyNeigh[Math.floor(Math.random()*emptyNeigh.length)];
+  const destKey = gymKey(dest[0],dest[1]);
+  const movedKey = moved;
+
+  const hintEl = document.getElementById('gym-exercise-hint');
+  // Étape 1 : montrer la direction du déplacement pendant 2s (case de départ + case d'arrivée surlignées)
+  if (hintEl) hintEl.textContent = 'Regarde bien : cette bille va se déplacer vers la case surlignée à côté.';
+  gymRenderBoard('gym-exercise-board', board, null, new Set([movedKey, destKey]));
+  setTimeout(function(){
+    // Étape 2 : la bille disparaît de la case surlignée d'arrivée, il faut cliquer où elle finit
+    if (hintEl) hintEl.textContent = 'Clique la case où la bille est arrivée.';
+    gymRenderBoard('gym-exercise-board', board, function(k){
+      const score = k === destKey ? 100 : 0;
+      gymFinish('anticipation', score, k===destKey ? 'bien anticipé !' : 'ce n\'était pas la bonne case');
+    }, new Set([movedKey]));
+  }, 2000);
+}
+
+/* ─── 5. INHIBITION — reconnaître un coup qui expose une bille ─── */
+function gymStartInhibition(){
+  const board = new Map();
+  // une bille noire isolée à un pas d'un groupe de 2 blanches (mouvement "évident" mais qui l'exposerait)
+  const start = gymRandCell();
+  board.set(gymKey(start[0],start[1]), 'black');
+  const neigh = gymNeighbors(start[0],start[1]);
+  if (neigh.length < 2){ gymFinish('inhibition', 0, 'position invalide, réessaie'); return; }
+  const badDest = neigh[0];
+  const w1 = gymNeighbors(badDest[0],badDest[1]).find(function(c){ return c[0]!==start[0]||c[1]!==start[1]; });
+  if (!w1){ gymFinish('inhibition', 0, 'position invalide, réessaie'); return; }
+  board.set(gymKey(w1[0],w1[1]), 'white');
+  const w2 = gymNeighbors(w1[0],w1[1]).find(function(c){
+    const k = gymKey(c[0],c[1]);
+    return k!==gymKey(badDest[0],badDest[1]) && k!==gymKey(start[0],start[1]) && !board.has(k);
+  });
+  if (w2) board.set(gymKey(w2[0],w2[1]), 'white');
+  const goodDest = neigh.find(function(c){ return gymKey(c[0],c[1])!==gymKey(badDest[0],badDest[1]) && !board.has(gymKey(c[0],c[1])); });
+
+  const badKey = gymKey(badDest[0],badDest[1]);
+  const goodKey = goodDest ? gymKey(goodDest[0],goodDest[1]) : null;
+  const options = [badKey].concat(goodKey?[goodKey]:[]);
+  const hl = new Set(options);
+  gymRenderBoard('gym-exercise-board', board, function(k){
+    if (k !== badKey && k !== goodKey) return;
+    const chose_bad = k === badKey;
+    gymFinish('inhibition', chose_bad ? 0 : 100, chose_bad ? 'piège ! cette case t\'expose' : 'bon réflexe, coup sûr');
+  }, hl);
+  const hintEl = document.getElementById('gym-exercise-hint');
+  if (hintEl) hintEl.textContent = 'Deux cases surlignées sont possibles pour la bille noire. Une seule est sûre.';
+}
+
+/* ─── 6. FLEXIBILITÉ — cible change de couleur en cours d'exercice ─── */
+function gymStartFlexibility(){
+  const board = new Map();
+  const used = new Set();
+  for (let i=0;i<10;i++){
+    const c = gymRandCell(used);
+    used.add(gymKey(c[0],c[1]));
+    board.set(gymKey(c[0],c[1]), i<5?'black':'white');
+  }
+  let targetColor = 'black';
+  let found = new Set();
+  const totalBlack = 5, totalWhite = 5;
+  let switched = false;
+  const startTime = Date.now();
+  let switchTime = null;
+  const hintEl = document.getElementById('gym-exercise-hint');
+  function updateHint(){ if (hintEl) hintEl.textContent = 'Clique toutes les billes ' + (targetColor==='black'?'NOIRES':'BLANCHES') + '.'; }
+  updateHint();
+  gymRenderBoard('gym-exercise-board', board, function(k){
+    if (board.get(k) !== targetColor || found.has(k)) return;
+    found.add(k);
+    const need = targetColor==='black'?totalBlack:totalWhite;
+    if (found.size >= need){
+      if (!switched){
+        switched = true; switchTime = Date.now();
+        targetColor = 'white';
+        found = new Set();
+        updateHint();
+      } else {
+        const adaptMs = Date.now() - switchTime;
+        const score = Math.max(0, 100 - adaptMs/50);
+        gymFinish('flexibility', score, 'bascule en ' + adaptMs + ' ms');
+      }
+    }
+  }, null);
+}
+
+/* ─── 7. SPATIAL — rotation mentale 60° horaire ─── */
+function gymStartSpatial(){
+  const center = [0,0];
+  const armDirIdx = Math.floor(Math.random()*6);
+  const arm = GYM_DIRS[armDirIdx];
+  const p1 = center;
+  const p2 = [center[0]+arm[0], center[1]+arm[1]];
+  const board = new Map();
+  board.set(gymKey(p1[0],p1[1]), 'black');
+  board.set(gymKey(p2[0],p2[1]), 'black');
+  const rot2 = gymRotate60cw(p2[0]-p1[0], p2[1]-p1[1]);
+  const answer = [p1[0]+rot2[0], p1[1]+rot2[1]];
+  const answerKey = gymKey(answer[0],answer[1]);
+  const hintEl = document.getElementById('gym-exercise-hint');
+  if (hintEl) hintEl.textContent = 'Si on tourne ces 2 billes de 60° dans le sens horaire autour de celle du centre, où finit la 2e bille ?';
+  gymRenderBoard('gym-exercise-board', board, function(k){
+    const score = k === answerKey ? 100 : 0;
+    gymFinish('spatial', score, k===answerKey ? 'bonne rotation !' : 'pas la bonne case');
+  }, new Set([gymKey(p1[0],p1[1])]));
+}
+
+const GYM_STARTERS = {
+  memory: gymStartMemory,
+  acuity: gymStartAcuity,
+  reflex: gymStartReflex,
+  anticipation: gymStartAnticipation,
+  inhibition: gymStartInhibition,
+  flexibility: gymStartFlexibility,
+  spatial: gymStartSpatial
+};
+
+function startGymExercise(id){
+  const fn = GYM_STARTERS[id];
+  if (!fn) return;
+  const resultEl = document.getElementById('gym-exercise-result');
+  if (resultEl) resultEl.textContent = '';
+  const hintEl = document.getElementById('gym-exercise-hint');
+  if (hintEl) hintEl.textContent = '';
+  const submitBtn = document.getElementById('gym-exercise-submit');
+  if (submitBtn) submitBtn.style.display = 'none';
+  fn();
+}
+
 function renderGymCerveau(){
   const grid = document.getElementById('gym-grid');
   if (!grid) return;
@@ -25594,7 +25937,7 @@ function renderGymCerveau(){
     html.push('<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">');
     html.push('<div><div style="font-size:15px;font-weight:700;color:var(--gold)">' + scoreLabel + '</div>');
     html.push('<div style="font-size:10px;color:var(--muted)">' + sessionsLabel + '</div></div>');
-    html.push('<span style="font-size:10px;padding:3px 9px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:4px;font-weight:700;letter-spacing:0.5px">BIENTOT</span>');
+    html.push('<button type="button" onclick="startGymExercise(\'' + z.id + '\')" style="font-size:11px;padding:6px 12px;background:var(--gold);color:var(--bg);border:none;border-radius:6px;font-weight:700;cursor:pointer">Commencer</button>');
     html.push('</div>');
     html.push('</div>');
     return html.join('');
