@@ -2035,6 +2035,11 @@ body.a11y-oneaction .ctrl-btn:not(.primary):not(:hover):not(:focus) { opacity: 0
 .bnav-play:hover { transform: scale(1.08); }
 
 @media (max-width: 900px) {
+  .gym-layout { grid-template-columns: 1fr !important; padding: 0 16px 60px !important; }
+  .gym-panel { position: static !important; }
+}
+
+@media (max-width: 900px) {
   .bottom-nav { display: grid; }
   body { padding-bottom: 72px; }
   nav { height: 56px; }
@@ -6220,18 +6225,24 @@ document.addEventListener('keydown', function(e){
     </div>
   </div>
 
-  <div style="padding:0 60px 80px;display:grid;grid-template-columns:1fr 360px;gap:24px;max-width:1200px">
+  <div class="gym-layout" style="padding:0 60px 80px;display:grid;grid-template-columns:1fr 360px;gap:24px;max-width:1200px">
     <div id="gym-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;align-content:start"></div>
 
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;position:sticky;top:80px;align-self:start">
-      <div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Exercice en cours</div>
-      <div id="gym-exercise-board" style="min-height:180px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px">Choisis une zone à gauche pour commencer.</div>
+    <div class="gym-panel" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;position:sticky;top:80px;align-self:start">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px">Exercice en cours</div>
+        <div id="gym-exercise-timer" style="font-size:13px;font-weight:700;color:var(--gold);display:none">⏱ 0s</div>
+      </div>
+      <div id="gym-exercise-board" style="min-height:180px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px">Choisis une zone ci-dessus pour commencer.</div>
       <div id="gym-exercise-hint" style="font-size:12px;color:var(--muted);margin-top:12px;min-height:16px"></div>
       <button id="gym-exercise-submit" class="btn" style="display:none;margin-top:12px;width:100%">Valider</button>
       <div id="gym-exercise-result" style="font-size:13px;color:var(--gold);font-weight:700;margin-top:12px;min-height:18px"></div>
+      <button id="gym-exercise-replay" class="btn" style="display:none;margin-top:8px;width:100%">🔄 Rejouer</button>
     </div>
   </div>
 </div>
+
+
 
 
 
@@ -25650,7 +25661,31 @@ function gymRenderBoard(containerId, board, onCellClick, highlightSet){
   }
 }
 
+let _gymCountdownInterval = null;
+let _gymLastExerciseId = null;
+
+function gymStopCountdown(){
+  if (_gymCountdownInterval){ clearInterval(_gymCountdownInterval); _gymCountdownInterval = null; }
+  const timerEl = document.getElementById('gym-exercise-timer');
+  if (timerEl) timerEl.style.display = 'none';
+}
+function gymStartCountdown(totalMs){
+  gymStopCountdown();
+  const timerEl = document.getElementById('gym-exercise-timer');
+  if (!timerEl) return;
+  timerEl.style.display = 'block';
+  const deadline = Date.now() + totalMs;
+  function tick(){
+    const remaining = Math.max(0, deadline - Date.now());
+    timerEl.textContent = '⏱ ' + (remaining/1000).toFixed(1) + 's';
+    if (remaining <= 0) gymStopCountdown();
+  }
+  tick();
+  _gymCountdownInterval = setInterval(tick, 100);
+}
+
 function gymFinish(exerciseId, scorePct, meta){
+  gymStopCountdown();
   const progress = _loadGymProgress();
   const prev = progress[exerciseId] || { best: 0, sessions: 0 };
   progress[exerciseId] = {
@@ -25663,6 +25698,11 @@ function gymFinish(exerciseId, scorePct, meta){
   const resultEl = document.getElementById('gym-exercise-result');
   if (resultEl){
     resultEl.textContent = 'Score : ' + Math.round(scorePct) + ' / 100' + (meta ? ' — ' + meta : '');
+  }
+  const replayBtn = document.getElementById('gym-exercise-replay');
+  if (replayBtn){
+    replayBtn.style.display = 'block';
+    replayBtn.onclick = function(){ startGymExercise(exerciseId); };
   }
 }
 
@@ -25737,6 +25777,7 @@ function gymStartAcuity(){
     const score = k === isoKey ? 100 : 0;
     gymFinish('acuity', score, k===isoKey ? 'trouvée !' : 'ce n\'était pas celle-ci');
   }, null);
+  gymStartCountdown(5000);
   setTimeout(function(){ if (!answered){ answered = true; gymFinish('acuity', 0, 'temps écoulé'); } }, 5000);
 }
 
@@ -25771,6 +25812,7 @@ function gymStartReflex(){
     const score = k === targetKey ? 100 : 0;
     gymFinish('reflex', score, k===targetKey ? 'menace repérée !' : 'raté');
   }, null);
+  gymStartCountdown(3000);
   setTimeout(function(){ if (!answered){ answered = true; gymFinish('reflex', 0, 'temps écoulé (3s)'); } }, 3000);
 }
 
@@ -25796,8 +25838,10 @@ function gymStartAnticipation(){
   // Étape 1 : montrer la direction du déplacement pendant 2s (case de départ + case d'arrivée surlignées)
   if (hintEl) hintEl.textContent = 'Regarde bien : cette bille va se déplacer vers la case surlignée à côté.';
   gymRenderBoard('gym-exercise-board', board, null, new Set([movedKey, destKey]));
+  gymStartCountdown(2000);
   setTimeout(function(){
     // Étape 2 : la bille disparaît de la case surlignée d'arrivée, il faut cliquer où elle finit
+    gymStopCountdown();
     if (hintEl) hintEl.textContent = 'Clique la case où la bille est arrivée.';
     gymRenderBoard('gym-exercise-board', board, function(k){
       const score = k === destKey ? 100 : 0;
@@ -25909,12 +25953,16 @@ const GYM_STARTERS = {
 function startGymExercise(id){
   const fn = GYM_STARTERS[id];
   if (!fn) return;
+  _gymLastExerciseId = id;
+  gymStopCountdown();
   const resultEl = document.getElementById('gym-exercise-result');
   if (resultEl) resultEl.textContent = '';
   const hintEl = document.getElementById('gym-exercise-hint');
   if (hintEl) hintEl.textContent = '';
   const submitBtn = document.getElementById('gym-exercise-submit');
   if (submitBtn) submitBtn.style.display = 'none';
+  const replayBtn = document.getElementById('gym-exercise-replay');
+  if (replayBtn) replayBtn.style.display = 'none';
   fn();
 }
 
