@@ -6294,6 +6294,7 @@ document.addEventListener('keydown', function(e){
     <div id="gym-brain-note" style="display:none;font-size:11px;color:var(--muted);margin-top:8px;max-width:640px">
       🧠 Les schémas de cerveau sont illustratifs et simplifiés — pas une image médicale précise, juste un repère visuel de la zone généralement associée à chaque capacité.
     </div>
+    <div id="gym-weakness-banner" style="display:none;padding:12px 16px;background:rgba(90,180,140,0.08);border:1px solid rgba(90,180,140,0.25);border-radius:8px;font-size:12px;color:var(--text);margin-top:10px;max-width:640px"></div>
   </div>
 
   <div class="gym-layout" style="padding:0 60px 80px;display:grid;grid-template-columns:1fr 360px;gap:24px;max-width:1200px">
@@ -18111,7 +18112,72 @@ function analyzeGame(){
   postJob(0);
 }
 
+/* ═══════════════════════════════════════════
+   PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies données
+   d'analyse après-partie (perte réelle par coup, best - played), jamais
+   inventé. Persiste entre parties (contrairement à l'analyse elle-même,
+   éphémère). Nécessite un minimum d'échantillons par zone avant de
+   conclure quoi que ce soit -- pas de recommandation sur un tirage trop
+   petit pour être significatif.
+═══════════════════════════════════════════ */
+const GYM_ZONE_MIN_SAMPLES = 8;
+const GYM_ZONE_MIN_GAP = 50; // écart minimal (points d'éval) pour juger la difference significative
+const GYM_ZONE_EXERCISE_MAP = {
+  bord: { id: 'reflex', label: 'Réflexe', why: 'repérer les billes en bordure menacées par un sumito' },
+  intermediaire: { id: 'acuity', label: 'Acuité', why: 'repérer rapidement les menaces sur le plateau' },
+  coeur: { id: 'flexibility', label: 'Flexibilité', why: 'garder le contrôle du centre en changeant de plan' }
+};
+
+function _moveZone(cells){
+  if (!cells || !cells.length) return null;
+  let sum = 0;
+  for (let i = 0; i < cells.length; i++){
+    const ax = rcToAxial(cells[i].r, cells[i].c);
+    sum += axHexDist(ax, EVAL_CENTER);
+  }
+  return _zoneDistance(sum / cells.length);
+}
+
+/* Appelé après chaque "Analyser cette partie" -- accumule la perte réelle
+   par zone, pour LE CAMP DU JOUEUR HUMAIN uniquement (pas les coups de
+   l'IA qu'on analyserait par ailleurs). */
+function updateWeaknessProfile(results){
+  if (typeof monCamp !== 'function') return;
+  const human = monCamp();
+  let profile;
+  try { profile = JSON.parse(localStorage.getItem('abaWeaknessProfile') || '{}'); } catch(e){ profile = {}; }
+  ['coeur','intermediaire','bord'].forEach(function(z){ if (!profile[z]) profile[z] = { lossSum: 0, count: 0 }; });
+  results.forEach(function(r){
+    if (!r.job || r.job.color !== human) return;
+    if (r.played == null || r.best == null) return;
+    const zone = _moveZone(r.job.played.cells);
+    if (!zone || !profile[zone]) return;
+    profile[zone].lossSum += Math.max(0, r.best - r.played);
+    profile[zone].count++;
+  });
+  try { localStorage.setItem('abaWeaknessProfile', JSON.stringify(profile)); } catch(e){}
+}
+
+/* Retourne la zone la plus faible SI l'écart est réellement significatif
+   (assez d'échantillons + écart minimal), sinon null -- honnête plutôt
+   que de forcer une conclusion sur du bruit. */
+function getWeaknessSummary(){
+  let profile;
+  try { profile = JSON.parse(localStorage.getItem('abaWeaknessProfile') || '{}'); } catch(e){ return null; }
+  const stats = ['coeur','intermediaire','bord'].map(function(z){
+    const d = profile[z];
+    if (!d || d.count < GYM_ZONE_MIN_SAMPLES) return null;
+    return { zone: z, avgLoss: d.lossSum / d.count, count: d.count };
+  }).filter(Boolean);
+  if (stats.length < 2) return null;
+  stats.sort(function(a,b){ return b.avgLoss - a.avgLoss; });
+  const worst = stats[0], best = stats[stats.length-1];
+  if (worst.avgLoss - best.avgLoss < GYM_ZONE_MIN_GAP) return null;
+  return worst;
+}
+
 function renderGameReport(results){
+  if (typeof updateWeaknessProfile === 'function') updateWeaknessProfile(results);
   const side={ black:{n:0,loss:0,best:0,inacc:0,err:0,blun:0}, white:{n:0,loss:0,best:0,inacc:0,err:0,blun:0} };
   const rows=[];
   results.forEach(function(r){
@@ -26457,6 +26523,18 @@ function renderGymCerveau(){
   }).join('');
   const note = document.getElementById('gym-brain-note');
   if (note) note.style.display = 'block';
+  const banner = document.getElementById('gym-weakness-banner');
+  if (banner) {
+    const weak = (typeof getWeaknessSummary === 'function') ? getWeaknessSummary() : null;
+    if (weak && GYM_ZONE_EXERCISE_MAP[weak.zone]) {
+      const ex = GYM_ZONE_EXERCISE_MAP[weak.zone];
+      banner.style.display = 'block';
+      banner.innerHTML = '📊 D\'après ' + weak.count + ' de tes coups analysés en partie, tu perds en moyenne <strong>' + Math.round(weak.avgLoss) + ' points d\'éval</strong> de plus sur tes coups en zone <strong>' + weak.zone + '</strong> que sur tes meilleures zones. L\'exercice <strong>' + ex.label + '</strong> travaille ça (' + ex.why + ').'
+        + ' <button type="button" onclick="startGymExercise(\'' + ex.id + '\')" style="margin-left:6px;font-size:11px;padding:4px 10px;background:var(--gold);color:var(--bg);border:none;border-radius:6px;font-weight:700;cursor:pointer">Essayer</button>';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
 }
 
 function gymSetLevel(level){
