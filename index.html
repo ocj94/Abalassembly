@@ -6260,6 +6260,7 @@ document.addEventListener('keydown', function(e){
       <div class="stat-card"><div class="stat-card-icon">🔥</div><div class="stat-card-val" id="sg-streak">0</div><div class="stat-card-label">Série active</div><div class="stat-card-delta up" id="stat-streak-record">—</div></div>
       <div class="stat-card"><div class="stat-card-icon">⏱</div><div class="stat-card-val">—</div><div class="stat-card-label">Temps de jeu</div><div class="stat-card-delta" style="color:var(--muted)" title="Pas encore suivi par le site">non suivi</div></div>
       <div class="stat-card"><div class="stat-card-icon">⚡</div><div class="stat-card-val" id="sg-xp">0</div><div class="stat-card-label">XP Total</div><div class="stat-card-delta up" id="stat-xp-delta">—</div></div>
+      <div class="stat-card" title="Écart moyen entre tes coups joués et le meilleur coup selon le moteur, sur tes parties analysées"><div class="stat-card-icon">🎯</div><div class="stat-card-val" id="sg-had">—</div><div class="stat-card-label">Divergence IA (HAD)</div><div class="stat-card-delta" style="color:var(--muted)" id="stat-had-detail">—</div></div>
     </div>
 
     <!-- ELO max record -->
@@ -12791,7 +12792,7 @@ function soundForceAI()  { playSequence([{f:1200,t:0,d:0.05,w:'square',v:0.06,to
 function soundCancel()   { playSequence([{f:520,t:0,d:0.10,w:'sine',v:0.07,to:340},{f:300,t:120,d:0.18,w:'sine',v:0.06,to:180}]); } // partie annulée : deux notes qui retombent
 function soundRain()     { playSequence([{f:900,t:0,d:0.07,w:'sine',v:0.05},{f:1150,t:70,d:0.07,w:'sine',v:0.045},{f:760,t:150,d:0.09,w:'sine',v:0.04},{f:1320,t:230,d:0.10,w:'sine',v:0.05}]); } // pluie de billes : cascade légère
 function soundWin()     { vibrate([60,50,60,50,120]); playSfx('game_over'); }
-function soundDraw()    { playSfx('occ_draw'); }
+function soundDraw()    { vibrate([40,60,40]); playSfx('occ_draw'); }  // pattern distinct du gain -- pas une célébration, juste un accusé de fin de partie
 
 function toggleSound(on) {
   soundEnabled = on;
@@ -18174,6 +18175,24 @@ function getWeaknessSummary(){
   const worst = stats[0], best = stats[stats.length-1];
   if (worst.avgLoss - best.avgLoss < GYM_ZONE_MIN_GAP) return null;
   return worst;
+}
+/* HAD (divergence humain/IA) : reprend le meme abaWeaknessProfile, mais
+   cumule les 3 zones ensemble plutot que de les comparer -- une seule
+   moyenne globale de "combien de points d'eval tu perds par coup en
+   moyenne, par rapport au meilleur coup selon le moteur". Reutilise la
+   persistance existante, aucune nouvelle collecte de donnees. */
+const HAD_MIN_SAMPLES = 10;
+function getHADSummary(){
+  let profile;
+  try { profile = JSON.parse(localStorage.getItem('abaWeaknessProfile') || '{}'); } catch(e){ return null; }
+  let lossSum = 0, count = 0;
+  ['coeur','intermediaire','bord'].forEach(function(z){
+    const d = profile[z];
+    if (!d) return;
+    lossSum += d.lossSum; count += d.count;
+  });
+  if (count < HAD_MIN_SAMPLES) return null;
+  return { avgLoss: lossSum / count, count: count };
 }
 
 function renderGameReport(results){
@@ -25899,6 +25918,10 @@ function renderStats() {
   el('sg-puzzles', progress.puzzlesSolved||0);
   el('sg-xp', progress.xp||0);
   el('stat-streak-record', progress.bestStreak ? ('Record : '+progress.bestStreak) : '—');
+
+  const had = (typeof getHADSummary === 'function') ? getHADSummary() : null;
+  el('sg-had', had ? Math.round(had.avgLoss) : '—');
+  el('stat-had-detail', had ? ('sur '+had.count+' coups') : 'pas assez de parties analysées');
 
   const winRate = (u.games>0) ? Math.round((u.wins||0)/u.games*100) : null;
   el('stat-winrate', winRate!==null ? (winRate+'%') : '—');
