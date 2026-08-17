@@ -5977,6 +5977,49 @@ document.addEventListener('keydown', function(e){
       </div>
     </div>
     <div id="page-lab-host" style="padding:24px 60px 60px;max-width:900px"></div>
+
+    <!-- Benchmark moteur — mesure reelle avant toute promesse de gain -->
+    <div style="padding:0 60px 60px;max-width:680px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px">
+        <h3 style="margin:0 0 8px;color:var(--white);font-size:16px">🧪 Benchmark moteur</h3>
+        <p style="margin:0 0 14px;font-size:13px;color:var(--muted);line-height:1.7">
+          Mesure ce que ton appareil fait vraiment, sur la position de départ standard (Belgian Daisy) :
+          nœuds/seconde avec 1 worker, puis avec le nombre de workers réellement utilisés par le site,
+          et l'efficacité réelle du parallélisme (gain observé vs gain idéal). Aucune donnée envoyée —
+          tout tourne dans ton navigateur.
+        </p>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
+          <label style="font-size:12px;color:var(--muted)">Profondeur test :</label>
+          <select id="bench-depth" style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px">
+            <option value="3">3 (rapide)</option>
+            <option value="4" selected>4</option>
+            <option value="5">5</option>
+            <option value="6">6 (lent sur mobile)</option>
+          </select>
+          <button class="ctrl-btn primary" onclick="runEngineBenchmark()" style="width:auto;padding:8px 16px">Lancer le benchmark</button>
+        </div>
+        <div id="bench-status" style="font-size:12px;color:var(--muted);min-height:16px;margin-bottom:10px"></div>
+        <div id="bench-results" style="display:none">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div style="background:var(--surface2);border-radius:8px;padding:12px">
+              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">1 worker</div>
+              <div id="bench-single-nps" style="font-size:20px;font-weight:700;color:var(--gold)">—</div>
+              <div style="font-size:11px;color:var(--muted)">nœuds/s</div>
+              <div id="bench-single-detail" style="font-size:11px;color:var(--muted);margin-top:6px"></div>
+            </div>
+            <div style="background:var(--surface2);border-radius:8px;padding:12px">
+              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px" id="bench-multi-label">N workers</div>
+              <div id="bench-multi-nps" style="font-size:20px;font-weight:700;color:var(--gold)">—</div>
+              <div style="font-size:11px;color:var(--muted)">nœuds/s cumulés</div>
+              <div id="bench-multi-detail" style="font-size:11px;color:var(--muted);margin-top:6px"></div>
+            </div>
+          </div>
+          <div style="padding:12px 16px;background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.2);border-radius:8px;font-size:13px;color:var(--text)">
+            <strong style="color:var(--gold)">Efficacité du parallélisme :</strong> <span id="bench-efficiency">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -16159,6 +16202,126 @@ function terminateAIWorker() {
    batterie sur portable).
 ═══════════════════════════════════════════ */
 let _aiWorkerPool = [];
+/* ═══════════════════════════════════════════
+   BENCHMARK MOTEUR — mesure réelle avant toute promesse de gain.
+   Position de test fixe (Belgian Daisy standard, reproductible), 1 worker
+   puis le nombre réellement utilisé en jeu (detectAIWorkerCount()).
+   Contrairement à requestAIMovePooled() (qui ne garde que les métriques du
+   MEILLEUR coup pour jouer vite), ici on récupère les métriques de TOUS les
+   workers pour mesurer le travail total réellement abattu, pas juste le
+   résultat gagnant.
+═══════════════════════════════════════════ */
+function _benchBuildStartBoard(){
+  const b = {};
+  const layout = LAYOUTS.belgian;
+  layout.black.forEach(function(p){ b[p[0]+','+p[1]] = 'black'; });
+  layout.white.forEach(function(p){ b[p[0]+','+p[1]] = 'white'; });
+  return b;
+}
+
+function _benchRunWorkers(board, depth, workerCount){
+  return new Promise(function(resolve){
+    const workers = getAIWorkerPool(workerCount);
+    if (!workers.length){ resolve(null); return; }
+    const n = Math.min(workerCount, workers.length);
+    const results = new Array(n).fill(null);
+    let remaining = n;
+    const t0 = performance.now();
+    function finish(){
+      resolve({ wallMs: performance.now() - t0, results: results });
+    }
+    const timeoutId = setTimeout(finish, 30000); // filet de securite
+    for (let i = 0; i < n; i++){
+      const w = workers[i];
+      w.onmessage = function(e){
+        results[i] = e.data.metrics || null;
+        remaining--;
+        if (remaining <= 0){ clearTimeout(timeoutId); finish(); }
+      };
+      w.postMessage({
+        board: board, capturedByWhite: 0, capturedByBlack: 0,
+        color: 'black', depth: depth, time: 20000, hist: null,
+        workerIndex: i, workerCount: n
+      });
+    }
+  });
+}
+
+async function runEngineBenchmark(){
+  const statusEl = document.getElementById('bench-status');
+  const resultsEl = document.getElementById('bench-results');
+  const depthSel = document.getElementById('bench-depth');
+  const depth = parseInt(depthSel && depthSel.value || '4', 10);
+  const board = _benchBuildStartBoard();
+  const multiN = detectAIWorkerCount();
+
+  if (resultsEl) resultsEl.style.display = 'none';
+  if (statusEl) statusEl.textContent = '⏳ 1 worker, profondeur ' + depth + '…';
+
+  const single = await _benchRunWorkers(board, depth, 1);
+  if (!single || !single.results[0]){
+    if (statusEl) statusEl.textContent = '❌ Worker indisponible sur cet appareil — benchmark impossible.';
+    return;
+  }
+  const singleMetrics = single.results[0];
+  const singleNodes = singleMetrics.nodes || 0;
+  const singleTimeS = Math.max(0.001, single.wallMs / 1000);
+  const singleNPS = Math.round(singleNodes / singleTimeS);
+
+  if (multiN <= 1){
+    if (statusEl) statusEl.textContent = '✅ Terminé — cet appareil ne lance qu\'1 worker utile (peu de cœurs détectés), pas de comparaison possible.';
+    const singleEl = document.getElementById('bench-single-nps');
+    if (singleEl) singleEl.textContent = singleNPS.toLocaleString('fr-FR');
+    const singleDetail = document.getElementById('bench-single-detail');
+    if (singleDetail) singleDetail.textContent = singleNodes.toLocaleString('fr-FR') + ' nœuds en ' + Math.round(single.wallMs) + ' ms · TT ' + (singleMetrics.ttHit||0) + '%';
+    if (resultsEl) resultsEl.style.display = 'block';
+    const multiLabel = document.getElementById('bench-multi-label');
+    if (multiLabel) multiLabel.textContent = 'N/A';
+    return;
+  }
+
+  if (statusEl) statusEl.textContent = '⏳ ' + multiN + ' workers, profondeur ' + depth + '…';
+  const multi = await _benchRunWorkers(board, depth, multiN);
+  if (!multi){
+    if (statusEl) statusEl.textContent = '❌ Échec de la mesure multi-worker.';
+    return;
+  }
+  const validResults = multi.results.filter(function(r){ return r; });
+  const multiTotalNodes = validResults.reduce(function(s,r){ return s + (r.nodes||0); }, 0);
+  const multiTimeS = Math.max(0.001, multi.wallMs / 1000);
+  const multiNPS = Math.round(multiTotalNodes / multiTimeS);
+  const avgTTHit = validResults.length
+    ? Math.round(validResults.reduce(function(s,r){ return s + (r.ttHit||0); }, 0) / validResults.length)
+    : 0;
+
+  // Efficacite reelle : combien de fois plus vite le TRAVAIL TOTAL est-il abattu,
+  // vs le nombre de workers (ideal = multiN, en pratique moins a cause du
+  // desequilibre entre coups racine).
+  const speedupVsSingleTime = singleTimeS / multiTimeS; // gain de temps mur reel
+  const efficiencyPct = Math.round((speedupVsSingleTime / multiN) * 100);
+
+  const singleEl = document.getElementById('bench-single-nps');
+  if (singleEl) singleEl.textContent = singleNPS.toLocaleString('fr-FR');
+  const singleDetail = document.getElementById('bench-single-detail');
+  if (singleDetail) singleDetail.textContent = singleNodes.toLocaleString('fr-FR') + ' nœuds en ' + Math.round(single.wallMs) + ' ms · TT ' + (singleMetrics.ttHit||0) + '%';
+
+  const multiLabel = document.getElementById('bench-multi-label');
+  if (multiLabel) multiLabel.textContent = multiN + ' workers';
+  const multiEl = document.getElementById('bench-multi-nps');
+  if (multiEl) multiEl.textContent = multiNPS.toLocaleString('fr-FR');
+  const multiDetail = document.getElementById('bench-multi-detail');
+  if (multiDetail) multiDetail.textContent = multiTotalNodes.toLocaleString('fr-FR') + ' nœuds (total) en ' + Math.round(multi.wallMs) + ' ms · TT ' + avgTTHit + '% (moy.)';
+
+  const effEl = document.getElementById('bench-efficiency');
+  if (effEl){
+    effEl.textContent = 'temps divisé par ' + speedupVsSingleTime.toFixed(1) + ' avec ' + multiN + ' workers ('
+      + efficiencyPct + '% de l\'idéal théorique). '
+      + (efficiencyPct >= 70 ? 'Bon équilibrage.' : efficiencyPct >= 40 ? 'Équilibrage moyen — les coups racine ne se valent pas tous en profondeur de calcul.' : 'Équilibrage faible — vérifier le vol de travail entre workers avant d\'ajouter plus de cœurs.');
+  }
+  if (resultsEl) resultsEl.style.display = 'block';
+  if (statusEl) statusEl.textContent = '✅ Terminé.';
+}
+
 function detectAIWorkerCount() {
   const cores = (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) ? navigator.hardwareConcurrency : 2;
   return Math.max(1, Math.min(cores - 1, 4));
