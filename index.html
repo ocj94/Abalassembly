@@ -7184,6 +7184,124 @@ function monthSeed() {
   return h;
 }
 const MONTHLY_LEVEL_LABEL = { 1: 'FACILE', 2: 'MOYEN', 3: 'DIFFICILE' };
+/* Export APGN d'un puzzle -- reutilise EXACTEMENT le meme format d'en-tete
+   que exportGameNotation() (deja etabli, deja utilise par les vraies
+   parties), adapte pour une position figee plutot qu'une sequence de
+   coups. Notation des cases via coordToABAPRO(), deja utilisee partout
+   ailleurs sur le site -- aucune nouvelle notation inventee. */
+function exportPuzzleAPGN(idx){
+  const p = PUZZLES[idx];
+  if (!p) { showToast('⚠️ Puzzle introuvable'); return; }
+  const parseCell = function(s){ const parts = s.split(','); return { r: +parts[0], c: +parts[1] }; };
+  const blackCells = p.bm.map(function(s){ const c = parseCell(s); return coordToABAPRO(c.r, c.c); });
+  const whiteCells = p.wm.map(function(s){ const c = parseCell(s); return coordToABAPRO(c.r, c.c); });
+  const trait = p.c === 'black' ? 'Noirs' : 'Blancs';
+  const diffLabel = ['Facile','Moyen','Difficile'][Math.max(0,Math.min(2,(p.d||1)-1))] || ('Niveau '+p.d);
+
+  let header = '[Abalassembly-Puzzle] #' + idx
+    + '\n[Source] ' + (p.src || '?')
+    + '\n[Difficulte] ' + diffLabel
+    + '\n[Trait] ' + trait
+    + '\n[Notation] Aba-Pro';
+  if (typeof p.gap === 'number') header += '\n[Ecart eval] ' + p.gap;
+  header += '\n\n[Noirs] ' + blackCells.join(' ')
+          + '\n[Blancs] ' + whiteCells.join(' ')
+          + '\n\n[Solution] ' + (p.lab || '?') + '\n';
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(header).then(function(){
+      showToast('📋 Puzzle copié (Aba-Pro) !');
+    }).catch(function(){
+      if (typeof showExportModal === 'function') showExportModal(header);
+    });
+  } else if (typeof showExportModal === 'function') {
+    showExportModal(header);
+  }
+}
+
+/* Certification d'un puzzle contre le moteur reel du site (pas une simple
+   affirmation) : verifie que le coup EXACT annonce (p.sol) est bien un
+   coup legal dans la position du puzzle, ET qu'il produit reellement la
+   capture revendiquee. Sauvegarde/restaure l'etat global du plateau
+   (board/capturedByBlack/capturedByWhite/currentTurn) car applyMove/
+   getAllMovesForColor operent dessus directement -- jamais laisser un
+   appel de certification affecter la partie en cours de l'utilisateur. */
+/* Compte les coups d'une couleur qui capturent immediatement (utilise pour
+   verifier les puzzles defensifs : le bon coup doit faire disparaitre
+   toute prise immediate pour l'adversaire, pas en creer une pour nous). */
+function _countImmediateCaptures(color){
+  const moves = getAllMovesForColor(color);
+  let n = 0;
+  for (let i = 0; i < moves.length; i++){
+    if (moves[i].info && moves[i].info.ejection) n++;
+  }
+  return n;
+}
+
+function certifyPuzzle(idx){
+  const p = PUZZLES[idx];
+  if (!p || !p.sol) return { proved: false, reason: 'no-sol' };
+  const savedBoard = board, savedCB = capturedByBlack, savedCW = capturedByWhite, savedTurn = currentTurn;
+  try {
+    const b = {};
+    p.bm.forEach(function(s){ b[s] = 'black'; });
+    p.wm.forEach(function(s){ b[s] = 'white'; });
+    board = b;
+    capturedByBlack = p.cb || 0;
+    capturedByWhite = p.cw || 0;
+    currentTurn = p.c;
+
+    const solKey = p.sol.cells.map(function(c){ return c.r+','+c.c; }).sort().join('|');
+    const legalMoves = getAllMovesForColor(p.c);
+    const found = legalMoves.find(function(m){
+      const mKey = m.cells.map(function(c){ return c.r+','+c.c; }).sort().join('|');
+      return mKey === solKey && m.dir.q === p.sol.dir.q && m.dir.r === p.sol.dir.r;
+    });
+    if (!found) return { proved: false, reason: 'illegal' };
+
+    const opponent = p.c === 'black' ? 'white' : 'black';
+
+    if (p.def) {
+      // Puzzle DEFENSIF : le bon coup doit faire disparaitre toute prise
+      // immediate pour l'adversaire (pas de gain pour nous attendu ici).
+      const undo = applyMove(found, p.c);
+      const remainingThreats = _countImmediateCaptures(opponent);
+      undoMove(undo);
+      return { proved: remainingThreats === 0, reason: remainingThreats === 0 ? 'ok-def' : 'threat-remains', remainingThreats: remainingThreats };
+    }
+
+    // Puzzle OFFENSIF (par defaut) : le coup doit capturer immediatement.
+    const baseCap = p.c === 'black' ? capturedByBlack : capturedByWhite;
+    const undo = applyMove(found, p.c);
+    const afterCap = p.c === 'black' ? capturedByBlack : capturedByWhite;
+    undoMove(undo);
+    const gained = afterCap - baseCap;
+    return { proved: gained >= 1, reason: gained >= 1 ? 'ok' : 'no-gain', gained: gained };
+  } finally {
+    board = savedBoard; capturedByBlack = savedCB; capturedByWhite = savedCW; currentTurn = savedTurn;
+  }
+}
+
+/* Certifie tous les puzzles, cache le resultat en localStorage pour ne pas
+   refaire le calcul a chaque visite. Rapide (verification directe, pas de
+   recherche recursive) -- peut tourner sur les 78 puzzles sans bloquer
+   la page de facon genante. */
+function certifyAllPuzzles(){
+  const results = {};
+  for (let i = 0; i < PUZZLES.length; i++){
+    try { results[i] = certifyPuzzle(i).proved; }
+    catch(e){ results[i] = false; }
+  }
+  try { localStorage.setItem('abaPuzzleCertified', JSON.stringify(results)); } catch(e){}
+  return results;
+}
+function isPuzzleCertified(idx){
+  try {
+    const cached = JSON.parse(localStorage.getItem('abaPuzzleCertified') || '{}');
+    return cached[idx] === true;
+  } catch(e){ return false; }
+}
+
 function currentMonthlyPuzzle() {
   const m = monthStr();
   if (!progress.monthly || progress.monthly.month !== m) {
@@ -7228,16 +7346,19 @@ function renderMonthlyCard() {
   if (!host) return;
   const mc = currentMonthlyPuzzle();
   const src = mc.puzzle.src || '';
+  const certified = (typeof isPuzzleCertified === 'function') && isPuzzleCertified(mc.idx);
   host.innerHTML =
     '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:10px">' +
       'NIVEAU : <strong style="color:var(--gold)">' + mc.niveau + '</strong> &nbsp;·&nbsp; ' +
       'TRAIT : <strong style="color:var(--gold)">' + mc.trait + '</strong> &nbsp;·&nbsp; ' +
       'OBJECTIF : <strong style="color:var(--gold)">' + mc.objectif + '</strong>' +
+      (certified ? ' &nbsp;·&nbsp; <span style="color:#5ab48c" title="Coup vérifié directement contre le moteur du site">🏅 Certifié</span>' : '') +
     '</div>' +
     (mc.solved ? '<div style="color:#5ab48c;font-size:13px;margin-bottom:10px">✅ Résolu ce mois-ci</div>' : '') +
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">' +
       '<button class="ctrl-btn" onclick="playMonthlyPuzzle()">▶ Jouer le problème du mois</button>' +
       (mc.revealed ? '' : '<button class="ctrl-btn" onclick="revealMonthlySolution()">👁 Voir la solution</button>') +
+      '<button class="ctrl-btn" onclick="exportPuzzleAPGN(' + mc.idx + ')" title="Copie la position et la solution au format Aba-Pro">📋 Exporter (APGN)</button>' +
     '</div>' +
     (mc.revealed ? '<div style="font-size:13px;color:var(--text);padding:10px;background:var(--surface2);border-radius:8px">Solution : <strong style="color:var(--gold)">' + mc.puzzle.lab + '</strong>' + (src ? '<br><span style="color:var(--muted);font-size:12px">Issu de la partie : ' + src + '</span>' : '') + '</div>' : '');
 }
@@ -12910,6 +13031,28 @@ function drawMarble(ctx, x, y, color, isSel) {
   ctx.strokeStyle = color==='black' ? 'rgba(0,0,0,0.6)' : 'rgba(150,150,150,0.4)';
   ctx.lineWidth = 1;
   ctx.stroke();
+
+  // ── Mode accessibilité "formes" : marqueur triangulaire sur les billes
+  //    noires uniquement (les blanches restent rondes) -- une différenciation
+  //    qui ne dépend d'aucune perception de couleur. Réglage existait déjà
+  //    dans Paramètres > Accessibilité (amode-shapes) mais n'était jamais
+  //    branché à un rendu réel : le bouton ne faisait rien sur le vrai
+  //    plateau. Dessiné en surimpression, sans toucher au rendu du dégradé
+  //    existant (risque de casser les skins avec un vrai changement de
+  //    forme de base). */
+  if (typeof A11Y !== 'undefined' && A11Y.colorMode === 'shapes' && color === 'black') {
+    const tr = r * 0.42;
+    ctx.beginPath();
+    ctx.moveTo(x, y - tr);
+    ctx.lineTo(x + tr, y + tr*0.8);
+    ctx.lineTo(x - tr, y + tr*0.8);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+  }
 
   // ── Anneau de sélection doré ──
   if (isSel) {
@@ -25868,6 +26011,14 @@ function showPage(name) {
     editor:     function(){ if(Object.keys(editorBoard).length===0) loadEditorPreset('standard'); else drawEditorBoard(); setEditorTool('black'); },
     analysis:   function(){ if(analysisHistory.length===0) analysisFromStandard(); else drawAnalysisBoard(); },
     puzzles:    function(){
+      // Certifie une seule fois (mise en cache localStorage) -- rapide (verification
+      // directe, pas de recherche recursive), donc sans impact sensible au premier
+      // affichage de la page.
+      if (typeof isPuzzleCertified === 'function') {
+        let hasCache = false;
+        try { hasCache = Object.keys(JSON.parse(localStorage.getItem('abaPuzzleCertified')||'{}')).length > 0; } catch(e){}
+        if (!hasCache && typeof certifyAllPuzzles === 'function') certifyAllPuzzles();
+      }
       renderPuzzles();
       if (typeof renderMonthlyCard === 'function') renderMonthlyCard();
       if (typeof renderDailyCard === 'function') renderDailyCard();
@@ -28899,11 +29050,13 @@ function renderDailyCard() {
   const host = document.getElementById('daily-puzzle-card');
   if (!host) return;
   const dc = currentDailyPuzzle();
+  const certified = (typeof isPuzzleCertified === 'function') && isPuzzleCertified(dc.idx);
   host.innerHTML =
     '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:10px">'
       + 'NIVEAU : <strong style="color:var(--gold)">' + dc.niveau + '</strong> &nbsp;&nbsp; '
       + 'TRAIT : <strong style="color:var(--gold)">' + dc.trait + '</strong> &nbsp;&nbsp; '
       + 'OBJECTIF : <strong style="color:var(--gold)">' + dc.objectif + '</strong>'
+      + (certified ? ' &nbsp;&nbsp; <span style="color:#5ab48c" title="Coup vérifié directement contre le moteur du site">🏅 Certifié</span>' : '')
     + '</div>'
     + (dc.solved
         ? '<div style="color:#5ab48c;font-size:13px;margin-bottom:10px">Resolu aujourd\'hui'
@@ -28911,7 +29064,10 @@ function renderDailyCard() {
         : (dc.streak > 0
             ? '<div style="font-size:13px;color:var(--muted);margin-bottom:10px">Serie en cours : ' + dc.streak + ' jour(s)</div>'
             : ''))
-    + '<button class="ctrl-btn" onclick="playDailyPuzzle()">Jouer le puzzle du jour</button>';
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    + '<button class="ctrl-btn" onclick="playDailyPuzzle()">Jouer le puzzle du jour</button>'
+    + '<button class="ctrl-btn" onclick="exportPuzzleAPGN(' + dc.idx + ')" title="Copie la position et la solution au format Aba-Pro">📋 Exporter (APGN)</button>'
+    + '</div>';
 }
 
 
