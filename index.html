@@ -17606,7 +17606,7 @@ function openPSImportModal(){
   const m = document.getElementById('ps-import-modal');
   if (!m) return;
   m.style.display = 'flex';
-  const input = document.getElementById('ps-import-username');
+  const input = document.getElementById('ps-import-usernames');
   if (input) input.focus();
 }
 function closePSImportModal(){
@@ -17633,43 +17633,69 @@ function psGameToMigsFormat(record){
 }
 
 async function fetchPSGames(){
-  const input = document.getElementById('ps-import-username');
+  const ta = document.getElementById('ps-import-usernames');
   const statusEl = document.getElementById('ps-import-status');
   const listEl = document.getElementById('ps-import-list');
-  const username = (input && input.value || '').trim();
-  if (!username) { if (statusEl) statusEl.textContent = 'Entre un pseudo PlayStrategy.'; return; }
-  if (statusEl) statusEl.textContent = '⏳ Récupération en cours…';
+  const raw = (ta && ta.value || '').trim();
+  const usernames = raw.split(/[\n,]+/).map(function(s){ return s.trim(); }).filter(Boolean);
+  // dédoublonne les pseudos eux-mêmes (au cas où le même serait tapé deux fois)
+  const uniqueUsernames = [...new Set(usernames.map(function(u){ return u.toLowerCase(); }))]
+    .map(function(lu){ return usernames.find(function(u){ return u.toLowerCase() === lu; }); });
+
+  if (!uniqueUsernames.length) { if (statusEl) statusEl.textContent = 'Entre au moins un pseudo PlayStrategy.'; return; }
   if (listEl) listEl.innerHTML = '';
 
-  const url = 'https://playstrategy.org/api/games/user/' + encodeURIComponent(username)
-    + '?perfType=abalone&max=100&moves=true&tags=false&opening=false';
+  // conserve les parties déjà récupérées lors d'un appel précédent (accumulation),
+  // dédoublonnées par id de partie (une partie entre 2 joueurs de la liste
+  // serait sinon comptée deux fois, une par pseudo).
+  const byId = {};
+  PS_GAMES.forEach(function(g){ byId[g[0]] = g; });
 
-  try {
-    const resp = await fetch(url, { headers: { 'Accept': 'application/x-ndjson' } });
-    if (!resp.ok) {
-      if (statusEl) statusEl.textContent = '❌ Erreur ' + resp.status + ' — vérifie le pseudo.';
-      return;
-    }
-    const text = await resp.text();
-    const lines = text.trim().split('\n').filter(function(l){ return l.trim(); });
-    const converted = [];
-    lines.forEach(function(line){
-      try {
-        const rec = JSON.parse(line);
-        const g = psGameToMigsFormat(rec);
-        if (g) converted.push(g);
-      } catch(e){ /* ligne mal formee, ignoree */ }
-    });
-    PS_GAMES = converted;
-    if (statusEl) {
-      statusEl.textContent = converted.length
-        ? '✅ ' + converted.length + ' partie' + (converted.length>1?'s':'') + ' Abalone trouvée' + (converted.length>1?'s':'') + '.'
-        : '⚠️ Aucune partie Abalone trouvée pour "' + escapeHtml(username) + '" (le pseudo existe peut-être, mais sans partie Abalone).';
-    }
-    renderPSGamesList();
-  } catch(e) {
-    if (statusEl) statusEl.textContent = '❌ Erreur réseau : ' + e.message;
+  let totalNew = 0;
+  for (let i = 0; i < uniqueUsernames.length; i++) {
+    const username = uniqueUsernames[i];
+    if (statusEl) statusEl.textContent = '⏳ (' + (i+1) + '/' + uniqueUsernames.length + ') ' + username + '…';
+
+    const url = 'https://playstrategy.org/api/games/user/' + encodeURIComponent(username)
+      + '?perfType=abalone&max=100&moves=true&tags=false&opening=false';
+
+    try {
+      const resp = await fetch(url, { headers: { 'Accept': 'application/x-ndjson' } });
+      if (!resp.ok) continue; // pseudo introuvable ou erreur -- on continue avec les autres
+      const text = await resp.text();
+      const lines = text.trim().split('\n').filter(function(l){ return l.trim(); });
+      lines.forEach(function(line){
+        try {
+          const rec = JSON.parse(line);
+          const g = psGameToMigsFormat(rec);
+          if (g && !byId[g[0]]) { byId[g[0]] = g; totalNew++; }
+        } catch(e){ /* ligne mal formee, ignoree */ }
+      });
+    } catch(e){ /* erreur reseau pour ce pseudo -- on continue */ }
   }
+
+  PS_GAMES = Object.values(byId);
+  if (statusEl) {
+    statusEl.textContent = PS_GAMES.length
+      ? '✅ ' + PS_GAMES.length + ' partie' + (PS_GAMES.length>1?'s':'') + ' au total (+' + totalNew + ' nouvelle' + (totalNew>1?'s':'') + ').'
+      : '⚠️ Aucune partie Abalone trouvée pour ces pseudos.';
+  }
+  renderPSGamesList();
+}
+
+function exportPSGamesJSON(){
+  const statusEl = document.getElementById('ps-import-status');
+  if (!PS_GAMES.length) { if (statusEl) statusEl.textContent = 'Rien à exporter — récupère des parties d\'abord.'; return; }
+  const blob = new Blob([JSON.stringify(PS_GAMES, null, 0)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'ps_games_export_' + PS_GAMES.length + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  if (statusEl) statusEl.textContent = '📥 ' + PS_GAMES.length + ' partie' + (PS_GAMES.length>1?'s':'') + ' exportée' + (PS_GAMES.length>1?'s':'') + ' en JSON.';
 }
 
 function renderPSGamesList(){
@@ -30016,14 +30042,15 @@ window.refresh3DIfActive = function() {
     </div>
     <div style="padding:14px 18px">
       <p style="font-size:12px;color:var(--muted);margin:0 0 12px;line-height:1.6">
-        Récupère tes vraies parties d'Abalone jouées sur <a href="https://playstrategy.org" target="_blank" rel="noopener">playstrategy.org</a> (abal.online), directement depuis ton navigateur — rien n'est envoyé à un serveur intermédiaire. Ces parties restent dans cette session (pas encore ajoutées à la bibliothèque permanente du site).
+        Récupère de vraies parties d'Abalone jouées sur <a href="https://playstrategy.org" target="_blank" rel="noopener">playstrategy.org</a> (abal.online), directement depuis ton navigateur — rien n'est envoyé à un serveur intermédiaire. Un pseudo par ligne pour en récupérer plusieurs d'un coup.
       </p>
+      <textarea id="ps-import-usernames" placeholder="Un pseudo par ligne, ex :&#10;ocj94&#10;saabalone&#10;vincent" rows="4" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-family:'DM Mono',monospace;resize:vertical;margin-bottom:8px"></textarea>
       <div style="display:flex;gap:8px;margin-bottom:10px">
-        <input id="ps-import-username" placeholder="Pseudo PlayStrategy (ex : ocj94)" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px" onkeydown="if(event.key==='Enter')fetchPSGames()">
-        <button class="ctrl-btn primary" onclick="fetchPSGames()" style="width:auto;padding:10px 16px;white-space:nowrap">Récupérer</button>
+        <button class="ctrl-btn primary" onclick="fetchPSGames()" style="flex:1">Récupérer</button>
+        <button class="ctrl-btn" onclick="exportPSGamesJSON()" style="flex:1">📥 Exporter (JSON)</button>
       </div>
       <div id="ps-import-status" style="font-size:12px;color:var(--muted);min-height:16px;margin-bottom:8px"></div>
-      <div id="ps-import-list" style="overflow-y:auto;max-height:45vh"></div>
+      <div id="ps-import-list" style="overflow-y:auto;max-height:40vh"></div>
     </div>
   </div>
 </div>
