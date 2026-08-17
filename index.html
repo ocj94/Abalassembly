@@ -17592,6 +17592,109 @@ function loadAOGame(idx){
   _replaySeqToSnapshots(g[6], g[1]+' vs '+g[2]+' ('+g[4].replace('_daisy',' daisy')+')');
 }
 
+/* ═══════════════════════════════════════════
+   IMPORT PLAYSTRATEGY — récupération live des parties d'un joueur,
+   directement depuis le navigateur (CORS ouvert côté PlayStrategy,
+   confirmé par test réel). Session uniquement -- pas fusionné dans
+   MIGS_GAMES/AO_GAMES (banques figées à la construction du site) ;
+   c'est une bibliothèque à part, tant qu'on n'a pas de pipeline pour
+   régénérer les banques compressées avec ces parties.
+═══════════════════════════════════════════ */
+let PS_GAMES = [];
+
+function openPSImportModal(){
+  const m = document.getElementById('ps-import-modal');
+  if (!m) return;
+  m.style.display = 'flex';
+  const input = document.getElementById('ps-import-username');
+  if (input) input.focus();
+}
+function closePSImportModal(){
+  const m = document.getElementById('ps-import-modal');
+  if (m) m.style.display = 'none';
+}
+
+/* Convertit un enregistrement ndjson PlayStrategy vers le format interne
+   MIGS_GAMES : [id, date, joueur1, joueur2, resultat, coups]. La chaine
+   de coups PlayStrategy (notation Aba-Pro, espacee) est utilisable telle
+   quelle par _replaySeqToSnapshots() -- meme systeme de notation. */
+function psGameToMigsFormat(record){
+  if (!record || !record.variant || String(record.variant).toLowerCase() !== 'abalone') return null;
+  const p1 = (record.players && record.players.p1 && record.players.p1.user && record.players.p1.user.name) || 'Anonyme';
+  const p2 = (record.players && record.players.p2 && record.players.p2.user && record.players.p2.user.name) || 'Anonyme';
+  const dateStr = record.createdAt ? new Date(record.createdAt).toISOString().slice(0,10) : '';
+  let result = 'Partie terminée';
+  if (record.status === 'draw') result = 'Nulle';
+  else if (record.winner === 'p1') result = p1 + ' gagne';
+  else if (record.winner === 'p2') result = p2 + ' gagne';
+  const moves = (record.moves || '').trim();
+  if (!moves) return null;
+  return [record.id, dateStr, p1, p2, result, moves];
+}
+
+async function fetchPSGames(){
+  const input = document.getElementById('ps-import-username');
+  const statusEl = document.getElementById('ps-import-status');
+  const listEl = document.getElementById('ps-import-list');
+  const username = (input && input.value || '').trim();
+  if (!username) { if (statusEl) statusEl.textContent = 'Entre un pseudo PlayStrategy.'; return; }
+  if (statusEl) statusEl.textContent = '⏳ Récupération en cours…';
+  if (listEl) listEl.innerHTML = '';
+
+  const url = 'https://playstrategy.org/api/games/user/' + encodeURIComponent(username)
+    + '?perfType=abalone&max=100&moves=true&tags=false&opening=false';
+
+  try {
+    const resp = await fetch(url, { headers: { 'Accept': 'application/x-ndjson' } });
+    if (!resp.ok) {
+      if (statusEl) statusEl.textContent = '❌ Erreur ' + resp.status + ' — vérifie le pseudo.';
+      return;
+    }
+    const text = await resp.text();
+    const lines = text.trim().split('\n').filter(function(l){ return l.trim(); });
+    const converted = [];
+    lines.forEach(function(line){
+      try {
+        const rec = JSON.parse(line);
+        const g = psGameToMigsFormat(rec);
+        if (g) converted.push(g);
+      } catch(e){ /* ligne mal formee, ignoree */ }
+    });
+    PS_GAMES = converted;
+    if (statusEl) {
+      statusEl.textContent = converted.length
+        ? '✅ ' + converted.length + ' partie' + (converted.length>1?'s':'') + ' Abalone trouvée' + (converted.length>1?'s':'') + '.'
+        : '⚠️ Aucune partie Abalone trouvée pour "' + escapeHtml(username) + '" (le pseudo existe peut-être, mais sans partie Abalone).';
+    }
+    renderPSGamesList();
+  } catch(e) {
+    if (statusEl) statusEl.textContent = '❌ Erreur réseau : ' + e.message;
+  }
+}
+
+function renderPSGamesList(){
+  const listEl = document.getElementById('ps-import-list');
+  if (!listEl) return;
+  if (!PS_GAMES.length) { listEl.innerHTML = ''; return; }
+  listEl.innerHTML = PS_GAMES.map(function(g, idx){
+    const moveCount = _migsMoveCount(g[5]);
+    return '<div onclick="loadPSGame(' + idx + ')" style="padding:10px 12px;border-radius:8px;cursor:pointer;border:1px solid var(--border);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'transparent\'">'
+      + '<div><div style="font-size:13px;font-weight:600;color:var(--text)">' + escapeHtml(g[2]) + ' vs ' + escapeHtml(g[3]) + '</div>'
+      + '<div style="font-size:11px;color:var(--muted)">' + escapeHtml(g[1]) + ' · ' + escapeHtml(g[4]) + ' · ' + moveCount + ' plis</div></div>'
+      + '<span style="color:var(--gold);font-size:12px">▶</span>'
+      + '</div>';
+  }).join('');
+}
+
+// Charge une partie PlayStrategy importée (Belgian Daisy standard) en mode rejeu
+function loadPSGame(idx){
+  const g = PS_GAMES[idx]; if (!g) return;
+  if (typeof showPage === 'function') showPage('game');
+  currentLayout = 'belgian'; initBoardState(); capturedByBlack = 0; capturedByWhite = 0;
+  _replaySeqToSnapshots(g[5], g[2] + ' vs ' + g[3] + ' (PlayStrategy)');
+  closePSImportModal();
+}
+
 // Navigateur de parties
 function openMigsBrowser(){ const m=document.getElementById('migs-modal'); if(!m)return; m.style.display='flex'; const s=document.getElementById('migs-search'); if(s){s.value='';} renderMigsList(); if(s) s.focus(); }
 function closeMigsBrowser(){ const m=document.getElementById('migs-modal'); if(m)m.style.display='none'; }
@@ -29887,6 +29990,7 @@ window.refresh3DIfActive = function() {
     <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
       <strong style="flex:1">📚 Parties — AbalOnline & Migs</strong>
       <span style="color:var(--muted);font-size:12px">4480 parties · 19 variantes</span>
+      <button class="ctrl-btn" onclick="openPSImportModal()" style="width:auto;padding:4px 10px" title="Importer tes propres parties Abalone depuis PlayStrategy.org">🔗 PlayStrategy</button>
       <button class="ctrl-btn" onclick="closeMigsBrowser()" style="width:auto;padding:4px 10px">✕</button>
     </div>
     <input id="migs-search" oninput="renderMigsList()" placeholder="Rechercher un joueur ou un N°…" style="margin:12px 18px 8px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px">
@@ -29902,6 +30006,25 @@ window.refresh3DIfActive = function() {
       </select>
     </div>
     <div id="migs-list" style="overflow-y:auto;padding:0 8px 14px"></div>
+  </div>
+</div>
+<div id="ps-import-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:10001;align-items:center;justify-content:center" onclick="if(event.target===this)closePSImportModal()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:min(560px,92vw);max-height:85vh;display:flex;flex-direction:column;overflow:hidden">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <strong style="flex:1">🔗 Importer depuis PlayStrategy</strong>
+      <button class="ctrl-btn" onclick="closePSImportModal()" style="width:auto;padding:4px 10px">✕</button>
+    </div>
+    <div style="padding:14px 18px">
+      <p style="font-size:12px;color:var(--muted);margin:0 0 12px;line-height:1.6">
+        Récupère tes vraies parties d'Abalone jouées sur <a href="https://playstrategy.org" target="_blank" rel="noopener">playstrategy.org</a> (abal.online), directement depuis ton navigateur — rien n'est envoyé à un serveur intermédiaire. Ces parties restent dans cette session (pas encore ajoutées à la bibliothèque permanente du site).
+      </p>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input id="ps-import-username" placeholder="Pseudo PlayStrategy (ex : ocj94)" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px" onkeydown="if(event.key==='Enter')fetchPSGames()">
+        <button class="ctrl-btn primary" onclick="fetchPSGames()" style="width:auto;padding:10px 16px;white-space:nowrap">Récupérer</button>
+      </div>
+      <div id="ps-import-status" style="font-size:12px;color:var(--muted);min-height:16px;margin-bottom:8px"></div>
+      <div id="ps-import-list" style="overflow-y:auto;max-height:45vh"></div>
+    </div>
   </div>
 </div>
 <div id="kids-exit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;align-items:center;justify-content:center" onclick="if(event.target===this)_kidsExitCancel()">
