@@ -1,8 +1,10 @@
 # Puzzles — comment ils sont vérifiés
 
-La bibliothèque contient 78 puzzles tirés de vraies parties. Chacun est une position réelle avec une solution en un ou deux coups.
+La bibliothèque contient 138 puzzles tirés de vraies parties : 78 en un coup (vérifiés hors-ligne, voir ci-dessous) et 60 en deux coups, ajoutés depuis (vérifiés autrement, voir plus bas).
 
-## Le vérificateur
+## Les 78 puzzles à un coup
+
+### Le vérificateur hors-ligne
 
 `tests/puzzles.js` rejoue chaque puzzle contre le moteur du jeu — la même approche que pour les parties APGN : on ne fait pas confiance aux données, on les rejoue. Il contrôle six choses :
 
@@ -19,7 +21,7 @@ node tests/puzzles.js
 
 Le rapport liste, puzzle par puzzle, le champ fautif. Code de sortie 1 s'il reste un problème.
 
-## Ce que l'audit a corrigé
+### Ce que l'audit a corrigé
 
 Un premier passage a trouvé huit puzzles fautifs sur les quatre-vingts d'origine :
 
@@ -27,3 +29,21 @@ Un premier passage a trouvé huit puzzles fautifs sur les quatre-vingts d'origin
 - **Deux positions impossibles.** Plus de quatorze billes en comptant les éjectées. Le score d'origine étant inconnu, ces puzzles ont été retirés plutôt que corrigés au jugé.
 
 Deux garde-fous de la suite de régression vérifient désormais qu'aucune coordonnée ni aucun effectif ne dérape à l'avenir.
+
+## Les 60 puzzles à deux coups
+
+Ajoutés après coup, minés depuis le corpus réel de parties MIGS (Belgian Daisy). Contrairement aux 78 premiers, la solution demande deux coups du joueur (trois demi-coups en tout, avec une réponse adverse au milieu) — aucun des 78 originaux ne dépassait un seul coup.
+
+### Comment ils ont été trouvés et vérifiés
+
+Le minage utilise `AbaSolve`, le solveur à preuve du moteur (recherche ET/OU exhaustive, pas une heuristique) : pour chaque position candidate, on vérifie qu'aucun coup ne gagne en un seul coup (sinon la position appartient déjà aux 78 premiers), puis qu'un gain est **prouvé** en exactement trois demi-coups.
+
+Un premier passage de minage contenait un vrai bug : la position stockée était une référence vers l'état du plateau en cours de calcul, pas une copie — les coups joués pendant le minage corrompaient silencieusement la position d'origine. Une vérification indépendante (rejouer chaque puzzle depuis zéro, sans réutiliser l'état du minage) l'a révélé : 0 sur 60 passait ce contrôle. Après correction du clonage de position, 60 sur 60 sont passés.
+
+### Ce qui n'est PAS encore fait
+
+`tests/puzzles.js` (le script hors-ligne ci-dessus) ne couvre encore que les 78 premiers — il n'a pas été étendu pour rejouer les séquences à trois demi-coups des 60 nouveaux. Leur vérification reste, pour l'instant, celle faite au moment du minage plus le badge de certification côté client (voir ci-dessous). Étendre `tests/puzzles.js` à ce format reste à faire.
+
+## Certification côté client (nouveau)
+
+Le site vérifie maintenant aussi les puzzles directement dans le navigateur, contre le moteur réellement chargé par le joueur — pas seulement hors-ligne au moment du commit. Pour un puzzle à un coup : le coup annoncé doit être légal et produire la capture (ou faire disparaître la menace, pour un puzzle de parade). Pour un puzzle à deux coups : toute la séquence — coup, réponse adverse stockée, coup final — est rejouée et doit aboutir à une vraie capture. Un badge « 🏅 Certifié » s'affiche sur les puzzles du jour/du mois quand la vérification réussit.
