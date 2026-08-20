@@ -808,7 +808,11 @@ h2 {
      boutons (Annuler / Pause / Nulle / Abandonner) sortaient de l'ecran.
      En bornant la colonne a la hauteur utile, le defilement interne reprend
      son role et les boutons restent atteignables. Signale par Saab (les deux
-     remarques « histo trop longue » et « btn hors fenetre » n'en font qu'une). */
+     remarques « histo trop longue » et « btn hors fenetre » n'en font qu'une).
+     Correctif complete plus tard : ce bornage seul ne suffisait pas sans
+     min-height:0 sur .move-history elle-meme (regle de flexbox par defaut :
+     un enfant flex refuse de retrecir sous la taille de son contenu tant que
+     min-height reste "auto") — voir sa propre regle, dans ce meme fichier. */
   height: calc(100vh - 64px);
   position: sticky; top: 64px; align-self: start;
 }
@@ -29976,19 +29980,15 @@ function start3DScene() {
      lieu d'un degrade uni, meme esprit que le grain du bois ci-dessus.
      Verifiees d'abord dans un apercu Three.js reel (deux allers-retours :
      couleurs re-echantillonnees sur une vraie photo pour Volcanique, puis
-     les 6 textures ensemble) avant d'etre integrees ici a l'identique.
+     les 6 textures ensemble). Signale par Olivier — "je veux ca pour
+     chaque theme".
+     Generees par le meme moteur generique a couches que la 2D
+     (window.THEME_RECIPES / window.peindreCouches, definis dans le bloc
+     <script> du haut) plutot que par des blocs if/else propres a la 3D :
+     les DEUX peintres (2D et 3D) executent exactement la meme recette par
+     theme, aucune duplication a maintenir en double.
      Mises en cache par (theme, jour/nuit) : sync() tourne a chaque coup,
-     jamais de raison de repeindre une texture identique. Signale par
-     Olivier — "je veux ca pour chaque theme". */
-  /* Textures procedurales des 6 themes de plateau — desormais generees par
-     le meme moteur generique a couches que la 2D (window.THEME_RECIPES /
-     window.peindreCouches, definis dans le bloc <script> du haut) plutot
-     que par une seconde copie des blocs if/else. Les DEUX peintres (2D et
-     3D) executent maintenant EXACTEMENT la meme recette par theme — plus
-     de duplication a maintenir en double. Mises en cache par (theme,
-     jour/nuit) : sync() tourne a chaque coup, jamais de raison de repeindre
-     une texture identique. Signale par Olivier — "je veux ca pour chaque
-     theme". */
+     jamais de raison de repeindre une texture identique. */
   const themeTextures = {};
   const themeNormalMaps = {};
   function peindreTextureTheme(nom, night) {
