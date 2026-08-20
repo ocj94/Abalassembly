@@ -27687,15 +27687,44 @@ function initPWA() {
 
   // Register service worker (inline)
   if ('serviceWorker' in navigator) {
+    /* Ancienne version (abalone-v1) : cache-first sans purge ni versionnement --
+       un visiteur deja passe sur le site continuait de recevoir la copie
+       en cache indefiniment, meme apres un nouveau deploiement. Repere en
+       auditant une critique externe qui affirmait a tort qu'un "kill-switch"
+       de purge existait deja -- en verifiant cette affirmation, le vrai
+       probleme (l'absence totale de purge) a ete trouve.
+       Corrige avec 3 changements :
+       1. Strategie reseau-d'abord (network-first) au lieu de cache-first :
+          le contenu frais est toujours prefere quand une connexion existe,
+          le cache ne sert plus que de repli hors-ligne. Resout le probleme
+          pour TOUS les futurs deploiements, pas seulement celui-ci -- plus
+          besoin de se souvenir d'incrementer un numero de version a chaque
+          fois.
+       2. self.skipWaiting() + clients.claim() : la nouvelle version prend
+          effet immediatement, sans attendre que l'utilisateur ferme tous
+          ses onglets ouverts sur le site.
+       3. Gestionnaire 'activate' qui supprime tout cache d'un nom different
+          du cache courant (nettoie l'ancien abalone-v1 residuel chez les
+          visiteurs deja passes). */
     const swCode = `
-const CACHE = 'abalone-v1';
-self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.add('/'))));
+const CACHE = 'abalone-v2';
+self.addEventListener('install', e => {
+  self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then(c => c.add('/')));
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys => Promise.all(
+      keys.filter(k => k !== CACHE).map(k => caches.delete(k))
+    )).then(() => self.clients.claim())
+  );
+});
 self.addEventListener('fetch', e => e.respondWith(
-  caches.match(e.request).then(r => r || fetch(e.request).then(resp => {
+  fetch(e.request).then(resp => {
     const clone = resp.clone();
     caches.open(CACHE).then(c => c.put(e.request, clone));
     return resp;
-  }))
+  }).catch(() => caches.match(e.request))
 ));
 `;
     const swBlob = new Blob([swCode], {type:'application/javascript'});
