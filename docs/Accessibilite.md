@@ -15,6 +15,7 @@ Menu ☰ → **Paramètres** → section **Confort & accessibilité**.
 | **Mouvement réduit** | Coupe animations et transitions, jusqu'à l'écran d'intro et aux pulsations d'horloge. S'active automatiquement si votre système demande déjà moins d'animations. |
 | **Mode sobre** | Retire les effets ludiques — XP flottant, séries, ornements — pour ne garder que le jeu et l'information. Le contenu reste, seul le décor disparaît. |
 | **Focus renforcé** | Contour net et constant sur l'élément actif, au clavier comme au toucher. |
+| **Navigation clavier du plateau** | Le plateau se joue entièrement au clavier : flèches pour se déplacer, Page haut/Page bas pour les deux directions restantes (6 au total, comme les côtés d'une case hexagonale), Entrée ou Espace pour sélectionner/jouer. Chaque case porte une description pour lecteur d'écran (contenu + coordonnée). |
 | **Contraste renforcé** | Fonds plus sombres, texte plus clair, bordures plus nettes, dans la palette du jeu. |
 | **Une action à la fois** | Atténue les boutons secondaires pour qu'un seul ressorte par écran. |
 | **Taille du texte** | Agrandit l'ensemble du texte jusqu'à 140 %. |
