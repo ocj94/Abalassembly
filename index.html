@@ -3119,7 +3119,7 @@ document.addEventListener('keydown', function(e){
         <button onclick="setupPick('layout','german',this)" class="setup-opt">German Daisy</button>
         <button onclick="setupPick('layout','dutch',this)" class="setup-opt">Dutch Daisy</button>
         <button onclick="setupPick('layout','swiss',this)" class="setup-opt">Swiss Daisy</button>
-        <button onclick="setupPick('layout','69',this)" class="setup-opt" title="Disposition artistique (visage souriant), pas une variante de tournoi">😊 69</button>
+        <button onclick="setupPick('layout','69',this)" class="setup-opt" title="Disposition artistique (visage souriant), pas une variante de tournoi">69</button>
       </div>
 
       <div class="setup-row-lbl" style="margin-top:14px">Adversaire</div>
@@ -11394,9 +11394,12 @@ const LAYOUTS = {
     // Coordonnees relues directement sur une image fournie, position par
     // position (pas de generation automatique) : 14 billes de chaque camp,
     // aucune collision, verifie avant integration. Nommee d'apres le
-    // fichier source.
-    black: [[2,1],[5,0],[5,1],[5,4],[5,5],[6,0],[6,3],[6,5],[7,0],[7,1],[7,2],[7,3],[7,4],[7,5]],
-    white: [[1,0],[1,1],[1,2],[1,3],[1,4],[1,5],[2,0],[2,2],[2,5],[3,0],[3,1],[3,4],[3,5],[6,4]]
+    // fichier source. Corrigee une fois par Olivier apres relecture
+    // precise de l'image (10 cases decalees dans le premier jet) --
+    // reconverti depuis la notation Aba-Pro qu'il a fournie, pas retouche
+    // a la main en interne.
+    black: [[2,1],[5,2],[5,1],[5,5],[5,6],[6,0],[6,4],[6,6],[7,0],[7,1],[7,2],[7,3],[7,4],[7,5]],
+    white: [[1,0],[1,1],[1,2],[1,3],[1,4],[1,5],[2,0],[2,2],[2,6],[3,2],[3,1],[3,5],[3,6],[6,5]]
   }
 };
 
