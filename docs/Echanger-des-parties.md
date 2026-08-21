@@ -10,6 +10,16 @@ Un champ « Ton nom » (mémorisé d'une partie à l'autre) et un choix de coule
 
 Menu du jeu → **Partie par code**.
 
+## Partie en direct (WebRTC) — expérimental
+
+Même esprit que « Partie par code », mais en temps réel : les deux navigateurs se connectent directement l'un à l'autre, sans compte ni serveur de jeu. Un seul échange de code au début (offre → réponse, exactement comme pour établir une partie par code), puis chaque coup s'affiche instantanément chez l'autre — plus rien à copier-coller ensuite.
+
+Un service externe minime reste nécessaire : un serveur STUN public et gratuit aide chaque appareil à se repérer derrière sa box internet. Aucune donnée de partie n'y transite, juste quelques informations réseau techniques.
+
+**Étiqueté expérimental** car la connexion directe ne fonctionne pas sur tous les réseaux (pare-feux stricts, certains réseaux d'entreprise ou mobiles). En cas d'échec ou de déconnexion en cours de partie, un bouton propose de basculer directement sur « Partie par code » — la partie continue, juste en différé au lieu du temps réel.
+
+Menu du jeu → **Partie en direct**.
+
 ## Format APGN
 
 L'Abalone n'avait pas d'équivalent du PGN des échecs. [`APGN.md`](../APGN.md) en propose un : en-tête de balises, coups numérotés, résultat.
