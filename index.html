@@ -3119,6 +3119,7 @@ document.addEventListener('keydown', function(e){
         <button onclick="setupPick('layout','german',this)" class="setup-opt">German Daisy</button>
         <button onclick="setupPick('layout','dutch',this)" class="setup-opt">Dutch Daisy</button>
         <button onclick="setupPick('layout','swiss',this)" class="setup-opt">Swiss Daisy</button>
+        <button onclick="setupPick('layout','69',this)" class="setup-opt" title="Disposition artistique (visage souriant), pas une variante de tournoi">😊 69</button>
       </div>
 
       <div class="setup-row-lbl" style="margin-top:14px">Adversaire</div>
@@ -3384,6 +3385,7 @@ document.addEventListener('keydown', function(e){
           <button class="ctrl-btn" id="variant-btn" onclick="toggleVariant()" style="margin-top:8px;width:100%" title="Depuis une position du replay, joue un coup différent et voit l'IA y répondre">🔀 Essayer une variante</button>
           <button class="ctrl-btn" onclick="exportGameNotation()" style="margin-top:8px;width:100%">📋 Exporter la partie</button>
           <button class="ctrl-btn" onclick="openGameCodePanel()" style="margin-top:8px;width:100%" title="Jouer par echange de code, sans compte ni serveur">Partie par code</button>
+          <button class="ctrl-btn" onclick="openRtcPanel()" style="margin-top:8px;width:100%" title="Connexion directe en temps reel entre deux navigateurs, experimental">Partie en direct 🧪</button>
           <button class="ctrl-btn" onclick="showPostGameReview()" style="margin-top:8px;width:100%" title="Ou la partie a bascule">Analyse d'apres-partie</button>
           <div id="ai-metrics" style="margin-top:10px;padding:9px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);display:none">
             <div style="color:var(--gold);font-weight:600;margin-bottom:6px">🧠 Dernière recherche IA</div>
@@ -11386,6 +11388,15 @@ const LAYOUTS = {
     // (coins opposés), pas de nouvelles coordonnées inventées à la main.
     black: [[8,0],[8,1],[7,0],[7,1],[7,2],[6,1],[6,2]],
     white: [[0,0],[0,1],[1,0],[1,1],[1,2],[2,1],[2,2]]
+  },
+  '69': {
+    // Disposition artistique (visage souriant), pas une variante de tournoi.
+    // Coordonnees relues directement sur une image fournie, position par
+    // position (pas de generation automatique) : 14 billes de chaque camp,
+    // aucune collision, verifie avant integration. Nommee d'apres le
+    // fichier source.
+    black: [[2,1],[5,0],[5,1],[5,4],[5,5],[6,0],[6,3],[6,5],[7,0],[7,1],[7,2],[7,3],[7,4],[7,5]],
+    white: [[1,0],[1,1],[1,2],[1,3],[1,4],[1,5],[2,0],[2,2],[2,5],[3,0],[3,1],[3,4],[3,5],[6,4]]
   }
 };
 
@@ -29237,7 +29248,23 @@ document.addEventListener('DOMContentLoaded', function() {
    Noms assainis (memes caracteres que les pseudos de connexion existants :
    lettres, chiffres, espace, tiret, underscore) pour ne jamais casser le
    format -- ':' et '|' explicitement interdits car ce sont les separateurs.
-═══════════════════════════════════════════ */
+   CORRECTIF : GAME_CODE_TAG et _gcDirIndex avaient ete perdues lors du
+   remplacement de bloc qui a introduit cette section (v2.01) -- utilisees
+   partout en dessous (gameCodeEncode notamment) mais jamais redefinies,
+   ce qui aurait fait planter "Partie par code" des sa premiere utilisation
+   reelle. Trouve en verifiant chaque dependance avant d'ajouter la
+   fonctionnalite suivante (WebRTC) qui reutilise exactement ces memes
+   fonctions -- jamais detecte par les tests precedents car le harnais de
+   test Node les redefinissait manuellement au lieu d'extraire le vrai
+   fichier deploye. */
+const GAME_CODE_TAG = 'ABAL1';
+function _gcDirIndex(dir) {
+  if (!dir) return -1;
+  for (let i = 0; i < AX_DIRS.length; i++) {
+    if (AX_DIRS[i].q === dir.q && AX_DIRS[i].r === dir.r) return i;
+  }
+  return -1;
+}
 function _gcSanitizeName(name){
   return String(name || '').trim().replace(/[^a-zA-Z0-9 _\-À-ÿ]/g, '').slice(0, 24);
 }
@@ -29280,7 +29307,7 @@ function gameCodeEncode() {
    jamais rejeter un code genere par une version anterieure du site. */
 function gameCodeParse(code) {
   const s = String(code || '').trim().replace(/\s+/g, '');
-  const withNames = s.match(/^ABAL1:([a-z_]+):([^:]*)\|([^:]*):([a-i0-9]*)$/i);
+  const withNames = s.match(/^ABAL1:([a-z0-9_]+):([^:]*)\|([^:]*):([a-i0-9]*)$/i);
   if (withNames) {
     const layout = withNames[1].toLowerCase();
     const blackName = _gcDecodeNameFromCode(withNames[2]);
@@ -29288,7 +29315,7 @@ function gameCodeParse(code) {
     const body = withNames[4].toLowerCase();
     return _gcParseBody(layout, body, blackName, whiteName);
   }
-  const legacy = s.match(/^ABAL1:([a-z_]+):([a-i0-9]*)$/i);
+  const legacy = s.match(/^ABAL1:([a-z0-9_]+):([a-i0-9]*)$/i);
   if (legacy) {
     return _gcParseBody(legacy[1].toLowerCase(), legacy[2].toLowerCase(), '', '');
   }
@@ -29368,6 +29395,276 @@ function gcApplyMyName(){
   gcSetMyName(input.value);
   if (color.value === 'black') gcBlackName = gcMyName; else gcWhiteName = gcMyName;
   openGameCodePanel(); // rafraichit le code affiche avec le nom mis a jour
+}
+
+/* ═══════════════════════════════════════════
+   PARTIE EN DIRECT (WebRTC) — connexion pair-a-pair, une seule fois au
+   debut (echange manuel de code de connexion, meme principe que "Partie
+   par code"), puis les coups circulent en temps reel sans plus rien
+   copier-coller. Repli automatique sur "Partie par code" en cas d'echec
+   ou de deconnexion -- jamais une partie perdue, juste un retour au mode
+   differe.
+   Seule dependance externe reelle : un serveur STUN public (aide chaque
+   navigateur a decouvrir son adresse reseau derriere sa box -- aucune
+   donnee de partie n'y transite, juste la decouverte reseau initiale).
+   Non testable en direct dans un environnement sans navigateur reel :
+   la logique de protocole (encodage/decodage des coups, compression du
+   SDP) est testee isolement ; l'etablissement de connexion lui-meme doit
+   etre verifie en conditions reelles, deux onglets ou deux appareils.
+═══════════════════════════════════════════ */
+const RTC_STUN_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
+let _rtcPeer = null, _rtcChannel = null, _rtcRole = null, _rtcApplyingRemote = false;
+let _rtcOpponentName = '';
+
+async function _rtcCompress(str){
+  const enc = new TextEncoder().encode(str);
+  const cs = new CompressionStream('deflate-raw');
+  const stream = new Blob([enc]).stream().pipeThrough(cs);
+  const buf = await new Response(stream).arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+async function _rtcDecompress(b64){
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const ds = new DecompressionStream('deflate-raw');
+  const stream = new Blob([bytes]).stream().pipeThrough(ds);
+  return await new Response(stream).text();
+}
+
+/* Encode/decode un coup pour le canal de donnees -- meme convention
+   compacte que "Partie par code" (coordToABAPRO/_gcDirIndex/AX_DIRS),
+   teste isolement. */
+function rtcEncodeMove(cells, dir){
+  const di = _gcDirIndex(dir);
+  if (di < 0) return null;
+  let body = String(cells.length);
+  for (let k = 0; k < cells.length; k++) body += coordToABAPRO(cells[k].r, cells[k].c);
+  body += String(di);
+  return 'MOVE:' + body;
+}
+function rtcDecodeMove(data){
+  if (typeof data !== 'string' || data.indexOf('MOVE:') !== 0) return null;
+  const body = data.slice(5);
+  if (!body.length) return null;
+  const n = parseInt(body.charAt(0), 10);
+  if (!(n >= 1 && n <= 3)) return null;
+  const need = 1 + 2 * n + 1;
+  if (body.length !== need) return null;
+  const cells = [];
+  for (let k = 0; k < n; k++) {
+    const rc = abaproToRc(body.substr(1 + 2 * k, 2));
+    if (!rc) return null;
+    cells.push(rc);
+  }
+  const di = parseInt(body.charAt(need - 1), 10);
+  if (!(di >= 0 && di <= 5)) return null;
+  return { cells: cells, dir: AX_DIRS[di] };
+}
+
+function _rtcWaitIceGathering(peer){
+  return new Promise(function(resolve){
+    if (peer.iceGatheringState === 'complete') { resolve(); return; }
+    const timeout = setTimeout(resolve, 4000); // filet de securite : n'attend jamais indefiniment
+    function check(){
+      if (peer.iceGatheringState === 'complete') {
+        clearTimeout(timeout);
+        peer.removeEventListener('icegatheringstatechange', check);
+        resolve();
+      }
+    }
+    peer.addEventListener('icegatheringstatechange', check);
+  });
+}
+
+function _rtcSetupChannelHandlers(ch){
+  ch.onopen = function(){
+    _rtcUpdateStatus('🟢 Connecté' + (_rtcOpponentName ? (' à ' + _rtcOpponentName) : '') + ' — coups en temps réel');
+    if (typeof showToast === 'function') showToast('🟢 Connexion en direct établie');
+  };
+  ch.onclose = function(){ _rtcOnDisconnect(); };
+  ch.onerror = function(){ _rtcOnDisconnect(); };
+  ch.onmessage = function(e){ _rtcHandleMessage(e.data); };
+}
+function _rtcSetupPeerHandlers(peer){
+  peer.onconnectionstatechange = function(){
+    if (peer.connectionState === 'failed' || peer.connectionState === 'disconnected') _rtcOnDisconnect();
+  };
+}
+function _rtcOnDisconnect(){
+  if (!_rtcPeer) return; // deja nettoye
+  _rtcUpdateStatus('🔴 Connexion perdue — utilise "Partie par code" pour continuer');
+  if (typeof showToast === 'function') showToast('🔴 Connexion en direct perdue — repli sur "Partie par code"');
+  rtcClose();
+}
+function rtcClose(){
+  if (_rtcChannel) { try { _rtcChannel.close(); } catch(e){} _rtcChannel = null; }
+  if (_rtcPeer) { try { _rtcPeer.close(); } catch(e){} _rtcPeer = null; }
+  _rtcRole = null;
+}
+
+/* Hote : prepare l'offre, attend la fin de la collecte ICE (evite d'avoir
+   a echanger les candidats un par un -- un seul code contient tout). */
+async function rtcCreateOffer(){
+  rtcClose();
+  _rtcRole = 'host';
+  _rtcPeer = new RTCPeerConnection({ iceServers: RTC_STUN_SERVERS });
+  _rtcChannel = _rtcPeer.createDataChannel('abalone');
+  _rtcSetupChannelHandlers(_rtcChannel);
+  _rtcSetupPeerHandlers(_rtcPeer);
+  const offer = await _rtcPeer.createOffer();
+  await _rtcPeer.setLocalDescription(offer);
+  await _rtcWaitIceGathering(_rtcPeer);
+  const compressed = await _rtcCompress(_rtcPeer.localDescription.sdp);
+  return 'WEBRTC1:offer:' + compressed;
+}
+
+/* Invite : recoit l'offre, prepare la reponse. */
+async function rtcAcceptOffer(code){
+  const m = String(code || '').trim().match(/^WEBRTC1:offer:(.+)$/s);
+  if (!m) return { ok: false, reason: 'code non reconnu — attend un code commençant par WEBRTC1:offer:' };
+  rtcClose();
+  _rtcRole = 'guest';
+  _rtcPeer = new RTCPeerConnection({ iceServers: RTC_STUN_SERVERS });
+  _rtcPeer.ondatachannel = function(e){ _rtcChannel = e.channel; _rtcSetupChannelHandlers(_rtcChannel); };
+  _rtcSetupPeerHandlers(_rtcPeer);
+  let sdp;
+  try { sdp = await _rtcDecompress(m[1]); } catch(e){ return { ok: false, reason: 'code illisible (corrompu au copier-coller ?)' }; }
+  await _rtcPeer.setRemoteDescription({ type: 'offer', sdp: sdp });
+  const answer = await _rtcPeer.createAnswer();
+  await _rtcPeer.setLocalDescription(answer);
+  await _rtcWaitIceGathering(_rtcPeer);
+  const compressed = await _rtcCompress(_rtcPeer.localDescription.sdp);
+  return { ok: true, code: 'WEBRTC1:answer:' + compressed };
+}
+
+/* Hote : recoit la reponse de l'invite, la connexion s'etablit ensuite
+   automatiquement (evenements onconnectionstatechange / ondatachannel). */
+async function rtcAcceptAnswer(code){
+  const m = String(code || '').trim().match(/^WEBRTC1:answer:(.+)$/s);
+  if (!m) return { ok: false, reason: 'code non reconnu — attend un code commençant par WEBRTC1:answer:' };
+  if (!_rtcPeer) return { ok: false, reason: 'aucune offre en cours — clique d\'abord "Créer"' };
+  let sdp;
+  try { sdp = await _rtcDecompress(m[1]); } catch(e){ return { ok: false, reason: 'code illisible (corrompu au copier-coller ?)' }; }
+  await _rtcPeer.setRemoteDescription({ type: 'answer', sdp: sdp });
+  return { ok: true };
+}
+
+function rtcSendMove(cells, dir){
+  if (!_rtcChannel || _rtcChannel.readyState !== 'open') return false;
+  const msg = rtcEncodeMove(cells, dir);
+  if (!msg) return false;
+  _rtcChannel.send(msg);
+  return true;
+}
+
+/* Applique un coup recu -- jamais faire confiance : revalide contre le
+   moteur exactement comme gameCodeLoad(), un coup illegal est rejete
+   silencieusement plutot que d'accepter une position corrompue. */
+function _rtcHandleMessage(data){
+  const decoded = rtcDecodeMove(data);
+  if (!decoded) return;
+  const color = currentTurn;
+  const v = validateMove(decoded.cells, decoded.dir, color);
+  if (!v || !v.valid) return;
+  _rtcApplyingRemote = true;
+  applyMove({ cells: decoded.cells, dir: decoded.dir, info: v }, color);
+  const label = moveLabel(decoded.cells, decoded.dir, v.type, !!v.ejection);
+  addMoveToHistory(label, color, { cells: decoded.cells.slice(), dir: decoded.dir, type: v.type, ejection: !!v.ejection });
+  currentTurn = (color === 'black') ? 'white' : 'black';
+  if (typeof updateCaptures === 'function') updateCaptures();
+  if (typeof drawBoard === 'function') drawBoard();
+  if (typeof updateStatus === 'function') updateStatus();
+  _rtcApplyingRemote = false;
+}
+
+/* Envoie automatiquement chaque coup local des qu'il est joue -- le drapeau
+   _rtcApplyingRemote evite de renvoyer en echo un coup qu'on vient de
+   recevoir (sinon boucle infinie coup recu -> re-emis -> recu ailleurs...). */
+document.addEventListener('abalassembly:movePlayed', function(){
+  if (_rtcApplyingRemote) return;
+  if (!_rtcChannel || _rtcChannel.readyState !== 'open') return;
+  if (typeof boardSnapshots === 'undefined' || !boardSnapshots.length) return;
+  const last = boardSnapshots[boardSnapshots.length - 1];
+  if (!last || !last.moveInfo) return;
+  rtcSendMove(last.moveInfo.cells, last.moveInfo.dir);
+});
+
+function _rtcUpdateStatus(text){
+  const el = document.getElementById('rtc-status');
+  if (el) el.textContent = text;
+}
+
+function openRtcPanel(){
+  let modal = document.getElementById('rtc-modal');
+  if (modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'rtc-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:3500;background:rgba(13,15,14,0.92);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML =
+    '<div style="max-width:520px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:24px;max-height:90vh;overflow-y:auto">'
+    + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:6px">Partie en direct <span style="font-size:11px;color:var(--muted);font-weight:400">(expérimental)</span></h3>'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Connexion directe entre deux navigateurs, sans compte ni serveur de jeu — juste un serveur public pour aider les deux appareils à se trouver. Un seul échange de code au début, puis les coups circulent tout seuls.</div>'
+    + '<div id="rtc-status" style="font-size:13px;color:var(--gold);margin-bottom:14px;min-height:18px">⚪ Non connecté</div>'
+    + '<div style="display:flex;gap:8px;margin-bottom:14px">'
+    + '<button class="ctrl-btn" onclick="_rtcUiCreateOffer()" style="flex:1">Créer une partie</button>'
+    + '<button class="ctrl-btn" onclick="_rtcUiShowJoin()" style="flex:1">Rejoindre</button>'
+    + '</div>'
+    + '<div id="rtc-ui-body"></div>'
+    + '<div style="display:flex;gap:8px;margin-top:14px;justify-content:space-between">'
+    + '<button class="ctrl-btn" onclick="openGameCodePanel()" style="width:auto;padding:8px 12px;font-size:12px" title="Solution de repli fiable si la connexion directe ne marche pas">Utiliser « Partie par code » à la place</button>'
+    + '<button class="ctrl-btn" onclick="document.getElementById(\'rtc-modal\').remove()" style="width:auto;padding:8px 16px">Fermer</button>'
+    + '</div></div>';
+  document.body.appendChild(modal);
+}
+
+async function _rtcUiCreateOffer(){
+  const body = document.getElementById('rtc-ui-body');
+  if (body) body.innerHTML = '<div style="font-size:12px;color:var(--muted)">Préparation du code…</div>';
+  const code = await rtcCreateOffer();
+  if (!body) return;
+  body.innerHTML =
+    '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">1. ENVOIE CE CODE À TON ADVERSAIRE</div>'
+    + '<textarea readonly style="width:100%;height:70px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:11px;word-break:break-all" onclick="this.select()">' + code + '</textarea>'
+    + '<button class="ctrl-btn" onclick="navigator.clipboard&&navigator.clipboard.writeText(\'' + code.replace(/'/g,"\\'") + '\').then(()=>showToast(\'Code copié\'))" style="width:100%;margin-top:6px">Copier</button>'
+    + '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin:14px 0 6px">2. COLLE SA RÉPONSE ICI</div>'
+    + '<textarea id="rtc-answer-in" placeholder="WEBRTC1:answer:..." style="width:100%;height:70px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:11px"></textarea>'
+    + '<button class="ctrl-btn" onclick="_rtcUiAcceptAnswer()" style="width:100%;margin-top:6px">Se connecter</button>';
+}
+
+function _rtcUiShowJoin(){
+  const body = document.getElementById('rtc-ui-body');
+  if (!body) return;
+  body.innerHTML =
+    '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">COLLE LE CODE REÇU</div>'
+    + '<textarea id="rtc-offer-in" placeholder="WEBRTC1:offer:..." style="width:100%;height:70px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:11px"></textarea>'
+    + '<button class="ctrl-btn" onclick="_rtcUiAcceptOffer()" style="width:100%;margin-top:6px">Générer ma réponse</button>'
+    + '<div id="rtc-answer-out-wrap"></div>';
+}
+
+async function _rtcUiAcceptOffer(){
+  const input = document.getElementById('rtc-offer-in');
+  if (!input) return;
+  const result = await rtcAcceptOffer(input.value);
+  const wrap = document.getElementById('rtc-answer-out-wrap');
+  if (!wrap) return;
+  if (!result.ok) { wrap.innerHTML = '<div style="color:#e05c4b;font-size:12px;margin-top:8px">' + result.reason + '</div>'; return; }
+  wrap.innerHTML =
+    '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin:14px 0 6px">RENVOIE CE CODE À TON ADVERSAIRE</div>'
+    + '<textarea readonly style="width:100%;height:70px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:11px;word-break:break-all" onclick="this.select()">' + result.code + '</textarea>'
+    + '<button class="ctrl-btn" onclick="navigator.clipboard&&navigator.clipboard.writeText(\'' + result.code.replace(/'/g,"\\'") + '\').then(()=>showToast(\'Code copié\'))" style="width:100%;margin-top:6px">Copier</button>'
+    + '<div style="font-size:11px;color:var(--muted);margin-top:8px">Connexion en cours d\'établissement dès que ton adversaire aura collé ce code chez lui…</div>';
+}
+
+async function _rtcUiAcceptAnswer(){
+  const input = document.getElementById('rtc-answer-in');
+  if (!input) return;
+  const result = await rtcAcceptAnswer(input.value);
+  if (!result.ok) { _rtcUpdateStatus('🔴 ' + result.reason); return; }
+  _rtcUpdateStatus('🟡 Réponse acceptée — connexion en cours…');
 }
 
 function openGameCodePanel() {
