@@ -29226,17 +29226,38 @@ document.addEventListener('DOMContentLoaded', function() {
    celui qui le recoit rejoue tout contre le vrai moteur et refuse le code
    au premier coup illegal, au lieu de faire confiance. */
 
-const GAME_CODE_TAG = 'ABAL1';
+/* ═══════════════════════════════════════════
+   NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du format existant.
+   ABAL1:layout:body -> ABAL1:layout:nomNoir|nomBlanc:body
+   Noir commence toujours (convention Abalone deja en place dans
+   gameCodeLoad : turn='black' au depart) -- les noms sont ranges par
+   COULEUR, pas par "qui envoie", pour eviter toute ambiguite au fil des
+   echanges. Case vide si ce joueur n'a pas encore renseigne son nom
+   (le premier code envoye ne connait souvent que l'expediteur).
+   Noms assainis (memes caracteres que les pseudos de connexion existants :
+   lettres, chiffres, espace, tiret, underscore) pour ne jamais casser le
+   format -- ':' et '|' explicitement interdits car ce sont les separateurs.
+═══════════════════════════════════════════ */
+function _gcSanitizeName(name){
+  return String(name || '').trim().replace(/[^a-zA-Z0-9 _\-À-ÿ]/g, '').slice(0, 24);
+}
+/* Le code entier passe par un .replace(/\s+/g,'') a l'analyse (herite de
+   l'ancien format, utile pour tolerer un copier-coller avec des retours a
+   la ligne) -- donc un nom contenant un espace doit etre encode SANS
+   espace dans le code lui-meme. Remplace par underscore a l'encodage,
+   reconverti a l'affichage. */
+function _gcEncodeNameForCode(name){ return _gcSanitizeName(name).replace(/ /g, '_'); }
+function _gcDecodeNameFromCode(name){ return String(name || '').replace(/_/g, ' '); }
 
-function _gcDirIndex(dir) {
-  if (!dir) return -1;
-  for (let i = 0; i < AX_DIRS.length; i++) {
-    if (AX_DIRS[i].q === dir.q && AX_DIRS[i].r === dir.r) return i;
-  }
-  return -1;
+let gcMyName = '';
+try { gcMyName = localStorage.getItem('abaGcMyName') || ''; } catch(e){}
+function gcSetMyName(name){
+  gcMyName = _gcSanitizeName(name);
+  try { localStorage.setItem('abaGcMyName', gcMyName); } catch(e){}
 }
 
-/* Code de la partie en cours, ou null si l'historique est incomplet. */
+let gcBlackName = '', gcWhiteName = '';
+
 function gameCodeEncode() {
   if (typeof boardSnapshots === 'undefined' || !boardSnapshots.length) return null;
   const layout = (typeof currentLayout !== 'undefined') ? currentLayout : 'standard';
@@ -29250,15 +29271,31 @@ function gameCodeEncode() {
     for (let k = 0; k < mi.cells.length; k++) body += coordToABAPRO(mi.cells[k].r, mi.cells[k].c);
     body += String(di);
   }
-  return GAME_CODE_TAG + ':' + layout + ':' + body;
+  const names = _gcEncodeNameForCode(gcBlackName) + '|' + _gcEncodeNameForCode(gcWhiteName);
+  return GAME_CODE_TAG + ':' + layout + ':' + names + ':' + body;
 }
 
-/* Analyse syntaxique seule : ne touche pas au plateau. */
+/* Analyse syntaxique seule : ne touche pas au plateau.
+   Accepte AUSSI l'ancien format sans noms (ABAL1:layout:body), pour ne
+   jamais rejeter un code genere par une version anterieure du site. */
 function gameCodeParse(code) {
-  const m = String(code || '').trim().replace(/\s+/g, '').match(/^ABAL1:([a-z_]+):([a-i0-9]*)$/i);
-  if (!m) return { ok: false, reason: 'format non reconnu — le code commence par ABAL1:' };
-  const layout = m[1].toLowerCase();
-  const body = m[2].toLowerCase();
+  const s = String(code || '').trim().replace(/\s+/g, '');
+  const withNames = s.match(/^ABAL1:([a-z_]+):([^:]*)\|([^:]*):([a-i0-9]*)$/i);
+  if (withNames) {
+    const layout = withNames[1].toLowerCase();
+    const blackName = _gcDecodeNameFromCode(withNames[2]);
+    const whiteName = _gcDecodeNameFromCode(withNames[3]);
+    const body = withNames[4].toLowerCase();
+    return _gcParseBody(layout, body, blackName, whiteName);
+  }
+  const legacy = s.match(/^ABAL1:([a-z_]+):([a-i0-9]*)$/i);
+  if (legacy) {
+    return _gcParseBody(legacy[1].toLowerCase(), legacy[2].toLowerCase(), '', '');
+  }
+  return { ok: false, reason: 'format non reconnu — le code commence par ABAL1:' };
+}
+
+function _gcParseBody(layout, body, blackName, whiteName){
   const moves = [];
   let i = 0;
   while (i < body.length) {
@@ -29278,7 +29315,7 @@ function gameCodeParse(code) {
     moves.push({ cells: cells, dir: AX_DIRS[di] });
     i += need;
   }
-  return { ok: true, layout: layout, moves: moves };
+  return { ok: true, layout: layout, moves: moves, blackName: blackName, whiteName: whiteName };
 }
 
 /* Rejoue le code sur le plateau, chaque coup verifie contre le moteur.
@@ -29287,6 +29324,8 @@ function gameCodeParse(code) {
 function gameCodeLoad(code) {
   const parsed = gameCodeParse(code);
   if (!parsed.ok) return parsed;
+  gcBlackName = parsed.blackName || gcBlackName;
+  gcWhiteName = parsed.whiteName || gcWhiteName;
 
   const savedLayout = (typeof currentLayout !== 'undefined') ? currentLayout : 'standard';
   if (typeof currentLayout !== 'undefined') currentLayout = parsed.layout;
@@ -29315,8 +29354,25 @@ function gameCodeLoad(code) {
   return { ok: true, plies: parsed.moves.length, turn: turn, layout: parsed.layout };
 }
 
+function _gcGuessMyColor(){
+  // Devine une couleur de depart raisonnable : partie vierge -> noir (premier
+  // a jouer) ; partie deja en cours (code recu) -> la couleur actuellement
+  // au trait, puisque c'est celle qui va jouer ensuite dans CE navigateur.
+  if (typeof boardSnapshots === 'undefined' || !boardSnapshots.length) return 'black';
+  return (typeof currentTurn !== 'undefined') ? currentTurn : 'black';
+}
+function gcApplyMyName(){
+  const input = document.getElementById('gamecode-myname');
+  const color = document.querySelector('input[name="gc-color"]:checked');
+  if (!input || !color) return;
+  gcSetMyName(input.value);
+  if (color.value === 'black') gcBlackName = gcMyName; else gcWhiteName = gcMyName;
+  openGameCodePanel(); // rafraichit le code affiche avec le nom mis a jour
+}
+
 function openGameCodePanel() {
   const code = gameCodeEncode();
+  const myColorGuess = _gcGuessMyColor();
   let modal = document.getElementById('gamecode-modal');
   if (modal) modal.remove();
   modal = document.createElement('div');
@@ -29326,6 +29382,14 @@ function openGameCodePanel() {
     '<div style="max-width:520px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:24px;max-height:90vh;overflow-y:auto">'
     + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:6px">Partie par code</h3>'
     + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Joue ton coup, copie le code, envoie-le. Ton adversaire le colle, joue, et te renvoie le sien. Aucun compte, aucun serveur.</div>'
+    + (gcBlackName || gcWhiteName ? '<div style="font-size:13px;color:var(--gold);margin-bottom:12px">⚫ ' + (gcBlackName || '?') + '  vs  ⚪ ' + (gcWhiteName || '?') + '</div>' : '')
+    + '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">TON NOM (optionnel, apparait dans le code)</div>'
+    + '<div style="display:flex;gap:8px;margin-bottom:14px">'
+    + '<input id="gamecode-myname" value="' + (gcMyName || '').replace(/"/g,'&quot;') + '" placeholder="Ton prenom" maxlength="24" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px">'
+    + '<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)"><input type="radio" name="gc-color" value="black"' + (myColorGuess==='black'?' checked':'') + '>⚫</label>'
+    + '<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)"><input type="radio" name="gc-color" value="white"' + (myColorGuess==='white'?' checked':'') + '>⚪</label>'
+    + '<button class="ctrl-btn" onclick="gcApplyMyName()" style="width:auto;padding:8px 12px">OK</button>'
+    + '</div>'
     + '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">TON CODE'
     + (code ? '' : ' — aucun coup joue pour l\'instant') + '</div>'
     + '<textarea id="gamecode-out" readonly style="width:100%;height:80px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:12px;word-break:break-all">'
