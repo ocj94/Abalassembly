@@ -8767,6 +8767,20 @@ function openGameSetup() {
   const info = document.getElementById('setup-diff-info');
   const cfg = (typeof AI_DIFFICULTY_CONFIG !== 'undefined') ? AI_DIFFICULTY_CONFIG[_setupCfg.diff] : null;
   if (info && cfg) info.textContent = cfg.label;
+  // Reflete le moteur reellement actif (choisi ici ou depuis Labo IA) plutot
+  // que de toujours reafficher "Moteur actuel" par defaut -- sans ca, un
+  // choix fait dans Labo IA etait silencieusement ecrase des qu'on lancait
+  // une partie depuis cet ecran sans y retoucher. Trouve en testant le
+  // scenario reel avant de documenter (a tort) une synchronisation qui
+  // n'existait pas encore.
+  const liveEngine = (typeof _engineMode !== 'undefined' && _engineMode) ? _engineMode : 'actuel';
+  _setupCfg.engine = liveEngine;
+  const engineBox = document.getElementById('setup-engine');
+  if (engineBox) {
+    engineBox.querySelectorAll('.setup-opt').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('onclick') === "setupPick('engine','" + liveEngine + "',this)");
+    });
+  }
 }
 
 /* Applique toute la configuration puis bascule sur le plateau. */
