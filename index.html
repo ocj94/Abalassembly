@@ -8318,8 +8318,14 @@ function renderEngageBar() {
   ];
   let quickHtml = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:14px">';
   quickLinks.forEach(function(q){
+    // "Jouer" doit passer par la configuration de partie (openGameSetup),
+    // pas sauter dessus -- meme comportement que le lien equivalent dans
+    // la barre laterale (sidebarNav('setup',...)). Signale par Olivier :
+    // la carte d'accueil demarrait une partie directement avec les
+    // derniers reglages, sans jamais repasser par l'ecran de configuration.
+    const handler = (q.page === 'game') ? 'openGameSetup()' : ('showPage(\''+q.page+'\')');
     quickHtml +=
-      '<button onclick="showPage(\''+q.page+'\')" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 10px;border-radius:14px;background:var(--surface);border:1px solid var(--border);transition:transform .15s,border-color .15s" '+
+      '<button onclick="'+handler+'" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 10px;border-radius:14px;background:var(--surface);border:1px solid var(--border);transition:transform .15s,border-color .15s" '+
       'onmouseover="this.style.transform=\'translateY(-3px)\';this.style.borderColor=\''+q.color+'\'" '+
       'onmouseout="this.style.transform=\'\';this.style.borderColor=\'var(--border)\'">'+
         '<span style="font-size:26px">'+q.icon+'</span>'+
