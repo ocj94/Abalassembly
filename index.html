@@ -29391,13 +29391,39 @@ function _gcGuessMyColor(){
   if (typeof boardSnapshots === 'undefined' || !boardSnapshots.length) return 'black';
   return (typeof currentTurn !== 'undefined') ? currentTurn : 'black';
 }
-function gcApplyMyName(){
+let _gcMyColorChoice = null;
+
+/* Met a jour uniquement le code affiche + la ligne "vs", sans toucher au
+   champ de saisie lui-meme -- reconstruire tout le modal a chaque frappe
+   ferait perdre le focus et la position du curseur en pleine saisie. */
+function _gcRefreshCodeDisplay(){
+  const out = document.getElementById('gamecode-out');
+  if (out) out.value = gameCodeEncode() || '';
+  const vsLine = document.getElementById('gamecode-vs-line');
+  if (vsLine) {
+    if (gcBlackName || gcWhiteName) {
+      vsLine.style.display = '';
+      const vb = document.getElementById('gc-vs-black'); if (vb) vb.textContent = gcBlackName || '?';
+      const vw = document.getElementById('gc-vs-white'); if (vw) vw.textContent = gcWhiteName || '?';
+    } else {
+      vsLine.style.display = 'none';
+    }
+  }
+}
+function gcOnNameInput(){
   const input = document.getElementById('gamecode-myname');
-  const color = document.querySelector('input[name="gc-color"]:checked');
-  if (!input || !color) return;
+  if (!input) return;
   gcSetMyName(input.value);
-  if (color.value === 'black') gcBlackName = gcMyName; else gcWhiteName = gcMyName;
-  openGameCodePanel(); // rafraichit le code affiche avec le nom mis a jour
+  if (_gcMyColorChoice === 'black') gcBlackName = gcMyName; else if (_gcMyColorChoice === 'white') gcWhiteName = gcMyName;
+  _gcRefreshCodeDisplay();
+}
+function gcSetMyColor(color){
+  _gcMyColorChoice = color;
+  const bEl = document.getElementById('gc-color-black'), wEl = document.getElementById('gc-color-white');
+  if (bEl) bEl.style.cssText = 'cursor:pointer;font-size:22px;line-height:1;padding:4px;border-radius:50%;' + (color==='black' ? 'background:rgba(200,168,75,0.25)' : 'opacity:.35');
+  if (wEl) wEl.style.cssText = 'cursor:pointer;font-size:22px;line-height:1;padding:4px;border-radius:50%;' + (color==='white' ? 'background:rgba(200,168,75,0.25)' : 'opacity:.35');
+  if (color === 'black') gcBlackName = gcMyName; else gcWhiteName = gcMyName;
+  _gcRefreshCodeDisplay();
 }
 
 /* ═══════════════════════════════════════════
@@ -29627,7 +29653,14 @@ function openRtcPanel(){
 async function _rtcUiCreateOffer(){
   const body = document.getElementById('rtc-ui-body');
   if (body) body.innerHTML = '<div style="font-size:12px;color:var(--muted)">Préparation du code…</div>';
-  const code = await rtcCreateOffer();
+  let code;
+  try {
+    code = await rtcCreateOffer();
+  } catch(e) {
+    if (body) body.innerHTML = '<div style="color:#e05c4b;font-size:12px">Échec de la préparation de la connexion (réseau ou pare-feu). Utilise « Partie par code » ci-dessous — ça marche toujours.</div>';
+    _rtcUpdateStatus('🔴 Échec — utilise "Partie par code"');
+    return;
+  }
   if (!body) return;
   body.innerHTML =
     '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">1. ENVOIE CE CODE À TON ADVERSAIRE</div>'
@@ -29651,8 +29684,14 @@ function _rtcUiShowJoin(){
 async function _rtcUiAcceptOffer(){
   const input = document.getElementById('rtc-offer-in');
   if (!input) return;
-  const result = await rtcAcceptOffer(input.value);
   const wrap = document.getElementById('rtc-answer-out-wrap');
+  let result;
+  try {
+    result = await rtcAcceptOffer(input.value);
+  } catch(e) {
+    if (wrap) wrap.innerHTML = '<div style="color:#e05c4b;font-size:12px;margin-top:8px">Échec de la connexion (réseau ou pare-feu). Utilise « Partie par code » ci-dessous — ça marche toujours.</div>';
+    return;
+  }
   if (!wrap) return;
   if (!result.ok) { wrap.innerHTML = '<div style="color:#e05c4b;font-size:12px;margin-top:8px">' + result.reason + '</div>'; return; }
   wrap.innerHTML =
@@ -29665,7 +29704,13 @@ async function _rtcUiAcceptOffer(){
 async function _rtcUiAcceptAnswer(){
   const input = document.getElementById('rtc-answer-in');
   if (!input) return;
-  const result = await rtcAcceptAnswer(input.value);
+  let result;
+  try {
+    result = await rtcAcceptAnswer(input.value);
+  } catch(e) {
+    _rtcUpdateStatus('🔴 Échec de la connexion — utilise "Partie par code"');
+    return;
+  }
   if (!result.ok) { _rtcUpdateStatus('🔴 ' + result.reason); return; }
   _rtcUpdateStatus('🟡 Réponse acceptée — connexion en cours…');
 }
@@ -29673,6 +29718,7 @@ async function _rtcUiAcceptAnswer(){
 function openGameCodePanel() {
   const code = gameCodeEncode();
   const myColorGuess = _gcGuessMyColor();
+  if (!_gcMyColorChoice) _gcMyColorChoice = myColorGuess;
   let modal = document.getElementById('gamecode-modal');
   if (modal) modal.remove();
   modal = document.createElement('div');
@@ -29682,13 +29728,12 @@ function openGameCodePanel() {
     '<div style="max-width:520px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:24px;max-height:90vh;overflow-y:auto">'
     + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:6px">Partie par code</h3>'
     + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Joue ton coup, copie le code, envoie-le. Ton adversaire le colle, joue, et te renvoie le sien. Aucun compte, aucun serveur.</div>'
-    + (gcBlackName || gcWhiteName ? '<div style="font-size:13px;color:var(--gold);margin-bottom:12px">⚫ ' + (gcBlackName || '?') + '  vs  ⚪ ' + (gcWhiteName || '?') + '</div>' : '')
-    + '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">TON NOM (optionnel, apparait dans le code)</div>'
-    + '<div style="display:flex;gap:8px;margin-bottom:14px">'
-    + '<input id="gamecode-myname" value="' + (gcMyName || '').replace(/"/g,'&quot;') + '" placeholder="Ton prenom" maxlength="24" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px">'
-    + '<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)"><input type="radio" name="gc-color" value="black"' + (myColorGuess==='black'?' checked':'') + '>⚫</label>'
-    + '<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)"><input type="radio" name="gc-color" value="white"' + (myColorGuess==='white'?' checked':'') + '>⚪</label>'
-    + '<button class="ctrl-btn" onclick="gcApplyMyName()" style="width:auto;padding:8px 12px">OK</button>'
+    + '<div id="gamecode-vs-line" style="font-size:13px;color:var(--gold);margin-bottom:12px;' + ((gcBlackName || gcWhiteName) ? '' : 'display:none') + '">⚫ <span id="gc-vs-black">' + (gcBlackName || '?') + '</span>  vs  ⚪ <span id="gc-vs-white">' + (gcWhiteName || '?') + '</span></div>'
+    + '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">TON NOM (optionnel, apparait dans le code, s\'applique en tapant)</div>'
+    + '<div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">'
+    + '<input id="gamecode-myname" oninput="gcOnNameInput()" value="' + (gcMyName || '').replace(/"/g,'&quot;') + '" placeholder="Ton prenom" maxlength="24" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px">'
+    + '<span id="gc-color-black" onclick="gcSetMyColor(\'black\')" style="cursor:pointer;font-size:22px;line-height:1;padding:4px;border-radius:50%;' + (_gcMyColorChoice==='black' ? 'background:rgba(200,168,75,0.25)' : 'opacity:.35') + '" title="Je joue noir">⚫</span>'
+    + '<span id="gc-color-white" onclick="gcSetMyColor(\'white\')" style="cursor:pointer;font-size:22px;line-height:1;padding:4px;border-radius:50%;' + (_gcMyColorChoice==='white' ? 'background:rgba(200,168,75,0.25)' : 'opacity:.35') + '" title="Je joue blanc">⚪</span>'
     + '</div>'
     + '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">TON CODE'
     + (code ? '' : ' — aucun coup joue pour l\'instant') + '</div>'
