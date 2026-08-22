@@ -3159,6 +3159,20 @@ document.addEventListener('keydown', function(e){
       <div id="setup-diff-info" style="font-size:11px;color:var(--muted);margin-top:6px"></div>
     </div>
 
+    <!-- Moteur (experimental) : meme _engineMode que Labo IA, choisi ici
+         AVANT de jouer plutot que de devoir aller le changer dans Labo IA
+         a chaque partie. Demande d'Olivier. -->
+    <div class="setup-card" id="setup-engine-card">
+      <div class="setup-h">Moteur <span style="font-size:11px;color:var(--muted);font-weight:400">(expérimental)</span></div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Sur 15 parties de test équitables, le moteur actuel gagne 8, le NNUE gagne 2, 5 nulles — proposé par transparence sur ce qu'on a essayé, pas comme une amélioration.</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap" id="setup-engine">
+        <button onclick="setupPick('engine','actuel',this)" class="setup-opt active">Moteur actuel</button>
+        <button onclick="setupPick('engine','nnue-eval',this)" class="setup-opt" title="2 victoires / 8 défaites / 5 nulles sur 15 parties de test">NNUE — évaluation</button>
+        <button onclick="setupPick('engine','nnue-order',this)" class="setup-opt" title="+2,7% de nœuds explorés à résultat égal — pas d'amélioration mesurée">NNUE — ordonnancement</button>
+        <button onclick="setupPick('engine','nnue-both',this)" class="setup-opt" title="Résultat quasi identique au mode évaluation seule">NNUE — combiné</button>
+      </div>
+    </div>
+
     <!-- Cadence -->
     <div class="setup-card">
       <div class="setup-h">Cadence</div>
@@ -8713,7 +8727,7 @@ function resetA11y() {
    Les choix sont accumules dans _setupCfg puis appliques d'un coup au
    demarrage. Variante et camp ne sont modifiables qu'ici ; le reste reste
    ajustable en jeu. */
-let _setupCfg = { layout:'standard', mode:'ai', first:'black', style:'auto', diff:'easy', time:'', hints:true, coords:false };
+let _setupCfg = { layout:'standard', mode:'ai', first:'black', style:'auto', diff:'easy', time:'', hints:true, coords:false, engine:'actuel' };
 
 function setupPick(group, value, btn) {
   _setupCfg[group] = value;
@@ -8724,9 +8738,11 @@ function setupPick(group, value, btn) {
   if (group === 'mode') {
     const isAI = value === 'ai';
     const styleCard = document.getElementById('setup-style-card');
+    const engineCard = document.getElementById('setup-engine-card');
     const firstWrap = document.getElementById('setup-first-wrap');
     const firstBox = document.getElementById('setup-first');
     if (styleCard) styleCard.style.display = isAI ? '' : 'none';
+    if (engineCard) engineCard.style.display = isAI ? '' : 'none';
     if (firstWrap) firstWrap.style.display = isAI ? '' : 'none';
     if (firstBox) firstBox.style.display = isAI ? '' : 'none';
   }
@@ -8799,6 +8815,7 @@ function startConfiguredGame() {
         b.classList.toggle('active', b.id === 'diff-' + c.diff);
       });
     });
+    step(function(){ if (typeof _engineMode !== 'undefined') _engineMode = (c.engine === 'actuel') ? null : c.engine; });
   }
 
   step(function(){ if (typeof setTimeControl === 'function') setTimeControl(c.time); });
