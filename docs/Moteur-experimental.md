@@ -1,6 +1,8 @@
 # Moteur expérimental (NNUE)
 
-Dans **Labo IA**, une section « Moteur expérimental (NNUE) » propose de remplacer certains rouages du moteur de jeu par un petit réseau de neurones entraîné sur les vraies parties du corpus. C'est une option, pas un remplacement — le moteur actuel (poids réglés à la main et par SPSA) reste l'IA par défaut.
+Une section « Moteur expérimental (NNUE) » propose de remplacer certains rouages du moteur de jeu par un petit réseau de neurones entraîné sur les vraies parties du corpus. C'est une option, pas un remplacement — le moteur actuel (poids réglés à la main et par SPSA) reste l'IA par défaut.
+
+**Deux endroits pour le choisir** : directement dans l'écran de configuration avant de lancer une partie (le plus pratique au quotidien), ou dans **Labo IA** (pour le tester isolément sans lancer de vraie partie). Les deux utilisent exactement le même réglage — le choix fait dans l'un se reflète dans l'autre.
 
 ## Ce que c'est
 
