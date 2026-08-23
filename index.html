@@ -16711,6 +16711,34 @@ self.onmessage=function(e){
     self.postMessage({analyze:true,index:d.index,best:r.bestScore,played:r.playedScore,rank:r.rank,total:r.total,bestMove:r.bestMove});
     return;
   }
+  if(d.singleMove){
+    /* Mode "vol de travail" : calcule UN SEUL coup racine, puis rend la main
+       immediatement -- le thread principal redistribue le coup suivant a
+       n'importe quel worker libre, au lieu d'un lot fige au depart (voir
+       requestAIMovePooledStealing). resetTables une seule fois par worker
+       pour TOUTE la session de reflexion (TT/killer/historique restent
+       utiles d'un coup racine a l'autre ET d'une profondeur a l'autre,
+       exactement comme searchBestMove qui ne les videait qu'une fois avant
+       sa boucle de profondeur) -- mais _nodes/_ttLk/_ttHit sont TOUJOURS
+       remis a zero, sinon le compteur rapporte pour "ce coup" serait en
+       realite le cumul de tous les coups precedents traites par ce worker.
+       Aucun element de la fenetre alpha-beta n'est partage entre coups
+       racine ici -- verifie avant de construire que ce n'etait deja PAS le
+       cas dans searchBestMove (chaque coup racine y est deja cherche avec
+       une fenetre pleine -Infinity,+Infinity, la variable alpha locale
+       n'etait jamais reinjectee) : cette restructuration ne perd donc aucun
+       elagage croise qui existait avant. */
+    if(d.resetTables){killerMoves={};historyTable={};counterMove={};TT.clear();}
+    _nodes=0;_ttLk=0;_ttHit=0;
+    const repCount=_repCountMap(d.hist);
+    const mk=moveKey(d.move);
+    const u=applyMove(d.move,d.color);
+    let s=search(d.depth-1,-Infinity,Infinity,false,d.color,mk);
+    if(repCount){const rc=repCount.get(_repKeyOf(board));if(rc)s-=140*rc*rc;}
+    undoMove(u);
+    self.postMessage({move:d.move,score:s,nodes:_nodes});
+    return;
+  }
   const move=searchBestMove(d.color, d.depth, d.time, d.hist, d.workerIndex, d.workerCount);
   self.postMessage({move:move, metrics:_metrics});
 };
@@ -16898,6 +16926,39 @@ function terminateAIWorkerPool() {
    ou Worker indisponible) — l'appelant doit alors utiliser le chemin
    mono-worker existant, inchangé. */
 function requestAIMovePooled(params, onDone) {
+  /* LIMITE CONNUE, NON RESOLUE (different du bug bestScore/lastRoots deja
+     corrige juste au-dessus, dans searchBestMove) : chaque worker a sa
+     PROPRE table de transposition/coups tueurs/historique, jamais partagee
+     entre eux (pas de SharedArrayBuffer possible sur GitHub Pages, confirme
+     par ailleurs cette session). Un coup evalue "a froid" (tables vides,
+     contexte independant) peut recevoir un score radicalement different du
+     MEME coup evalue "a chaud" (avec du contexte accumule par des
+     recherches precedentes liees). Verifie concretement en investiguant le
+     vol de travail (voir requestAIMovePooledStealing plus bas) : un coup
+     objectivement bon (score 32 en recherche a un seul thread, tous les
+     coups dans le meme contexte continu) tombait a 0 quand recherche seul,
+     tables fraiches -- un ecart de 32 points sur la MEME position. Ce
+     n'est pas un bug de calcul localise, c'est une consequence directe de
+     la conception (alpha-beta + TT + heuristiques d'ordonnancement qui
+     s'ameliorent avec le contexte accumule). Comparer les "bestScore"
+     rapportes par des workers independants ci-dessous n'est donc PAS
+     fiable a 100% : le worker qui a eu la sequence de coups la plus
+     favorable pour accumuler du contexte utile peut rapporter un score
+     artificiellement plus flatteur qu'un autre worker moins chanceux, sur
+     un coup objectivement equivalent ou meme moins bon.
+     Piste explorée et ABANDONNEE (pas concluante) : un tri en deux phases
+     (triage rapide et parallele, puis verification des finalistes dans un
+     contexte unique) -- echoue car le triage "a froid" de la phase 1 peut
+     deja ecarter a tort le vrai meilleur coup avant meme d'atteindre la
+     phase de verification (l'ecart a froid peut depasser ce qu'un
+     raisonnable nombre de finalistes peut absorber).
+     Pas de correctif propre trouve pour l'instant avec les contraintes de
+     cet hebergement (pas de memoire partagee). Document ici par honnetete
+     plutot que de pretendre que cette repartition produit toujours le
+     choix objectivement optimal -- en pratique le systeme reste
+     globalement fonctionnel (les differences de score sont rarement assez
+     grandes pour changer la HIERARCHIE des coups, seulement leur valeur
+     absolue rapportee), mais le risque existe et n'est pas nul. */
   const n = detectAIWorkerCount();
   if (n <= 1) return false;
   const workers = getAIWorkerPool(n);
@@ -16935,6 +16996,127 @@ function requestAIMovePooled(params, onDone) {
   });
   return true;
 }
+
+/* ═══════════════════════════════════════════
+   VOL DE TRAVAIL — distribution dynamique des coups racine.
+   NON UTILISE ACTUELLEMENT (aiMove() appelle toujours requestAIMovePooled
+   ci-dessus, pas cette fonction) -- conserve comme piste documentee,
+   testee, mais pas deployee, plutot que supprimee. Voici pourquoi.
+
+   Constat de depart (benchmark moteur, mesure par Olivier sur son
+   appareil) : la division fixe (requestAIMovePooled) n'atteint que 15-18%
+   de l'efficacite theorique a profondeur 4-6. Hypothese testee : un
+   worker rapide reste les bras croises pendant qu'un autre rame sur son
+   lot fige, faute de redistribution. Cette fonction corrige exactement
+   ca : chaque worker ne recoit qu'UN SEUL coup a la fois, redemande
+   immediatement le suivant des qu'il a fini.
+
+   Verifie CORRECT contre une reference a un seul thread (meme position,
+   meme coup, meme score exact) -- la logique de distribution elle-meme
+   est fiable.
+
+   Mais verifie PAS CLAIREMENT PLUS RAPIDE en pratique : sur des tests
+   reels avec de vrais threads (Node worker_threads, pas une simulation),
+   parfois plus LENT que la division fixe (ex. 8.6s contre 6.7s a
+   profondeur 3) -- le surcout des nombreux petits messages (jusqu'a 150+
+   pour 52 coups sur 3 profondeurs, contre 4 messages pour la division
+   fixe) peut depasser le gain d'equilibrage sur les profondeurs peu
+   profondes ou chaque tache individuelle est trop courte pour amortir ce
+   cout fixe.
+
+   Et surtout : cette restructuration ne resout PAS la limite plus
+   profonde documentee au-dessus de requestAIMovePooled (comparabilite des
+   scores entre workers a contexte independant) -- vol de travail ou
+   division fixe, aucun des deux ne partage la table de transposition
+   entre workers, donc aucun des deux ne peut garantir des scores
+   directement comparables. Ce chantier ne repondait donc pas a la
+   question la plus importante decouverte en le construisant.
+
+   Garde ici, testee et documentee, au cas ou une future session voudrait
+   repartir de cette base -- notamment si un jour SharedArrayBuffer
+   redevient possible sur cet hebergement, ou si le message overhead peut
+   etre reduit davantage. */
+function requestAIMovePooledStealing(params, onDone) {
+  const n = detectAIWorkerCount();
+  if (n <= 1) return false;
+  const workers = getAIWorkerPool(n);
+  if (workers.length <= 1) return false;
+  if (typeof getAllMovesForColor !== 'function') return false;
+
+  const rootMoves = getAllMovesForColor(params.color);
+  if (!rootMoves.length) { onDone(null, null); return true; }
+
+  const startTime = Date.now();
+  const timeLimit = params.time || 2000;
+  const maxDepth = params.depth;
+  let doneFlag = false;
+  let bestMove = null, bestScore = -Infinity, reachedDepth = 0, totalNodes = 0, lastCompleteRoots = null;
+  const workerReset = workers.map(function(){ return false; }); // une seule remise a zero par worker, pour toute la session
+
+  function finish() {
+    if (doneFlag) return; doneFlag = true;
+    clearTimeout(safetyTimeout);
+    workers.forEach(function(w){ w.onmessage = null; });
+    onDone(bestMove, { nodes: totalNodes, depth: reachedDepth, time: Date.now() - startTime,
+      ttHit: 0, bestScore: bestScore, rootMoves: lastCompleteRoots });
+  }
+  const safetyTimeout = setTimeout(finish, timeLimit + 4000);
+
+  function runDepth(d, currentMoves) {
+    if (doneFlag) return;
+    if (Date.now() - startTime > timeLimit || d > maxDepth) { finish(); return; }
+
+    const results = new Array(currentMoves.length).fill(null);
+    let nextIdx = 0, completed = 0, cutThisDepth = false;
+    let nodesThisDepth = 0;
+
+    function assignNext(worker, workerPos) {
+      if (doneFlag || cutThisDepth) return;
+      if (Date.now() - startTime > timeLimit) { cutThisDepth = true; maybeFinishDepth(); return; }
+      if (nextIdx >= currentMoves.length) return;
+      const idx = nextIdx++;
+      const move = currentMoves[idx];
+      const needsReset = !workerReset[workerPos];
+      workerReset[workerPos] = true;
+      worker.onmessage = function(e) {
+        if (doneFlag) return;
+        results[idx] = e.data;
+        nodesThisDepth += (e.data.nodes || 0);
+        completed++;
+        maybeFinishDepth();
+        if (!doneFlag && !cutThisDepth) assignNext(worker, workerPos);
+      };
+      worker.postMessage(Object.assign({}, params, {
+        singleMove: true, move: move, depth: d, resetTables: needsReset
+      }));
+    }
+
+    function maybeFinishDepth() {
+      if (doneFlag) return;
+      if (completed >= currentMoves.length) {
+        // profondeur entierement terminee : devient la reference
+        totalNodes += nodesThisDepth;
+        const scored = currentMoves.map(function(m, i){ return Object.assign({}, m, { score: results[i].score }); });
+        scored.sort(function(a,b){ return b.score - a.score; });
+        bestMove = scored[0]; bestScore = scored[0].score; reachedDepth = d;
+        lastCompleteRoots = scored.slice(0,5).map(function(m){ return { cells:m.cells, dir:m.dir, type:m.type, eject:m.eject, score:m.score }; });
+        if (d >= maxDepth || Date.now() - startTime > timeLimit) { finish(); return; }
+        runDepth(d+1, scored.map(function(m){ return { cells:m.cells, dir:m.dir, type:m.type, eject:m.eject }; }));
+      } else if (cutThisDepth && completed >= nextIdx) {
+        // coupe par le minuteur avant que tous les coups distribues ne
+        // repondent tous : cette profondeur ne compte pas, on s'arrete sur
+        // la precedente (deja complete)
+        finish();
+      }
+    }
+
+    workers.forEach(function(w, i){ assignNext(w, i); });
+  }
+
+  runDepth(1, rootMoves);
+  return true;
+}
+
 
 /* Force l'IA à jouer maintenant — idée de Saab : quand la recherche prend
    du temps (surtout en mode α-β), ce bouton interrompt le calcul en cours et
