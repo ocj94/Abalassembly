@@ -3368,6 +3368,7 @@ document.addEventListener('keydown', function(e){
             <button class="btn-gold" style="padding:12px 28px;font-size:15px;font-weight:600;border:none;border-radius:8px;cursor:pointer" onclick="resetGame()">Nouvelle partie</button>
             <button class="btn-ghost" style="padding:12px 22px;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:none;color:var(--text)" onclick="shareResult()">📤 Partager</button>
             <button class="btn-ghost" style="padding:12px 22px;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:none;color:var(--text)" onclick="hideWinOverlay()">🔍 Revoir la partie</button>
+            <button class="btn-ghost" style="padding:12px 22px;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:none;color:var(--text)" onclick="openMistakesReview()">⚠️ Revoir mes erreurs</button>
           </div>
         </div>
       </div>
@@ -29450,6 +29451,83 @@ function renderAnalysisMoves() {
       + '</span>';
   }
   host.innerHTML = html;
+}
+
+/* Calcule les plus grosses erreurs du JOUEUR HUMAIN dans la partie en cours
+   d'analyse (analysisHistory, deja construit par analysisLoadLastGame()).
+   "Erreur" = plus grosse baisse de l'evaluation statique (evaluateBoard,
+   pas une recherche complete -- rapide, cout negligeable meme sur une
+   partie de 60 coups) entre AVANT et APRES un coup joue par humanColor.
+   Convention : evaluateBoard('black') est TOUJOURS appele du point de vue
+   noir (meme convention que updateAnalysisEval() deja existant) -- la
+   bascule est donc inversee pour les blancs avant d'etre comparee. */
+function computeGameMistakes(humanColor, topN){
+  if (typeof analysisHistory === 'undefined' || analysisHistory.length < 2) return [];
+  const savedB = board, savedCB = capturedByBlack, savedCW = capturedByWhite;
+  const evals = analysisHistory.map(function(snap){
+    board = snap.board; capturedByBlack = snap.capB; capturedByWhite = snap.capW;
+    let s = 0;
+    try { s = evaluateBoard('black'); } catch(e){ s = 0; }
+    return s;
+  });
+  board = savedB; capturedByBlack = savedCB; capturedByWhite = savedCW;
+
+  const mistakes = [];
+  for (let i = 1; i < analysisHistory.length; i++){
+    const moverColor = (analysisHistory[i].turn === 'black') ? 'white' : 'black';
+    if (moverColor !== humanColor) continue;
+    const rawSwing = evals[i] - evals[i-1];
+    const swingForMover = (moverColor === 'black') ? rawSwing : -rawSwing;
+    mistakes.push({ idx: i, swing: swingForMover, label: analysisHistory[i].label });
+  }
+  mistakes.sort(function(a,b){ return a.swing - b.swing; }); // plus negatif = pire, en tete
+  return mistakes.slice(0, topN || 3);
+}
+
+/* Modal "Revoir mes erreurs" -- reutilise analysisLoadLastGame() (deja
+   existant) pour reconstruire analysisHistory depuis la partie qui vient
+   de se terminer, calcule les 3 plus grosses erreurs du joueur humain,
+   et propose de sauter directement dessus dans l'onglet Analyse. */
+function openMistakesReview(){
+  if (typeof analysisLoadLastGame !== 'function' || typeof computeGameMistakes !== 'function') return;
+  const humanC = (typeof humanColor !== 'undefined') ? humanColor : 'black';
+  analysisLoadLastGame();
+  const mistakes = computeGameMistakes(humanC, 3);
+
+  if (typeof hideWinOverlay === 'function') hideWinOverlay();
+  const analyseTab = document.getElementById('gtab-analyse');
+  if (typeof switchGameTab === 'function' && analyseTab) switchGameTab('analyse', analyseTab);
+
+  let modal = document.getElementById('mistakes-modal');
+  if (modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'mistakes-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:3500;background:rgba(13,15,14,0.92);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
+
+  let bodyHtml;
+  if (!mistakes.length) {
+    bodyHtml = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:20px 0">Aucun coup notable à revoir — belle partie !</div>';
+  } else {
+    bodyHtml = mistakes.map(function(m){
+      const loss = Math.abs(m.swing) / 1000; // meme echelle que la barre d'evaluation existante
+      return '<div onclick="analysisGoto(' + m.idx + ');document.getElementById(\'mistakes-modal\').remove()" '
+        + 'style="cursor:pointer;padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center" '
+        + 'onmouseover="this.style.borderColor=\'var(--gold-dim)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
+        + '<div><div style="font-size:13px;color:var(--text)">Coup ' + m.idx + ' — ' + m.label + '</div>'
+        + '<div style="font-size:11px;color:var(--muted)">Perte d\u2019évaluation estimée (évaluation statique, pas une recherche complète)</div></div>'
+        + '<div style="color:#e05c4b;font-weight:700;font-size:14px;white-space:nowrap;margin-left:12px">-' + loss.toFixed(1) + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  modal.innerHTML =
+    '<div style="max-width:480px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:24px">'
+    + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:6px">Tes coups à revoir</h3>'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Clique un coup pour l\u2019examiner dans l\u2019onglet Analyse.</div>'
+    + bodyHtml
+    + '<button class="ctrl-btn" onclick="document.getElementById(\'mistakes-modal\').remove()" style="width:100%;margin-top:8px">Fermer</button>'
+    + '</div>';
+  document.body.appendChild(modal);
 }
 
 function analysisGoto(idx) {
