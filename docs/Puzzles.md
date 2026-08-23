@@ -47,3 +47,12 @@ Un premier passage de minage contenait un vrai bug : la position stockée était
 ## Certification côté client (nouveau)
 
 Le site vérifie maintenant aussi les puzzles directement dans le navigateur, contre le moteur réellement chargé par le joueur — pas seulement hors-ligne au moment du commit. Pour un puzzle à un coup : le coup annoncé doit être légal et produire la capture (ou faire disparaître la menace, pour un puzzle de parade). Pour un puzzle à deux coups : toute la séquence — coup, réponse adverse stockée, coup final — est rejouée et doit aboutir à une vraie capture. Un badge « 🏅 Certifié » s'affiche sur les puzzles du jour/du mois quand la vérification réussit.
+
+
+## Révision espacée (nouveau)
+
+Séparée du puzzle du jour et du problème du mois (qui restent tirés au sort de façon déterministe par date, jamais touchés par ce système), une file de révision personnelle apparaît quand des puzzles déjà tentés redeviennent dus.
+
+Principe simple, à cases croissantes : rater un puzzle le fait revenir dès le lendemain. Le réussir repousse sa prochaine apparition — 3 jours, puis 7, puis 14, 30, jusqu'à 90 jours pour un puzzle vraiment maîtrisé. Un nouvel échec, même après une longue série de réussites, ramène directement à « revoir demain ».
+
+La carte **« À réviser »** apparaît sur la page Puzzles uniquement quand au moins un puzzle est dû. Le bouton « Réviser maintenant » enchaîne les puzzles dus les uns après les autres, en commençant par les plus fragiles (case la plus basse), avec passage automatique au suivant après chaque réussite.
