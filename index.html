@@ -2461,6 +2461,9 @@ document.addEventListener('keydown', function(e){
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-game" onclick="sidebarNav('setup',this)">
       <span class="s-icon"><span class="marble-gold"></span></span><span class="s-label" data-i18n="nav.play">Jouer</span>
     </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-history" onclick="openHistoryModal(); if (window.innerWidth < 600 && typeof closeSidebarMobile==='function') closeSidebarMobile();">
+      <span class="s-icon">🕓</span><span class="s-label">Historique</span>
+    </button>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-puzzles" onclick="sidebarNav('puzzles',this)">
       <span class="s-icon">🧩</span><span class="s-label" data-i18n="nav.puzzles">Problèmes</span>
     </button>
@@ -5671,6 +5674,18 @@ document.addEventListener('keydown', function(e){
           <span style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px">Le problème du mois</span>
         </div>
         <div id="monthly-puzzle-card"></div>
+      </div>
+
+      <!-- REVISION (repetition espacee) -- puzzles deja tentes, a revoir
+           maintenant selon leur planning. Mode separe du puzzle du jour/du
+           mois (deterministes par date, jamais touches). -->
+      <div id="srs-review-card" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:24px;display:none">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="font-size:20px">🔁</span>
+          <span style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px">À réviser</span>
+        </div>
+        <div id="srs-review-text" style="font-size:13px;color:var(--muted);margin-bottom:10px"></div>
+        <button class="ctrl-btn" onclick="srsStartReview()" style="width:auto;padding:8px 16px">Réviser maintenant</button>
       </div>
 
       <!-- Mode selector -->
@@ -20650,6 +20665,96 @@ function sanitizeProgress() {
   }
 }
 
+/* ═══════════════════════════════════════════
+   HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.
+   Reutilise gameCodeEncode() pour stocker chaque partie de facon compacte
+   (le meme format que "Partie par code", deja teste et fiable) plutot que
+   de sauvegarder les snapshots complets du plateau a chaque coup -- une
+   partie de 60 coups tient en quelques centaines d'octets, pas des
+   dizaines de kilo-octets.
+   Plafonne a HIST_MAX parties (les plus recentes) pour eviter une
+   croissance illimitee de localStorage. */
+const GAME_HISTORY_KEY = 'abaGameHistory';
+const HIST_MAX = 200;
+
+function _historyOpponentLabel(entry){
+  if (entry.mode === 'local') return (entry.blackName || entry.whiteName) ? 'Partie par code/direct' : 'Local (même écran)';
+  const styleLabels = { auto:'Auto', aggressive:'Agressif', defensive:'Défensif', divide:'Division', balanced:'Équilibré' };
+  const diffLabels = { easy:'Facile', medium:'Moyen', advanced:'Avancé', hard:'Expert', master:'Maître', minimax:'Minimax' };
+  const style = styleLabels[entry.aiStyle] || entry.aiStyle || '?';
+  const diff = diffLabels[entry.aiDiff] || entry.aiDiff || '?';
+  return 'IA ' + style + ' — ' + diff;
+}
+
+function _recordGameHistory(winner, reason){
+  try {
+    if (typeof gameCodeEncode !== 'function') return;
+    const code = gameCodeEncode();
+    if (!code) return; // aucun coup joue -- rien a enregistrer
+    const mode = (typeof gameMode !== 'undefined') ? gameMode : 'ai';
+    const entry = {
+      id: Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      date: new Date().toISOString(),
+      variant: (typeof currentLayout !== 'undefined') ? currentLayout : 'standard',
+      mode: mode,
+      humanColor: (typeof humanColor !== 'undefined') ? humanColor : 'black',
+      winner: winner || null,
+      reason: reason || null,
+      moveCount: (typeof moveCount !== 'undefined') ? moveCount : 0,
+      aiStyle: (mode === 'ai' && typeof _setupCfg !== 'undefined') ? _setupCfg.style : null,
+      aiDiff: (mode === 'ai' && typeof _setupCfg !== 'undefined') ? _setupCfg.diff : null,
+      blackName: (typeof gcBlackName !== 'undefined') ? gcBlackName : '',
+      whiteName: (typeof gcWhiteName !== 'undefined') ? gcWhiteName : '',
+      code: code
+    };
+    let list = [];
+    try { list = JSON.parse(localStorage.getItem(GAME_HISTORY_KEY) || '[]'); } catch(e){ list = []; }
+    list.unshift(entry); // la plus recente en tete
+    if (list.length > HIST_MAX) list = list.slice(0, HIST_MAX);
+    localStorage.setItem(GAME_HISTORY_KEY, JSON.stringify(list));
+  } catch(e) { /* stockage indisponible ou plein -- ne bloque jamais la fin de partie pour autant */ }
+}
+
+function getGameHistory(){
+  try { return JSON.parse(localStorage.getItem(GAME_HISTORY_KEY) || '[]'); } catch(e) { return []; }
+}
+
+function deleteGameHistoryEntry(id){
+  try {
+    const list = getGameHistory().filter(function(e){ return e.id !== id; });
+    localStorage.setItem(GAME_HISTORY_KEY, JSON.stringify(list));
+  } catch(e){}
+}
+
+function clearGameHistory(){
+  try { localStorage.removeItem(GAME_HISTORY_KEY); } catch(e){}
+}
+
+/* Filtre en memoire -- pas besoin d'index, HIST_MAX=200 parties suffit
+   largement pour un filtrage lineaire instantane. */
+function filterGameHistory(opts){
+  opts = opts || {};
+  return getGameHistory().filter(function(e){
+    if (opts.variant && opts.variant !== 'all' && e.variant !== opts.variant) return false;
+    if (opts.mode && opts.mode !== 'all' && e.mode !== opts.mode) return false;
+    if (opts.result && opts.result !== 'all') {
+      const isAI = e.mode === 'ai';
+      const won = isAI && e.winner === e.humanColor;
+      const lost = isAI && e.winner && e.winner !== e.humanColor;
+      const draw = !e.winner;
+      if (opts.result === 'victoire' && !won) return false;
+      if (opts.result === 'defaite' && !lost) return false;
+      if (opts.result === 'nulle' && !draw) return false;
+    }
+    if (opts.search) {
+      const q = opts.search.toLowerCase();
+      const hay = [e.variant, e.blackName, e.whiteName, e.date].join(' ').toLowerCase();
+      if (hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+}
+
 function triggerWin(winner, reason) {
   // ── Garde anti-triche : refuse une victoire incohérente ──
   if (!reason && !winIntegrityOK(winner)) {
@@ -20670,6 +20775,7 @@ function triggerWin(winner, reason) {
   if (typeof _tourneyMatch!=='undefined' && _tourneyMatch && typeof tourneyMatchEnd==='function') { tourneyMatchEnd(winner, reason); }
   clearInterval(timerInterval);
   stopGameTimer();      // arrête le chronomètre de partie
+  _recordGameHistory(winner, reason);   // archive AVANT d'effacer la sauvegarde de reprise
   clearSavedGame();     // partie terminée = efface la sauvegarde
   soundWin();  // 🔊 fanfare de victoire
   const overlay = document.getElementById('win-overlay');
@@ -26683,6 +26789,7 @@ function showPage(name) {
       renderPuzzles();
       if (typeof renderMonthlyCard === 'function') renderMonthlyCard();
       if (typeof renderDailyCard === 'function') renderDailyCard();
+      if (typeof renderSrsReviewCard === 'function') renderSrsReviewCard();
       setTimeout(function(){
         if(typeof buildPuzzleBoard==='function') buildPuzzleBoard(currentPuzzleIdx||0);
         if(typeof drawPuzzleBoardInteractive==='function') drawPuzzleBoardInteractive();
@@ -28056,6 +28163,105 @@ function puzzleNeighbors(r, c) {
   return nbrs.filter(function(n){return n.r>=0&&n.r<9&&n.c>=0&&n.c<ROWS[n.r];});
 }
 
+/* ═══════════════════════════════════════════
+   REPETITION ESPACEE (SRS) — sur les puzzles.
+   Systeme simple a intervalles croissants (pas un SM-2 complet avec facteur
+   de facilite variable) : reussite -> case suivante (intervalle plus long),
+   echec -> retour a la case 0 (revient demain). Le "puzzle du jour/mois"
+   deterministe par date n'est jamais touche -- ceci est un mode SEPARE
+   ("Reviser"), pour ne pas casser un mecanisme deja en place et teste. */
+const SRS_INTERVALS_DAYS = [1, 3, 7, 14, 30, 90];
+const SRS_KEY = 'abaSrsPuzzles';
+
+function _srsLoad(){
+  try { return JSON.parse(localStorage.getItem(SRS_KEY) || '{}'); } catch(e){ return {}; }
+}
+function _srsSave(data){
+  try { localStorage.setItem(SRS_KEY, JSON.stringify(data)); } catch(e){}
+}
+
+/* Enregistre le resultat d'un puzzle (succes ou echec) dans le planning de
+   revision. Ne fait rien pour un puzzle jamais vu qui reussit du premier
+   coup sans etre entre dans le systeme -- il y entre naturellement des
+   ce premier resultat, qu'il soit bon ou mauvais. */
+function srsRecordResult(puzzleIdx, success){
+  const data = _srsLoad();
+  const key = String(puzzleIdx);
+  const entry = data[key] || { box: -1 };
+  if (success) {
+    entry.box = Math.min(entry.box + 1, SRS_INTERVALS_DAYS.length - 1);
+  } else {
+    entry.box = 0;
+  }
+  const days = SRS_INTERVALS_DAYS[Math.max(0, entry.box)];
+  const next = new Date();
+  next.setDate(next.getDate() + days);
+  entry.nextReview = next.toISOString();
+  entry.lastResult = success ? 'ok' : 'fail';
+  data[key] = entry;
+  _srsSave(data);
+}
+
+/* Puzzles dus aujourd'hui : jamais vus NE comptent PAS comme "dus" (ce
+   mode sert a REVISER ce qu'on a deja tente, pas a decouvrir -- le puzzle
+   du jour/du mois existant s'occupe deja de la decouverte). */
+function srsGetDuePuzzles(){
+  const data = _srsLoad();
+  const now = Date.now();
+  const due = [];
+  for (const key in data) {
+    const entry = data[key];
+    if (entry.nextReview && new Date(entry.nextReview).getTime() <= now) {
+      due.push({ idx: parseInt(key, 10), box: entry.box, lastResult: entry.lastResult });
+    }
+  }
+  due.sort(function(a,b){ return a.box - b.box; }); // les plus fragiles (case basse) d'abord
+  return due;
+}
+
+function srsCountDue(){ return srsGetDuePuzzles().length; }
+
+function srsStats(){
+  const data = _srsLoad();
+  let total = 0, mastered = 0; // "maitrise" = case la plus haute atteinte
+  for (const key in data) {
+    total++;
+    if (data[key].box >= SRS_INTERVALS_DAYS.length - 1) mastered++;
+  }
+  return { total: total, mastered: mastered, due: srsCountDue() };
+}
+
+function renderSrsReviewCard(){
+  const card = document.getElementById('srs-review-card');
+  const text = document.getElementById('srs-review-text');
+  if (!card || !text) return;
+  const due = srsGetDuePuzzles();
+  if (!due.length) { card.style.display = 'none'; return; }
+  card.style.display = '';
+  const stats = srsStats();
+  text.textContent = due.length + ' puzzle' + (due.length>1?'s':'') + ' à revoir aujourd\u2019hui'
+    + (stats.mastered ? ' — ' + stats.mastered + ' maîtrisé' + (stats.mastered>1?'s':'') : '') + '.';
+}
+
+let _srsQueue = [];
+let _srsReviewActive = false;
+function srsStartReview(){
+  _srsQueue = srsGetDuePuzzles().map(function(d){ return d.idx; });
+  if (!_srsQueue.length) { if (typeof showToast === 'function') showToast('Rien à réviser pour l\u2019instant.'); return; }
+  _srsReviewActive = true;
+  _srsNextInQueue();
+}
+function _srsNextInQueue(){
+  if (!_srsQueue.length) {
+    _srsReviewActive = false;
+    if (typeof showToast === 'function') showToast('✅ Révision terminée !');
+    if (typeof renderSrsReviewCard === 'function') renderSrsReviewCard();
+    return;
+  }
+  const idx = _srsQueue.shift();
+  if (typeof loadPuzzle === 'function') loadPuzzle(idx);
+}
+
 function showPuzzleResult(success) {
   const overlay = document.getElementById('puzzle-result-overlay');
   if (!overlay) return;
@@ -28065,6 +28271,12 @@ function showPuzzleResult(success) {
   document.getElementById('puzzle-result-sub').textContent = success
     ? 'Bille éjectée — résolu en ' + puzzleMovesMade + ' coup' + (puzzleMovesMade>1?'s':'') + ' !'
     : 'Essayez encore ou consultez l\u2019indice.';
+  // Répétition espacée : enregistre CHAQUE résultat (succès ou échec), pas
+  // seulement les succès. Un échec répété avant réussite reste inoffensif
+  // (remise à la case 0, idempotent), la case ne progresse qu'au succès final.
+  if (typeof srsRecordResult === 'function' && typeof currentPuzzleIdx !== 'undefined') {
+    srsRecordResult(currentPuzzleIdx, !!success);
+  }
   if (success) {
     puzzlesData[currentPuzzleIdx].solved = true;
     _saveSolvedPuzzleTitle(puzzlesData[currentPuzzleIdx].title);
@@ -28072,6 +28284,11 @@ function showPuzzleResult(success) {
     const si = document.getElementById('psolved-'+currentPuzzleIdx);
     if (si) si.textContent = '✅';
     if (typeof onPuzzleSolved === 'function') onPuzzleSolved();
+    // Session de revision en cours : avance automatiquement au puzzle
+    // suivant de la file, apres un court delai pour laisser voir "Bravo !".
+    if (typeof _srsReviewActive !== 'undefined' && _srsReviewActive) {
+      setTimeout(function(){ if (typeof _srsNextInQueue === 'function') _srsNextInQueue(); }, 1500);
+    }
   }
 }
 
@@ -29937,6 +30154,108 @@ async function _rtcUiAcceptAnswer(){
   }
   if (!result.ok) { _rtcUpdateStatus('🔴 ' + result.reason); return; }
   _rtcUpdateStatus('🟡 Réponse acceptée — connexion en cours…');
+}
+
+/* Recharge une partie de l'historique en mode relecture (lecture seule,
+   navigation coup par coup) -- reutilise gameCodeLoad() + addMoveToHistory()
+   qui construit deja boardSnapshots correctement, meme mecanisme deja
+   teste que "Partie par code". */
+function _replayHistoryGame(code){
+  const result = gameCodeLoad(code);
+  if (!result.ok) { if (typeof showToast === 'function') showToast('⚠️ Partie illisible : ' + result.reason); return false; }
+  const modal = document.getElementById('history-modal'); if (modal) modal.remove();
+  // Sentinelle deja prevue dans initGame() ("if (gameOver === 'init') return;")
+  // mais jamais exploitee avant : sans elle, showPage('game') declenche
+  // initGame() -> resetGame() qui ecrase tout ce qu'on vient de charger.
+  // On la pose AVANT de naviguer, puis on finalise l'etat replay APRES --
+  // trouve et corrige en testant en conditions reelles (Chromium headless),
+  // pas suppose correct depuis la seule lecture du code.
+  gameOver = 'init';
+  if (typeof showPage === 'function') showPage('game');
+  gameOver = true;
+  replayMode = true; replayCurrentIdx = -1;
+  const rb = document.getElementById('replay-btn');
+  if (rb) { rb.style.display = 'block'; rb.textContent = '■ Quitter replay'; }
+  if (typeof loadSnapshot === 'function') loadSnapshot(-1);
+  return true;
+}
+
+let _historyFilters = { variant:'all', mode:'all', result:'all', search:'' };
+
+function _historyResultBadge(e){
+  if (e.mode !== 'ai') return '<span style="color:var(--muted)">—</span>';
+  if (!e.winner) return '<span style="color:var(--muted)">Nulle</span>';
+  const won = e.winner === e.humanColor;
+  return won ? '<span style="color:var(--accent-green-light)">Victoire</span>' : '<span style="color:#e05c4b">Défaite</span>';
+}
+
+function _historyDateLabel(iso){
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'2-digit' }) + ' ' + d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+  } catch(e) { return iso; }
+}
+
+function _renderHistoryList(){
+  const box = document.getElementById('history-list');
+  if (!box) return;
+  const results = filterGameHistory(_historyFilters);
+  if (!results.length) {
+    box.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:24px 0">Aucune partie ne correspond.</div>';
+    return;
+  }
+  box.innerHTML = results.map(function(e){
+    const label = (typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[e.variant]) ? HEAT_VARIANT_LABEL[e.variant] : e.variant;
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 8px;border-bottom:1px solid var(--border);font-size:13px">'
+      + '<div style="flex:1;min-width:0">'
+        + '<div style="color:var(--text)">' + _historyDateLabel(e.date) + ' · ' + label + '</div>'
+        + '<div style="color:var(--muted);font-size:12px">' + _historyOpponentLabel(e) + ' · ' + e.moveCount + ' coups</div>'
+      + '</div>'
+      + '<div style="width:70px;text-align:right;font-size:12px">' + _historyResultBadge(e) + '</div>'
+      + '<button class="ctrl-btn" onclick="_replayHistoryGame(\'' + e.code.replace(/'/g,"\\'") + '\')" style="width:auto;padding:6px 10px;font-size:12px">Revoir</button>'
+      + '<button onclick="deleteGameHistoryEntry(\'' + e.id + '\');_renderHistoryList()" title="Supprimer" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:2px 6px">✕</button>'
+    + '</div>';
+  }).join('');
+}
+
+function _historySetFilter(key, value){
+  _historyFilters[key] = value;
+  _renderHistoryList();
+}
+
+function openHistoryModal(){
+  let modal = document.getElementById('history-modal');
+  if (modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'history-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:3500;background:rgba(13,15,14,0.92);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
+
+  const variantOptions = (typeof LAYOUTS !== 'undefined')
+    ? Object.keys(LAYOUTS).map(function(k){
+        const label = (typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[k]) ? HEAT_VARIANT_LABEL[k] : k;
+        return '<option value="' + k + '">' + label + '</option>';
+      }).join('')
+    : '';
+
+  modal.innerHTML =
+    '<div style="max-width:600px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:24px;max-height:90vh;overflow-y:auto">'
+    + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:6px">Historique de parties</h3>'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Toutes tes parties terminées, stockées sur cet appareil. Clique « Revoir » pour rejouer coup par coup.</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">'
+      + '<select onchange="_historySetFilter(\'variant\', this.value)" style="flex:1;min-width:120px;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px"><option value="all">Toutes variantes</option>' + variantOptions + '</select>'
+      + '<select onchange="_historySetFilter(\'mode\', this.value)" style="flex:1;min-width:100px;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px"><option value="all">Tous modes</option><option value="ai">Contre IA</option><option value="local">Local/code</option></select>'
+      + '<select onchange="_historySetFilter(\'result\', this.value)" style="flex:1;min-width:100px;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px"><option value="all">Tout résultat</option><option value="victoire">Victoires</option><option value="defaite">Défaites</option><option value="nulle">Nulles</option></select>'
+    + '</div>'
+    + '<input type="text" placeholder="Rechercher (variante, nom...)" oninput="_historySetFilter(\'search\', this.value)" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;margin-bottom:14px;box-sizing:border-box">'
+    + '<div id="history-list" style="max-height:45vh;overflow-y:auto"></div>'
+    + '<div style="display:flex;gap:8px;margin-top:14px;justify-content:space-between">'
+      + '<button onclick="if(confirm(\'Effacer tout l\\\'historique de parties ? Irréversible.\')){clearGameHistory();_renderHistoryList();}" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer">Vider l\'historique</button>'
+      + '<button class="ctrl-btn" onclick="document.getElementById(\'history-modal\').remove()" style="width:auto;padding:8px 16px">Fermer</button>'
+    + '</div>'
+    + '</div>';
+  document.body.appendChild(modal);
+  _historyFilters = { variant:'all', mode:'all', result:'all', search:'' };
+  _renderHistoryList();
 }
 
 function openGameCodePanel() {
