@@ -9,6 +9,7 @@ Un jeu d'Abalone complet dans un seul fichier HTML : zéro dépendance, hors-lig
 - **[Profil de performance](Profil-de-performance.md)** — indicateurs définis, calculés, situés contre un corpus réel.
 - **[Échanger des parties](Echanger-des-parties.md)** — partie par code, format APGN.
 - **[Puzzles](Puzzles.md)** — comment la bibliothèque est vérifiée contre le moteur.
+- **[Historique](Historique.md)** — tes parties passées, filtrables et rejouables.
 - **[Moteur multi-worker](Moteur-multi-worker.md)** — ce qui marche, et une vraie limite non résolue, documentée honnêtement.
 
 ## En bref
