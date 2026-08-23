@@ -3157,19 +3157,24 @@ document.addEventListener('keydown', function(e){
         <button onclick="setupPick('diff','minimax',this)" class="setup-opt" style="color:#b89ef0">Minimax</button>
       </div>
       <div id="setup-diff-info" style="font-size:11px;color:var(--muted);margin-top:6px"></div>
-    </div>
 
-    <!-- Moteur (experimental) : meme _engineMode que Labo IA, choisi ici
-         AVANT de jouer plutot que de devoir aller le changer dans Labo IA
-         a chaque partie. Demande d'Olivier. -->
-    <div class="setup-card" id="setup-engine-card">
-      <div class="setup-h">Moteur <span style="font-size:11px;color:var(--muted);font-weight:400">(expérimental)</span></div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Sur 15 parties de test équitables, le moteur actuel gagne 8, le NNUE gagne 2, 5 nulles — proposé par transparence sur ce qu'on a essayé, pas comme une amélioration.</div>
-      <div style="display:flex;gap:5px;flex-wrap:wrap" id="setup-engine">
+      <!-- Moteur (experimental) : meme _engineMode que Labo IA, choisi ici
+           AVANT de jouer plutot que de devoir aller le changer dans Labo IA
+           a chaque partie. Fusionne dans la meme carte que Style/Niveau
+           (au lieu d'une carte separee) -- demande d'Olivier. L'id reste
+           sur cette section interne, pas sur toute la carte : le masquage
+           en mode "Deux joueurs" (setupPick, group==='mode') ne doit
+           cacher que le choix de moteur, pas Style/Niveau qui restent
+           utiles independamment. -->
+      <div id="setup-engine-card" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+        <div class="setup-h">Moteur <span style="font-size:11px;color:var(--muted);font-weight:400">(expérimental)</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Sur 15 parties de test équitables, le moteur actuel gagne 8, le NNUE gagne 2, 5 nulles — proposé par transparence sur ce qu'on a essayé, pas comme une amélioration.</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap" id="setup-engine">
         <button onclick="setupPick('engine','actuel',this)" class="setup-opt active">Moteur actuel</button>
         <button onclick="setupPick('engine','nnue-eval',this)" class="setup-opt" title="2 victoires / 8 défaites / 5 nulles sur 15 parties de test">NNUE — évaluation</button>
         <button onclick="setupPick('engine','nnue-order',this)" class="setup-opt" title="+2,7% de nœuds explorés à résultat égal — pas d'amélioration mesurée">NNUE — ordonnancement</button>
         <button onclick="setupPick('engine','nnue-both',this)" class="setup-opt" title="Résultat quasi identique au mode évaluation seule">NNUE — combiné</button>
+        </div>
       </div>
     </div>
 
