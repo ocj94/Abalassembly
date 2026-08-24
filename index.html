@@ -6348,6 +6348,15 @@ document.addEventListener('keydown', function(e){
         <div style="font-size:11px;color:var(--muted);margin-top:3px">non suivi</div>
       </div>
     </div>
+
+    <!-- Statistiques par moteur -- general (benchmark connu) + personnel
+         (calcule depuis l'historique de parties). -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-top:24px">
+      <div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Statistiques par moteur</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Sur 15 parties de test équitables (général) : le moteur actuel gagne 8, le NNUE gagne 2, 5 nulles — proposé par transparence sur ce qu'on a essayé, pas comme une amélioration mesurée à grande échelle.</div>
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Tes résultats personnels, par moteur choisi</div>
+      <div id="engine-stats-personal"></div>
+    </div>
   </div>
 </div>
 
@@ -20720,6 +20729,9 @@ function _recordGameHistory(winner, reason){
       moveCount: (typeof moveCount !== 'undefined') ? moveCount : 0,
       aiStyle: (mode === 'ai' && typeof _setupCfg !== 'undefined') ? _setupCfg.style : null,
       aiDiff: (mode === 'ai' && typeof _setupCfg !== 'undefined') ? _setupCfg.diff : null,
+      // 'actuel' si _engineMode est vide (null/undefined), meme convention que
+      // _setupCfg.engine -- necessaire pour les stats moteur personnelles.
+      engine: (mode === 'ai') ? ((typeof _engineMode !== 'undefined' && _engineMode) ? _engineMode : 'actuel') : null,
       blackName: (typeof gcBlackName !== 'undefined') ? gcBlackName : '',
       whiteName: (typeof gcWhiteName !== 'undefined') ? gcWhiteName : '',
       code: code
@@ -26835,6 +26847,14 @@ function updateTopBar() {
    STATS PAGE
 ═══════════════════════════════════════════ */
 function renderStats() {
+  // Statistiques par moteur : independantes de currentUser (sourcees
+  // depuis l'historique de parties en localStorage, pas depuis un compte
+  // en ligne) -- appelees AVANT la garde "if (!u) return" ci-dessous,
+  // pour ne pas dependre d'un systeme utilisateur qui n'est pas actif
+  // par defaut (backend dormant). Trouve en testant : le reste de la
+  // page reste bien a blanc sans utilisateur, mais les stats moteur
+  // personnelles n'ont aucune raison de l'etre.
+  if (typeof renderEngineStats === 'function') renderEngineStats();
   const u = currentUser;
   if (!u) return;
   const el = function(id,v) { const e=document.getElementById(id); if(e) e.textContent=v; };
@@ -30275,6 +30295,54 @@ function _replayHistoryGame(code){
 }
 
 let _historyFilters = { variant:'all', mode:'all', result:'all', search:'' };
+
+/* Statistiques personnelles par moteur, calculees depuis l'historique de
+   parties (uniquement les parties contre l'IA -- une partie locale n'a
+   pas de "moteur" a proprement parler). "engine" absent (parties
+   enregistrees avant l'ajout de ce champ) est compte sous 'actuel', qui
+   est la valeur par defaut reelle de _engineMode a cette epoque. */
+function computeEngineStats(){
+  const history = getGameHistory().filter(function(e){ return e.mode === 'ai'; });
+  const stats = {};
+  history.forEach(function(e){
+    const eng = e.engine || 'actuel';
+    if (!stats[eng]) stats[eng] = { games:0, wins:0, losses:0, draws:0 };
+    stats[eng].games++;
+    if (!e.winner) stats[eng].draws++;
+    else if (e.winner === e.humanColor) stats[eng].wins++;
+    else stats[eng].losses++;
+  });
+  return stats;
+}
+
+const ENGINE_LABELS = { actuel:'Moteur actuel', 'nnue-eval':'NNUE — évaluation', 'nnue-order':'NNUE — ordonnancement', 'nnue-both':'NNUE — combiné' };
+
+function renderEngineStats(){
+  const host = document.getElementById('engine-stats-personal');
+  if (!host) return;
+  const stats = computeEngineStats();
+  const engines = Object.keys(stats);
+  if (!engines.length) {
+    host.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px 0">Aucune partie contre l\u2019IA enregistrée pour l\u2019instant.</div>';
+    return;
+  }
+  // Le plus joue en premier -- l'echantillon le plus fiable statistiquement
+  engines.sort(function(a,b){ return stats[b].games - stats[a].games; });
+  host.innerHTML = engines.map(function(eng){
+    const s = stats[eng];
+    const label = ENGINE_LABELS[eng] || eng;
+    const winRate = s.games ? Math.round(s.wins / s.games * 100) : 0;
+    const small = s.games < 10;
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 8px;border-bottom:1px solid var(--border);font-size:13px">'
+      + '<div style="flex:1">'
+        + '<div style="color:var(--text)">' + label + '</div>'
+        + '<div style="font-size:11px;color:var(--muted)">' + s.games + ' partie' + (s.games>1?'s':'') + (small ? ' — échantillon réduit' : '') + '</div>'
+      + '</div>'
+      + '<div style="text-align:right;font-size:12px;color:var(--muted)">' + s.wins + 'V ' + s.losses + 'D ' + s.draws + 'N</div>'
+      + '<div style="width:50px;text-align:right;font-weight:700;color:var(--gold)">' + winRate + '%</div>'
+    + '</div>';
+  }).join('');
+}
 
 function _historyResultBadge(e){
   if (e.mode !== 'ai') return '<span style="color:var(--muted)">—</span>';
