@@ -42,3 +42,21 @@ Cette section reste disponible pour qui veut voir le résultat par lui-même, ou
 La page **Statistiques** réunit désormais les deux échelles côte à côte : le résultat général ci-dessus (les 15 parties de test), et tes résultats personnels — calculés depuis ton historique de parties, filtrés par moteur choisi à chaque partie.
 
 Si tu joues peu de parties avec un moteur donné, un avertissement « échantillon réduit » apparaît sous les 10 parties — un taux de victoire sur 2 ou 3 parties n'a pas grand sens statistiquement, et le site ne le présente jamais comme s'il en avait.
+
+## La piste de l'auto-apprentissage : évaluée, chiffrée, écartée pour l'instant
+
+Un travail universitaire (Abalearn, INESC-ID) a entraîné un réseau pour l'Abalone par **auto-apprentissage** — le programme joue contre lui-même et apprend de ses propres parties — plutôt qu'en prédisant l'issue de parties humaines. C'est exactement l'hypothèse formulée plus haut pour expliquer le résultat mitigé du NNUE actuel : l'objectif d'entraînement n'est peut-être pas le bon.
+
+La piste est donc sérieuse. Elle n'est simplement pas réaliste ici, et voici le calcul plutôt qu'une impression :
+
+Une recherche à profondeur 3 prend environ 4,5 secondes en mono-thread (mesuré, pas estimé). Une partie complète d'environ 60 coups représente donc **4,5 minutes d'auto-jeu**.
+
+| Parties générées | Temps de calcul |
+|---|---|
+| 100 | 7,5 heures |
+| 1 000 | 3 jours |
+| 10 000 | 31 jours |
+
+Le NNUE actuel est entraîné sur 189 797 positions issues de 3 944 vraies parties humaines — un corpus **déjà disponible, à coût nul**. Égaler simplement ce volume par auto-jeu demanderait environ **300 heures de calcul continu**, et l'auto-apprentissage sérieux en demande bien davantage, puisqu'il faut plusieurs cycles successifs (jouer, réentraîner, rejouer avec le réseau amélioré).
+
+C'est hors de portée d'un projet tournant dans un navigateur, sans infrastructure de calcul dédiée. La piste est notée ici pour qui voudrait la reprendre avec les moyens adéquats — pas abandonnée par désintérêt, écartée par arithmétique.
