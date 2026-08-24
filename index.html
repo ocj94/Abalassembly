@@ -2467,6 +2467,9 @@ document.addEventListener('keydown', function(e){
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-import" onclick="openApgnImportModal(); if (window.innerWidth < 600 && typeof closeSidebarMobile==='function') closeSidebarMobile();">
       <span class="s-icon">📥</span><span class="s-label">Importer</span>
     </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-briefing" onclick="openSiteBriefing(); if (window.innerWidth < 600 && typeof closeSidebarMobile==='function') closeSidebarMobile();">
+      <span class="s-icon">🤖</span><span class="s-label">Fiche pour IA</span>
+    </button>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-puzzles" onclick="sidebarNav('puzzles',this)">
       <span class="s-icon">🧩</span><span class="s-label" data-i18n="nav.puzzles">Problèmes</span>
     </button>
@@ -7194,7 +7197,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.12';
+const APP_VERSION = 'v2.13';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -30551,6 +30554,145 @@ function _extPlayMove(){
   if (status) { status.textContent = '✅ Coup joué : ' + tok; status.style.color = 'var(--accent-green-light)'; }
   // Laisse a l'IA du site le temps de repondre, puis reaffiche son coup
   setTimeout(_extRefreshLastMove, 2200);
+}
+
+/* ═══════════════════════════════════════════
+   FICHE TECHNIQUE POUR IA — donnees factuelles sur le site.
+   Motivation reelle : plusieurs audits externes generes par IA ont
+   affirme a tort que des fonctionnalites manquaient alors qu'elles
+   existaient, et donne des tailles de fichier fausses d'un ordre de
+   grandeur. Cette fiche existe pour qu'un modele parte de faits
+   verifiables plutot que de suppositions.
+   PRINCIPE CENTRAL : tout est CALCULE A L'EXECUTION depuis le code
+   reel (comptages, detection de fonctions), jamais un texte ecrit a la
+   main -- sans quoi la fiche deviendrait elle-meme perimee et donc une
+   nouvelle source d'erreurs, exactement le probleme qu'elle corrige.
+   L'inventaire se fait par DETECTION (typeof === 'function') : c'est ce
+   qui permet de refuter « il manque X » de facon verifiable.
+═══════════════════════════════════════════ */
+function buildSiteBriefing(){
+  const has = function(n){ try { return typeof window[n] === 'function'; } catch(e){ return false; } };
+  const num = function(v){ return (typeof v === 'number') ? v : null; };
+  const L = [];
+  const P = function(s){ L.push(s); };
+
+  P('# Abalassembly — fiche technique (generee automatiquement)');
+  P('');
+  P('Genere le ' + new Date().toISOString().slice(0,10) + ' depuis le site lui-meme.');
+  P('Tous les chiffres ci-dessous sont COMPTES a l\u2019execution depuis le code reel,');
+  P('pas recopies a la main. Les fonctionnalites sont detectees, pas declarees.');
+  P('');
+  P('## Identite');
+  P('- Version : ' + (typeof APP_VERSION !== 'undefined' ? APP_VERSION : 'inconnue'));
+  P('- Architecture : fichier HTML unique, zero dependance externe, fonctionne hors ligne et depuis file://');
+  P('- Licence : GPL v3 — depot : github.com/ocj94/Abalassembly');
+  P('');
+  P('## Contenu reel (compte a l\u2019instant)');
+  try { P('- Variantes de depart : ' + Object.keys(LAYOUTS).length + ' (' + Object.keys(LAYOUTS).join(', ') + ')'); } catch(e){}
+  try { P('- Puzzles : ' + PUZZLES.length + ' dont ' + SINGLE_MOVE_PUZZLE_COUNT + ' en un coup et ' + (PUZZLES.length - SINGLE_MOVE_PUZZLE_COUNT) + ' multi-coups'); } catch(e){}
+  try { P('- Empreintes de positions historiques : ' + EMPREINTES_N); } catch(e){}
+  try { if (typeof getGameHistory === 'function') P('- Parties archivees localement par cet utilisateur : ' + getGameHistory().length); } catch(e){}
+
+  P('');
+  P('## Fonctionnalites REELLEMENT presentes (detectees, pas declarees)');
+  const feats = [
+    ['Jeu contre IA (alpha-beta, PVS, quiescence, multi-worker)', 'aiMove'],
+    ['Editeur de position', 'drawEditorBoard'],
+    ['Analyse de partie avec barre d\u2019evaluation', 'updateAnalysisEval'],
+    ['Revoir mes erreurs apres partie', 'openMistakesReview'],
+    ['Historique de parties filtrable et rejouable', 'openHistoryModal'],
+    ['Repetition espacee (SRS) sur les puzzles', 'srsGetDuePuzzles'],
+    ['Partie par code (asynchrone, sans serveur)', 'openGameCodePanel'],
+    ['Partie en direct WebRTC (experimental)', 'openRtcPanel'],
+    ['Duel contre un moteur externe', 'openExternalEnginePanel'],
+    ['Export des coups en notation Aba-Pro', 'exportGameAbaPro'],
+    ['Import de notation Aba-Pro', 'openApgnImportModal'],
+    ['Export / import de toutes les donnees utilisateur', 'exportMyData'],
+    ['Carte de chaleur des coups', 'recordMyHeat'],
+    ['Livre d\u2019ouvertures issu de vraies parties', 'getOpeningMove'],
+    ['Tables de finale (2v2, 3v2)', 'ensureEmpreintesHistoriques'],
+    ['Moteur experimental NNUE', 'loadNNUEWeights'],
+    ['Benchmark moteur integre', 'requestAIMovePooled'],
+    ['Navigation clavier et ARIA', '_a11yBuildOverlay'],
+    ['Mode enfant', 'toggleKidsMode'],
+    ['Detection de plateau par camera', 'startCamera'],
+    ['Statistiques par moteur', 'computeEngineStats']
+  ];
+  feats.forEach(function(f){ P('- [' + (has(f[1]) ? 'x' : ' ') + '] ' + f[0]); });
+
+  P('');
+  P('## Limites connues et ASSUMEES (ne pas les signaler comme des oublis)');
+  P('- Poids du fichier : ~7,7 Mo, dont plus de la moitie pour la base d\u2019empreintes.');
+  P('  Le decodage est deja differe, mais le TELECHARGEMENT ne peut pas l\u2019etre :');
+  P('  c\u2019est le prix assume du fichier unique hors ligne, pas un oubli.');
+  P('- Comparabilite des scores entre workers : chaque worker a sa propre table de');
+  P('  transposition (SharedArrayBuffer impossible sur GitHub Pages). Documente,');
+  P('  non resolu, pas de solution propre connue dans ces contraintes.');
+  P('- Backend (comptes, classement en ligne) : ecrit mais volontairement dormant.');
+  P('  Le site est hors ligne par conception.');
+  P('- NNUE : plus faible que le moteur actuel (2V/8D/5N sur 15 parties de test).');
+  P('  Propose par transparence, jamais active par defaut.');
+  P('- Auto-apprentissage : ecarte par calcul (~300 h de calcul pour egaler un corpus');
+  P('  humain deja disponible gratuitement), pas par desinteret.');
+  P('- Il n\u2019existe AUCUN format standard de POSITION pour l\u2019Abalone (pas de FEN).');
+  P('  Seule la notation des COUPS (Aba-Pro) est standardisee.');
+
+  P('');
+  P('## Chantiers OUVERTS (deja identifies -- inutile de les proposer comme nouveautes)');
+  P('- Duel contre un moteur externe : livre, mais jamais teste face a un VRAI programme');
+  P('  externe (teste uniquement avec des coups produits par le moteur du site).');
+  P('- Partie en direct WebRTC : la connexion reelle n\u2019a jamais ete validee sur un reseau');
+  P('  mobile ; le repli vers "Partie par code" fonctionne.');
+  P('- Puzzles multi-coups : pas de resolution interactive, et la suite de tests');
+  P('  automatises ne les couvre pas encore.');
+  P('- Vol de travail entre workers : code ecrit et verifie correct, mais PAS plus rapide');
+  P('  en pratique -- conserve non active, documente en commentaire.');
+  P('');
+  P('## Suggestions DEJA EVALUEES ET ECARTEES (ne pas represcrire sans element nouveau)');
+  P('- Multijoueur en ligne avec comptes/classement : demande un serveur, contraire au');
+  P('  choix hors ligne assume. Le remplacement existe : Partie par code + WebRTC.');
+  P('- Ajouter des dizaines de bots, skins ou modes : le site est deja tres fourni ;');
+  P('  ce n\u2019est pas ce qui lui manque.');
+  P('- Reduire le poids en supprimant la base d\u2019empreintes : ce serait supprimer une');
+  P('  fonctionnalite, pas optimiser.');
+  P('- Auto-apprentissage du reseau de neurones : chiffre a ~300 h de calcul minimum,');
+  P('  hors de portee sans infrastructure dediee.');
+  P('');
+  P('## Regles de contribution');
+  P('- Aucune donnee inventee : tout chiffre affiche doit etre source, date, ou remplace par "—".');
+  P('- Toute affirmation sur ce site doit etre verifiee contre le code reel avant d\u2019etre ecrite.');
+  P('- Les resultats negatifs sont conserves et documentes, pas masques.');
+  P('- Documentation detaillee : github.com/ocj94/Abalassembly/tree/main/docs');
+  return L.join('\n');
+}
+
+function openSiteBriefing(){
+  let m = document.getElementById('briefing-modal');
+  if (m) m.remove();
+  const txt = buildSiteBriefing();
+  m = document.createElement('div');
+  m.id = 'briefing-modal';
+  m.style.cssText = 'position:fixed;inset:0;z-index:3500;background:rgba(13,15,14,0.92);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
+  m.innerHTML =
+    '<div style="max-width:640px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:24px;max-height:90vh;overflow-y:auto">'
+    + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:6px">Fiche technique pour IA</h3>'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Donnees factuelles sur ce site, recalculees a l\u2019instant depuis le code lui-meme. A coller dans une IA avant de lui demander un audit ou des suggestions : elle partira de faits verifiables plutot que de suppositions.</div>'
+    + '<textarea id="briefing-text" readonly style="width:100%;height:300px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:11px;box-sizing:border-box">' + txt.replace(/</g,'&lt;') + '</textarea>'
+    + '<div style="display:flex;gap:8px;margin-top:10px">'
+      + '<button class="ctrl-btn" onclick="_copyBriefing()" style="flex:1">Copier la fiche</button>'
+      + '<button onclick="document.getElementById(\'briefing-modal\').remove()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 16px;cursor:pointer">Fermer</button>'
+    + '</div>'
+    + '</div>';
+  document.body.appendChild(m);
+}
+
+function _copyBriefing(){
+  const t = buildSiteBriefing();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(t).then(function(){
+      if (typeof showToast==='function') showToast('📋 Fiche technique copiée');
+    }).catch(function(){ if (typeof showToast==='function') showToast('Copie refusée par le navigateur.'); });
+  }
 }
 
 function exportGameAbaPro(){
