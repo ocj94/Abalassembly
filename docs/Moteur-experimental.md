@@ -43,20 +43,43 @@ La page **Statistiques** réunit désormais les deux échelles côte à côte : 
 
 Si tu joues peu de parties avec un moteur donné, un avertissement « échantillon réduit » apparaît sous les 10 parties — un taux de victoire sur 2 ou 3 parties n'a pas grand sens statistiquement, et le site ne le présente jamais comme s'il en avait.
 
-## La piste de l'auto-apprentissage : évaluée, chiffrée, écartée pour l'instant
+## La piste de l'auto-apprentissage : mesurée, et bien plus abordable que je ne l'avais écrit
 
 Un travail universitaire (Abalearn, INESC-ID) a entraîné un réseau pour l'Abalone par **auto-apprentissage** — le programme joue contre lui-même et apprend de ses propres parties — plutôt qu'en prédisant l'issue de parties humaines. C'est exactement l'hypothèse formulée plus haut pour expliquer le résultat mitigé du NNUE actuel : l'objectif d'entraînement n'est peut-être pas le bon.
 
-La piste est donc sérieuse. Elle n'est simplement pas réaliste ici, et voici le calcul plutôt qu'une impression :
+**Correction d'une affirmation erronée.** Une version précédente de cette page affirmait que cette piste coûtait environ 300 heures de calcul et était donc hors de portée. **C'était faux**, et sur la base d'une estimation jamais vérifiée. Le calcul supposait une recherche à profondeur 3 et la volonté d'égaler l'intégralité du corpus humain — deux hypothèses inutilement coûteuses, dont aucune n'est requise par l'auto-apprentissage.
 
-Une recherche à profondeur 3 prend environ 4,5 secondes en mono-thread (mesuré, pas estimé). Une partie complète d'environ 60 coups représente donc **4,5 minutes d'auto-jeu**.
+Voici ce que donne la **mesure réelle** (profondeur 2, Belgian Daisy, parties complètes jouées jusqu'au bout) :
 
-| Parties générées | Temps de calcul |
+| Mesure | Valeur |
 |---|---|
-| 100 | 7,5 heures |
-| 1 000 | 3 jours |
-| 10 000 | 31 jours |
+| Temps par partie | 20,4 s |
+| Longueur moyenne | 43,6 coups |
+| Positions d'entraînement par partie | 44,6 |
+| Positions uniques | 97,8 % |
 
-Le NNUE actuel est entraîné sur 189 797 positions issues de 3 944 vraies parties humaines — un corpus **déjà disponible, à coût nul**. Égaler simplement ce volume par auto-jeu demanderait environ **300 heures de calcul continu**, et l'auto-apprentissage sérieux en demande bien davantage, puisqu'il faut plusieurs cycles successifs (jouer, réentraîner, rejouer avec le réseau amélioré).
+Ce qui donne, en extrapolant depuis ces mesures :
 
-C'est hors de portée d'un projet tournant dans un navigateur, sans infrastructure de calcul dédiée. La piste est notée ici pour qui voudrait la reprendre avec les moyens adéquats — pas abandonnée par désintérêt, écartée par arithmétique.
+| Volume visé | Temps de calcul |
+|---|---|
+| 20 000 positions | ~2,5 heures |
+| 50 000 positions | ~6,3 heures |
+| 190 000 positions (volume du corpus humain actuel) | ~24 heures |
+
+Long, mais parfaitement à portée pour un jeu de données utile — sans commune mesure avec les 300 heures annoncées à tort.
+
+### Un piège évité de justesse
+
+Le moteur est **strictement déterministe** : trois recherches sur la même position renvoient exactement le même coup. Sans randomisation des premiers coups, mille parties d'auto-jeu auraient été **mille fois la même partie**, et le jeu de données aurait été sans aucune valeur — un échec silencieux, difficile à repérer après coup.
+
+Le générateur joue donc les premiers coups au hasard, et **mesure puis affiche le taux de positions uniques à chaque exécution** (97,8 % sur l'échantillon), précisément pour que ce risque reste visible si les réglages changent.
+
+### La vraie difficulté n'est pas le temps de calcul
+
+Sur l'échantillon mesuré, **les noirs gagnent 8 parties sur 10**. Ce déséquilibre marqué du premier joueur signifie qu'un réseau entraîné tel quel apprendrait surtout « les noirs gagnent », au lieu d'apprendre à évaluer une position. Il faudrait équilibrer les données avant tout entraînement — inverser les couleurs, ou pondérer.
+
+C'est ce point, et non le coût de calcul, qui reste le vrai obstacle. Il n'est pas résolu.
+
+### État actuel
+
+Le générateur existe et est validé : `tools/selfplay-gen.js` dans le dépôt, avec ses chiffres mesurés et ses réserves documentées en en-tête. La génération à grande échelle et l'entraînement restent à faire.
