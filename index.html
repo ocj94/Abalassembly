@@ -7197,7 +7197,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.13';
+const APP_VERSION = 'v2.14';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -27430,44 +27430,91 @@ function gymStartFlexibility(level){
 }
 
 /* ─── 7. SPATIAL — rotation mentale 60° horaire, N billes (via axiales) ─── */
+/* Exercice spatial : rotation autour d'un centre.
+   Version initiale limitee a 60° et aux seules cases VOISINES du centre.
+   Etendue (demande d'Olivier) : n'importe quel multiple de 60° (60 a 300)
+   et des billes placees a distance variable, pas seulement collees au
+   centre. Sur une grille hexagonale, toute rotation multiple de 60°
+   autour d'une case tombe exactement sur une autre case, quelle que soit
+   la distance -- c'est ce qui rend l'extension exacte, sans arrondi. */
+function gymHexDist(q, r){
+  // distance hexagonale en coordonnees cubiques
+  return (Math.abs(q) + Math.abs(r) + Math.abs(-q - r)) / 2;
+}
+function gymRotateSteps(q, r, steps){
+  let a = q, b = r;
+  for (let i = 0; i < steps; i++){ const t = gymRotate60cw(a, b); a = t[0]; b = t[1]; }
+  return [a, b];
+}
+/* Toutes les cases situees a une distance donnee d'un centre (l'anneau). */
+function gymRing(cax, dist){
+  const out = [];
+  for (let dq = -dist; dq <= dist; dq++){
+    for (let dr = -dist; dr <= dist; dr++){
+      if (gymHexDist(dq, dr) !== dist) continue;
+      const rc = axialToRc(cax.q + dq, cax.r + dr);
+      if (rc) out.push({ dq: dq, dr: dr, rc: rc });
+    }
+  }
+  return out;
+}
+
 function gymStartSpatial(level){
   level = level || _gymLevel;
   const armCount = level===1?1:level===3?3:2;
+  // Facile : 60° seulement, billes collees au centre (comportement d'origine).
+  // Moyen : demi-tour et 120° possibles, jusqu'a 2 cases d'ecart.
+  // Difficile : n'importe quel multiple de 60°, jusqu'a 3 cases d'ecart.
+  const stepChoices = level===1 ? [1] : level===3 ? [1,2,3,4,5] : [1,2,3];
+  const maxDist     = level===1 ? 1 : level===3 ? 3 : 2;
+  const steps = stepChoices[Math.floor(Math.random()*stepChoices.length)];
+
   let center=null, points=null, answers=null;
-  for (let attempt=0; attempt<50 && !center; attempt++){
+  for (let attempt=0; attempt<200 && !center; attempt++){
     const c = gymRandCell();
     const cax = rcToAxial(c[0], c[1]);
-    const dirIdxs = [];
-    while (dirIdxs.length < armCount){
-      const idx = Math.floor(Math.random()*6);
-      if (dirIdxs.indexOf(idx) === -1) dirIdxs.push(idx);
-    }
-    const pts = [], ans = [];
+    const centerKey = gymKey(c[0], c[1]);
+    // rassemble les cases candidates a toutes les distances autorisees
+    let pool = [];
+    for (let d=1; d<=maxDist; d++) pool = pool.concat(gymRing(cax, d));
+    if (pool.length < armCount) continue;
+
+    const pts=[], ans=[], used=new Set([centerKey]);
     let ok = true;
-    for (let i=0; i<dirIdxs.length; i++){
-      const d = AX_DIRS[dirIdxs[i]];
-      const pax = { q: cax.q+d.q, r: cax.r+d.r };
-      const prc = axialToRc(pax.q, pax.r);
-      if (!prc){ ok = false; break; }
-      const rot = gymRotate60cw(d.q, d.r);
-      const aax = { q: cax.q+rot[0], r: cax.r+rot[1] };
-      const arc = axialToRc(aax.q, aax.r);
-      if (!arc){ ok = false; break; }
-      pts.push([prc.r, prc.c]);
-      ans.push(gymKey(arc.r, arc.c));
+    for (let i=0; i<armCount; i++){
+      let placed = false;
+      for (let tries=0; tries<40 && !placed; tries++){
+        const cand = pool[Math.floor(Math.random()*pool.length)];
+        const srcKey = gymKey(cand.rc.r, cand.rc.c);
+        if (used.has(srcKey)) continue;
+        const rot = gymRotateSteps(cand.dq, cand.dr, steps);
+        const arc = axialToRc(cax.q + rot[0], cax.r + rot[1]);
+        if (!arc) continue;                          // arrivee hors plateau
+        const ansKey = gymKey(arc.r, arc.c);
+        if (ansKey === centerKey) continue;
+        if (used.has(ansKey)) continue;              // evite toute ambiguite
+        used.add(srcKey); used.add(ansKey);
+        pts.push([cand.rc.r, cand.rc.c]); ans.push(ansKey);
+        placed = true;
+      }
+      if (!placed){ ok = false; break; }
     }
-    if (ok && new Set(ans).size === armCount){ center = c; points = pts; answers = ans; }
+    if (ok && new Set(ans).size === armCount){ center=c; points=pts; answers=ans; }
   }
   if (!center){ gymFinish('spatial', 0, 'position invalide, réessaie'); return; }
+
   const board = new Map();
   const centerKey = gymKey(center[0],center[1]);
   board.set(centerKey, 'black');
   points.forEach(function(p){ board.set(gymKey(p[0],p[1]), 'black'); });
   const answerSet = new Set(answers);
+  const deg = steps * 60;
+  const angleLabel = (deg === 180) ? 'd\u2019un demi-tour (180°)' : 'de ' + deg + '° dans le sens horaire';
   const hintEl = document.getElementById('gym-exercise-hint');
   if (hintEl) hintEl.textContent = armCount===1
-    ? 'Si on tourne cette bille de 60° dans le sens horaire autour du centre, où finit-elle ?'
-    : 'Si on tourne ces ' + armCount + ' billes de 60° dans le sens horaire autour du centre, clique leurs ' + armCount + ' nouvelles cases.';
+    ? 'Si on tourne cette bille ' + angleLabel + ' autour du centre, où finit-elle ?'
+    : 'Si on tourne ces ' + armCount + ' billes ' + angleLabel + ' autour du centre, clique leurs ' + armCount + ' nouvelles cases.';
+
   let picked = new Set();
   function onPick(k){
     if (k === centerKey) return;
