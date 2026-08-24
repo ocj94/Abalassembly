@@ -35,3 +35,10 @@ Chaque variante a été testée en conditions réelles : de vraies parties, jou�
 Le principe du site est de ne jamais inventer de donnée ni maquiller un résultat. Ce réseau a été construit et testé sérieusement, et le résultat — même s'il ne va pas dans le sens espéré — est une vraie information : prédire *qui gagne finalement* une partie humaine est un objectif différent de bien juger la solidité tactique d'*une* position précise pendant la recherche. Cet écart d'objectif explique probablement pourquoi le réseau, malgré une précision honnête sur son propre critère (80,3 %), ne bat pas un moteur pensé directement pour la recherche.
 
 Cette section reste disponible pour qui veut voir le résultat par lui-même, ou explorer plus tard un entraînement avec un objectif différent (imiter les coups de joueurs humains forts, par exemple, plutôt que prédire l'issue de la partie).
+
+
+## Tes propres résultats par moteur
+
+La page **Statistiques** réunit désormais les deux échelles côte à côte : le résultat général ci-dessus (les 15 parties de test), et tes résultats personnels — calculés depuis ton historique de parties, filtrés par moteur choisi à chaque partie.
+
+Si tu joues peu de parties avec un moteur donné, un avertissement « échantillon réduit » apparaît sous les 10 parties — un taux de victoire sur 2 ou 3 parties n'a pas grand sens statistiquement, et le site ne le présente jamais comme s'il en avait.
