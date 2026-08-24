@@ -31,6 +31,14 @@ Deux choix le distinguent d'un simple fichier texte :
 
 **Une partie n'est valide que si elle rejoue.** Le convertisseur `tools/to-apgn.js` produit le fichier et rejette ce qui ne passe pas.
 
+## Importer une notation Aba-Pro
+
+Un troisième point d'entrée, pour les coups déjà écrits ailleurs : le menu → **Importer** ouvre une zone de texte où coller une séquence de coups en notation Aba-Pro (`e5f6 c3b2 ...`, numéros de coup optionnels), avec le choix de la variante et de qui commence.
+
+Précision honnête : ce n'est pas un import ciblant un site en particulier. Board Game Arena, par exemple, n'expose aucun format d'export texte téléchargeable pour Abalone — sa relecture fonctionne par un rejeu de notifications internes au navigateur, rien à copier-coller. Aba-Pro reste en revanche le standard réellement documenté et utilisé par la communauté Abalone, le même que celui de « Partie par code » et de l'APGN ci-dessous.
+
+Si le texte collé contient un coup illisible ou illégal sur le plateau choisi, l'import s'arrête proprement à ce point-là et l'indique clairement (X coups reconnus sur Y) — jamais un import silencieusement tronqué présenté comme complet.
+
 ## Différence entre les deux
 
 Le code de partie (`ABAL1`) est compact, fait pour transiter par SMS pendant une partie. L'APGN est fait pour archiver et partager une partie terminée.
