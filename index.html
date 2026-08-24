@@ -3413,6 +3413,7 @@ document.addEventListener('keydown', function(e){
           <button class="ctrl-btn" onclick="exportGameNotation()" style="margin-top:8px;width:100%">📋 Exporter la partie</button>
           <button class="ctrl-btn" onclick="openGameCodePanel()" style="margin-top:8px;width:100%" title="Jouer par echange de code, sans compte ni serveur">Partie par code</button>
           <button class="ctrl-btn" onclick="exportGameAbaPro()" style="margin-top:8px;width:100%" title="Copie les coups de la partie en notation Aba-Pro standard, lisible par un moteur externe">Copier les coups (Aba-Pro)</button>
+          <button class="ctrl-btn" onclick="openExternalEnginePanel()" style="margin-top:8px;width:100%" title="Faire jouer un autre programme contre l IA de ce site, en relayant les coups a la main">Duel moteur externe 🧪</button>
           <button class="ctrl-btn" onclick="openRtcPanel()" style="margin-top:8px;width:100%" title="Connexion directe en temps reel entre deux navigateurs, experimental">Partie en direct 🧪</button>
           <button class="ctrl-btn" onclick="showPostGameReview()" style="margin-top:8px;width:100%" title="Ou la partie a bascule">Analyse d'apres-partie</button>
           <div id="ai-metrics" style="margin-top:10px;padding:9px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);display:none">
@@ -7193,7 +7194,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.11';
+const APP_VERSION = 'v2.12';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -14834,57 +14835,20 @@ document.addEventListener('abalassembly:movePlayed', function(){ _a11yRefreshOve
 document.addEventListener('abalassembly:positionChanged', function(){ _a11yRefreshOverlay(); });
 window.addEventListener('resize', function(){ _a11yRefreshOverlay(); });
 
-function handleClick(r, c) {
-  const piece = board[akey(r,c)];
-  const me = currentTurn;
-
-  // Clic sur une de ses propres billes → sélection/désélection
-  if (piece === me) {
-    const idx = selected.findIndex(s => s.r===r && s.c===c);
-    if (idx !== -1) {
-      selected.splice(idx,1);
-    } else {
-      if (selected.length >= 3) { showToast('Maximum 3 billes'); return; }
-      const candidate = selected.concat([{r,c}]);
-      // n'autorise que les sélections alignées et contiguës
-      if (selectionLine(candidate)) {
-        selected.push({r,c});
-      } else {
-        // remplace la sélection si la nouvelle bille n'est pas alignée
-        selected = [{r,c}];
-      }
-    }
-    soundSelect();  // 🔊 petit son de sélection
-    drawBoard();
-    return;
-  }
-
-  // Aucune bille sélectionnée → rien à faire
-  if (selected.length === 0) { return; }
-
-  // Le clic sur une case (vide ou adverse) définit la DIRECTION du coup,
-  // déterminée par le vecteur depuis la bille la plus proche de la sélection.
-  const targetAx = rcToAxial(r, c);
-  // trouve la direction : la cible doit être adjacente à une bille de la sélection
-  let chosenDir = null;
-  for (const s of selected) {
-    const sAx = rcToAxial(s.r, s.c);
-    for (const d of AX_DIRS) {
-      if (sAx.q + d.q === targetAx.q && sAx.r + d.r === targetAx.r) { chosenDir = d; break; }
-    }
-    if (chosenDir) break;
-  }
-  if (!chosenDir) { selected = []; drawBoard(); return; }
-
-  const info = validateMove(selected, chosenDir, me);
-  if (!info.valid) {
-    showToast('⛔ ' + info.reason);
-    return;
-  }
-
+/* Execution d'un coup joue par un joueur (humain au clic, ou coup relaye
+   depuis un moteur externe). Extrait tel quel de handleClick() : tout ce
+   qui suivait « Applique le coup » ne dependait en rien de l'interface
+   (aucun clic, aucune selection), seule la determination de la selection
+   et de la direction en dependait. Aucun changement de comportement --
+   handleClick appelle simplement cette fonction avec exactement les
+   memes arguments qu'il calculait lui-meme auparavant.
+   Permet a un coup valide venu d'ailleurs (moteur externe) de suivre
+   EXACTEMENT le meme chemin qu'un coup humain : animations, sons,
+   captures, coach, analyse de style, detection de victoire, pendules,
+   sauvegarde -- rien n'est contourne ni reimplemente en parallele. */
+function executePlayerMove(selCopy, chosenDir, me, info) {
   // Applique le coup
   pushUndoState();
-  const selCopy = selected.slice();
   // Mode Coach : capture l'état stratégique AVANT le coup (du point de vue de l'humain)
   let coachBefore = null, coachCapBefore = (humanColor === 'black' ? capturedByBlack : capturedByWhite);
   if ((coachEnabled || advisorEnabled) && me === humanColor) coachBefore = evalFactors(humanColor);
@@ -14988,6 +14952,58 @@ function handleClick(r, c) {
     drawBoard();
     afterHumanMove();
   }
+}
+
+
+function handleClick(r, c) {
+  const piece = board[akey(r,c)];
+  const me = currentTurn;
+
+  // Clic sur une de ses propres billes → sélection/désélection
+  if (piece === me) {
+    const idx = selected.findIndex(s => s.r===r && s.c===c);
+    if (idx !== -1) {
+      selected.splice(idx,1);
+    } else {
+      if (selected.length >= 3) { showToast('Maximum 3 billes'); return; }
+      const candidate = selected.concat([{r,c}]);
+      // n'autorise que les sélections alignées et contiguës
+      if (selectionLine(candidate)) {
+        selected.push({r,c});
+      } else {
+        // remplace la sélection si la nouvelle bille n'est pas alignée
+        selected = [{r,c}];
+      }
+    }
+    soundSelect();  // 🔊 petit son de sélection
+    drawBoard();
+    return;
+  }
+
+  // Aucune bille sélectionnée → rien à faire
+  if (selected.length === 0) { return; }
+
+  // Le clic sur une case (vide ou adverse) définit la DIRECTION du coup,
+  // déterminée par le vecteur depuis la bille la plus proche de la sélection.
+  const targetAx = rcToAxial(r, c);
+  // trouve la direction : la cible doit être adjacente à une bille de la sélection
+  let chosenDir = null;
+  for (const s of selected) {
+    const sAx = rcToAxial(s.r, s.c);
+    for (const d of AX_DIRS) {
+      if (sAx.q + d.q === targetAx.q && sAx.r + d.r === targetAx.r) { chosenDir = d; break; }
+    }
+    if (chosenDir) break;
+  }
+  if (!chosenDir) { selected = []; drawBoard(); return; }
+
+  const info = validateMove(selected, chosenDir, me);
+  if (!info.valid) {
+    showToast('⛔ ' + info.reason);
+    return;
+  }
+
+  executePlayerMove(selected.slice(), chosenDir, me, info);
 }
 
 /* Après un coup humain : déclenche l'IA seulement en mode IA */
@@ -30449,6 +30465,94 @@ function openHistoryModal(){
    Abalone (contrairement au FEN des echecs -- verifie par recherche).
    L'export part donc forcement de la position de depart de la variante,
    rappelee en commentaire d'en-tete, et non d'une position arbitraire. */
+/* ═══════════════════════════════════════════
+   DUEL CONTRE UN MOTEUR EXTERNE
+   Rendu possible par l'extraction de executePlayerMove() hors de
+   handleClick() : un coup venu d'un moteur externe suit EXACTEMENT le
+   meme chemin qu'un coup humain (validation, captures, animations,
+   pendules, detection de victoire, sauvegarde) -- rien n'est contourne.
+   Le coup recu est TOUJOURS revalide contre le moteur avant d'etre
+   applique : un moteur externe buggue ou malveillant ne peut pas faire
+   jouer un coup illegal.
+   Pas de serveur, pas de protocole reseau : l'utilisateur relaie les
+   coups a la main, dans la notation Aba-Pro standard -- le seul format
+   qu'un moteur externe a une chance de comprendre (verifie : il n'existe
+   aucun format standard de POSITION pour l'Abalone, et le format
+   "Partie par code" est propre a ce site).
+═══════════════════════════════════════════ */
+function openExternalEnginePanel(){
+  let m = document.getElementById('extengine-modal');
+  if (m) m.remove();
+  m = document.createElement('div');
+  m.id = 'extengine-modal';
+  m.style.cssText = 'position:fixed;inset:0;z-index:3500;background:rgba(13,15,14,0.92);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
+  m.innerHTML =
+    '<div style="max-width:520px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:24px;max-height:90vh;overflow-y:auto">'
+    + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:6px">Duel contre un moteur externe</h3>'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Fais jouer un autre programme contre l\u2019IA de ce site. Tu relaies les coups à la main, en notation Aba-Pro. Aucun compte, aucun serveur.</div>'
+    + '<div id="extengine-last" style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">DERNIER COUP DE CE SITE</div>'
+    + '<div id="extengine-lastmove" style="font-family:\'DM Mono\',monospace;font-size:16px;color:var(--gold);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px">—</div>'
+    + '<button class="ctrl-btn" onclick="_extCopyLastMove()" style="width:100%;margin-bottom:14px">Copier ce coup</button>'
+    + '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">COUP DU MOTEUR EXTERNE</div>'
+    + '<input id="extengine-in" placeholder="ex. e5f6" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:\'DM Mono\',monospace;font-size:14px;box-sizing:border-box">'
+    + '<div id="extengine-status" style="font-size:12px;margin:8px 0;min-height:16px"></div>'
+    + '<div style="display:flex;gap:8px">'
+      + '<button class="ctrl-btn" onclick="_extPlayMove()" style="flex:1">Jouer ce coup</button>'
+      + '<button onclick="document.getElementById(\'extengine-modal\').remove()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 16px;cursor:pointer">Fermer</button>'
+    + '</div>'
+    + '</div>';
+  document.body.appendChild(m);
+  _extRefreshLastMove();
+}
+
+function _extLastMoveText(){
+  if (typeof boardSnapshots === 'undefined' || !boardSnapshots.length) return null;
+  const mi = boardSnapshots[boardSnapshots.length-1].moveInfo;
+  if (!mi || !mi.cells || !mi.dir) return null;
+  return moveToABAPRO(mi.cells, mi.dir, mi.type);
+}
+
+function _extRefreshLastMove(){
+  const el = document.getElementById('extengine-lastmove');
+  if (!el) return;
+  const t = _extLastMoveText();
+  el.textContent = t || '— (aucun coup joué pour l\u2019instant)';
+}
+
+function _extCopyLastMove(){
+  const t = _extLastMoveText();
+  if (!t) { if (typeof showToast==='function') showToast('Aucun coup à copier.'); return; }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(t).then(function(){
+      if (typeof showToast==='function') showToast('📋 Coup copié : ' + t);
+    }).catch(function(){ if (typeof showToast==='function') showToast('Copie refusée par le navigateur.'); });
+  }
+}
+
+function _extPlayMove(){
+  const input = document.getElementById('extengine-in');
+  const status = document.getElementById('extengine-status');
+  const setErr = function(msg){ if (status){ status.textContent = msg; status.style.color = '#e05c4b'; } };
+  if (!input) return;
+  const tok = input.value.trim();
+  if (!tok) { setErr('Colle le coup renvoyé par le moteur externe.'); return; }
+  if (gameOver) { setErr('La partie est terminée.'); return; }
+
+  const color = currentTurn;
+  const mv = resolveAbaProToken(tok, color);
+  if (!mv) { setErr('Notation illisible ou coup impossible dans cette position pour ' + (color==='black'?'les noirs':'les blancs') + '.'); return; }
+  // Revalidation systematique contre le moteur : on ne fait jamais confiance
+  // a un coup venu de l'exterieur, meme s'il a ete resolu.
+  const info = validateMove(mv.cells, mv.dir, color);
+  if (!info || !info.valid) { setErr('⛔ Coup illégal : ' + ((info && info.reason) || 'refusé par le moteur') + '.'); return; }
+
+  executePlayerMove(mv.cells.slice(), mv.dir, color, info);
+  input.value = '';
+  if (status) { status.textContent = '✅ Coup joué : ' + tok; status.style.color = 'var(--accent-green-light)'; }
+  // Laisse a l'IA du site le temps de repondre, puis reaffiche son coup
+  setTimeout(_extRefreshLastMove, 2200);
+}
+
 function exportGameAbaPro(){
   if (typeof boardSnapshots === 'undefined' || !boardSnapshots.length) {
     if (typeof showToast === 'function') showToast('Aucun coup joué à exporter.');
