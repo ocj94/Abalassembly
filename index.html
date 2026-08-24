@@ -2464,6 +2464,9 @@ document.addEventListener('keydown', function(e){
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-history" onclick="openHistoryModal(); if (window.innerWidth < 600 && typeof closeSidebarMobile==='function') closeSidebarMobile();">
       <span class="s-icon">🕓</span><span class="s-label">Historique</span>
     </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-import" onclick="openApgnImportModal(); if (window.innerWidth < 600 && typeof closeSidebarMobile==='function') closeSidebarMobile();">
+      <span class="s-icon">📥</span><span class="s-label">Importer</span>
+    </button>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-puzzles" onclick="sidebarNav('puzzles',this)">
       <span class="s-icon">🧩</span><span class="s-label" data-i18n="nav.puzzles">Problèmes</span>
     </button>
@@ -30334,6 +30337,84 @@ function openHistoryModal(){
   document.body.appendChild(modal);
   _historyFilters = { variant:'all', mode:'all', result:'all', search:'' };
   _renderHistoryList();
+}
+
+/* Import d'une sequence Aba-Pro brute (pas un format proprietaire BGA --
+   verifie par recherche que BGA n'expose aucun export texte telechargeable
+   pour Abalone, seulement une relecture par notifications internes au
+   navigateur. Aba-Pro est en revanche LE standard communautaire reconnu
+   -- import honnete de ce qu'on peut reellement verifier, pas invente. */
+function openApgnImportModal(){
+  let modal = document.getElementById('apgn-import-modal');
+  if (modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'apgn-import-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:3500;background:rgba(13,15,14,0.92);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
+
+  // Object.keys(LAYOUTS) placerait '69' en premier (les cles numeriques
+  // sont toujours enumerees avant les cles textuelles en JS, quel que soit
+  // l'ordre d'insertion) -- ce qui selectionnait silencieusement la
+  // variante "69" par defaut au lieu de "standard", faisant echouer tout
+  // import d'une sequence classique. Trouve en testant en conditions
+  // reelles (Chromium headless), pas suppose correct. "standard" est donc
+  // trie explicitement en tete de liste.
+  const variantKeys = (typeof LAYOUTS !== 'undefined') ? Object.keys(LAYOUTS).sort(function(a,b){
+    if (a === 'standard') return -1; if (b === 'standard') return 1; return 0;
+  }) : [];
+  const variantOptions = variantKeys.map(function(k){
+    const label = (typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[k]) ? HEAT_VARIANT_LABEL[k] : k;
+    return '<option value="' + k + '">' + label + '</option>';
+  }).join('');
+
+  modal.innerHTML =
+    '<div style="max-width:520px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:24px;max-height:90vh;overflow-y:auto">'
+    + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:6px">Importer une notation Aba-Pro</h3>'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Colle une séquence de coups en notation Aba-Pro (ex. « e5f6 c3b2 »), avec ou sans numéros de coup — la notation la plus répandue dans la communauté Abalone, pas un format propriétaire d\u2019un site en particulier.</div>'
+    + '<div style="display:flex;gap:8px;margin-bottom:10px">'
+      + '<select id="apgn-import-variant" style="flex:1;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px">' + variantOptions + '</select>'
+      + '<select id="apgn-import-first" style="flex:1;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px"><option value="black">Noir commence</option><option value="white">Blanc commence</option></select>'
+    + '</div>'
+    + '<textarea id="apgn-import-text" placeholder="e5f6 c3b2 d1e3..." style="width:100%;height:100px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:12px;box-sizing:border-box"></textarea>'
+    + '<div id="apgn-import-status" style="font-size:12px;margin:8px 0;min-height:16px"></div>'
+    + '<div style="display:flex;gap:8px">'
+      + '<button class="ctrl-btn" onclick="_doApgnImport()" style="flex:1">Importer</button>'
+      + '<button onclick="document.getElementById(\'apgn-import-modal\').remove()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 16px;cursor:pointer">Fermer</button>'
+    + '</div>'
+    + '</div>';
+  document.body.appendChild(modal);
+}
+
+function _doApgnImport(){
+  const textEl = document.getElementById('apgn-import-text');
+  const status = document.getElementById('apgn-import-status');
+  const text = textEl ? textEl.value.trim() : '';
+  if (!text) { if (status){ status.textContent = 'Colle une séquence de coups d\u2019abord.'; status.style.color = '#e05c4b'; } return; }
+
+  const tokens = text.replace(/\d+\./g,' ').trim().split(/\s+/).filter(Boolean);
+  const variant = document.getElementById('apgn-import-variant').value;
+  const first = document.getElementById('apgn-import-first').value;
+
+  // Meme ordre que loadMigsGame()/loadAOGame() (deja en place, deja teste) :
+  // showPage('game') D'ABORD, puis mise en place du plateau, puis rejeu --
+  // evite que le plateau reste invisible si on importe depuis une autre page.
+  if (typeof showPage === 'function') showPage('game');
+  currentLayout = variant;
+  if (typeof initBoardState === 'function') initBoardState();
+  capturedByBlack = 0; capturedByWhite = 0;
+  _replaySeqToSnapshots(text, 'Partie importée', first);
+
+  const played = boardSnapshots.length;
+  const modal = document.getElementById('apgn-import-modal');
+  if (played === 0) {
+    if (status) { status.textContent = 'Aucun coup reconnu — vérifie la notation ou la variante choisie.'; status.style.color = '#e05c4b'; }
+    return;
+  }
+  if (modal) modal.remove();
+  if (played < tokens.length) {
+    if (typeof showToast === 'function') showToast('⚠️ Importé partiellement : ' + played + '/' + tokens.length + ' coups reconnus');
+  } else {
+    if (typeof showToast === 'function') showToast('✅ Partie importée : ' + played + ' coups');
+  }
 }
 
 function openGameCodePanel() {
