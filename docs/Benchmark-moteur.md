@@ -68,3 +68,7 @@ Résultat négatif, conservé et documenté tel quel — il dit quelque chose de
 Faute de protocole standard, le site propose le chemin manuel qui fonctionne avec n'importe quel programme : **exporter les coups en notation Aba-Pro** (contrôles de jeu → « Copier les coups »), les soumettre au moteur externe, puis **réimporter** le résultat (menu → « Importer »).
 
 À noter : il n'existe aucun format standard de *position* pour l'Abalone, contrairement au FEN des échecs. Seule la notation des *coups* est standardisée. Tout échange part donc d'une position de départ connue.
+
+Depuis la version 2.12, un mode **« Duel moteur externe »** (contrôles de jeu) automatise ce relais coup par coup : le site affiche son coup en Aba-Pro, tu le soumets au programme externe, tu colles sa réponse, et la partie continue normalement — avec pendules, captures et détection de victoire comme une partie ordinaire.
+
+Le coup reçu est systématiquement revalidé contre le moteur avant d'être appliqué : un programme externe ne peut pas faire jouer un coup illégal, même par erreur.
