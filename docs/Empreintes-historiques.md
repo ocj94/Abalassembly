@@ -30,11 +30,17 @@ La fonctionnalité la plus intéressante des trois. Pour chaque dimension, on co
 | Profondeur tactique | 45,1 % | 56,8 % | +11,7 pt |
 | Cohésion moyenne | 43,0 % | 54,2 % | +11,3 pt |
 
-Ces chiffres varient légèrement d'une exécution à l'autre (les entrées sans vainqueur connu changent selon l'état de chargement), mais l'ordre et le sens restent stables. Ce n'est pas du bruit statistique : ça confirme, avec de vraies données plutôt qu'une supposition, des principes stratégiques bien connus d'Abalone — contrôler le centre, éviter le bord, ne pas subir de menaces.
+Ce n'est pas du bruit statistique : ça confirme, avec de vraies données plutôt qu'une supposition, des principes stratégiques bien connus d'Abalone — contrôler le centre, éviter le bord, ne pas subir de menaces.
 
-### La limite assumée
+### Mise à jour : le corpus MIGS a rejoint le calcul (325 003 positions)
 
-Ce calcul ne porte **que** sur les positions issues de parties AbalOnline (155 533 sur les ~156 500 empreintes AO). Les parties du corpus MIGS n'ont pas de nom de vainqueur stocké directement — seulement un type de fin de partie (« Au score », « Abandon », « Au temps »...). Plutôt que d'approximer un vainqueur pour cette moitié du corpus, la fonctionnalité s'en tient à la source où l'information est réellement fiable.
+Vérifié après coup : pour les parties MIGS terminées **« Au score »** (1 524 sur 2 589), rejouer la partie jusqu'au bout avec le vrai moteur atteint systématiquement 6 captures d'un côté — un vainqueur fiable, sans ambiguïté. Le panneau combine désormais les deux sources : 155 533 positions AbalOnline + 169 470 positions MIGS « Au score » = **325 003 positions** avec vainqueur connu.
+
+Ce calcul (rejouer 1 524 parties) prend environ 78 secondes la première fois qu'un appareil ouvre le panneau — mis en cache ensuite, jamais refait. Une partie en cours n'est jamais perturbée par ce calcul, qui tourne sur son propre état de plateau temporaire.
+
+### La limite qui reste assumée
+
+Pour les parties MIGS terminées par **abandon, fin de temps ou déconnexion** (1 045 parties), les captures finales ne dépassent jamais 3 à 5 — il est structurellement impossible de savoir qui a abandonné depuis les seules données du corpus. Plutôt que d'approximer, ces parties restent exclues du calcul.
 
 ## Comment y accéder
 
