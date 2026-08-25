@@ -6365,6 +6365,15 @@ document.addEventListener('keydown', function(e){
       <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Tes résultats personnels, par moteur choisi</div>
       <div id="engine-stats-personal"></div>
     </div>
+
+    <!-- Profil de decision personnel -- agrege sur toutes les parties
+         archivees, chaque coup humain compare a TOUS les coups legaux
+         disponibles a cet instant (via le vrai moteur). -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-top:24px">
+      <div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Profil de décision</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Pour chaque coup que tu as joué, comparé à tous les coups légaux disponibles à cet instant précis — calculé depuis ton historique de parties, pas une estimation.</div>
+      <div id="decision-profile-personal"></div>
+    </div>
   </div>
 </div>
 
@@ -7200,7 +7209,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.20';
+const APP_VERSION = 'v2.21';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -16233,6 +16242,81 @@ function calculerProfilDecision(color) {
   // plus ce nombre est petit, plus le "bon" coup se distingue nettement des autres.
   const nbProches = scores.filter(function(s){ return meilleur - s <= SEUIL_PROCHE_MEILLEUR; }).length;
   return { nbCoupsLegaux: moves.length, ecartMeilleurPire: meilleur - pire, nbCoupsProchesDuMeilleur: nbProches };
+}
+
+/* ═══════════════════════════════════════════
+   PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision() sur
+   TOUT l'historique de parties du joueur, pas seulement la position
+   courante. Reutilise gameCodeParse() (deja utilise par gameCodeLoad)
+   pour rejouer chaque partie archivee, isole du plateau reel via
+   sauvegarde/restauration systematique (meme precaution que
+   ensureMigsWinners -- ne doit jamais perturber une partie en cours).
+   Pour CHAQUE coup joue par le joueur (pas ceux de l'IA/l'adversaire),
+   evalue TOUS les coups legaux disponibles a cet instant, et verifie si
+   le coup reellement joue faisait partie des "proches du meilleur"
+   (meme seuil SEUIL_PROCHE_MEILLEUR que le profil de decision existant,
+   30 points -- pas un nouveau seuil invente pour l'occasion).
+   Distingue aussi les decisions "faciles" (grand ecart meilleur/pire,
+   un choix se detachait nettement) des "disputees" (ecart <= 100 points,
+   seuil arbitraire mais documente ici) -- pour voir si le joueur trouve
+   le bon coup plus souvent quand c'est facile ou quand c'est dispute. */
+const SEUIL_ECART_DECISION_DISPUTEE = 100; // points d'evaluateBoard -- choix documente, pas calibre
+function computeDecisionProfile(){
+  if (typeof getGameHistory !== 'function') return null;
+  const history = getGameHistory();
+  if (!history.length) return null;
+
+  const saveLayout = currentLayout, saveBoard = board, saveCB = capturedByBlack, saveCW = capturedByWhite;
+  let totalMoves = 0, closeToBest = 0, brancheSum = 0;
+  let easyCount = 0, easyFound = 0, hardCount = 0, hardFound = 0;
+
+  history.forEach(function(entry){
+    if (!entry.code) return;
+    const parsed = gameCodeParse(entry.code);
+    if (!parsed.ok) return;
+    const humanC = entry.humanColor || 'black';
+    currentLayout = parsed.layout || 'standard';
+    initBoardState(); capturedByBlack = 0; capturedByWhite = 0;
+    let turn = 'black';
+    for (let i = 0; i < parsed.moves.length; i++) {
+      const mv = parsed.moves[i];
+      const v = validateMove(mv.cells, mv.dir, turn);
+      if (!v || !v.valid) break;
+      if (turn === humanC) {
+        const legal = getAllMovesForColor(turn);
+        const scores = legal.map(function(m){
+          const u = applyMove(m, turn);
+          const s = evaluateBoard(turn);
+          undoMove(u);
+          return s;
+        });
+        const idxJoue = legal.findIndex(function(m){ return canonId(m) === canonId(mv); });
+        if (idxJoue >= 0 && scores.length) {
+          const best = Math.max.apply(null, scores), worst = Math.min.apply(null, scores);
+          const scoreJoue = scores[idxJoue];
+          const trouve = (best - scoreJoue) <= SEUIL_PROCHE_MEILLEUR;
+          totalMoves++; brancheSum += legal.length;
+          if (trouve) closeToBest++;
+          const gap = best - worst;
+          if (gap > SEUIL_ECART_DECISION_DISPUTEE) { easyCount++; if (trouve) easyFound++; }
+          else { hardCount++; if (trouve) hardFound++; }
+        }
+      }
+      applyMove({cells:mv.cells, dir:mv.dir, info:v}, turn);
+      turn = (turn === 'black') ? 'white' : 'black';
+    }
+  });
+
+  currentLayout = saveLayout; board = saveBoard; capturedByBlack = saveCB; capturedByWhite = saveCW;
+
+  if (!totalMoves) return null;
+  return {
+    totalMoves: totalMoves,
+    tauxProcheMeilleur: +(closeToBest/totalMoves*100).toFixed(1),
+    brancheMoyenne: +(brancheSum/totalMoves).toFixed(1),
+    easyCount: easyCount, easyFoundPct: easyCount ? +(easyFound/easyCount*100).toFixed(1) : null,
+    hardCount: hardCount, hardFoundPct: hardCount ? +(hardFound/hardCount*100).toFixed(1) : null
+  };
 }
 
 function calculerExplicationCoup(move, color) {
@@ -27135,6 +27219,7 @@ function renderStats() {
   // page reste bien a blanc sans utilisateur, mais les stats moteur
   // personnelles n'ont aucune raison de l'etre.
   if (typeof renderEngineStats === 'function') renderEngineStats();
+  if (typeof renderDecisionProfile === 'function') renderDecisionProfile();
   const u = currentUser;
   if (!u) return;
   const el = function(id,v) { const e=document.getElementById(id); if(e) e.textContent=v; };
@@ -30643,6 +30728,39 @@ function computeEngineStats(){
 }
 
 const ENGINE_LABELS = { actuel:'Moteur actuel', 'nnue-eval':'NNUE — évaluation', 'nnue-order':'NNUE — ordonnancement', 'nnue-both':'NNUE — combiné' };
+
+/* Panneau "Profil de decision personnel" -- agrege computeDecisionProfile()
+   sur toutes les parties archivees. Meme famille que les stats moteur
+   juste au-dessus : calcule a l'execution, jamais un chiffre ecrit a la
+   main. Le seuil "decision disputee" (100 points) est signale comme un
+   choix arbitraire mais documente, pas une valeur calibree -- coherent
+   avec SEUIL_PROCHE_MEILLEUR (30 points) deja etabli ailleurs dans le
+   code pour la meme raison. */
+function renderDecisionProfile(){
+  const host = document.getElementById('decision-profile-personal');
+  if (!host) return;
+  const profil = computeDecisionProfile();
+  if (!profil) {
+    host.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px 0">Aucune partie archivée pour l\u2019instant.</div>';
+    return;
+  }
+  const rows = [
+    ['Coups proches du meilleur choix disponible', profil.tauxProcheMeilleur + '%', profil.totalMoves + ' coups analysés'],
+    ['Nombre moyen de coups légaux par position', profil.brancheMoyenne, null],
+  ];
+  let html = rows.map(function(r){
+    return '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--border)">'
+      + '<div><div style="font-size:12px;color:var(--text)">'+r[0]+'</div>'+(r[2]?'<div style="font-size:11px;color:var(--muted)">'+r[2]+'</div>':'')+'</div>'
+      + '<div style="font-weight:700;color:var(--gold)">'+r[1]+'</div></div>';
+  }).join('');
+  if (profil.easyCount || profil.hardCount) {
+    html += '<div style="font-size:11px;color:var(--muted);margin-top:10px">Décisions faciles (un choix se détachait nettement, écart > '+SEUIL_ECART_DECISION_DISPUTEE+' pts) : '
+      + (profil.easyFoundPct!=null ? profil.easyFoundPct+'% trouvées' : '—') + ' sur ' + profil.easyCount + '<br>'
+      + 'Décisions disputées (coups proches en valeur) : '
+      + (profil.hardFoundPct!=null ? profil.hardFoundPct+'% trouvées' : '—') + ' sur ' + profil.hardCount + '</div>';
+  }
+  host.innerHTML = html;
+}
 
 function renderEngineStats(){
   const host = document.getElementById('engine-stats-personal');
