@@ -3132,6 +3132,7 @@ document.addEventListener('keydown', function(e){
         <button onclick="setupPick('layout','fujiyama',this)" class="setup-opt" title="Disposition artistique (forme de montagne), pas une variante de tournoi">Fujiyama</button>
         <button onclick="setupPick('layout','the_wall',this)" class="setup-opt" title="Variante communautaire reelle, 144 parties enregistrees sur AbalOnline">The Wall</button>
         <button onclick="setupPick('layout','star',this)" class="setup-opt" title="Variante communautaire reelle, 123 parties enregistrees sur AbalOnline">Star</button>
+        <button onclick="setupPick('layout','random',this)" class="setup-opt" title="Tire une vraie disposition au hasard parmi celles disponibles">🎲 Aléatoire</button>
       </div>
 
       <div class="setup-row-lbl" style="margin-top:14px">Adversaire</div>
@@ -7199,7 +7200,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.17';
+const APP_VERSION = 'v2.18';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -8846,7 +8847,23 @@ function startConfiguredGame() {
      exception avant meme resetGame. */
   const step = (fn) => { try { fn(); } catch (e) { if (window.console) console.warn('config:', e && e.message); } };
 
-  step(function(){ if (typeof currentLayout !== 'undefined') currentLayout = c.layout; });
+  step(function(){
+    if (typeof currentLayout !== 'undefined') {
+      if (c.layout === 'random') {
+        // Tire une vraie disposition au hasard parmi celles reellement
+        // disponibles (Object.keys(LAYOUTS)) -- jamais une liste ecrite a
+        // la main qui deviendrait perimee des le prochain ajout de variante.
+        // "decouverte" est exclue explicitement : ce n'est pas une variante
+        // a essayer au hasard, c'est le plateau reduit (7 billes/camp) du
+        // Mode Enfant -- un joueur qui clique "Aleatoire" ne s'attend pas a
+        // tomber dessus sans contexte.
+        const keys = Object.keys(LAYOUTS).filter(function(k){ return k !== 'decouverte'; });
+        currentLayout = keys[Math.floor(Math.random() * keys.length)];
+      } else {
+        currentLayout = c.layout;
+      }
+    }
+  });
   step(function(){
     document.querySelectorAll('[id^="layout-"]').forEach(function(b){
       b.classList.toggle('active', b.id === 'layout-' + c.layout);
