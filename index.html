@@ -7200,7 +7200,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.18';
+const APP_VERSION = 'v2.19';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -15881,8 +15881,142 @@ function calculerAnalyseHistorique(color, k) {
   });
   return {
     nMigs: nMigs, nAo: nAo, nTotal: nMigs + nAo, champs: champs,
-    similaires: meilleurs.map(function(x){ return { distance:x.d, s:x.p.s, g:x.p.g, m:x.p.m }; })
+    similaires: meilleurs.map(function(x){ return { distance:x.d, s:x.p.s, g:x.p.g, m:x.p.m }; }),
+    // Rarete : seuils calibres sur la VRAIE distribution des distances au
+    // plus proche voisin (mesuree sur 300 positions reelles tirees au
+    // hasard, meme metrique distanceEmpreintes) -- pas des nombres
+    // inventes. Mediane ~0.18, p90 ~0.29 sur cette mesure.
+    rarete: (function(){
+      const d0 = meilleurs.length ? meilleurs[0].d : null;
+      if (d0 === null) return null;
+      if (d0 < 0.05) return { niveau:'frequente', label:'Position très courante' };
+      if (d0 > 0.29) return { niveau:'rare', label:'Position rare' };
+      return { niveau:'normale', label:'Position courante' };
+    })()
   };
+}
+
+/* ═══════════════════════════════════════════
+   COURBE D'EVOLUTION D'UNE PARTIE HISTORIQUE
+   Une empreinte existe pour CHAQUE coup d'une partie (verifie : 86
+   empreintes pour la toute premiere partie MIGS, une par coup environ).
+   On peut donc tracer comment une dimension a evolue tout au long d'une
+   partie reelle, sans rien recalculer -- juste filtrer et trier ce qui
+   existe deja par (source, partie), puis par numero de coup. */
+function _trajectoireDonnees(source, gameIdx, champ){
+  const pts = EMPREINTES_HISTORIQUES
+    .filter(function(x){ return x.s === source && x.g === gameIdx; })
+    .sort(function(a,b){ return a.m - b.m; });
+  return pts.map(function(x){ return { m: x.m, v: x.e[champ], c: x.c }; });
+}
+function _trajectoireSVG(pts, w, h, color){
+  if (!pts.length) return '<div style="height:'+h+'px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px">Aucune donnée pour cette partie.</div>';
+  const vals = pts.map(function(p){ return p.v; });
+  const min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+  const range = (max - min) || 1;
+  const xpts = pts.map(function(p,i){
+    const x = pts.length>1 ? (i/(pts.length-1))*w : w/2;
+    const y = h - ((p.v-min)/range)*(h-10) - 5;
+    return x.toFixed(1)+','+y.toFixed(1);
+  });
+  return '<svg width="100%" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="display:block">'+
+    '<polyline points="'+xpts.join(' ')+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'+
+    '</svg>'+
+    '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:2px">'+
+      '<span>coup 1</span><span>min '+min.toFixed(2)+' · max '+max.toFixed(2)+'</span><span>coup '+pts.length+'</span></div>';
+}
+function _renderTrajectoire(source, gameIdx, champ){
+  const host = document.getElementById('trajectoire-chart');
+  if (!host) return;
+  const pts = _trajectoireDonnees(source, gameIdx, champ);
+  host.innerHTML = _trajectoireSVG(pts, 400, 120, '#c8a84b');
+}
+function openTrajectoryChart(source, gameIdx){
+  let m = document.getElementById('trajectoire-modal');
+  if (m) m.remove();
+  const pts0 = _trajectoireDonnees(source, gameIdx, 'cohesionMoyenne');
+  const options = EMPREINTES_CHAMPS.map(function(ch){
+    return '<option value="'+ch+'"'+(ch==='cohesionMoyenne'?' selected':'')+'>'+(LABELS_EMPREINTE[ch]||ch)+'</option>';
+  }).join('');
+  m = document.createElement('div');
+  m.id = 'trajectoire-modal';
+  m.style.cssText = 'position:fixed;inset:0;z-index:3500;background:rgba(13,15,14,0.92);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
+  m.innerHTML =
+    '<div style="max-width:480px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:24px">'
+    + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:6px">Évolution au fil de la partie</h3>'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">'+source+' · partie #'+gameIdx+' · '+pts0.length+' coups mesurés</div>'
+    + '<select onchange="_renderTrajectoire(\''+source+'\','+gameIdx+',this.value)" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px;margin-bottom:12px">'+options+'</select>'
+    + '<div id="trajectoire-chart"></div>'
+    + '<button class="ctrl-btn" onclick="document.getElementById(\'trajectoire-modal\').remove()" style="width:100%;margin-top:14px">Fermer</button>'
+    + '</div>';
+  document.body.appendChild(m);
+  _renderTrajectoire(source, gameIdx, 'cohesionMoyenne');
+}
+
+/* ═══════════════════════════════════════════
+   CORRELATIONS DIMENSION ↔ VICTOIRE (parties AbalOnline uniquement --
+   seule source ou le nom du vainqueur reel est stocke directement ;
+   les parties MIGS n'ont qu'un type de fin, pas un nom de vainqueur,
+   verifie avant de construire cette fonctionnalite).
+   Pour chaque dimension : compare le taux de victoire du tiers des
+   positions les plus BASSES sur cette dimension au tiers des plus
+   HAUTES. Calcule a l'execution sur les vraies donnees, jamais des
+   pourcentages ecrits a la main. */
+function calculerCorrelationsVictoire(){
+  if (typeof EMPREINTES_HISTORIQUES === 'undefined' || !EMPREINTES_HISTORIQUES.length) return null;
+  if (typeof AO_GAMES === 'undefined' || !AO_GAMES.length) return null;
+  const winnerByGame = new Map();
+  AO_GAMES.forEach(function(g, idx){
+    const winnerName = g[3] || '', black = g[1], white = g[2];
+    let wc = null;
+    if (winnerName && winnerName === black) wc = 'black';
+    else if (winnerName && winnerName === white) wc = 'white';
+    winnerByGame.set(idx, wc);
+  });
+  const aoEntries = EMPREINTES_HISTORIQUES.filter(function(x){ return x.s === 'AO' && winnerByGame.get(x.g) !== null && winnerByGame.get(x.g) !== undefined; });
+  const results = {};
+  EMPREINTES_CHAMPS.forEach(function(ch){
+    const withVal = aoEntries.map(function(x){ return { v: x.e[ch], win: (winnerByGame.get(x.g) === x.c) ? 1 : 0 }; });
+    withVal.sort(function(a,b){ return a.v - b.v; });
+    const n = withVal.length, third = Math.floor(n/3);
+    const bas = withVal.slice(0, third), haut = withVal.slice(n - third);
+    const tauxBas = bas.reduce(function(s,x){ return s+x.win; },0) / bas.length;
+    const tauxHaut = haut.reduce(function(s,x){ return s+x.win; },0) / haut.length;
+    results[ch] = { n:n, tauxBas: +(tauxBas*100).toFixed(1), tauxHaut: +(tauxHaut*100).toFixed(1), ecart: +((tauxHaut-tauxBas)*100).toFixed(1) };
+  });
+  return { n: aoEntries.length, results: results };
+}
+function openCorrelationsPanel(){
+  let m = document.getElementById('correlations-modal');
+  if (m) m.remove();
+  const data = calculerCorrelationsVictoire();
+  m = document.createElement('div');
+  m.id = 'correlations-modal';
+  m.style.cssText = 'position:fixed;inset:0;z-index:3500;background:rgba(13,15,14,0.92);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
+  let body;
+  if (!data) {
+    body = '<div style="font-size:12px;color:var(--muted)">Données pas encore chargées — réessaie dans un instant.</div>';
+  } else {
+    const sorted = Object.entries(data.results).sort(function(a,b){ return Math.abs(b[1].ecart) - Math.abs(a[1].ecart); });
+    body = '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Sur '+data.n.toLocaleString('fr-FR')+' positions de vraies parties AbalOnline avec vainqueur connu : taux de victoire final du joueur au trait, selon qu\u2019il était dans le tiers le plus bas ou le plus haut sur chaque dimension.</div>'
+      + sorted.map(function(entry){
+        const ch = entry[0], d = entry[1];
+        const positif = d.ecart >= 0;
+        return '<div style="padding:8px 0;border-bottom:1px solid var(--border)">'
+          + '<div style="font-size:12px;color:var(--text)">'+(LABELS_EMPREINTE[ch]||ch)+'</div>'
+          + '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)">'
+            + '<span>tiers bas : '+d.tauxBas+'%</span><span>tiers haut : '+d.tauxHaut+'%</span>'
+            + '<span style="color:'+(positif?'var(--accent-green-light)':'#e08050')+';font-weight:700">'+(positif?'+':'')+d.ecart+'pt</span>'
+          + '</div></div>';
+      }).join('');
+  }
+  m.innerHTML =
+    '<div style="max-width:520px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:24px;max-height:90vh;overflow-y:auto">'
+    + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:6px">Ce que disent les positions réelles</h3>'
+    + body
+    + '<button class="ctrl-btn" onclick="document.getElementById(\'correlations-modal\').remove()" style="width:100%;margin-top:14px">Fermer</button>'
+    + '</div>';
+  document.body.appendChild(m);
 }
 
 /* ═══════════════════════════════════════════
@@ -23866,17 +24000,21 @@ function runAnalysis() {
     const dimsAffichees = ['cohesionMoyenne','mobilite2Ratio','sumitoRatio','menaceRatio','profondeurTactique'];
     histoHtml = [
       '<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:16px 0 8px">Comparaison à '+histo.nTotal.toLocaleString('fr-FR')+' positions réelles ('+histo.nMigs.toLocaleString('fr-FR')+' MIGS + '+histo.nAo.toLocaleString('fr-FR')+' AbalOnline)</div>',
+      histo.rarete ? '<div style="font-size:12px;color:var(--gold);margin-bottom:8px">'+histo.rarete.label+'</div>' : '',
       dimsAffichees.map(function(ch){
         const c = histo.champs[ch];
         return '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);padding:2px 0">'+
           '<span>'+LABELS_EMPREINTE[ch]+'</span><span>percentile '+(c.percentile!=null?c.percentile+'ᵉ':'—')+'</span></div>';
       }).join(''),
+      '<button class="btn-ghost" style="font-size:11px;padding:5px 10px;margin-top:8px" onclick="openCorrelationsPanel()">📊 Ce que disent 150k+ positions réelles sur la victoire</button>',
       '<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:16px 0 8px">Positions historiques les plus proches</div>',
       histo.similaires.length ? histo.similaires.map(function(s){
         const fn = s.s === 'MIGS' ? 'loadMigsGame' : 'loadAOGame';
         return '<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border)">'+
           '<span>'+s.s+' · coup '+(s.m+1)+' · distance '+s.distance.toFixed(2)+'</span>'+
-          '<button class="btn-ghost" style="font-size:10px;padding:3px 10px" onclick="'+fn+'('+s.g+')">▶ voir</button></div>';
+          '<span style="display:flex;gap:4px">'+
+          '<button class="btn-ghost" style="font-size:10px;padding:3px 8px" onclick="openTrajectoryChart(\''+s.s+'\','+s.g+')">📈 courbe</button>'+
+          '<button class="btn-ghost" style="font-size:10px;padding:3px 10px" onclick="'+fn+'('+s.g+')">▶ voir</button></span></div>';
       }).join('') : '<div style="font-size:11px;color:var(--muted)">Aucune position comparable trouvée.</div>',
     ].join('');
   } else {
