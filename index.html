@@ -6380,6 +6380,21 @@ document.addEventListener('keydown', function(e){
       <div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Activité</div>
       <div id="activity-heatmap"></div>
     </div>
+
+    <!-- Statistiques d'ejection -- source : moveInfo.ejection par coup,
+         rejoue depuis getGameHistory(), meme methode que le profil de
+         decision. Formules dans le commentaire de computeEjectionStats(). -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-top:24px">
+      <div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Éjections</div>
+      <div id="ejection-stats-personal"></div>
+    </div>
+
+    <!-- Noir vs Blanc -- source : humanColor + winner, deja stockes par
+         entree de l'historique, lu directement sans rejeu. -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-top:24px">
+      <div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Noir vs Blanc</div>
+      <div id="color-stats-personal"></div>
+    </div>
   </div>
 </div>
 
@@ -7215,7 +7230,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.23';
+const APP_VERSION = 'v2.24';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -16293,6 +16308,115 @@ function calculerProfilDecision(color) {
    seuil arbitraire mais documente ici) -- pour voir si le joueur trouve
    le bon coup plus souvent quand c'est facile ou quand c'est dispute. */
 const SEUIL_ECART_DECISION_DISPUTEE = 100; // points d'evaluateBoard -- choix documente, pas calibre
+/* ═══════════════════════════════════════════
+   STATISTIQUES D'EJECTION — demande d'Olivier suite a une revue externe.
+   Reutilise exactement la meme methode que computeDecisionProfile()
+   (gameCodeParse + rejeu isole, sauvegarde/restauration systematique de
+   l'etat) : chaque statistique ci-dessous precise sa source de donnee
+   dans son commentaire, comme demande.
+
+   CONVENTIONS EXPLICITES (documentees, pas cachees dans le calcul) :
+   - "Opportunite d'ejection" = au moins un coup legal a cette position
+     avait ejection=true (que le joueur l'ait pris ou non).
+   - Phase de partie, definie par l'etat du materiel (plus parlant pour
+     Abalone qu'un simple numero de coup) :
+       OUVERTURE : aucun camp n'a encore perdu de bille
+       MILIEU    : premiere perte de bille faite, aucun camp a 3+ pertes
+       FINALE    : un camp a deja perdu 3 billes ou plus (a mi-chemin
+                   de la defaite, qui survient a 6)
+   - Ratio ejection = realisees / subies, avec subies=0 rapporte a part
+     (division par zero explicitement evitee, jamais masquee par un 0
+     ou un Infinity silencieux).
+   - "Premiere ejection" = moyenne du numero de coup de la premiere
+     ejection du joueur, sur les seules parties ou il en a fait au moins
+     une (les parties sans ejection n'entrent pas dans cette moyenne). */
+function computeEjectionStats(){
+  if (typeof getGameHistory !== 'function') return null;
+  const history = getGameHistory();
+  if (!history.length) return null;
+
+  const saveLayout = currentLayout, saveBoard = board, saveCB = capturedByBlack, saveCW = capturedByWhite;
+  let realisees = 0, subies = 0, opportunites = 0, gamesWithData = 0;
+  let bestGame = 0, firstEjPlies = [];
+  const byPhase = { ouverture:0, milieu:0, finale:0 };
+
+  history.forEach(function(entry){
+    if (!entry.code) return;
+    const parsed = gameCodeParse(entry.code);
+    if (!parsed.ok) return;
+    const humanC = entry.humanColor || 'black';
+    currentLayout = parsed.layout || 'standard';
+    initBoardState(); capturedByBlack = 0; capturedByWhite = 0;
+    let turn = 'black', thisGameEj = 0, firstEjThisGame = null, ply = 0;
+    for (let i = 0; i < parsed.moves.length; i++) {
+      const mv = parsed.moves[i];
+      const v = validateMove(mv.cells, mv.dir, turn);
+      if (!v || !v.valid) break;
+      ply++;
+      const capB0 = capturedByBlack, capW0 = capturedByWhite;
+      // phase AVANT ce coup, basee sur les pertes deja subies par chaque camp
+      const maxLoss = Math.max(capB0, capW0);
+      const phase = (capB0===0 && capW0===0) ? 'ouverture' : (maxLoss>=3 ? 'finale' : 'milieu');
+
+      if (turn === humanC) {
+        const legal = getAllMovesForColor(turn);
+        const uneOpportunite = legal.some(function(m){ return m.dir && validateMove(m.cells, m.dir, turn).ejection; });
+        if (uneOpportunite) opportunites++;
+        if (v.ejection) {
+          realisees++; thisGameEj++; byPhase[phase]++;
+          if (firstEjThisGame === null) firstEjThisGame = ply;
+        }
+      } else {
+        if (v.ejection) subies++;
+      }
+
+      applyMove({cells:mv.cells, dir:mv.dir, info:v}, turn);
+      turn = (turn === 'black') ? 'white' : 'black';
+    }
+    if (ply > 0) gamesWithData++;
+    if (thisGameEj > bestGame) bestGame = thisGameEj;
+    if (firstEjThisGame !== null) firstEjPlies.push(firstEjThisGame);
+  });
+
+  currentLayout = saveLayout; board = saveBoard; capturedByBlack = saveCB; capturedByWhite = saveCW;
+
+  if (!gamesWithData) return null;
+  return {
+    gamesWithData: gamesWithData,
+    realisees: realisees, subies: subies,
+    ratio: (subies>0) ? +(realisees/subies).toFixed(2) : null,
+    parPartie: +(realisees/gamesWithData).toFixed(2),
+    opportunites: opportunites,
+    efficacite: (opportunites>0) ? +(realisees/opportunites*100).toFixed(1) : null,
+    premiereEjectionMoyenne: firstEjPlies.length ? +(firstEjPlies.reduce(function(a,b){return a+b;},0)/firstEjPlies.length).toFixed(1) : null,
+    partiesAvecEjection: firstEjPlies.length,
+    meilleurePartie: bestGame,
+    byPhase: byPhase
+  };
+}
+
+/* Statistiques noir/blanc -- lit directement getGameHistory(), aucun
+   rejeu necessaire : humanColor et winner sont deja stockes par entree
+   (source : _recordGameHistory(), meme convention deja utilisee par
+   computeEngineStats). */
+function computeColorStats(){
+  if (typeof getGameHistory !== 'function') return null;
+  const history = getGameHistory();
+  if (!history.length) return null;
+  const out = { black:{games:0,wins:0,losses:0,draws:0}, white:{games:0,wins:0,losses:0,draws:0} };
+  history.forEach(function(entry){
+    const c = entry.humanColor === 'white' ? 'white' : 'black';
+    out[c].games++;
+    if (!entry.winner) out[c].draws++;
+    else if (entry.winner === entry.humanColor) out[c].wins++;
+    else out[c].losses++;
+  });
+  ['black','white'].forEach(function(c){
+    out[c].winRate = out[c].games ? +(out[c].wins/out[c].games*100).toFixed(1) : null;
+  });
+  return out;
+}
+
 function computeDecisionProfile(){
   if (typeof getGameHistory !== 'function') return null;
   const history = getGameHistory();
@@ -27253,6 +27377,8 @@ function renderStats() {
   if (typeof renderEngineStats === 'function') renderEngineStats();
   if (typeof renderDecisionProfile === 'function') renderDecisionProfile();
   if (typeof renderActivityHeatmap === 'function') renderActivityHeatmap();
+  if (typeof renderEjectionStats === 'function') renderEjectionStats();
+  if (typeof renderColorStats === 'function') renderColorStats();
   const u = currentUser;
   if (!u) return;
   const el = function(id,v) { const e=document.getElementById(id); if(e) e.textContent=v; };
@@ -30800,6 +30926,53 @@ function computeActivityHeatmap(weeks){
   let maxCount = 1;
   days.forEach(function(d){ if (d.count > maxCount) maxCount = d.count; });
   return { days: days, maxCount: maxCount, nbCols: col+1, totalGames: history.length };
+}
+
+function renderEjectionStats(){
+  const host = document.getElementById('ejection-stats-personal');
+  if (!host) return;
+  const s = computeEjectionStats();
+  if (!s) {
+    host.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px 0">Aucune partie archivée pour l\u2019instant.</div>';
+    return;
+  }
+  const rows = [
+    ['Éjections réalisées', s.realisees],
+    ['Éjections subies', s.subies],
+    ['Ratio', s.ratio!=null ? s.ratio : '— (0 subie)'],
+    ['Par partie', s.parPartie],
+    ['Efficacité (réalisées / occasions)', s.efficacite!=null ? s.efficacite+'%' : '— (0 occasion)'],
+    ['1ʳᵉ éjection en moyenne', s.premiereEjectionMoyenne!=null ? 'coup '+s.premiereEjectionMoyenne : '—'],
+    ['Meilleure partie', s.meilleurePartie]
+  ];
+  let html = rows.map(function(r){
+    return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">'
+      + '<span style="color:var(--text)">'+r[0]+'</span><span style="font-weight:700;color:var(--gold)">'+r[1]+'</span></div>';
+  }).join('');
+  const tot = s.byPhase.ouverture+s.byPhase.milieu+s.byPhase.finale;
+  if (tot) {
+    html += '<div style="font-size:11px;color:var(--muted);margin-top:10px">Par phase (ouverture = avant toute perte · milieu = après la 1ʳᵉ perte · finale = un camp a déjà perdu 3 billes ou plus) : '
+      + 'ouverture '+Math.round(s.byPhase.ouverture/tot*100)+'% · milieu '+Math.round(s.byPhase.milieu/tot*100)+'% · finale '+Math.round(s.byPhase.finale/tot*100)+'%</div>';
+  }
+  host.innerHTML = html;
+}
+
+function renderColorStats(){
+  const host = document.getElementById('color-stats-personal');
+  if (!host) return;
+  const s = computeColorStats();
+  if (!s || (s.black.games+s.white.games)===0) {
+    host.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px 0">Aucune partie archivée pour l\u2019instant.</div>';
+    return;
+  }
+  function ligne(label, c){
+    return '<div style="flex:1;text-align:center">'
+      + '<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">'+label+'</div>'
+      + '<div style="font-size:22px;font-weight:800;color:var(--text);font-family:\'DM Mono\',monospace">'+(c.winRate!=null?c.winRate+'%':'—')+'</div>'
+      + '<div style="font-size:11px;color:var(--muted)">'+c.games+' partie'+(c.games>1?'s':'')+' · '+c.wins+'V '+c.losses+'D '+c.draws+'N</div>'
+      + '</div>';
+  }
+  host.innerHTML = '<div style="display:flex;gap:10px">'+ligne('Noir', s.black)+ligne('Blanc', s.white)+'</div>';
 }
 
 function renderActivityHeatmap(){
