@@ -7215,7 +7215,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.22';
+const APP_VERSION = 'v2.23';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -12510,8 +12510,20 @@ function drawGutterMarbles(ctx, corners, mx, my, pad, gutterW, opts) {
   const gr = HEX_RADIUS * 0.82;          // même taille (env.) que les billes du plateau
   const spacing = gr * 2.0;
 
-  const topCorner = corners[0];          // hexCoord(0,0) côté haut
-  const halfH = Math.abs(my - topCorner.y);
+  /* CORRECTIF (bug de rotation signale par Saab, confirme par capture
+     d'ecran) : halfH venait auparavant de corners[0] = hexCoord(0,0),
+     calcule AVEC la rotation courante. Prendre Math.abs(my - corner.y)
+     sur un point qui tourne donne une grandeur qui varie selon l'angle
+     (la composante Y seule d'un point en rotation n'est pas une hauteur
+     fixe) -- au lieu d'un vrai rayon de plateau invariant. Verifie : a
+     120°/300° halfH s'effondrait a une fraction de sa valeur normale,
+     rapprochant toute la rigole du centre au point de chevaucher le
+     plateau. hexCoord(0,0,true) (ignorerRotation) donne un point de
+     repere FIXE ; my reste egal au centre (320) quelle que soit la
+     rotation (verifie empiriquement) -- leur difference est donc une
+     hauteur de plateau reellement invariante. */
+  const topCornerFixe = hexCoord(0, 0, true);
+  const halfH = Math.abs(my - topCornerFixe.y);
   // Position des billes dans la gouttière : milieu de la gouttière, légèrement
   // ajusté pour ne pas toucher le plateau ni déborder du cadre.
   const ringR = halfH + pad + gutterW/2 - HEX_RADIUS - 2;
@@ -12531,13 +12543,27 @@ function drawGutterMarbles(ctx, corners, mx, my, pad, gutterW, opts) {
   /* Rangee alignee en bas de la gouttiere, dans l'ordre noir puis blanc.
      Sert a trois usages : le replay, le plateau d'analyse, et le mode
      d'affichage « alignees en bas » choisi dans les Parametres.
-     L'ecartement se resserre au-dela de 6 billes pour ne jamais deborder. */
+     L'ecartement se resserre au-dela de 6 billes pour ne jamais deborder.
+     CORRECTIF (signale par Saab, confirme par capture d'ecran) : mx/my
+     sont le CENTRE GEOMETRIQUE du plateau -- par construction, un centre
+     ne bouge jamais sous sa propre rotation. Utiliser "my + ringR" comme
+     decalage plaçait donc les billes ejectees a un point fixe de l'ECRAN
+     (toujours plein sud), jamais du PLATEAU -- en tournant le plateau
+     (Jouer 3D, Y↺/Y↻), la rigole restait immobile et finissait par se
+     superposer aux cases qui avaient, elles, correctement tourne (via
+     hexCoord). Le vecteur de decalage (dx, ringR) est maintenant tourne
+     du meme angle boardRotation que hexCoord applique aux cases, autour
+     du meme centre (mx, my) -- la rigole suit desormais le plateau. */
   function drawBottomRow(colors) {
     const n = colors.length;
     if (!n) return;
     const sp = (n > 6) ? spacing * 6 / n : spacing;
+    const rot = (typeof boardRotation === 'number' && boardRotation) ? boardRotation * Math.PI / 180 : 0;
+    const cosR = Math.cos(rot), sinR = Math.sin(rot);
     for (let i = 0; i < n; i++) {
-      drawSmallMarble(ctx, mx + (i - (n-1)/2) * sp, my + ringR, gr, colors[i]);
+      const dx = (i - (n-1)/2) * sp, dy = ringR;
+      const rx = dx * cosR - dy * sinR, ry = dx * sinR + dy * cosR;
+      drawSmallMarble(ctx, mx + rx, my + ry, gr, colors[i]);
     }
   }
   function colorsFromCounts(cnt) {
