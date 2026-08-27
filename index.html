@@ -6374,6 +6374,12 @@ document.addEventListener('keydown', function(e){
       <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Pour chaque coup que tu as joué, comparé à tous les coups légaux disponibles à cet instant précis — calculé depuis ton historique de parties, pas une estimation.</div>
       <div id="decision-profile-personal"></div>
     </div>
+
+    <!-- Heatmap d'activite -- calculee depuis getGameHistory(), 12 dernieres semaines. -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-top:24px">
+      <div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Activité</div>
+      <div id="activity-heatmap"></div>
+    </div>
   </div>
 </div>
 
@@ -7209,7 +7215,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.21';
+const APP_VERSION = 'v2.22';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -27220,6 +27226,7 @@ function renderStats() {
   // personnelles n'ont aucune raison de l'etre.
   if (typeof renderEngineStats === 'function') renderEngineStats();
   if (typeof renderDecisionProfile === 'function') renderDecisionProfile();
+  if (typeof renderActivityHeatmap === 'function') renderActivityHeatmap();
   const u = currentUser;
   if (!u) return;
   const el = function(id,v) { const e=document.getElementById(id); if(e) e.textContent=v; };
@@ -30736,6 +30743,62 @@ const ENGINE_LABELS = { actuel:'Moteur actuel', 'nnue-eval':'NNUE — évaluatio
    choix arbitraire mais documente, pas une valeur calibree -- coherent
    avec SEUIL_PROCHE_MEILLEUR (30 points) deja etabli ailleurs dans le
    code pour la meme raison. */
+/* Heatmap d'activite -- seule chose reellement nouvelle identifiee apres
+   audit d'un document externe (toutes les autres suggestions existaient
+   deja : puzzles mines de vraies parties, bots par style, multi-worker,
+   NNUE, tablebases -- verifie avant de construire quoi que ce soit).
+   Calculee depuis getGameHistory() (deja utilise ailleurs), jamais une
+   nouvelle source de donnees. */
+function computeActivityHeatmap(weeks){
+  weeks = weeks || 12;
+  if (typeof getGameHistory !== 'function') return null;
+  const history = getGameHistory();
+  const counts = {};
+  history.forEach(function(e){
+    if (!e.date) return;
+    const day = e.date.slice(0,10);
+    counts[day] = (counts[day]||0) + 1;
+  });
+  const today = new Date();
+  const totalDays = weeks*7;
+  const days = [];
+  let col = 0;
+  for (let i = totalDays-1; i >= 0; i--){
+    const d = new Date(today);
+    d.setDate(d.getDate()-i);
+    const key = d.toISOString().slice(0,10);
+    const dow = d.getDay();
+    if (days.length && dow === 0) col++;
+    days.push({ date:key, count: counts[key]||0, dow: dow, col: col });
+  }
+  let maxCount = 1;
+  days.forEach(function(d){ if (d.count > maxCount) maxCount = d.count; });
+  return { days: days, maxCount: maxCount, nbCols: col+1, totalGames: history.length };
+}
+
+function renderActivityHeatmap(){
+  const host = document.getElementById('activity-heatmap');
+  if (!host) return;
+  const data = computeActivityHeatmap(12);
+  if (!data || !data.totalGames) {
+    host.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px 0">Aucune partie archivée pour l\u2019instant.</div>';
+    return;
+  }
+  const cell = 12, gap = 3;
+  const w = data.nbCols * (cell+gap);
+  const h = 7 * (cell+gap);
+  let svg = '<svg width="100%" viewBox="0 0 '+w+' '+h+'" style="display:block">';
+  data.days.forEach(function(d){
+    const x = d.col * (cell+gap), y = d.dow * (cell+gap);
+    const alpha = d.count ? (0.25 + 0.75 * (d.count/data.maxCount)) : 0.08;
+    svg += '<rect x="'+x+'" y="'+y+'" width="'+cell+'" height="'+cell+'" rx="2" fill="var(--gold)" fill-opacity="'+alpha.toFixed(2)+'">'
+      + '<title>'+d.date+' — '+d.count+' partie'+(d.count>1?'s':'')+'</title></rect>';
+  });
+  svg += '</svg>';
+  host.innerHTML = svg
+    + '<div style="font-size:11px;color:var(--muted);margin-top:6px">'+data.totalGames+' partie'+(data.totalGames>1?'s':'')+' archivée'+(data.totalGames>1?'s':'')+' au total · 12 dernières semaines</div>';
+}
+
 function renderDecisionProfile(){
   const host = document.getElementById('decision-profile-personal');
   if (!host) return;
