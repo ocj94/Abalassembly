@@ -2464,6 +2464,9 @@ document.addEventListener('keydown', function(e){
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-history" onclick="showPage('historique'); if (window.innerWidth < 600 && typeof closeSidebarMobile==='function') closeSidebarMobile();">
       <span class="s-icon">🕓</span><span class="s-label">Historique</span>
     </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-corpusstats" onclick="showPage('corpusstats'); if (window.innerWidth < 600 && typeof closeSidebarMobile==='function') closeSidebarMobile();">
+      <span class="s-icon">📈</span><span class="s-label">Stats du jeu</span>
+    </button>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-import" onclick="openApgnImportModal(); if (window.innerWidth < 600 && typeof closeSidebarMobile==='function') closeSidebarMobile();">
       <span class="s-icon">📥</span><span class="s-label">Importer</span>
     </button>
@@ -6404,6 +6407,22 @@ document.addEventListener('keydown', function(e){
 </div>
 
 <!-- ══════════════════════════════════════════
+     PAGE: STATISTIQUES DU JEU (corpus) -- distinctes des statistiques
+     PERSONNELLES de la page Stats. Celles-ci portent sur les 4 479
+     vraies parties embarquees, pas sur les parties du joueur.
+══════════════════════════════════════════ -->
+<div class="page" id="page-corpusstats">
+  <div class="page-header" style="padding-bottom:32px">
+    <div class="section-label">Ce que disent 4 479 vraies parties</div>
+    <h2>Statistiques du jeu</h2>
+  </div>
+  <div style="padding:0 60px 80px;max-width:680px">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Des mesures sur l'Abalone lui-même, calculées à partir des parties réelles embarquées dans le site (MIGS + AbalOnline) — pas sur tes propres parties, qui sont dans <a href="#" onclick="showPage('stats');return false;" style="color:var(--gold)">Statistiques</a>. Chaque chiffre indique sa source.</div>
+    <div id="corpus-stats-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
      PAGE: HISTORIQUE DE PARTIES (convertie depuis un modal flottant --
      signale par Olivier : demande une page normale du site, comme les
      autres, plutot qu'une fenetre superposee)
@@ -7255,7 +7274,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.30';
+const APP_VERSION = 'v2.31';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -16488,6 +16507,79 @@ function computeEjectionStats(){
    rejeu necessaire : humanColor et winner sont deja stockes par entree
    (source : _recordGameHistory(), meme convention deja utilisee par
    computeEngineStats). */
+/* ═══════════════════════════════════════════
+   STATISTIQUES DU JEU (corpus) — distinctes des statistiques PERSONNELLES.
+   Celles-ci portent sur les 4 479 vraies parties embarquees (MIGS +
+   AbalOnline), pas sur les parties du joueur. Repondent a des questions
+   sur l'Abalone lui-meme : l'avantage du premier joueur existe-t-il
+   vraiment, combien de temps dure une partie, etc.
+
+   SOURCES, precisees pour chaque chiffre :
+   - Vainqueur AbalOnline : nom stocke directement (g[3]), compare aux
+     deux joueurs (g[1]=noir, g[2]=blanc -- convention validee lors du
+     minage des livres d'ouvertures).
+   - Vainqueur MIGS : determine par rejeu complet, uniquement pour les
+     parties "Au score" (voir ensureMigsWinners, v2.20) -- les abandons
+     et fins de temps restent structurellement indeterminables.
+   - Longueur : comptage des jetons de la notation, sans rejeu (rapide).
+   - Types de fin MIGS : champ stocke directement (g[4]).
+
+   Le calcul MIGS s'appuie sur le cache deja construit (~78s la premiere
+   fois, jamais refait ensuite). */
+async function computeCorpusStats(onProgress){
+  if (typeof MIGS_GAMES === 'undefined' || typeof AO_GAMES === 'undefined') return null;
+  if (!MIGS_GAMES.length || !AO_GAMES.length) return null;
+
+  // --- Vainqueurs AbalOnline (lecture directe, aucun rejeu) ---
+  let aoBlack = 0, aoWhite = 0;
+  AO_GAMES.forEach(function(g){
+    if (!g[3]) return;
+    if (g[3] === g[1]) aoBlack++;
+    else if (g[3] === g[2]) aoWhite++;
+  });
+
+  // --- Vainqueurs MIGS (cache de la v2.20) ---
+  const migsWinners = await ensureMigsWinners(onProgress);
+  let migsBlack = 0, migsWhite = 0;
+  migsWinners.forEach(function(v){ if (v === 'black') migsBlack++; else if (v === 'white') migsWhite++; });
+
+  const black = aoBlack + migsBlack, white = aoWhite + migsWhite;
+  const decided = black + white;
+
+  // --- Longueur des parties (comptage de jetons, pas de rejeu) ---
+  const lens = [];
+  MIGS_GAMES.forEach(function(g){
+    const n = (g[5]||'').replace(/\d+\./g,' ').trim().split(/\s+/).filter(Boolean).length;
+    if (n) lens.push(n);
+  });
+  lens.sort(function(a,b){ return a-b; });
+  const median = lens.length ? lens[Math.floor(lens.length/2)] : null;
+  const mean = lens.length ? +(lens.reduce(function(a,c){return a+c;},0)/lens.length).toFixed(1) : null;
+
+  // --- Types de fin de partie (MIGS, champ direct) ---
+  const endTypes = {};
+  MIGS_GAMES.forEach(function(g){ endTypes[g[4]] = (endTypes[g[4]]||0) + 1; });
+
+  // --- Variantes representees (AbalOnline) ---
+  const byVariant = {};
+  AO_GAMES.forEach(function(g){ byVariant[g[4]] = (byVariant[g[4]]||0) + 1; });
+  const topVariants = Object.entries(byVariant).sort(function(a,b){ return b[1]-a[1]; }).slice(0, 8);
+
+  return {
+    totalGames: MIGS_GAMES.length + AO_GAMES.length,
+    nMigs: MIGS_GAMES.length, nAo: AO_GAMES.length,
+    decided: decided,
+    black: black, white: white,
+    blackPct: decided ? +(black/decided*100).toFixed(1) : null,
+    whitePct: decided ? +(white/decided*100).toFixed(1) : null,
+    lenMedian: median, lenMean: mean,
+    lenMin: lens.length ? lens[0] : null, lenMax: lens.length ? lens[lens.length-1] : null,
+    endTypes: endTypes,
+    topVariants: topVariants,
+    nVariants: Object.keys(byVariant).length
+  };
+}
+
 function computeColorStats(){
   if (typeof getGameHistory !== 'function') return null;
   const history = getGameHistory();
@@ -27412,6 +27504,7 @@ function showPage(name) {
     stats:      function(){ renderStats(); },
     gym:        function(){ if (typeof renderGymCerveau === 'function') renderGymCerveau(); },
     historique: function(){ if (typeof renderHistoriquePage === 'function') renderHistoriquePage(); },
+    corpusstats:function(){ if (typeof renderCorpusStatsPage === 'function') renderCorpusStatsPage(); },
     compare:    function(){ renderCompare(); },
     friends:    function(){ renderFriends(); },
     editor:     function(){ if(Object.keys(editorBoard).length===0) loadEditorPreset('standard'); else drawEditorBoard(); setEditorTool('black'); },
@@ -31196,6 +31289,73 @@ function _historySetFilter(key, value){
    dedie de la page Historique. Genere dynamiquement depuis LAYOUTS --
    jamais une liste ecrite a la main, qui deviendrait perimee des le
    prochain ajout de variante (deja vu plusieurs fois cette session). */
+/* Rendu de la page "Statistiques du jeu". Asynchrone : la determination
+   des vainqueurs MIGS demande un rejeu complet la premiere fois (~78s,
+   mis en cache ensuite -- voir ensureMigsWinners). Affiche une
+   progression honnete pendant ce calcul plutot que de figer la page. */
+async function renderCorpusStatsPage(){
+  const host = document.getElementById('corpus-stats-body');
+  if (!host) return;
+  host.innerHTML = '<div style="font-size:13px;color:var(--muted)" id="corpus-progress">Calcul en cours (première fois seulement — mis en cache ensuite)…</div>';
+
+  const s = await computeCorpusStats(function(done, total){
+    const el = document.getElementById('corpus-progress');
+    if (el) el.textContent = 'Calcul en cours (première fois seulement) — ' + done + '/' + total + ' parties rejouées…';
+  });
+  if (!host.isConnected) return;
+  if (!s) { host.innerHTML = '<div style="font-size:13px;color:var(--muted)">Bibliothèque de parties pas encore chargée — réessaie dans un instant.</div>'; return; }
+
+  function card(title, body, note){
+    return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:16px">'
+      + '<div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">'+title+'</div>'
+      + body
+      + (note ? '<div style="font-size:11px;color:var(--muted);margin-top:10px">'+note+'</div>' : '')
+      + '</div>';
+  }
+  function ligne(label, val){
+    return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">'
+      + '<span style="color:var(--text)">'+label+'</span><span style="font-weight:700;color:var(--gold)">'+val+'</span></div>';
+  }
+
+  const avantage = (s.blackPct != null) ? (s.blackPct - 50).toFixed(1) : null;
+  let html = '';
+
+  html += card('L\u2019avantage du premier joueur',
+    '<div style="display:flex;gap:10px;margin-bottom:8px">'
+    + '<div style="flex:1;text-align:center"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Noir (commence)</div>'
+      + '<div style="font-size:26px;font-weight:800;color:var(--text);font-family:\'DM Mono\',monospace">'+(s.blackPct!=null?s.blackPct+'%':'—')+'</div>'
+      + '<div style="font-size:11px;color:var(--muted)">'+s.black.toLocaleString('fr-FR')+' victoires</div></div>'
+    + '<div style="flex:1;text-align:center"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Blanc</div>'
+      + '<div style="font-size:26px;font-weight:800;color:var(--text);font-family:\'DM Mono\',monospace">'+(s.whitePct!=null?s.whitePct+'%':'—')+'</div>'
+      + '<div style="font-size:11px;color:var(--muted)">'+s.white.toLocaleString('fr-FR')+' victoires</div></div>'
+    + '</div>'
+    + (avantage!=null ? '<div style="font-size:12px;color:var(--text)">Celui qui commence gagne <strong style="color:var(--gold)">'+avantage+' points de pourcentage</strong> plus souvent que l\u2019autre.</div>' : ''),
+    'Sur '+s.decided.toLocaleString('fr-FR')+' parties dont le vainqueur est connu avec certitude. Les parties MIGS terminées par abandon ou fin de temps sont exclues : impossible de savoir qui a abandonné depuis les seules données.');
+
+  html += card('Durée d\u2019une partie',
+    ligne('Médiane', s.lenMedian + ' coups')
+    + ligne('Moyenne', s.lenMean + ' coups')
+    + ligne('La plus courte', s.lenMin + ' coups')
+    + ligne('La plus longue', s.lenMax + ' coups'),
+    'Mesuré sur les '+s.nMigs.toLocaleString('fr-FR')+' parties MIGS (notation complète disponible). La médiane est plus représentative que la moyenne, tirée vers le haut par quelques parties très longues.');
+
+  const totalEnd = Object.values(s.endTypes).reduce(function(a,c){return a+c;},0);
+  html += card('Comment se terminent les parties',
+    Object.entries(s.endTypes).sort(function(a,b){return b[1]-a[1];}).map(function(e){
+      return ligne(e[0], e[1].toLocaleString('fr-FR') + ' (' + Math.round(e[1]/totalEnd*100) + '%)');
+    }).join(''),
+    'Champ enregistré directement dans le corpus MIGS, pas déduit.');
+
+  html += card('Variantes les plus jouées',
+    s.topVariants.map(function(v){
+      const label = (typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[v[0]]) ? HEAT_VARIANT_LABEL[v[0]] : v[0];
+      return ligne(label, v[1].toLocaleString('fr-FR') + ' parties');
+    }).join(''),
+    s.nVariants + ' variantes distinctes recensées dans le corpus AbalOnline ('+s.nAo.toLocaleString('fr-FR')+' parties).');
+
+  host.innerHTML = html;
+}
+
 function renderHistoriquePage(){
   const host = document.getElementById('historique-filters-host');
   if (host && !host.dataset.built) {
