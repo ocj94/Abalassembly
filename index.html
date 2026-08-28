@@ -3423,6 +3423,7 @@ document.addEventListener('keydown', function(e){
           <button class="ctrl-btn" onclick="exportGameNotation()" style="margin-top:8px;width:100%">📋 Exporter la partie</button>
           <button class="ctrl-btn" onclick="openGameCodePanel()" style="margin-top:8px;width:100%" title="Jouer par echange de code, sans compte ni serveur">Partie par code</button>
           <button class="ctrl-btn" onclick="exportGameAbaPro()" style="margin-top:8px;width:100%" title="Copie les coups de la partie en notation Aba-Pro standard, lisible par un moteur externe">Copier les coups (Aba-Pro)</button>
+          <button class="ctrl-btn" onclick="openApgnImportModal()" style="margin-top:8px;width:100%" title="Colle une sequence de coups en notation Aba-Pro pour la rejouer -- raccourci vers le meme import que dans le menu">Importer une partie (Aba-Pro)</button>
           <button class="ctrl-btn" onclick="openExternalEnginePanel()" style="margin-top:8px;width:100%" title="Faire jouer un autre programme contre l IA de ce site, en relayant les coups a la main">Duel moteur externe 🧪</button>
           <button class="ctrl-btn" onclick="openRtcPanel()" style="margin-top:8px;width:100%" title="Connexion directe en temps reel entre deux navigateurs, experimental">Partie en direct 🧪</button>
           <button class="ctrl-btn" onclick="showPostGameReview()" style="margin-top:8px;width:100%" title="Ou la partie a bascule">Analyse d'apres-partie</button>
@@ -7234,7 +7235,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.28';
+const APP_VERSION = 'v2.29';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
