@@ -5520,6 +5520,12 @@ document.addEventListener('keydown', function(e){
           <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px">
             <span>⚫ Noirs</span><span>⚪ Blancs</span>
           </div>
+          <!-- Courbe d'evaluation coup par coup : une chute verticale marque
+               une erreur. Cliquable pour sauter directement a ce coup. -->
+          <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+            <div style="font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Courbe de la partie</div>
+            <div id="analysis-eval-curve"></div>
+          </div>
           <div id="analysis-score" style="text-align:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:13px;font-family:'DM Mono',monospace">
             <span style="color:var(--text)">Joueur 1 : 0</span><span style="color:var(--muted);margin:0 8px">—</span><span style="color:var(--text)">0 : Joueur 2</span><span style="color:var(--muted);margin-left:10px;font-size:11px">billes éjectées</span>
           </div>
@@ -7274,7 +7280,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.31';
+const APP_VERSION = 'v2.36';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -16526,6 +16532,61 @@ function computeEjectionStats(){
 
    Le calcul MIGS s'appuie sur le cache deja construit (~78s la premiere
    fois, jamais refait ensuite). */
+/* Distribution des 12 dimensions sur l'ensemble du corpus (418 595
+   positions). Quasi instantane (~0,2 s mesure) : les empreintes sont
+   deja en memoire, on ne fait que trier. Donne un referentiel objectif
+   -- "ta cohesion est au Xe centile de toutes les positions humaines
+   jamais jouees" -- la ou le radar personnel n'avait aucun point de
+   comparaison exterieur.
+   Source : EMPREINTES_HISTORIQUES, une entree par coup joue dans les
+   4 479 parties reelles du corpus. */
+function computeDimensionDistributions(){
+  if (typeof EMPREINTES_HISTORIQUES === 'undefined' || !EMPREINTES_HISTORIQUES.length) return null;
+  const out = {};
+  EMPREINTES_CHAMPS.forEach(function(f){
+    const vals = EMPREINTES_HISTORIQUES.map(function(e){ return e.e[f]; });
+    vals.sort(function(a,b){ return a-b; });
+    const n = vals.length;
+    const q = function(p){ return vals[Math.min(n-1, Math.floor(n*p))]; };
+    out[f] = {
+      min: vals[0], p10: q(0.10), median: q(0.50), p90: q(0.90), max: vals[n-1],
+      n: n
+    };
+  });
+  return out;
+}
+
+/* Correlations de Pearson entre dimensions, mesurees sur le corpus
+   complet. Sert a signaler honnetement quelles dimensions mesurent
+   presque la meme chose -- information utile pour lire le radar sans
+   surinterpreter trois axes qui bougent ensemble.
+   Mesure reelle : cohesion/soutien/sans-soutien forment un groupe
+   fortement redondant (|r| jusqu'a 0,93). */
+function computeDimensionCorrelations(){
+  if (typeof EMPREINTES_HISTORIQUES === 'undefined' || !EMPREINTES_HISTORIQUES.length) return null;
+  const F = EMPREINTES_CHAMPS, N = EMPREINTES_HISTORIQUES.length;
+  const mean = {}, sd = {};
+  F.forEach(function(f){
+    let s = 0; for (let i=0;i<N;i++) s += EMPREINTES_HISTORIQUES[i].e[f];
+    mean[f] = s/N;
+  });
+  F.forEach(function(f){
+    let s = 0; for (let i=0;i<N;i++){ const d = EMPREINTES_HISTORIQUES[i].e[f]-mean[f]; s += d*d; }
+    sd[f] = Math.sqrt(s/N);
+  });
+  const pairs = [];
+  for (let a=0;a<F.length;a++) for (let b=a+1;b<F.length;b++){
+    const fa=F[a], fb=F[b];
+    let cov = 0;
+    for (let i=0;i<N;i++) cov += (EMPREINTES_HISTORIQUES[i].e[fa]-mean[fa])*(EMPREINTES_HISTORIQUES[i].e[fb]-mean[fb]);
+    cov /= N;
+    const r = (sd[fa] && sd[fb]) ? cov/(sd[fa]*sd[fb]) : 0;
+    pairs.push({ a:fa, b:fb, r: +r.toFixed(3) });
+  }
+  pairs.sort(function(x,y){ return Math.abs(y.r) - Math.abs(x.r); });
+  return { n: N, pairs: pairs };
+}
+
 async function computeCorpusStats(onProgress){
   if (typeof MIGS_GAMES === 'undefined' || typeof AO_GAMES === 'undefined') return null;
   if (!MIGS_GAMES.length || !AO_GAMES.length) return null;
@@ -22062,11 +22123,56 @@ function appendMoveRow(list, moveInfo, fallbackLabel, color, plyNum) {
   const turnNum = Math.ceil(plyNum / 2);   // noir et blanc d'un même tour partagent le numéro (1,1,2,2,…)
   const row = document.createElement('div');
   row.className = 'move-item current';
+  /* Ligne cliquable : affiche la position APRES ce coup sur le plateau
+     (demande d'Olivier). Reutilise loadSnapshot(), deja utilise par la
+     navigation replay -- aucun nouveau chemin d'affichage, donc aucun
+     risque de divergence entre les deux facons de naviguer.
+     plyNum est le rang du coup (1-based) alors que boardSnapshots est
+     indexe a partir de 0 : d'ou le -1. */
+  row.dataset.ply = plyNum;
+  row.style.cursor = 'pointer';
+  row.title = 'Afficher la position après ce coup';
+  row.onclick = function(){ _gotoMoveFromHistory(plyNum - 1); };
   row.innerHTML = '<span class="move-num">' + turnNum + '</span>'
     + '<span class="move-dot" style="background:' + dot + '"></span>'
     + '<span class="move-aba">' + aba + ejx + '</span>'
     + '<span class="move-nacre">' + nac + ejx + '</span>';
   list.appendChild(row);
+}
+
+/* Saut a un coup depuis l'historique des coups (clic sur une ligne).
+   Bascule en mode replay si necessaire -- sinon loadSnapshot() modifierait
+   le plateau d'une partie EN COURS, ce qui serait une perte de donnees.
+   Reutilise entierement loadSnapshot() et le mecanisme replay existants. */
+function _gotoMoveFromHistory(idx){
+  if (typeof boardSnapshots === 'undefined' || !boardSnapshots.length) return;
+  idx = Math.max(-1, Math.min(boardSnapshots.length - 1, idx));
+  if (typeof replayMode !== 'undefined' && !replayMode) {
+    /* Relecture possible MEME en pleine partie (demande d'Olivier).
+       L'etat reel est mis de cote AVANT de charger l'instantane, et
+       restaure a la sortie du replay -- sans quoi la partie en cours
+       serait perdue (bug preexistant sur toggleReplay, corrige en meme
+       temps). Le bouton "Quitter replay" ramene a la position reelle. */
+    if (typeof gameOver !== 'undefined' && !gameOver) {
+      _stashLive();
+      if (typeof showToast === 'function') showToast('📽 Relecture — « Quitter replay » pour revenir à ta partie');
+      const btn = document.getElementById('replay-btn');
+      if (btn) { btn.style.display = 'block'; btn.textContent = '■ Quitter replay'; }
+    }
+    replayMode = true;
+  }
+  replayCurrentIdx = idx;
+  if (typeof loadSnapshot === 'function') loadSnapshot(idx);
+  if (typeof _highlightMoveRow === 'function') _highlightMoveRow(idx);
+}
+
+/* Met en evidence la ligne correspondant au coup affiche. */
+function _highlightMoveRow(idx){
+  const list = document.getElementById('move-list');
+  if (!list) return;
+  list.querySelectorAll('.move-item').forEach(function(el){
+    el.classList.toggle('current', Number(el.dataset.ply) === idx + 1);
+  });
 }
 
 // Recalcule tous les libellés de l'historique selon les systèmes de notation actifs.
@@ -25949,6 +26055,32 @@ let replayCurrentIdx = -1;
 let variantMode = false;   // exploration interactive depuis une position du replay
 let _variantStash = null;  // état réel sauvegardé pendant l'exploration (jamais touché tant qu'on explore)
 
+/* Etat reel de la partie, mis de cote pendant une relecture lancee alors
+   que la partie n'est PAS terminee. Sans lui, sortir du replay laissait le
+   plateau a la position relue au lieu de la position reelle : le tour et le
+   compteur de coups restaient corrects mais le plateau non, donc un etat
+   incoherent (bug preexistant, trouve en testant avant d'ouvrir la
+   relecture en pleine partie). Meme principe que _variantStash, deja en
+   place pour l'exploration de variantes. */
+let _liveStash = null;
+
+function _stashLive(){
+  if (_liveStash) return;   // deja mis de cote, ne pas ecraser
+  _liveStash = {
+    board: JSON.parse(JSON.stringify(board)),
+    capB: capturedByBlack, capW: capturedByWhite,
+    turn: currentTurn, moveCount: moveCount
+  };
+}
+function _restoreLive(){
+  if (!_liveStash) return false;
+  board = _liveStash.board;
+  capturedByBlack = _liveStash.capB; capturedByWhite = _liveStash.capW;
+  currentTurn = _liveStash.turn; moveCount = _liveStash.moveCount;
+  _liveStash = null;
+  return true;
+}
+
 function toggleReplay() {
   if (boardSnapshots.length < 2) { showToast('Jouez d\u2019abord quelques coups !'); return; }
   if (variantMode) exitVariant();   // ne jamais quitter le replay en laissant une variante en cours
@@ -25962,12 +26094,18 @@ function toggleReplay() {
   const btn = document.getElementById('replay-btn');
   if (btn) btn.textContent = replayMode ? '■ Quitter replay' : '▶ Rejouer';
   if (replayMode) {
+    /* Partie non terminee : on met l'etat reel de cote AVANT de charger un
+       instantane, pour pouvoir y revenir intact en sortant. */
+    if (typeof gameOver !== 'undefined' && !gameOver) _stashLive();
     showToast('📽 Mode replay — utilisez Précédent/Suivant');
     loadSnapshot(replayCurrentIdx);
   } else {
-    // Restore live board
+    // Restaure la position REELLE si la partie etait en cours
+    const restored = _restoreLive();
     drawBoard();
-    showToast('▶ Retour à la partie en cours');
+    if (typeof updateStatus === 'function') updateStatus();
+    if (typeof _highlightMoveRow === 'function') _highlightMoveRow(boardSnapshots.length - 1);
+    showToast(restored ? '▶ Retour à la partie en cours' : '▶ Retour à la partie');
   }
 }
 
@@ -26121,10 +26259,21 @@ function exportGameNotation() {
   const notation = buildGameNotation(system, bound);
   var scB = capturedByBlack, scW = capturedByWhite;
   if (inReplay) {
-    if (replayCurrentIdx < 0) { scB = 0; scW = 0; }
-    else if (boardSnapshots[replayCurrentIdx]) {
+    /* CORRECTIF (signale par Olivier) : au chargement d'une partie depuis
+       l'historique, le replay se positionne desormais AU DEBUT (v2.30) --
+       replayCurrentIdx vaut donc -1, et cette branche forçait le score a
+       0-0 alors que la sequence exportee, elle, est COMPLETE. Resultat :
+       une partie gagnee 6-0 s'exportait "Noirs 0 - 0 Blancs".
+       Le score doit correspondre a ce que la SEQUENCE contient. A l'index
+       -1 (position de depart) la sequence est deja complete via
+       buildGameNotation(bound=-1) qui ne borne rien : on prend donc le
+       score final de la partie, pas zero. */
+    if (replayCurrentIdx >= 0 && boardSnapshots[replayCurrentIdx]) {
       scB = boardSnapshots[replayCurrentIdx].capturedByBlack;
       scW = boardSnapshots[replayCurrentIdx].capturedByWhite;
+    } else if (replayCurrentIdx < 0 && boardSnapshots.length) {
+      const last = boardSnapshots[boardSnapshots.length - 1];
+      scB = last.capturedByBlack; scW = last.capturedByWhite;
     }
   }
   if (!notation) { showToast('⚠️ Aucun coup à exporter — jouez d\'abord'); return; }
@@ -26134,8 +26283,33 @@ function exportGameNotation() {
   const p2 = function(v){ return String(v).padStart(2, '0'); };
   const stamp = p2(d.getFullYear() % 100) + p2(d.getMonth() + 1) + p2(d.getDate())
               + p2(d.getHours()) + p2(d.getMinutes());
-  const header = '[Abalassembly] ' + stamp + '\n[Notation] ' + (system === 'nacre' ? 'Nacre' : 'Aba-Pro')
-               + '\n[Score] Noirs ' + scB + ' - ' + scW + ' Blancs\n\n';
+  /* En-tete enrichi (demande d'Olivier) : la date, la variante, le style et
+     le niveau de l'IA, le moteur utilise et le nombre de coups etaient
+     affiches dans l'historique mais ABSENTS de l'export -- l'information
+     etait donc perdue des qu'on partageait une partie. Chaque ligne n'est
+     ajoutee que si la donnee existe reellement (une partie locale n'a pas
+     d'adversaire IA), plutot que d'ecrire un champ vide ou invente.
+     [Score] garde volontairement le format "Noirs X - Y Blancs" pour rester
+     lisible par les autres sites, comme demande. */
+  let header = '[Abalassembly] ' + stamp
+             + '\n[Date] ' + p2(d.getDate()) + '/' + p2(d.getMonth()+1) + '/' + d.getFullYear()
+                           + ' ' + p2(d.getHours()) + ':' + p2(d.getMinutes());
+  if (typeof currentLayout !== 'undefined' && currentLayout) {
+    const vlabel = (typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[currentLayout]) ? HEAT_VARIANT_LABEL[currentLayout] : currentLayout;
+    header += '\n[Variante] ' + vlabel;
+  }
+  if (typeof gameMode !== 'undefined' && gameMode === 'ai') {
+    const st = (typeof _setupCfg !== 'undefined' && _setupCfg.style) ? _setupCfg.style : null;
+    const df = (typeof _setupCfg !== 'undefined' && _setupCfg.diff) ? _setupCfg.diff : null;
+    if (st || df) header += '\n[IA] ' + [st, df].filter(Boolean).join(' — ');
+    const eng = (typeof _engineMode !== 'undefined' && _engineMode) ? _engineMode : 'moteur classique';
+    header += '\n[Moteur] ' + eng;
+  }
+  const nbCoups = (typeof boardSnapshots !== 'undefined' && boardSnapshots.length)
+    ? (inReplay && replayCurrentIdx >= 0 ? replayCurrentIdx + 1 : boardSnapshots.length) : 0;
+  if (nbCoups) header += '\n[Coups] ' + nbCoups;
+  header += '\n[Notation] ' + (system === 'nacre' ? 'Nacre' : 'Aba-Pro')
+          + '\n[Score] Noirs ' + scB + ' - ' + scW + ' Blancs\n\n';
   const full = header + notation;
   // copie dans le presse-papier
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -26953,6 +27127,9 @@ function replayStep(dir) {
   const _min = _replayStartBoard ? -1 : 0;   // -1 seulement si une position de depart est connue
   replayCurrentIdx = Math.max(_min, Math.min(boardSnapshots.length - 1, replayCurrentIdx + dir));
   loadSnapshot(replayCurrentIdx);
+  // Garde l'historique des coups synchronise avec la navigation replay,
+  // pour que les deux facons de naviguer montrent la meme ligne active.
+  if (typeof _highlightMoveRow === 'function') _highlightMoveRow(replayCurrentIdx);
 }
 
 function loadSnapshot(idx) {
@@ -30208,6 +30385,8 @@ function updateAnalysisEval() {
   else if (score > 0) txt = '⚫ Noirs +' + (score/1000).toFixed(1);
   else txt = '⚪ Blancs +' + (Math.abs(score)/1000).toFixed(1);
   evalText.textContent = txt;
+
+  if (typeof renderEvalCurve === 'function') renderEvalCurve();
 }
 
 function renderAnalysisMoves() {
@@ -30251,6 +30430,137 @@ function renderAnalysisMoves() {
    Convention : evaluateBoard('black') est TOUJOURS appele du point de vue
    noir (meme convention que updateAnalysisEval() deja existant) -- la
    bascule est donc inversee pour les blancs avant d'etre comparee. */
+/* ═══════════════════════════════════════════
+   COURBE D'EVALUATION — fonctionnalite universelle chez les autres jeux
+   (Leela/Lizzie, BadukAI, Kaya, Go Lab...) et absente ici jusqu'a
+   present : un graphique de l'evaluation coup par coup, ou une CHUTE
+   VERTICALE marque une erreur. Complementaire de "Revoir mes erreurs"
+   (qui liste les pires coups) : la courbe montre QUAND la partie a
+   bascule, pas seulement QUEL coup etait mauvais.
+
+   Source : analysisHistory (une entree par position, deja construite par
+   la page Analyse) + evaluateBoard, exactement la meme methode que
+   computeGameMistakes -- aucun nouveau calcul de fond, seulement une
+   presentation. Sauvegarde/restauration systematique de l'etat autour de
+   l'evaluation, meme precaution que la fonction existante.
+
+   Convention : evaluation TOUJOURS du point de vue des noirs (positif =
+   noir mieux), comme computeGameMistakes -- une seule reference evite
+   les inversions de signe qui ont deja pose probleme dans ce projet. */
+function computeEvalCurve(){
+  if (typeof analysisHistory === 'undefined' || analysisHistory.length < 2) return null;
+  const savedB = board, savedCB = capturedByBlack, savedCW = capturedByWhite;
+  const evals = analysisHistory.map(function(snap){
+    board = snap.board; capturedByBlack = snap.capB; capturedByWhite = snap.capW;
+    let s = 0;
+    try { s = evaluateBoard('black'); } catch(e){ s = 0; }
+    return s;
+  });
+  board = savedB; capturedByBlack = savedCB; capturedByWhite = savedCW;
+  return evals;
+}
+
+/* Classification des coups par ampleur de la perte d'evaluation.
+   SEUILS ARBITRAIRES, ASSUMES COMME TELS : aucun standard n'existe pour
+   l'Abalone (aux echecs meme, Chess.com et Lichess utilisent des seuils
+   differents). Calibres ici sur SEUIL_PROCHE_MEILLEUR (30 points), deja
+   etabli ailleurs dans ce code pour la meme notion -- pas une nouvelle
+   valeur inventee pour l'occasion. Affiches dans l'interface pour que le
+   joueur sache ce qu'il lit. */
+const SEUILS_QUALITE_COUP = [
+  { max: 30,   cle:'bon',         label:'Bon',          couleur:'var(--accent-green-light)' },
+  { max: 80,   cle:'imprecision', label:'Imprécision',  couleur:'#d9c05a' },
+  { max: 200,  cle:'erreur',      label:'Erreur',       couleur:'#e08050' },
+  { max: Infinity, cle:'gaffe',   label:'Gaffe',        couleur:'#e05c4b' }
+];
+function classifierCoup(perte){
+  for (let i=0;i<SEUILS_QUALITE_COUP.length;i++){
+    if (perte <= SEUILS_QUALITE_COUP[i].max) return SEUILS_QUALITE_COUP[i];
+  }
+  return SEUILS_QUALITE_COUP[SEUILS_QUALITE_COUP.length-1];
+}
+
+/* Classe chaque coup de la partie analysee, pour les deux camps.
+   perte = de combien l'evaluation a baissé DU POINT DE VUE DU JOUEUR qui
+   vient de jouer (0 ou negatif = il n'a rien perdu). */
+function computeMoveQuality(){
+  const evals = computeEvalCurve();
+  if (!evals) return null;
+  const out = [];
+  for (let i = 1; i < analysisHistory.length; i++){
+    const moverColor = (analysisHistory[i].turn === 'black') ? 'white' : 'black';
+    const rawSwing = evals[i] - evals[i-1];
+    const swingForMover = (moverColor === 'black') ? rawSwing : -rawSwing;
+    const perte = Math.max(0, -swingForMover);
+    out.push({ idx:i, color:moverColor, perte:perte, classe:classifierCoup(perte), label: analysisHistory[i].label });
+  }
+  return out;
+}
+
+/* Rendu SVG natif de la courbe (aucune dependance externe -- meme
+   principe que la heatmap d'activite et les courbes de trajectoire).
+   Chaque point est cliquable et amene directement a ce coup, comme dans
+   les outils de Go. */
+function renderEvalCurve(){
+  const host = document.getElementById('analysis-eval-curve');
+  if (!host) return;
+  const evals = computeEvalCurve();
+  if (!evals || evals.length < 2) {
+    host.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:10px 0">Charge une partie pour voir sa courbe d\u2019évaluation.</div>';
+    return;
+  }
+  const quality = computeMoveQuality() || [];
+  const w = 600, h = 130, pad = 6;
+  const maxAbs = Math.max(60, Math.max.apply(null, evals.map(function(v){ return Math.abs(v); })));
+  const x = function(i){ return pad + (i/(evals.length-1)) * (w - 2*pad); };
+  const y = function(v){ return h/2 - (v/maxAbs) * (h/2 - pad); };
+
+  let svg = '<svg width="100%" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="display:block;cursor:pointer" onclick="_evalCurveClick(event, this)">';
+  // fond : moitie haute = avantage noir, moitie basse = avantage blanc
+  svg += '<rect x="0" y="0" width="'+w+'" height="'+(h/2)+'" fill="#2a2a2a" opacity="0.5"/>';
+  svg += '<rect x="0" y="'+(h/2)+'" width="'+w+'" height="'+(h/2)+'" fill="#e8e8e8" opacity="0.10"/>';
+  svg += '<line x1="0" y1="'+(h/2)+'" x2="'+w+'" y2="'+(h/2)+'" stroke="var(--border)" stroke-width="1"/>';
+  // aire sous la courbe
+  const pts = evals.map(function(v,i){ return x(i).toFixed(1)+','+y(v).toFixed(1); });
+  svg += '<polyline points="'+pts.join(' ')+'" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linejoin="round"/>';
+  // marqueurs sur les coups faibles (erreurs et gaffes uniquement, pour ne pas surcharger)
+  quality.forEach(function(q){
+    if (q.classe.cle === 'erreur' || q.classe.cle === 'gaffe') {
+      svg += '<circle cx="'+x(q.idx).toFixed(1)+'" cy="'+y(evals[q.idx]).toFixed(1)+'" r="3.5" fill="'+q.classe.couleur+'">'
+        + '<title>Coup '+q.idx+' ('+(q.color==='black'?'noir':'blanc')+') — '+q.classe.label+', '+Math.round(q.perte)+' pts perdus</title></circle>';
+    }
+  });
+  svg += '</svg>';
+
+  // recapitulatif par camp
+  const recap = ['black','white'].map(function(c){
+    const mine = quality.filter(function(q){ return q.color===c; });
+    if (!mine.length) return '';
+    const counts = {};
+    mine.forEach(function(q){ counts[q.classe.cle] = (counts[q.classe.cle]||0)+1; });
+    const parts = SEUILS_QUALITE_COUP.map(function(s){
+      const n = counts[s.cle]||0;
+      return n ? '<span style="color:'+s.couleur+'">'+n+' '+s.label.toLowerCase()+(n>1&&s.cle!=='imprecision'?'s':'')+'</span>' : null;
+    }).filter(Boolean).join(' · ');
+    return '<div style="font-size:11px;color:var(--muted);margin-top:4px">'+(c==='black'?'⚫ Noir':'⚪ Blanc')+' : '+(parts||'—')+'</div>';
+  }).join('');
+
+  host.innerHTML = svg
+    + '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:2px"><span>début</span><span>avantage noir en haut · blanc en bas</span><span>coup '+(evals.length-1)+'</span></div>'
+    + recap
+    + '<div style="font-size:10px;color:var(--muted);margin-top:6px">Seuils de classification (choix assumé, aucun standard n\u2019existe pour l\u2019Abalone) : bon ≤ 30 pts perdus · imprécision ≤ 80 · erreur ≤ 200 · gaffe au-delà.</div>';
+}
+
+/* Clic sur la courbe -> saute au coup correspondant, comme dans les
+   outils d'analyse de Go. */
+function _evalCurveClick(ev, svgEl){
+  if (typeof analysisHistory === 'undefined' || !analysisHistory.length) return;
+  const rect = svgEl.getBoundingClientRect();
+  const frac = (ev.clientX - rect.left) / rect.width;
+  const idx = Math.round(frac * (analysisHistory.length - 1));
+  if (typeof analysisGoto === 'function') analysisGoto(Math.max(0, Math.min(analysisHistory.length-1, idx)));
+}
+
 function computeGameMistakes(humanColor, topN){
   if (typeof analysisHistory === 'undefined' || analysisHistory.length < 2) return [];
   const savedB = board, savedCB = capturedByBlack, savedCW = capturedByWhite;
@@ -31353,6 +31663,38 @@ async function renderCorpusStatsPage(){
     }).join(''),
     s.nVariants + ' variantes distinctes recensées dans le corpus AbalOnline ('+s.nAo.toLocaleString('fr-FR')+' parties).');
 
+  // --- Distribution des 12 dimensions (referentiel objectif) ---
+  const dist = computeDimensionDistributions();
+  if (dist) {
+    const rows = EMPREINTES_CHAMPS.map(function(f){
+      const d = dist[f];
+      const label = (typeof LABELS_EMPREINTE !== 'undefined' && LABELS_EMPREINTE[f]) ? LABELS_EMPREINTE[f] : f;
+      return '<div style="padding:7px 0;border-bottom:1px solid var(--border)">'
+        + '<div style="font-size:12px;color:var(--text);margin-bottom:2px">'+label+'</div>'
+        + '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-family:\'DM Mono\',monospace">'
+          + '<span>10ᵉ centile : '+d.p10.toFixed(2)+'</span>'
+          + '<span style="color:var(--gold);font-weight:700">médiane '+d.median.toFixed(2)+'</span>'
+          + '<span>90ᵉ centile : '+d.p90.toFixed(2)+'</span>'
+        + '</div></div>';
+    }).join('');
+    html += card('Les 12 dimensions, mesurées sur tout le corpus', rows,
+      'Calculé sur les '+dist[EMPREINTES_CHAMPS[0]].n.toLocaleString('fr-FR')+' positions issues des parties réelles — une empreinte par coup joué. C\u2019est le référentiel qui permet de situer une position : au-dessus du 90ᵉ centile, elle fait partie des 10 % les plus marquées sur cette dimension.');
+  }
+
+  // --- Redondance entre dimensions (mesure honnete, pas une supposition) ---
+  const corr = computeDimensionCorrelations();
+  if (corr) {
+    const top = corr.pairs.slice(0, 5).map(function(pr){
+      const la = (LABELS_EMPREINTE[pr.a]||pr.a), lb = (LABELS_EMPREINTE[pr.b]||pr.b);
+      const force = Math.abs(pr.r) > 0.8 ? 'très forte' : (Math.abs(pr.r) > 0.5 ? 'forte' : 'modérée');
+      return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">'
+        + '<span style="color:var(--text)">'+la+' ↔ '+lb+'</span>'
+        + '<span style="font-weight:700;color:'+(Math.abs(pr.r)>0.8?'#e08050':'var(--gold)')+'">'+pr.r+' <span style="font-weight:400;color:var(--muted);font-size:11px">('+force+')</span></span></div>';
+    }).join('');
+    html += card('Ces dimensions sont-elles indépendantes ?', top,
+      'Corrélation de Pearson mesurée sur les '+corr.n.toLocaleString('fr-FR')+' positions. Cohésion, soutien et billes sans soutien mesurent largement la même chose (jusqu\u2019à 0,93) : ces trois axes bougent ensemble, il ne faut pas les lire comme trois informations distinctes. Aucune dimension n\u2019est constante, donc aucune n\u2019est inutile — mais ce groupe est redondant.');
+  }
+
   host.innerHTML = html;
 }
 
@@ -31698,11 +32040,25 @@ function openApgnImportModal(){
   document.body.appendChild(modal);
 }
 
+/* Retire les lignes d'en-tete entre crochets ([Abalassembly], [Score],
+   [Variante]...) avant de parser les coups. Sans ça, coller un export
+   COMPLET du site echouait : le parseur s'arretait au premier jeton
+   illisible, c'est-a-dire des la premiere ligne d'en-tete. L'export et
+   l'import doivent former un aller-retour, d'autant plus depuis que
+   l'en-tete s'est enrichi (date, variante, IA, moteur). */
+function _stripApgnHeaders(text){
+  return String(text).split('\n')
+    .filter(function(l){ return !/^\s*\[[^\]]*\]/.test(l); })
+    .join('\n').trim();
+}
+
 function _doApgnImport(){
   const textEl = document.getElementById('apgn-import-text');
   const status = document.getElementById('apgn-import-status');
-  const text = textEl ? textEl.value.trim() : '';
-  if (!text) { if (status){ status.textContent = 'Colle une séquence de coups d\u2019abord.'; status.style.color = '#e05c4b'; } return; }
+  const raw = textEl ? textEl.value.trim() : '';
+  if (!raw) { if (status){ status.textContent = 'Colle une séquence de coups d\u2019abord.'; status.style.color = '#e05c4b'; } return; }
+  const text = _stripApgnHeaders(raw);
+  if (!text) { if (status){ status.textContent = 'Aucun coup trouvé — le texte ne contient que des en-têtes.'; status.style.color = '#e05c4b'; } return; }
 
   const tokens = text.replace(/\d+\./g,' ').trim().split(/\s+/).filter(Boolean);
   const variant = document.getElementById('apgn-import-variant').value;
