@@ -3143,10 +3143,12 @@ document.addEventListener('keydown', function(e){
       </div>
 
       <div class="setup-row-lbl" style="margin-top:14px">Adversaire</div>
-      <div style="display:flex;gap:5px" id="setup-mode">
+      <div style="display:flex;gap:5px;flex-wrap:wrap" id="setup-mode">
         <button onclick="setupPick('mode','ai',this)" class="setup-opt active" style="flex:1">🤖 Contre l'IA</button>
         <button onclick="setupPick('mode','local',this)" class="setup-opt" style="flex:1">👥 Deux joueurs</button>
+        <button onclick="setupPick('mode','rtc',this)" class="setup-opt" style="flex:1" title="Connexion directe entre deux navigateurs, sans compte ni serveur de jeu (experimental)">📡 En direct 🧪</button>
       </div>
+      <div id="setup-rtc-info" style="font-size:11px;color:var(--muted);margin-top:6px;display:none">Connexion directe avec un autre appareil. Un seul échange de code au début, puis les coups circulent tout seuls. Le panneau de connexion s'ouvrira au lancement de la partie.</div>
 
       <div id="setup-first-wrap" class="setup-row-lbl" style="margin-top:14px">Qui commence ?</div>
       <div style="display:flex;gap:5px" id="setup-first">
@@ -3154,7 +3156,7 @@ document.addEventListener('keydown', function(e){
         <button onclick="setupPick('first','white',this)" class="setup-opt" style="flex:1">⚪ Adversaire</button>
         <button onclick="setupPick('first','random',this)" class="setup-opt" style="flex:1">🎲 Aléatoire</button>
       </div>
-      <div style="font-size:11px;color:var(--muted);margin-top:6px">Aux noirs de jouer le premier coup. « Adversaire » vous fait jouer les blancs. « Aléatoire » tire votre camp au sort au lancement.</div>
+      <div id="setup-first-note" style="font-size:11px;color:var(--muted);margin-top:6px">Aux noirs de jouer le premier coup. « Adversaire » vous fait jouer les blancs. « Aléatoire » tire votre camp au sort au lancement.</div>
     </div>
 
     <!-- Style IA -->
@@ -3199,7 +3201,7 @@ document.addEventListener('keydown', function(e){
     </div>
 
     <!-- Cadence -->
-    <div class="setup-card">
+    <div class="setup-card" id="setup-time-card">
       <div class="setup-h">Cadence</div>
       <div style="display:flex;gap:5px;flex-wrap:wrap" id="setup-time">
         <button onclick="setupPick('time','',this)" class="setup-opt active">Libre</button>
@@ -7280,7 +7282,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.36';
+const APP_VERSION = 'v2.39';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -8863,23 +8865,61 @@ function resetA11y() {
    demarrage. Variante et camp ne sont modifiables qu'ici ; le reste reste
    ajustable en jeu. */
 let _setupCfg = { layout:'standard', mode:'ai', first:'black', style:'auto', diff:'easy', time:'', hints:true, coords:false, engine:'actuel' };
+/* Cadence choisie avant de passer en partie en direct, restauree si on
+   revient sur un autre mode -- evite de perdre silencieusement le reglage. */
+let _setupCfgTimeBeforeRtc;
 
 function setupPick(group, value, btn) {
   _setupCfg[group] = value;
   const box = btn.parentElement;
   box.querySelectorAll('.setup-opt').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
-  /* En deux joueurs, « qui commence » et le style IA n'ont pas de sens. */
+  /* En deux joueurs local, « qui commence » et le style IA n'ont pas de sens
+     (les deux joueurs sont sur le meme ecran). En revanche, en partie EN
+     DIRECT il faut pouvoir choisir son camp -- demande d'Olivier. */
   if (group === 'mode') {
     const isAI = value === 'ai';
+    const isRtc = value === 'rtc';
     const styleCard = document.getElementById('setup-style-card');
     const engineCard = document.getElementById('setup-engine-card');
     const firstWrap = document.getElementById('setup-first-wrap');
     const firstBox = document.getElementById('setup-first');
+    const firstNote = document.getElementById('setup-first-note');
+    const rtcInfo = document.getElementById('setup-rtc-info');
     if (styleCard) styleCard.style.display = isAI ? '' : 'none';
     if (engineCard) engineCard.style.display = isAI ? '' : 'none';
-    if (firstWrap) firstWrap.style.display = isAI ? '' : 'none';
-    if (firstBox) firstBox.style.display = isAI ? '' : 'none';
+    if (firstWrap) firstWrap.style.display = (isAI || isRtc) ? '' : 'none';
+    if (firstBox) firstBox.style.display = (isAI || isRtc) ? '' : 'none';
+    if (firstNote) firstNote.style.display = (isAI || isRtc) ? '' : 'none';
+    if (rtcInfo) rtcInfo.style.display = isRtc ? '' : 'none';
+    /* Cadence : masquee et forcee en "Libre" en partie en direct. L'echange
+       manuel des codes de connexion peut prendre plusieurs minutes (copier-
+       coller entre deux appareils) -- une pendule qui tourne pendant ce
+       temps ferait perdre au temps avant meme le premier coup. Signale par
+       Olivier. Le choix est restaure des qu'on repasse sur un autre mode. */
+    const timeCard = document.getElementById('setup-time-card');
+    if (timeCard) timeCard.style.display = isRtc ? 'none' : '';
+    if (isRtc) {
+      if (_setupCfg.time !== '') _setupCfgTimeBeforeRtc = _setupCfg.time;
+      _setupCfg.time = '';
+      const timeBox = document.getElementById('setup-time');
+      if (timeBox) {
+        timeBox.querySelectorAll('.setup-opt').forEach(function(b, i){ b.classList.toggle('active', i === 0); });
+      }
+    } else if (typeof _setupCfgTimeBeforeRtc === 'string') {
+      _setupCfg.time = _setupCfgTimeBeforeRtc;
+      const timeBox = document.getElementById('setup-time');
+      if (timeBox) {
+        timeBox.querySelectorAll('.setup-opt').forEach(function(b){
+          b.classList.toggle('active', (b.getAttribute('onclick')||'').indexOf("'"+_setupCfgTimeBeforeRtc+"'") >= 0);
+        });
+      }
+      _setupCfgTimeBeforeRtc = undefined;
+    }
+    /* Le libelle du deuxieme bouton depend du contexte : face a l'IA c'est
+       elle qui joue les blancs, en direct c'est l'autre joueur. */
+    const advBtn = document.querySelector('#setup-first .setup-opt:nth-child(2)');
+    if (advBtn) advBtn.textContent = isRtc ? '⚪ Mon adversaire' : '⚪ Adversaire';
   }
   /* Indication reelle (profondeur + budget temps) sous les boutons de niveau —
      memes chiffres EXACTS que ceux que l'IA va vraiment utiliser (meme table
@@ -8949,10 +8989,16 @@ function startConfiguredGame() {
       b.classList.toggle('active', b.id === 'layout-' + c.layout);
     });
   });
-  step(function(){ if (typeof gameMode !== 'undefined') gameMode = c.mode; });
+  /* Le moteur ne connait que 'ai' et 'local'. Le mode 'rtc' (partie en
+     direct) est un mode local du point de vue du jeu -- aucune IA ne joue --
+     mais avec un camp choisi et le panneau de connexion ouvert au
+     lancement. Demande d'Olivier : le choisir comme un adversaire, pas
+     comme une action en cours de partie. */
+  const _isRtc = (c.mode === 'rtc');
+  step(function(){ if (typeof gameMode !== 'undefined') gameMode = _isRtc ? 'local' : c.mode; });
   step(function(){
     ['mode-ai','mode-local'].forEach(function(id){
-      var b = document.getElementById(id); if (b) b.classList.toggle('active', id === 'mode-' + c.mode);
+      var b = document.getElementById(id); if (b) b.classList.toggle('active', id === 'mode-' + (_isRtc ? 'local' : c.mode));
     });
   });
 
@@ -8963,13 +9009,13 @@ function startConfiguredGame() {
      toujours le premier coup. « random » tire le camp au sort au lancement,
      de sorte que ni le joueur ni l'IA ne sait a l'avance qui ouvre. */
   let _first = c.first;
-  if (c.mode === 'ai' && _first === 'random') {
+  if ((c.mode === 'ai' || _isRtc) && _first === 'random') {
     _first = (Math.random() < 0.5) ? 'black' : 'white';
     if (typeof showToast === 'function') {
       showToast(_first === 'black' ? '🎲 Vous jouez les noirs' : '🎲 Vous jouez les blancs');
     }
   }
-  humanColor = (c.mode === 'ai') ? _first : 'black';
+  humanColor = (c.mode === 'ai' || _isRtc) ? _first : 'black';
   step(function(){ if (typeof applyPovOrientation === 'function') applyPovOrientation(); });
 
   if (c.mode === 'ai') {
@@ -8983,8 +9029,12 @@ function startConfiguredGame() {
     step(function(){ if (typeof _engineMode !== 'undefined') _engineMode = (c.engine === 'actuel') ? null : c.engine; });
   }
 
-  step(function(){ if (typeof setTimeControl === 'function') setTimeControl(c.time); });
-  step(function(){ var t = document.getElementById('time-ctl-select'); if (t) t.value = c.time; });
+  /* Cadence : jamais de pendule en partie en direct, quelle que soit la
+     valeur restee dans la configuration -- garde de securite en plus du
+     masquage de la carte, pour que l'echange de codes ne fasse jamais
+     perdre au temps. */
+  step(function(){ if (typeof setTimeControl === 'function') setTimeControl(_isRtc ? '' : c.time); });
+  step(function(){ var t = document.getElementById('time-ctl-select'); if (t) t.value = _isRtc ? '' : c.time; });
   step(function(){ if (typeof toggleMoveHints === 'function') toggleMoveHints(c.hints); });
   step(function(){ var h = document.getElementById('game-hints-toggle'); if (h) h.checked = c.hints; });
   step(function(){ if (typeof toggleCoordinates === 'function') toggleCoordinates(c.coords); });
@@ -9000,6 +9050,12 @@ function startConfiguredGame() {
   if (c.mode === 'ai' && typeof currentTurn !== 'undefined'
       && currentTurn !== humanColor && !gameOver && typeof aiMove === 'function') {
     setTimeout(function(){ if (!gameOver && currentTurn !== humanColor) aiMove(); }, 700);
+  }
+
+  /* Partie en direct : ouvre le panneau de connexion juste apres le
+     lancement, le plateau etant deja en place derriere. */
+  if (_isRtc && typeof openRtcPanel === 'function') {
+    setTimeout(function(){ openRtcPanel(); }, 400);
   }
 }
 
@@ -31147,11 +31203,37 @@ function _rtcSetupChannelHandlers(ch){
   ch.onmessage = function(e){ _rtcHandleMessage(e.data); };
 }
 function _rtcSetupPeerHandlers(peer){
+  /* CORRECTIF (signale par Olivier, teste sur deux vrais telephones) :
+     "Connexion perdue" s'affichait alors qu'AUCUNE connexion n'avait jamais
+     ete etablie. Cause : 'disconnected' etait traite comme un echec
+     definitif et declenchait rtcClose(), qui detruit le peer -- or c'est un
+     etat TRANSITOIRE NORMAL pendant l'etablissement d'une connexion WebRTC
+     (et aussi lors d'une micro-coupure reseau, ou la pile tente de se
+     reconnecter seule). Le code tuait donc la connexion precisement pendant
+     qu'elle essayait de s'etablir.
+     Desormais : seul 'failed' est definitif. 'disconnected' laisse 8
+     secondes a la reconnexion automatique -- si l'etat n'est toujours pas
+     revenu a 'connected' passe ce delai, on abandonne alors vraiment. */
   peer.onconnectionstatechange = function(){
-    if (peer.connectionState === 'failed' || peer.connectionState === 'disconnected') _rtcOnDisconnect();
+    const st = peer.connectionState;
+    if (st === 'failed') { _rtcOnDisconnect(); return; }
+    if (st === 'connected') {
+      if (_rtcDisconnectTimer) { clearTimeout(_rtcDisconnectTimer); _rtcDisconnectTimer = null; }
+      return;
+    }
+    if (st === 'disconnected') {
+      if (_rtcDisconnectTimer) return;   // deja en attente
+      _rtcUpdateStatus('🟠 Connexion instable — tentative de reconnexion…');
+      _rtcDisconnectTimer = setTimeout(function(){
+        _rtcDisconnectTimer = null;
+        if (_rtcPeer && _rtcPeer.connectionState !== 'connected') _rtcOnDisconnect();
+      }, 8000);
+    }
   };
 }
+let _rtcDisconnectTimer = null;
 function _rtcOnDisconnect(){
+  if (_rtcDisconnectTimer) { clearTimeout(_rtcDisconnectTimer); _rtcDisconnectTimer = null; }
   if (!_rtcPeer) return; // deja nettoye
   _rtcUpdateStatus('🔴 Connexion perdue — utilise "Partie par code" pour continuer');
   if (typeof showToast === 'function') showToast('🔴 Connexion en direct perdue — repli sur "Partie par code"');
