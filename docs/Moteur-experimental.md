@@ -83,3 +83,50 @@ C'est ce point, et non le coût de calcul, qui reste le vrai obstacle. Il n'est 
 ### État actuel
 
 Le générateur existe et est validé : `tools/selfplay-gen.js` dans le dépôt, avec ses chiffres mesurés et ses réserves documentées en en-tête. La génération à grande échelle et l'entraînement restent à faire.
+
+## Pourquoi pas de NNUE — la mesure du 0/53
+
+Cette section clôt la piste du réseau de neurones, non pas sur un « ça n'a pas marché », mais sur trois mesures reproductibles qui expliquent **pourquoi**.
+
+### Le bon critère n'était pas la corrélation
+
+Un réseau réentraîné atteignait **0,87 de corrélation** avec l'évaluation classique (contre 0,07 pour le réseau embarqué). Ça semblait excellent — et il perdait quand même, 3 victoires sur 12.
+
+La corrélation mesure l'accord *en moyenne*. Or choisir un coup ne dépend pas de la moyenne : il faut classer correctement les alternatives entre elles. Sur une position où cinquante coups valent +10 et un seul vaut +2100 parce qu'il éjecte une bille, une erreur de quelques points passe inaperçue dans une corrélation mais fait rater le coup gagnant.
+
+Le critère utile est donc le **taux de « même meilleur coup »** que l'évaluation classique, mesuré séparément selon que la position est tactique (au moins une éjection possible, pour un camp ou l'autre) ou calme.
+
+### Les trois expériences
+
+| Approche | Entrée | Paramètres | Tactique | Calme | Total |
+|---|---|---|---|---|---|
+| 64/32, réseau d'origine | 125 cases | 10 177 | **0 %** (0/53) | 26,9 % | 20,5 % |
+| 256/128, ×6,4 paramètres | 125 cases | 65 281 | 8,7 % (4/46) | 31,0 % | 26,4 % |
+| 64/32 + 4 indicateurs tactiques | 129 entrées | 10 433 | **26 %** (13/50) | 7,3 % | 12,0 % |
+
+Le premier résultat est le plus frappant : **zéro bon coup sur 53 positions tactiques**. Pas « moins souvent » — jamais. Et l'erreur coûte cher : 58 points d'évaluation en médiane, jusqu'à 2 104 au pire, soit l'ordre de grandeur d'une bille perdue.
+
+### Ce que ces mesures établissent
+
+**Ce n'est pas une question de capacité.** Multiplier les paramètres par 6,4 améliore bien l'apprentissage (erreur de validation 0,102 contre 0,123) mais ne gagne que 8,7 points sur la tactique. Loin des ~100 % qu'il faudrait pour rivaliser.
+
+**C'est une question de représentation.** Ajouter seulement quatre indicateurs tactiques explicites — nombre d'éjections disponibles, de poussées possibles, de menaces subies, différentiel de captures — fait passer la tactique à 26 %, avec un réseau six fois plus petit que le précédent. Trois fois mieux, pour bien moins cher.
+
+**Mais ce gain se paie.** Les positions calmes s'effondrent de 31 % à 7,3 %, et le total baisse de 26,4 % à 12 %. Le réseau s'appuie sur les indicateurs faciles et cesse d'apprendre la structure positionnelle. Il troque une compétence contre une autre plutôt que d'ajouter la seconde à la première.
+
+### La conclusion
+
+Les 125 entrées d'origine décrivent uniquement quelles cases sont occupées. Elles ne disent rien de ce qui rend une position tactique : qu'une poussée est possible, qu'une bille adverse est en bord de plateau et poussable, qu'une menace pèse. Le réseau devrait déduire tout cela de l'occupation brute — c'est-à-dire réapprendre la géométrie hexagonale : alignements sur six directions, règles du sumito, distance au bord.
+
+Il ne le fait pas, et lui fournir ces informations revient à recalculer ce que l'évaluation classique calcule déjà, explicitement, en quinze lignes.
+
+**S'il faut donner au réseau les calculs de l'évaluation classique pour qu'il soit correct, autant garder l'évaluation classique.** Elle est en outre trois fois plus rapide par appel (9,9 µs contre 31,4 µs mesurées — le réseau n'a jamais été le maillon lent), elle contient la géométrie de façon explicite, et elle gagne : 15-2 contre le réseau embarqué, 9-3 contre la version réentraînée.
+
+### Reproduire la mesure
+
+1. Générer environ 220 positions par marche aléatoire depuis plusieurs variantes de départ, en s'arrêtant à 6 captures.
+2. Classer chaque position : *tactique* si au moins une éjection est disponible pour l'un des deux camps, *calme* sinon.
+3. Pour chaque position, énumérer les coups légaux et retenir celui que préfère l'évaluation classique, puis celui que préfère le réseau.
+4. Compter le taux d'accord séparément sur chaque catégorie.
+
+Un taux d'accord proche de zéro sur les positions tactiques est le signal décisif : le réseau ne voit pas les éjections, quelle que soit sa corrélation globale.
