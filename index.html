@@ -2467,6 +2467,9 @@ document.addEventListener('keydown', function(e){
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-corpusstats" onclick="showPage('corpusstats'); if (window.innerWidth < 600 && typeof closeSidebarMobile==='function') closeSidebarMobile();">
       <span class="s-icon">📈</span><span class="s-label">Stats du jeu</span>
     </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-archi" onclick="showPage('archi'); if (window.innerWidth < 600 && typeof closeSidebarMobile==='function') closeSidebarMobile();">
+      <span class="s-icon">🗺️</span><span class="s-label">Architecture</span>
+    </button>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-import" onclick="openApgnImportModal(); if (window.innerWidth < 600 && typeof closeSidebarMobile==='function') closeSidebarMobile();">
       <span class="s-icon">📥</span><span class="s-label">Importer</span>
     </button>
@@ -6415,6 +6418,25 @@ document.addEventListener('keydown', function(e){
 </div>
 
 <!-- ══════════════════════════════════════════
+     PAGE: ARCHITECTURE -- trois schemas expliquant comment le site est
+     construit. Rendus en SVG NATIF, sans bibliotheque externe : charger
+     Mermaid (~2 Mo) casserait le fichier unique hors ligne.
+     ATTENTION : ces schemas sont ECRITS A LA MAIN et doivent etre mis a
+     jour quand l'architecture change -- contrairement a la Fiche pour IA
+     qui compte tout a l'execution. Verifies contre le code en v2.39.
+══════════════════════════════════════════ -->
+<div class="page" id="page-archi">
+  <div class="page-header" style="padding-bottom:32px">
+    <div class="section-label">Comment c'est construit</div>
+    <h2>Architecture</h2>
+  </div>
+  <div style="padding:0 60px 80px;max-width:760px">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Trois cartes pour comprendre le fonctionnement interne. Version détaillée et à jour : <a href="https://github.com/ocj94/Abalassembly/blob/main/docs/Architecture.md" target="_blank" rel="noopener noreferrer" style="color:var(--gold)">docs/Architecture.md</a> sur le dépôt.</div>
+    <div id="archi-diagrams"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
      PAGE: STATISTIQUES DU JEU (corpus) -- distinctes des statistiques
      PERSONNELLES de la page Stats. Celles-ci portent sur les 4 479
      vraies parties embarquees, pas sur les parties du joueur.
@@ -7282,7 +7304,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.39';
+const APP_VERSION = 'v2.40';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -27738,6 +27760,7 @@ function showPage(name) {
     gym:        function(){ if (typeof renderGymCerveau === 'function') renderGymCerveau(); },
     historique: function(){ if (typeof renderHistoriquePage === 'function') renderHistoriquePage(); },
     corpusstats:function(){ if (typeof renderCorpusStatsPage === 'function') renderCorpusStatsPage(); },
+    archi:      function(){ if (typeof renderArchiPage === 'function') renderArchiPage(); },
     compare:    function(){ renderCompare(); },
     friends:    function(){ renderFriends(); },
     editor:     function(){ if(Object.keys(editorBoard).length===0) loadEditorPreset('standard'); else drawEditorBoard(); setEditorTool('black'); },
@@ -31685,6 +31708,111 @@ function _historySetFilter(key, value){
    des vainqueurs MIGS demande un rejeu complet la premiere fois (~78s,
    mis en cache ensuite -- voir ensureMigsWinners). Affiche une
    progression honnete pendant ce calcul plutot que de figer la page. */
+/* ═══════════════════════════════════════════
+   SCHEMAS D'ARCHITECTURE — rendus en SVG NATIF.
+   Pas de bibliotheque externe : Mermaid pese ~2 Mo et casserait le
+   fichier unique hors ligne. Meme approche que la courbe d'evaluation
+   et la heatmap d'activite, deja en SVG natif.
+
+   ATTENTION — CONTENU ECRIT A LA MAIN : contrairement a la Fiche pour
+   IA (openSiteBriefing), qui compte tout a l'execution, un schema
+   d'architecture ne peut pas se deduire du code. Il doit etre mis a
+   jour A LA MAIN quand l'architecture change, au meme titre que
+   APP_VERSION. Verifie contre le code en v2.39.
+═══════════════════════════════════════════ */
+const ARCHI_DIAGRAMS = [
+  {
+    titre: 'Comment l\u2019IA choisit son coup',
+    note: 'L\u2019ordre compte : chaque étape n\u2019est atteinte que si la précédente n\u2019a rien donné.',
+    noeuds: [
+      { t:'Tour de l\u2019IA', c:'neutre' },
+      { t:'Le livre d\u2019ouvertures couvre-t-il la position ?', c:'test' },
+      { t:'Coup tiré au sort, pondéré fréquence × taux de victoire', c:'sortie' },
+      { t:'Moins de 20 coups, et une position proche existe dans les 418 595 empreintes ?', c:'test' },
+      { t:'Coup de la position historique la plus proche', c:'sortie' },
+      { t:'Moins de 16 coups, et le livre statique connaît la position ?', c:'test' },
+      { t:'Coup du livre statique', c:'sortie' },
+      { t:'Niveau Facile ?', c:'test' },
+      { t:'Coup au hasard parmi les 4 meilleurs', c:'sortie' },
+      { t:'Recherche alpha-bêta, répartie sur plusieurs cœurs si disponibles', c:'calcul' }
+    ]
+  },
+  {
+    titre: 'D\u2019où viennent les données',
+    note: 'Le corpus ne sert pas qu\u2019à consulter : il alimente directement le jeu de l\u2019IA.',
+    noeuds: [
+      { t:'MIGS — 2 589 parties  +  AbalOnline — 1 890 parties', c:'neutre' },
+      { t:'Corpus de 4 479 parties réelles', c:'sortie' },
+      { t:'Livres d\u2019ouvertures — 11 variantes', c:'calcul' },
+      { t:'Empreintes historiques — 418 595 positions × 12 dimensions', c:'calcul' },
+      { t:'Puzzles — 138, chacun sourcé vers sa partie', c:'calcul' },
+      { t:'Statistiques du jeu — avantage du 1er joueur, durées', c:'calcul' }
+    ]
+  },
+  {
+    titre: 'Les modes de jeu et les échanges',
+    note: 'Aucun échange ne passe par un serveur de jeu. « Partie par code » et l\u2019export Aba-Pro marchent même sans réseau.',
+    noeuds: [
+      { t:'Contre l\u2019IA  ·  Deux joueurs  ·  Partie en direct 🧪', c:'neutre' },
+      { t:'Partie en cours', c:'sortie' },
+      { t:'Partie par code — échange asynchrone', c:'calcul' },
+      { t:'Export / import Aba-Pro — standard communautaire', c:'calcul' },
+      { t:'Duel moteur externe — relais manuel', c:'calcul' },
+      { t:'Historique local — 200 parties rejouables', c:'calcul' }
+    ]
+  }
+];
+
+function _archiSVG(d){
+  const W = 640, hN = 46, gap = 18;
+  const H = d.noeuds.length * (hN + gap) + 10;
+  const couleurs = {
+    neutre: { f:'#2a2a2a', s:'var(--border)' },
+    test:   { f:'#1a2f2f', s:'var(--gold-dim)' },
+    sortie: { f:'#33300f', s:'var(--gold)' },
+    calcul: { f:'#1c2d33', s:'#4a7a8a' }
+  };
+  let svg = '<svg width="100%" viewBox="0 0 '+W+' '+H+'" style="display:block;max-width:100%">';
+  d.noeuds.forEach(function(n, i){
+    const y = i * (hN + gap) + 4;
+    const col = couleurs[n.c] || couleurs.neutre;
+    if (i > 0) {
+      const yp = y - gap;
+      svg += '<line x1="'+(W/2)+'" y1="'+yp+'" x2="'+(W/2)+'" y2="'+y+'" stroke="var(--border)" stroke-width="2"/>'
+           + '<polygon points="'+(W/2-4)+','+(y-6)+' '+(W/2+4)+','+(y-6)+' '+(W/2)+','+y+'" fill="var(--border)"/>';
+    }
+    svg += '<rect x="10" y="'+y+'" width="'+(W-20)+'" height="'+hN+'" rx="8" fill="'+col.f+'" stroke="'+col.s+'" stroke-width="1.5"/>';
+    // texte coupe en deux lignes si trop long
+    const txt = n.t;
+    if (txt.length > 52) {
+      let cut = txt.lastIndexOf(' ', 52); if (cut < 20) cut = 52;
+      svg += '<text x="'+(W/2)+'" y="'+(y+19)+'" text-anchor="middle" fill="var(--text)" font-size="13">'+_esc(txt.slice(0,cut))+'</text>'
+           + '<text x="'+(W/2)+'" y="'+(y+35)+'" text-anchor="middle" fill="var(--text)" font-size="13">'+_esc(txt.slice(cut+1))+'</text>';
+    } else {
+      svg += '<text x="'+(W/2)+'" y="'+(y+28)+'" text-anchor="middle" fill="var(--text)" font-size="13">'+_esc(txt)+'</text>';
+    }
+  });
+  svg += '</svg>';
+  return svg;
+}
+function _esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderArchiPage(){
+  const host = document.getElementById('archi-diagrams');
+  if (!host) return;
+  host.innerHTML = ARCHI_DIAGRAMS.map(function(d){
+    return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:20px">'
+      + '<div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">'+d.titre+'</div>'
+      + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">'+d.note+'</div>'
+      + _archiSVG(d)
+      + '</div>';
+  }).join('')
+  + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px">'
+    + '<div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">À part : les tables de finale</div>'
+    + '<div style="font-size:12px;color:var(--muted);line-height:1.6">Les tables 2 contre 2 et 3 contre 2 ne sont pas branchées sur le moteur principal : elles servent au mode Découverte. Leur résultat le plus notable est un constat plutôt qu\u2019un gain de force — <strong style="color:var(--gold)">99,9 % de ces positions sont des nulles</strong>. Les classes supérieures sont hors de portée.</div>'
+  + '</div>';
+}
+
 async function renderCorpusStatsPage(){
   const host = document.getElementById('corpus-stats-body');
   if (!host) return;
