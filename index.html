@@ -7304,7 +7304,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.40';
+const APP_VERSION = 'v2.41';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -14937,6 +14937,17 @@ function selectionLine(sel) {
 
 // Valide un coup : billes 'sel' déplacées dans la direction axiale 'dir'
 function validateMove(sel, dir, me) {
+  /* Garde de direction : AX_DIRS contient les 6 seules directions
+     hexagonales legitimes. Sans ce controle, validateMove acceptait
+     n'importe quel vecteur -- (99,99), (5,-3), voire (0,0) qui ne bouge
+     pas. Non exploitable en jouant (l'interface ne propose que les 6),
+     mais un coup VENU DE L'EXTERIEUR pouvait passer : notation Aba-Pro
+     malformee, code de partie corrompu, ou coup renvoye par un moteur
+     externe via le duel -- ou la revalidation systematique etait pourtant
+     annoncee. Trouve en ecrivant l'audit des puzzles multi-coups. */
+  if (!dir || !AX_DIRS.some(function(d){ return d.q === dir.q && d.r === dir.r; })) {
+    return { valid:false, reason:'Direction invalide' };
+  }
   const opp = me === 'black' ? 'white' : 'black';
   const line = selectionLine(sel);
   if (!line) return { valid:false, reason:'Billes non alignées' };
@@ -17011,6 +17022,18 @@ function selectionLine(sel){
   return null;
 }
 function validateMove(sel,dir,me){
+  /* Garde de direction : AX_DIRS contient les 6 seules directions
+     hexagonales legitimes. Sans ce controle, validateMove acceptait
+     n'importe quel vecteur -- (99,99), (5,-3), voire (0,0) qui ne bouge
+     pas. Non exploitable en jouant (l'interface ne propose que les 6),
+     mais un coup VENU DE L'EXTERIEUR pouvait passer : notation Aba-Pro
+     malformee, code de partie corrompu, ou coup renvoye par un moteur
+     externe via le duel -- ou la revalidation systematique etait pourtant
+     annoncee. Trouve en ecrivant l'audit des puzzles multi-coups. */
+  if (!dir || !AX_DIRS.some(function(d){ return d.q === dir.q && d.r === dir.r; })) {
+    return { valid:false, reason:'Direction invalide' };
+  }
+
   const opp=me==='black'?'white':'black';
   const line=selectionLine(sel); if(!line)return{valid:false};
   const ax=sel.map(s=>rcToAxial(s.r,s.c));
