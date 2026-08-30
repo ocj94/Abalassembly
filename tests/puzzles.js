@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Audit des 94 puzzles embarques dans index.html.
+/* Audit des puzzles embarques dans index.html (138 a ce jour).
  *
  * Chaque puzzle est une position + une solution. Comme pour les parties APGN,
  * on ne fait pas confiance aux donnees : on REJOUE chaque puzzle contre le
@@ -17,6 +17,11 @@
  *   6. Defense coherente      — pour un puzzle `def`, la menace `thr` est un
  *                               coup legal de l'adversaire, et les `alt` sont
  *                               toutes des solutions legales.
+ *   7. Sequence multi-coups   — pour les 60 puzzles `multi`, la sequence `seq`
+ *                               entiere est rejouee coup par coup en alternant
+ *                               les couleurs. Jusqu'ici l'audit s'arretait au
+ *                               premier coup : une suite fausse passait
+ *                               inapercue.
  *
  * Sortie : la liste precise des puzzles fautifs, avec le champ en cause. Le
  * but est de transformer « il y a des erreurs dans les puzzles » (Saab) en
@@ -167,6 +172,56 @@ PUZZLES.forEach((p, idx) => {
       try { ok = !!E.validateMove(cells, dir, p.c); } catch (e) { ok = false; }
       if (!ok) flag(idx, p, 'alt', 'alternative illégale : ' + a);
     });
+  }
+
+  // 7. Sequence multi-coups : les 60 puzzles marques `multi` portent une
+  //    sequence `seq` de plusieurs coups (joueur, reponse adverse, joueur...)
+  //    qui n'etait PAS verifiee jusqu'ici -- l'audit s'arretait au premier
+  //    coup. On rejoue la sequence entiere contre le vrai moteur, en
+  //    alternant les couleurs, et on verifie a chaque etape que le coup est
+  //    legal depuis la position REELLE atteinte.
+  if (p.multi) {
+    if (!Array.isArray(p.seq) || p.seq.length < 2) {
+      flag(idx, p, 'seq', 'puzzle multi sans sequence exploitable');
+    } else {
+      // le premier coup de seq doit etre la solution annoncee
+      if (!sameMove(p.seq[0], p.sol)) {
+        flag(idx, p, 'seq', 'seq[0] different du coup solution annonce');
+      }
+      loadPuzzle(p);
+      let turn = p.c;
+      for (let s = 0; s < p.seq.length; s++) {
+        const step = p.seq[s];
+        if (!step || !Array.isArray(step.cells) || !step.dir) {
+          flag(idx, p, 'seq', 'coup ' + (s + 1) + ' malforme'); break;
+        }
+        let bad = false;
+        step.cells.forEach(cell => {
+          if (!validCell(cell.r, cell.c)) {
+            flag(idx, p, 'seq', 'coup ' + (s + 1) + ' : case hors plateau ' + cell.r + ',' + cell.c);
+            bad = true;
+          }
+        });
+        if (bad) break;
+        let info = null;
+        try { info = E.validateMove(step.cells, step.dir, turn); } catch (e) { info = null; }
+        /* validateMove renvoie {valid:false, reason} pour un coup refuse --
+           un OBJET, donc truthy. Tester "!info" ne detectait rien : il faut
+           verifier explicitement info.valid !== false. */
+        if (!info || info.valid === false) {
+          flag(idx, p, 'seq', 'coup ' + (s + 1) + ' illegal pour ' + turn
+               + ((info && info.reason) ? ' (' + info.reason + ')' : '') + ' a cette etape');
+          break;
+        }
+        try { E.applyMove({ cells: step.cells, dir: step.dir, info: info }, turn); }
+        catch (e) { flag(idx, p, 'seq', 'coup ' + (s + 1) + ' : applyMove a echoue'); break; }
+        turn = (turn === 'black') ? 'white' : 'black';
+      }
+      // lab2 doit decrire le DERNIER coup du joueur (indice pair : 0, 2, 4...)
+      if (p.lab2 && !/^[a-i][1-9][a-i][1-9]/.test(String(p.lab2))) {
+        flag(idx, p, 'lab2', 'label final mal forme : "' + p.lab2 + '"');
+      }
+    }
   }
 });
 
