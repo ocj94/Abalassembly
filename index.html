@@ -3152,10 +3152,33 @@ document.addEventListener('keydown', function(e){
       <div class="setup-row-lbl" style="margin-top:14px">Adversaire</div>
       <div style="display:flex;gap:5px;flex-wrap:wrap" id="setup-mode">
         <button onclick="setupPick('mode','ai',this)" class="setup-opt active" style="flex:1">🤖 Contre l'IA</button>
-        <button onclick="setupPick('mode','local',this)" class="setup-opt" style="flex:1">👥 Deux joueurs</button>
-        <button onclick="setupPick('mode','rtc',this)" class="setup-opt" style="flex:1" title="Connexion directe entre deux navigateurs, sans compte ni serveur de jeu (experimental)">📡 En direct 🧪</button>
+        <button onclick="setupPickTwoPlayers()" class="setup-opt" style="flex:1" id="setup-mode-2p-toggle">👥 Deux joueurs</button>
       </div>
-      <div id="setup-rtc-info" style="font-size:11px;color:var(--muted);margin-top:6px;display:none">Connexion directe avec un autre appareil. Un seul échange de code au début, puis les coups circulent tout seuls. Le panneau de connexion s'ouvrira au lancement de la partie.</div>
+      <!-- Sous-section : "Deux joueurs" se decline en deux facons de jouer,
+           regroupees plutot que presentees comme trois choix d'adversaire au
+           meme niveau (demande d'Olivier). -->
+      <div id="setup-mode-2p-sub" style="display:none;margin-top:8px;padding:10px;border:1px solid var(--border);border-radius:10px">
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          <button onclick="setupPick('mode','local',this)" class="setup-opt" style="flex:1">📱 Même appareil</button>
+          <button onclick="setupPick('mode','rtc',this)" class="setup-opt" style="flex:1" title="Connexion directe entre deux navigateurs, sans compte ni serveur de jeu (experimental)">📡 En direct 🧪</button>
+        </div>
+        <!-- Panneau de connexion integre directement ici, plutot qu'en
+             fenetre superposee (demande d'Olivier). Memes identifiants
+             d'elements (rtc-status, rtc-ui-body) que l'ancien panneau
+             modal : toutes les fonctions de connexion existantes
+             (_rtcUiCreateOffer, _rtcUiShowJoin...) fonctionnent sans
+             modification, elles ne font que chercher ces identifiants. -->
+        <div id="setup-rtc-panel" style="display:none;margin-top:10px">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Connexion directe entre deux navigateurs, sans compte ni serveur de jeu — juste un serveur public pour aider les deux appareils à se trouver. Un seul échange de code au début, puis les coups circulent tout seuls.</div>
+          <div id="rtc-status" style="font-size:13px;color:var(--gold);margin-bottom:10px;min-height:18px">⚪ Non connecté</div>
+          <div style="display:flex;gap:8px;margin-bottom:10px">
+            <button class="ctrl-btn" onclick="_rtcUiCreateOffer()" style="flex:1">Créer une partie</button>
+            <button class="ctrl-btn" onclick="_rtcUiShowJoin()" style="flex:1">Rejoindre</button>
+          </div>
+          <div id="rtc-ui-body"></div>
+          <button class="ctrl-btn" onclick="openGameCodePanel()" style="width:100%;margin-top:10px;font-size:12px" title="Solution de repli fiable si la connexion directe ne marche pas">Utiliser « Partie par code » à la place</button>
+        </div>
+      </div>
 
       <div id="setup-first-wrap" class="setup-row-lbl" style="margin-top:14px">Qui commence ?</div>
       <div style="display:flex;gap:5px" id="setup-first">
@@ -7308,7 +7331,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.42';
+const APP_VERSION = 'v2.43';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -8895,6 +8918,21 @@ let _setupCfg = { layout:'standard', mode:'ai', first:'black', style:'auto', dif
    revient sur un autre mode -- evite de perdre silencieusement le reglage. */
 let _setupCfgTimeBeforeRtc;
 
+/* Bouton parent "Deux joueurs" : deplie la sous-section (Meme appareil /
+   En direct) plutot que de choisir directement un mode -- demande
+   d'Olivier, ces deux choix sont des declinaisons de "jouer a deux",
+   pas un troisieme mode independant au meme niveau que "Contre l'IA". */
+function setupPickTwoPlayers(){
+  const subSection = document.getElementById('setup-mode-2p-sub');
+  if (!subSection) return;
+  const dejaOuvert = subSection.style.display !== 'none';
+  if (dejaOuvert) return; // deja deplie, ne rien reinitialiser
+  subSection.style.display = '';
+  // Choix par defaut a l'ouverture : "Meme appareil", le plus simple.
+  const localBtn = document.querySelector('#setup-mode-2p-sub .setup-opt:first-child');
+  if (localBtn) setupPick('mode', 'local', localBtn);
+}
+
 function setupPick(group, value, btn) {
   _setupCfg[group] = value;
   const box = btn.parentElement;
@@ -8905,19 +8943,35 @@ function setupPick(group, value, btn) {
      DIRECT il faut pouvoir choisir son camp -- demande d'Olivier. */
   if (group === 'mode') {
     const isAI = value === 'ai';
+    const isLocal2p = value === 'local';
     const isRtc = value === 'rtc';
     const styleCard = document.getElementById('setup-style-card');
     const engineCard = document.getElementById('setup-engine-card');
     const firstWrap = document.getElementById('setup-first-wrap');
     const firstBox = document.getElementById('setup-first');
     const firstNote = document.getElementById('setup-first-note');
-    const rtcInfo = document.getElementById('setup-rtc-info');
+    const rtcPanel = document.getElementById('setup-rtc-panel');
     if (styleCard) styleCard.style.display = isAI ? '' : 'none';
     if (engineCard) engineCard.style.display = isAI ? '' : 'none';
     if (firstWrap) firstWrap.style.display = (isAI || isRtc) ? '' : 'none';
     if (firstBox) firstBox.style.display = (isAI || isRtc) ? '' : 'none';
     if (firstNote) firstNote.style.display = (isAI || isRtc) ? '' : 'none';
-    if (rtcInfo) rtcInfo.style.display = isRtc ? '' : 'none';
+    if (rtcPanel) rtcPanel.style.display = isRtc ? '' : 'none';
+    /* Choisir "Meme appareil" ou "En direct" garde le bouton parent
+       "Deux joueurs" visuellement actif, et referme le sous-panneau
+       "Contre l'IA" le cas echeant -- les deux sous-choix sont bien des
+       facons de jouer a deux, pas un troisieme mode independant. */
+    const parentToggle = document.getElementById('setup-mode-2p-toggle');
+    if (parentToggle) parentToggle.classList.toggle('active', isLocal2p || isRtc);
+    const aiBtn = document.querySelector('#setup-mode .setup-opt:first-child');
+    if (aiBtn && (isLocal2p || isRtc)) aiBtn.classList.remove('active');
+    if (isAI) {
+      // Retour sur "Contre l'IA" : referme le sous-panneau et deselectionne
+      // ses deux choix, pour ne pas laisser un etat incoherent affiche.
+      const subSection = document.getElementById('setup-mode-2p-sub');
+      if (subSection) subSection.style.display = 'none';
+      document.querySelectorAll('#setup-mode-2p-sub .setup-opt').forEach(function(b){ b.classList.remove('active'); });
+    }
     /* Cadence : masquee et forcee en "Libre" en partie en direct. L'echange
        manuel des codes de connexion peut prendre plusieurs minutes (copier-
        coller entre deux appareils) -- une pendule qui tourne pendant ce
@@ -9078,9 +9132,13 @@ function startConfiguredGame() {
     setTimeout(function(){ if (!gameOver && currentTurn !== humanColor) aiMove(); }, 700);
   }
 
-  /* Partie en direct : ouvre le panneau de connexion juste apres le
-     lancement, le plateau etant deja en place derriere. */
-  if (_isRtc && typeof openRtcPanel === 'function') {
+  /* Partie en direct : ouvre le panneau de connexion apres le lancement,
+     SAUF si la connexion a deja ete etablie pendant la configuration
+     (nouveau chemin, la connexion peut desormais se faire avant meme de
+     lancer la partie) -- sinon un second panneau redondant s'ouvrirait
+     par-dessus une connexion deja active. */
+  if (_isRtc && typeof openRtcPanel === 'function'
+      && !(typeof _rtcChannel !== 'undefined' && _rtcChannel && _rtcChannel.readyState === 'open')) {
     setTimeout(function(){ openRtcPanel(); }, 400);
   }
 }
