@@ -3146,6 +3146,8 @@ document.addEventListener('keydown', function(e){
         <button onclick="setupPick('layout','snakes_variant',this)" class="setup-opt" title="Variante communautaire reelle, 17 parties enregistrees sur AbalOnline">Snakes variant</button>
         <button onclick="setupPick('layout','snakes',this)" class="setup-opt" title="Motif distinct de Snakes variant -- aucune partie sous ce nom exact dans le corpus, confirme par une source tierce independante">Snakes</button>
         <button onclick="setupPick('layout','alien',this)" class="setup-opt" title="Variante communautaire reelle, 35 parties enregistrees sur AbalOnline">Alien</button>
+        <button onclick="setupPick('layout','korean_daisy',this)" class="setup-opt" title="Disposition attestee (Hyunmin KIM, abaloneonline.wordpress.com) -- aucune partie sous ce nom dans le corpus AbalOnline">Korean Daisy</button>
+        <button onclick="setupPick('layout','anglattack',this)" class="setup-opt" title="Disposition attestee (onlineabalone.wordpress.com) -- aucune partie sous ce nom dans le corpus AbalOnline">Anglattack</button>
         <button onclick="setupPick('layout','random',this)" class="setup-opt" title="Tire une vraie disposition au hasard parmi celles disponibles">🎲 Aléatoire</button>
       </div>
 
@@ -7331,7 +7333,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.43';
+const APP_VERSION = 'v2.44';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -7710,9 +7712,9 @@ function isMyColor(color) {
    le seau de la variante en cours (me_black@belgian, etc.). On peut ainsi
    comparer ses habitudes selon la position de depart, qui change beaucoup le
    jeu. Demande d'Olivier. */
-const HEAT_VARIANTS = ['standard','belgian','german','dutch','swiss','decouverte','69','fujiyama','the_wall','star','face_a_face','alliances','domination','atomouche','centrifuge','snakes_variant','snakes','alien'];
+const HEAT_VARIANTS = ['standard','belgian','german','dutch','swiss','decouverte','69','fujiyama','the_wall','star','face_a_face','alliances','domination','atomouche','centrifuge','snakes_variant','snakes','alien','korean_daisy','anglattack'];
 const HEAT_VARIANT_LABEL = { standard:'Standard', belgian:'Belgian Daisy', german:'German Daisy',
-  dutch:'Dutch Daisy', swiss:'Swiss Daisy', decouverte:'D\u00e9couverte', '69':'69', fujiyama:'Fujiyama', the_wall:'The Wall', star:'Star', face_a_face:'Face à face', alliances:'Alliances', domination:'Domination', atomouche:'Atomouche', centrifuge:'Centrifugeuse', snakes_variant:'Snakes variant', snakes:'Snakes', alien:'Alien' };
+  dutch:'Dutch Daisy', swiss:'Swiss Daisy', decouverte:'D\u00e9couverte', '69':'69', fujiyama:'Fujiyama', the_wall:'The Wall', star:'Star', face_a_face:'Face à face', alliances:'Alliances', domination:'Domination', atomouche:'Atomouche', centrifuge:'Centrifugeuse', snakes_variant:'Snakes variant', snakes:'Snakes', alien:'Alien', korean_daisy:'Korean Daisy', anglattack:'Anglattack' };
 
 function recordMyHeat(color, cells) {
   if (typeof isMyColor === 'function' && !isMyColor(color)) return;
@@ -11890,6 +11892,34 @@ const LAYOUTS = {
     // a1a3a5b2b5c2c4c6d4d5g5g7h6h7 (blanc).
     black: [[7,2],[7,3],[6,2],[6,4],[3,3],[3,4],[2,1],[2,3],[2,5],[1,1],[1,4],[0,0],[0,2],[0,4]],
     white: [[8,0],[8,2],[8,4],[7,1],[7,4],[6,1],[6,3],[6,5],[5,3],[5,4],[2,2],[2,4],[1,2],[1,3]]
+  },
+  korean_daisy: {
+    // "Korean Daisy" -- deux clusters en haut avec echange de couleur au
+    // contact, deux blocs en bas en symetrie de rotation a 180 degres.
+    // Coordonnees relues position par position sur une image fournie par
+    // Olivier (source abaloneonline.wordpress.com, creditee "Hyunmin
+    // KIM"), bandes zoomees rangee par rangee, PUIS converties via
+    // abaproToRc (jamais a la main), rendu visuel compare a l'image
+    // source avant integration.
+    // Aucune partie sous ce nom (ni variantes d'orthographe testees)
+    // dans le corpus AbalOnline -- signale honnetement, contrairement a
+    // alliances/domination/atomouche/centrifuge/snakes_variant/alien qui
+    // ont chacune une confirmation directe par de vraies parties.
+    black: [[0,3],[0,4],[1,3],[1,4],[1,5],[2,2],[2,5],[6,1],[6,4],[7,0],[7,1],[7,2],[8,0],[8,1]],
+    white: [[0,0],[0,1],[1,0],[1,1],[1,2],[2,1],[2,4],[6,2],[6,5],[7,3],[7,4],[7,5],[8,3],[8,4]]
+  },
+  anglattack: {
+    // "Anglattack" -- quatre coins symetriques (rotation 180 degres),
+    // une rangee mediane alternee, deux singletons isoles. Coordonnees
+    // relues position par position sur une image fournie par Olivier
+    // (bandes zoomees rangee par rangee), PUIS converties via
+    // abaproToRc (jamais a la main), rendu visuel compare a l'image
+    // source avant integration.
+    // Aucune partie sous ce nom (ni variantes d'orthographe testees)
+    // dans le corpus AbalOnline -- signale honnetement, meme statut que
+    // korean_daisy.
+    black: [[0,3],[0,4],[1,1],[1,5],[2,2],[4,1],[4,2],[4,5],[4,8],[6,2],[7,1],[7,5],[8,3],[8,4]],
+    white: [[0,0],[0,1],[1,0],[1,4],[2,4],[4,0],[4,3],[4,6],[4,7],[6,4],[7,0],[7,4],[8,0],[8,1]]
   }
 };
 
