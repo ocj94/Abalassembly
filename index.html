@@ -17615,19 +17615,50 @@ function search(depth,alpha,beta,maxi,pov,prevKey){
 function _repKeyOf(bd){let s='';for(let r=0;r<9;r++){for(let c=0;c<ROWS[r];c++){const v=bd[r+','+c];s+=v?(v==='black'?'b':'w'):'-';}}return s;}
 function _repCountMap(h){if(!h||!h.length)return null;const m=new Map();for(const k of h)m.set(k,(m.get(k)||0)+1);return m;}
 function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
-  const start=Date.now();let bestMove=null,bestScore=-Infinity,reached=0,lastRoots=null;
+  const start=Date.now();let bestMove=null,bestScore=-Infinity,reached=0,lastRoots=null,lastRootsDepth=0;
+  const rootsByDepth={},ejCache={},opp=(pov==='black'?'white':'black');
   killerMoves={};historyTable={};counterMove={};TT.clear();_nodes=0;_ttLk=0;_ttHit=0;
   const repCount=_repCountMap(hist);
   const split=(workerCount>1);   // partage des racines entre plusieurs workers (voir requestAIMovePooled)
   for(let d=1;d<=maxDepth;d++){
     let moves=getAllMovesForColor(pov);if(!moves.length)break;
-    if(split){moves=moves.filter(function(m,idx){return idx%workerCount===workerIndex;});if(!moves.length)break;}
+    /* Le partage par index doit porter sur un ordre STABLE.
+       getAllMovesForColor parcourt board avec Object.entries, donc dans
+       l'ordre d'INSERTION des cles -- et applyMove/undoMove font delete puis
+       reaffectation, ce qui renvoie les cles touchees a la fin. Le CONTENU du
+       plateau est bien restaure (verifie separement : undoMove n'est pas en
+       cause), mais son ordre de cles ne l'est pas. Des la profondeur 2 chaque
+       worker regenere donc une liste ordonnee differemment, et le filtre
+       idx%workerCount cesse d'etre une partition : certains coups sont
+       cherches par plusieurs workers, d'autres par aucun. Mesure sur une
+       Belgian Daisy reelle : 33 des 52 coups changent d'index apres un seul
+       aller-retour applyMove/undoMove, et avec 3 workers 11 coups sur 52
+       n'etaient examines par AUCUN worker. L'IA pouvait donc etre
+       structurellement aveugle a son meilleur coup, sans aucun signe visible
+       -- pas de plantage, pas de message, juste un choix parfois moins bon.
+       Le tri par moveKey (canonique : cases triees + direction) rend le
+       partage deterministe et reellement disjoint a toutes les profondeurs.
+       N'affecte pas l'ordonnancement alpha-beta : orderMoves passe apres. */
+    if(split){moves=moves.slice().sort(function(a,b){const ka=moveKey(a),kb=moveKey(b);return ka<kb?-1:(ka>kb?1:0);}).filter(function(m,idx){return idx%workerCount===workerIndex;});if(!moves.length)break;}
     moves=orderMoves(moves,d,null);
     let lb=null,ls=-Infinity,alpha=-Infinity,roots=[],cut=false;
     for(const m of moves){const mk=moveKey(m);const u=applyMove(m,pov);let s=search(d-1,-Infinity,Infinity,false,pov,mk);
       if(repCount){const rc=repCount.get(_repKeyOf(board));if(rc)s-=140*rc*rc;}
+      /* Menace adverse IMMEDIATE apres ce coup : compte exact des ejections
+         dont dispose l'adversaire au pli suivant. Un fait verifiable a 1 pli,
+         pas une projection -- ce moteur n'enregistre aucune variante
+         principale, donc toute phrase du type "ejection dans 3 coups" serait
+         inventee. Calcule ici, board encore dans l'etat POST-coup (avant
+         undoMove), et mis en cache par coup : une seule generation de coups
+         par racine pour toute la recherche, pas une par profondeur. Si le
+         coup termine la partie (6e capture), l'adversaire n'a pas de reponse
+         du tout : 0, et non le nombre de coups d'une position deja finie. */
+      if(ejCache[mk]===undefined){
+        if(capturedByWhite>=6||capturedByBlack>=6){ejCache[mk]=0;}
+        else{const og=getAllMovesForColor(opp);let ne=0;for(let i=0;i<og.length;i++)if(og[i].eject)ne++;ejCache[mk]=ne;}
+      }
       undoMove(u);
-      roots.push({cells:m.cells,dir:m.dir,type:m.type,eject:m.eject,score:s});
+      roots.push({cells:m.cells,dir:m.dir,type:m.type,eject:m.eject,score:s,oppEject:ejCache[mk]});
       if(s>ls){ls=s;lb=m;}if(s>alpha)alpha=s;if(Date.now()-start>timeLimit){cut=true;break;}}
     // bestScore=ls (pas lastRoots[0].score) : correct meme si cette profondeur a
     // ete coupee par le minuteur avant d'explorer tous les coups — lastRoots ne
@@ -17637,9 +17668,15 @@ function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
     // le partage multi-worker (requestAIMovePooled) : le meme coup rapportait
     // deux scores differents (0 vs 38) selon qu'il venait d'une recherche coupee
     // ou complete — pas un bug de calcul, un bug de RAPPORT du score correct.
-    if(lb){bestMove=lb;bestScore=ls;reached=d;if(!cut)lastRoots=roots;}if(Date.now()-start>timeLimit)break;}
+    if(lb){bestMove=lb;bestScore=ls;reached=d;if(!cut){lastRoots=roots;lastRootsDepth=d;rootsByDepth[d]=roots;}}if(Date.now()-start>timeLimit)break;}
   const top=lastRoots?lastRoots.slice().sort((a,b)=>b.score-a.score).slice(0,5):null;
-  _metrics={nodes:_nodes,depth:reached,time:Date.now()-start,ttHit:_ttLk?Math.round(100*_ttHit/_ttLk):0,rootMoves:top,bestScore:bestScore};
+  /* rootsByDepth : liste COMPLETE des coups racine de ce worker, rangee par
+     profondeur. Indispensable en multi-worker : chaque worker ne recoit que
+     1/N des coups racine (filtre idx%workerCount ci-dessus), donc son "top 5"
+     local n'est PAS le top 5 de la position. requestAIMovePooled fusionne ces
+     listes a la profondeur commune la plus grande -- melanger des scores
+     obtenus a des profondeurs differentes ne voudrait rien dire. */
+  _metrics={nodes:_nodes,depth:reached,time:Date.now()-start,ttHit:_ttLk?Math.round(100*_ttHit/_ttLk):0,rootMoves:top,rootsByDepth:rootsByDepth,rootDepth:lastRootsDepth,bestScore:bestScore};
   return bestMove;
 }
 function analyzePosition(pov,depth,played){
@@ -18095,6 +18132,36 @@ function requestAIMovePooled(params, onDone) {
       // le commentaire dans searchBestMove).
       const sc = (r.metrics && typeof r.metrics.bestScore === 'number') ? r.metrics.bestScore : -Infinity;
       if (sc > bestScore) { bestScore = sc; best = r.move; bestMetrics = r.metrics; }
+    }
+    /* FUSION DES COUPS RACINE (different du choix du coup ci-dessus, qui lui
+       etait deja correct). Avant : bestMetrics.rootMoves ne contenait que les
+       coups du worker gagnant, soit 1/N des coups legaux -- le panneau
+       "Coups possibles" affichait donc jusqu'a 5 coups pris dans un seul lot
+       en omettant silencieusement tous les autres, et les pourcentages
+       etaient normalises sur ce sous-ensemble. Un coup objectivement 2e
+       pouvait ne pas apparaitre du tout. On fusionne ici les listes de tous
+       les workers, a la profondeur atteinte par TOUS (comparer des scores de
+       profondeurs differentes n'aurait aucun sens). La reserve documentee en
+       tete de fonction reste entiere : tables de transposition independantes,
+       donc la valeur absolue des scores n'est pas parfaitement comparable
+       d'un worker a l'autre -- la hierarchie l'est en pratique, pas la
+       precision au point pres. */
+    if (bestMetrics) {
+      const maps = results
+        .filter(function(r){ return r && r.metrics && r.metrics.rootsByDepth && Object.keys(r.metrics.rootsByDepth).length; })
+        .map(function(r){ return r.metrics.rootsByDepth; });
+      let common = 0;
+      for (let d = 1; d <= 64; d++) {
+        if (maps.length && maps.every(function(m){ return Array.isArray(m[d]) && m[d].length; })) common = d;
+      }
+      if (common > 0) {
+        let all = [];
+        maps.forEach(function(m){ all = all.concat(m[common]); });
+        all.sort(function(a,b){ return b.score - a.score; });
+        bestMetrics = Object.assign({}, bestMetrics, {
+          rootMoves: all.slice(0, 5), rootDepth: common, rootTotal: all.length
+        });
+      }
     }
     onDone(best, bestMetrics);
   }
@@ -19857,7 +19924,7 @@ function updateAIMetrics(m){
   set('m-depth', m.depth||0);
   set('m-time', (m.time||0)+' ms');
   set('m-tt', (m.ttHit||0)+' %');
-  renderCandidateMoves(m.rootMoves);
+  renderCandidateMoves(m.rootMoves, m);
 }
 // Convertit les scores des coups en pourcentages d'« optimalité » (softmax à température adaptative)
 function moveOptimalityPercents(scores){
@@ -19869,20 +19936,31 @@ function moveOptimalityPercents(scores){
   return w.map(function(x){ return x / sum; });
 }
 // Affiche la liste des coups candidats avec une barre + un %
-function renderCandidateMoves(roots){
+function renderCandidateMoves(roots, metrics){
   const box = document.getElementById('m-moves'); if(!box) return;
   if(!roots || !roots.length){ box.innerHTML=''; return; }
+  const m = metrics || {};
   const pcts = moveOptimalityPercents(roots.map(function(r){ return r.score; }));
-  let html = '<div style="color:var(--gold);font-weight:600;margin:8px 0 4px">Coups possibles · % optimal</div>';
+  /* Le titre dit exactement ce que la liste est : les N premiers d’un total
+     connu, a une profondeur connue. Sans ca, "Coups possibles" laissait
+     croire a une liste exhaustive. Le "% optimal" garde son infobulle : ce
+     n’est pas une probabilite, c’est un softmax de temperature arbitraire. */
+  const cadre = (m.rootDepth ? ' · profondeur ' + m.rootDepth : '')
+              + (m.rootTotal ? ' · ' + roots.length + ' sur ' + m.rootTotal + ' coups légaux' : '');
+  let html = '<div style="color:var(--gold);font-weight:600;margin:8px 0 4px" title="Le pourcentage est un softmax des scores du moteur (température arbitraire, égale au quart de l’écart des scores) : un ordre de grandeur relatif, pas une probabilité de gain.">Coups possibles · % optimal' + cadre + '</div>';
+  let menace = false;
   roots.forEach(function(r,i){
     let lab; try{ lab = moveToABAPRO(r.cells, r.dir, r.type); }catch(e){ lab = '?'; }
     const pct = Math.round(pcts[i]*100);
+    const oe = r.oppEject|0; if(oe) menace = true;
     html += '<div style="display:flex;align-items:center;gap:6px;margin-top:3px">'
       + '<span style="width:70px;font-family:monospace;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + lab + (r.eject?' ✕':'') + '</span>'
       + '<div style="flex:1;height:8px;background:var(--surface);border-radius:4px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--gold)"></div></div>'
       + '<span style="width:34px;text-align:right;color:var(--text)">'+pct+'%</span>'
+      + '<span style="width:16px;text-align:center;color:var(--red)" title="'+(oe? oe+' éjection(s) immédiate(s) pour l’adversaire après ce coup (vérifié à 1 coup)' : '')+'">'+(oe?'⚠':'')+'</span>'
       + '</div>';
   });
+  if(menace) html += '<div style="color:var(--muted);font-size:11px;margin-top:5px">⚠ = l’adversaire dispose d’une éjection dès le coup suivant. Compté exactement à 1 coup, ce n’est pas une prévision.</div>';
   box.innerHTML = html;
 }
 
