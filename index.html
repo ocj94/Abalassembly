@@ -31235,6 +31235,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Au chargement complet : vérifie si une position est passée dans l'URL (?pos=...)
 document.addEventListener('DOMContentLoaded', function() {
   if (typeof loadPositionFromURL === 'function') loadPositionFromURL();
+  if (typeof loadGameFromURL === 'function') loadGameFromURL();
   // synchronise les cases à cocher de notation avec les préférences sauvegardées
   const at = document.getElementById('notation-abapro-toggle');
   const nt = document.getElementById('notation-nacre-toggle');
@@ -31295,7 +31296,15 @@ function _gcSanitizeName(name){
    espace dans le code lui-meme. Remplace par underscore a l'encodage,
    reconverti a l'affichage. */
 function _gcEncodeNameForCode(name){ return _gcSanitizeName(name).replace(/ /g, '_'); }
-function _gcDecodeNameFromCode(name){ return String(name || '').replace(/_/g, ' '); }
+/* Le decodage repasse par _gcSanitizeName. A l'encodage les noms sont deja
+   filtres, donc aucun code legitime n'est modifie ici -- c'est le code RECU
+   qui est vise. Tant que les codes n'arrivaient que par copier-coller
+   volontaire, la question restait theorique ; avec ?partie= un code arrive
+   d'un simple clic sur un lien envoye par un tiers. Les noms ne sont
+   aujourd'hui ecrits que via textContent (verifie ligne par ligne : aucun
+   chemin innerHTML), donc rien n'est exploitable en l'etat -- ce filtre
+   empeche qu'une future modification d'affichage ne le devienne. */
+function _gcDecodeNameFromCode(name){ return _gcSanitizeName(String(name || '').replace(/_/g, ' ')); }
 
 let gcMyName = '';
 try { gcMyName = localStorage.getItem('abaGcMyName') || ''; } catch(e){}
@@ -31426,6 +31435,8 @@ let _gcMyColorChoice = null;
 function _gcRefreshCodeDisplay(){
   const out = document.getElementById('gamecode-out');
   if (out) out.value = gameCodeEncode() || '';
+  const lien = document.getElementById('gamecode-link');
+  if (lien) lien.value = gameShareLink() || '';
   const vsLine = document.getElementById('gamecode-vs-line');
   if (vsLine) {
     if (gcBlackName || gcWhiteName) {
@@ -32641,8 +32652,14 @@ function openGameCodePanel() {
     + (code ? '' : ' — aucun coup joue pour l\'instant') + '</div>'
     + '<textarea id="gamecode-out" readonly style="width:100%;height:80px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:12px;word-break:break-all">'
     + (code || '') + '</textarea>'
-    + '<div style="display:flex;gap:8px;margin-top:8px;margin-bottom:18px">'
+    + '<div style="display:flex;gap:8px;margin-top:8px">'
     + '<button class="ctrl-btn" onclick="copyGameCode()" style="flex:1">Copier</button>'
+    + '</div>'
+    + '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin:14px 0 6px">LIEN DIRECT'
+    + (location.protocol === 'file:' ? ' — hors ligne : ce lien n\'ouvre que sur cet appareil' : '') + '</div>'
+    + '<input id="gamecode-link" readonly value="' + ((gameShareLink() || '').replace(/"/g, '&quot;')) + '" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:11px">'
+    + '<div style="display:flex;gap:8px;margin-top:8px;margin-bottom:18px">'
+    + '<button class="ctrl-btn" onclick="copyGameLink()" style="flex:1">Copier le lien</button>'
     + '</div>'
     + '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">CODE RECU</div>'
     + '<textarea id="gamecode-in" placeholder="ABAL1:standard:..." style="width:100%;height:80px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:12px"></textarea>'
@@ -32661,6 +32678,50 @@ function copyGameCode() {
     navigator.clipboard.writeText(ta.value).then(function(){ showToast('Code copie'); })
       .catch(function(){ ta.select(); });
   } else { ta.select(); }
+}
+
+/* ─── LIEN PARTAGEABLE D'UNE PARTIE (?partie=) ───────────────────────
+   ?pos= transporte deja une POSITION vers l'editeur ; celui-ci transporte une
+   PARTIE entiere. Le contenu est exactement le code ABAL1 produit par
+   gameCodeEncode, place tel quel dans l'URL : aucun base64, aucune
+   compression. Le lien reste donc lisible a l'oeil, et surtout un lien
+   trafique est rejete par la MEME regex stricte que le copier-coller manuel,
+   sans second chemin d'analyse a maintenir. En file:// le lien pointe vers le
+   fichier local : il fonctionne sur cet appareil et nulle part ailleurs, ce
+   que l'interface dit explicitement plutot que de fabriquer une URL publique
+   que ce fichier n'a aucun moyen de connaitre. */
+function gameShareLink() {
+  const code = (typeof gameCodeEncode === 'function') ? gameCodeEncode() : null;
+  if (!code) return null;
+  const base = (location.origin && location.origin !== 'null')
+    ? location.origin + location.pathname
+    : String(location.href).split('?')[0].split('#')[0];
+  return base + '?partie=' + encodeURIComponent(code);
+}
+function copyGameLink() {
+  const url = gameShareLink();
+  if (!url) { showToast('Aucun coup a partager — joue d\'abord'); return; }
+  const local = (location.protocol === 'file:');
+  const dit = function(){ showToast(local ? 'Lien copie — local a cet appareil' : 'Lien copie'); };
+  const champ = document.getElementById('gamecode-link');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(dit).catch(function(){ if (champ) champ.select(); });
+  } else if (champ) { champ.select(); dit(); }
+}
+/* Au chargement : si l'URL contient ?partie=, charge la partie et la rejoue. */
+function loadGameFromURL() {
+  try {
+    const code = new URLSearchParams(location.search).get('partie');
+    if (!code) return;
+    const res = gameCodeLoad(code);
+    if (!res || !res.ok) { showToast('Lien de partie illisible' + (res && res.reason ? ' : ' + res.reason : '')); return; }
+    /* Le parametre est retire de la barre d'adresse une fois charge, sinon un
+       rechargement ou un retour arriere ecraserait la partie en cours par
+       celle du lien. replaceState echoue sur certains file:// : sans
+       consequence, la partie est deja chargee. */
+    try { history.replaceState(null, '', String(location.href).split('?')[0].split('#')[0]); } catch(e) {}
+    showToast(res.plies + ' coups charges depuis le lien');
+  } catch(e) { /* URL illisible : on demarre normalement */ }
 }
 
 function submitGameCode() {
