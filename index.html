@@ -7333,7 +7333,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.44';
+const APP_VERSION = 'v2.45';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -16956,6 +16956,64 @@ function computeDecisionProfile(){
     easyCount: easyCount, easyFoundPct: easyCount ? +(easyFound/easyCount*100).toFixed(1) : null,
     hardCount: hardCount, hardFoundPct: hardCount ? +(hardFound/hardCount*100).toFixed(1) : null
   };
+}
+
+/* ═══════════════════════════════════════════
+   DETECTION DE MOTIF -- "pourquoi ce coup est-il imprecis ?", en
+   nommant la faiblesse plutot qu'en affichant un score brut.
+   Reutilise calculerCarteTactique (4 dimensions REELLES deja calculees
+   par bille : mobilite, soutien, menace, bord), en comparant la
+   position juste AVANT et juste APRES le coup.
+
+   PORTEE ASSUMEE, PAS ETENDUE ARTIFICIELLEMENT : quatre motifs
+   nommables avec ces donnees (perte de cohesion, menace d'ejection,
+   fragilise le bord, perte de mobilite). "Controle du centre",
+   "alignement vulnerable" et "occasion de sumito manquee", suggeres
+   ailleurs, ne sont PAS mesures par calculerCarteTactique -- pas
+   ajoutes ici plutot que devines. */
+const MOTIFS_COUP = {
+  cohesion: 'perd le soutien de son groupe',
+  menace:   'expose une bille à une menace d\u2019éjection',
+  bord:     'rapproche une bille du bord, en zone dangereuse',
+  mobilite: 'réduit ses options pour les coups suivants'
+};
+
+/* Compare les 4 dimensions AGREGEES (moyenne mobilite/soutien, total
+   menace, nombre de billes en bord) avant/apres pour LA COULEUR QUI
+   VIENT DE JOUER. Agrege plutot que compare bille a bille : une bille
+   qui bouge change de case, donc "la meme case avant/apres" ne
+   correspond pas a "la meme bille". */
+function detecterMotifCoup(boardAvant, boardApres, color){
+  const avant = calculerCarteTactique(color, boardAvant);
+  const apres = calculerCarteTactique(color, boardApres);
+  if (!avant.length || !apres.length) return null;
+  function moy(arr, cle){ return arr.reduce(function(s,x){ return s+x[cle]; },0) / arr.length; }
+  function somme(arr, cle){ return arr.reduce(function(s,x){ return s+x[cle]; },0); }
+  /* NORMALISATION -- reprise une seconde fois apres avoir imprime les
+     valeurs brutes reelles (mobilite observee entre 3 et 20 selon la
+     densite du plateau, soutien plafonne a 2) : un diviseur fixe
+     devine (6, puis meme apres ajustement) restait insuffisant face a
+     un tel ecart d'echelle. Solution retenue : VARIATION RELATIVE a la
+     valeur de depart de CHAQUE dimension (perte de 3 sur une base de 3
+     compte davantage que perte de 3 sur une base de 20), plutot qu'un
+     diviseur partage devine sans base reelle. +0.5/+1 evitent une
+     division par zero et amortissent les bases deja tres faibles. */
+  const cohesionAvant = moy(avant,'soutien'), mobiliteAvant = moy(avant,'mobilite');
+  const deltas = {
+    cohesion: (cohesionAvant - moy(apres,'soutien')) / (cohesionAvant + 0.5),
+    menace:   (somme(apres,'menace') - somme(avant,'menace')) / avant.length,
+    bord:     (somme(apres,'bord') - somme(avant,'bord')) / avant.length,
+    mobilite: (mobiliteAvant - moy(apres,'mobilite')) / (mobiliteAvant + 1)
+  };
+  // ne retient que la degradation la plus nette, et seulement si elle
+  // depasse un seuil minimal -- sinon "aucun motif clair" plutot qu'un
+  // faux positif sur un ecart negligeable.
+  let pire = null, pireVal = 0.15; // seuil arbitraire documente : en dessous, bruit de mesure
+  for (const cle in deltas) {
+    if (deltas[cle] > pireVal) { pireVal = deltas[cle]; pire = cle; }
+  }
+  if (!pire) return null;
+  return { motif: pire, phrase: MOTIFS_COUP[pire], ampleur: +pireVal.toFixed(2) };
 }
 
 function calculerExplicationCoup(move, color) {
@@ -30780,8 +30838,17 @@ function renderEvalCurve(){
   // marqueurs sur les coups faibles (erreurs et gaffes uniquement, pour ne pas surcharger)
   quality.forEach(function(q){
     if (q.classe.cle === 'erreur' || q.classe.cle === 'gaffe') {
+      // Motif nomme (perte de cohesion, menace, bord, mobilite) plutot
+      // que le seul score -- calcule depuis les deux instantanes reels
+      // encadrant ce coup, silencieux si aucune degradation nette ne
+      // se distingue (mieux vaut ne rien dire qu'inventer une raison).
+      let motifTxt = '';
+      try {
+        const motif = detecterMotifCoup(analysisHistory[q.idx-1].board, analysisHistory[q.idx].board, q.color);
+        if (motif) motifTxt = ' — ' + motif.phrase;
+      } catch(e){}
       svg += '<circle cx="'+x(q.idx).toFixed(1)+'" cy="'+y(evals[q.idx]).toFixed(1)+'" r="3.5" fill="'+q.classe.couleur+'">'
-        + '<title>Coup '+q.idx+' ('+(q.color==='black'?'noir':'blanc')+') — '+q.classe.label+', '+Math.round(q.perte)+' pts perdus</title></circle>';
+        + '<title>Coup '+q.idx+' ('+(q.color==='black'?'noir':'blanc')+') — '+q.classe.label+', '+Math.round(q.perte)+' pts perdus'+motifTxt+'</title></circle>';
     }
   });
   svg += '</svg>';
