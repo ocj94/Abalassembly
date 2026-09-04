@@ -32828,7 +32828,7 @@ const ARCHI_DIAGRAMS = [
     noeuds: [
       { t:'MIGS — 2 589 parties  +  AbalOnline — 1 890 parties', c:'neutre' },
       { t:'Corpus de 4 479 parties réelles', c:'sortie' },
-      { t:'Livres d\u2019ouvertures — 11 variantes', c:'calcul' },
+      { t:'Livres d\u2019ouvertures — 13 variantes', c:'calcul' },
       { t:'Empreintes historiques — 418 595 positions × 12 dimensions', c:'calcul' },
       { t:'Puzzles — 138, chacun sourcé vers sa partie', c:'calcul' },
       { t:'Statistiques du jeu — avantage du 1er joueur, durées', c:'calcul' }
@@ -32836,11 +32836,12 @@ const ARCHI_DIAGRAMS = [
   },
   {
     titre: 'Les modes de jeu et les échanges',
-    note: 'Aucun échange ne passe par un serveur de jeu. « Partie par code » et l\u2019export Aba-Pro marchent même sans réseau.',
+    note: 'Aucun échange ne passe par un serveur de jeu. Les deux marchent même sans réseau — juste un texte ou une URL à transmettre.',
     noeuds: [
       { t:'Contre l\u2019IA  ·  Deux joueurs  ·  Partie en direct 🧪', c:'neutre' },
       { t:'Partie en cours', c:'sortie' },
-      { t:'Partie par code — échange asynchrone', c:'calcul' },
+      { t:'Partie par code — texte à copier-coller', c:'calcul' },
+      { t:'Lien de partie — ?partie= dans l\u2019URL, ouverture en un clic', c:'calcul' },
       { t:'Export / import Aba-Pro — standard communautaire', c:'calcul' },
       { t:'Duel moteur externe — relais manuel', c:'calcul' },
       { t:'Historique local — 200 parties rejouables', c:'calcul' }
@@ -32894,7 +32895,7 @@ function renderArchiPage(){
   }).join('')
   + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px">'
     + '<div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">À part : les tables de finale</div>'
-    + '<div style="font-size:12px;color:var(--muted);line-height:1.6">Les tables 2 contre 2 et 3 contre 2 ne sont pas branchées sur le moteur principal : elles servent au mode Découverte. Leur résultat le plus notable est un constat plutôt qu\u2019un gain de force — <strong style="color:var(--gold)">99,9 % de ces positions sont des nulles</strong>. Les classes supérieures sont hors de portée.</div>'
+    + '<div style="font-size:12px;color:var(--muted);line-height:1.6">Les tables 2 contre 2 et 3 contre 2 ne sont pas branchées sur le moteur principal : elles servent au mode Découverte, et depuis peu au trainer de puzzles « Finale prouvée » (les positions où le gain est démontré, pas estimé). Leur résultat le plus notable reste un constat plutôt qu\u2019un gain de force pour l\u2019IA — <strong style="color:var(--gold)">99,9 % de ces positions sont des nulles</strong>. Les classes supérieures sont hors de portée.</div>'
   + '</div>';
 }
 
