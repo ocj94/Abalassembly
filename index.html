@@ -6521,8 +6521,10 @@ document.addEventListener('keydown', function(e){
     <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Toutes tes parties terminées, stockées sur cet appareil. Clique « Revoir » pour rejouer coup par coup depuis le début.</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px" id="historique-filters-host"></div>
     <div id="history-list" style="max-height:none"></div>
-    <div style="display:flex;gap:8px;margin-top:20px">
+    <div style="display:flex;gap:8px;margin-top:20px;flex-wrap:wrap">
       <button onclick="if(confirm('Effacer tout l\'historique de parties ? Irréversible.')){clearGameHistory();_renderHistoryList();}" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer">Vider l'historique</button>
+      <button onclick="exportFullHistoryAbaPro()" style="background:none;border:1px solid var(--gold-dim);color:var(--gold);border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer" title="Un fichier texte en notation Aba-Pro, une partie par bloc, avec date/variante/résultat en en-tête — lisible par tout outil qui comprend cette notation">📤 Exporter tout (Aba-Pro)</button>
+      <button onclick="openBulkHistoryImportModal()" style="background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer" title="Réimporte un fichier exporté depuis cet appareil ou un autre — les parties déjà présentes ne sont pas dupliquées">📥 Importer</button>
     </div>
   </div>
 </div>
@@ -21965,6 +21967,7 @@ const GAME_HISTORY_KEY = 'abaGameHistory';
 const HIST_MAX = 200;
 
 function _historyOpponentLabel(entry){
+  if (entry.mode === 'import') return 'Partie importée' + ((entry.blackName || entry.whiteName) ? ' — ' + (entry.blackName||'?') + ' vs ' + (entry.whiteName||'?') : '');
   if (entry.mode === 'local') return (entry.blackName || entry.whiteName) ? 'Partie par code/direct' : 'Local (même écran)';
   const styleLabels = { auto:'Auto', aggressive:'Agressif', defensive:'Défensif', divide:'Division', balanced:'Équilibré' };
   const diffLabels = { easy:'Facile', medium:'Moyen', advanced:'Avancé', hard:'Expert', master:'Maître', minimax:'Minimax' };
@@ -33294,6 +33297,205 @@ function exportGameAbaPro(){
   } else if (typeof showToast === 'function') {
     showToast('Presse-papier indisponible sur ce navigateur.');
   }
+}
+
+/* ═══════════════════════════════════════════
+   HISTORIQUE COMPLET — export/import en Aba-Pro
+   Etend exportGameAbaPro() (une seule partie, presse-papier) a tout
+   l'historique local (jusqu'a 200 parties), en un FICHIER telechargeable.
+   Corps en Aba-Pro pur -- un vrai standard externe (page Pionniers,
+   ABA-PRO.HLP), pas un format invente pour l'occasion -- donc lisible en
+   principe par tout outil qui comprend cette notation, pas seulement ce
+   site. Chaque partie garde un en-tete en commentaire (date, variante,
+   resultat, joueurs) pour ne rien perdre de ce que l'historique local sait
+   deja.
+   ═══════════════════════════════════════════ */
+function _bulkResultLabel(entry){
+  if (!entry.winner) return 'Nulle';
+  const qui = entry.winner === 'black' ? 'Noir' : 'Blanc';
+  return qui + ' gagne' + (entry.reason ? ' (' + entry.reason + ')' : '');
+}
+function exportFullHistoryAbaPro(){
+  const history = (typeof getGameHistory === 'function') ? getGameHistory() : [];
+  if (!history.length){ if (typeof showToast === 'function') showToast('Aucune partie à exporter.'); return; }
+  const saveLayout = currentLayout, saveBoard = board, saveCB = capturedByBlack, saveCW = capturedByWhite;
+  const blocks = [];
+  let skipped = 0;
+  // Ordre chronologique (l'historique local est range du plus recent au
+  // plus ancien) : plus naturel a relire dans un export.
+  const ordered = history.slice().reverse();
+  ordered.forEach(function(entry){
+    if (!entry.code) { skipped++; return; }
+    const parsed = gameCodeParse(entry.code);
+    if (!parsed.ok) { skipped++; return; }
+    currentLayout = parsed.layout || 'standard';
+    initBoardState(); capturedByBlack = 0; capturedByWhite = 0;
+    let turn = 'black';
+    const tokens = [];
+    for (let i = 0; i < parsed.moves.length; i++) {
+      const mv = parsed.moves[i];
+      const v = validateMove(mv.cells, mv.dir, turn);
+      if (!v || !v.valid) break; // s'arrete net plutot que d'exporter une suite fausse
+      const tok = moveToABAPRO(mv.cells, mv.dir, v.type);
+      if (tok && tok !== '?') tokens.push(tok);
+      applyMove({ cells: mv.cells, dir: mv.dir, info: v }, turn);
+      turn = (turn === 'black') ? 'white' : 'black';
+    }
+    if (!tokens.length) { skipped++; return; }
+    const label = (typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[parsed.layout]) ? HEAT_VARIANT_LABEL[parsed.layout] : parsed.layout;
+    const joueurs = (parsed.blackName || parsed.whiteName) ? (parsed.blackName||'?') + ' vs ' + (parsed.whiteName||'?') : '';
+    const dateStr = entry.date ? entry.date.slice(0,10) : '';
+    const head = '# ' + [dateStr, label, _bulkResultLabel(entry)].concat(joueurs?[joueurs]:[]).filter(Boolean).join(' · ');
+    const body = tokens.map(function(t,i){ return (i%2===0 ? (Math.floor(i/2)+1)+'.' : '') + t; }).join(' ');
+    blocks.push(head + '\n' + body);
+  });
+  currentLayout = saveLayout; board = saveBoard; capturedByBlack = saveCB; capturedByWhite = saveCW;
+  if (!blocks.length){ if (typeof showToast === 'function') showToast('Aucune partie exploitable — rien à exporter.'); return; }
+  const text = '# Abalassembly — export complet de l\u2019historique (' + blocks.length + ' partie' + (blocks.length>1?'s':'') + ')\n'
+    + '# Notation Aba-Pro. Chaque bloc commence par une ligne "# date · variante · résultat · joueurs".\n\n'
+    + blocks.join('\n\n');
+  const b = new Blob([text], {type:'text/plain'});
+  const u = URL.createObjectURL(b), a = document.createElement('a');
+  a.href = u; a.download = 'abalassembly-historique.txt'; a.click();
+  setTimeout(function(){ URL.revokeObjectURL(u); }, 1000);
+  if (typeof showToast === 'function') showToast('📤 ' + blocks.length + ' partie' + (blocks.length>1?'s':'') + ' exportée' + (blocks.length>1?'s':'') + (skipped?(' (' + skipped + ' ignorée' + (skipped>1?'s':'') + ', illisible' + (skipped>1?'s':'') + ')'):''));
+}
+
+function openBulkHistoryImportModal(){
+  let modal = document.getElementById('bulk-history-modal');
+  if (modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'bulk-history-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:3500;background:rgba(13,15,14,0.92);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML =
+    '<div style="max-width:520px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:24px;max-height:90vh;overflow-y:auto">'
+    + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:6px">Importer un historique</h3>'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Un fichier exporté depuis cet appareil ou un autre (« 📤 Exporter tout »). Les parties déjà présentes ici ne sont pas dupliquées ; celles qu\u2019un coup rend illisibles sont ignorées et comptées à part.</div>'
+    + '<input type="file" id="bulk-history-file" accept=".txt" style="width:100%;margin-bottom:10px;font-size:12px;color:var(--muted)">'
+    + '<div style="font-size:11px;color:var(--muted);margin:4px 0">— ou colle le contenu directement —</div>'
+    + '<textarea id="bulk-history-text" placeholder="# 2026-01-01 · Standard · Noir gagne...\n1.a1b2 c3d4 ..." style="width:100%;height:110px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:11px;box-sizing:border-box"></textarea>'
+    + '<div id="bulk-history-status" style="font-size:12px;margin:8px 0;min-height:16px"></div>'
+    + '<div style="display:flex;gap:8px">'
+      + '<button class="ctrl-btn" onclick="_doBulkHistoryImport()" style="flex:1">Importer</button>'
+      + '<button onclick="document.getElementById(\'bulk-history-modal\').remove()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 16px;cursor:pointer">Fermer</button>'
+    + '</div>'
+    + '</div>';
+  document.body.appendChild(modal);
+  const fileInput = document.getElementById('bulk-history-file');
+  if (fileInput) fileInput.addEventListener('change', function(){
+    const f = fileInput.files && fileInput.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = function(){ const ta = document.getElementById('bulk-history-text'); if (ta) ta.value = String(reader.result||''); };
+    reader.readAsText(f);
+  });
+}
+
+/* Rejoue chaque bloc depuis la position INITIALE de sa variante (jamais le
+   plateau en cours) et reconstruit un code ABAL1 segment par segment avec
+   les MEMES primitives que gameCodeEncode() (coordToABAPRO, _gcDirIndex) --
+   aucune logique d'encodage reinventee ici. Un token illisible arrete la
+   partie a cet endroit (import partiel) plutot que d'accepter une suite
+   fausse en silence : meme principe que gameCodeLoad(). */
+function _parseBulkHistoryText(text){
+  const blocks = String(text||'').split(/\n(?=#)/).map(function(s){ return s.trim(); }).filter(Boolean);
+  const saveLayout = currentLayout, saveBoard = board, saveCB = capturedByBlack, saveCW = capturedByWhite;
+  const results = [];
+  blocks.forEach(function(block){
+    const lines = block.split('\n');
+    const headLine = lines[0] || '';
+    const bodyLines = lines.slice(1).join(' ');
+    // en-tete "# date · variante · resultat[ · joueurs]" -- tolerant : les
+    // champs manquants ou en trop ne bloquent pas l'import, ils sont juste
+    // absents du resultat.
+    const parts = headLine.replace(/^#\s*/, '').split('·').map(function(s){ return s.trim(); });
+    const dateStr = (parts[0] && /^\d{4}-\d{2}-\d{2}/.test(parts[0])) ? parts[0] : null;
+    let variantLabel = parts[1] || null;
+    const resultLabel = parts[2] || null;
+    const joueursLabel = parts[3] || null;
+    // retrouve la cle de variante depuis son libelle (HEAT_VARIANT_LABEL
+    // est cle->libelle ; on inverse). A defaut : standard, jamais un plantage.
+    let layout = 'standard';
+    if (variantLabel && typeof HEAT_VARIANT_LABEL !== 'undefined'){
+      const hit = Object.keys(HEAT_VARIANT_LABEL).find(function(k){ return HEAT_VARIANT_LABEL[k]===variantLabel; });
+      if (hit) layout = hit;
+    } else if (typeof LAYOUTS !== 'undefined' && variantLabel && LAYOUTS[variantLabel]) layout = variantLabel;
+
+    const tokens = bodyLines.replace(/\d+\./g, ' ').trim().split(/\s+/).filter(Boolean);
+    if (!tokens.length){ results.push({ok:false, reason:'bloc sans coup lisible'}); return; }
+
+    currentLayout = layout; initBoardState(); capturedByBlack = 0; capturedByWhite = 0;
+    let turn = 'black', body = '', played = 0;
+    for (let i = 0; i < tokens.length; i++) {
+      const mv = resolveAbaProToken(tokens[i], turn);
+      if (!mv) break; // token illisible ou coup illegal ici : import partiel, pas de plantage
+      const v = validateMove(mv.cells, mv.dir, turn);
+      if (!v || !v.valid) break;
+      const di = _gcDirIndex(mv.dir);
+      if (di < 0) break;
+      body += String(mv.cells.length);
+      for (let k = 0; k < mv.cells.length; k++) body += coordToABAPRO(mv.cells[k].r, mv.cells[k].c);
+      body += String(di);
+      applyMove({ cells: mv.cells, dir: mv.dir, info: v }, turn);
+      turn = (turn === 'black') ? 'white' : 'black';
+      played++;
+    }
+    if (!played){ results.push({ok:false, reason:'aucun coup exploitable'}); return; }
+    let blackName = '', whiteName = '';
+    if (joueursLabel){ const m = joueursLabel.split(' vs '); blackName = (m[0]||'').trim(); whiteName = (m[1]||'').trim(); if(blackName==='?')blackName=''; if(whiteName==='?')whiteName='';}
+    let winner = null, reason = null;
+    if (resultLabel && resultLabel !== 'Nulle'){
+      winner = resultLabel.indexOf('Noir')===0 ? 'black' : (resultLabel.indexOf('Blanc')===0 ? 'white' : null);
+      const rm = resultLabel.match(/\(([^)]+)\)/); if (rm) reason = rm[1];
+    }
+    const names = _gcEncodeNameForCode(blackName) + '|' + _gcEncodeNameForCode(whiteName);
+    const code = GAME_CODE_TAG + ':' + layout + ':' + names + ':' + body;
+    results.push({
+      ok: true, partial: played < tokens.length,
+      entry: {
+        id: 'import_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+        date: dateStr ? new Date(dateStr).toISOString() : new Date().toISOString(),
+        variant: layout, mode: 'import', humanColor: 'black',
+        winner: winner, reason: reason, moveCount: played,
+        aiStyle: null, aiDiff: null, engine: null,
+        blackName: blackName, whiteName: whiteName, code: code
+      }
+    });
+  });
+  currentLayout = saveLayout; board = saveBoard; capturedByBlack = saveCB; capturedByWhite = saveCW;
+  return results;
+}
+function _doBulkHistoryImport(){
+  const ta = document.getElementById('bulk-history-text');
+  const status = document.getElementById('bulk-history-status');
+  const text = ta ? ta.value : '';
+  if (!text || !text.trim()){ if (status){ status.style.color='#e05c4b'; status.textContent = 'Colle un texte ou choisis un fichier.'; } return; }
+  const results = _parseBulkHistoryText(text);
+  if (!results.length){ if (status){ status.style.color='#e05c4b'; status.textContent = 'Aucun bloc reconnu (attendu : une ligne "# ..." par partie).'; } return; }
+
+  let history = (typeof getGameHistory === 'function') ? getGameHistory() : [];
+  const existingCodes = new Set(history.map(function(e){ return e.code; }));
+  let added = 0, dupes = 0, partial = 0, failed = 0;
+  results.forEach(function(r){
+    if (!r.ok){ failed++; return; }
+    if (existingCodes.has(r.entry.code)){ dupes++; return; }
+    existingCodes.add(r.entry.code);
+    history.unshift(r.entry);
+    added++;
+    if (r.partial) partial++;
+  });
+  if (history.length > HIST_MAX) history = history.slice(0, HIST_MAX);
+  try { localStorage.setItem(GAME_HISTORY_KEY, JSON.stringify(history)); } catch(e){
+    if (status){ status.style.color='#e05c4b'; status.textContent = 'Stockage indisponible ou plein.'; } return;
+  }
+  if (status){
+    status.style.color = added ? 'var(--gold)' : '#e05c4b';
+    status.textContent = added + ' partie' + (added>1?'s':'') + ' importée' + (added>1?'s':'')
+      + (dupes?(', ' + dupes + ' déjà présente' + (dupes>1?'s':'')):'')
+      + (partial?(', ' + partial + ' partielle' + (partial>1?'s':'') + ' (coup illisible en route)'):'')
+      + (failed?(', ' + failed + ' illisible' + (failed>1?'s':'')):'');
+  }
+  if (typeof _renderHistoryList === 'function') _renderHistoryList();
 }
 
 function openApgnImportModal(){
