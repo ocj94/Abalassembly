@@ -2,7 +2,7 @@
 
 Trois cartes pour comprendre comment Abalassembly est construit. Elles sont **écrites à la main** et doivent être mises à jour quand l'architecture change — contrairement à la « Fiche pour IA » du site, qui compte tout à l'exécution.
 
-Vérifié contre le code au moment de la rédaction (v2.39).
+Vérifié contre le code au moment de la rédaction (v2.45).
 
 ---
 
@@ -52,7 +52,7 @@ flowchart LR
     S1[MIGS<br/>2 589 parties] --> C[Corpus<br/>4 479 parties réelles]
     S2[AbalOnline<br/>1 890 parties<br/>18 variantes] --> C
 
-    C --> O[Livres d'ouvertures<br/>11 variantes]
+    C --> O[Livres d'ouvertures<br/>13 variantes]
     C --> E[Empreintes historiques<br/>418 595 positions × 12 dimensions]
     C --> P[Puzzles<br/>138, chacun sourcé]
     C --> ST[Statistiques du jeu<br/>avantage 1er joueur, durées...]
@@ -83,7 +83,8 @@ flowchart TD
     A2 --> G
     A3 --> G
 
-    G --> X1[Partie par code<br/>échange asynchrone]
+    G --> X1[Partie par code<br/>texte à copier-coller]
+    G --> X1b[Lien de partie<br/>?partie= dans l'URL, un clic]
     G --> X2[Export/import Aba-Pro<br/>standard communautaire]
     G --> X3[Duel moteur externe<br/>relais manuel des coups]
     G --> X4[Historique local<br/>200 parties, rejouables]
@@ -95,13 +96,13 @@ flowchart TD
     style A3 fill:#3a2a1a
 ```
 
-Aucun de ces échanges ne passe par un serveur de jeu. « Partie par code » et l'export Aba-Pro fonctionnent même sans réseau du tout — il suffit de transmettre un texte.
+Aucun de ces échanges ne passe par un serveur de jeu. « Partie par code », le lien direct et l'export Aba-Pro fonctionnent même sans réseau du tout — il suffit de transmettre un texte ou une URL. Le lien encode le même code de partie que « Partie par code », juste porté par l'URL plutôt que copié à la main.
 
 ---
 
 ## Ce qui est à part : les tablebases
 
-Les tables de finale (2 contre 2, 3 contre 2) **ne sont pas branchées sur le moteur principal**. Elles servent au mode Découverte et à la page qui documente leur calcul.
+Les tables de finale (2 contre 2, 3 contre 2) **ne sont pas branchées sur le moteur principal**. Elles servent au mode Découverte, à la page qui documente leur calcul, et depuis peu au trainer de puzzles « Finale prouvée » (positions où le gain est démontré par induction rétrograde, pas estimé par le moteur).
 
 C'est délibéré : les classes supérieures sont hors de portée (voir [Calcul distribué](Calcul-distribue.md) pour les tailles), et le résultat principal de ces tables est un constat plutôt qu'un gain de force — **99,9 % des positions 2v2 et 3v2 sont des nulles**.
 
