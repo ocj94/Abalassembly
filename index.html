@@ -5771,6 +5771,11 @@ document.addEventListener('keydown', function(e){
           <div style="font-size:12px;font-weight:600;color:var(--white)">Puzzle infini</div>
           <div style="font-size:10px;color:var(--gold)">Généré par l'IA</div>
         </div>
+        <div class="puzzle-mode-btn" id="puzzle-mode-tablebase" onclick="setPuzzleMode('tablebase',this)">
+          <div style="font-size:18px;margin-bottom:3px">🧮</div>
+          <div style="font-size:12px;font-weight:600;color:var(--white)">Finale prouvée</div>
+          <div style="font-size:10px;color:var(--gold)">1 sur 12,96M</div>
+        </div>
       </div>
 
       <!-- Storm UI -->
@@ -26367,6 +26372,14 @@ function directionName(dir) {
 function nextPuzzle() {
   const overlay = document.getElementById('puzzle-result-overlay');
   if (overlay) overlay.style.display = 'none';
+  /* Avant la correction du plantage dans showPuzzleResult() (puzzlesData[-1]
+     n'existe pas), cette superposition n'etait jamais atteinte pour un
+     puzzle genere ou de tablebase : le clic sur "Puzzle suivant" n'avait
+     donc jamais ete exerce pour ces modes. Sans ce branchement, il aurait
+     saute dans le catalogue fixe (puzzlesData[0]) au lieu de tirer une
+     nouvelle position du meme mode -- change de mode sans le dire. */
+  if (currentPuzzleIdx === -1) { loadGeneratedPuzzle(); return; }
+  if (currentPuzzleIdx === -2) { loadTablebasePuzzle(); return; }
   currentPuzzleIdx = (currentPuzzleIdx + 1) % puzzlesData.length;
   loadPuzzle(currentPuzzleIdx);
 }
@@ -26381,6 +26394,9 @@ function setPuzzleMode(mode, el) {
   }
   if (mode==='generated') {
     loadGeneratedPuzzle();
+  }
+  if (mode==='tablebase') {
+    loadTablebasePuzzle();
   }
   if (mode==='storm' && !stormActive) {
     stormScore=0; stormErrors=0; stormSeconds=180;
@@ -29632,10 +29648,17 @@ function showPuzzleResult(success) {
   // Répétition espacée : enregistre CHAQUE résultat (succès ou échec), pas
   // seulement les succès. Un échec répété avant réussite reste inoffensif
   // (remise à la case 0, idempotent), la case ne progresse qu'au succès final.
-  if (typeof srsRecordResult === 'function' && typeof currentPuzzleIdx !== 'undefined') {
+  /* currentPuzzleIdx < 0 = puzzle genere (-1) ou tire d'une tablebase (-2) :
+     pas une entree de puzzlesData, donc rien a marquer "resolu" ni a faire
+     progresser dans la repetition espacee -- ces deux mecanismes n'ont de
+     sens que pour le catalogue fixe. Sans ce garde, puzzlesData[-1] vaut
+     undefined en JS et ".solved = true" plantait juste en dessous : bug
+     preexistant du mode "Puzzle infini" (jamais remarque car l'erreur est
+     silencieuse hors console), qui aurait aussi casse le trainer de finales. */
+  if (typeof srsRecordResult === 'function' && typeof currentPuzzleIdx !== 'undefined' && currentPuzzleIdx >= 0) {
     srsRecordResult(currentPuzzleIdx, !!success);
   }
-  if (success) {
+  if (success && currentPuzzleIdx >= 0 && puzzlesData[currentPuzzleIdx]) {
     puzzlesData[currentPuzzleIdx].solved = true;
     _saveSolvedPuzzleTitle(puzzlesData[currentPuzzleIdx].title);
     updatePuzzleProgressBar();
@@ -29762,6 +29785,78 @@ function generateRandomPuzzle() {
     }
   }
   return null;  // échec (rare)
+}
+
+/* ═══════════════════════════════════════════
+   TRAINER DE FINALES — positions REELLES tirees de tb-3v2.json
+   Contrairement a generateRandomPuzzle() (position fabriquee, verifiee a
+   posteriori par le moteur), chaque position ici provient d'une entree
+   PROUVEE par induction retrograde exhaustive : la table dit que le camp au
+   trait gagne, point. Pas de recherche, pas d'heuristique.
+
+   Portee VOLONTAIREMENT limitee aux gains en 1 demi-coup (17 380 des
+   17 575 gains, soit 98,9%). Une entree dtw=3/5/7 exige de jouer PLUSIEURS
+   coups sans ejection immediate ; verifier qu'une suite entiere reste
+   optimale a chaque demi-coup est un autre morceau (comparaison a
+   AbaTB.probe() apres chaque coup, undo si le joueur devie), pas construit
+   ici. Les 195 positions a coups multiples restent donc hors de ce trainer
+   pour l'instant -- mieux vaut ne proposer que ce qui est verifie de bout
+   en bout que promettre un entrainement "infini" qui ne l'est pas : sur
+   12 956 400 positions de cette classe, 99,85% sont nulles.
+   ═══════════════════════════════════════════ */
+function decodeTB32Entry(entry) {
+  // Reconstruit le plateau a partir de l'index. Meme schema que probe.js
+  // (deja verifie : 17 596/17 596 entrees redecodees puis relues via
+  // AbaTB._internals.lookup retrouvent exactement leur v/dtw d'origine).
+  var idx = entry[0], dtw = entry[2];
+  var turn = idx % 2, rest = (idx - turn) / 2;
+  var NT = 35990;
+  var tripletRank = rest % NT, weakRank = Math.floor(rest / NT);
+  if (!window._TB32_TRIPLES) {
+    // 35 990 triplets (i<j<k sur 61 cases) : construits une seule fois,
+    // au premier puzzle de finale demande, pas au chargement de la page.
+    var N = 61, T = [];
+    for (var i = 0; i < N; i++) for (var j = i + 1; j < N; j++) for (var k = j + 1; k < N; k++) T.push([i, j, k]);
+    window._TB32_TRIPLES = T;
+  }
+  var PAIRS = AbaTB._internals.PAIRS, RC = AbaTB._internals.RC;
+  var weakPairId = window.TB32_REPS[weakRank];
+  var wp = PAIRS[weakPairId], tp = window._TB32_TRIPLES[tripletRank];
+  var black = [tp[0], tp[1], tp[2]].map(function (i) { return RC[i]; });   // camp fort = noir
+  var white = [wp[0], wp[1]].map(function (i) { return RC[i]; });          // camp faible = blanc
+  return { black: black, white: white, dtw: dtw };
+}
+function loadTablebasePuzzle() {
+  if (typeof AbaTB === 'undefined' || !AbaTB.ready || !window.TB32_ENTRIES) {
+    showToast('⚠️ Tables de finale non chargées');
+    return;
+  }
+  // gains en 1 demi-coup, camp fort au trait (turn=0) : cf. commentaire ci-dessus.
+  if (!window._TB32_DTW1) window._TB32_DTW1 = window.TB32_ENTRIES.filter(function (e) { return e[1] === 1 && e[2] === 1 && (e[0] % 2) === 0; });
+  var pool = window._TB32_DTW1;
+  if (!pool.length) { showToast('⚠️ Aucune position disponible'); return; }
+  var entry = pool[Math.floor(Math.random() * pool.length)];
+  var d = decodeTB32Entry(entry);
+  puzzleBoard = {};
+  d.black.forEach(function (p) { puzzleBoard[p[0] + ',' + p[1]] = 'black'; });
+  d.white.forEach(function (p) { puzzleBoard[p[0] + ',' + p[1]] = 'white'; });
+  puzzleSelected = [];
+  puzzleMovesMade = 0;
+  puzzleEjectedCount = 0;
+  puzzleEjectAnim = null;
+  currentPuzzleIdx = -2;  // -1 = genere par heuristique, -2 = tire d'une table prouvee
+  var stmt = document.getElementById('puzzle-statement');
+  if (stmt) stmt.innerHTML = '<strong>FINALE PROUVÉE</strong><br><br>⚫ Les Noirs ont le trait. Cette position est l\'une des <strong style="color:var(--gold)">17 380</strong> (sur 12 956 400, mode Découverte) où la victoire est démontrée par induction rétrograde exhaustive — pas estimée, pas calculée par le moteur : prouvée. Trouve l\'éjection forcée.<br><br><em>(Position réelle de tablebase, pas générée.)</em>';
+  var title = document.getElementById('puzzle-title');
+  if (title) title.textContent = 'Finale prouvée';
+  var dl = document.getElementById('puzzle-difficulty-label');
+  if (dl) dl.textContent = '🧮 Tablebase — gain prouvé en 1 demi-coup';
+  var msg = document.getElementById('puzzle-msg');
+  if (msg) msg.textContent = '⚫ Sélectionnez vos billes noires';
+  var ov = document.getElementById('puzzle-result-overlay');
+  if (ov) ov.style.display = 'none';
+  drawPuzzleBoardInteractive();
+  initPuzzleInteraction();
 }
 
 // Charge un puzzle généré dans l'interface
@@ -35080,7 +35175,16 @@ function opRenderExplorer() {
     }
     return out;
   }
-  AbaTB.loadFrom({ entries: unpack(D22) }, { entries: unpack(D32), orbit_reps: REPS });
+  /* Capture pour le Trainer de finales (page Puzzles, mode "Finale prouvee") :
+     AbaTB ne les expose pas (son _internals ne donne que PAIRS/RC/SYM), et le
+     reconstruire depuis les tables triees (T32) demanderait de re-iterer une
+     Map entiere a chaque tirage. Copie directe des donnees deja decompressees
+     ici, avant l'appel a loadFrom -- zero recalcul, zero risque sur AbaTB
+     lui-meme. Seule la copie MAIN THREAD est concernee (le Worker n'affiche
+     aucune interface, inutile d'y dupliquer). */
+  window.TB32_ENTRIES = unpack(D32);
+  window.TB32_REPS = REPS;
+  AbaTB.loadFrom({ entries: unpack(D22) }, { entries: window.TB32_ENTRIES, orbit_reps: REPS });
   AbaTB.ready = true;
 })();
 
