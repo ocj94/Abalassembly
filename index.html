@@ -6537,6 +6537,7 @@ document.addEventListener('keydown', function(e){
         <button type="button" class="gym-level-btn" data-level="1" onclick="gymSetLevel(1)" style="flex:1;font-size:11px;padding:6px 0;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:6px;cursor:pointer">Facile</button>
         <button type="button" class="gym-level-btn" data-level="2" onclick="gymSetLevel(2)" style="flex:1;font-size:11px;padding:6px 0;background:var(--gold);color:var(--bg);border:1px solid var(--gold);border-radius:6px;cursor:pointer;font-weight:700">Moyen</button>
         <button type="button" class="gym-level-btn" data-level="3" onclick="gymSetLevel(3)" style="flex:1;font-size:11px;padding:6px 0;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:6px;cursor:pointer">Difficile</button>
+        <button type="button" class="gym-level-btn" data-level="4" onclick="gymSetLevel(4)" style="flex:1;font-size:11px;padding:6px 0;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:6px;cursor:pointer">Expert</button>
       </div>
       <div id="gym-exercise-board" style="min-height:180px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px">Choisis une zone ci-dessus pour commencer.</div>
       <div id="gym-exercise-hint" style="font-size:12px;color:var(--muted);margin-top:12px;min-height:16px"></div>
@@ -28285,7 +28286,11 @@ const GYM_ZONES = [
   { id: 'anticipation',icon: '🔮', name: 'Anticipation', zone: 'Préfrontal',      desc: 'Prévoir une position après plusieurs coups.' },
   { id: 'inhibition',  icon: '🛑', name: 'Inhibition',   zone: 'Contrôle',        desc: 'Résister au coup évident quand il est mauvais.' },
   { id: 'flexibility', icon: '🧩', name: 'Flexibilité',  zone: 'Shift cognitif',  desc: 'Changer de plan ou de camp à la demande.' },
-  { id: 'spatial',     icon: '🌀', name: 'Spatial',      zone: 'Parietal',        desc: 'Se reperer dans les relations entre billes sur le plateau.' }
+  { id: 'spatial',     icon: '🌀', name: 'Spatial',      zone: 'Parietal',        desc: 'Se reperer dans les relations entre billes sur le plateau.' },
+  { id: 'diagnostic',  icon: '🩺', name: 'Diagnostic',   zone: 'Frontal',         desc: 'Identifier ce qu\u2019un coup vient d\u2019abimer dans sa position.' },
+  { id: 'certitude',   icon: '⚖️', name: 'Certitude',    zone: 'Métacognition',   desc: 'Distinguer un gain prouvé d\u2019une position juste séduisante.' },
+  { id: 'repertoire',  icon: '📖', name: 'Répertoire',   zone: 'Temporal',        desc: 'Reconnaître ce que jouent les forts en ouverture, sur des vraies parties.' },
+  { id: 'jugement',    icon: '🎚️', name: 'Jugement',     zone: 'Parietal',        desc: 'Comparer deux positions sur un critère précis.' }
 ];
 
 function _loadGymProgress(){
@@ -28420,7 +28425,11 @@ const GYM_BRAIN_REGIONS = {
   anticipation: { x: 27, y: 25 },
   inhibition:   { x: 24, y: 40 },
   flexibility:  { x: 36, y: 15 },
-  spatial:      { x: 56, y: 13 }
+  spatial:      { x: 56, y: 13 },
+  diagnostic:   { x: 22, y: 47 },
+  certitude:    { x: 17, y: 30 },
+  repertoire:   { x: 63, y: 49 },
+  jugement:     { x: 64, y: 20 }
 };
 function gymBrainSvg(exerciseId, size){
   size = size || 56;
@@ -28461,8 +28470,8 @@ let _gymLevel = 2;
 /* ─── 1. MÉMOIRE — flash N billes, puis reproduire ─── */
 function gymStartMemory(level){
   level = level || _gymLevel;
-  const n = level===1?3:level===3?7:5;
-  const flashMs = level===1?4000:level===3?2000:3000;
+  const n = level===1?3:level===2?5:level===3?7:9;
+  const flashMs = level===1?4000:level===2?3000:level===3?2000:1200;
   const board = new Map();
   const used = new Set();
   for (let i=0;i<n;i++){
@@ -28500,8 +28509,8 @@ function gymStartMemory(level){
 /* ─── 2. ACUITÉ — trouver la bille isolée (aucun voisin de sa couleur) ─── */
 function gymStartAcuity(level){
   level = level || _gymLevel;
-  const timerMs = level===1?8000:level===3?3000:5000;
-  const clusterSize = level===1?4:level===3?8:6;
+  const timerMs = level===1?8000:level===2?5000:level===3?3000:1800;
+  const clusterSize = level===1?4:level===2?6:level===3?8:11;
   const board = new Map();
   const used = new Set();
   let start = gymRandCell();
@@ -28540,8 +28549,8 @@ function gymStartAcuity(level){
 /* ─── 3. RÉFLEXE — bille menacée (2 ennemis alignés derrière, via axiales) ─── */
 function gymStartReflex(level){
   level = level || _gymLevel;
-  const timerMs = level===1?5000:level===3?2000:3000;
-  const decorCount = level===1?2:level===3?5:3;
+  const timerMs = level===1?5000:level===2?3000:level===3?2000:1200;
+  const decorCount = level===1?2:level===2?3:level===3?5:7;
   let target=null, back1=null, back2=null;
   for (let attempt=0; attempt<50 && !target; attempt++){
     const cell = gymRandCell();
@@ -28578,7 +28587,7 @@ function gymStartReflex(level){
 /* ─── 4. ANTICIPATION — mémoriser une direction, puis prévoir la case d'arrivée ─── */
 function gymStartAnticipation(level){
   level = level || _gymLevel;
-  const revealMs = level===1?3000:level===3?1000:2000;
+  const revealMs = level===1?3000:level===2?2000:level===3?1000:500;
   const board = new Map();
   const used = new Set();
   for (let i=0;i<4;i++){
@@ -28612,7 +28621,7 @@ function gymStartAnticipation(level){
 /* ─── 5. INHIBITION — reconnaître un coup qui expose une bille ─── */
 function gymStartInhibition(level){
   level = level || _gymLevel;
-  const decorCount = level===1?0:level===3?4:2;
+  const decorCount = level===1?0:level===2?2:level===3?4:6;
   const board = new Map();
   const start = gymRandCell();
   board.set(gymKey(start[0],start[1]), 'black');
@@ -28653,7 +28662,7 @@ function gymStartInhibition(level){
 /* ─── 6. FLEXIBILITÉ — cible change de couleur en cours d'exercice ─── */
 function gymStartFlexibility(level){
   level = level || _gymLevel;
-  const perColor = level===1?3:level===3?7:5;
+  const perColor = level===1?3:level===2?5:level===3?7:9;
   const board = new Map();
   const used = new Set();
   for (let i=0;i<perColor*2;i++){
@@ -28718,12 +28727,13 @@ function gymRing(cax, dist){
 
 function gymStartSpatial(level){
   level = level || _gymLevel;
-  const armCount = level===1?1:level===3?3:2;
+  const armCount = level===1?1:level===2?2:level===3?3:4;
   // Facile : 60° seulement, billes collees au centre (comportement d'origine).
   // Moyen : demi-tour et 120° possibles, jusqu'a 2 cases d'ecart.
   // Difficile : n'importe quel multiple de 60°, jusqu'a 3 cases d'ecart.
-  const stepChoices = level===1 ? [1] : level===3 ? [1,2,3,4,5] : [1,2,3];
-  const maxDist     = level===1 ? 1 : level===3 ? 3 : 2;
+  // Expert : meme eventail de rotations, jusqu'a 4 cases d'ecart, 4 bras.
+  const stepChoices = level===1 ? [1] : level===2 ? [1,2,3] : [1,2,3,4,5];
+  const maxDist     = level===1 ? 1 : level===2 ? 2 : level===3 ? 3 : 4;
   const steps = stepChoices[Math.floor(Math.random()*stepChoices.length)];
 
   let center=null, points=null, answers=null;
@@ -28787,6 +28797,289 @@ function gymStartSpatial(level){
   gymRenderBoard('gym-exercise-board', board, onPick, new Set([centerKey]));
 }
 
+/* ─── 8. DIAGNOSTIC — nommer le motif d'un coup qui vient d'etre joue ───
+   Reutilise detecterMotifCoup TEL QUEL (meme fonction que la page Analyse) :
+   aucune nouvelle detection ecrite ici. Le coup est un simple deplacement
+   d'une case (pas de poussee), construit a la main -- pas besoin de passer
+   par applyMove/le plateau global, donc aucun risque de toucher a une
+   partie en cours. detecterMotifCoup prend boardAvant/boardApres en
+   PARAMETRES explicites (verifie dans calculerCarteTactique : le plateau
+   global n'est substitue QUE via son propre parametre boardOverride, avec
+   restauration immediate) -- rien a sauvegarder/restaurer ici. */
+function gymStartDiagnostic(level){
+  level = level || _gymLevel;
+  const timerMs = level===1?0:level===2?10000:level===3?6000:4000;
+  const nBlack = level===1?5:level===2?6:level===3?7:8;
+  const nWhite = level===1?2:level===2?3:level===3?3:4;
+  let avant=null, apres=null, motif=null, movedFrom=null, movedTo=null;
+  outer:
+  for (let posAttempt=0; posAttempt<15; posAttempt++){
+    const used = new Set();
+    let start = gymRandCell(); used.add(gymKey(start[0],start[1]));
+    let frontier=[start];
+    const blacks=[start];
+    while (blacks.length<nBlack && frontier.length){
+      const from = frontier[Math.floor(Math.random()*frontier.length)];
+      const neigh = gymNeighbors(from[0],from[1]).filter(function(c){ return !used.has(gymKey(c[0],c[1])); });
+      if (!neigh.length){ frontier=frontier.filter(function(f){return f!==from;}); continue; }
+      const c = neigh[Math.floor(Math.random()*neigh.length)];
+      used.add(gymKey(c[0],c[1])); blacks.push(c); frontier.push(c);
+    }
+    const whites=[];
+    for (let i=0;i<nWhite;i++){ const c=gymRandCell(used); used.add(gymKey(c[0],c[1])); whites.push(c); }
+    const boardAvant = {};
+    blacks.forEach(function(c){ boardAvant[c[0]+','+c[1]]='black'; });
+    whites.forEach(function(c){ boardAvant[c[0]+','+c[1]]='white'; });
+    // Essaie chaque bille noire vers chacun de ses voisins vides : premier
+    // coup qui produit un motif net (detecterMotifCoup applique deja son
+    // propre seuil anti-bruit -- on ne fait que lui soumettre des candidats).
+    const shuffled = blacks.slice().sort(function(){ return Math.random()-0.5; });
+    for (let i=0;i<shuffled.length;i++){
+      const p = shuffled[i];
+      const empties = gymNeighbors(p[0],p[1]).filter(function(c){ return !boardAvant[c[0]+','+c[1]]; });
+      for (let j=0;j<empties.length;j++){
+        const dest = empties[j];
+        const boardApres = Object.assign({}, boardAvant);
+        delete boardApres[p[0]+','+p[1]];
+        boardApres[dest[0]+','+dest[1]] = 'black';
+        const res = detecterMotifCoup(boardAvant, boardApres, 'black');
+        if (res){ avant=boardAvant; apres=boardApres; motif=res; movedFrom=p; movedTo=dest; break outer; }
+      }
+    }
+  }
+  if (!motif){ gymFinish('diagnostic', 0, 'position invalide, réessaie'); return; }
+  const board = new Map();
+  Object.keys(apres).forEach(function(k){ board.set(k, apres[k]); });
+  const destKey = movedTo[0]+','+movedTo[1];
+  gymRenderBoard('gym-exercise-board', board, null, new Set([destKey]));
+  const options = Object.keys(MOTIFS_COUP).sort(function(){ return Math.random()-0.5; });
+  const hintEl = document.getElementById('gym-exercise-hint');
+  if (hintEl){
+    hintEl.innerHTML = 'La bille ' + gymColorSwatch('black') + ' surlignée vient de bouger. Quel est le principal défaut de ce coup ?<br><div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">'
+      + options.map(function(m){
+          return '<button type="button" onclick="_gymDiagnosticAnswer(\'' + m + '\')" style="text-align:left;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px">' + MOTIFS_COUP[m] + '</button>';
+        }).join('')
+      + '</div>';
+  }
+  window._gymDiagnosticCorrect = motif.motif;
+  window._gymDiagnosticAnswered = false;
+  if (timerMs){
+    gymStartCountdown(timerMs);
+    setTimeout(function(){ if (!window._gymDiagnosticAnswered){ window._gymDiagnosticAnswered=true; gymFinish('diagnostic', 0, 'temps écoulé — c\u2019était : ' + MOTIFS_COUP[motif.motif]); } }, timerMs);
+  }
+}
+function _gymDiagnosticAnswer(picked){
+  if (window._gymDiagnosticAnswered) return;
+  window._gymDiagnosticAnswered = true;
+  gymStopCountdown();
+  const ok = picked === window._gymDiagnosticCorrect;
+  gymFinish('diagnostic', ok?100:0, ok ? 'exact' : 'en réalité : ' + MOTIFS_COUP[window._gymDiagnosticCorrect]);
+}
+
+/* ─── 9. CERTITUDE — gain prouvé (tablebase) ou nulle, a l'oeil ───
+   Reutilise le decodage du Trainer de finales (decodeTB32Entry, meme pool
+   window._TB32_DTW1) pour les gains PROUVES. Pour les nulles, aucune
+   position n'est inventee : une position 3v2 est tiree au hasard, puis
+   verifiee EXACTEMENT comme le fait probe.js lui-meme, via
+   AbaTB._internals.fromBoard + lookup -- si elle sort v=0, la table dit
+   elle-meme "nulle", ce n'est pas une supposition. */
+function gymStartCertitude(level){
+  level = level || _gymLevel;
+  const rounds = level===1?3:level===2?4:level===3?5:6;
+  const timerMs = level===1?0:level===2?0:level===3?6000:4000;
+  const state = { round:0, correct:0, awaiting:false };
+  _gymCertitudeNext = nextRound;
+  function randomDrawPosition(){
+    for (let attempt=0; attempt<30; attempt++){
+      const used = new Set();
+      const black=[]; for (let i=0;i<3;i++){ const c=gymRandCell(used); used.add(gymKey(c[0],c[1])); black.push(c); }
+      const white=[]; for (let i=0;i<2;i++){ const c=gymRandCell(used); used.add(gymKey(c[0],c[1])); white.push(c); }
+      const boardObj = {};
+      black.forEach(function(c){ boardObj[c[0]+','+c[1]]='black'; });
+      white.forEach(function(c){ boardObj[c[0]+','+c[1]]='white'; });
+      if (typeof AbaTB==='undefined' || !AbaTB.ready) return null;
+      const occ = AbaTB._internals.fromBoard(boardObj);
+      const r = AbaTB._internals.lookup(occ, 1); // 1 = noir, cf. probe.js
+      if (r && r.v===0) return boardObj; // vraiment nulle selon la table -- pas une supposition
+    }
+    return null; // tirage malchanceux (tres rare) : le round est saute proprement
+  }
+  function nextRound(){
+    if (state.round >= rounds){
+      const score = Math.round(state.correct/rounds*100);
+      gymFinish('certitude', score, state.correct+'/'+rounds+' correctes');
+      return;
+    }
+    state.round++; state.awaiting=true;
+    let boardObj=null, isWin=null, dtw=null;
+    if (Math.random()<0.5 && window._TB32_DTW1 && window._TB32_DTW1.length){
+      const pool = window._TB32_DTW1;
+      const d = decodeTB32Entry(pool[Math.floor(Math.random()*pool.length)]);
+      boardObj = {};
+      d.black.forEach(function(p){ boardObj[p[0]+','+p[1]]='black'; });
+      d.white.forEach(function(p){ boardObj[p[0]+','+p[1]]='white'; });
+      isWin = true; dtw = d.dtw;
+    } else {
+      boardObj = randomDrawPosition();
+      isWin = false;
+    }
+    if (!boardObj){ nextRound(); return; } // tirage rate : round suivant, sans compter de faute
+    const board = new Map();
+    Object.keys(boardObj).forEach(function(k){ board.set(k, boardObj[k]); });
+    gymRenderBoard('gym-exercise-board', board, null, null);
+    const hintEl = document.getElementById('gym-exercise-hint');
+    if (hintEl) hintEl.innerHTML = 'Manche ' + state.round + '/' + rounds + ' — ' + gymColorSwatch('black') + ' au trait. Gain forcé et prouvé, ou nulle ?'
+      + '<div style="display:flex;gap:8px;margin-top:10px">'
+      + '<button type="button" onclick="_gymCertitudeAnswer(true)" style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px">✅ Gain prouvé</button>'
+      + '<button type="button" onclick="_gymCertitudeAnswer(false)" style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px">⬜ Nulle</button>'
+      + '</div>';
+    window._gymCertitudeIsWin = isWin; window._gymCertitudeDtw = dtw; window._gymCertitudeState = state;
+    if (timerMs){
+      gymStartCountdown(timerMs);
+      setTimeout(function(){ if (state.awaiting){ state.awaiting=false; gymStopCountdown(); nextRound(); } }, timerMs);
+    }
+  }
+  nextRound();
+}
+function _gymCertitudeAnswer(pickedWin){
+  const state = window._gymCertitudeState;
+  if (!state || !state.awaiting) return;
+  state.awaiting=false; gymStopCountdown();
+  const ok = pickedWin === window._gymCertitudeIsWin;
+  if (ok) state.correct++;
+  const resultEl = document.getElementById('gym-exercise-result');
+  if (resultEl) resultEl.textContent = ok
+    ? (window._gymCertitudeIsWin ? '✅ correct — gain en ' + window._gymCertitudeDtw + ' demi-coup' + (window._gymCertitudeDtw>1?'s':'') : '✅ correct — bien une nulle')
+    : (window._gymCertitudeIsWin ? '❌ c\u2019était un gain prouvé en ' + window._gymCertitudeDtw + ' demi-coup' + (window._gymCertitudeDtw>1?'s':'') : '❌ c\u2019était en réalité une nulle');
+  setTimeout(function(){
+    const fn = _gymCertitudeNext; if (fn) fn();
+  }, 900);
+}
+let _gymCertitudeNext = null;
+
+/* ─── 10. RÉPERTOIRE — le coup des forts en ouverture (arbre de 90 positions, cumul 16 819) ───
+   AbaOpening.probe prend directement un plateau en parametre (pas de plateau
+   global implique). Seule la position de depart (Marguerite belge) est
+   garantie couverte par l'arbre embarque (90 positions au total) -- meme
+   layout que opRenderRoot(), copie ici pour ne pas dependre de son execution
+   prealable. Honnete sur sa limite : ce n'est pas un quiz a positions
+   infinies, l'arbre s'arrete au tout debut de partie (cf. tablebase/OPENING.md
+   cite dans le commentaire d'AbaOpening plus haut dans ce fichier). */
+function gymStartRepertoire(level){
+  level = level || _gymLevel;
+  if (typeof AbaOpening === 'undefined' || !AbaOpening.ready()){ gymFinish('repertoire', 0, 'répertoire non chargé'); return; }
+  const LAY = { black: [[8,0],[8,1],[7,0],[7,1],[7,2],[6,1],[6,2],[0,3],[0,4],[1,3],[1,4],[1,5],[2,4],[2,5]],
+                white: [[8,3],[8,4],[7,3],[7,4],[7,5],[6,4],[6,5],[0,0],[0,1],[1,0],[1,1],[1,2],[2,1],[2,2]] };
+  const boardObj = {};
+  LAY.black.forEach(function(p){ boardObj[p[0]+','+p[1]]='black'; });
+  LAY.white.forEach(function(p){ boardObj[p[0]+','+p[1]]='white'; });
+  const r = AbaOpening.probe(boardObj, 'black');
+  if (!r || r.moves.length<2){ gymFinish('repertoire', 0, 'répertoire non chargé'); return; }
+  const timerMs = level===1?0:level===2?0:level===3?8000:5000;
+  const nOptions = Math.min(r.moves.length, level===1?2:level===2?3:level===3?4:5);
+  // demande le TAUX de victoire (plus dur a lire que le simple volume) a
+  // partir du niveau 3, sinon le nombre de parties -- deux lectures reelles
+  // et distinctes des memes donnees, pas deux echelles inventees.
+  const byWinRate = level>=3 && Math.random()<0.5;
+  const pool = r.moves.slice(0, Math.max(nOptions, 6)); // options tirees parmi les plus joues, pour rester des coups reels et pas des decoys arbitraires
+  const shown = pool.slice().sort(function(){ return Math.random()-0.5; }).slice(0, nOptions);
+  const correct = byWinRate
+    ? shown.slice().sort(function(a,b){ return b.winRate-a.winRate; })[0].move
+    : shown.slice().sort(function(a,b){ return b.games-a.games; })[0].move;
+  const board = new Map();
+  Object.keys(boardObj).forEach(function(k){ board.set(k, boardObj[k]); });
+  gymRenderBoard('gym-exercise-board', board, null, null);
+  const hintEl = document.getElementById('gym-exercise-hint');
+  const question = byWinRate ? 'le meilleur taux de victoire' : 'le plus joué';
+  // Le total pour CETTE position precise, pas le total cumule des 90 positions
+  // de l'arbre (16 819, qui compte plusieurs fois les memes parties a des plis
+  // differents) -- verifie sur la racine reelle : 2 126, pas 16 819. Attribuer
+  // le chiffre du site entier a une seule position aurait ete faux.
+  const totalGames = r.moves.reduce(function(s,m){ return s+m.games; }, 0);
+  if (hintEl){
+    hintEl.innerHTML = 'Marguerite belge, ' + gymColorSwatch('black') + ' au trait. Parmi ces coups réels, lequel a ' + question + ' sur ' + totalGames.toLocaleString('fr-FR') + ' parties de tournoi débutées ainsi ?'
+      + '<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">'
+      + shown.map(function(m){
+          return '<button type="button" onclick="_gymRepertoireAnswer(\'' + m.move + '\')" style="text-align:left;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px;font-family:\'DM Mono\',monospace">' + m.move + '</button>';
+        }).join('')
+      + '</div>';
+  }
+  window._gymRepertoireCorrect = correct;
+  window._gymRepertoireShown = shown;
+  window._gymRepertoireAnswered = false;
+  if (timerMs){
+    gymStartCountdown(timerMs);
+    setTimeout(function(){ if (!window._gymRepertoireAnswered){ window._gymRepertoireAnswered=true; gymFinish('repertoire', 0, 'temps écoulé — c\u2019était ' + correct); } }, timerMs);
+  }
+}
+function _gymRepertoireAnswer(picked){
+  if (window._gymRepertoireAnswered) return;
+  window._gymRepertoireAnswered = true;
+  gymStopCountdown();
+  const ok = picked === window._gymRepertoireCorrect;
+  gymFinish('repertoire', ok?100:0, ok ? 'exact' : 'la réponse était ' + window._gymRepertoireCorrect);
+}
+
+/* ─── 11. JUGEMENT — comparer deux empreintes reelles sur un axe ───
+   calculerEmpreinte lit le plateau GLOBAL (verifie : aucun parametre board
+   dans sa signature) -- _avecPlateau (deja utilisee ailleurs dans ce fichier
+   pour ce meme besoin, avec sauvegarde/restauration en try/finally) est donc
+   OBLIGATOIRE ici pour ne jamais laisser une position d'exercice fuiter sur
+   la partie reelle en cours si un calcul echoue en route. */
+function gymStartJugement(level){
+  level = level || _gymLevel;
+  const n = level===1?6:level===2?8:level===3?10:12;
+  const timerMs = level===1?0:level===2?0:level===3?7000:5000;
+  const DIMS = ['cohesionMoyenne','coeurRatio','bordRatio','mobilite2Ratio'];
+  const dim = DIMS[Math.floor(Math.random()*DIMS.length)];
+  function randPos(){
+    const used = new Set(); const cells=[];
+    for (let i=0;i<n;i++){ const c=gymRandCell(used); used.add(gymKey(c[0],c[1])); cells.push(c); }
+    const usedW = new Set(used);
+    const whites=[]; const nw = Math.max(2, Math.floor(n/3));
+    for (let i=0;i<nw;i++){ const c=gymRandCell(usedW); usedW.add(gymKey(c[0],c[1])); whites.push(c); }
+    const boardObj = {};
+    cells.forEach(function(c){ boardObj[c[0]+','+c[1]]='black'; });
+    whites.forEach(function(c){ boardObj[c[0]+','+c[1]]='white'; });
+    const emp = _avecPlateau(boardObj, 0, 0, function(){ return calculerEmpreinte('black'); });
+    return { cells: cells, whites: whites, boardObj: boardObj, emp: emp };
+  }
+  const A = randPos(), B = randPos();
+  const board = new Map();
+  document.getElementById('gym-exercise-board').innerHTML =
+    '<div style="display:flex;gap:14px;justify-content:center;align-items:flex-start">'
+    + '<div style="text-align:center"><div style="font-size:11px;color:var(--muted);margin-bottom:4px">Position A</div><div id="gym-jug-a"></div></div>'
+    + '<div style="text-align:center"><div style="font-size:11px;color:var(--muted);margin-bottom:4px">Position B</div><div id="gym-jug-b"></div></div>'
+    + '</div>';
+  const mapA = new Map(); Object.keys(A.boardObj).forEach(function(k){ mapA.set(k, A.boardObj[k]); });
+  const mapB = new Map(); Object.keys(B.boardObj).forEach(function(k){ mapB.set(k, B.boardObj[k]); });
+  gymRenderBoard('gym-jug-a', mapA, null, null);
+  gymRenderBoard('gym-jug-b', mapB, null, null);
+  const correct = A.emp[dim] >= B.emp[dim] ? 'A' : 'B';
+  const label = (typeof LABELS_EMPREINTE !== 'undefined' && LABELS_EMPREINTE[dim]) ? LABELS_EMPREINTE[dim] : dim;
+  const hintEl = document.getElementById('gym-exercise-hint');
+  if (hintEl){
+    hintEl.innerHTML = 'Laquelle des deux a la meilleure "' + label + '" (' + gymColorSwatch('black') + ', calcul reel du moteur) ?'
+      + '<div style="display:flex;gap:8px;margin-top:10px">'
+      + '<button type="button" onclick="_gymJugementAnswer(\'A\')" style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px">Position A</button>'
+      + '<button type="button" onclick="_gymJugementAnswer(\'B\')" style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px">Position B</button>'
+      + '</div>';
+  }
+  window._gymJugementCorrect = correct;
+  window._gymJugementValA = A.emp[dim]; window._gymJugementValB = B.emp[dim]; window._gymJugementAnswered = false;
+  if (timerMs){
+    gymStartCountdown(timerMs);
+    setTimeout(function(){ if (!window._gymJugementAnswered){ window._gymJugementAnswered=true; gymFinish('jugement', 0, 'temps écoulé'); } }, timerMs);
+  }
+}
+function _gymJugementAnswer(picked){
+  if (window._gymJugementAnswered) return;
+  window._gymJugementAnswered = true;
+  gymStopCountdown();
+  const ok = picked === window._gymJugementCorrect;
+  gymFinish('jugement', ok?100:0, ok ? 'exact (' + window._gymJugementValA.toFixed(2) + ' vs ' + window._gymJugementValB.toFixed(2) + ')' : 'en réalité ' + window._gymJugementCorrect + ' (' + window._gymJugementValA.toFixed(2) + ' vs ' + window._gymJugementValB.toFixed(2) + ')');
+}
+
 const GYM_STARTERS = {
   memory: gymStartMemory,
   acuity: gymStartAcuity,
@@ -28794,7 +29087,11 @@ const GYM_STARTERS = {
   anticipation: gymStartAnticipation,
   inhibition: gymStartInhibition,
   flexibility: gymStartFlexibility,
-  spatial: gymStartSpatial
+  spatial: gymStartSpatial,
+  diagnostic: gymStartDiagnostic,
+  certitude: gymStartCertitude,
+  repertoire: gymStartRepertoire,
+  jugement: gymStartJugement
 };
 
 function startGymExercise(id){
