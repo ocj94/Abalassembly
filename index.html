@@ -5037,7 +5037,8 @@ document.addEventListener('keydown', function(e){
           Mots de passe : <strong style="color:var(--text)">PBKDF2-SHA256 · 100 000 itérations · sel aléatoire</strong><br>
           Sessions : <strong style="color:var(--text)">Token HMAC-SHA256 · expiration 30 jours</strong><br>
           Cookies : <strong style="color:var(--text)">Aucun cookie — 100% localStorage local</strong><br>
-          API Web Crypto : <strong style="color:var(--text)">crypto.subtle natif navigateur</strong>
+          API Web Crypto : <strong style="color:var(--text)">crypto.subtle natif navigateur</strong><br>
+          <span style="color:var(--muted);font-style:italic">Portée : protège contre une lecture accidentelle du stockage brut, pas contre un script capable de s'exécuter sur la page (la clé de chiffrement vit dans ce même stockage).</span>
         </div>
       </div>
       <!-- PERMISSIONS -->
@@ -10810,11 +10811,13 @@ async function loginSuccess() {
 ═══════════════════════════════════════════ */
 
 const SEC = {
-  // Clé de chiffrement dérivée d'un secret fixe + fingerprint navigateur
+  // Clé de chiffrement dérivée d'un secret aléatoire local (PAS de fingerprint
+  // navigateur, par respect de la vie privée) -- généré une fois par appareil
+  // et stocké dans ce même localStorage. Portée honnête : ceci protège contre
+  // une lecture accidentelle du stockage brut, pas contre un script capable
+  // de s'exécuter sur la page (la clé est à côté des données qu'elle protège).
   _masterKey: null,
   _salt: 'abalone-sec-2026',
-
-  // Clé de chiffrement dérivée d'un secret aléatoire local (PAS de fingerprint)
   async getMasterKey() {
     if (this._masterKey) return this._masterKey;
     // Secret aléatoire généré une fois par appareil, sans lire aucune
@@ -29869,12 +29872,31 @@ function syncA11YControls() {
 /* ═══════════════════════════════════════════
    SECURITY SCORE
 ═══════════════════════════════════════════ */
-function computeSecurityScore() {
+/* Test reel du chiffrement, pas une supposition. Round-trip encrypt+decrypt
+   ne suffit PAS a lui seul : SEC.encrypt/decrypt ont chacun un repli
+   silencieux vers du JSON en clair en cas d'echec (voir plus haut), et ce
+   repli redonne aussi la bonne valeur au dechiffrement -- un simple
+   aller-retour reussi ne distingue donc PAS "vrai AES-GCM" de "repli en
+   clair". Le repli renvoie EXACTEMENT JSON.stringify(valeur) ; un vrai
+   chiffre AES-GCM (IV aleatoire + ciphertext, encode en base64) ne peut pas
+   coincider avec ca. Comparer les deux separe donc reellement les deux cas. */
+async function _testEncryptionWorks(){
+  try {
+    if (typeof crypto === 'undefined' || !crypto.subtle) return false;
+    const testVal = 'sec-selftest-' + Math.random().toString(36).slice(2);
+    const enc = await SEC.encrypt(testVal);
+    if (enc === JSON.stringify(testVal)) return false; // repli en clair détecté
+    const dec = await SEC.decrypt(enc);
+    return dec === testVal;
+  } catch(e) { return false; }
+}
+async function computeSecurityScore() {
   const u = currentUser;
+  const encryptionOk = await _testEncryptionWorks();
   const items = [
     { label:'Mot de passe hashé PBKDF2', ok: u && !!u.passwordHash, points:20 },
     { label:'Token de session HMAC', ok: u && !!u._token && SEC.validateToken(u._token), points:20 },
-    { label:'localStorage chiffré AES-GCM', ok: true, points:20 }, // toujours actif
+    { label:'localStorage chiffré AES-GCM' + (encryptionOk ? '' : ' — indisponible sur ce navigateur'), ok: encryptionOk, points:20 },
     { label:'Double authentification active', ok: u && u.twofa && u.twofa.length > 0, points:25 },
     { label:'YubiKey / FIDO2 configuré', ok: u && u.twofa && u.twofa.includes('yubikey'), points:15 },
   ];
