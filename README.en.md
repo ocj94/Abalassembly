@@ -70,7 +70,7 @@ What it hides: **chat**, the **AI Lab**, **settings**, and **external links**. I
 **Play**
 - Games against the AI (several levels, alpha-beta + PVS + quiescence engine running in a Web Worker — the interface never freezes; the 2v2/3v2 endgame tablebase is consulted during search, giving an exact result the moment a solved ending is reached)
 - Two-player mode on the same screen
-- 18 starting-position variants (Belgian Daisy, German Daisy, The Wall, Star…)
+- 18 starting-position variants recorded in the AbalOnline library (Belgian Daisy, German Daisy, The Wall, Star…)
 - Optional real chess clock: 5+3, 10+5, 20+10 time controls with increment and loss on time (untimed by default)
 - Advisor bots (Black Bot / White Bot), bot-vs-bot duels, unlockable marble skins, on-demand 3D view
 - **First-person view**: playing White flips the board so your side is always at the bottom. Notation stays absolute either way — `e5` means `e5` regardless of orientation
