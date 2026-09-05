@@ -1,0 +1,36 @@
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://ocj94.github.io/Abalassembly/#website",
+      "url": "https://ocj94.github.io/Abalassembly/",
+      "name": "Abalassembly",
+      "description": "La plateforme de référence pour jouer, apprendre et progresser au jeu de stratégie Abalone.",
+      "inLanguage": "fr-FR"
+    },
+    {
+      "@type": "Game",
+      "name": "Abalone",
+      "description": "Abalone est un jeu de stratégie abstrait pour deux joueurs sur plateau hexagonal de 61 cases. Le but est d'éjecter 6 billes adverses du plateau via des poussées (sumito).",
+      "genre": ["Jeu de stratégie", "Jeu de plateau abstrait", "Jeu à information parfaite"],
+      "numberOfPlayers": {
+        "@type": "QuantitativeValue",
+        "minValue": 2,
+        "maxValue": 6
+      },
+      "gamePlatform": "Web",
+      "applicationCategory": "Game",
+      "operatingSystem": "Any"
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://ocj94.github.io/Abalassembly/#organization",
+      "name": "Abalassembly",
+      "url": "https://ocj94.github.io/Abalassembly/",
+      "logo": "https://ocj94.github.io/Abalassembly/icon-512.png"
+    }
+  ]
+}
+</script>
