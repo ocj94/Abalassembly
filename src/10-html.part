@@ -1,0 +1,188 @@
+
+
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <defs>
+    <!-- Deutéranopie (rouge-vert) -->
+    <filter id="cm-deuteranopia" color-interpolation-filters="linearRGB">
+      <feColorMatrix type="matrix" values="
+        0.367  0.861 -0.228  0  0
+        0.280  0.673  0.047  0  0
+       -0.012  0.043  0.969  0  0
+        0      0      0      1  0"/>
+    </filter>
+    <!-- Protanopie (déficit rouge) -->
+    <filter id="cm-protanopia" color-interpolation-filters="linearRGB">
+      <feColorMatrix type="matrix" values="
+        0.152  1.053 -0.205  0  0
+        0.115  0.786  0.099  0  0
+       -0.004 -0.048  1.052  0  0
+        0      0      0      1  0"/>
+    </filter>
+    <!-- Tritanopie (déficit bleu) -->
+    <filter id="cm-tritanopia" color-interpolation-filters="linearRGB">
+      <feColorMatrix type="matrix" values="
+        1.256 -0.077 -0.179  0  0
+       -0.078  0.931  0.148  0  0
+        0.005  0.691  0.304  0  0
+        0      0      0      1  0"/>
+    </filter>
+  </defs>
+  </div>
+  <div class="mtb-right">
+    <div class="streak-pill" id="top-streak">🔥 18</div>
+    <div class="xp-pill" id="top-xp">⚡ 14 928</div>
+    <div style="width:32px;height:32px;border-radius:50%;background:#2d5a3d;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;font-family:'Playfair Display',serif;color:var(--gold);cursor:pointer" onclick="showPage('profile')" id="top-avatar">?</div>
+  </div>
+</div>
+
+
+<div id="migs-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9999;align-items:center;justify-content:center" onclick="if(event.target===this)closeMigsBrowser()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:min(560px,92vw);max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <strong style="flex:1">📚 Parties — AbalOnline & Migs</strong>
+      <span style="color:var(--muted);font-size:12px">4479 parties · 19 variantes (bibliothèque complète, MIGS + AbalOnline)</span>
+      <button class="ctrl-btn" onclick="openPSImportModal()" style="width:auto;padding:4px 10px" title="Importer tes propres parties Abalone depuis PlayStrategy.org">🔗 PlayStrategy</button>
+      <button class="ctrl-btn" onclick="closeMigsBrowser()" style="width:auto;padding:4px 10px">✕</button>
+    </div>
+    <input id="migs-search" oninput="renderMigsList()" placeholder="Rechercher un joueur ou un N°…" style="margin:12px 18px 8px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px">
+    <div style="display:flex;gap:8px;margin:0 18px 10px">
+      <select id="migs-filter-variant" onchange="renderMigsList()" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px">
+        <option value="">Toutes les variantes</option>
+      </select>
+      <select id="migs-filter-length" onchange="renderMigsList()" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px">
+        <option value="">Toutes longueurs</option>
+        <option value="short">Courte (&lt; 20 coups)</option>
+        <option value="medium">Moyenne (20-40)</option>
+        <option value="long">Longue (&gt; 40)</option>
+      </select>
+    </div>
+    <div id="migs-list" style="overflow-y:auto;padding:0 8px 14px"></div>
+  </div>
+</div>
+<div id="ps-import-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:10001;align-items:center;justify-content:center" onclick="if(event.target===this)closePSImportModal()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:min(560px,92vw);max-height:85vh;display:flex;flex-direction:column;overflow:hidden">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <strong style="flex:1">🔗 Importer depuis PlayStrategy</strong>
+      <button class="ctrl-btn" onclick="closePSImportModal()" style="width:auto;padding:4px 10px">✕</button>
+    </div>
+    <div style="padding:14px 18px">
+      <p style="font-size:12px;color:var(--muted);margin:0 0 12px;line-height:1.6">
+        Récupère de vraies parties d'Abalone jouées sur <a href="https://playstrategy.org" target="_blank" rel="noopener">playstrategy.org</a> (abal.online), directement depuis ton navigateur — rien n'est envoyé à un serveur intermédiaire. Un pseudo par ligne pour en récupérer plusieurs d'un coup.
+      </p>
+      <textarea id="ps-import-usernames" placeholder="Un pseudo par ligne, ex :&#10;ocj94&#10;saabalone&#10;vincent" rows="4" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-family:'DM Mono',monospace;resize:vertical;margin-bottom:8px"></textarea>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button class="ctrl-btn primary" onclick="fetchPSGames()" style="flex:1">Récupérer</button>
+        <button class="ctrl-btn" onclick="exportPSGamesJSON()" style="flex:1">📥 Exporter (JSON)</button>
+      </div>
+      <div id="ps-import-status" style="font-size:12px;color:var(--muted);min-height:16px;margin-bottom:8px"></div>
+      <div id="ps-import-list" style="overflow-y:auto;max-height:40vh"></div>
+    </div>
+  </div>
+</div>
+<div id="kids-exit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;align-items:center;justify-content:center" onclick="if(event.target===this)_kidsExitCancel()">
+  <div style="background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:26px 28px;width:min(340px,90vw);text-align:center">
+    <div style="font-size:32px;margin-bottom:8px">🔒</div>
+    <div style="font-size:16px;font-weight:700;color:var(--white);margin-bottom:6px">Demande à un adulte</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.6">Pour sortir du mode Enfant, un grand doit répondre à ce calcul :</div>
+    <div id="kids-exit-question" style="font-size:22px;font-weight:700;color:var(--gold);margin-bottom:14px"></div>
+    <input id="kids-exit-answer" type="number" inputmode="numeric" placeholder="Réponse" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:16px;text-align:center;margin-bottom:14px" onkeydown="if(event.key==='Enter')_kidsExitCheck()">
+    <div id="kids-exit-error" style="color:#e06060;font-size:12px;margin-bottom:10px;display:none">Ce n'est pas la bonne réponse — réessaie.</div>
+    <div style="display:flex;gap:8px">
+      <button class="ctrl-btn" style="flex:1" onclick="_kidsExitCancel()">Annuler</button>
+      <button class="ctrl-btn primary" id="kids-exit-submit" style="flex:1" onclick="_kidsExitCheck()">Valider</button>
+    </div>
+  </div>
+</div>
+<div id="ascii-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9999;align-items:center;justify-content:center" onclick="if(event.target===this)closeAsciiModal()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:min(420px,92vw);max-height:85vh;display:flex;flex-direction:column;overflow:hidden">
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <strong style="flex:1">🔤 Diagramme ASCII</strong>
+      <button class="ctrl-btn" onclick="copyAsciiDiagram()" style="width:auto;padding:4px 10px">📋 Copier</button>
+      <button class="ctrl-btn" onclick="closeAsciiModal()" style="width:auto;padding:4px 10px">✕</button>
+    </div>
+    <pre id="ascii-pre" style="margin:0;padding:16px;font-family:monospace;font-size:14px;line-height:1.4;color:var(--text);overflow:auto"></pre>
+  </div>
+</div>
+<div id="analysis-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9999;align-items:center;justify-content:center" onclick="if(event.target===this)closeAnalysisModal()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:min(440px,94vw);max-height:88vh;display:flex;flex-direction:column;overflow:hidden">
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <strong style="flex:1">📊 Analyse de la position</strong>
+      <button class="ctrl-btn" onclick="showAnalysisPanel()" style="width:auto;padding:4px 10px">🔄</button>
+      <button class="ctrl-btn" onclick="closeAnalysisModal()" style="width:auto;padding:4px 10px">✕</button>
+    </div>
+    <div id="analysis-body" style="padding:14px 16px;overflow:auto;font-size:13px"></div>
+  </div>
+</div>
+<div id="tourney-bar" style="display:none;position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:6100;background:var(--surface);border:1px solid var(--gold);border-radius:12px;padding:8px 14px;align-items:center;gap:12px;box-shadow:0 6px 24px rgba(0,0,0,0.45);max-width:94vw;flex-wrap:wrap;justify-content:center">
+  <span id="tb-title" style="font-size:13px;font-weight:700">🏆 Match</span>
+  <span style="font-family:'DM Mono',monospace;font-size:13px">⚫ <span id="tb-cb">10:00</span></span>
+  <span style="font-family:'DM Mono',monospace;font-size:13px">⚪ <span id="tb-cw">10:00</span></span>
+  <button class="ctrl-btn" id="tb-pause" onclick="tourneyPause()" style="width:auto;padding:4px 10px;font-size:12px">⏸ Pause (1)</button>
+  <button class="ctrl-btn danger" onclick="resignGame()" style="width:auto;padding:4px 10px;font-size:12px">🏳️</button>
+</div>
+<div id="lab-replay-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;align-items:center;justify-content:center" onclick="if(event.target===this)closeLabReplay()">
+  <div style="background:var(--surface2,#1d232b);border:1px solid var(--gold);border-radius:14px;padding:16px;max-width:420px;width:92vw">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-weight:800;color:var(--gold)">▶ Replay — partie du Labo</span>
+      <button class="ctrl-btn" onclick="closeLabReplay()" style="width:auto;padding:2px 10px">✕</button>
+    </div>
+    <canvas id="lr-canvas" width="360" height="320" style="width:100%;background:var(--surface);border-radius:10px"></canvas>
+    <div id="lr-info" style="font-size:12px;color:var(--muted);margin:8px 0;text-align:center">…</div>
+    <div style="display:flex;gap:6px;justify-content:center;align-items:center">
+      <button class="ctrl-btn" onclick="labReplayStep(-999)" style="width:auto;padding:4px 10px">⏮</button>
+      <button class="ctrl-btn" onclick="labReplayStep(-1)" style="width:auto;padding:4px 10px">◀</button>
+      <button class="ctrl-btn" id="lr-play" onclick="labReplayPlay()" style="width:auto;padding:4px 14px">▶</button>
+      <button class="ctrl-btn" onclick="labReplayStep(1)" style="width:auto;padding:4px 10px">▶|</button>
+      <button class="ctrl-btn" onclick="labReplayStep(999)" style="width:auto;padding:4px 10px">⏭</button>
+    </div>
+  </div>
+</div>
+<div id="lab-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9998;align-items:center;justify-content:center" onclick="if(event.target===this)closeLabModal()">
+  <div style="background:var(--surface2,#1d232b);border:1px solid var(--gold);border-radius:14px;padding:16px;max-width:520px;width:92vw;max-height:84vh;overflow:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span style="font-weight:800;color:var(--gold)">🧪 Labo d'auto-amélioration récursive</span>
+      <button class="ctrl-btn" onclick="closeLabModal()" style="width:auto;padding:2px 10px">✕</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Duels réels moteur contre moteur (worker dédié — tu peux jouer pendant). v2 : arrêt séquentiel SPRT, ouvertures équilibrées, confirmation à 600 ms/coup, estimation Elo ± marge. Reprend tout seul au chargement si laissé démarré.</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <button id="lab-start" class="ctrl-btn" onclick="_labRunning?pauseLab():startLab()" style="width:auto;padding:6px 14px">▶ Démarrer</button>
+      <button class="ctrl-btn" onclick="resetLab()" style="width:auto;padding:6px 14px">🔄 Réinitialiser</button>
+    </div>
+    <div id="lab-body"></div>
+    <button class="ctrl-btn" onclick="labToggleAdvanced();renderLabAdvanced()" style="width:100%;margin-top:10px;padding:6px;font-size:12px">🔧 Réglages avancés (programmeurs)</button>
+    <div id="lab-adv" style="display:none"></div>
+  </div>
+</div>
+<div id="puzzle-bar" style="display:none;position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:6000;background:var(--surface);border:1px solid var(--gold);border-radius:12px;padding:8px 14px;align-items:center;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,0.45);max-width:94vw;flex-wrap:wrap;justify-content:center">
+  <span id="pz-title" style="font-size:13px;font-weight:600">🧩 Puzzle</span>
+  <button class="ctrl-btn" onclick="puzzleHint()" style="width:auto;padding:4px 10px;font-size:12px">💡 Indice</button>
+  <button class="ctrl-btn" onclick="puzzleSolution()" style="width:auto;padding:4px 10px;font-size:12px">✅ Solution</button>
+  <button class="ctrl-btn" onclick="puzzleNext()" style="width:auto;padding:4px 10px;font-size:12px">⏭ Suivant</button>
+  <button class="ctrl-btn" onclick="puzzleQuit()" style="width:auto;padding:4px 10px;font-size:12px">✕</button>
+</div>
+<div id="report-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9999;align-items:center;justify-content:center" onclick="if(event.target===this)closeReportModal()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:min(480px,94vw);max-height:88vh;display:flex;flex-direction:column;overflow:hidden">
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <strong style="flex:1">🔍 Analyse de la partie</strong>
+      <button class="ctrl-btn" onclick="closeReportModal()" style="width:auto;padding:4px 10px">✕</button>
+    </div>
+    <div id="report-body" style="padding:14px 16px;overflow:auto"></div>
+  </div>
+</div>
+<style>.style-btn.active{background:var(--gold)!important;border-color:var(--gold)!important;color:#0d0f0e!important}
+.rot-ctl{position:absolute;left:4%;z-index:20;display:flex;flex-direction:column;gap:6px}
+.rot-btn{width:34px;height:34px;border-radius:8px;background:rgba(20,24,22,0.7);border:1px solid var(--border);color:var(--gold);cursor:pointer;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0}
+/* .bg-swatch n'avait AUCUNE regle CSS definie nulle part dans le fichier —
+   seulement des usages avec un style="background:..." inline. Un <button>
+   vide (sans texte ni enfant) retombe sur la taille minuscule par defaut du
+   navigateur : illisible, comme signale par Olivier (capture d'ecran a
+   l'appui — de minuscules triangles sombres, impossibles a distinguer).
+   Taille et forme explicites ici ; l'anneau dore sur .active reprend le
+   meme langage visuel que les autres etats "selectionne" de l'app. */
+.bg-swatch{width:52px;height:52px;border-radius:12px;border:2px solid var(--border);cursor:pointer;padding:0;flex:none;transition:transform .15s,border-color .15s}
+.bg-swatch:hover{transform:scale(1.06)}
+.bg-swatch.active{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,168,75,0.35)}
+.rot-btn:hover{background:rgba(200,168,75,0.18)}</style>
+
+<!-- ══ TABLEBASES DE FINALE — 2v2 et 3v2 resolues exhaustivement (mode Decouverte) ══
+     Donnees embarquees, aucun reseau. Methode et resultats : tablebase/RESULTS.md -->
