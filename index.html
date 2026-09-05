@@ -2482,16 +2482,10 @@ document.addEventListener('keydown', function(e){
       <span class="s-icon">🕓</span><span class="s-label">Historique</span>
     </button>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-corpusstats" onclick="showPage('corpusstats'); if (window.innerWidth < 600 && typeof closeSidebarMobile==='function') closeSidebarMobile();">
-      <span class="s-icon">📈</span><span class="s-label">Stats du jeu</span>
-    </button>
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-archi" onclick="showPage('archi'); if (window.innerWidth < 600 && typeof closeSidebarMobile==='function') closeSidebarMobile();">
-      <span class="s-icon">🗺️</span><span class="s-label">Architecture</span>
+      <span class="s-icon">📈</span><span class="s-label">Stats du corpus</span>
     </button>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-import" onclick="openApgnImportModal(); if (window.innerWidth < 600 && typeof closeSidebarMobile==='function') closeSidebarMobile();">
       <span class="s-icon">📥</span><span class="s-label">Importer</span>
-    </button>
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-briefing" onclick="openSiteBriefing(); if (window.innerWidth < 600 && typeof closeSidebarMobile==='function') closeSidebarMobile();">
-      <span class="s-icon">🤖</span><span class="s-label">Fiche pour IA</span>
     </button>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-puzzles" onclick="sidebarNav('puzzles',this)">
       <span class="s-icon">🧩</span><span class="s-label" data-i18n="nav.puzzles">Problèmes</span>
@@ -2517,7 +2511,7 @@ document.addEventListener('keydown', function(e){
       <span class="s-icon">🔬</span><span class="s-label" data-i18n="nav.analysis">Analyse</span>
     </button>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-stats" onclick="sidebarNav('stats',this)">
-      <span class="s-icon">📊</span><span class="s-label" data-i18n="nav.stats">Statistiques</span>
+      <span class="s-icon">📊</span><span class="s-label" data-i18n="nav.stats">Mes statistiques</span>
     </button>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-gym" onclick="sidebarNav('gym',this)">
       <span class="s-icon">🧠</span><span class="s-label">Gym Cerveau</span>
@@ -2540,10 +2534,16 @@ document.addEventListener('keydown', function(e){
       <span class="s-icon">📷</span><span class="s-label" data-i18n="nav.camera">Détection photo / plateau</span>
     </button>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-biblio" onclick="sidebarNav('biblio',this)">
-      <span class="s-icon">📚</span><span class="s-label">Documentation</span>
+      <span class="s-icon">📄</span><span class="s-label">Documentation</span>
     </button>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-github" onclick="sidebarNav('github',this)">
       <span class="s-icon">🔬</span><span class="s-label" data-i18n="nav.github">Insights GitHub</span>
+    </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-archi" onclick="showPage('archi'); if (window.innerWidth < 600 && typeof closeSidebarMobile==='function') closeSidebarMobile();">
+      <span class="s-icon">🗺️</span><span class="s-label">Architecture</span>
+    </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-briefing" onclick="openSiteBriefing(); if (window.innerWidth < 600 && typeof closeSidebarMobile==='function') closeSidebarMobile();">
+      <span class="s-icon">🤖</span><span class="s-label">Fiche pour IA</span>
     </button>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-museum" onclick="sidebarNav('museum',this)">
       <span class="s-icon">🏛</span><span class="s-label" data-i18n="nav.museum">Musée</span>
@@ -27957,7 +27957,7 @@ const TRANSLATIONS = {
     'nav.museum': 'Museum',
     'nav.pioneers': 'Pioneers',
     'nav.camera': 'AI Detection',
-    'nav.stats': 'Statistics',
+    'nav.stats': 'My Statistics',
     'nav.compare': 'Compare',
     'nav.friends': 'Friends',
     'nav.profile': 'Profile',
