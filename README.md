@@ -70,7 +70,7 @@ Ce qu'il masque : le **chat**, le **Labo IA**, les **paramètres** et les **lien
 **Jeu**
 - Partie contre l'IA (plusieurs niveaux, moteur alpha-bêta + PVS + quiescence dans un Web Worker — l'interface ne gèle jamais ; table de finales 2v2/3v2 consultée pendant la recherche, résultat exact dès qu'une fin de partie résolue est atteinte)
 - Mode 2 joueurs sur le même écran
-- 18 variantes de position de départ (belge, german daisy, the wall, star…)
+- 18 variantes de position de départ recensées dans la bibliothèque AbalOnline (belge, german daisy, the wall, star…)
 - Pendule réelle optionnelle : cadences 5+3, 10+5, 20+10 avec incrément et défaite au temps (mode « libre » par défaut)
 - Bots conseillers (Bot Noir / Bot Blanc), duels de bots, skins de billes à débloquer, vue 3D à la demande
 - **Vue à la première personne** : avec les blancs, le plateau se retourne pour que votre camp soit toujours en bas. La notation, elle, reste absolue — `e5` désigne `e5` quelle que soit l'orientation
