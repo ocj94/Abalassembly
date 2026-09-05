@@ -7668,7 +7668,7 @@ function certifyPuzzle(idx){
 
 /* Certifie tous les puzzles, cache le resultat en localStorage pour ne pas
    refaire le calcul a chaque visite. Rapide (verification directe, pas de
-   recherche recursive) -- peut tourner sur les 78 puzzles sans bloquer
+   recherche recursive) -- peut tourner sur les 138 puzzles sans bloquer
    la page de facon genante. */
 function certifyAllPuzzles(){
   const results = {};
@@ -14676,11 +14676,19 @@ function updateStatus() {
     txt = `Tour des ${who} — Coup ${moveCount+1}`;
     msg = `Joueur ${currentTurn === 'black' ? 'Noir' : 'Blanc'} : sélectionnez vos billes`;
   } else {
-    txt = currentTurn === 'black'
+    // Base sur humanColor, pas sur 'black' code en dur : un humain qui joue
+    // les blancs (Bot Noir, ou tout mode ou humanColor='white') voyait ce
+    // message totalement inverse -- "Adversaire reflechit" pendant SON
+    // propre tour, et "A votre tour, cliquez vos billes noires" pendant que
+    // l'IA reflechissait. Bug en direct, atteignable des qu'on joue blanc
+    // contre l'IA.
+    const monTour = currentTurn === humanColor;
+    const monEmoji = humanColor === 'black' ? '⚫' : '⚪';
+    txt = monTour
       ? `À votre tour — Coup ${moveCount+1}`
       : `Adversaire réfléchit — Coup ${moveCount+1}`;
-    msg = currentTurn === 'black'
-      ? 'Cliquez sur vos billes noires pour les sélectionner'
+    msg = monTour
+      ? `Cliquez sur vos billes ${monEmoji} pour les sélectionner`
       : 'Attendre le coup de l\'adversaire…';
   }
   document.getElementById('game-status-text').textContent = txt;
@@ -25220,7 +25228,7 @@ function runAnalysis() {
     '<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:12px 0 8px">Meilleurs coups (position actuelle)</div>',
     moves.map(m => '<div class="analysis-move '+m.type+'"><span class="am-icon">'+m.icon+'</span><span class="am-move">'+m.move+'</span><span class="am-comment">'+m.comment+'</span></div>').join(''),
     '<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--muted);line-height:1.6">',
-    '📊 Billes éjectées — Vous: '+capturedByBlack+' · Adversaire: '+capturedByWhite,
+    '📊 Billes éjectées — Vous: '+(humanColor==='black'?capturedByBlack:capturedByWhite)+' · Adversaire: '+(humanColor==='black'?capturedByWhite:capturedByBlack),
     '<br>⚡ Coups joués: '+moveCount,
     '</div>',
     histoHtml,
@@ -27481,12 +27489,18 @@ function hideAIExplainBubble() {
 
 function gameShowBestMove() {
   if (gameOver) { showToast('⛔ La partie est terminée'); return; }
-  if (currentTurn !== 'black') { showToast('⛔ Ce n\'est pas votre tour'); return; }
+  // Meme garde que les fonctions voisines (ex. la verification "attends ton
+  // tour" un peu plus bas dans ce fichier) : base sur humanColor, pas sur
+  // 'black'. Sans ca, un humain jouant les blancs etait bloque sur SON
+  // propre tour ('Ce n'est pas votre tour' alors que si), et le coup
+  // cherche ensuite (voir plus bas) etait celui des noirs -- le coup de
+  // l'IA elle-meme, affiche comme si c'etait "votre" suggestion.
+  if (gameMode === 'ai' && currentTurn !== humanColor) { showToast('⛔ Ce n\'est pas votre tour'); return; }
   showToast('🧠 Recherche du meilleur coup...');
   setTimeout(function() {
     // searchBestMove travaille sur la globale board (qui est déjà la position courante)
     let best = null;
-    try { best = searchBestMove('black', 2, 1500); }
+    try { best = searchBestMove(currentTurn, 2, 1500); }
     catch(e) { best = null; }
     if (best && best.cells) {
       gameBestHint = { cells: best.cells, dir: best.dir };
