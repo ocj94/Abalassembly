@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<!--
+  Abalassembly — jeu de stratégie Abalone
+  Copyright (C) 2026  Olivier (ocj94)
+
+  Ce programme est un logiciel libre : vous pouvez le redistribuer et/ou le
+  modifier selon les termes de la GNU General Public License version 3, telle
+  que publiée par la Free Software Foundation.
+
+  Ce programme est distribué dans l'espoir qu'il sera utile, mais SANS AUCUNE
+  GARANTIE. Consultez la GNU General Public License pour plus de détails :
+  https://www.gnu.org/licenses/gpl-3.0.html
+
+  Code source et contributions : https://github.com/ocj94/Abalassembly
+-->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<!-- Politique de sécurité du contenu (limite les injections de script tierces) -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="theme-color" content="#151918">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Abalassembly">
+<link rel="manifest" id="pwa-manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Abalassembly — Jouer, apprendre et progresser au jeu de stratégie Abalone</title>
+
+<!-- ════════════════════════════════════════════════
+     SEO — Référencement moteurs de recherche
+     ════════════════════════════════════════════════ -->
+<meta name="description" content="Abalassembly : jouez à Abalone hors-ligne, contre une IA avancée ou à deux joueurs. Résolvez des puzzles, suivez des leçons et analysez vos parties. 100% gratuit, aucune installation.">
+<meta name="keywords" content="abalone, jeu abalone, jeu de stratégie, jeu de billes, abalone en ligne, jouer abalone, règles abalone, puzzles abalone, abalone multijoueur, sumito, belgian daisy, abalone classement, ABA-PRO, stratégie abalone, jeu de plateau hexagonal">
+<meta name="author" content="Abalassembly">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+<meta name="googlebot" content="index, follow">
+<meta name="bingbot" content="index, follow">
+<meta name="language" content="French">
+<meta name="revisit-after" content="3 days">
+<meta name="rating" content="general">
+<!-- ⚠️ CANONICAL_URL — pointe vers l'URL réellement en ligne aujourd'hui.
+     Le jour où abalassembly.com est acheté et configuré (Settings → Pages →
+     Custom domain), remplacer partout "https://ocj94.github.io/Abalassembly/"
+     par "https://www.abalassembly.com/" — chercher ce marqueur dans le fichier. -->
+<link rel="canonical" href="https://ocj94.github.io/Abalassembly/">
+
+<!-- ════════════════════════════════════════════════
+     HREFLANG — le site est une page unique (SPA) qui s'appuie sur la
+     traduction navigateur pour les langues autres que le français ; il n'y a
+     pas de sous-pages /fr /pt /nl etc. réellement servies. Un hreflang qui
+     déclarerait ces URLs comme existantes serait signalé en erreur par la
+     Search Console (pages fantômes). x-default suffit ici.
+     ════════════════════════════════════════════════ -->
+<link rel="alternate" href="https://ocj94.github.io/Abalassembly/" hreflang="x-default">
+
+<!-- ════════════════════════════════════════════════
+     OPEN GRAPH — Facebook, LinkedIn, WhatsApp, Discord
+     ════════════════════════════════════════════════ -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Abalassembly">
+<meta property="og:title" content="Abalassembly — Le jeu stratégique de référence">
+<meta property="og:description" content="Jouez, apprenez et progressez au jeu de stratégie Abalone — hors-ligne, contre l'IA ou à deux. Résolvez des puzzles et analysez vos parties.">
+<meta property="og:url" content="https://ocj94.github.io/Abalassembly/">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:image" content="https://ocj94.github.io/Abalassembly/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Plateau de jeu Abalone avec billes noires et blanches">
+
+<!-- ════════════════════════════════════════════════
+     TWITTER / X CARDS
+     ════════════════════════════════════════════════ -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Abalassembly — Le jeu stratégique de référence">
+<meta name="twitter:description" content="Jouez, apprenez et progressez au jeu de stratégie Abalone — hors-ligne, contre l'IA ou à deux.">
+<meta name="twitter:image" content="https://ocj94.github.io/Abalassembly/og-image.png">
+<meta name="twitter:image:alt" content="Plateau de jeu Abalone">
+
+<!-- ════════════════════════════════════════════════
+     SCHEMA.ORG — Données structurées (Google Rich Results)
+     ════════════════════════════════════════════════ -->
