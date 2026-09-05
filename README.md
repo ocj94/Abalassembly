@@ -1,3 +1,5 @@
+🇬🇧 [English version](README.en.md)
+
 # Abalassembly
 
 <p align="center">
@@ -77,7 +79,7 @@ Ce qu'il masque : le **chat**, le **Labo IA**, les **paramètres** et les **lien
 - **12 langues au sélecteur** — français natif ; anglais et hébreu avec traduction embarquée de la navigation (instantanée, sans réseau) ; les 9 autres s'appuient sur la traduction native du navigateur, avec un guide adapté selon Chrome/Firefox/Safari/Edge. **Hébreu en RTL** : sidebar, mise en page et menus déroulants basculent à droite ; les flèches directionnelles se retournent nativement (caractères Unicode *bidi-mirrored*, aucun texte réécrit)
 
 **Apprendre**
-- 80 puzzles minés dans de vraies parties : 64 offensifs (« trouve le coup qui éjecte ») et 16 défensifs (« pare la menace d'éjection », toutes les parades valides acceptées)
+- 138 puzzles minés dans de vraies parties : 126 offensifs (« trouve le coup qui éjecte »), 11 défensifs (« pare la menace d'éjection », toutes les parades valides acceptées) et 1 trivial
 - Défi du jour, mode Storm, tutoriels guidés, académie, règles illustrées
 - Analyse de partie coup par coup : chaque erreur du rapport est cliquable et rejoue la position
 - **Analyse d'après-partie** : rejoue les positions réellement traversées avec l'évaluation de l'IA, et indique où la partie a basculé, à quel coup la première bille a été perdue
