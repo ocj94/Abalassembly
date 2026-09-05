@@ -3150,7 +3150,7 @@ document.addEventListener('keydown', function(e){
 
       <div class="setup-row-lbl">Disposition de départ</div>
       <div style="display:flex;gap:5px;flex-wrap:wrap" id="setup-layout">
-        <button onclick="setupPick('layout','standard',this)" class="setup-opt active">Standard</button>
+        <button onclick="setupPick('layout','standard',this)" class="setup-opt active" title="Configuration officielle : 14 billes par camp sur 3 rangées">Standard</button>
         <button onclick="setupPick('layout','belgian',this)" class="setup-opt">Belgian Daisy</button>
         <button onclick="setupPick('layout','german',this)" class="setup-opt">German Daisy</button>
         <button onclick="setupPick('layout','dutch',this)" class="setup-opt">Dutch Daisy</button>
@@ -3170,6 +3170,10 @@ document.addEventListener('keydown', function(e){
         <button onclick="setupPick('layout','korean_daisy',this)" class="setup-opt" title="Disposition attestee (Hyunmin KIM, abaloneonline.wordpress.com) -- aucune partie sous ce nom dans le corpus AbalOnline">Korean Daisy</button>
         <button onclick="setupPick('layout','anglattack',this)" class="setup-opt" title="Disposition attestee (onlineabalone.wordpress.com) -- aucune partie sous ce nom dans le corpus AbalOnline">Anglattack</button>
         <button onclick="setupPick('layout','random',this)" class="setup-opt" title="Tire une vraie disposition au hasard parmi celles disponibles">🎲 Aléatoire</button>
+      </div>
+      <div id="setup-layout-thumb-wrap" style="display:flex;align-items:center;gap:12px;margin-top:10px;padding:8px 10px;background:var(--surface2);border-radius:8px">
+        <div id="setup-layout-thumb"></div>
+        <div id="setup-layout-thumb-label" style="font-size:11px;color:var(--muted)">Standard — configuration classique</div>
       </div>
 
       <div class="setup-row-lbl" style="margin-top:14px">Adversaire</div>
@@ -9052,11 +9056,52 @@ function setupPickTwoPlayers(){
   if (localBtn) setupPick('mode', 'local', localBtn);
 }
 
+/* Miniature de la disposition de depart, affichee quand on choisit une
+   variante en configuration. Reutilise gymMarbleGradient() TEL QUEL : les
+   billes de la miniature suivent donc le VRAI skin actif choisi par la
+   personne, pas un noir/blanc fixe -- Olivier a explicitement demande que
+   seul l'EXPORT garde les couleurs officielles rigides, pas l'affichage. */
+function setupRenderLayoutThumb(layoutKey, labelText){
+  const box = document.getElementById('setup-layout-thumb');
+  const labelEl = document.getElementById('setup-layout-thumb-label');
+  if (!box) return;
+  if (layoutKey === 'random' || typeof LAYOUTS === 'undefined' || !LAYOUTS[layoutKey]) {
+    box.innerHTML = '<div style="width:70px;height:60px;display:flex;align-items:center;justify-content:center;font-size:22px">🎲</div>';
+    if (labelEl) labelEl.textContent = labelText || 'Tirée au sort au lancement de la partie';
+    return;
+  }
+  const lay = LAYOUTS[layoutKey];
+  const posMap = {};
+  lay.black.forEach(function(p){ posMap[p[0]+','+p[1]] = 'black'; });
+  lay.white.forEach(function(p){ posMap[p[0]+','+p[1]] = 'white'; });
+  const cell = 7;
+  let html = '<div style="display:flex;flex-direction:column;align-items:center;gap:1px">';
+  for (let r=0; r<9; r++){
+    html += '<div style="display:flex;gap:1px;justify-content:center">';
+    for (let c=0; c<ROWS[r]; c++){
+      const piece = posMap[r+','+c];
+      const bg = piece ? (typeof gymMarbleGradient==='function' ? gymMarbleGradient(piece) : (piece==='black'?'#1a1a1a':'#e8e0d0')) : 'var(--border)';
+      html += '<div style="width:'+cell+'px;height:'+cell+'px;border-radius:50%;background:'+bg+';opacity:'+(piece?1:0.3)+'"></div>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  box.innerHTML = html;
+  if (labelEl) labelEl.textContent = labelText || '';
+}
+
 function setupPick(group, value, btn) {
   _setupCfg[group] = value;
   const box = btn.parentElement;
   box.querySelectorAll('.setup-opt').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
+  /* Reutilise le title= deja present sur chaque bouton (deja verifie
+     variante par variante : compte de parties reel ou mention explicite
+     "disposition artistique") plutot que d'ecrire une 2e description qui
+     pourrait diverger de la premiere avec le temps. */
+  if (group === 'layout') {
+    setupRenderLayoutThumb(value, btn.getAttribute('title') || btn.textContent.trim());
+  }
   /* En deux joueurs local, « qui commence » et le style IA n'ont pas de sens
      (les deux joueurs sont sur le meme ecran). En revanche, en partie EN
      DIRECT il faut pouvoir choisir son camp -- demande d'Olivier. */
@@ -26076,7 +26121,10 @@ function renderStreak() {
 ═══════════════════════════════════════════ */
 
 /* ═══════════════════════════════════════════
-   VARIANTS — 20 variantes officielles
+   VARIANTS — 20 variantes officielles (galerie jouable du site : inclut les
+   modes a plusieurs joueurs et les variantes de regles qui ne font pas
+   partie du corpus historique — different des 13/18/19 lies aux parties
+   AbalOnline/MIGS, voir docs/Architecture.md)
    Sources: 3-2-one.com · Notice Asmodee · ABA-PRO
 ═══════════════════════════════════════════ */
 const variantsData = [
@@ -28190,6 +28238,12 @@ function showPage(name) {
   // Page-specific init
   const inits = {
     home:       function(){ renderEngageBar(); },
+    setup:      function(){
+      if (typeof setupRenderLayoutThumb === 'function' && typeof _setupCfg !== 'undefined') {
+        const activeBtn = document.querySelector('#setup-layout .setup-opt.active');
+        setupRenderLayoutThumb(_setupCfg.layout, activeBtn ? (activeBtn.getAttribute('title') || activeBtn.textContent.trim()) : '');
+      }
+    },
     game:       function(){ if(!tournamentGame && typeof exitTournamentMode==='function') exitTournamentMode(); initGame();
       // Pluie de billes : uniquement quand une NOUVELLE partie demarre,
       // pas au retour sur une partie deja engagee.
@@ -32867,7 +32921,7 @@ const ARCHI_DIAGRAMS = [
     noeuds: [
       { t:'MIGS — 2 589 parties  +  AbalOnline — 1 890 parties', c:'neutre' },
       { t:'Corpus de 4 479 parties réelles', c:'sortie' },
-      { t:'Livres d\u2019ouvertures — 13 variantes', c:'calcul' },
+      { t:'Livres d\u2019ouvertures — 13 variantes (avec arbre statistique)', c:'calcul' },
       { t:'Empreintes historiques — 418 595 positions × 12 dimensions', c:'calcul' },
       { t:'Puzzles — 138, chacun sourcé vers sa partie', c:'calcul' },
       { t:'Statistiques du jeu — avantage du 1er joueur, durées', c:'calcul' }
@@ -35250,7 +35304,7 @@ window.refresh3DIfActive = function() {
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:min(560px,92vw);max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
     <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
       <strong style="flex:1">📚 Parties — AbalOnline & Migs</strong>
-      <span style="color:var(--muted);font-size:12px">4479 parties · 19 variantes</span>
+      <span style="color:var(--muted);font-size:12px">4479 parties · 19 variantes (bibliothèque complète, MIGS + AbalOnline)</span>
       <button class="ctrl-btn" onclick="openPSImportModal()" style="width:auto;padding:4px 10px" title="Importer tes propres parties Abalone depuis PlayStrategy.org">🔗 PlayStrategy</button>
       <button class="ctrl-btn" onclick="closeMigsBrowser()" style="width:auto;padding:4px 10px">✕</button>
     </div>
