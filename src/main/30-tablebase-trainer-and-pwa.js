@@ -37,6 +37,82 @@ function decodeTB32Entry(entry) {
   var white = [wp[0], wp[1]].map(function (i) { return RC[i]; });          // camp faible = blanc
   return { black: black, white: white, dtw: dtw };
 }
+/* ─── FINALE PROUVÉE — SÉQUENCE (dtw 3/5/7, 195 positions) ───
+   Reutilise probe() TEL QUEL, y compris pour l'adversaire : la meme
+   fonction, appelee pour 'white', trouve deja sa MEILLEURE DEFENSE (celle
+   qui maximise son propre dtw-a-la-perte) -- confirme en lisant le corps
+   de probe() : le classement 'better' prefere le dtw le PLUS GRAND pour
+   une position perdante. Aucune logique de "pire defense" a reinventer.
+   Une ejection reelle (verifiee par le VRAI moteur, meme chemin que le
+   mode a 1 coup) est TOUJOURS une victoire, meme si ce n'est pas
+   exactement le coup de la ligne prevue -- ejecter termine la position,
+   point final. Un coup sans ejection doit correspondre a l'un des coups
+   optimaux renvoyes par probe() depuis la position de DEPART de ce
+   demi-coup ; sinon il est refuse et la position restauree, sans compter
+   comme une erreur bloquante (c'est un entrainement, pas un examen). */
+function tbSeqHandleMove(boardBefore, result) {
+  const msgEl = document.getElementById('puzzle-msg');
+  if (result.ejected) {
+    drawPuzzleBoardInteractive();
+    if (msgEl) msgEl.textContent = '💥 Éjection !';
+    animatePuzzleEjection(result.ejectRC, function() {
+      showPuzzleResult(true);
+      if (stormActive) stormPuzzleSolved();
+    });
+    return;
+  }
+  const probeBefore = AbaTB.probe(boardBefore, 'black');
+  const sig = function(b){ return JSON.stringify(Object.keys(b).sort().map(function(k){ return k+':'+b[k]; })); };
+  const afterSig = sig(puzzleBoard);
+  const matched = probeBefore && probeBefore.moves && probeBefore.moves.some(function(m){ return sig(m.after) === afterSig; });
+  if (!matched) {
+    puzzleBoard = boardBefore;
+    puzzleMovesMade--;
+    drawPuzzleBoardInteractive();
+    if (msgEl) msgEl.textContent = '➖ Coup légal, mais pas prouvé gagnant depuis cette position précise. Réessayez.';
+    return;
+  }
+  const probeOpp = AbaTB.probe(puzzleBoard, 'white');
+  if (probeOpp && probeOpp.moves && probeOpp.moves.length) {
+    puzzleBoard = probeOpp.moves[Math.floor(Math.random() * probeOpp.moves.length)].after;
+  }
+  drawPuzzleBoardInteractive();
+  if (msgEl) msgEl.textContent = '✅ Coup optimal. L\u2019adversaire résiste du mieux possible… à vous.';
+}
+function loadTablebaseSequencePuzzle() {
+  if (typeof AbaTB === 'undefined' || !AbaTB.ready || !window.TB32_ENTRIES) {
+    showToast('⚠️ Tables de finale non chargées');
+    return;
+  }
+  // gains en 3, 5 ou 7 demi-coups : les 195 positions ou AUCUNE ejection
+  // n'est disponible des le premier coup, meme contre la pire defense.
+  if (!window._TB32_MULTI) window._TB32_MULTI = window.TB32_ENTRIES.filter(function (e) { return e[1] === 1 && e[2] > 1 && (e[0] % 2) === 0; });
+  var pool = window._TB32_MULTI;
+  if (!pool.length) { showToast('⚠️ Aucune position disponible'); return; }
+  var entry = pool[Math.floor(Math.random() * pool.length)];
+  var d = decodeTB32Entry(entry);
+  puzzleBoard = {};
+  d.black.forEach(function (p) { puzzleBoard[p[0] + ',' + p[1]] = 'black'; });
+  d.white.forEach(function (p) { puzzleBoard[p[0] + ',' + p[1]] = 'white'; });
+  puzzleSelected = [];
+  puzzleMovesMade = 0;
+  puzzleEjectedCount = 0;
+  puzzleEjectAnim = null;
+  currentPuzzleIdx = -3;  // -1 genere, -2 finale prouvee (1 coup), -3 finale prouvee (sequence)
+  var stmt = document.getElementById('puzzle-statement');
+  if (stmt) stmt.innerHTML = '<strong>FINALE PROUVÉE — SÉQUENCE</strong><br><br>⚫ Les Noirs ont le trait. Le gain est prouvé en <strong style="color:var(--gold)">' + d.dtw + ' demi-coups</strong>, même contre la meilleure défense adverse — aucune éjection n\u2019est possible avant. Après chacun de vos coups, l\u2019adversaire joue sa meilleure résistance, calculée par la même table. Un coup légal mais pas optimal ne compte pas contre vous : vous rejouez depuis la même position.<br><br><em>(1 des 195 positions à plusieurs coups de la tablebase 3v2.)</em>';
+  var title = document.getElementById('puzzle-title');
+  if (title) title.textContent = 'Finale prouvée — séquence';
+  var dl = document.getElementById('puzzle-difficulty-label');
+  if (dl) dl.textContent = '🧮 Tablebase — gain prouvé en ' + d.dtw + ' demi-coups';
+  var msg = document.getElementById('puzzle-msg');
+  if (msg) msg.textContent = '⚫ Sélectionnez vos billes noires';
+  var ov = document.getElementById('puzzle-result-overlay');
+  if (ov) ov.style.display = 'none';
+  drawPuzzleBoardInteractive();
+  initPuzzleInteraction();
+}
+
 function loadTablebasePuzzle() {
   if (typeof AbaTB === 'undefined' || !AbaTB.ready || !window.TB32_ENTRIES) {
     showToast('⚠️ Tables de finale non chargées');
