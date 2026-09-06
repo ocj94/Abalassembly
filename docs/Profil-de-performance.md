@@ -1,3 +1,5 @@
+🇬🇧 [English version](Profil-de-performance.en.md)
+
 # Profil de performance
 
 Un tableau de bord pensé pour un œil analytique : chaque indicateur est **défini**, **chiffré à partir de vraies données**, et **situé** contre un corpus réel de 2 589 parties (serveur MiGs).
