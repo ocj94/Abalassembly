@@ -429,6 +429,7 @@ function nextPuzzle() {
      nouvelle position du meme mode -- change de mode sans le dire. */
   if (currentPuzzleIdx === -1) { loadGeneratedPuzzle(); return; }
   if (currentPuzzleIdx === -2) { loadTablebasePuzzle(); return; }
+  if (currentPuzzleIdx === -3) { loadTablebaseSequencePuzzle(); return; }
   currentPuzzleIdx = (currentPuzzleIdx + 1) % puzzlesData.length;
   loadPuzzle(currentPuzzleIdx);
 }
@@ -446,6 +447,9 @@ function setPuzzleMode(mode, el) {
   }
   if (mode==='tablebase') {
     loadTablebasePuzzle();
+  }
+  if (mode==='tablebase-seq') {
+    loadTablebaseSequencePuzzle();
   }
   if (mode==='storm' && !stormActive) {
     stormScore=0; stormErrors=0; stormSeconds=180;
