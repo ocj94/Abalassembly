@@ -1,3 +1,5 @@
+🇬🇧 [English version](Echanger-des-parties.en.md)
+
 # Échanger des parties
 
 ## Partie par code
