@@ -3393,6 +3393,11 @@
           <div style="font-size:12px;font-weight:600;color:var(--white)">Finale prouvée</div>
           <div style="font-size:10px;color:var(--gold)">1 sur 12,96M</div>
         </div>
+        <div class="puzzle-mode-btn" id="puzzle-mode-tablebase-seq" onclick="setPuzzleMode('tablebase-seq',this)">
+          <div style="font-size:18px;margin-bottom:3px">🧮</div>
+          <div style="font-size:12px;font-weight:600;color:var(--white)">Finale prouvée — séquence</div>
+          <div style="font-size:10px;color:var(--gold)">3, 5 ou 7 coups, adversaire optimal</div>
+        </div>
       </div>
 
       <!-- Storm UI -->
