@@ -1,3 +1,5 @@
+🇬🇧 [English version](Empreintes-historiques.en.md)
+
 # Empreintes historiques — ce qu'on peut en tirer
 
 Chaque partie du corpus (MIGS + AbalOnline) est résumée, coup par coup, en une **empreinte de 12 dimensions** — cohésion, soutien, potentiel sumito, menaces subies, profondeur tactique, mobilité... 418 595 empreintes au total, une par coup joué dans une vraie partie humaine.
