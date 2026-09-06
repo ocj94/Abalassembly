@@ -1,3 +1,5 @@
+🇬🇧 [English version](Benchmark-moteur.en.md)
+
 # Benchmark moteur — méthodologie et résultats réels
 
 Il n'existe, à notre connaissance, aucune comparaison publique et reproductible des programmes jouant à l'Abalone. Les travaux universitaires sur le sujet le notent explicitement, et l'un d'eux relève même qu'aucun serveur public ne permet à une IA de se connecter pour être évaluée.
