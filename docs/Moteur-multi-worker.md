@@ -1,3 +1,5 @@
+🇬🇧 [English version](Moteur-multi-worker.en.md)
+
 # Moteur IA multi-worker — ce qui marche, ce qui ne marche pas encore
 
 L'IA peut répartir son calcul sur plusieurs cœurs du processeur (jusqu'à 4), via des Web Workers. Cette page documente honnêtement une limite réelle découverte en investiguant une piste d'amélioration — pas pour alarmer, mais parce que prétendre le contraire irait contre l'esprit du projet.
