@@ -1,3 +1,5 @@
+🇬🇧 [English version](Moteur-experimental.en.md)
+
 # Moteur expérimental (NNUE)
 
 Une section « Moteur expérimental (NNUE) » propose de remplacer certains rouages du moteur de jeu par un petit réseau de neurones entraîné sur les vraies parties du corpus. C'est une option, pas un remplacement — le moteur actuel (poids réglés à la main et par SPSA) reste l'IA par défaut.
