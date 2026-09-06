@@ -1,3 +1,5 @@
+🇬🇧 [English version](Calcul-distribue.en.md)
+
 # Calcul distribué — pourquoi il n'y en a pas
 
 Quatre propositions distinctes de « grille de calcul volontaire » (façon World Community Grid ou BOINC) ont été étudiées pour Abalassembly. Aucune n'a été retenue. Cette page explique pourquoi, avec les chiffres, pour éviter de refaire le tour de la question dans six mois.
