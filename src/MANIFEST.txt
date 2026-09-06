@@ -34,7 +34,13 @@ main/data/15-code-06.js
 main/data/15-graph.b64
 main/data/15-code-07.js
 main/16-corpus-data-tools.js
-main/17-weakness-profile-history.js
+main/17-profil-faiblesse-a.js
+main/data/17-puzzles.json
+main/17-puzzle-interaction-and-lab-start.js
+main/17-anti-triche.js
+main/17-historique-parties.js
+main/17-analyse-style.js
+main/17-fittings-retire.js
 main/18-camera-detection.js
 main/19-chat-and-analysis-ui.js
 main/20-bots-and-themes.js
