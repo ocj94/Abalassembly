@@ -1,3 +1,5 @@
+🇬🇧 [English version](Mode-Enfant.en.md)
+
 # Mode Enfant
 
 Un mode conçu pour laisser un jeune joueur seul devant l'écran.
