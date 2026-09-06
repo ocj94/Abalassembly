@@ -218,6 +218,7 @@ function handlePuzzleClick(px, py) {
     if (!chosenDir) { puzzleSelected=[]; drawPuzzleBoardInteractive(); if(msgEl) msgEl.textContent='Direction invalide — resélectionnez'; return; }
 
     // Valide et applique le coup via le VRAI moteur (sur puzzleBoard)
+    const _tbSeqBoardBefore = (currentPuzzleIdx === -3) ? Object.assign({}, puzzleBoard) : null;
     const result = puzzleApplyMove(puzzleSelected, chosenDir);
     if (!result.valid) {
       if (msgEl) msgEl.textContent = '⛔ ' + result.reason;
@@ -225,6 +226,10 @@ function handlePuzzleClick(px, py) {
     }
     puzzleSelected = [];
     puzzleMovesMade++;
+    if (currentPuzzleIdx === -3) {
+      tbSeqHandleMove(_tbSeqBoardBefore, result);
+      return;
+    }
     drawPuzzleBoardInteractive();
     if (result.ejected) {
       // Anime la chute de la bille dans la gouttière, PUIS affiche la résolution
