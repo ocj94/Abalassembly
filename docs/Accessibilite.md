@@ -1,3 +1,5 @@
+🇬🇧 [English version](Accessibilite.en.md)
+
 # Confort & accessibilité
 
 Abalassembly propose des réglages qui changent **réellement** l'affichage et le rythme du jeu. Aucun ne prétend soigner quoi que ce soit : ce sont des choix, offerts à qui en a besoin comme à qui les préfère.
