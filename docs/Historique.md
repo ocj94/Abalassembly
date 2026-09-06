@@ -1,3 +1,5 @@
+🇬🇧 [English version](Historique.en.md)
+
 # Historique de parties
 
 Chaque partie terminée (contre l'IA, en local, par code ou en direct) est archivée automatiquement sur cet appareil — accessible depuis le bouton **Historique** du menu latéral.
