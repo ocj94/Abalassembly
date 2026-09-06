@@ -1,3 +1,5 @@
+🇬🇧 [English version](Puzzles.en.md)
+
 # Puzzles — comment ils sont vérifiés
 
 La bibliothèque contient 138 puzzles tirés de vraies parties : 78 en un coup (vérifiés hors-ligne, voir ci-dessous) et 60 en deux coups, ajoutés depuis (vérifiés autrement, voir plus bas).
