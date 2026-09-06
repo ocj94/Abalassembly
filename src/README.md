@@ -26,20 +26,36 @@ modules `import`/`export` obligeraient à retracer et corriger chaque
 référence croisée : le même risque qu'il a été décidé de ne pas prendre
 sur le fichier actuel. Choix délibéré, pas une étape provisoire.
 
-## État actuel : découpage grossier, pas encore la vraie modularisation
+## État actuel : le script principal est décomposé par thème
 
-Ce premier découpage coupe uniquement aux frontières déjà réelles du
-fichier (le méta JSON-LD, les 2 petits scripts utilitaires, l'énorme
-script principal, le script des tables de finale, le script de fin) plus
-les morceaux HTML entre eux. Il **prouve que le pipeline de build est
-fiable et sans perte** (vérifié : identique octet pour octet, cmp + MD5 +
-comparaison de contenu) mais ne réorganise rien à l'intérieur.
+`main/` contient 36 fichiers, coupés aux frontières des bandeaux de
+section déjà présents dans le code (`/* ═══ NOM DE SECTION ═══ */`), sans
+aucune ligne déplacée ni réordonnée — une coupe séquentielle, pas une
+réorganisation. Chaque nom de fichier regroupe un ou plusieurs bandeaux
+adjacents et apparentés (ex. `12-positional-analysis.js` regroupe les 7
+étages de l'empreinte positionnelle qui se suivaient déjà dans le fichier
+d'origine).
 
-`07-script-main.js` fait à lui seul plus de 7 Mo — c'est tout le moteur,
-l'IA, les pages, l'essentiel du site. Le découpage réel de *ce*
-fichier-là en modules par thème (`engine/`, `ui/`, `puzzles/`, etc.) est
-un chantier à part, plus long, pas commencé ici. C'est la partie qui
-justifie « plusieurs sessions, pas un tour ».
+Ce que ça donne concrètement : un contributeur qui veut lire le moteur
+d'IA ouvre `main/11-ai-engine-search.js` (17 Ko) au lieu de chercher dans
+un bloc de 7 Mo. Le Labo, le Gym Cerveau, la Formation Formateurs, les
+tablebases ont chacun leur fichier.
+
+**Toujours pas de vrais modules `import`/`export`** — voir la section
+ci-dessus sur pourquoi (variables globales partagées partout, `board`/
+`currentTurn`/`humanColor` en tête). L'ordre des fichiers dans
+`MANIFEST.txt` reste l'unique dépendance : changer cet ordre changerait le
+comportement, exactement comme changer l'ordre dans le fichier d'origine
+l'aurait fait.
+
+`main/15-opening-book.js` reste gros (5,6 Mo) : il contient les données
+compressées en base64 (corpus MIGS/AbalOnline, arbres d'ouverture), pas du
+code. Séparer les données du code qui les charge est un raffinement
+possible, pas fait ici.
+
+Vérifié à chaque étape de ce découpage : reconstruction identique octet
+pour octet à la version précédente (`node tools/build.js --check`), à
+chaque fois avant de passer à l'étape suivante.
 
 ## Fichiers
 
@@ -48,7 +64,7 @@ justifie « plusieurs sessions, pas un tour ».
 | `00-html.part` … `12-html.part` (pairs) | Fragments HTML/CSS entre les blocs de script |
 | `01-jsonld.part` | Métadonnées JSON-LD (SEO) |
 | `03-script-utils-a.js`, `05-script-utils-b.js` | Deux petits scripts utilitaires en tête de page |
-| `07-script-main.js` | Le script principal — moteur, IA, toutes les pages (encore un seul bloc) |
+| `main/00-*.js` … `main/35-*.js` | Le script principal, décomposé par thème (voir ci-dessus) |
 | `09-script-tablebase.js` | Chargement des tables de finale (copie thread principal) + arbre d'ouverture |
 | `11-script-tail.js` | Script de fin de page |
 | `MANIFEST.txt` | Ordre exact d'assemblage — source de vérité pour `tools/build.js` |
