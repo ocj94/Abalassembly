@@ -1,3 +1,5 @@
+🇬🇧 [English version](Home.en.md)
+
 # Abalassembly — wiki
 
 Un jeu d'Abalone complet dans un seul fichier HTML : zéro dépendance, hors-ligne, GPL v3.
