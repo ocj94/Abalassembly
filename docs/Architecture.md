@@ -1,3 +1,5 @@
+🇬🇧 [English version](Architecture.en.md)
+
 # Architecture — les schémas
 
 Trois cartes pour comprendre comment Abalassembly est construit. Elles sont **écrites à la main** et doivent être mises à jour quand l'architecture change — contrairement à la « Fiche pour IA » du site, qui compte tout à l'exécution.
