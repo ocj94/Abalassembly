@@ -1,3 +1,5 @@
+🇬🇧 [English version](APGN.en.md)
+
 # APGN — Abalone Portable Game Notation
 
 Un format texte pour échanger des parties d'Abalone, calqué sur le PGN des
