@@ -1,3 +1,5 @@
+🇬🇧 [English version](README.en.md)
+
 # Parties
 
 Des parties d'Abalone au format [APGN](../APGN.md). Chaque partie de ce dossier
