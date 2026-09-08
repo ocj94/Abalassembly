@@ -655,7 +655,7 @@ function afterHumanMove() {
   gameBestHint = null;  // efface la suggestion après avoir joué
   if (_puzzleActive) { checkPuzzleMove(); return; }   // mode puzzle : vérifie, pas d'IA ni de sauvegarde
   if (!variantMode) saveGameState();      // sauvegarde automatique — jamais pendant l'exploration d'une variante
-  if (gameMode === 'ai' && currentTurn === aiColor() && !gameOver) {
+  if (GameMode.get() === 'ai' && currentTurn === aiColor() && !gameOver) {
     setTimeout(aiMove, 800 + Math.random()*600);
   }
 }
