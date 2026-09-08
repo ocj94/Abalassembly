@@ -374,7 +374,7 @@ function getPlayerHeatmap(playerId) {
    - mode « 2 joueurs » même écran : les deux camps sont locaux, donc les deux
    Sert à ranger les coups dans MA carte noire ou MA carte blanche. */
 function isMyColor(color) {
-  if (typeof gameMode !== 'undefined' && gameMode === 'local') return true;
+  if (typeof GameMode !== 'undefined' && GameMode.get() === 'local') return true;
   const hc = (typeof humanColor !== 'undefined') ? humanColor : 'black';
   return color === hc;
 }
