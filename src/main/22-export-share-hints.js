@@ -342,13 +342,13 @@ function startBotGame(botColor) {
   botDuelMode = false;
   GameMode.set('ai');
   // Le bot joue SA couleur : contre Bot Blanc tu as les noirs, contre Bot Noir tu as les blancs.
-  humanColor = (botColor === 'black') ? 'white' : 'black';
+  HumanColor.set((botColor === 'black') ? 'white' : 'black');
   resetGame();
   applyPovOrientation();
   const advisor = advisorBotColor();
   const oppName = (botColor === 'black') ? 'Bot Noir 😊' : 'Bot Blanc 😒';
   const advName = (advisor === 'black') ? 'Bot Noir' : 'Bot Blanc';
-  const myColorName = (humanColor === 'black') ? 'les Noirs ⚫' : 'les Blancs ⚪';
+  const myColorName = (HumanColor.get() === 'black') ? 'les Noirs ⚫' : 'les Blancs ⚪';
   showToast('⚔️ Tu joues ' + myColorName + ' contre le ' + oppName + ' — le ' + advName + ' t\'accompagne');
   // message d'accueil du conseiller
   setTimeout(function(){
@@ -356,7 +356,7 @@ function startBotGame(botColor) {
     else showBotBubble('white', 'Tiens, tu prends les noirs contre le Bot Noir ? Hmph. Je regarde… et je commenterai. Ne me déçois pas trop. 😒');
   }, 600);
   // Si l'humain joue les blancs, c'est l'IA (noirs) qui commence
-  if (humanColor === 'white' && currentTurn === 'black') {
+  if (HumanColor.get() === 'white' && currentTurn === 'black') {
     setTimeout(aiMove, 1400);
   }
 }
@@ -572,7 +572,7 @@ function botAdvisorComment(which, before, after, capDelta) {
   // Le bot BLANC, après s'être moqué (sur un mauvais coup), donne le bon coup (son humanité)
   if (which === 'white' && quality === 'warn') {
     let best = null;
-    try { best = searchBestMove(humanColor, 2, 800); } catch(e) {}
+    try { best = searchBestMove(HumanColor.get(), 2, 800); } catch(e) {}
     if (best && best.cells) {
       const from = coordToABAPRO(best.cells[0].r, best.cells[0].c);
       const tip = best.eject ? from + ' (éjection !)' : from + (best.type==='push'?' (poussée)':best.type==='broadside'?' (latéral)':'');
@@ -582,7 +582,7 @@ function botAdvisorComment(which, before, after, capDelta) {
   // Le bot NOIR glisse parfois un petit conseil bonus quand le coup est moyen/mauvais
   else if (which === 'black' && quality !== 'good') {
     let best = null;
-    try { best = searchBestMove(humanColor, 2, 800); } catch(e) {}
+    try { best = searchBestMove(HumanColor.get(), 2, 800); } catch(e) {}
     if (best && best.cells && Math.random() < 0.7) {
       const from = coordToABAPRO(best.cells[0].r, best.cells[0].c);
       const tip = best.eject ? from + ' (éjection !)' : from + (best.type==='push'?' (poussée)':best.type==='broadside'?' (latéral)':'');
