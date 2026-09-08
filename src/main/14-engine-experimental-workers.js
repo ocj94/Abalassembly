@@ -571,7 +571,7 @@ function forceAINow() {
 
   try {
     const moves = getAllMovesForColor(ai);
-    if (!moves.length) { if (typeof humanColor!=='undefined'){ currentTurn = humanColor; updateStatus(); } _aiForcing = false; return; }
+    if (!moves.length) { if (typeof HumanColor!=='undefined'){ currentTurn = HumanColor.get(); updateStatus(); } _aiForcing = false; return; }
     // recherche éclair : profondeur 1, budget minimal → coup immédiat mais légal
     let chosen = null;
     try { chosen = searchBestMove(ai, 1, 120, (typeof _gameHistKeys==='function'?_gameHistKeys():null)); } catch(e){ chosen = null; }
@@ -583,7 +583,7 @@ function forceAINow() {
     if (chosen && typeof executeAIMove === 'function') executeAIMove(chosen);
   } catch(e) {
     // en cas d'échec total, ne fige pas la partie : rend la main au joueur
-    if (typeof humanColor!=='undefined'){ currentTurn = humanColor; updateStatus(); }
+    if (typeof HumanColor!=='undefined'){ currentTurn = HumanColor.get(); updateStatus(); }
   }
   _aiForcing = false;
 }
