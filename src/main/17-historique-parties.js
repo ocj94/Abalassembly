@@ -25,7 +25,7 @@ function _recordGameHistory(winner, reason){
     if (typeof gameCodeEncode !== 'function') return;
     const code = gameCodeEncode();
     if (!code) return; // aucun coup joue -- rien a enregistrer
-    const mode = (typeof gameMode !== 'undefined') ? gameMode : 'ai';
+    const mode = (typeof GameMode !== 'undefined') ? GameMode.get() : 'ai';
     const entry = {
       id: Date.now() + '_' + Math.random().toString(36).slice(2,7),
       date: new Date().toISOString(),
