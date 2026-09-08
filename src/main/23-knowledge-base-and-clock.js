@@ -315,7 +315,7 @@ function gameShowBestMove() {
   // propre tour ('Ce n'est pas votre tour' alors que si), et le coup
   // cherche ensuite (voir plus bas) etait celui des noirs -- le coup de
   // l'IA elle-meme, affiche comme si c'etait "votre" suggestion.
-  if (GameMode.get() === 'ai' && currentTurn !== humanColor) { showToast('⛔ Ce n\'est pas votre tour'); return; }
+  if (GameMode.get() === 'ai' && currentTurn !== HumanColor.get()) { showToast('⛔ Ce n\'est pas votre tour'); return; }
   showToast('🧠 Recherche du meilleur coup...');
   setTimeout(function() {
     // searchBestMove travaille sur la globale board (qui est déjà la position courante)
