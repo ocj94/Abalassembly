@@ -31,7 +31,7 @@ function _recordGameHistory(winner, reason){
       date: new Date().toISOString(),
       variant: (typeof currentLayout !== 'undefined') ? currentLayout : 'standard',
       mode: mode,
-      humanColor: (typeof humanColor !== 'undefined') ? humanColor : 'black',
+      humanColor: (typeof HumanColor !== 'undefined') ? HumanColor.get() : 'black',
       winner: winner || null,
       reason: reason || null,
       moveCount: (typeof moveCount !== 'undefined') ? moveCount : 0,
