@@ -482,7 +482,7 @@ function startConfiguredGame() {
      lancement. Demande d'Olivier : le choisir comme un adversaire, pas
      comme une action en cours de partie. */
   const _isRtc = (c.mode === 'rtc');
-  step(function(){ if (typeof gameMode !== 'undefined') gameMode = _isRtc ? 'local' : c.mode; });
+  step(function(){ if (typeof GameMode !== 'undefined') GameMode.set(_isRtc ? 'local' : c.mode); });
   step(function(){
     ['mode-ai','mode-local'].forEach(function(id){
       var b = document.getElementById(id); if (b) b.classList.toggle('active', id === 'mode-' + (_isRtc ? 'local' : c.mode));
