@@ -356,7 +356,7 @@ function computeGameMistakes(humanColor, topN){
    et propose de sauter directement dessus dans l'onglet Analyse. */
 function openMistakesReview(){
   if (typeof analysisLoadLastGame !== 'function' || typeof computeGameMistakes !== 'function') return;
-  const humanC = (typeof humanColor !== 'undefined') ? humanColor : 'black';
+  const humanC = (typeof HumanColor !== 'undefined') ? HumanColor.get() : 'black';
   analysisLoadLastGame();
   const mistakes = computeGameMistakes(humanC, 3);
 
