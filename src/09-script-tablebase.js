@@ -114,8 +114,8 @@ window.canInteractWithBoard = function () {
   if (typeof replayMode !== 'undefined' && replayMode
       && !(typeof variantMode !== 'undefined' && variantMode)) return false;
   if (typeof GameMode !== 'undefined' && GameMode.get() === 'ai'
-      && typeof currentTurn !== 'undefined' && typeof humanColor !== 'undefined'
-      && currentTurn !== humanColor) return false;
+      && typeof currentTurn !== 'undefined' && typeof HumanColor !== 'undefined'
+      && currentTurn !== HumanColor.get()) return false;
   return true;
 };
 window._1dCanPlay = window.canInteractWithBoard;
