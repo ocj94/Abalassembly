@@ -443,7 +443,7 @@ function _flagFall(loser){
   const winner = loser==='black' ? 'white' : 'black';
   triggerWin(winner, 'temps');
   const ti=document.getElementById('win-title'), sub=document.getElementById('win-sub');
-  if(typeof gameMode!=='undefined' && gameMode==='local'){
+  if(typeof GameMode!=='undefined' && GameMode.get()==='local'){
     if(ti) ti.textContent='Au temps !';
     if(sub) sub.textContent='⏱️ Les '+(loser==='black'?'Noirs':'Blancs')+' ont dépassé leur temps.';
   } else {
@@ -480,7 +480,7 @@ function requestUndo() {
   const requester = currentTurn === 'black' ? 'white' : 'black';
   const requesterName = requester === 'black' ? 'Les Noirs' : 'Les Blancs';
 
-  if (gameMode === 'ai') {
+  if (GameMode.get() === 'ai') {
     // Le joueur humain (noir) demande, l'IA (blanc) décide aléatoirement
     if (requester !== 'black') { showToast('Seul vous pouvez demander une annulation.'); return; }
     showToast('⏳ Demande d\'annulation envoyée à l\'adversaire…');
@@ -531,7 +531,7 @@ function requestPause() {
 
   const requesterName = currentTurn === 'black' ? 'Joueur Noir' : 'Joueur Blanc';
 
-  if (gameMode === 'ai') {
+  if (GameMode.get() === 'ai') {
     showToast('⏳ Demande de pause envoyée à l\'adversaire…');
     setTimeout(function() {
       if (Math.random() < 0.7) {  // l'IA accepte ~70%
@@ -599,7 +599,7 @@ function updateCaptures() {
 function updateStatus() {
   if (typeof refreshAnalysisIfOpen === 'function') refreshAnalysisIfOpen();
   let txt, msg;
-  if (gameMode === 'local') {
+  if (GameMode.get() === 'local') {
     // Mode 2 joueurs : on nomme la couleur active
     const who = currentTurn === 'black' ? 'Noirs ⚫' : 'Blancs ⚪';
     txt = `Tour des ${who} — Coup ${moveCount+1}`;
@@ -780,7 +780,7 @@ if (canvas) {
     if (window._isProjector) return;   // fenetre projecteur : jamais interactif
     canvas._dragJustEnded = false;   // nouvelle interaction : on repart propre
     if (gameOver) return;
-    if (gameMode === 'ai' && currentTurn !== humanColor) return;
+    if (GameMode.get() === 'ai' && currentTurn !== humanColor) return;
     const pos = canvasPos(clientX, clientY);
     const hex = getHexAt(pos.x, pos.y);
     if (!hex) return;
@@ -852,7 +852,7 @@ if (canvas) {
     if (canvas._dragJustEnded) { canvas._dragJustEnded = false; return; }
     if (gameOver) return;
     if (replayMode && !variantMode) return;   // navigation replay = lecture seule, sauf en exploration de variante
-    if (gameMode === 'ai' && currentTurn !== humanColor) return;
+    if (GameMode.get() === 'ai' && currentTurn !== humanColor) return;
     const pos = canvasPos(e.clientX, e.clientY);
     const hex = getHexAt(pos.x, pos.y);
     if (!hex) return;
