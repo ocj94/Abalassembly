@@ -494,10 +494,10 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
   // Applique le coup
   pushUndoState();
   // Mode Coach : capture l'état stratégique AVANT le coup (du point de vue de l'humain)
-  let coachBefore = null, coachCapBefore = (humanColor === 'black' ? capturedByBlack : capturedByWhite);
-  if ((coachEnabled || advisorEnabled) && me === humanColor) coachBefore = evalFactors(humanColor);
+  let coachBefore = null, coachCapBefore = (HumanColor.get() === 'black' ? capturedByBlack : capturedByWhite);
+  if ((coachEnabled || advisorEnabled) && me === HumanColor.get()) coachBefore = evalFactors(HumanColor.get());
   // Analyse de style : état AVANT le coup (toujours active, réutilise coachBefore si dispo)
-  let styleBefore = (me === humanColor) ? (coachBefore || evalFactors(humanColor)) : null;
+  let styleBefore = (me === HumanColor.get()) ? (coachBefore || evalFactors(HumanColor.get())) : null;
   // Prépare l'animation de glissement (déplacements et latéraux uniquement)
   let slidePieces = null;
   if (info.type === 'move' || info.type === 'broadside') {
@@ -556,27 +556,27 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
   updateCaptures();
 
   // Mode Coach : commente le coup du joueur
-  if (coachEnabled && me === humanColor && coachBefore) {
-    const coachAfter = evalFactors(humanColor);
-    const capDelta = (humanColor === 'black' ? capturedByBlack : capturedByWhite) - coachCapBefore;
+  if (coachEnabled && me === HumanColor.get() && coachBefore) {
+    const coachAfter = evalFactors(HumanColor.get());
+    const capDelta = (HumanColor.get() === 'black' ? capturedByBlack : capturedByWhite) - coachCapBefore;
     showCoachBubble(coachComment(coachBefore, coachAfter, capDelta));
   }
 
   // Bot conseiller : le bot opposé à l'adversaire commente ton coup (gentil ou moqueur)
-  if (advisorEnabled && me === humanColor && coachBefore) {
+  if (advisorEnabled && me === HumanColor.get() && coachBefore) {
     const advColor = advisorBotColor();
     if (advColor) {
-      const aAfter = evalFactors(humanColor);
-      const capDelta = (humanColor === 'black' ? capturedByBlack : capturedByWhite) - coachCapBefore;
+      const aAfter = evalFactors(HumanColor.get());
+      const capDelta = (HumanColor.get() === 'black' ? capturedByBlack : capturedByWhite) - coachCapBefore;
       const txt = botAdvisorComment(advColor, coachBefore, aAfter, capDelta);
       showBotBubble(advColor, txt);
     }
   }
 
   // Analyse de style : enregistre ce coup humain (toujours, même hors coach/conseiller)
-  if (me === humanColor && styleBefore) {
-    const styleAfter = evalFactors(humanColor);
-    const sCapDelta = (humanColor === 'black' ? capturedByBlack : capturedByWhite) - coachCapBefore;
+  if (me === HumanColor.get() && styleBefore) {
+    const styleAfter = evalFactors(HumanColor.get());
+    const sCapDelta = (HumanColor.get() === 'black' ? capturedByBlack : capturedByWhite) - coachCapBefore;
     recordStyleMove(styleBefore, styleAfter, sCapDelta, info);
   }
 
