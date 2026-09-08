@@ -176,7 +176,7 @@ function renderHeatmapCard(){
   /* Les onglets suivent humanColor. « Vous » designait auparavant les noirs
      en dur : des que le joueur tenait les blancs, les deux cartes etaient
      inversees. En mode 2 joueurs, aucun camp n'est « l'adversaire ». */
-  const hc = (typeof humanColor !== 'undefined') ? humanColor : 'black';
+  const hc = (typeof HumanColor !== 'undefined') ? HumanColor.get() : 'black';
   const opp = (hc === 'black') ? 'white' : 'black';
   const localGame = (typeof GameMode !== 'undefined' && GameMode.get() === 'local');
   if (_heatmapColor !== 'black' && _heatmapColor !== 'white') _heatmapColor = localGame ? 'black' : hc;
