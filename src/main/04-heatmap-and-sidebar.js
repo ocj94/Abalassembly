@@ -480,7 +480,7 @@ function setDifficulty(level, btn) {
 
 /* ─── MODE DE JEU ─── */
 function setGameMode(mode, btn) {
-  gameMode = mode;
+  GameMode.set(mode);
   // Mode classique : l'humain joue les noirs, pas de bot conseiller ni de duel.
   humanColor = 'black';
   if (typeof applyPovOrientation === 'function') applyPovOrientation();
