@@ -1,0 +1,105 @@
+🇬🇧 [English version](RECOVERY.en.md)
+
+# Guide de reprise
+
+Ce document part d'une hypothèse précise : tu reprends ce projet sans
+pouvoir poser de question à son créateur. Il ne remplace pas le
+[wiki](docs/Home.md) ni [`CONTRIBUTING.md`](CONTRIBUTING.md) — il donne le
+contexte que ni l'un ni l'autre ne couvre : par où commencer, ce qui est
+vraiment tranché, et ce qui ne l'est pas.
+
+## Par où commencer
+
+1. [`README.md`](README.md) — la vue d'ensemble
+2. [`docs/Home.md`](docs/Home.md) — le sommaire du wiki, toutes les pages
+3. [`docs/Architecture.md`](docs/Architecture.md) — les 3 schémas (moteur, données, modes de jeu)
+4. [`src/README.md`](src/README.md) — comment le code source est organisé
+
+Tout le wiki existe en français et en anglais (lien de bascule en tête de
+chaque page).
+
+## Les principes qui ne se négocient pas
+
+Ce ne sont pas des préférences de style. Ce sont des règles qui, si tu les
+casses, changent la nature du projet :
+
+- **Jamais de donnée inventée.** Un chiffre affiché est calculé à
+  l'exécution ou sourcé, jamais estimé "à vue de nez". Une valeur qui
+  manque s'affiche `—`, jamais `0` — un zéro invente une absence de la même
+  façon qu'un chiffre inventé invente une présence.
+- **Vérifier avant d'affirmer.** Avant de dire qu'un bug existe, qu'une
+  fonctionnalité manque, ou qu'un chiffre est juste : va lire le code réel
+  déployé (`raw.githubusercontent.com`, pas une copie locale qui pourrait
+  dater), pas ce qu'un README ou une conversation passée en dit.
+- **Un seul fichier, hors-ligne, pour le joueur.** `index.html` doit rester
+  jouable sans réseau, y compris ouvert directement depuis `file://` ou une
+  clé USB. `src/` existe pour le confort de développement, mais ne change
+  rien à cette promesse — voir plus bas pourquoi ce n'est pas encore de
+  vrais modules.
+- **Documenter une limite plutôt que la taire.** Le projet a plusieurs pages
+  qui disent explicitement "ceci ne marche pas encore, voici pourquoi"
+  ([`docs/Moteur-multi-worker.md`](docs/Moteur-multi-worker.md),
+  [`docs/Calcul-distribue.md`](docs/Calcul-distribue.md)). C'est un choix
+  assumé, pas un aveu à corriger en cachant le problème.
+
+## Comment le code est vraiment organisé
+
+`board`, `currentTurn`, `humanColor`, `capturedByBlack` et une dizaine
+d'autres variables globales portent tout l'état du jeu, lues et écrites
+directement depuis des centaines d'endroits (`board` seule : plus de 600
+occurrences). `src/` découpe le code en fichiers lisibles, mais reste une
+**concaténation plate** — aucun `import`/`export` réel. Ce n'est pas un
+chantier interrompu : de vrais modules obligeraient à retracer et corriger
+chaque appelant un par un, et un seul oublié ne fait pas planter
+bruyamment — il continue de lire l'ancienne variable pendant qu'une autre
+partie du code écrit dans la nouvelle. Un bug de divergence silencieuse,
+pas une erreur visible. Si tu veux vraiment t'y attaquer un jour, commence
+par chiffrer précisément le nombre d'appelants de chaque variable avant de
+toucher quoi que ce soit — ne suppose jamais que c'est plus petit que ça
+n'y paraît.
+
+**Deux copies du moteur existent, volontairement** : une pour le thread
+principal, une pour le Web Worker (recherche IA sans geler l'interface).
+Un script de synchronisation (voir `abalassembly-api/scripts/check-engine-sync.js`
+et son équivalent conceptuel côté client) doit rester vert — une fonction
+mise à jour d'un côté sans l'autre est un vrai bug déjà survenu par le
+passé (« OPP_DIR »), pas une simple négligence de style.
+
+## Ce qui reste ouvert, honnêtement
+
+- **Classement personnel + ELO local contre l'IA** — jamais commencé.
+- **`estMonTour()`/`monCamp()`** — le point de vérité unique pour "qui est
+  l'humain" existe et corrige des bugs réels déjà trouvés (statut de
+  partie, conseil de coup, affichage des éjections — tous inversés pour un
+  joueur en blanc avant correction). Il n'a **pas** fait l'objet d'un
+  balayage exhaustif de tout le fichier : d'autres endroits codant encore
+  l'hypothèse "noir = moi" peuvent exister, non trouvés.
+- **Comparabilité des scores entre workers** — chaque worker a sa propre
+  mémoire de recherche, jamais partagée (`SharedArrayBuffer` indisponible
+  sur GitHub Pages). Documenté, pas résolu.
+- **Quatre chiffres de variantes différents** (13 avec livre statistique,
+  18 dans la bibliothèque AbalOnline, 19 dans le corpus complet, 20 dans la
+  galerie jouable) — clarifiés dans les textes affichés, jamais unifiés en
+  un seul si tu veux vraiment n'en garder qu'un.
+- **La suite de coups (variante principale)** — affichée pour le conseil de
+  coup pendant une partie (2 demi-coups, honnêtement bornée à la profondeur
+  réellement cherchée), pas pour le panneau multi-PV : étendre chaque
+  candidat du panneau donnerait des suites fiables pour le premier et
+  approximatives pour les autres, à cause de l'élagage alpha-bêta.
+- **Abalassembly Intelligence** — un nom qui circule dans les discussions
+  pour désigner une couche d'orchestration qui n'existe pas encore. Les
+  capacités (moteur, historique, empreintes, profil, analyse, puzzles,
+  Labo) existent déjà, chacune rebranchant ce dont elle a besoin
+  directement plutôt que de passer par un point commun.
+
+## Pièges déjà rencontrés, pour ne pas les retrouver
+
+- **`console.assert` ne stoppe rien en Node.js.** Un test qui l'utilise
+  peut sembler passer alors qu'il a échoué. Toujours vérifier le vrai code
+  de sortie du processus.
+- **`raw.githubusercontent.com` a un délai de propagation** après un
+  commit (15 à 30 secondes observées). Un 404 immédiatement après un push
+  n'est pas un échec — réessaie avant de conclure.
+- **Un token GitHub ne doit jamais persister** au-delà de la session qui
+  s'en sert — détruit immédiatement après usage, jamais commité, jamais
+  laissé dans un fichier de configuration.
