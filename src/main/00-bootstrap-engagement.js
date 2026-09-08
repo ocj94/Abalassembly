@@ -375,7 +375,7 @@ function getPlayerHeatmap(playerId) {
    Sert à ranger les coups dans MA carte noire ou MA carte blanche. */
 function isMyColor(color) {
   if (typeof GameMode !== 'undefined' && GameMode.get() === 'local') return true;
-  const hc = (typeof humanColor !== 'undefined') ? humanColor : 'black';
+  const hc = (typeof HumanColor !== 'undefined') ? HumanColor.get() : 'black';
   return color === hc;
 }
 
