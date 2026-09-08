@@ -7827,7 +7827,7 @@ function getPlayerHeatmap(playerId) {
    - mode « 2 joueurs » même écran : les deux camps sont locaux, donc les deux
    Sert à ranger les coups dans MA carte noire ou MA carte blanche. */
 function isMyColor(color) {
-  if (typeof gameMode !== 'undefined' && gameMode === 'local') return true;
+  if (typeof GameMode !== 'undefined' && GameMode.get() === 'local') return true;
   const hc = (typeof humanColor !== 'undefined') ? humanColor : 'black';
   return color === hc;
 }
@@ -9244,7 +9244,7 @@ function startConfiguredGame() {
      lancement. Demande d'Olivier : le choisir comme un adversaire, pas
      comme une action en cours de partie. */
   const _isRtc = (c.mode === 'rtc');
-  step(function(){ if (typeof gameMode !== 'undefined') gameMode = _isRtc ? 'local' : c.mode; });
+  step(function(){ if (typeof GameMode !== 'undefined') GameMode.set(_isRtc ? 'local' : c.mode); });
   step(function(){
     ['mode-ai','mode-local'].forEach(function(id){
       var b = document.getElementById(id); if (b) b.classList.toggle('active', id === 'mode-' + (_isRtc ? 'local' : c.mode));
@@ -10120,7 +10120,7 @@ function setDifficulty(level, btn) {
 
 /* ─── MODE DE JEU ─── */
 function setGameMode(mode, btn) {
-  gameMode = mode;
+  GameMode.set(mode);
   // Mode classique : l'humain joue les noirs, pas de bot conseiller ni de duel.
   humanColor = 'black';
   if (typeof applyPovOrientation === 'function') applyPovOrientation();
@@ -11701,7 +11701,19 @@ const ROWS = [5,6,7,8,9,8,7,6,5];
 let board = {};
 let selected = [];
 let currentTurn = 'black';
-let gameMode = 'ai';   // 'ai' = vs ordinateur, 'local' = 2 joueurs même écran
+const GameMode = (function(){
+  // Encapsulation, pas de vrais import/export : ceux-ci exigent
+  // type="module" sur la balise <script>, bloque par CORS quand ouvert
+  // via file:// -- verifie par recherche avant d'ecrire ce code. Cette
+  // forme garde une interface explicite (GameMode.get()/.set()) sans ce
+  // risque, et tools/build.js n'a besoin d'aucun changement : la sortie
+  // reste un script classique, toujours de la concatenation plate.
+  let value = 'ai';   // 'ai' = vs ordinateur, 'local' = 2 joueurs même écran
+  return {
+    get: function(){ return value; },
+    set: function(v){ value = v; }
+  };
+})();
 // Couleur contrôlée par l'humain en mode IA. 'black' par défaut.
 // Devient 'white' quand on affronte le Bot Noir (qui, lui, joue les noirs).
 let humanColor = 'black';
@@ -11717,7 +11729,7 @@ function aiColor() { return humanColor === 'black' ? 'white' : 'black'; }
    un cote pour l'attribution). Purement une consolidation de lisibilite —
    aucune des trois anciennes implementations n'avait de bug actif restant. */
 function monCamp() {
-  if (typeof gameMode !== 'undefined' && gameMode === 'local') return 'black';
+  if (typeof GameMode !== 'undefined' && GameMode.get() === 'local') return 'black';
   return (typeof humanColor !== 'undefined' && humanColor) ? humanColor : 'black';
 }
 // "Est-ce mon tour ?" — juste une lecture de monCamp() par rapport au trait
@@ -11784,7 +11796,7 @@ function theta3DToBoardRotation(rad) {
    rotation puisqu'ils sont traces via hexCoord, et les clics aussi, la
    detection de case passant par la meme fonction. */
 function applyPovOrientation() {
-  const camp = (typeof gameMode !== 'undefined' && gameMode === 'local')
+  const camp = (typeof GameMode !== 'undefined' && GameMode.get() === 'local')
     ? 'black'
     : ((typeof humanColor !== 'undefined') ? humanColor : 'black');
   boardRotation = (camp === 'white') ? 180 : 0;
@@ -14564,7 +14576,7 @@ function _flagFall(loser){
   const winner = loser==='black' ? 'white' : 'black';
   triggerWin(winner, 'temps');
   const ti=document.getElementById('win-title'), sub=document.getElementById('win-sub');
-  if(typeof gameMode!=='undefined' && gameMode==='local'){
+  if(typeof GameMode!=='undefined' && GameMode.get()==='local'){
     if(ti) ti.textContent='Au temps !';
     if(sub) sub.textContent='⏱️ Les '+(loser==='black'?'Noirs':'Blancs')+' ont dépassé leur temps.';
   } else {
@@ -14601,7 +14613,7 @@ function requestUndo() {
   const requester = currentTurn === 'black' ? 'white' : 'black';
   const requesterName = requester === 'black' ? 'Les Noirs' : 'Les Blancs';
 
-  if (gameMode === 'ai') {
+  if (GameMode.get() === 'ai') {
     // Le joueur humain (noir) demande, l'IA (blanc) décide aléatoirement
     if (requester !== 'black') { showToast('Seul vous pouvez demander une annulation.'); return; }
     showToast('⏳ Demande d\'annulation envoyée à l\'adversaire…');
@@ -14652,7 +14664,7 @@ function requestPause() {
 
   const requesterName = currentTurn === 'black' ? 'Joueur Noir' : 'Joueur Blanc';
 
-  if (gameMode === 'ai') {
+  if (GameMode.get() === 'ai') {
     showToast('⏳ Demande de pause envoyée à l\'adversaire…');
     setTimeout(function() {
       if (Math.random() < 0.7) {  // l'IA accepte ~70%
@@ -14720,7 +14732,7 @@ function updateCaptures() {
 function updateStatus() {
   if (typeof refreshAnalysisIfOpen === 'function') refreshAnalysisIfOpen();
   let txt, msg;
-  if (gameMode === 'local') {
+  if (GameMode.get() === 'local') {
     // Mode 2 joueurs : on nomme la couleur active
     const who = currentTurn === 'black' ? 'Noirs ⚫' : 'Blancs ⚪';
     txt = `Tour des ${who} — Coup ${moveCount+1}`;
@@ -14901,7 +14913,7 @@ if (canvas) {
     if (window._isProjector) return;   // fenetre projecteur : jamais interactif
     canvas._dragJustEnded = false;   // nouvelle interaction : on repart propre
     if (gameOver) return;
-    if (gameMode === 'ai' && currentTurn !== humanColor) return;
+    if (GameMode.get() === 'ai' && currentTurn !== humanColor) return;
     const pos = canvasPos(clientX, clientY);
     const hex = getHexAt(pos.x, pos.y);
     if (!hex) return;
@@ -14973,7 +14985,7 @@ if (canvas) {
     if (canvas._dragJustEnded) { canvas._dragJustEnded = false; return; }
     if (gameOver) return;
     if (replayMode && !variantMode) return;   // navigation replay = lecture seule, sauf en exploration de variante
-    if (gameMode === 'ai' && currentTurn !== humanColor) return;
+    if (GameMode.get() === 'ai' && currentTurn !== humanColor) return;
     const pos = canvasPos(e.clientX, e.clientY);
     const hex = getHexAt(pos.x, pos.y);
     if (!hex) return;
@@ -15647,7 +15659,7 @@ function afterHumanMove() {
   gameBestHint = null;  // efface la suggestion après avoir joué
   if (_puzzleActive) { checkPuzzleMove(); return; }   // mode puzzle : vérifie, pas d'IA ni de sauvegarde
   if (!variantMode) saveGameState();      // sauvegarde automatique — jamais pendant l'exploration d'une variante
-  if (gameMode === 'ai' && currentTurn === aiColor() && !gameOver) {
+  if (GameMode.get() === 'ai' && currentTurn === aiColor() && !gameOver) {
     setTimeout(aiMove, 800 + Math.random()*600);
   }
 }
@@ -21527,7 +21539,7 @@ function startTournamentMatch(){
 }
 function _tourneyAfterStart(){
   const M=_tourneyMatch; if(!M) return;
-  gameMode='ai';
+  GameMode.set('ai');
   humanColor=M.human;
   const bar=document.getElementById('tourney-bar'); if(bar) bar.style.display='flex';
   const t=document.getElementById('tb-title');
@@ -22042,7 +22054,7 @@ function _recordGameHistory(winner, reason){
     if (typeof gameCodeEncode !== 'function') return;
     const code = gameCodeEncode();
     if (!code) return; // aucun coup joue -- rien a enregistrer
-    const mode = (typeof gameMode !== 'undefined') ? gameMode : 'ai';
+    const mode = (typeof GameMode !== 'undefined') ? GameMode.get() : 'ai';
     const entry = {
       id: Date.now() + '_' + Math.random().toString(36).slice(2,7),
       date: new Date().toISOString(),
@@ -22361,7 +22373,7 @@ function renderHeatmapCard(){
      inversees. En mode 2 joueurs, aucun camp n'est « l'adversaire ». */
   const hc = (typeof humanColor !== 'undefined') ? humanColor : 'black';
   const opp = (hc === 'black') ? 'white' : 'black';
-  const localGame = (typeof gameMode !== 'undefined' && gameMode === 'local');
+  const localGame = (typeof GameMode !== 'undefined' && GameMode.get() === 'local');
   if (_heatmapColor !== 'black' && _heatmapColor !== 'white') _heatmapColor = localGame ? 'black' : hc;
   const forColor = _heatmapColor;
   const { maxCount } = computeGameHeatmap(boardSnapshots, forColor);
@@ -26883,7 +26895,7 @@ function exportGameNotation() {
     const vlabel = (typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[currentLayout]) ? HEAT_VARIANT_LABEL[currentLayout] : currentLayout;
     header += '\n[Variante] ' + vlabel;
   }
-  if (typeof gameMode !== 'undefined' && gameMode === 'ai') {
+  if (typeof GameMode !== 'undefined' && GameMode.get() === 'ai') {
     const st = (typeof _setupCfg !== 'undefined' && _setupCfg.style) ? _setupCfg.style : null;
     const df = (typeof _setupCfg !== 'undefined' && _setupCfg.diff) ? _setupCfg.diff : null;
     if (st || df) header += '\n[IA] ' + [st, df].filter(Boolean).join(' — ');
@@ -27036,7 +27048,7 @@ function startBotGame(botColor) {
   opponentBot = botColor;
   advisorEnabled = true;
   botDuelMode = false;
-  gameMode = 'ai';
+  GameMode.set('ai');
   // Le bot joue SA couleur : contre Bot Blanc tu as les noirs, contre Bot Noir tu as les blancs.
   humanColor = (botColor === 'black') ? 'white' : 'black';
   resetGame();
@@ -27064,7 +27076,7 @@ function startBotDuel() {
   opponentBot = null;
   advisorEnabled = false;
   botDuelMode = true;
-  gameMode = 'ai';
+  GameMode.set('ai');
   resetGame();
   showToast('👁️ Duel des bots — Noir ⚫ vs Blanc ⚪');
   showBotBubble('black', 'Prépare-toi à perdre, mon cher Blanc. 😏');
@@ -27608,7 +27620,7 @@ function gameShowBestMove() {
   // propre tour ('Ce n'est pas votre tour' alors que si), et le coup
   // cherche ensuite (voir plus bas) etait celui des noirs -- le coup de
   // l'IA elle-meme, affiche comme si c'etait "votre" suggestion.
-  if (gameMode === 'ai' && currentTurn !== humanColor) { showToast('⛔ Ce n\'est pas votre tour'); return; }
+  if (GameMode.get() === 'ai' && currentTurn !== humanColor) { showToast('⛔ Ce n\'est pas votre tour'); return; }
   showToast('🧠 Recherche du meilleur coup...');
   setTimeout(function() {
     // searchBestMove travaille sur la globale board (qui est déjà la position courante)
@@ -27749,7 +27761,7 @@ function saveGameState() {
       capB: capturedByBlack,
       capW: capturedByWhite,
       timer: gameTimerSeconds,
-      mode: (typeof gameMode !== 'undefined') ? gameMode : 'ai',
+      mode: (typeof GameMode !== 'undefined') ? GameMode.get() : 'ai',
       ts: Date.now()
     };
     localStorage.setItem('abalone_saved_game', JSON.stringify(state));
@@ -27841,7 +27853,7 @@ function startVariant() {
   _variantStash = {
     board: JSON.parse(JSON.stringify(board)),
     capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite,
-    currentTurn: currentTurn, gameMode: gameMode, humanColor: humanColor, gameOver: gameOver,
+    currentTurn: currentTurn, gameMode: GameMode.get(), humanColor: humanColor, gameOver: gameOver,
     fromLive: false
   };
   variantMode = true;
@@ -27850,7 +27862,7 @@ function startVariant() {
   capturedByWhite = snap.capturedByWhite;
   currentTurn = (snap.color === 'black') ? 'white' : 'black';
   humanColor = currentTurn;   // on explore en jouant le prochain coup, quel que soit le camp
-  gameMode = 'ai';            // pour que l'IA réponde automatiquement au coup exploratoire
+  GameMode.set('ai');            // pour que l'IA réponde automatiquement au coup exploratoire
   gameOver = false;
   selected = [];
   drawBoard();
@@ -27868,11 +27880,11 @@ function startVariant() {
 function startLiveVariant() {
   if (replayMode || variantMode) return;
   if (gameOver) { showToast('La partie est terminée — rien à essayer'); return; }
-  if (gameMode === 'ai' && currentTurn !== humanColor) { showToast('Attends ton tour pour essayer un coup'); return; }
+  if (GameMode.get() === 'ai' && currentTurn !== humanColor) { showToast('Attends ton tour pour essayer un coup'); return; }
   _variantStash = {
     board: JSON.parse(JSON.stringify(board)),
     capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite,
-    currentTurn: currentTurn, gameMode: gameMode, humanColor: humanColor, gameOver: gameOver,
+    currentTurn: currentTurn, gameMode: GameMode.get(), humanColor: humanColor, gameOver: gameOver,
     fromLive: true
   };
   variantMode = true;
@@ -27890,7 +27902,7 @@ function exitVariant() {
   capturedByBlack = _variantStash.capturedByBlack;
   capturedByWhite = _variantStash.capturedByWhite;
   currentTurn = _variantStash.currentTurn;
-  gameMode = _variantStash.gameMode;
+  GameMode.set(_variantStash.gameMode);
   humanColor = _variantStash.humanColor;
   gameOver = _variantStash.gameOver;
   variantMode = false;
@@ -34224,7 +34236,7 @@ window.canInteractWithBoard = function () {
   if (typeof gameOver !== 'undefined' && gameOver) return false;
   if (typeof replayMode !== 'undefined' && replayMode
       && !(typeof variantMode !== 'undefined' && variantMode)) return false;
-  if (typeof gameMode !== 'undefined' && gameMode === 'ai'
+  if (typeof GameMode !== 'undefined' && GameMode.get() === 'ai'
       && typeof currentTurn !== 'undefined' && typeof humanColor !== 'undefined'
       && currentTurn !== humanColor) return false;
   return true;
