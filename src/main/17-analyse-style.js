@@ -178,7 +178,7 @@ function renderHeatmapCard(){
      inversees. En mode 2 joueurs, aucun camp n'est « l'adversaire ». */
   const hc = (typeof humanColor !== 'undefined') ? humanColor : 'black';
   const opp = (hc === 'black') ? 'white' : 'black';
-  const localGame = (typeof gameMode !== 'undefined' && gameMode === 'local');
+  const localGame = (typeof GameMode !== 'undefined' && GameMode.get() === 'local');
   if (_heatmapColor !== 'black' && _heatmapColor !== 'white') _heatmapColor = localGame ? 'black' : hc;
   const forColor = _heatmapColor;
   const { maxCount } = computeGameHeatmap(boardSnapshots, forColor);
