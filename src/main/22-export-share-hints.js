@@ -187,7 +187,7 @@ function exportGameNotation() {
     const vlabel = (typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[currentLayout]) ? HEAT_VARIANT_LABEL[currentLayout] : currentLayout;
     header += '\n[Variante] ' + vlabel;
   }
-  if (typeof gameMode !== 'undefined' && gameMode === 'ai') {
+  if (typeof GameMode !== 'undefined' && GameMode.get() === 'ai') {
     const st = (typeof _setupCfg !== 'undefined' && _setupCfg.style) ? _setupCfg.style : null;
     const df = (typeof _setupCfg !== 'undefined' && _setupCfg.diff) ? _setupCfg.diff : null;
     if (st || df) header += '\n[IA] ' + [st, df].filter(Boolean).join(' — ');
@@ -340,7 +340,7 @@ function startBotGame(botColor) {
   opponentBot = botColor;
   advisorEnabled = true;
   botDuelMode = false;
-  gameMode = 'ai';
+  GameMode.set('ai');
   // Le bot joue SA couleur : contre Bot Blanc tu as les noirs, contre Bot Noir tu as les blancs.
   humanColor = (botColor === 'black') ? 'white' : 'black';
   resetGame();
@@ -368,7 +368,7 @@ function startBotDuel() {
   opponentBot = null;
   advisorEnabled = false;
   botDuelMode = true;
-  gameMode = 'ai';
+  GameMode.set('ai');
   resetGame();
   showToast('👁️ Duel des bots — Noir ⚫ vs Blanc ⚪');
   showBotBubble('black', 'Prépare-toi à perdre, mon cher Blanc. 😏');
