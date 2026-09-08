@@ -401,7 +401,7 @@ function submitGameCode() {
 
 function postGameReview(myColor) {
   if (typeof boardSnapshots === 'undefined' || boardSnapshots.length < 2) return null;
-  const me = myColor || (typeof humanColor !== 'undefined' ? humanColor : 'black');
+  const me = myColor || (typeof HumanColor !== 'undefined' ? HumanColor.get() : 'black');
   const saved = { b: board, cb: capturedByBlack, cw: capturedByWhite };
   const evals = [];
   let firstLoss = -1;
