@@ -1119,7 +1119,7 @@ function startTournamentMatch(){
 }
 function _tourneyAfterStart(){
   const M=_tourneyMatch; if(!M) return;
-  gameMode='ai';
+  GameMode.set('ai');
   humanColor=M.human;
   const bar=document.getElementById('tourney-bar'); if(bar) bar.style.display='flex';
   const t=document.getElementById('tb-title');
