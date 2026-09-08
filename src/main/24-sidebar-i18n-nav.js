@@ -15,7 +15,7 @@ function startVariant() {
   _variantStash = {
     board: JSON.parse(JSON.stringify(board)),
     capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite,
-    currentTurn: currentTurn, gameMode: gameMode, humanColor: humanColor, gameOver: gameOver,
+    currentTurn: currentTurn, gameMode: GameMode.get(), humanColor: humanColor, gameOver: gameOver,
     fromLive: false
   };
   variantMode = true;
@@ -24,7 +24,7 @@ function startVariant() {
   capturedByWhite = snap.capturedByWhite;
   currentTurn = (snap.color === 'black') ? 'white' : 'black';
   humanColor = currentTurn;   // on explore en jouant le prochain coup, quel que soit le camp
-  gameMode = 'ai';            // pour que l'IA réponde automatiquement au coup exploratoire
+  GameMode.set('ai');            // pour que l'IA réponde automatiquement au coup exploratoire
   gameOver = false;
   selected = [];
   drawBoard();
@@ -42,11 +42,11 @@ function startVariant() {
 function startLiveVariant() {
   if (replayMode || variantMode) return;
   if (gameOver) { showToast('La partie est terminée — rien à essayer'); return; }
-  if (gameMode === 'ai' && currentTurn !== humanColor) { showToast('Attends ton tour pour essayer un coup'); return; }
+  if (GameMode.get() === 'ai' && currentTurn !== humanColor) { showToast('Attends ton tour pour essayer un coup'); return; }
   _variantStash = {
     board: JSON.parse(JSON.stringify(board)),
     capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite,
-    currentTurn: currentTurn, gameMode: gameMode, humanColor: humanColor, gameOver: gameOver,
+    currentTurn: currentTurn, gameMode: GameMode.get(), humanColor: humanColor, gameOver: gameOver,
     fromLive: true
   };
   variantMode = true;
@@ -64,7 +64,7 @@ function exitVariant() {
   capturedByBlack = _variantStash.capturedByBlack;
   capturedByWhite = _variantStash.capturedByWhite;
   currentTurn = _variantStash.currentTurn;
-  gameMode = _variantStash.gameMode;
+  GameMode.set(_variantStash.gameMode);
   humanColor = _variantStash.humanColor;
   gameOver = _variantStash.gameOver;
   variantMode = false;
