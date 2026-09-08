@@ -502,7 +502,7 @@ function startConfiguredGame() {
       showToast(_first === 'black' ? '🎲 Vous jouez les noirs' : '🎲 Vous jouez les blancs');
     }
   }
-  humanColor = (c.mode === 'ai' || _isRtc) ? _first : 'black';
+  HumanColor.set((c.mode === 'ai' || _isRtc) ? _first : 'black');
   step(function(){ if (typeof applyPovOrientation === 'function') applyPovOrientation(); });
 
   if (c.mode === 'ai') {
@@ -535,8 +535,8 @@ function startConfiguredGame() {
      coup humain et en tournoi) : si ce n'est pas au tour de l'humain, l'IA
      joue. Robuste quel que soit le camp choisi. */
   if (c.mode === 'ai' && typeof currentTurn !== 'undefined'
-      && currentTurn !== humanColor && !gameOver && typeof aiMove === 'function') {
-    setTimeout(function(){ if (!gameOver && currentTurn !== humanColor) aiMove(); }, 700);
+      && currentTurn !== HumanColor.get() && !gameOver && typeof aiMove === 'function') {
+    setTimeout(function(){ if (!gameOver && currentTurn !== HumanColor.get()) aiMove(); }, 700);
   }
 
   /* Partie en direct : ouvre le panneau de connexion apres le lancement,
