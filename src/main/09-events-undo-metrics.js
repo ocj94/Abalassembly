@@ -447,7 +447,7 @@ function _flagFall(loser){
     if(ti) ti.textContent='Au temps !';
     if(sub) sub.textContent='⏱️ Les '+(loser==='black'?'Noirs':'Blancs')+' ont dépassé leur temps.';
   } else {
-    const humanLost = (typeof humanColor!=='undefined') ? (loser===humanColor) : (loser==='black');
+    const humanLost = (typeof HumanColor!=='undefined') ? (loser===HumanColor.get()) : (loser==='black');
     if(ti) ti.textContent = humanLost ? 'Défaite au temps…' : 'Victoire au temps !';
     if(sub) sub.textContent = humanLost ? '⏱️ Votre temps est écoulé.' : '⏱️ Le temps de l\'adversaire est écoulé.';
   }
@@ -611,8 +611,8 @@ function updateStatus() {
     // propre tour, et "A votre tour, cliquez vos billes noires" pendant que
     // l'IA reflechissait. Bug en direct, atteignable des qu'on joue blanc
     // contre l'IA.
-    const monTour = currentTurn === humanColor;
-    const monEmoji = humanColor === 'black' ? '⚫' : '⚪';
+    const monTour = currentTurn === HumanColor.get();
+    const monEmoji = HumanColor.get() === 'black' ? '⚫' : '⚪';
     txt = monTour
       ? `À votre tour — Coup ${moveCount+1}`
       : `Adversaire réfléchit — Coup ${moveCount+1}`;
@@ -780,7 +780,7 @@ if (canvas) {
     if (window._isProjector) return;   // fenetre projecteur : jamais interactif
     canvas._dragJustEnded = false;   // nouvelle interaction : on repart propre
     if (gameOver) return;
-    if (GameMode.get() === 'ai' && currentTurn !== humanColor) return;
+    if (GameMode.get() === 'ai' && currentTurn !== HumanColor.get()) return;
     const pos = canvasPos(clientX, clientY);
     const hex = getHexAt(pos.x, pos.y);
     if (!hex) return;
@@ -852,7 +852,7 @@ if (canvas) {
     if (canvas._dragJustEnded) { canvas._dragJustEnded = false; return; }
     if (gameOver) return;
     if (replayMode && !variantMode) return;   // navigation replay = lecture seule, sauf en exploration de variante
-    if (GameMode.get() === 'ai' && currentTurn !== humanColor) return;
+    if (GameMode.get() === 'ai' && currentTurn !== HumanColor.get()) return;
     const pos = canvasPos(e.clientX, e.clientY);
     const hex = getHexAt(pos.x, pos.y);
     if (!hex) return;
