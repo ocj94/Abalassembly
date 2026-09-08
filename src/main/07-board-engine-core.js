@@ -20,7 +20,19 @@ const ROWS = [5,6,7,8,9,8,7,6,5];
 let board = {};
 let selected = [];
 let currentTurn = 'black';
-let gameMode = 'ai';   // 'ai' = vs ordinateur, 'local' = 2 joueurs même écran
+const GameMode = (function(){
+  // Encapsulation, pas de vrais import/export : ceux-ci exigent
+  // type="module" sur la balise <script>, bloque par CORS quand ouvert
+  // via file:// -- verifie par recherche avant d'ecrire ce code. Cette
+  // forme garde une interface explicite (GameMode.get()/.set()) sans ce
+  // risque, et tools/build.js n'a besoin d'aucun changement : la sortie
+  // reste un script classique, toujours de la concatenation plate.
+  let value = 'ai';   // 'ai' = vs ordinateur, 'local' = 2 joueurs même écran
+  return {
+    get: function(){ return value; },
+    set: function(v){ value = v; }
+  };
+})();
 // Couleur contrôlée par l'humain en mode IA. 'black' par défaut.
 // Devient 'white' quand on affronte le Bot Noir (qui, lui, joue les noirs).
 let humanColor = 'black';
@@ -36,7 +48,7 @@ function aiColor() { return humanColor === 'black' ? 'white' : 'black'; }
    un cote pour l'attribution). Purement une consolidation de lisibilite —
    aucune des trois anciennes implementations n'avait de bug actif restant. */
 function monCamp() {
-  if (typeof gameMode !== 'undefined' && gameMode === 'local') return 'black';
+  if (typeof GameMode !== 'undefined' && GameMode.get() === 'local') return 'black';
   return (typeof humanColor !== 'undefined' && humanColor) ? humanColor : 'black';
 }
 // "Est-ce mon tour ?" — juste une lecture de monCamp() par rapport au trait
@@ -103,7 +115,7 @@ function theta3DToBoardRotation(rad) {
    rotation puisqu'ils sont traces via hexCoord, et les clics aussi, la
    detection de case passant par la meme fonction. */
 function applyPovOrientation() {
-  const camp = (typeof gameMode !== 'undefined' && gameMode === 'local')
+  const camp = (typeof GameMode !== 'undefined' && GameMode.get() === 'local')
     ? 'black'
     : ((typeof humanColor !== 'undefined') ? humanColor : 'black');
   boardRotation = (camp === 'white') ? 180 : 0;
