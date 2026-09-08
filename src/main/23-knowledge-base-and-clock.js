@@ -251,6 +251,62 @@ function hideAIExplainBubble() {
   if (bubble) { bubble.style.opacity = '0'; setTimeout(function(){ if(bubble) bubble.style.display='none'; }, 300); }
 }
 
+/* ═══════════════════════════════════════════
+   VARIANTE PRINCIPALE (PV) — reconstruction a posteriori
+═══════════════════════════════════════════ */
+/* Ne touche PAS a search()/searchBestMove() : lit seulement la table de
+   transposition qu'elles remplissent deja (TT.set(h,{...,move:...}) a
+   chaque noeud, pas seulement a la racine -- confirme en lisant le code
+   des deux copies, thread principal et Worker, avant d'ecrire cette
+   fonction). Marche APRES un appel a searchBestMove, sur le plateau
+   racine (searchBestMove restaure toujours le plateau avant de
+   retourner, via ses propres undoMove() -- verifie egalement).
+
+   searchBestMove traite le PREMIER coup dans sa PROPRE boucle a la
+   racine, separee de search() -- la position de DEPART n'est donc jamais
+   ecrite dans TT avec un .move (verifie empiriquement). On applique donc
+   firstMove (deja calcule par searchBestMove, fourni ici) AVANT de
+   commencer a marcher dans TT, qui lui est bien rempli a partir de la
+   position qui suit.
+
+   Applique les coups un par un pour suivre le fil des positions (aucune
+   autre facon fiable de retrouver le bon TT a chaque etape), puis annule
+   TOUT dans l'ordre inverse avant de retourner -- meme discipline que
+   search() elle-meme. Ne modifie jamais le plateau du point de vue de
+   l'appelant, y compris en cas d'exception (finally). */
+function extractPV(rootColor, firstMove, maxLen) {
+  const applied = [];
+  const seenPositions = new Set([_repKeyOf(board)]);
+  const pv = [];
+  try {
+    if (!firstMove) return pv;
+    const undo0 = applyMove(firstMove, rootColor);
+    applied.push(undo0);
+    pv.push({ mover: rootColor, move: firstMove });
+    seenPositions.add(_repKeyOf(board));
+    let mover = (rootColor === 'black') ? 'white' : 'black';
+
+    for (let i = 1; i < maxLen; i++) {
+      if (capturedByBlack >= 6 || capturedByWhite >= 6) break;
+      const h = hashBoard();
+      const tt = TT.get(h);
+      if (!tt || !tt.move) break;
+      const legal = getAllMovesForColor(mover);
+      const found = legal.find(function (m) { return moveKey(m) === tt.move; });
+      if (!found) break; // coup enregistre mais introuvable (position perimee) : on s'arrete proprement
+      const undo = applyMove(found, mover);
+      applied.push(undo);
+      pv.push({ mover: mover, move: found });
+      const rep = _repKeyOf(board);
+      if (seenPositions.has(rep)) break; // cycle : ne pas boucler indefiniment sur une position deja vue
+      seenPositions.add(rep);
+      mover = (mover === 'black') ? 'white' : 'black';
+    }
+  } finally {
+    for (let i = applied.length - 1; i >= 0; i--) undoMove(applied[i]);
+  }
+  return pv;
+}
 function gameShowBestMove() {
   if (gameOver) { showToast('⛔ La partie est terminée'); return; }
   // Meme garde que les fonctions voisines (ex. la verification "attends ton
@@ -263,8 +319,9 @@ function gameShowBestMove() {
   showToast('🧠 Recherche du meilleur coup...');
   setTimeout(function() {
     // searchBestMove travaille sur la globale board (qui est déjà la position courante)
+    const SEARCH_DEPTH = 2;
     let best = null;
-    try { best = searchBestMove(currentTurn, 2, 1500); }
+    try { best = searchBestMove(currentTurn, SEARCH_DEPTH, 1500); }
     catch(e) { best = null; }
     if (best && best.cells) {
       gameBestHint = { cells: best.cells, dir: best.dir };
@@ -272,7 +329,24 @@ function gameShowBestMove() {
       drawGameBestHint();
       const from = coordToABAPRO(best.cells[0].r, best.cells[0].c);
       const typeLabel = best.eject ? 'éjection !' : (best.type === 'push' ? 'poussée' : best.type === 'broadside' ? 'latéral' : 'déplacement');
-      showToast('💡 Suggestion : ' + from + ' (' + typeLabel + ')');
+      /* Suite honnête, pas inventee : extractPV() relit la table de
+         transposition DEJA remplie par le searchBestMove ci-dessus (elle
+         enregistre le meilleur coup a chaque position visitee, pas
+         seulement a la racine), sans jamais toucher a search() elle-meme.
+         Bornee a SEARCH_DEPTH demi-coups : au-dela, il n'y a tout
+         simplement plus d'entree dans la table pour cette recherche precise
+         -- inventer une suite plus longue reviendrait a afficher un calcul
+         que le moteur n'a pas fait. */
+      let replyMsg = '';
+      try {
+        const pv = extractPV(currentTurn, best, SEARCH_DEPTH);
+        if (pv.length > 1) {
+          const reply = pv[1].move;
+          const replyNotation = moveToABAPRO(reply.cells, reply.dir, reply.type);
+          replyMsg = ' → adversaire probablement ' + replyNotation;
+        }
+      } catch(e) { /* pas de suite disponible : on affiche juste le coup, comme avant */ }
+      showToast('💡 Suggestion : ' + from + ' (' + typeLabel + ')' + replyMsg);
     } else {
       showToast('Aucun coup trouvé');
     }
