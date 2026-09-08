@@ -14,7 +14,7 @@ function startPuzzle(idx){
   board={}; p.bm.forEach(function(k){board[k]='black';}); p.wm.forEach(function(k){board[k]='white';});
   capturedByBlack=p.cb; capturedByWhite=p.cw;
   gameOver=false; replayMode=false; selected=[]; undoStack=[]; boardSnapshots=[]; moveCount=0;
-  humanColor=p.c; currentTurn=p.c; _bookNode=null; gameBestHint=null;
+  HumanColor.set(p.c); currentTurn=p.c; _bookNode=null; gameBestHint=null;
   const rb=document.getElementById('replay-btn'); if(rb) rb.style.display='none';
   _puzzleActive={ idx:idx, sig:_pzSig(p.sol.cells,p.sol.dir), alts:(p.alt||[]), tries:0 };
   localStorage.setItem('abaPuzzleIdx', String(idx));
@@ -1120,13 +1120,13 @@ function startTournamentMatch(){
 function _tourneyAfterStart(){
   const M=_tourneyMatch; if(!M) return;
   GameMode.set('ai');
-  humanColor=M.human;
+  HumanColor.set(M.human);
   const bar=document.getElementById('tourney-bar'); if(bar) bar.style.display='flex';
   const t=document.getElementById('tb-title');
   if(t) t.textContent='\ud83c\udfc6 '+M.name+' \u2014 vs '+M.opp+' \u00b7 tu joues les '+(M.human==='black'?'\u26ab Noirs':'\u26aa Blancs');
   _tClockStart();
   updateStatus();
-  if(currentTurn!==humanColor && !gameOver){ setTimeout(function(){ if(typeof aiMove==='function') aiMove(); }, 700); }
+  if(currentTurn!==HumanColor.get() && !gameOver){ setTimeout(function(){ if(typeof aiMove==='function') aiMove(); }, 700); }
 }
 function tourneyMatchEnd(winner, reason){
   const M=_tourneyMatch; if(!M) return;
@@ -1320,7 +1320,7 @@ function aiMove() {
     return;
   }
   const ai = aiColor();          // couleur jouée par l'IA (blanc par défaut, noir si on affronte le Bot Noir)
-  const human = humanColor;
+  const human = HumanColor.get();
   const moves = getAllMovesForColor(ai);
   if (!moves.length) { currentTurn=human; updateStatus(); return; }
 
@@ -1480,7 +1480,7 @@ function showAIThinking(on) {
 function executeAIMove(chosen) {
   if (gameOver || !chosen) return;
   const ai = aiColor();              // couleur de l'IA
-  const human = humanColor;          // couleur de l'humain (= victime des éjections de l'IA)
+  const human = HumanColor.get();          // couleur de l'humain (= victime des éjections de l'IA)
   // Calculee ICI, AVANT abApplyMove : calculerExplicationCoup simule le coup
   // avec applyMove/undoMove, qui exigent le plateau dans son etat D'AVANT
   // le coup (sans quoi la comparaison avant/apres n'aurait pas de sens).
