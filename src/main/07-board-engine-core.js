@@ -35,8 +35,21 @@ const GameMode = (function(){
 })();
 // Couleur contrôlée par l'humain en mode IA. 'black' par défaut.
 // Devient 'white' quand on affronte le Bot Noir (qui, lui, joue les noirs).
-let humanColor = 'black';
-function aiColor() { return humanColor === 'black' ? 'white' : 'black'; }
+const HumanColor = (function(){
+  // Encapsulation, meme motif et meme raison que GameMode ci-dessus :
+  // pas de vrais import/export (type="module" casse file://), interface
+  // explicite HumanColor.get()/.set() sur un script classique. La valeur
+  // reste 'black' OU 'white' selon le vrai choix du joueur -- ceci ne
+  // fige jamais une couleur, ne suppose jamais "noir = moi" (voir
+  // monCamp()/estMonTour() juste apres, qui restent le point de verite
+  // pour cette question precise).
+  let value = 'black';
+  return {
+    get: function(){ return value; },
+    set: function(v){ value = v; }
+  };
+})();
+function aiColor() { return HumanColor.get() === 'black' ? 'white' : 'black'; }
 /* Point de verite UNIQUE pour "quelle couleur je tiens reellement" — remplace
    trois implementations locales identiques trouvees independamment
    (_clockMine() pour l'horloge, un _mine ad-hoc pour la heatmap, un _myCol
@@ -49,7 +62,7 @@ function aiColor() { return humanColor === 'black' ? 'white' : 'black'; }
    aucune des trois anciennes implementations n'avait de bug actif restant. */
 function monCamp() {
   if (typeof GameMode !== 'undefined' && GameMode.get() === 'local') return 'black';
-  return (typeof humanColor !== 'undefined' && humanColor) ? humanColor : 'black';
+  return (typeof HumanColor !== 'undefined' && HumanColor.get()) ? HumanColor.get() : 'black';
 }
 // "Est-ce mon tour ?" — juste une lecture de monCamp() par rapport au trait
 // courant, exposee separement pour les endroits qui posent la question
@@ -117,7 +130,7 @@ function theta3DToBoardRotation(rad) {
 function applyPovOrientation() {
   const camp = (typeof GameMode !== 'undefined' && GameMode.get() === 'local')
     ? 'black'
-    : ((typeof humanColor !== 'undefined') ? humanColor : 'black');
+    : ((typeof HumanColor !== 'undefined') ? HumanColor.get() : 'black');
   boardRotation = (camp === 'white') ? 180 : 0;
   if (typeof drawBoard === 'function') drawBoard();
 }
