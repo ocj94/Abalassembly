@@ -113,7 +113,7 @@ window.canInteractWithBoard = function () {
   if (typeof gameOver !== 'undefined' && gameOver) return false;
   if (typeof replayMode !== 'undefined' && replayMode
       && !(typeof variantMode !== 'undefined' && variantMode)) return false;
-  if (typeof gameMode !== 'undefined' && gameMode === 'ai'
+  if (typeof GameMode !== 'undefined' && GameMode.get() === 'ai'
       && typeof currentTurn !== 'undefined' && typeof humanColor !== 'undefined'
       && currentTurn !== humanColor) return false;
   return true;
