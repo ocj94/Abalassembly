@@ -443,7 +443,7 @@ function runAnalysis() {
     '<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:12px 0 8px">Meilleurs coups (position actuelle)</div>',
     moves.map(m => '<div class="analysis-move '+m.type+'"><span class="am-icon">'+m.icon+'</span><span class="am-move">'+m.move+'</span><span class="am-comment">'+m.comment+'</span></div>').join(''),
     '<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--muted);line-height:1.6">',
-    '📊 Billes éjectées — Vous: '+(humanColor==='black'?capturedByBlack:capturedByWhite)+' · Adversaire: '+(humanColor==='black'?capturedByWhite:capturedByBlack),
+    '📊 Billes éjectées — Vous: '+(HumanColor.get()==='black'?capturedByBlack:capturedByWhite)+' · Adversaire: '+(HumanColor.get()==='black'?capturedByWhite:capturedByBlack),
     '<br>⚡ Coups joués: '+moveCount,
     '</div>',
     histoHtml,
