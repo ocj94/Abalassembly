@@ -7828,7 +7828,7 @@ function getPlayerHeatmap(playerId) {
    Sert à ranger les coups dans MA carte noire ou MA carte blanche. */
 function isMyColor(color) {
   if (typeof GameMode !== 'undefined' && GameMode.get() === 'local') return true;
-  const hc = (typeof humanColor !== 'undefined') ? humanColor : 'black';
+  const hc = (typeof HumanColor !== 'undefined') ? HumanColor.get() : 'black';
   return color === hc;
 }
 
@@ -9264,7 +9264,7 @@ function startConfiguredGame() {
       showToast(_first === 'black' ? '🎲 Vous jouez les noirs' : '🎲 Vous jouez les blancs');
     }
   }
-  humanColor = (c.mode === 'ai' || _isRtc) ? _first : 'black';
+  HumanColor.set((c.mode === 'ai' || _isRtc) ? _first : 'black');
   step(function(){ if (typeof applyPovOrientation === 'function') applyPovOrientation(); });
 
   if (c.mode === 'ai') {
@@ -9297,8 +9297,8 @@ function startConfiguredGame() {
      coup humain et en tournoi) : si ce n'est pas au tour de l'humain, l'IA
      joue. Robuste quel que soit le camp choisi. */
   if (c.mode === 'ai' && typeof currentTurn !== 'undefined'
-      && currentTurn !== humanColor && !gameOver && typeof aiMove === 'function') {
-    setTimeout(function(){ if (!gameOver && currentTurn !== humanColor) aiMove(); }, 700);
+      && currentTurn !== HumanColor.get() && !gameOver && typeof aiMove === 'function') {
+    setTimeout(function(){ if (!gameOver && currentTurn !== HumanColor.get()) aiMove(); }, 700);
   }
 
   /* Partie en direct : ouvre le panneau de connexion apres le lancement,
@@ -10122,7 +10122,7 @@ function setDifficulty(level, btn) {
 function setGameMode(mode, btn) {
   GameMode.set(mode);
   // Mode classique : l'humain joue les noirs, pas de bot conseiller ni de duel.
-  humanColor = 'black';
+  HumanColor.set('black');
   if (typeof applyPovOrientation === 'function') applyPovOrientation();
   opponentBot = null;
   advisorEnabled = false;
@@ -11716,8 +11716,21 @@ const GameMode = (function(){
 })();
 // Couleur contrôlée par l'humain en mode IA. 'black' par défaut.
 // Devient 'white' quand on affronte le Bot Noir (qui, lui, joue les noirs).
-let humanColor = 'black';
-function aiColor() { return humanColor === 'black' ? 'white' : 'black'; }
+const HumanColor = (function(){
+  // Encapsulation, meme motif et meme raison que GameMode ci-dessus :
+  // pas de vrais import/export (type="module" casse file://), interface
+  // explicite HumanColor.get()/.set() sur un script classique. La valeur
+  // reste 'black' OU 'white' selon le vrai choix du joueur -- ceci ne
+  // fige jamais une couleur, ne suppose jamais "noir = moi" (voir
+  // monCamp()/estMonTour() juste apres, qui restent le point de verite
+  // pour cette question precise).
+  let value = 'black';
+  return {
+    get: function(){ return value; },
+    set: function(v){ value = v; }
+  };
+})();
+function aiColor() { return HumanColor.get() === 'black' ? 'white' : 'black'; }
 /* Point de verite UNIQUE pour "quelle couleur je tiens reellement" — remplace
    trois implementations locales identiques trouvees independamment
    (_clockMine() pour l'horloge, un _mine ad-hoc pour la heatmap, un _myCol
@@ -11730,7 +11743,7 @@ function aiColor() { return humanColor === 'black' ? 'white' : 'black'; }
    aucune des trois anciennes implementations n'avait de bug actif restant. */
 function monCamp() {
   if (typeof GameMode !== 'undefined' && GameMode.get() === 'local') return 'black';
-  return (typeof humanColor !== 'undefined' && humanColor) ? humanColor : 'black';
+  return (typeof HumanColor !== 'undefined' && HumanColor.get()) ? HumanColor.get() : 'black';
 }
 // "Est-ce mon tour ?" — juste une lecture de monCamp() par rapport au trait
 // courant, exposee separement pour les endroits qui posent la question
@@ -11798,7 +11811,7 @@ function theta3DToBoardRotation(rad) {
 function applyPovOrientation() {
   const camp = (typeof GameMode !== 'undefined' && GameMode.get() === 'local')
     ? 'black'
-    : ((typeof humanColor !== 'undefined') ? humanColor : 'black');
+    : ((typeof HumanColor !== 'undefined') ? HumanColor.get() : 'black');
   boardRotation = (camp === 'white') ? 180 : 0;
   if (typeof drawBoard === 'function') drawBoard();
 }
@@ -14580,7 +14593,7 @@ function _flagFall(loser){
     if(ti) ti.textContent='Au temps !';
     if(sub) sub.textContent='⏱️ Les '+(loser==='black'?'Noirs':'Blancs')+' ont dépassé leur temps.';
   } else {
-    const humanLost = (typeof humanColor!=='undefined') ? (loser===humanColor) : (loser==='black');
+    const humanLost = (typeof HumanColor!=='undefined') ? (loser===HumanColor.get()) : (loser==='black');
     if(ti) ti.textContent = humanLost ? 'Défaite au temps…' : 'Victoire au temps !';
     if(sub) sub.textContent = humanLost ? '⏱️ Votre temps est écoulé.' : '⏱️ Le temps de l\'adversaire est écoulé.';
   }
@@ -14744,8 +14757,8 @@ function updateStatus() {
     // propre tour, et "A votre tour, cliquez vos billes noires" pendant que
     // l'IA reflechissait. Bug en direct, atteignable des qu'on joue blanc
     // contre l'IA.
-    const monTour = currentTurn === humanColor;
-    const monEmoji = humanColor === 'black' ? '⚫' : '⚪';
+    const monTour = currentTurn === HumanColor.get();
+    const monEmoji = HumanColor.get() === 'black' ? '⚫' : '⚪';
     txt = monTour
       ? `À votre tour — Coup ${moveCount+1}`
       : `Adversaire réfléchit — Coup ${moveCount+1}`;
@@ -14913,7 +14926,7 @@ if (canvas) {
     if (window._isProjector) return;   // fenetre projecteur : jamais interactif
     canvas._dragJustEnded = false;   // nouvelle interaction : on repart propre
     if (gameOver) return;
-    if (GameMode.get() === 'ai' && currentTurn !== humanColor) return;
+    if (GameMode.get() === 'ai' && currentTurn !== HumanColor.get()) return;
     const pos = canvasPos(clientX, clientY);
     const hex = getHexAt(pos.x, pos.y);
     if (!hex) return;
@@ -14985,7 +14998,7 @@ if (canvas) {
     if (canvas._dragJustEnded) { canvas._dragJustEnded = false; return; }
     if (gameOver) return;
     if (replayMode && !variantMode) return;   // navigation replay = lecture seule, sauf en exploration de variante
-    if (GameMode.get() === 'ai' && currentTurn !== humanColor) return;
+    if (GameMode.get() === 'ai' && currentTurn !== HumanColor.get()) return;
     const pos = canvasPos(e.clientX, e.clientY);
     const hex = getHexAt(pos.x, pos.y);
     if (!hex) return;
@@ -15498,10 +15511,10 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
   // Applique le coup
   pushUndoState();
   // Mode Coach : capture l'état stratégique AVANT le coup (du point de vue de l'humain)
-  let coachBefore = null, coachCapBefore = (humanColor === 'black' ? capturedByBlack : capturedByWhite);
-  if ((coachEnabled || advisorEnabled) && me === humanColor) coachBefore = evalFactors(humanColor);
+  let coachBefore = null, coachCapBefore = (HumanColor.get() === 'black' ? capturedByBlack : capturedByWhite);
+  if ((coachEnabled || advisorEnabled) && me === HumanColor.get()) coachBefore = evalFactors(HumanColor.get());
   // Analyse de style : état AVANT le coup (toujours active, réutilise coachBefore si dispo)
-  let styleBefore = (me === humanColor) ? (coachBefore || evalFactors(humanColor)) : null;
+  let styleBefore = (me === HumanColor.get()) ? (coachBefore || evalFactors(HumanColor.get())) : null;
   // Prépare l'animation de glissement (déplacements et latéraux uniquement)
   let slidePieces = null;
   if (info.type === 'move' || info.type === 'broadside') {
@@ -15560,27 +15573,27 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
   updateCaptures();
 
   // Mode Coach : commente le coup du joueur
-  if (coachEnabled && me === humanColor && coachBefore) {
-    const coachAfter = evalFactors(humanColor);
-    const capDelta = (humanColor === 'black' ? capturedByBlack : capturedByWhite) - coachCapBefore;
+  if (coachEnabled && me === HumanColor.get() && coachBefore) {
+    const coachAfter = evalFactors(HumanColor.get());
+    const capDelta = (HumanColor.get() === 'black' ? capturedByBlack : capturedByWhite) - coachCapBefore;
     showCoachBubble(coachComment(coachBefore, coachAfter, capDelta));
   }
 
   // Bot conseiller : le bot opposé à l'adversaire commente ton coup (gentil ou moqueur)
-  if (advisorEnabled && me === humanColor && coachBefore) {
+  if (advisorEnabled && me === HumanColor.get() && coachBefore) {
     const advColor = advisorBotColor();
     if (advColor) {
-      const aAfter = evalFactors(humanColor);
-      const capDelta = (humanColor === 'black' ? capturedByBlack : capturedByWhite) - coachCapBefore;
+      const aAfter = evalFactors(HumanColor.get());
+      const capDelta = (HumanColor.get() === 'black' ? capturedByBlack : capturedByWhite) - coachCapBefore;
       const txt = botAdvisorComment(advColor, coachBefore, aAfter, capDelta);
       showBotBubble(advColor, txt);
     }
   }
 
   // Analyse de style : enregistre ce coup humain (toujours, même hors coach/conseiller)
-  if (me === humanColor && styleBefore) {
-    const styleAfter = evalFactors(humanColor);
-    const sCapDelta = (humanColor === 'black' ? capturedByBlack : capturedByWhite) - coachCapBefore;
+  if (me === HumanColor.get() && styleBefore) {
+    const styleAfter = evalFactors(HumanColor.get());
+    const sCapDelta = (HumanColor.get() === 'black' ? capturedByBlack : capturedByWhite) - coachCapBefore;
     recordStyleMove(styleBefore, styleAfter, sCapDelta, info);
   }
 
@@ -18517,7 +18530,7 @@ function forceAINow() {
 
   try {
     const moves = getAllMovesForColor(ai);
-    if (!moves.length) { if (typeof humanColor!=='undefined'){ currentTurn = humanColor; updateStatus(); } _aiForcing = false; return; }
+    if (!moves.length) { if (typeof HumanColor!=='undefined'){ currentTurn = HumanColor.get(); updateStatus(); } _aiForcing = false; return; }
     // recherche éclair : profondeur 1, budget minimal → coup immédiat mais légal
     let chosen = null;
     try { chosen = searchBestMove(ai, 1, 120, (typeof _gameHistKeys==='function'?_gameHistKeys():null)); } catch(e){ chosen = null; }
@@ -18529,7 +18542,7 @@ function forceAINow() {
     if (chosen && typeof executeAIMove === 'function') executeAIMove(chosen);
   } catch(e) {
     // en cas d'échec total, ne fige pas la partie : rend la main au joueur
-    if (typeof humanColor!=='undefined'){ currentTurn = humanColor; updateStatus(); }
+    if (typeof HumanColor!=='undefined'){ currentTurn = HumanColor.get(); updateStatus(); }
   }
   _aiForcing = false;
 }
@@ -20434,7 +20447,7 @@ function startPuzzle(idx){
   board={}; p.bm.forEach(function(k){board[k]='black';}); p.wm.forEach(function(k){board[k]='white';});
   capturedByBlack=p.cb; capturedByWhite=p.cw;
   gameOver=false; replayMode=false; selected=[]; undoStack=[]; boardSnapshots=[]; moveCount=0;
-  humanColor=p.c; currentTurn=p.c; _bookNode=null; gameBestHint=null;
+  HumanColor.set(p.c); currentTurn=p.c; _bookNode=null; gameBestHint=null;
   const rb=document.getElementById('replay-btn'); if(rb) rb.style.display='none';
   _puzzleActive={ idx:idx, sig:_pzSig(p.sol.cells,p.sol.dir), alts:(p.alt||[]), tries:0 };
   localStorage.setItem('abaPuzzleIdx', String(idx));
@@ -21540,13 +21553,13 @@ function startTournamentMatch(){
 function _tourneyAfterStart(){
   const M=_tourneyMatch; if(!M) return;
   GameMode.set('ai');
-  humanColor=M.human;
+  HumanColor.set(M.human);
   const bar=document.getElementById('tourney-bar'); if(bar) bar.style.display='flex';
   const t=document.getElementById('tb-title');
   if(t) t.textContent='\ud83c\udfc6 '+M.name+' \u2014 vs '+M.opp+' \u00b7 tu joues les '+(M.human==='black'?'\u26ab Noirs':'\u26aa Blancs');
   _tClockStart();
   updateStatus();
-  if(currentTurn!==humanColor && !gameOver){ setTimeout(function(){ if(typeof aiMove==='function') aiMove(); }, 700); }
+  if(currentTurn!==HumanColor.get() && !gameOver){ setTimeout(function(){ if(typeof aiMove==='function') aiMove(); }, 700); }
 }
 function tourneyMatchEnd(winner, reason){
   const M=_tourneyMatch; if(!M) return;
@@ -21740,7 +21753,7 @@ function aiMove() {
     return;
   }
   const ai = aiColor();          // couleur jouée par l'IA (blanc par défaut, noir si on affronte le Bot Noir)
-  const human = humanColor;
+  const human = HumanColor.get();
   const moves = getAllMovesForColor(ai);
   if (!moves.length) { currentTurn=human; updateStatus(); return; }
 
@@ -21900,7 +21913,7 @@ function showAIThinking(on) {
 function executeAIMove(chosen) {
   if (gameOver || !chosen) return;
   const ai = aiColor();              // couleur de l'IA
-  const human = humanColor;          // couleur de l'humain (= victime des éjections de l'IA)
+  const human = HumanColor.get();          // couleur de l'humain (= victime des éjections de l'IA)
   // Calculee ICI, AVANT abApplyMove : calculerExplicationCoup simule le coup
   // avec applyMove/undoMove, qui exigent le plateau dans son etat D'AVANT
   // le coup (sans quoi la comparaison avant/apres n'aurait pas de sens).
@@ -22060,7 +22073,7 @@ function _recordGameHistory(winner, reason){
       date: new Date().toISOString(),
       variant: (typeof currentLayout !== 'undefined') ? currentLayout : 'standard',
       mode: mode,
-      humanColor: (typeof humanColor !== 'undefined') ? humanColor : 'black',
+      humanColor: (typeof HumanColor !== 'undefined') ? HumanColor.get() : 'black',
       winner: winner || null,
       reason: reason || null,
       moveCount: (typeof moveCount !== 'undefined') ? moveCount : 0,
@@ -22371,7 +22384,7 @@ function renderHeatmapCard(){
   /* Les onglets suivent humanColor. « Vous » designait auparavant les noirs
      en dur : des que le joueur tenait les blancs, les deux cartes etaient
      inversees. En mode 2 joueurs, aucun camp n'est « l'adversaire ». */
-  const hc = (typeof humanColor !== 'undefined') ? humanColor : 'black';
+  const hc = (typeof HumanColor !== 'undefined') ? HumanColor.get() : 'black';
   const opp = (hc === 'black') ? 'white' : 'black';
   const localGame = (typeof GameMode !== 'undefined' && GameMode.get() === 'local');
   if (_heatmapColor !== 'black' && _heatmapColor !== 'white') _heatmapColor = localGame ? 'black' : hc;
@@ -25290,7 +25303,7 @@ function runAnalysis() {
     '<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:12px 0 8px">Meilleurs coups (position actuelle)</div>',
     moves.map(m => '<div class="analysis-move '+m.type+'"><span class="am-icon">'+m.icon+'</span><span class="am-move">'+m.move+'</span><span class="am-comment">'+m.comment+'</span></div>').join(''),
     '<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--muted);line-height:1.6">',
-    '📊 Billes éjectées — Vous: '+(humanColor==='black'?capturedByBlack:capturedByWhite)+' · Adversaire: '+(humanColor==='black'?capturedByWhite:capturedByBlack),
+    '📊 Billes éjectées — Vous: '+(HumanColor.get()==='black'?capturedByBlack:capturedByWhite)+' · Adversaire: '+(HumanColor.get()==='black'?capturedByWhite:capturedByBlack),
     '<br>⚡ Coups joués: '+moveCount,
     '</div>',
     histoHtml,
@@ -27050,13 +27063,13 @@ function startBotGame(botColor) {
   botDuelMode = false;
   GameMode.set('ai');
   // Le bot joue SA couleur : contre Bot Blanc tu as les noirs, contre Bot Noir tu as les blancs.
-  humanColor = (botColor === 'black') ? 'white' : 'black';
+  HumanColor.set((botColor === 'black') ? 'white' : 'black');
   resetGame();
   applyPovOrientation();
   const advisor = advisorBotColor();
   const oppName = (botColor === 'black') ? 'Bot Noir 😊' : 'Bot Blanc 😒';
   const advName = (advisor === 'black') ? 'Bot Noir' : 'Bot Blanc';
-  const myColorName = (humanColor === 'black') ? 'les Noirs ⚫' : 'les Blancs ⚪';
+  const myColorName = (HumanColor.get() === 'black') ? 'les Noirs ⚫' : 'les Blancs ⚪';
   showToast('⚔️ Tu joues ' + myColorName + ' contre le ' + oppName + ' — le ' + advName + ' t\'accompagne');
   // message d'accueil du conseiller
   setTimeout(function(){
@@ -27064,7 +27077,7 @@ function startBotGame(botColor) {
     else showBotBubble('white', 'Tiens, tu prends les noirs contre le Bot Noir ? Hmph. Je regarde… et je commenterai. Ne me déçois pas trop. 😒');
   }, 600);
   // Si l'humain joue les blancs, c'est l'IA (noirs) qui commence
-  if (humanColor === 'white' && currentTurn === 'black') {
+  if (HumanColor.get() === 'white' && currentTurn === 'black') {
     setTimeout(aiMove, 1400);
   }
 }
@@ -27280,7 +27293,7 @@ function botAdvisorComment(which, before, after, capDelta) {
   // Le bot BLANC, après s'être moqué (sur un mauvais coup), donne le bon coup (son humanité)
   if (which === 'white' && quality === 'warn') {
     let best = null;
-    try { best = searchBestMove(humanColor, 2, 800); } catch(e) {}
+    try { best = searchBestMove(HumanColor.get(), 2, 800); } catch(e) {}
     if (best && best.cells) {
       const from = coordToABAPRO(best.cells[0].r, best.cells[0].c);
       const tip = best.eject ? from + ' (éjection !)' : from + (best.type==='push'?' (poussée)':best.type==='broadside'?' (latéral)':'');
@@ -27290,7 +27303,7 @@ function botAdvisorComment(which, before, after, capDelta) {
   // Le bot NOIR glisse parfois un petit conseil bonus quand le coup est moyen/mauvais
   else if (which === 'black' && quality !== 'good') {
     let best = null;
-    try { best = searchBestMove(humanColor, 2, 800); } catch(e) {}
+    try { best = searchBestMove(HumanColor.get(), 2, 800); } catch(e) {}
     if (best && best.cells && Math.random() < 0.7) {
       const from = coordToABAPRO(best.cells[0].r, best.cells[0].c);
       const tip = best.eject ? from + ' (éjection !)' : from + (best.type==='push'?' (poussée)':best.type==='broadside'?' (latéral)':'');
@@ -27620,7 +27633,7 @@ function gameShowBestMove() {
   // propre tour ('Ce n'est pas votre tour' alors que si), et le coup
   // cherche ensuite (voir plus bas) etait celui des noirs -- le coup de
   // l'IA elle-meme, affiche comme si c'etait "votre" suggestion.
-  if (GameMode.get() === 'ai' && currentTurn !== humanColor) { showToast('⛔ Ce n\'est pas votre tour'); return; }
+  if (GameMode.get() === 'ai' && currentTurn !== HumanColor.get()) { showToast('⛔ Ce n\'est pas votre tour'); return; }
   showToast('🧠 Recherche du meilleur coup...');
   setTimeout(function() {
     // searchBestMove travaille sur la globale board (qui est déjà la position courante)
@@ -27853,7 +27866,7 @@ function startVariant() {
   _variantStash = {
     board: JSON.parse(JSON.stringify(board)),
     capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite,
-    currentTurn: currentTurn, gameMode: GameMode.get(), humanColor: humanColor, gameOver: gameOver,
+    currentTurn: currentTurn, gameMode: GameMode.get(), humanColor: HumanColor.get(), gameOver: gameOver,
     fromLive: false
   };
   variantMode = true;
@@ -27861,7 +27874,7 @@ function startVariant() {
   capturedByBlack = snap.capturedByBlack;
   capturedByWhite = snap.capturedByWhite;
   currentTurn = (snap.color === 'black') ? 'white' : 'black';
-  humanColor = currentTurn;   // on explore en jouant le prochain coup, quel que soit le camp
+  HumanColor.set(currentTurn);   // on explore en jouant le prochain coup, quel que soit le camp
   GameMode.set('ai');            // pour que l'IA réponde automatiquement au coup exploratoire
   gameOver = false;
   selected = [];
@@ -27880,11 +27893,11 @@ function startVariant() {
 function startLiveVariant() {
   if (replayMode || variantMode) return;
   if (gameOver) { showToast('La partie est terminée — rien à essayer'); return; }
-  if (GameMode.get() === 'ai' && currentTurn !== humanColor) { showToast('Attends ton tour pour essayer un coup'); return; }
+  if (GameMode.get() === 'ai' && currentTurn !== HumanColor.get()) { showToast('Attends ton tour pour essayer un coup'); return; }
   _variantStash = {
     board: JSON.parse(JSON.stringify(board)),
     capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite,
-    currentTurn: currentTurn, gameMode: GameMode.get(), humanColor: humanColor, gameOver: gameOver,
+    currentTurn: currentTurn, gameMode: GameMode.get(), humanColor: HumanColor.get(), gameOver: gameOver,
     fromLive: true
   };
   variantMode = true;
@@ -27903,7 +27916,7 @@ function exitVariant() {
   capturedByWhite = _variantStash.capturedByWhite;
   currentTurn = _variantStash.currentTurn;
   GameMode.set(_variantStash.gameMode);
-  humanColor = _variantStash.humanColor;
+  HumanColor.set(_variantStash.humanColor);
   gameOver = _variantStash.gameOver;
   variantMode = false;
   _variantStash = null;
@@ -32012,7 +32025,7 @@ function computeGameMistakes(humanColor, topN){
    et propose de sauter directement dessus dans l'onglet Analyse. */
 function openMistakesReview(){
   if (typeof analysisLoadLastGame !== 'function' || typeof computeGameMistakes !== 'function') return;
-  const humanC = (typeof humanColor !== 'undefined') ? humanColor : 'black';
+  const humanC = (typeof HumanColor !== 'undefined') ? HumanColor.get() : 'black';
   analysisLoadLastGame();
   const mistakes = computeGameMistakes(humanC, 3);
 
@@ -33968,7 +33981,7 @@ function submitGameCode() {
 
 function postGameReview(myColor) {
   if (typeof boardSnapshots === 'undefined' || boardSnapshots.length < 2) return null;
-  const me = myColor || (typeof humanColor !== 'undefined' ? humanColor : 'black');
+  const me = myColor || (typeof HumanColor !== 'undefined' ? HumanColor.get() : 'black');
   const saved = { b: board, cb: capturedByBlack, cw: capturedByWhite };
   const evals = [];
   let firstLoss = -1;
@@ -34237,8 +34250,8 @@ window.canInteractWithBoard = function () {
   if (typeof replayMode !== 'undefined' && replayMode
       && !(typeof variantMode !== 'undefined' && variantMode)) return false;
   if (typeof GameMode !== 'undefined' && GameMode.get() === 'ai'
-      && typeof currentTurn !== 'undefined' && typeof humanColor !== 'undefined'
-      && currentTurn !== humanColor) return false;
+      && typeof currentTurn !== 'undefined' && typeof HumanColor !== 'undefined'
+      && currentTurn !== HumanColor.get()) return false;
   return true;
 };
 window._1dCanPlay = window.canInteractWithBoard;
