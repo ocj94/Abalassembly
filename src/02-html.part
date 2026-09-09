@@ -1352,6 +1352,12 @@ body.a11y-oneaction .ctrl-btn:not(.primary):not(:hover):not(:focus) { opacity: 0
   .setup-opt { padding:8px 12px; font-size:12px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:7px; cursor:pointer; transition:all .15s; }
   .setup-opt:hover { border-color:var(--gold); }
   .setup-opt.active { background:var(--gold); color:#0d0f0e; border-color:var(--gold); font-weight:600; }
+  /* Le menu deroulant des dispositions (21 entrees) reprend exactement les
+     memes couleurs que .setup-opt/.setup-opt.active ci-dessus, pas de
+     nouvelles valeurs inventees. Toujours dore : contrairement a un groupe
+     de boutons qui peut n'avoir aucun actif, un <select> a TOUJOURS une
+     valeur choisie -- demande d'Olivier. */
+  .setup-layout-select { padding:8px 12px; font-size:12px; background:var(--gold); color:#0d0f0e; border:1px solid var(--gold); border-radius:7px; font-weight:600; cursor:pointer; }
   .setup-opt:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
   .setup-toggle { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); cursor:pointer; }
   .setup-toggle:last-child { border-bottom:none; }
