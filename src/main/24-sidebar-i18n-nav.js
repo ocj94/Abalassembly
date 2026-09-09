@@ -497,8 +497,9 @@ function showPage(name) {
     home:       function(){ renderEngageBar(); },
     setup:      function(){
       if (typeof setupRenderLayoutThumb === 'function' && typeof _setupCfg !== 'undefined') {
-        const activeBtn = document.querySelector('#setup-layout .setup-opt.active');
-        setupRenderLayoutThumb(_setupCfg.layout, activeBtn ? (activeBtn.getAttribute('title') || activeBtn.textContent.trim()) : '');
+        const sel = document.getElementById('setup-layout-select');
+        const opt = sel ? sel.options[sel.selectedIndex] : null;
+        setupRenderLayoutThumb(_setupCfg.layout, opt ? (opt.getAttribute('title') || opt.textContent.trim()) : '');
       }
     },
     game:       function(){ if(!tournamentGame && typeof exitTournamentMode==='function') exitTournamentMode(); initGame();
