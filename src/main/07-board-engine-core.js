@@ -406,6 +406,24 @@ const LAYOUTS = {
     black: [[7,2],[7,3],[6,2],[6,4],[3,3],[3,4],[2,1],[2,3],[2,5],[1,1],[1,4],[0,0],[0,2],[0,4]],
     white: [[8,0],[8,2],[8,4],[7,1],[7,4],[6,1],[6,3],[6,5],[5,3],[5,4],[2,2],[2,4],[1,2],[1,3]]
   },
+  alitration: {
+    // "Alitration" -- variante experimentale creee par un joueur nomme
+    // Joey lors de la conception de MiGs. Nom = portemanteau "Al(ien)" +
+    // "(infil)tration", confirme par un commentateur (Eob) sur l'article
+    // source. Symetrie de rotation a 180 degres, pas un simple miroir
+    // haut-bas -- decouvert en cours de verification, pas suppose.
+    // Source : https://onlineabalone.wordpress.com/2018/03/30/la-variante-de-mars-alitration/
+    // Coordonnees relues sur l'image fournie par Olivier, PUIS VERIFIEES
+    // en rejouant integralement une vraie partie MiGs citee dans
+    // l'article (29744, MLA vs ccc) depuis cette position exacte : 122
+    // demi-coups en notation Aba-Pro, tous legaux, resultat final
+    // conforme (Noir gagne 6 blancs ejectes contre 3 noirs, MLA perd --
+    // concorde avec le recit de l'article). Deux erreurs de lecture
+    // trouvees et corrigees pendant cette verification (g5 et c5/d6),
+    // jamais laissees en l'etat sur la seule foi de la lecture visuelle.
+    black: [[0,2],[1,2],[1,3],[2,2],[2,4],[3,2],[3,5],[5,1],[5,6],[6,0],[6,3],[6,6],[8,1],[8,3]],
+    white: [[0,1],[0,3],[2,0],[2,3],[2,6],[3,1],[3,6],[5,2],[5,5],[6,2],[6,4],[7,2],[7,3],[8,2]]
+  },
   korean_daisy: {
     // "Korean Daisy" -- deux clusters en haut avec echange de couleur au
     // contact, deux blocs en bas en symetrie de rotation a 180 degres.
