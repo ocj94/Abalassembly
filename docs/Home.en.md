@@ -17,6 +17,7 @@ A complete Abalone game in a single HTML file: zero dependencies, offline, GPL v
 - **[Architecture](Architecture.en.md)** — three diagrams: engine, data, game modes.
 - **[Distributed computing](Calcul-distribue.en.md)** — why there's no volunteer computing grid.
 - **[Multi-worker engine](Moteur-multi-worker.en.md)** — what works, and a real unresolved limitation, documented honestly.
+- **[Variants](Variantes.en.md)** — playable versus documented only, the two systems that don't fully overlap.
 
 ## In brief
 
