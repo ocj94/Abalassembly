@@ -17,6 +17,7 @@ Un jeu d'Abalone complet dans un seul fichier HTML : zéro dépendance, hors-lig
 - **[Architecture](Architecture.md)** — trois schémas : moteur, données, modes de jeu.
 - **[Calcul distribué](Calcul-distribue.md)** — pourquoi il n'y a pas de grille de calcul volontaire.
 - **[Moteur multi-worker](Moteur-multi-worker.md)** — ce qui marche, et une vraie limite non résolue, documentée honnêtement.
+- **[Variantes](Variantes.md)** — jouables contre documentées seulement, les deux systèmes qui ne se recouvrent pas.
 
 ## En bref
 
