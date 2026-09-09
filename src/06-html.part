@@ -740,28 +740,30 @@
       <div class="setup-h">Configuration</div>
 
       <div class="setup-row-lbl">Disposition de départ</div>
-      <div style="display:flex;gap:5px;flex-wrap:wrap" id="setup-layout">
-        <button onclick="setupPick('layout','standard',this)" class="setup-opt active" title="Configuration officielle : 14 billes par camp sur 3 rangées">Standard</button>
-        <button onclick="setupPick('layout','belgian',this)" class="setup-opt">Belgian Daisy</button>
-        <button onclick="setupPick('layout','german',this)" class="setup-opt">German Daisy</button>
-        <button onclick="setupPick('layout','dutch',this)" class="setup-opt">Dutch Daisy</button>
-        <button onclick="setupPick('layout','swiss',this)" class="setup-opt">Swiss Daisy</button>
-        <button onclick="setupPick('layout','69',this)" class="setup-opt" title="Disposition artistique (visage souriant), pas une variante de tournoi">69</button>
-        <button onclick="setupPick('layout','fujiyama',this)" class="setup-opt" title="Disposition artistique (forme de montagne), pas une variante de tournoi">Fujiyama</button>
-        <button onclick="setupPick('layout','the_wall',this)" class="setup-opt" title="Variante communautaire reelle, 144 parties enregistrees sur AbalOnline">The Wall</button>
-        <button onclick="setupPick('layout','star',this)" class="setup-opt" title="Variante communautaire reelle, 123 parties enregistrees sur AbalOnline">Star</button>
-        <button onclick="setupPick('layout','face_a_face',this)" class="setup-opt" title="Disposition artistique (deux losanges face a face), pas une variante de tournoi">Face à face</button>
-        <button onclick="setupPick('layout','alliances',this)" class="setup-opt" title="Variante communautaire reelle, 87 parties enregistrees sur AbalOnline">Alliances</button>
-        <button onclick="setupPick('layout','domination',this)" class="setup-opt" title="Variante communautaire reelle, 33 parties enregistrees sur AbalOnline">Domination</button>
-        <button onclick="setupPick('layout','atomouche',this)" class="setup-opt" title="Variante communautaire reelle, 76 parties enregistrees sur AbalOnline -- seulement 12 billes par camp">Atomouche</button>
-        <button onclick="setupPick('layout','centrifuge',this)" class="setup-opt" title="Variante communautaire reelle, 39 parties enregistrees sur AbalOnline">Centrifugeuse</button>
-        <button onclick="setupPick('layout','snakes_variant',this)" class="setup-opt" title="Variante communautaire reelle, 17 parties enregistrees sur AbalOnline">Snakes variant</button>
-        <button onclick="setupPick('layout','snakes',this)" class="setup-opt" title="Motif distinct de Snakes variant -- aucune partie sous ce nom exact dans le corpus, confirme par une source tierce independante">Snakes</button>
-        <button onclick="setupPick('layout','alien',this)" class="setup-opt" title="Variante communautaire reelle, 35 parties enregistrees sur AbalOnline">Alien</button>
-        <button onclick="setupPick('layout','korean_daisy',this)" class="setup-opt" title="Disposition attestee (Hyunmin KIM, abaloneonline.wordpress.com) -- aucune partie sous ce nom dans le corpus AbalOnline">Korean Daisy</button>
-        <button onclick="setupPick('layout','anglattack',this)" class="setup-opt" title="Disposition attestee (onlineabalone.wordpress.com) -- aucune partie sous ce nom dans le corpus AbalOnline">Anglattack</button>
-        <button onclick="setupPick('layout','alitration',this)" class="setup-opt" title="Disposition attestee (onlineabalone.wordpress.com, creee par Joey pour MiGs) -- verifiee en rejouant integralement une vraie partie MiGs (122 demi-coups) depuis cette position jusqu'a sa conclusion">Alitration</button>
-        <button onclick="setupPick('layout','random',this)" class="setup-opt" title="Tire une vraie disposition au hasard parmi celles disponibles">🎲 Aléatoire</button>
+      <div id="setup-layout">
+        <select id="setup-layout-select" onchange="setupPickLayoutSelect(this)" class="form-input">
+        <option value="standard" title="Configuration officielle : 14 billes par camp sur 3 rangées" selected>Standard</option>
+        <option value="belgian">Belgian Daisy</option>
+        <option value="german">German Daisy</option>
+        <option value="dutch">Dutch Daisy</option>
+        <option value="swiss">Swiss Daisy</option>
+        <option value="69" title="Disposition artistique (visage souriant), pas une variante de tournoi">69</option>
+        <option value="fujiyama" title="Disposition artistique (forme de montagne), pas une variante de tournoi">Fujiyama</option>
+        <option value="the_wall" title="Variante communautaire reelle, 144 parties enregistrees sur AbalOnline">The Wall</option>
+        <option value="star" title="Variante communautaire reelle, 123 parties enregistrees sur AbalOnline">Star</option>
+        <option value="face_a_face" title="Disposition artistique (deux losanges face a face), pas une variante de tournoi">Face à face</option>
+        <option value="alliances" title="Variante communautaire reelle, 87 parties enregistrees sur AbalOnline">Alliances</option>
+        <option value="domination" title="Variante communautaire reelle, 33 parties enregistrees sur AbalOnline">Domination</option>
+        <option value="atomouche" title="Variante communautaire reelle, 76 parties enregistrees sur AbalOnline -- seulement 12 billes par camp">Atomouche</option>
+        <option value="centrifuge" title="Variante communautaire reelle, 39 parties enregistrees sur AbalOnline">Centrifugeuse</option>
+        <option value="snakes_variant" title="Variante communautaire reelle, 17 parties enregistrees sur AbalOnline">Snakes variant</option>
+        <option value="snakes" title="Motif distinct de Snakes variant -- aucune partie sous ce nom exact dans le corpus, confirme par une source tierce independante">Snakes</option>
+        <option value="alien" title="Variante communautaire reelle, 35 parties enregistrees sur AbalOnline">Alien</option>
+        <option value="korean_daisy" title="Disposition attestee (Hyunmin KIM, abaloneonline.wordpress.com) -- aucune partie sous ce nom dans le corpus AbalOnline">Korean Daisy</option>
+        <option value="anglattack" title="Disposition attestee (onlineabalone.wordpress.com) -- aucune partie sous ce nom dans le corpus AbalOnline">Anglattack</option>
+        <option value="alitration" title="Disposition attestee (onlineabalone.wordpress.com, creee par Joey pour MiGs) -- verifiee en rejouant integralement une vraie partie MiGs (122 demi-coups) depuis cette position jusqu'a sa conclusion">Alitration</option>
+        <option value="random" title="Tire une vraie disposition au hasard parmi celles disponibles">🎲 Aléatoire</option>
+        </select>
       </div>
       <div id="setup-layout-thumb-wrap" style="display:flex;align-items:center;gap:12px;margin-top:10px;padding:8px 10px;background:var(--surface2);border-radius:8px">
         <div id="setup-layout-thumb"></div>
