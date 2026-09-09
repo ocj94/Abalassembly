@@ -333,6 +333,19 @@ function setupRenderLayoutThumb(layoutKey, labelText){
   if (labelEl) labelEl.textContent = labelText || '';
 }
 
+/* Dedie au menu deroulant des dispositions (21 entrees -- trop pour des
+   boutons individuels, demande d'Olivier). Fonction SEPAREE de setupPick()
+   plutot que de la reutiliser telle quelle : setupPick() attend un bouton
+   avec .parentElement et des .setup-opt freres a desactiver, ce qu'un
+   <select> n'a pas. Meme principe que le commentaire de setupPick() pour
+   la description : le title= de l'<option> choisie reste la SEULE source,
+   jamais une 2e liste qui pourrait diverger. */
+function setupPickLayoutSelect(sel) {
+  const value = sel.value;
+  _setupCfg.layout = value;
+  const opt = sel.options[sel.selectedIndex];
+  setupRenderLayoutThumb(value, (opt && opt.getAttribute('title')) || (opt && opt.textContent.trim()));
+}
 function setupPick(group, value, btn) {
   _setupCfg[group] = value;
   const box = btn.parentElement;
