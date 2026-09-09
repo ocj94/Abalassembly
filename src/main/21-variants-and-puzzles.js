@@ -66,6 +66,9 @@ const variantsData = [
   { id:'6-players', name:'6 Joueurs (3 équipes)', emoji:'🌟', players:'6', duration:'60 min', diff:'Expert', src:'3-2-one.com',
     desc:'3 équipes de 2. Les membres d\'une équipe sont face à face. Chaque erreur est punie par 5 adversaires !',
     origin:'3-2-one.com / spkane.org' },
+  { id:'alitration', name:'Alitration', emoji:'🌀', players:'2', duration:'25 min', diff:'Moyen', src:'onlineabalone.wordpress.com',
+    desc:'Variante expérimentale créée par un joueur nommé Joey lors de la conception de MiGs. Le nom est un mot-valise : Al(ien) + (infil)tration -- un mélange des deux positions. Symétrie de rotation à 180°, jouable dès maintenant, position vérifiée en rejouant intégralement une vraie partie MiGs (122 demi-coups) jusqu\'à sa conclusion.',
+    origin:'MiGs -- créée par Joey' },
 ];
 
 /* ── Bibliothèque de documents ────────────────────────────────────────
