@@ -9080,7 +9080,7 @@ function setupRenderLayoutThumb(layoutKey, labelText){
   const labelEl = document.getElementById('setup-layout-thumb-label');
   if (!box) return;
   if (layoutKey === 'random' || typeof LAYOUTS === 'undefined' || !LAYOUTS[layoutKey]) {
-    box.innerHTML = '<div style="width:70px;height:60px;display:flex;align-items:center;justify-content:center;font-size:22px">🎲</div>';
+    box.innerHTML = '<div style="width:98px;height:98px;display:flex;align-items:center;justify-content:center;font-size:30px">🎲</div>';
     if (labelEl) labelEl.textContent = labelText || 'Tirée au sort au lancement de la partie';
     return;
   }
@@ -9088,7 +9088,7 @@ function setupRenderLayoutThumb(layoutKey, labelText){
   const posMap = {};
   lay.black.forEach(function(p){ posMap[p[0]+','+p[1]] = 'black'; });
   lay.white.forEach(function(p){ posMap[p[0]+','+p[1]] = 'white'; });
-  const cell = 7;
+  const cell = 10;
   let html = '<div style="display:flex;flex-direction:column;align-items:center;gap:1px">';
   for (let r=0; r<9; r++){
     html += '<div style="display:flex;gap:1px;justify-content:center">';
