@@ -179,7 +179,21 @@ window.render1D = function () {
      et E — exactement le trace que tu as entoure en rouge. */
   const coordsOn = (typeof showCoordinates !== 'undefined') ? showCoordinates : true;
 
-  for (let r = 0; r < 9; r++) {
+  /* Retourne l'affichage a 180 degres quand l'humain joue blanc : par
+     defaut (noir humain), noir est deja en bas (rangees 6-8 en disposition
+     standard) et blanc en haut -- exactement ce que veut un joueur noir
+     (ses propres billes en bas). Un joueur blanc veut l'inverse : ses
+     propres billes en bas, l'adversaire qui joue en premier (noir) en
+     haut. Meme famille de bug que "noir = moi" trouvee ailleurs cette
+     session, ici sur la vue 1D specifiquement. Demande d'Olivier,
+     confirmee par la position reelle de LAYOUTS.standard avant d'ecrire
+     ce code (noir en r=6..8, blanc en r=0..2), pas supposee a l'aveugle.
+     Les data-r/data-c de chaque case restent les VRAIES coordonnees (pour
+     que les clics continuent de fonctionner sans y toucher), seul l'ORDRE
+     d'affichage change. */
+  const flip = (typeof HumanColor !== 'undefined' && HumanColor.get() === 'white');
+  const rOrder = flip ? [8,7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7,8];
+  for (const r of rOrder) {
     let line = '';
     // etiquette de rangee, prise du meme convertisseur que le reste de l'app
     let lab = ' ';
@@ -191,7 +205,8 @@ window.render1D = function () {
     const creux = BORD + (9 - rows[r]);
     line += ' '.repeat(creux - 2) + lab + ' ';
     const cells = [];
-    for (let c = 0; c < rows[r]; c++) {
+    const cOrder = flip ? Array.from({length: rows[r]}, function(_, i){ return rows[r]-1-i; }) : Array.from({length: rows[r]}, function(_, i){ return i; });
+    for (const c of cOrder) {
       const v = board[r + ',' + c];
       // O = noirs, @ = blancs (convention retenue par Olivier)
       const ch = (v === 'black') ? 'O' : (v === 'white') ? '@' : '.';
