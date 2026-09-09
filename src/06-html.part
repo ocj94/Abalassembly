@@ -760,6 +760,7 @@
         <button onclick="setupPick('layout','alien',this)" class="setup-opt" title="Variante communautaire reelle, 35 parties enregistrees sur AbalOnline">Alien</button>
         <button onclick="setupPick('layout','korean_daisy',this)" class="setup-opt" title="Disposition attestee (Hyunmin KIM, abaloneonline.wordpress.com) -- aucune partie sous ce nom dans le corpus AbalOnline">Korean Daisy</button>
         <button onclick="setupPick('layout','anglattack',this)" class="setup-opt" title="Disposition attestee (onlineabalone.wordpress.com) -- aucune partie sous ce nom dans le corpus AbalOnline">Anglattack</button>
+        <button onclick="setupPick('layout','alitration',this)" class="setup-opt" title="Disposition attestee (onlineabalone.wordpress.com, creee par Joey pour MiGs) -- verifiee en rejouant integralement une vraie partie MiGs (122 demi-coups) depuis cette position jusqu'a sa conclusion">Alitration</button>
         <button onclick="setupPick('layout','random',this)" class="setup-opt" title="Tire une vraie disposition au hasard parmi celles disponibles">🎲 Aléatoire</button>
       </div>
       <div id="setup-layout-thumb-wrap" style="display:flex;align-items:center;gap:12px;margin-top:10px;padding:8px 10px;background:var(--surface2);border-radius:8px">
