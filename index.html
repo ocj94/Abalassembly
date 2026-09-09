@@ -3169,6 +3169,7 @@ document.addEventListener('keydown', function(e){
         <button onclick="setupPick('layout','alien',this)" class="setup-opt" title="Variante communautaire reelle, 35 parties enregistrees sur AbalOnline">Alien</button>
         <button onclick="setupPick('layout','korean_daisy',this)" class="setup-opt" title="Disposition attestee (Hyunmin KIM, abaloneonline.wordpress.com) -- aucune partie sous ce nom dans le corpus AbalOnline">Korean Daisy</button>
         <button onclick="setupPick('layout','anglattack',this)" class="setup-opt" title="Disposition attestee (onlineabalone.wordpress.com) -- aucune partie sous ce nom dans le corpus AbalOnline">Anglattack</button>
+        <button onclick="setupPick('layout','alitration',this)" class="setup-opt" title="Disposition attestee (onlineabalone.wordpress.com, creee par Joey pour MiGs) -- verifiee en rejouant integralement une vraie partie MiGs (122 demi-coups) depuis cette position jusqu'a sa conclusion">Alitration</button>
         <button onclick="setupPick('layout','random',this)" class="setup-opt" title="Tire une vraie disposition au hasard parmi celles disponibles">🎲 Aléatoire</button>
       </div>
       <div id="setup-layout-thumb-wrap" style="display:flex;align-items:center;gap:12px;margin-top:10px;padding:8px 10px;background:var(--surface2);border-radius:8px">
@@ -7838,9 +7839,9 @@ function isMyColor(color) {
    le seau de la variante en cours (me_black@belgian, etc.). On peut ainsi
    comparer ses habitudes selon la position de depart, qui change beaucoup le
    jeu. Demande d'Olivier. */
-const HEAT_VARIANTS = ['standard','belgian','german','dutch','swiss','decouverte','69','fujiyama','the_wall','star','face_a_face','alliances','domination','atomouche','centrifuge','snakes_variant','snakes','alien','korean_daisy','anglattack'];
+const HEAT_VARIANTS = ['standard','belgian','german','dutch','swiss','decouverte','69','fujiyama','the_wall','star','face_a_face','alliances','domination','atomouche','centrifuge','snakes_variant','snakes','alien','korean_daisy','anglattack','alitration'];
 const HEAT_VARIANT_LABEL = { standard:'Standard', belgian:'Belgian Daisy', german:'German Daisy',
-  dutch:'Dutch Daisy', swiss:'Swiss Daisy', decouverte:'D\u00e9couverte', '69':'69', fujiyama:'Fujiyama', the_wall:'The Wall', star:'Star', face_a_face:'Face à face', alliances:'Alliances', domination:'Domination', atomouche:'Atomouche', centrifuge:'Centrifugeuse', snakes_variant:'Snakes variant', snakes:'Snakes', alien:'Alien', korean_daisy:'Korean Daisy', anglattack:'Anglattack' };
+  dutch:'Dutch Daisy', swiss:'Swiss Daisy', decouverte:'D\u00e9couverte', '69':'69', fujiyama:'Fujiyama', the_wall:'The Wall', star:'Star', face_a_face:'Face à face', alliances:'Alliances', domination:'Domination', atomouche:'Atomouche', centrifuge:'Centrifugeuse', snakes_variant:'Snakes variant', snakes:'Snakes', alien:'Alien', korean_daisy:'Korean Daisy', anglattack:'Anglattack', alitration:'Alitration' };
 
 function recordMyHeat(color, cells) {
   if (typeof isMyColor === 'function' && !isMyColor(color)) return;
@@ -12086,6 +12087,24 @@ const LAYOUTS = {
     // a1a3a5b2b5c2c4c6d4d5g5g7h6h7 (blanc).
     black: [[7,2],[7,3],[6,2],[6,4],[3,3],[3,4],[2,1],[2,3],[2,5],[1,1],[1,4],[0,0],[0,2],[0,4]],
     white: [[8,0],[8,2],[8,4],[7,1],[7,4],[6,1],[6,3],[6,5],[5,3],[5,4],[2,2],[2,4],[1,2],[1,3]]
+  },
+  alitration: {
+    // "Alitration" -- variante experimentale creee par un joueur nomme
+    // Joey lors de la conception de MiGs. Nom = portemanteau "Al(ien)" +
+    // "(infil)tration", confirme par un commentateur (Eob) sur l'article
+    // source. Symetrie de rotation a 180 degres, pas un simple miroir
+    // haut-bas -- decouvert en cours de verification, pas suppose.
+    // Source : https://onlineabalone.wordpress.com/2018/03/30/la-variante-de-mars-alitration/
+    // Coordonnees relues sur l'image fournie par Olivier, PUIS VERIFIEES
+    // en rejouant integralement une vraie partie MiGs citee dans
+    // l'article (29744, MLA vs ccc) depuis cette position exacte : 122
+    // demi-coups en notation Aba-Pro, tous legaux, resultat final
+    // conforme (Noir gagne 6 blancs ejectes contre 3 noirs, MLA perd --
+    // concorde avec le recit de l'article). Deux erreurs de lecture
+    // trouvees et corrigees pendant cette verification (g5 et c5/d6),
+    // jamais laissees en l'etat sur la seule foi de la lecture visuelle.
+    black: [[0,2],[1,2],[1,3],[2,2],[2,4],[3,2],[3,5],[5,1],[5,6],[6,0],[6,3],[6,6],[8,1],[8,3]],
+    white: [[0,1],[0,3],[2,0],[2,3],[2,6],[3,1],[3,6],[5,2],[5,5],[6,2],[6,4],[7,2],[7,3],[8,2]]
   },
   korean_daisy: {
     // "Korean Daisy" -- deux clusters en haut avec echange de couleur au
@@ -26218,6 +26237,9 @@ const variantsData = [
   { id:'6-players', name:'6 Joueurs (3 équipes)', emoji:'🌟', players:'6', duration:'60 min', diff:'Expert', src:'3-2-one.com',
     desc:'3 équipes de 2. Les membres d\'une équipe sont face à face. Chaque erreur est punie par 5 adversaires !',
     origin:'3-2-one.com / spkane.org' },
+  { id:'alitration', name:'Alitration', emoji:'🌀', players:'2', duration:'25 min', diff:'Moyen', src:'onlineabalone.wordpress.com',
+    desc:'Variante expérimentale créée par un joueur nommé Joey lors de la conception de MiGs. Le nom est un mot-valise : Al(ien) + (infil)tration -- un mélange des deux positions. Symétrie de rotation à 180°, jouable dès maintenant, position vérifiée en rejouant intégralement une vraie partie MiGs (122 demi-coups) jusqu\'à sa conclusion.',
+    origin:'MiGs -- créée par Joey' },
 ];
 
 /* ── Bibliothèque de documents ────────────────────────────────────────
