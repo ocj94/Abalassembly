@@ -741,7 +741,7 @@
 
       <div class="setup-row-lbl">Disposition de départ</div>
       <div id="setup-layout">
-        <select id="setup-layout-select" onchange="setupPickLayoutSelect(this)" class="form-input">
+        <select id="setup-layout-select" onchange="setupPickLayoutSelect(this)" class="setup-layout-select">
         <option value="standard" title="Configuration officielle : 14 billes par camp sur 3 rangées" selected>Standard</option>
         <option value="belgian">Belgian Daisy</option>
         <option value="german">German Daisy</option>
