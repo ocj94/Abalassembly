@@ -22,6 +22,26 @@ For reference, the whole site weighs about 7.8 MB, everything included. Even the
 
 The gaps between these figures and the ones claimed in the proposals ranged from a factor of 6 to a factor of 20,000. That gap is consistently what made each proposal collapse once recalculated.
 
+### Two ways to count, both correct
+
+The table above counts **raw** placements — how many marble configurations exist on the board, ignoring the board's symmetries. That's the right measure for showing the scale of the problem.
+
+But 2v2 and 3v2, once **actually computed**, don't occupy that raw space: they exploit the board's 12 symmetries (rotations and reflections) to reduce the weaker side to its canonical positions only, plus a ×2 factor for whose turn it is. Concretely:
+
+| Class | Raw space (table above) | Reduced space (real, validated method) |
+|---|---|---|
+| 2v2 | 3,131,130 | 6,262,260 *(includes the ×2 for turn, absent from the raw count)* |
+| 3v2 | 59,491,470 | 11,703,240 |
+| 3v3 | 1,110,507,440 | **224,721,560** |
+
+The reduced method is the one that actually produced the 2v2 and 3v2 tables already embedded in the game — re-checked by rerunning it from scratch in a separate sandbox and comparing the result against the real data, position by position, with zero discrepancy across the tens of thousands of non-empty entries in both tables.
+
+**3v3 has been computed with this same method**, a first: 224,721,560 positions resolved, of which only 2 wins and no forced losses — the rest, draws. A surprising but consistent result: a capture from 3v3 lands on a 3v2 position that's almost always a draw (99.85% of the corpus), so very few captures happen to land on one of the rare decisive positions. Both winning positions were independently re-verified with the real game engine, not just with the calculation that produced them.
+
+**What this doesn't change**: 4v3 remains out of reach for single-file storage even reduced by symmetry (roughly 812 MB estimated, versus 3.8 GB raw) — still tens of times the size of the entire site. A real additional obstacle, found while digging further: half of the retrograde computation (the weaker side, when it's their turn to move) changes its table slot on **every single move, without exception** — splitting the work into independent chunks doesn't work, the whole table would need to stay in memory (or virtual memory backed by a swap file) for the entire computation.
+
+**Where this actually stands**: 3v2 (already shipped) and 3v3 (computed, validated, not shipped — no use to a player, 2 exploitable positions out of 224 million) are the two prerequisites for 4v2, itself a prerequisite for 4v3. None of this changes this page's conclusion — 4v3 remains out of the site's reach — but the computation method is now proven, not just estimated on paper.
+
 ## The four computing candidates, and why none holds up
 
 **3v3 endgame tables and beyond** — incompatible with the single-file architecture, see the table above. The project stopped at 3v2 for this reason, and that was the right call.
