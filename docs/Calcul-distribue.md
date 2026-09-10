@@ -22,6 +22,26 @@ Pour mémoire, le site entier pèse environ 7,8 Mo, tout compris. Même la class
 
 Les écarts entre ces chiffres et ceux annoncés dans les propositions allaient d'un facteur 6 à un facteur 20 000. C'est systématiquement ce qui faisait s'effondrer chaque proposition une fois recalculée.
 
+### Deux façons de compter, toutes les deux justes
+
+Le tableau ci-dessus compte les placements **bruts** — combien de configurations de billes existent sur le plateau, sans tenir compte des symétries. C'est la bonne mesure pour donner l'échelle du problème.
+
+Mais 2v2 et 3v2, une fois **réellement calculées**, n'occupent pas cet espace brut : elles exploitent les 12 symétries du plateau (rotations et réflexions) pour réduire le camp faible à ses seules positions canoniques, plus un facteur ×2 pour le trait. Concrètement :
+
+| Classe | Espace brut (tableau ci-dessus) | Espace réduit (méthode réelle, validée) |
+|---|---|---|
+| 2v2 | 3 131 130 | 6 262 260 *(inclut le ×2 du trait, absent du brut)* |
+| 3v2 | 59 491 470 | 11 703 240 |
+| 3v3 | 1 110 507 440 | **224 721 560** |
+
+La méthode réduite est celle qui a réellement produit les tables 2v2 et 3v2 déjà embarquées dans le jeu — revérifié en la relançant de zéro dans un bac à sable séparé et en comparant le résultat aux vraies données, position par position, sans un seul écart sur les dizaines de milliers d'entrées non nulles des deux tables.
+
+**3v3 a été calculée avec cette même méthode**, une première : 224 721 560 positions résolues, dont seulement 2 gains et aucune perte forcée — le reste, des nulles. Un résultat surprenant mais cohérent : une capture depuis 3v3 retombe sur une position 3v2 presque toujours nulle (99,85 % du corpus), donc très peu de captures tombent par chance sur l'une des rares positions décisives. Les deux positions gagnantes ont été revérifiées indépendamment avec le moteur de jeu réel, pas seulement avec le calcul qui les a produites.
+
+**Ce que ça ne change pas** : 4v3 reste hors de portée d'un stockage en fichier unique même réduit par symétrie (environ 812 Mo estimés, contre 3,8 Go en brut) — toujours des dizaines de fois la taille du site entier. Un vrai obstacle supplémentaire, découvert en creusant : la moitié du calcul retrograde (le camp faible, quand c'est son tour de jouer) change de case dans la table à **chaque coup, sans exception** — un découpage en tranches indépendantes ne fonctionne donc pas, il faudrait garder toute la table en mémoire (ou en mémoire virtuelle avec un fichier d'échange) d'un bout à l'autre du calcul.
+
+**Où ça en est concrètement** : 3v2 (déjà déployée) et 3v3 (calculée, validée, non déployée — aucune utilité pour un joueur, 2 positions exploitables sur 224 millions) sont les deux étapes préalables à 4v2, elle-même préalable à 4v3. Rien de tout cela ne change la conclusion de cette page — 4v3 reste hors de portée du site — mais la méthode de calcul est maintenant éprouvée, pas seulement estimée sur le papier.
+
 ## Les quatre candidats de calcul, et pourquoi aucun ne tient
 
 **Tablebases 3v3 et au-delà** — incompatibles avec l'architecture fichier unique, voir le tableau ci-dessus. Le projet s'est arrêté à 3v2 pour cette raison, et c'était le bon choix.
