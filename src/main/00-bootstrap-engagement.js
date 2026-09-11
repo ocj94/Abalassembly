@@ -149,7 +149,7 @@ function _countImmediateCaptures(color){
 function certifyPuzzle(idx){
   const p = PUZZLES[idx];
   if (!p || !p.sol) return { proved: false, reason: 'no-sol' };
-  const savedBoard = board, savedCB = capturedByBlack, savedCW = capturedByWhite, savedTurn = currentTurn;
+  const savedBoard = board, savedCB = capturedByBlack, savedCW = capturedByWhite, savedTurn = CurrentTurn.get();
   try {
     const b = {};
     p.bm.forEach(function(s){ b[s] = 'black'; });
@@ -157,7 +157,7 @@ function certifyPuzzle(idx){
     board = b;
     capturedByBlack = p.cb || 0;
     capturedByWhite = p.cw || 0;
-    currentTurn = p.c;
+    CurrentTurn.set(p.c);
 
     if (p.multi && p.seq && p.seq.length === 3) {
       // Puzzle MULTI-COUPS (3 demi-coups) : verifie la ligne COMPLETE --
@@ -218,7 +218,7 @@ function certifyPuzzle(idx){
     const gained = afterCap - baseCap;
     return { proved: gained >= 1, reason: gained >= 1 ? 'ok' : 'no-gain', gained: gained };
   } finally {
-    board = savedBoard; capturedByBlack = savedCB; capturedByWhite = savedCW; currentTurn = savedTurn;
+    board = savedBoard; capturedByBlack = savedCB; capturedByWhite = savedCW; CurrentTurn.set(savedTurn);
   }
 }
 
