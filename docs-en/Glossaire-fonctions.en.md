@@ -1,0 +1,1322 @@
+🇫🇷 [Version française](../docs-fr/Glossaire-fonctions.fr.md)
+
+# Function glossary — Abalassembly
+
+**1236 functions** extracted directly from the code (main block), not copied by hand — each name comes from a real `function name(...)`, `const name = function(...)`, or `const name = (...) => `, detected by parsing the actual file.
+
+**What this doesn't cover**: object shorthand methods (`{ name(args){...} }`), and the separate AI Worker code (which duplicates some engine functions to run off the main thread). A larger count exists elsewhere ("~1,351 functions" cited in an external audit) — the difference likely comes from these uncovered forms, not a version mismatch.
+
+**Section** = the nearest code block above the declaration, not a description of what the function does. For that, read the code — this glossary is for knowing *where to look*, not *what it does*. Section titles are translated from the original French code comments.
+
+Generated on 2026-09-11 from the deployed `index.html`. This page can go stale if functions are later added, renamed, or removed — it does not regenerate itself.
+
+## A
+
+- `abApplyMove()` — *TACTICAL MOTIFS — library of named local structures*
+- `abaproOfficialLabels()` — *POSITION GRAPH — real transpositions (839 positions*
+- `abaproToRc()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `addGroup()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `addJunction()` — *EJECTION ANIMATION*
+- `addMoveToHistory()` — *FITTINGS READER — removed.*
+- `addToHistory()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `addXp()` — *API LAYER — local/backend routing (feature flag)*
+- `advCancelImport()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `advConfirmImport()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `advisorBotColor()` — *ADVISOR BOTS — Black (kind/clever) and White (tough/human)*
+- `afterHumanMove()` — *KEYBOARD NAVIGATION + ARIA — 2D board accessibility*
+- `aiColor()` — *ABALONE BOARD ENGINE*
+- `aiMove()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `akey()` — *ABALONE ENGINE — axial coordinates + official rules*
+- `analysisFromEditor()` — *EVALUATION CURVE — a universal feature among other*
+- `analysisFromStandard()` — *EVALUATION CURVE — a universal feature among other*
+- `analysisGoto()` — *EVALUATION CURVE — a universal feature among other*
+- `analysisInit()` — *EVALUATION CURVE — a universal feature among other*
+- `analysisLoadLastGame()` — *EVALUATION CURVE — a universal feature among other*
+- `analysisShowBestMove()` — *GAME ANALYSIS*
+- `analysisStep()` — *EVALUATION CURVE — a universal feature among other*
+- `analyzeBoard()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `analyzeGame()` — *TOOLS (manual style, swap sides, solve, ASCII diagram*
+- `analyzeMenaceImmediate()` — *UNDERSTANDING ENGINE — stage 1: spatial breakdown*
+- `analyzeMenaceNCoups()` — *UNDERSTANDING ENGINE — stage 1: spatial breakdown*
+- `analyzeMobilite2Coups()` — *UNDERSTANDING ENGINE — stage 1: spatial breakdown*
+- `analyzePosition()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `analyzeProfondeurTactique()` — *UNDERSTANDING ENGINE — stage 1: spatial breakdown*
+- `analyzeSumitoPotential()` — *UNDERSTANDING ENGINE — stage 1: spatial breakdown*
+- `analyzeSupport()` — *UNDERSTANDING ENGINE — stage 1: spatial breakdown*
+- `analyzeZones()` — *UNDERSTANDING ENGINE — stage 1: spatial breakdown*
+- `animateEjection()` — *EJECTION ANIMATION*
+- `animateMarbleSlide()` — *EJECTION ANIMATION*
+- `animatePuzzleEjection()` — *PUZZLES — state & interaction*
+- `answerHintsPreference()` — *TACTICAL MAP OVERLAY — same 4 real dimensions as the*
+- `appendBotChatMsg()` — *ABALONE KNOWLEDGE BASE (embedded, offline)*
+- `appendMoveRow()` — *FITTINGS READER — removed.*
+- `applyA11y()` — *DETAILED PERFORMANCE PROFILE*
+- `applyAccessibility()` — *ACCESSIBILITY & FINE-TUNING*
+- `applyAllA11Y()` — *ACCESSIBILITY & FINE-TUNING*
+- `applyCropAndProcess()` — *IMAGE PRIVACY HANDLING*
+- `applyDuelMove()` — *ADVISOR BOTS — Black (kind/clever) and White (tough/human)*
+- `applyEngineMode()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `applyLabChampion()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `applyMarbleSkin()` — *MARBLE SKINS — multi-stop gradients*
+- `applyMove()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `applyPovOrientation()` — *ABALONE BOARD ENGINE*
+- `applySidebarState()` — *SIDEBAR — chess.com style*
+- `applyTechMode()` — *TECHNICAL MODE — several levels of detail*
+- `applyTournamentLocks()` — *TOURNAMENT RULES (defined by the organizer)*
+- `applyTranslations()` — *TRANSLATION SYSTEM (i18n)*
+- `applyTrombiFilter()` — *MOVE HEATMAP — board heat map*
+- `applyWelcomePerms()` — *PERMISSIONS SYSTEM*
+- `arBuildRcList()` — *AR MODE — continuous video feed + real-time overlay*
+- `arCandidateSelections()` — *AR MODE — continuous video feed + real-time overlay*
+- `arCanvasPoint()` — *AR MODE — continuous video feed + real-time overlay*
+- `arComputeHomographyAndProject()` — *AR MODE — continuous video feed + real-time overlay*
+- `arComputeMovesForRc()` — *AR MODE — continuous video feed + real-time overlay*
+- `arDetectBalls()` — *AR MODE — continuous video feed + real-time overlay*
+- `arDrawCoverFrame()` — *AR MODE — continuous video feed + real-time overlay*
+- `arDrawLoop()` — *AR MODE — continuous video feed + real-time overlay*
+- `arExportPosition()` — *AR MODE — continuous video feed + real-time overlay*
+- `armInactivityCancel()` — *PUBLIC EVENTS — lightweight extension point*
+- `arOnPointerDown()` — *AR MODE — continuous video feed + real-time overlay*
+- `arOnPointerMove()` — *AR MODE — continuous video feed + real-time overlay*
+- `arOnPointerUp()` — *AR MODE — continuous video feed + real-time overlay*
+- `arRecalibrate()` — *AR MODE — continuous video feed + real-time overlay*
+- `arResizeCanvas()` — *AR MODE — continuous video feed + real-time overlay*
+- `arRestoreBoard()` — *AR MODE — continuous video feed + real-time overlay*
+- `arSelectHole()` — *AR MODE — continuous video feed + real-time overlay*
+- `arSetupCanvasEvents()` — *AR MODE — continuous video feed + real-time overlay*
+- `arShowBestMove()` — *AR MODE — continuous video feed + real-time overlay*
+- `arStartCamera()` — *AR MODE — continuous video feed + real-time overlay*
+- `arStopCamera()` — *AR MODE — continuous video feed + real-time overlay*
+- `arSwapBoard()` — *AR MODE — continuous video feed + real-time overlay*
+- `arSwitchPlayer()` — *AR MODE — continuous video feed + real-time overlay*
+- `arToggleFreeze()` — *AR MODE — continuous video feed + real-time overlay*
+- `assignNext()` — *WORK STEALING — dynamic distribution of root moves.*
+- `awardBadge()` — *API LAYER — local/backend routing (feature flag)*
+- `axHexDist()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `axialToRc()` — *ABALONE ENGINE — axial coordinates + official rules*
+
+## B
+
+- `back()` — *OTP MODULE — code digit entry (classic 2FA + TOTP*
+- `bar()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `bestDragDir()` — *MOVE UNDO & PAUSE (with the opponent's agreement)*
+- `boardIntegrityOK()` — *ANTI-CHEAT / INTEGRITY*
+- `boardRotationToTheta3D()` — *ABALONE BOARD ENGINE*
+- `bookDescend()` — *EXPERIMENTAL NNUE ENGINE — options selectable in Settings*
+- `botAdvisorComment()` — *ADVISOR BOTS — Black (kind/clever) and White (tough/human)*
+- `botDuelDepth()` — *ADVISOR BOTS — Black (kind/clever) and White (tough/human)*
+- `botDuelTime()` — *ADVISOR BOTS — Black (kind/clever) and White (tough/human)*
+- `botKbHelp()` — *ABALONE KNOWLEDGE BASE (embedded, offline)*
+- `botKbReply()` — *ABALONE KNOWLEDGE BASE (embedded, offline)*
+- `buildCanon()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `buildCarteTactiqueSVG()` — *EVALUATION CURVE OF A HISTORICAL GAME*
+- `buildGameHeatmapSVG()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `buildGameNotation()` — *SHARING A POSITION VIA URL*
+- `buildHeatmapSVG()` — *MOVE HEATMAP — board heat map*
+- `buildPuzzleBoard()` — *SPACED REPETITION (SRS) — on puzzles.*
+- `buildRadar15()` — *15-AXIS RADAR, NORMALIZED BY PERCENTILE*
+- `buildRadarSVG()` — *DETAILED PERFORMANCE PROFILE*
+- `buildShareText()` — *SOCIAL MEDIA SHARING*
+- `buildSiteBriefing()` — *TECHNICAL FACT SHEET FOR AI — factual data about the site.*
+
+## C
+
+- `calculerAnalyseHistorique()` — *COMPARISON AGAINST THE 418,595 HISTORICAL POSITIONS*
+- `calculerCarteTactique()` — *EVALUATION CURVE OF A HISTORICAL GAME*
+- `calculerCorrelationsVictoire()` — *EVALUATION CURVE OF A HISTORICAL GAME*
+- `calculerEmpreinte()` — *UNDERSTANDING ENGINE — stage 1: spatial breakdown*
+- `calculerExplicationCoup()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `calculerProfilDecision()` — *DECISION PROFILE — not a composite "complexity X/10" score*
+- `canonId()` — *EXPERIMENTAL NNUE ENGINE — options selectable in Settings*
+- `canvasPos()` — *MOVE UNDO & PAUSE (with the opponent's agreement)*
+- `capturerReference()` — *GAME ANALYSIS*
+- `card()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `carteTactiqueStepBack()` — *GAME ANALYSIS*
+- `carteTactiqueStepForward()` — *GAME ANALYSIS*
+- `carteTactiqueTogglePlay()` — *GAME ANALYSIS*
+- `cat()` — *TOOLS (manual style, swap sides, solve, ASCII diagram*
+- `cell()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `cells()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `cellsOf()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `centerControl()` — *GAMEPLAY METRICS TRACKING (feeds the radar)*
+- `certifyAllPuzzles()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+- `certifyPuzzle()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+- `check()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `checkAllPermissions()` — *PERMISSIONS SYSTEM*
+- `checkBadges()` — *API LAYER — local/backend routing (feature flag)*
+- `checkBarrierStep()` — *INTERACTIVE TUTORIAL*
+- `checkDailyCompletion()` — *FULL HISTORY — Aba-Pro export/import*
+- `checkDailyGameComplete()` — *DAILY CHALLENGE — GAME (distinct from the daily puzzle)*
+- `checkFilled()` — *OTP MODULE — code digit entry (classic 2FA + TOTP*
+- `checkFirstVisit()` — *PERMISSIONS SYSTEM*
+- `checkIncomingReferral()` — *REFERRALS — invite friends, earn rewards*
+- `checkMonthlyCompletion()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+- `checkOTPFilled()` — *OTP MODULE — code digit entry (classic 2FA + TOTP*
+- `checkPuzzleMove()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `checkPwStrength()` — *MODALS*
+- `checkSkinUnlocks()` — *API LAYER — local/backend routing (feature flag)*
+- `checkTutorialStep()` — *INTERACTIVE TUTORIAL*
+- `checkWeeklyComplete()` — *WEEKLY CHALLENGES (objectives + rewards)*
+- `chercherMenaceTactique()` — *GAME ANALYSIS*
+- `chercherMotif()` — *TACTICAL MOTIFS — library of named local structures*
+- `choisirDimCarteTactique()` — *GAME ANALYSIS*
+- `clamp01()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `classifierCoup()` — *EVALUATION CURVE — a universal feature among other*
+- `classifyLoss()` — *TOOLS (manual style, swap sides, solve, ASCII diagram*
+- `clearAll()` — *IMAGE PRIVACY HANDLING*
+- `clearGameHistory()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `clearImage()` — *IMAGE PRIVACY HANDLING*
+- `clearSavedGame()` — *AUTOMATIC GAME SAVE*
+- `clearSession()` — *SECURITY — localStorage encryption (AES-GCM)*
+- `closeAnalysisModal()` — *TOOLS (manual style, swap sides, solve, ASCII diagram*
+- `closeAsciiModal()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `closeLabModal()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `closeLabReplay()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `closeMigsBrowser()` — *PLAYSTRATEGY IMPORT — live retrieval of a player's games*
+- `closeModal()` — *MODALS*
+- `closePSImportModal()` — *PLAYSTRATEGY IMPORT — live retrieval of a player's games*
+- `closeReferralModal()` — *REFERRALS — invite friends, earn rewards*
+- `closeReportModal()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `closeShareModal()` — *SOCIAL MEDIA SHARING*
+- `closeSidebarMobile()` — *TRANSLATION SYSTEM (i18n)*
+- `closeTranslateHint()` — *TRANSLATION SYSTEM (i18n)*
+- `closeTutorial()` — *INTERACTIVE TUTORIAL*
+- `coachComment()` — *ABALONE KNOWLEDGE BASE (embedded, offline)*
+- `cohesionScore()` — *GAMEPLAY METRICS TRACKING (feeds the radar)*
+- `colorsFromCounts()` — *ABALONE BOARD ENGINE*
+- `completeDailyChallenge()` — *API LAYER — local/backend routing (feature flag)*
+- `computeActivityHeatmap()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `computeAnalysis()` — *TOOLS (manual style, swap sides, solve, ASCII diagram*
+- `computeColorStats()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `computeCorpusStats()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `computeDecisionProfile()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `computeDimensionCorrelations()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `computeDimensionDistributions()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `computeDragFromSelection()` — *MOVE UNDO & PAUSE (with the opponent's agreement)*
+- `computeDragMove()` — *MOVE UNDO & PAUSE (with the opponent's agreement)*
+- `computeEjectionStats()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `computeEngineStats()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `computeEvalCurve()` — *EVALUATION CURVE — a universal feature among other*
+- `computeGameHeatmap()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `computeGameMistakes()` — *EVALUATION CURVE — a universal feature among other*
+- `computeMoveHints()` — *ABALONE BOARD ENGINE*
+- `computeMoveQuality()` — *EVALUATION CURVE — a universal feature among other*
+- `computePerfMetrics()` — *DETAILED PERFORMANCE PROFILE*
+- `computePlayableCells()` — *ABALONE BOARD ENGINE*
+- `computePlayerRadar()` — *DETAILED PERFORMANCE PROFILE*
+- `computeRadarPercentiles()` — *15-AXIS RADAR, NORMALIZED BY PERCENTILE*
+- `computeRadarRaw()` — *15-AXIS RADAR, NORMALIZED BY PERCENTILE*
+- `computeSecurityScore()` — *SECURITY SCORE*
+- `computeStyleProfile()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `computeTopMoves()` — *GAME ANALYSIS*
+- `coordToABAPRO()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `copyAsciiDiagram()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `copyGameCode()` — *FULL HISTORY — Aba-Pro export/import*
+- `copyGameLink()` — *FULL HISTORY — Aba-Pro export/import*
+- `copyReferralLink()` — *REFERRALS — invite friends, earn rewards*
+- `copyScannedGame()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `copyShareLink()` — *SOCIAL MEDIA SHARING*
+- `cornerEpoxy()` — *ABALONE BOARD ENGINE*
+- `countMarbles()` — *ANTI-CHEAT / INTEGRITY*
+- `creatorApply()` — *KIDS MODE — adapted board, safety restrictions*
+- `creatorBootstrap()` — *KIDS MODE — adapted board, safety restrictions*
+- `creatorBuildRecipe()` — *KIDS MODE — adapted board, safety restrictions*
+- `creatorEnsurePersoSwatch()` — *KIDS MODE — adapted board, safety restrictions*
+- `creatorInitControls()` — *KIDS MODE — adapted board, safety restrictions*
+- `creatorLoadSaved()` — *KIDS MODE — adapted board, safety restrictions*
+- `creatorReadControls()` — *KIDS MODE — adapted board, safety restrictions*
+- `creatorRefreshSwatchGradient()` — *KIDS MODE — adapted board, safety restrictions*
+- `creatorRegisterPerso()` — *KIDS MODE — adapted board, safety restrictions*
+- `creatorReset()` — *KIDS MODE — adapted board, safety restrictions*
+- `creatorSaveToStorage()` — *KIDS MODE — adapted board, safety restrictions*
+- `creatorScaleLayers()` — *KIDS MODE — adapted board, safety restrictions*
+- `creatorUpdate()` — *KIDS MODE — adapted board, safety restrictions*
+- `creditPendingReferrals()` — *REFERRALS — invite friends, earn rewards*
+- `currentDailyGame()` — *DAILY CHALLENGE — GAME (distinct from the daily puzzle)*
+- `currentDailyPuzzle()` — *FULL HISTORY — Aba-Pro export/import*
+- `currentLang()` — *LANGUAGE SELECTOR*
+- `currentMonthlyPuzzle()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+- `currentTournamentId()` — *MONTHLY TOURNAMENT — signup, prizes, countdown*
+- `currentWeekly()` — *WEEKLY CHALLENGES (objectives + rewards)*
+
+## D
+
+- `dailyChallenge()` — *API LAYER — local/backend routing (feature flag)*
+- `dailyGameProgressValue()` — *DAILY CHALLENGE — GAME (distinct from the daily puzzle)*
+- `dailySeed()` — *API LAYER — local/backend routing (feature flag)*
+- `daysBetween()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+- `daySeed()` — *FULL HISTORY — Aba-Pro export/import*
+- `dayStr()` — *FULL HISTORY — Aba-Pro export/import*
+- `decodePosition()` — *SHARING A POSITION VIA URL*
+- `decodeTB32Entry()` — *ENDGAME TRAINER — REAL positions taken from tb-3v2.json*
+- `defaultProgress()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+- `defaultTournamentRules()` — *TOURNAMENT RULES (defined by the organizer)*
+- `deleteGameHistoryEntry()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `deleteScannedGame()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `den()` — *DETAILED PERFORMANCE PROFILE*
+- `denyPerm()` — *PERMISSIONS SYSTEM*
+- `deriveAIMode()` — *EXPERIMENTAL NNUE ENGINE — options selectable in Settings*
+- `dessinerCarteTactique()` — *GAME ANALYSIS*
+- `detApplyHomography()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `detCalibCancel()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `detCalibClick()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `detCalibRender()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `detCalibReset()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `detCellFlatPos()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `detClassify()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `detComputeHomography()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `detConfirmDetection()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `detCorrectClick()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `detCorrectRender()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `detectAIWorkerCount()` — *ENGINE BENCHMARK — real measurement before any speed claim*
+- `detecterContenuProbleme()` — *CHAT MODERATION — insults, hate speech, violence/threats*
+- `detecterMotifCoup()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `detEffCoord()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `detFlipHorizontal()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `detFlipVertical()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `detGaussSolve()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `detRcToAx()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `detRunDetection()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `detSamplePatch()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `detStartOffline()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `directionName()` — *PUZZLES DATA & RENDER*
+- `dirPixelVec()` — *MOVE UNDO & PAUSE (with the opponent's agreement)*
+- `disarmInactivityCancel()` — *PUBLIC EVENTS — lightweight extension point*
+- `dismissLangBanner()` — *TRANSLATION SYSTEM (i18n)*
+- `distanceEmpreintes()` — *UNDERSTANDING ENGINE — stage 1: spatial breakdown*
+- `dit()` — *FULL HISTORY — Aba-Pro export/import*
+- `dl()` — *DETAILED PERFORMANCE PROFILE*
+- `doUndo()` — *MOVE UNDO & PAUSE (with the opponent's agreement)*
+- `drawA11YPreview()` — *ACCESSIBILITY & FINE-TUNING*
+- `drawAnalysisBoard()` — *GAME ANALYSIS*
+- `drawBestMoveHint()` — *GAME ANALYSIS*
+- `drawBoard()` — *ABALONE BOARD ENGINE*
+- `drawBoardTriangles()` — *EJECTION ANIMATION*
+- `drawBottomRow()` — *ABALONE BOARD ENGINE*
+- `drawCarteTactiqueOverlay()` — *TACTICAL MAP OVERLAY — same 4 real dimensions as the*
+- `drawDragHint()` — *MOVE UNDO & PAUSE (with the opponent's agreement)*
+- `drawEditorBoard()` — *POSITION EDITOR*
+- `drawFakeQR()` — *OTP MODULE — code digit entry (classic 2FA + TOTP*
+- `drawGameBestHint()` — *PRINCIPAL VARIATION (PV) — after-the-fact reconstruction*
+- `drawGutterMarbles()` — *ABALONE BOARD ENGINE*
+- `drawLastMoveArrow()` — *GAME ANALYSIS*
+- `drawMarble()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `drawMiniBoard()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `drawPuzzleBoardInteractive()` — *ENDGAME TRAINER — REAL positions taken from tb-3v2.json*
+- `drawSmallMarble()` — *ABALONE BOARD ENGINE*
+- `drawThreats()` — *GAME ANALYSIS*
+- `drawTutorialBoard()` — *INTERACTIVE TUTORIAL*
+- `duelDelay()` — *ADVISOR BOTS — Black (kind/clever) and White (tough/human)*
+
+## E
+
+- `easeInQuad()` — *EJECTION ANIMATION*
+- `easeOutQuad()` — *EJECTION ANIMATION*
+- `editorAdjustCaptured()` — *POSITION EDITOR*
+- `effacerReference()` — *GAME ANALYSIS*
+- `ejectAnimStep()` — *EJECTION ANIMATION*
+- `el()` — *STATS PAGE*
+- `encodeBoardForNNUE()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `encodePosition()` — *SHARING A POSITION VIA URL*
+- `endPause()` — *MOVE UNDO & PAUSE (with the opponent's agreement)*
+- `endStorm()` — *PUZZLES DATA & RENDER*
+- `ensureEmpreintesHistoriques()` — *HISTORICAL FINGERPRINTS — 418,595 positions (2,589 MIGS + 1,890*
+- `ensureGameBanks()` — *MIGS GAMES — 2,589 Belgian Daisy games (ABA-PRO notation)*
+- `ensureMigsWinners()` — *EVALUATION CURVE OF A HISTORICAL GAME*
+- `ensurePositionsGraph()` — *POSITION GRAPH — real transpositions (839 positions*
+- `escapeHtml()` — *CHAT MODERATION — insults, hate speech, violence/threats*
+- `estMonTour()` — *ABALONE BOARD ENGINE*
+- `evalFactors()` — *ABALONE KNOWLEDGE BASE (embedded, offline)*
+- `evaluateBoard()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `evaluateBoard_nnue()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `executeAIMove()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `executePlayerMove()` — *KEYBOARD NAVIGATION + ARIA — 2D board accessibility*
+- `exitTournamentMode()` — *TOURNAMENT RULES (defined by the organizer)*
+- `exitVariant()` — *INTERACTIVE ANALYSIS — branching from the replay*
+- `explore()` — *MOVE HEATMAP — board heat map*
+- `exportAllScannedGames()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `exportEditorPosition()` — *POSITION EDITOR*
+- `exportFullHistoryAbaPro()` — *FULL HISTORY — Aba-Pro export/import*
+- `exportGameAbaPro()` — *TECHNICAL FACT SHEET FOR AI — factual data about the site.*
+- `exportGameNotation()` — *SHARING A POSITION VIA URL*
+- `exportMyData()` — *SECURITY — localStorage encryption (AES-GCM)*
+- `exportPerfJSON()` — *DETAILED PERFORMANCE PROFILE*
+- `exportPSGamesJSON()` — *PLAYSTRATEGY IMPORT — live retrieval of a player's games*
+- `exportPuzzleAPGN()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+- `exportScannedGame()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `extractPV()` — *PRINCIPAL VARIATION (PV) — after-the-fact reconstruction*
+
+## F
+
+- `fetchPSGames()` — *PLAYSTRATEGY IMPORT — live retrieval of a player's games*
+- `fillBotSVGs()` — *ADVISOR BOTS — Black (kind/clever) and White (tough/human)*
+- `filterBiblio()` — *VARIANTS — 20 official variants (the site's playable gallery*
+- `filterGameHistory()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `filterTrombi()` — *MOVE HEATMAP — board heat map*
+- `filterTrombiCat()` — *MOVE HEATMAP — board heat map*
+- `filterVariants()` — *VARIANTS — 20 official variants (the site's playable gallery*
+- `findEjectingMoveOn()` — *SPACED REPETITION (SRS) — on puzzles.*
+- `finish()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `fmt()` — *PUBLIC EVENTS — lightweight extension point*
+- `fmtCat()` — *TOOLS (manual style, swap sides, solve, ASCII diagram*
+- `forceAINow()` — *WORK STEALING — dynamic distribution of root moves.*
+- `forColor()` — *TOOLS (manual style, swap sides, solve, ASCII diagram*
+- `formaterExplicationCoup()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `formateurOpenPuzzleMode()` — *TRAIN THE TRAINER*
+- `formateurOpenTool()` — *TRAIN THE TRAINER*
+- `formateurQuizAnswer()` — *TRAIN THE TRAINER*
+- `formateurQuizBuild()` — *TRAIN THE TRAINER*
+- `formateurQuizFinish()` — *TRAIN THE TRAINER*
+- `formateurQuizRenderQuestion()` — *TRAIN THE TRAINER*
+- `formateurQuizStart()` — *TRAIN THE TRAINER*
+- `formateurRenderAttestation()` — *TRAIN THE TRAINER*
+- `formateurRenderAttestationGate()` — *TRAIN THE TRAINER*
+- `formateurSetPublic()` — *TRAIN THE TRAINER*
+- `formateurToggleSeance()` — *TRAIN THE TRAINER*
+- `formatMoveABAPRO()` — *FITTINGS READER — removed.*
+- `formatTime()` — *MOVE UNDO & PAUSE (with the opponent's agreement)*
+- `frame()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `friendRow()` — *FRIENDS PAGE*
+- `fromBoard()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+
+## G
+
+- `gameCodeEncode()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `gameCodeLoad()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `gameCodeParse()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `gameShareLink()` — *FULL HISTORY — Aba-Pro export/import*
+- `gameShowBestMove()` — *PRINCIPAL VARIATION (PV) — after-the-fact reconstruction*
+- `gcOnNameInput()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `gcSetMyColor()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `gcSetMyName()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `generateAbaloneDiagram()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `generateRandomPuzzle()` — *SPACED REPETITION (SRS) — on puzzles.*
+- `genMoves()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `getA11y()` — *DETAILED PERFORMANCE PROFILE*
+- `getAIWorker()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `getAIWorkerPool()` — *ENGINE BENCHMARK — real measurement before any speed claim*
+- `getAllMovesForColor()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `getAudioCtx()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `getDisp()` — *IMAGE PRIVACY HANDLING*
+- `getFilteredLeaderboard()` — *LEADERBOARD DATA*
+- `getGameHistory()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `getHADSummary()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `getHexAt()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `getLabWorker()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `getOpeningMove()` — *WORK STEALING — dynamic distribution of root moves.*
+- `getPlayerHeatmap()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+- `getReferralCode()` — *REFERRALS — invite friends, earn rewards*
+- `getThemeCanvas2D()` — *ABALONE BOARD ENGINE*
+- `getWeaknessSummary()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `gymBrainSvg()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymCells()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymColorSwatch()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymFinish()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymHexDist()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymInBounds()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymKey()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymMarbleGradient()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymNeighbors()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymRandCell()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymRenderBoard()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymRing()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymRotate60cw()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymRotateSteps()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymSetLevel()` — *TRAIN THE TRAINER*
+- `gymStartAcuity()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymStartAnticipation()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymStartCertitude()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymStartCountdown()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymStartDiagnostic()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymStartFlexibility()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymStartInhibition()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymStartJugement()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymStartMemory()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymStartReflex()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymStartRepertoire()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymStartSpatial()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `gymStopCountdown()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+
+## H
+
+- `h1_centerDistance()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `h2_cohesion()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `h3_pushThreats()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `handleAnalysisClick()` — *EVALUATION CURVE — a universal feature among other*
+- `handleBotCommand()` — *ABALONE KNOWLEDGE BASE (embedded, offline)*
+- `handleClick()` — *KEYBOARD NAVIGATION + ARIA — 2D board accessibility*
+- `handleEditorClick()` — *POSITION EDITOR*
+- `handleFileSelect()` — *CAMERA DETECTION — CLAUDE VISION*
+- `handlePuzzleClick()` — *PUZZLES — state & interaction*
+- `handleTutorialClick()` — *INTERACTIVE TUTORIAL*
+- `has()` — *TECHNICAL FACT SHEET FOR AI — factual data about the site.*
+- `hashBoard()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `hashPositionActuelle()` — *POSITION GRAPH — real transpositions (839 positions*
+- `heatColor()` — *MOVE HEATMAP — board heat map*
+- `heatmapInsight()` — *MOVE HEATMAP — board heat map*
+- `heatmapLegend()` — *MOVE HEATMAP — board heat map*
+- `hexCoord()` — *ABALONE BOARD ENGINE*
+- `hexPath()` — *EJECTION ANIMATION*
+- `hideAIExplainBubble()` — *ABALONE KNOWLEDGE BASE (embedded, offline)*
+- `hideCoachBubble()` — *ABALONE KNOWLEDGE BASE (embedded, offline)*
+- `hideResults()` — *IMAGE PRIVACY HANDLING*
+- `hideWinOverlay()` — *PUBLIC EVENTS — lightweight extension point*
+
+## I
+
+- `importHistoryFromText()` — *MOVE HEATMAP — board heat map*
+- `importMyData()` — *SECURITY — localStorage encryption (AES-GCM)*
+- `importScannedGamesFile()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `importToGame()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `initA11y()` — *DETAILED PERFORMANCE PROFILE*
+- `initBoardState()` — *ABALONE BOARD ENGINE*
+- `initGame()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `initPuzzleInteraction()` — *PUZZLES — state & interaction*
+- `initPWA()` — *PWA — SERVICE WORKER + MANIFEST*
+- `initSession()` — *SECURITY — localStorage encryption (AES-GCM)*
+- `initSidebar()` — *SIDEBAR — chess.com style*
+- `initTutorialClick()` — *INTERACTIVE TUTORIAL*
+- `input()` — *OTP MODULE — code digit entry (classic 2FA + TOTP*
+- `insertGutterMarble()` — *EJECTION ANIMATION*
+- `insertGutterMarbleXY()` — *EJECTION ANIMATION*
+- `isEdgeCell()` — *SPACED REPETITION (SRS) — on puzzles.*
+- `isMyColor()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+- `isOffBoard()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `isPuzzleCertified()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+- `isQuiescentPosition()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `isRegisteredForTournament()` — *MONTHLY TOURNAMENT — signup, prizes, countdown*
+- `isRTL()` — *LANGUAGE SELECTOR*
+- `isSkinUnlocked()` — *MARBLE SKINS — multi-stop gradients*
+- `isTechMode()` — *TECHNICAL MODE — several levels of detail*
+
+## K
+
+- `kbFindTopic()` — *ABALONE KNOWLEDGE BASE (embedded, offline)*
+- `kbNorm()` — *ABALONE KNOWLEDGE BASE (embedded, offline)*
+- `keyOf()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+
+## L
+
+- `labAddCustomMutant()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labApplyChampion()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labCfgLoad()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labCfgReset()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labCfgSave()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labCfgSet()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `label()` — *GAME ANALYSIS*
+- `labExport()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labExportCSV()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labExportDataJSON()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labImportFile()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labImportPrompt()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labLoad()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labMutants()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labReplay()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labReplayPlay()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labReplayStep()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labResetWeightsInputs()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labSave()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labSetMode()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labSpsaReset()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labStep()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labToggleAdvanced()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `labToggleUse()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `launch2FA()` — *MODALS*
+- `lbVariant()` — *LEADERBOARD DATA*
+- `lengthMatches()` — *PLAYSTRATEGY IMPORT — live retrieval of a player's games*
+- `lerp()` — *ABALONE BOARD ENGINE*
+- `levelFromXp()` — *API LAYER — local/backend routing (feature flag)*
+- `ligne()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `line()` — *FULL HISTORY — Aba-Pro export/import*
+- `loadA11Y()` — *ACCESSIBILITY & FINE-TUNING*
+- `loadAOGame()` — *POSITION GRAPH — real transpositions (839 positions*
+- `loadDemoImage()` — *AR MODE — continuous video feed + real-time overlay*
+- `loadEditorPreset()` — *POSITION EDITOR*
+- `loadFrom()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `loadGameFromURL()` — *FULL HISTORY — Aba-Pro export/import*
+- `loadGeneratedPuzzle()` — *ENDGAME TRAINER — REAL positions taken from tb-3v2.json*
+- `loadImageFile()` — *IMAGE PRIVACY HANDLING*
+- `loadImageFileOld()` — *IMAGE PRIVACY HANDLING*
+- `loadMigsGame()` — *POSITION GRAPH — real transpositions (839 positions*
+- `loadNNUEWeights()` — *EXPERIMENTAL NNUE ENGINE — options selectable in Settings*
+- `loadPermState()` — *PERMISSIONS SYSTEM*
+- `loadPositionFromURL()` — *SHARING A POSITION VIA URL*
+- `loadProgress()` — *API LAYER — local/backend routing (feature flag)*
+- `loadPSGame()` — *PLAYSTRATEGY IMPORT — live retrieval of a player's games*
+- `loadPuzzle()` — *PUZZLES DATA & RENDER*
+- `loadSavedGame()` — *AUTOMATIC GAME SAVE*
+- `loadSnapshot()` — *AUTOMATIC GAME SAVE*
+- `loadTablebasePuzzle()` — *ENDGAME TRAINER — REAL positions taken from tb-3v2.json*
+- `loadTablebaseSequencePuzzle()` — *ENDGAME TRAINER — REAL positions taken from tb-3v2.json*
+- `loadTournamentRules()` — *TOURNAMENT RULES (defined by the organizer)*
+- `loadTutorialStep()` — *INTERACTIVE TUTORIAL*
+- `localPlayerId()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+- `loginSuccess()` — *OTP MODULE — code digit entry (classic 2FA + TOTP*
+- `logout()` — *SECURITY — localStorage encryption (AES-GCM)*
+- `lookup()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `lossToPrecision()` — *TOOLS (manual style, swap sides, solve, ASCII diagram*
+
+## M
+
+- `makeHandlers()` — *OTP MODULE — code digit entry (classic 2FA + TOTP*
+- `maskEmail()` — *MODALS*
+- `maybeAskHintsPreference()` — *TACTICAL MAP OVERLAY — same 4 real dimensions as the*
+- `maybeFinishDepth()` — *WORK STEALING — dynamic distribution of root moves.*
+- `maybeShowLangBanner()` — *TRANSLATION SYSTEM (i18n)*
+- `med()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `minimax()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `monCamp()` — *ABALONE BOARD ENGINE*
+- `monthSeed()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+- `monthStr()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+- `motifEstJouable()` — *TACTICAL MOTIFS — library of named local structures*
+- `moveEndpointCells()` — *FITTINGS READER — removed.*
+- `moveKey()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `moveLabel()` — *FITTINGS READER — removed.*
+- `moveOptimalityPercents()` — *TOOLS (manual style, swap sides, solve, ASCII diagram*
+- `moveToABAPRO()` — *FITTINGS READER — removed.*
+- `moveToNACRE()` — *FITTINGS READER — removed.*
+- `moveToPlayStrategy()` — *WORK STEALING — dynamic distribution of root moves.*
+- `moy()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+
+## N
+
+- `near()` — *EJECTION ANIMATION*
+- `neighbors()` — *MOVE UNDO & PAUSE (with the opponent's agreement)*
+- `next()` — *ADVISOR BOTS — Black (kind/clever) and White (tough/human)*
+- `nextPuzzle()` — *PUZZLES DATA & RENDER*
+- `nextRound()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `nnueAddBias()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `nnueForward()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `nnueLoad()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `nnueMatVec()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `nnueRelu()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `normaliserTexteModeration()` — *CHAT MODERATION — insults, hate speech, violence/threats*
+- `num()` — *TECHNICAL FACT SHEET FOR AI — factual data about the site.*
+
+## O
+
+- `onDown()` — *IMAGE PRIVACY HANDLING*
+- `onGamePlayed()` — *DAILY CHALLENGE — GAME (distinct from the daily puzzle)*
+- `onMove()` — *IMAGE PRIVACY HANDLING*
+- `onMsg()` — *TOOLS (manual style, swap sides, solve, ASCII diagram*
+- `onPick()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `onPuzzleSolved()` — *DAILY CHALLENGE — GAME (distinct from the daily puzzle)*
+- `onResult()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `onUp()` — *IMAGE PRIVACY HANDLING*
+- `openApgnImportModal()` — *FULL HISTORY — Aba-Pro export/import*
+- `openBulkHistoryImportModal()` — *FULL HISTORY — Aba-Pro export/import*
+- `openCorrelationsPanel()` — *EVALUATION CURVE OF A HISTORICAL GAME*
+- `openDailyPuzzle()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `openDailyPuzzleInline()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `openExternalEnginePanel()` — *DUEL AGAINST AN EXTERNAL ENGINE*
+- `openGameCodePanel()` — *FULL HISTORY — Aba-Pro export/import*
+- `openGameSetup()` — *DETAILED PERFORMANCE PROFILE*
+- `openHelp()` — *TRANSLATION SYSTEM (i18n)*
+- `openHistoryModal()` — *ARCHITECTURE DIAGRAMS — rendered as NATIVE SVG.*
+- `openingKeyFromHistory()` — *WORK STEALING — dynamic distribution of root moves.*
+- `openLabFromMenu()` — *DETAILED PERFORMANCE PROFILE*
+- `openLabModal()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `openMigsBrowser()` — *PLAYSTRATEGY IMPORT — live retrieval of a player's games*
+- `openMistakesReview()` — *EVALUATION CURVE — a universal feature among other*
+- `openModal()` — *MODALS*
+- `openPlayerStats()` — *LEADERBOARD DATA*
+- `openProjectorWindow()` — *PUBLIC EVENTS — lightweight extension point*
+- `openPSImportModal()` — *PLAYSTRATEGY IMPORT — live retrieval of a player's games*
+- `openPuzzles()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `openReferralModal()` — *REFERRALS — invite friends, earn rewards*
+- `openReportModal()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `openRtcPanel()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `openShareModal()` — *SOCIAL MEDIA SHARING*
+- `openSiteBriefing()` — *TECHNICAL FACT SHEET FOR AI — factual data about the site.*
+- `openTrajectoryChart()` — *EVALUATION CURVE OF A HISTORICAL GAME*
+- `orderMoves()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `orderMoves_nnue_full()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `otpBack()` — *OTP MODULE — code digit entry (classic 2FA + TOTP*
+- `otpBack2()` — *OTP MODULE — code digit entry (classic 2FA + TOTP*
+- `otpInput()` — *OTP MODULE — code digit entry (classic 2FA + TOTP*
+- `otpInput2()` — *OTP MODULE — code digit entry (classic 2FA + TOTP*
+
+## P
+
+- `P()` — *TECHNICAL FACT SHEET FOR AI — factual data about the site.*
+- `p2()` — *SHARING A POSITION VIA URL*
+- `parseCell()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+- `parseSide()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `pastille()` — *ABALONE BOARD ENGINE*
+- `pathFromCorners()` — *ABALONE BOARD ENGINE*
+- `pauseLab()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `pct()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `peindreTextureTheme2D()` — *ABALONE BOARD ENGINE*
+- `pickBookMove()` — *EXPERIMENTAL NNUE ENGINE — options selectable in Settings*
+- `pickEmpreinteFallbackMove()` — *EXPERIMENTAL NNUE ENGINE — options selectable in Settings*
+- `pickLine()` — *ADVISOR BOTS — Black (kind/clever) and White (tough/human)*
+- `pid()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `place()` — *POSITION GRAPH — real transpositions (839 positions*
+- `playDailyPuzzle()` — *FULL HISTORY — Aba-Pro export/import*
+- `playDuelGame()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `playerRegion()` — *LEADERBOARD DATA*
+- `playFromEditor()` — *POSITION EDITOR*
+- `playGame()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `playMarbleRainTransition()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `playMonthlyPuzzle()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+- `playSequence()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `playSfx()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `playTone()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `pointerDown()` — *MOVE UNDO & PAUSE (with the opponent's agreement)*
+- `pointerMove()` — *MOVE UNDO & PAUSE (with the opponent's agreement)*
+- `pointerUp()` — *MOVE UNDO & PAUSE (with the opponent's agreement)*
+- `pointOnGutter()` — *EJECTION ANIMATION*
+- `pos()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `positionCropBox()` — *IMAGE PRIVACY HANDLING*
+- `postGameReview()` — *FULL HISTORY — Aba-Pro export/import*
+- `postJob()` — *TOOLS (manual style, swap sides, solve, ASCII diagram*
+- `prec()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `probe()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `probeTablebase()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `processImagePrivacy()` — *IMAGE PRIVACY HANDLING*
+- `progressIntegrityOK()` — *ANTI-CHEAT / INTEGRITY*
+- `proj()` — *POSITION GRAPH — real transpositions (839 positions*
+- `projectToGutter()` — *EJECTION ANIMATION*
+- `projectToGutterHex()` — *EJECTION ANIMATION*
+- `psGameToMigsFormat()` — *PLAYSTRATEGY IMPORT — live retrieval of a player's games*
+- `ptAt()` — *15-AXIS RADAR, NORMALIZED BY PERCENTILE*
+- `publishArticle()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `pushUndoState()` — *MOVE UNDO & PAUSE (with the opponent's agreement)*
+- `puzzleApplyMove()` — *PUZZLES — state & interaction*
+- `puzzleHexAt()` — *PUZZLES — state & interaction*
+- `puzzleHint()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `puzzleNeighbors()` — *PUZZLES — state & interaction*
+- `puzzleNext()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `puzzlePos()` — *PUZZLES — state & interaction*
+- `puzzleQuit()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `puzzleSelectionValid()` — *PUZZLES — state & interaction*
+- `puzzleSolution()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `pzEnd()` — *PUZZLES — state & interaction*
+
+## Q
+
+- `q()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `quiescence()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+
+## R
+
+- `r()` — *15-AXIS RADAR, NORMALIZED BY PERCENTILE*
+- `randomDrawPosition()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `randPos()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `ratio()` — *DETAILED PERFORMANCE PROFILE*
+- `rc()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `rcToAxial()` — *ABALONE ENGINE — axial coordinates + official rules*
+- `rebuildMoveListLabels()` — *FITTINGS READER — removed.*
+- `recordHeatmapForPlayer()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+- `recordMyHeat()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+- `recordOpponentHeat()` — *GAMEPLAY METRICS TRACKING (feeds the radar)*
+- `recordPlayerMove()` — *GAMEPLAY METRICS TRACKING (feeds the radar)*
+- `recordStyleMove()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `recordWhiteHeatmap()` — *GAMEPLAY METRICS TRACKING (feeds the radar)*
+- `ref()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `referralLink()` — *REFERRALS — invite friends, earn rewards*
+- `refreshAnalysisIfOpen()` — *TOOLS (manual style, swap sides, solve, ASCII diagram*
+- `refreshMoveHistory()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `refreshSetupMarbleSwatches()` — *MARBLE SKINS — multi-stop gradients*
+- `refreshWriterArticles()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `renderA11yPanel()` — *DETAILED PERFORMANCE PROFILE*
+- `renderActivityHeatmap()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `renderAnalysisMoves()` — *GAME ANALYSIS*
+- `renderArchiPage()` — *ARCHITECTURE DIAGRAMS — rendered as NATIVE SVG.*
+- `renderBiblio()` — *VARIANTS — 20 official variants (the site's playable gallery*
+- `renderBots()` — *BOTS*
+- `renderCandidateMoves()` — *TOOLS (manual style, swap sides, solve, ASCII diagram*
+- `renderColorStats()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `renderCompare()` — *TRAIN THE TRAINER*
+- `renderComprehensionPanel()` — *GAME ANALYSIS*
+- `renderCoordTable()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `renderCorpusStatsPage()` — *ARCHITECTURE DIAGRAMS — rendered as NATIVE SVG.*
+- `renderDailyCard()` — *TOURNAMENT RULES (defined by the organizer)*
+- `renderDailyGameCard()` — *DAILY CHALLENGE — GAME (distinct from the daily puzzle)*
+- `renderDecisionProfile()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `renderEjectionStats()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `renderEngageBar()` — *TOURNAMENT RULES (defined by the organizer)*
+- `renderEngineStats()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `renderEvalCurve()` — *EVALUATION CURVE — a universal feature among other*
+- `renderFormateurs()` — *TRAIN THE TRAINER*
+- `renderFormateurSeances()` — *TRAIN THE TRAINER*
+- `renderFriends()` — *FRIENDS PAGE*
+- `renderGameReport()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `renderGymCerveau()` — *TRAIN THE TRAINER*
+- `renderHeatmap()` — *MOVE HEATMAP — board heat map*
+- `renderHeatmapCard()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `renderHistoriquePage()` — *ARCHITECTURE DIAGRAMS — rendered as NATIVE SVG.*
+- `renderImportCard()` — *MOVE HEATMAP — board heat map*
+- `renderLab()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `renderLabAdvanced()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `renderLangMenu()` — *LANGUAGE SELECTOR*
+- `renderLeaderboard()` — *LEADERBOARD DATA*
+- `renderMigsList()` — *PLAYSTRATEGY IMPORT — live retrieval of a player's games*
+- `renderMonthlyCard()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+- `renderOneHeatmapCard()` — *MOVE HEATMAP — board heat map*
+- `renderPerfDetail()` — *DETAILED PERFORMANCE PROFILE*
+- `renderPersonalRadar()` — *15-AXIS RADAR, NORMALIZED BY PERCENTILE*
+- `renderProfile()` — *PROFILE DATA*
+- `renderProfileProgression()` — *MOVE HEATMAP — board heat map*
+- `renderPSGamesList()` — *PLAYSTRATEGY IMPORT — live retrieval of a player's games*
+- `renderPuzzles()` — *PUZZLES DATA & RENDER*
+- `renderScannedGames()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `renderSkinGallery()` — *KIDS MODE — adapted board, safety restrictions*
+- `renderSrsReviewCard()` — *SPACED REPETITION (SRS) — on puzzles.*
+- `renderStats()` — *STATS PAGE*
+- `renderStreak()` — *STREAK / DAILY CHALLENGE*
+- `renderStyleCard()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `renderTournament()` — *MOVE HEATMAP — board heat map*
+- `renderTournamentRules()` — *TOURNAMENT RULES (defined by the organizer)*
+- `renderTournamentState()` — *TOURNAMENT RULES (defined by the organizer)*
+- `renderTourneyRun()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `renderTrombi()` — *MOVE HEATMAP — board heat map*
+- `renderVariants()` — *VARIANTS — 20 official variants (the site's playable gallery*
+- `renderWeeklyCard()` — *WEEKLY CHALLENGES (objectives + rewards)*
+- `replayFromMoves()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `replayScannedGame()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `replayStep()` — *AUTOMATIC GAME SAVE*
+- `reportGoto()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `requestAIMovePooled()` — *ENGINE BENCHMARK — real measurement before any speed claim*
+- `requestAIMovePooledStealing()` — *WORK STEALING — dynamic distribution of root moves.*
+- `requestPause()` — *MOVE UNDO & PAUSE (with the opponent's agreement)*
+- `requestPerm()` — *PERMISSIONS SYSTEM*
+- `requestPermReal()` — *PERMISSIONS SYSTEM*
+- `requestUndo()` — *MOVE UNDO & PAUSE (with the opponent's agreement)*
+- `resendCode()` — *OTP MODULE — code digit entry (classic 2FA + TOTP*
+- `resetA11y()` — *DETAILED PERFORMANCE PROFILE*
+- `resetAccessibility()` — *ACCESSIBILITY & FINE-TUNING*
+- `resetAllData()` — *SECURITY — localStorage encryption (AES-GCM)*
+- `resetCurrentPuzzle()` — *SPACED REPETITION (SRS) — on puzzles.*
+- `resetGame()` — *PUBLIC EVENTS — lightweight extension point*
+- `resetGutterPositions()` — *EJECTION ANIMATION*
+- `resetLab()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `resetStyleGame()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `resignGame()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `resolveAbaProToken()` — *POSITION GRAPH — real transpositions (839 positions*
+- `resolveThemeColors()` — *ABALONE BOARD ENGINE*
+- `resolveTournamentRule()` — *TOURNAMENT RULES (defined by the organizer)*
+- `revealMonthlySolution()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+- `ring()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `riverY()` — *ABALONE BOARD ENGINE*
+- `rnd()` — *ADVISOR BOTS — Black (kind/clever) and White (tough/human)*
+- `rot()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `rotateBoard()` — *ABALONE BOARD ENGINE*
+- `roundedHexPath()` — *ABALONE BOARD ENGINE*
+- `row()` — *TOOLS (manual style, swap sides, solve, ASCII diagram*
+- `rtcAcceptAnswer()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `rtcAcceptOffer()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `rtcClose()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `rtcCreateOffer()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `rtcDecodeMove()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `rtcEncodeMove()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `rtcSendMove()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `runAnalysis()` — *GAME ANALYSIS*
+- `runBotDuelStep()` — *ADVISOR BOTS — Black (kind/clever) and White (tough/human)*
+- `runDepth()` — *WORK STEALING — dynamic distribution of root moves.*
+- `runEngineBenchmark()` — *ENGINE BENCHMARK — real measurement before any speed claim*
+- `runHistoryImport()` — *MOVE HEATMAP — board heat map*
+
+## S
+
+- `sanitizeProgress()` — *ANTI-CHEAT / INTEGRITY*
+- `saveA11Y()` — *ACCESSIBILITY & FINE-TUNING*
+- `saveGameState()` — *AUTOMATIC GAME SAVE*
+- `saveGeneralSettings()` — *SECURITY — localStorage encryption (AES-GCM)*
+- `saveNotationPrefs()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `savePassword()` — *SECURITY — localStorage encryption (AES-GCM)*
+- `savePermState()` — *PERMISSIONS SYSTEM*
+- `saveProgress()` — *API LAYER — local/backend routing (feature flag)*
+- `saveSession()` — *SECURITY — localStorage encryption (AES-GCM)*
+- `saveTournamentRules()` — *TOURNAMENT RULES (defined by the organizer)*
+- `saveViewAVFX()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `scanRecAdd()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `scanRecRender()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `scanRecResync()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `scanRecSave()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `scanRecSideChange()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `scanRecStart()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `scanRecUndo()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `scrollMoveListToEnd()` — *FITTINGS READER — removed.*
+- `search()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `searchBestMove()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `searchComparePlayer()` — *COMPARE PAGE*
+- `select2FAMethod()` — *MODALS*
+- `selectionAxis()` — *MOVE UNDO & PAUSE (with the opponent's agreement)*
+- `selectionLine()` — *TACTICAL MOTIFS — library of named local structures*
+- `selectRadarAxis()` — *15-AXIS RADAR, NORMALIZED BY PERCENTILE*
+- `sendChatMsg()` — *CHAT MODERATION — insults, hate speech, violence/threats*
+- `sendGeneralChat()` — *CHAT MODERATION — insults, hate speech, violence/threats*
+- `set()` — *PROFILE DATA*
+- `setA11y()` — *DETAILED PERFORMANCE PROFILE*
+- `setAIStyle()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `setAvatarColor()` — *SECURITY — localStorage encryption (AES-GCM)*
+- `setBoardTheme()` — *KIDS MODE — adapted board, safety restrictions*
+- `setBotDifficulty()` — *ADVISOR BOTS — Black (kind/clever) and White (tough/human)*
+- `setCarteTactiqueOverlayDim()` — *TACTICAL MAP OVERLAY — same 4 real dimensions as the*
+- `setColorMode()` — *ACCESSIBILITY & FINE-TUNING*
+- `setComprehensionColor()` — *GAME ANALYSIS*
+- `setDifficulty()` — *MOVE HEATMAP — board heat map*
+- `setEditorTool()` — *POSITION EDITOR*
+- `setEngineMode()` — *EXPERIMENTAL NNUE ENGINE — options selectable in Settings*
+- `setErr()` — *DUEL AGAINST AN EXTERNAL ENGINE*
+- `setFontSize()` — *ACCESSIBILITY & FINE-TUNING*
+- `setGameMode()` — *MOVE HEATMAP — board heat map*
+- `setGutterAlign()` — *EJECTION ANIMATION*
+- `setLanguage()` — *TRANSLATION SYSTEM (i18n)*
+- `setLayout()` — *KEYBOARD NAVIGATION + ARIA — 2D board accessibility*
+- `setLbMode()` — *LEADERBOARD DATA*
+- `setLbPeriod()` — *LEADERBOARD DATA*
+- `setLbRegion()` — *LEADERBOARD DATA*
+- `setMarbleColor()` — *KIDS MODE — adapted board, safety restrictions*
+- `setMarbleSkin()` — *KIDS MODE — adapted board, safety restrictions*
+- `setPad()` — *SIDEBAR — chess.com style*
+- `setPuzzleMode()` — *PUZZLES DATA & RENDER*
+- `setSideView()` — *ABALONE BOARD ENGINE*
+- `setStatsPeriod()` — *STATS PAGE*
+- `setTechMode()` — *TECHNICAL MODE — several levels of detail*
+- `setTimeControl()` — *PUBLIC EVENTS — lightweight extension point*
+- `setTournamentRule()` — *TOURNAMENT RULES (defined by the organizer)*
+- `setupCropDrag()` — *IMAGE PRIVACY HANDLING*
+- `setupDragDrop()` — *CAMERA DETECTION — CLAUDE VISION*
+- `setupPick()` — *DETAILED PERFORMANCE PROFILE*
+- `setupPickLayoutSelect()` — *DETAILED PERFORMANCE PROFILE*
+- `setupPickTwoPlayers()` — *DETAILED PERFORMANCE PROFILE*
+- `setupRenderLayoutThumb()` — *DETAILED PERFORMANCE PROFILE*
+- `setupToggle()` — *DETAILED PERFORMANCE PROFILE*
+- `setViewSound()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `setViewVibration()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `shakeModal()` — *SECURITY — localStorage encryption (AES-GCM)*
+- `shareEditorPositionURL()` — *SHARING A POSITION VIA URL*
+- `shareInvite()` — *SOCIAL MEDIA SHARING*
+- `sharePositionURL()` — *SHARING A POSITION VIA URL*
+- `shareResult()` — *SOCIAL MEDIA SHARING*
+- `show2FAMethodSelect()` — *MODALS*
+- `showAIExplainBubble()` — *ABALONE KNOWLEDGE BASE (embedded, offline)*
+- `showAIThinking()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `showAnalysisError()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `showAnalysisPanel()` — *TOOLS (manual style, swap sides, solve, ASCII diagram*
+- `showAnalysisResult()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `showAsciiDiagram()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `showBotBubble()` — *ADVISOR BOTS — Black (kind/clever) and White (tough/human)*
+- `showBrowserTranslateHint()` — *TRANSLATION SYSTEM (i18n)*
+- `showCoachBubble()` — *ABALONE KNOWLEDGE BASE (embedded, offline)*
+- `showCompareResult()` — *COMPARE PAGE*
+- `showCropInterface()` — *IMAGE PRIVACY HANDLING*
+- `showDuelStopBtn()` — *ADVISOR BOTS — Black (kind/clever) and White (tough/human)*
+- `showErrorBanner()` — *GLOBAL SAFETY NET — catches uncaught errors and rejections*
+- `showExportModal()` — *SHARING A POSITION VIA URL*
+- `showInstallBanner()` — *PWA — SERVICE WORKER + MANIFEST*
+- `showLearnSection()` — *LEARN SIDEBAR*
+- `showPage()` — *NAVIGATION — showPage + bottom nav sync*
+- `showPostGameReview()` — *FULL HISTORY — Aba-Pro export/import*
+- `showPuzzleResult()` — *SPACED REPETITION (SRS) — on puzzles.*
+- `showPuzzleSolution()` — *PUZZLES DATA & RENDER*
+- `showResumePrompt()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `showSettingsTab()` — *SECURITY SCORE*
+- `showStyleLiveBubble()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `showToast()` — *TOAST*
+- `showTrombiModal()` — *MOVE HEATMAP — board heat map*
+- `showVariantDetail()` — *VARIANTS — 20 official variants (the site's playable gallery*
+- `showWelcomePopup()` — *PERMISSIONS SYSTEM*
+- `sidebarNav()` — *TRANSLATION SYSTEM (i18n)*
+- `sig()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `simulateYubiKey()` — *OTP MODULE — code digit entry (classic 2FA + TOTP*
+- `skinUnlockText()` — *MARBLE SKINS — multi-stop gradients*
+- `skipWelcome()` — *PERMISSIONS SYSTEM*
+- `slider()` — *DETAILED PERFORMANCE PROFILE*
+- `slug()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `snapPhoto()` — *AR MODE — continuous video feed + real-time overlay*
+- `solveProblem()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `somme()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `soundBadge()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `soundCancel()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `soundDraw()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `soundEject()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `soundForceAI()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `soundLevelUp()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `soundMove()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `soundPush()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `soundPuzzleOk()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `soundRain()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `soundSelect()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `soundThreat()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `soundUndo()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `soundUnlock()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `soundWin()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `sparkline()` — *TOURNAMENT RULES (defined by the organizer)*
+- `srsCountDue()` — *SPACED REPETITION (SRS) — on puzzles.*
+- `srsGetDuePuzzles()` — *SPACED REPETITION (SRS) — on puzzles.*
+- `srsRecordResult()` — *SPACED REPETITION (SRS) — on puzzles.*
+- `srsStartReview()` — *SPACED REPETITION (SRS) — on puzzles.*
+- `srsStats()` — *SPACED REPETITION (SRS) — on puzzles.*
+- `start()` — *MIGS GAMES — 2,589 Belgian Daisy games (ABA-PRO notation)*
+- `startBotDuel()` — *ADVISOR BOTS — Black (kind/clever) and White (tough/human)*
+- `startBotGame()` — *ADVISOR BOTS — Black (kind/clever) and White (tough/human)*
+- `startCamera()` — *AR MODE — continuous video feed + real-time overlay*
+- `startConfiguredGame()` — *DETAILED PERFORMANCE PROFILE*
+- `startGameTimer()` — *GAME CLOCK*
+- `startGymExercise()` — *TRAIN THE TRAINER*
+- `startLab()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `startLiveVariant()` — *INTERACTIVE ANALYSIS — branching from the replay*
+- `startPause()` — *MOVE UNDO & PAUSE (with the opponent's agreement)*
+- `startPuzzle()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `startPuzzleStorm()` — *PUZZLES DATA & RENDER*
+- `startResendTimer()` — *OTP MODULE — code digit entry (classic 2FA + TOTP*
+- `startTournamentGame()` — *TOURNAMENT RULES (defined by the organizer)*
+- `startTournamentMatch()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `startTutorial()` — *INTERACTIVE TUTORIAL*
+- `startVariant()` — *INTERACTIVE ANALYSIS — branching from the replay*
+- `step()` — *DETAILED PERFORMANCE PROFILE*
+- `stopBotDuel()` — *ADVISOR BOTS — Black (kind/clever) and White (tough/human)*
+- `stopCamera()` — *AR MODE — continuous video feed + real-time overlay*
+- `stopGameTimer()` — *GAME CLOCK*
+- `stormPuzzleSolved()` — *PUZZLES DATA & RENDER*
+- `stormTick()` — *PUZZLES DATA & RENDER*
+- `styleBar()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `styleBotColor()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `submitGameCode()` — *FULL HISTORY — Aba-Pro export/import*
+- `submitLogin()` — *MODALS*
+- `submitSignup()` — *MODALS*
+- `switchCamMode()` — *CAMERA DETECTION — CLAUDE VISION*
+- `switchGameTab()` — *GAME TABS*
+- `switchSide()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `syncA11YControls()` — *ACCESSIBILITY & FINE-TUNING*
+- `syncCoordsToggles()` — *DETAILED PERFORMANCE PROFILE*
+- `syncDisplayToggles()` — *EJECTION ANIMATION*
+- `syncNotationToggles()` — *DETAILED PERFORMANCE PROFILE*
+- `syncRadarToggle()` — *MOVE HEATMAP — board heat map*
+- `syncSideButtonColors()` — *ABALONE BOARD ENGINE*
+- `syncSoundToggles()` — *DETAILED PERFORMANCE PROFILE*
+- `syncViewAVFXToggles()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+
+## T
+
+- `tabBtn()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `tbSeqHandleMove()` — *ENDGAME TRAINER — REAL positions taken from tb-3v2.json*
+- `terminateAIWorker()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `terminateAIWorkerPool()` — *ENGINE BENCHMARK — real measurement before any speed claim*
+- `testAsPuzzle()` — *POSITION EDITOR*
+- `theta3DToBoardRotation()` — *ABALONE BOARD ENGINE*
+- `tick()` — *KIDS MODE — adapted board, safety restrictions*
+- `tickTimers()` — *PUBLIC EVENTS — lightweight extension point*
+- `tid()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `toastEngage()` — *TOURNAMENT RULES (defined by the organizer)*
+- `todayStr()` — *ENGAGEMENT ENGINE — XP · Streak · Daily challenge · Badges*
+- `toggle()` — *DETAILED PERFORMANCE PROFILE*
+- `toggle2FAMethod()` — *SECURITY — localStorage encryption (AES-GCM)*
+- `toggleAIExplain()` — *ABALONE KNOWLEDGE BASE (embedded, offline)*
+- `toggleBoardCoords()` — *TACTICAL MAP OVERLAY — same 4 real dimensions as the*
+- `toggleCarteTactique()` — *GAME ANALYSIS*
+- `toggleCarteTactiqueOverlay()` — *TACTICAL MAP OVERLAY — same 4 real dimensions as the*
+- `toggleCoachMode()` — *ABALONE KNOWLEDGE BASE (embedded, offline)*
+- `toggleCommentatorMode()` — *PUBLIC EVENTS — lightweight extension point*
+- `toggleCoordinates()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `toggleFocusMode()` — *ACCESSIBILITY & FINE-TUNING*
+- `toggleFullscreenBoard()` — *BEST-MOVE SUGGESTION (main game)*
+- `toggleHelpMenu()` — *TRANSLATION SYSTEM (i18n)*
+- `toggleKidsMode()` — *KIDS MODE — adapted board, safety restrictions*
+- `toggleLangMenu()` — *LANGUAGE SELECTOR*
+- `toggleLargeBoard()` — *ACCESSIBILITY & FINE-TUNING*
+- `toggleLastMoveArrow()` — *TACTICAL MAP OVERLAY — same 4 real dimensions as the*
+- `toggleLiveVariant()` — *INTERACTIVE ANALYSIS — branching from the replay*
+- `toggleMoveHints()` — *TACTICAL MAP OVERLAY — same 4 real dimensions as the*
+- `toggleNotationAbaPro()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `toggleNotationNacre()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `togglePuzzleCoords()` — *ENDGAME TRAINER — REAL positions taken from tb-3v2.json*
+- `togglePuzzleHint()` — *PUZZLES DATA & RENDER*
+- `togglePw()` — *MODALS*
+- `toggleRadarVisibility()` — *15-AXIS RADAR, NORMALIZED BY PERCENTILE*
+- `toggleReduceMotion()` — *ACCESSIBILITY & FINE-TUNING*
+- `toggleReplay()` — *PUZZLES DATA & RENDER*
+- `toggleSidebar()` — *TRANSLATION SYSTEM (i18n)*
+- `toggleSidebarExpand()` — *TRANSLATION SYSTEM (i18n)*
+- `toggleSound()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `toggleTechMode()` — *TECHNICAL MODE — several levels of detail*
+- `toggleThemeNight()` — *KIDS MODE — adapted board, safety restrictions*
+- `toggleThreats()` — *KIDS MODE — adapted board, safety restrictions*
+- `toggleTournamentRegister()` — *MONTHLY TOURNAMENT — signup, prizes, countdown*
+- `toggleVariant()` — *INTERACTIVE ANALYSIS — branching from the replay*
+- `toggleWelcomePerm()` — *PERMISSIONS SYSTEM*
+- `toMap()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `touchStreak()` — *API LAYER — local/backend routing (feature flag)*
+- `tourneyMatchEnd()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `tourneyPause()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `tourneyRunLoad()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `tourneyRunSave()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `triggerWin()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `tryHyp()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `tryNext()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `tutorialNext()` — *INTERACTIVE TUTORIAL*
+- `tutorialPrev()` — *INTERACTIVE TUTORIAL*
+
+## U
+
+- `undoMove()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `unlockSfx()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `unpack()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `updateAIMetrics()` — *TOOLS (manual style, swap sides, solve, ASCII diagram*
+- `updateAIStyle()` — *EXPERIMENTAL NNUE ENGINE — options selectable in Settings*
+- `updateAnalysisEval()` — *GAME ANALYSIS*
+- `updateAnalysisPositionInfo()` — *EVALUATION CURVE — a universal feature among other*
+- `updateAnalysisScore()` — *GAME ANALYSIS*
+- `updateCaptures()` — *MOVE UNDO & PAUSE (with the opponent's agreement)*
+- `updateCropRegion()` — *IMAGE PRIVACY HANDLING*
+- `updateEditorStatus()` — *POSITION EDITOR*
+- `updateExpandBtn()` — *SIDEBAR — chess.com style*
+- `updateGameTimerDisplay()` — *GAME CLOCK*
+- `updateHeroDaily()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `updateHeroStats()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `updateHint()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `updateNavAuth()` — *SECURITY — localStorage encryption (AES-GCM)*
+- `updatePermUI()` — *PERMISSIONS SYSTEM*
+- `updatePuzzleProgressBar()` — *PUZZLES DATA & RENDER*
+- `updateStatus()` — *MOVE UNDO & PAUSE (with the opponent's agreement)*
+- `updateStormUI()` — *PUZZLES DATA & RENDER*
+- `updateTopBar()` — *MOBILE TOP BAR SYNC*
+- `updateWeaknessProfile()` — *WEAKNESS PROFILE BY ZONE — built from real*
+
+## V
+
+- `validateMove()` — *TACTICAL MOTIFS — library of named local structures*
+- `verifierMessageChat()` — *CHAT MODERATION — insults, hate speech, violence/threats*
+- `verify2FACode()` — *OTP MODULE — code digit entry (classic 2FA + TOTP*
+- `verifyTOTP()` — *OTP MODULE — code digit entry (classic 2FA + TOTP*
+- `vibrate()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+
+## W
+
+- `weeklyProgressValue()` — *WEEKLY CHALLENGES (objectives + rewards)*
+- `weekStr()` — *WEEKLY CHALLENGES (objectives + rewards)*
+- `weight()` — *EXPERIMENTAL NNUE ENGINE — options selectable in Settings*
+- `why()` — *GAME ANALYSIS*
+- `winIntegrityOK()` — *ANTI-CHEAT / INTEGRITY*
+
+## X
+
+- `x()` — *EVALUATION CURVE — a universal feature among other*
+- `xpForLevel()` — *API LAYER — local/backend routing (feature flag)*
+- `xpProgressInLevel()` — *API LAYER — local/backend routing (feature flag)*
+
+## Y
+
+- `y()` — *EVALUATION CURVE — a universal feature among other*
+
+## _
+
+- `_a11yBuildOverlay()` — *KEYBOARD NAVIGATION + ARIA — 2D board accessibility*
+- `_a11yCellKey()` — *KEYBOARD NAVIGATION + ARIA — 2D board accessibility*
+- `_a11yCellLabel()` — *KEYBOARD NAVIGATION + ARIA — 2D board accessibility*
+- `_a11yHandleKeydown()` — *KEYBOARD NAVIGATION + ARIA — 2D board accessibility*
+- `_a11yMoveCursor()` — *KEYBOARD NAVIGATION + ARIA — 2D board accessibility*
+- `_a11yRefreshOverlay()` — *KEYBOARD NAVIGATION + ARIA — 2D board accessibility*
+- `_advDeclaredScore()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_advEnsureXLSX()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_advExtractCandidates()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_advGuessLabels()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_advGuessLayout()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_advKAAToAOStart()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_advLooksLikeNacre()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_advLooksLikeSeq()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_advLooksLikeTitle()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_advParseKAACompactPosition()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_advResolveNacreSidestep()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_advResolveNacreToken()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_advRowsFromText()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_advRowsFromWorkbook()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_advShowPreview()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_advVerifyCandidate()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_ajouterParticuleLave()` — *EJECTION ANIMATION*
+- `_apiFetch()` — *API LAYER — local/backend routing (feature flag)*
+- `_archiSVG()` — *ARCHITECTURE DIAGRAMS — rendered as NATIVE SVG.*
+- `_avecPlateau()` — *UNDERSTANDING ENGINE — stage 1: spatial breakdown*
+- `_axisPercentile()` — *15-AXIS RADAR, NORMALIZED BY PERCENTILE*
+- `_benchBuildStartBoard()` — *ENGINE BENCHMARK — real measurement before any speed claim*
+- `_benchRunWorkers()` — *ENGINE BENCHMARK — real measurement before any speed claim*
+- `_billesViseesParCoup()` — *UNDERSTANDING ENGINE — stage 1: spatial breakdown*
+- `_boardRepKey()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `_broadcastProjectorState()` — *PUBLIC EVENTS — lightweight extension point*
+- `_bulkResultLabel()` — *FULL HISTORY — Aba-Pro export/import*
+- `_carteTactiqueSnapshotAt()` — *GAME ANALYSIS*
+- `_casesAtteintes()` — *UNDERSTANDING ENGINE — stage 1: spatial breakdown*
+- `_clockExempt()` — *PUBLIC EVENTS — lightweight extension point*
+- `_clockInc()` — *PUBLIC EVENTS — lightweight extension point*
+- `_clockNames()` — *PUBLIC EVENTS — lightweight extension point*
+- `_clockPaint()` — *PUBLIC EVENTS — lightweight extension point*
+- `_clockPaintFree()` — *PUBLIC EVENTS — lightweight extension point*
+- `_commentatorLabel()` — *PUBLIC EVENTS — lightweight extension point*
+- `_commentatorRefresh()` — *PUBLIC EVENTS — lightweight extension point*
+- `_compactness()` — *GAMEPLAY METRICS TRACKING (feeds the radar)*
+- `_copyBriefing()` — *TECHNICAL FACT SHEET FOR AI — factual data about the site.*
+- `_countImmediateCaptures()` — *PUZZLE OF THE MONTH — in the spirit of the Abalone O... tradition*
+- `_currentBoardView()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `_dA2rc()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `_dailyPuzzleIdx()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_decodeFrontCodedBook()` — *WORK STEALING — dynamic distribution of root moves.*
+- `_dessinerExplosionLave()` — *EJECTION ANIMATION*
+- `_dessinerTraineeLave()` — *EJECTION ANIMATION*
+- `_detToBoardMap()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_dl()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_doApgnImport()` — *FULL HISTORY — Aba-Pro export/import*
+- `_doBulkHistoryImport()` — *FULL HISTORY — Aba-Pro export/import*
+- `_dot()` — *PUBLIC EVENTS — lightweight extension point*
+- `_duelSetup()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `_emitAbaEvent()` — *PUBLIC EVENTS — lightweight extension point*
+- `_enterProjectorMode()` — *PUBLIC EVENTS — lightweight extension point*
+- `_esc()` — *ARCHITECTURE DIAGRAMS — rendered as NATIVE SVG.*
+- `_evalCurveClick()` — *EVALUATION CURVE — a universal feature among other*
+- `_extCopyLastMove()` — *DUEL AGAINST AN EXTERNAL ENGINE*
+- `_extLastMoveText()` — *DUEL AGAINST AN EXTERNAL ENGINE*
+- `_extPlayMove()` — *DUEL AGAINST AN EXTERNAL ENGINE*
+- `_extRefreshLastMove()` — *DUEL AGAINST AN EXTERNAL ENGINE*
+- `_flagFall()` — *PUBLIC EVENTS — lightweight extension point*
+- `_formatComparaisonEmpreinte()` — *GAME ANALYSIS*
+- `_formatComprehensionDetail()` — *GAME ANALYSIS*
+- `_formatComprehensionSummary()` — *GAME ANALYSIS*
+- `_formateurLoad()` — *TRAIN THE TRAINER*
+- `_formateurMotifQuestion()` — *TRAIN THE TRAINER*
+- `_formateurSave()` — *TRAIN THE TRAINER*
+- `_friendsDemoNotice()` — *FRIENDS PAGE*
+- `_gameHistKeys()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `_gameTimerBudgetFromControl()` — *GAME CLOCK*
+- `_gcDecodeNameFromCode()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_gcDirIndex()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_gcEncodeNameForCode()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_gcGuessMyColor()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_gcParseBody()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_gcRefreshCodeDisplay()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_gcSanitizeName()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_getProjectorChannel()` — *PUBLIC EVENTS — lightweight extension point*
+- `_gotoMoveFromHistory()` — *FITTINGS READER — removed.*
+- `_groupCount()` — *GAMEPLAY METRICS TRACKING (feeds the radar)*
+- `_gymCertitudeAnswer()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `_gymDiagnosticAnswer()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `_gymJugementAnswer()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `_gymRepertoireAnswer()` — *BRAIN GYM — exercise engine, REAL board (61 cells)*
+- `_heatHexToRgb()` — *MOVE HEATMAP — board heat map*
+- `_heatIsLight()` — *MOVE HEATMAP — board heat map*
+- `_hexDist()` — *FITTINGS READER — removed.*
+- `_highlightMoveRow()` — *FITTINGS READER — removed.*
+- `_historyDateLabel()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_historyOpponentLabel()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `_historyResultBadge()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_historySetFilter()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_icon()` — *PWA — SERVICE WORKER + MANIFEST*
+- `_importCandidates()` — *MOVE HEATMAP — board heat map*
+- `_importExtractTokens()` — *MOVE HEATMAP — board heat map*
+- `_importJsonScannedGames()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_inflB64()` — *MIGS GAMES — 2,589 Belgian Daisy games (ABA-PRO notation)*
+- `_injectHonestyBanners()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_kidsExitCancel()` — *KIDS MODE — adapted board, safety restrictions*
+- `_kidsExitCheck()` — *KIDS MODE — adapted board, safety restrictions*
+- `_kidsExitPrompt()` — *KIDS MODE — adapted board, safety restrictions*
+- `_kidsExitSetLocked()` — *KIDS MODE — adapted board, safety restrictions*
+- `_kidsExitShowLock()` — *KIDS MODE — adapted board, safety restrictions*
+- `_labAdopt()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labBounds()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labCurrentJob()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labDataClear()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labDataLoad()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labDataPush()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labDefaultState()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labDrawFrame()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labEloStr()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labEloVal()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labHBstart()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labHBstop()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labKillWorker()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labLLR()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labMigrateToPage()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labMineBook()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labMkMutant()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labNum()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labOnMsg()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labReject()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labReplayRender()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labStats()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labStatus()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labTransition()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_labWeightsFromInputs()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_letter()` — *PUBLIC EVENTS — lightweight extension point*
+- `_loadGymProgress()` — *COMPARE PAGE*
+- `_loadSolvedPuzzleTitles()` — *PUZZLES DATA & RENDER*
+- `_marbleSwatch()` — *MARBLE SKINS — multi-stop gradients*
+- `_mb32()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `_migsMoveCount()` — *PLAYSTRATEGY IMPORT — live retrieval of a player's games*
+- `_migsPopulateVariantFilter()` — *PLAYSTRATEGY IMPORT — live retrieval of a player's games*
+- `_moveZone()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_nacreGroupEnds()` — *FITTINGS READER — removed.*
+- `_parseBulkHistoryText()` — *FULL HISTORY — Aba-Pro export/import*
+- `_perfFmt()` — *DETAILED PERFORMANCE PROFILE*
+- `_perfPercentile()` — *DETAILED PERFORMANCE PROFILE*
+- `_pzSig()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_rand32()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `_recordGameHistory()` — *GAME HISTORY — browsable, filterable, replayable.*
+- `_renderHistoryList()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_renderTrajectoire()` — *EVALUATION CURVE OF A HISTORICAL GAME*
+- `_repCountMap()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `_repKeyOf()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `_replayHistoryGame()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_replaySeqToSnapshots()` — *POSITION GRAPH — real transpositions (839 positions*
+- `_restoreLive()` — *PUZZLES DATA & RENDER*
+- `_rtcCompress()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_rtcDecompress()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_rtcHandleMessage()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_rtcOnDisconnect()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_rtcSetupChannelHandlers()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_rtcSetupPeerHandlers()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_rtcUiAcceptAnswer()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_rtcUiAcceptOffer()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_rtcUiCreateOffer()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_rtcUiShowJoin()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_rtcUpdateStatus()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_rtcWaitIceGathering()` — *PLAYER NAMES IN THE GAME CODE — extension of the format*
+- `_saveGymProgress()` — *COMPARE PAGE*
+- `_saveSolvedPuzzleTitle()` — *PUZZLES DATA & RENDER*
+- `_scanBoardToAOStart()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_scanDownload()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_scanGameFileStub()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_scanGameNotationText()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_scanGamesLoad()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_scanGamesSave()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_scanInferMove()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_scanKey()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_scanReplayMoves()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_scanSandbox()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_scanSeqString()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_scanVerifyImported()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_scanVerifyReplay()` — *BOARD DETECTION — OFFLINE, NO AI, NO NETWORK*
+- `_searchAvecLigne()` — *UNDERSTANDING ENGINE — stage 1: spatial breakdown*
+- `_setupFromAOStart()` — *POSITION GRAPH — real transpositions (839 positions*
+- `_skinDotColor()` — *PUBLIC EVENTS — lightweight extension point*
+- `_snapCompact()` — *PERSONAL DECISION PROFILE — aggregates calculerProfilDecision*
+- `_spsaClamp()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_spsaInit()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_spsaOnResult()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_spsaPerturb()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_spsaStep()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_spsaUpdate()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_srsLoad()` — *SPACED REPETITION (SRS) — on puzzles.*
+- `_srsNextInQueue()` — *SPACED REPETITION (SRS) — on puzzles.*
+- `_srsSave()` — *SPACED REPETITION (SRS) — on puzzles.*
+- `_stashLive()` — *PUZZLES DATA & RENDER*
+- `_stripApgnHeaders()` — *FULL HISTORY — Aba-Pro export/import*
+- `_tClockFmt()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_tClockRender()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_tClockStart()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_tClockStop()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_tClockTick()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_testEncryptionWorks()` — *SECURITY SCORE*
+- `_tourneyAfterStart()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_tourneyAward()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_tourneyPalmares()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_tourneyRunKey()` — *WEAKNESS PROFILE BY ZONE — built from real*
+- `_trajectoireDonnees()` — *EVALUATION CURVE OF A HISTORICAL GAME*
+- `_trajectoireSVG()` — *EVALUATION CURVE OF A HISTORICAL GAME*
+- `_variantConclude()` — *INTERACTIVE ANALYSIS — branching from the replay*
+- `_viewAllowsSound()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `_viewAllowsVibration()` — *SOUNDS (Web Audio API — synthesis, no external file)*
+- `_volcaniqueActif()` — *EJECTION ANIMATION*
+- `_zoneColonne()` — *UNDERSTANDING ENGINE — stage 1: spatial breakdown*
+- `_zoneDistance()` — *UNDERSTANDING ENGINE — stage 1: spatial breakdown*
+- `_zoneVide()` — *UNDERSTANDING ENGINE — stage 1: spatial breakdown*
