@@ -19,16 +19,16 @@ function boardIntegrityOK() {
   const { black, white } = countMarbles();
   // Jamais plus de 14 billes par couleur, et le compte éjecté doit concorder
   if (black > 14 || white > 14) return false;
-  if (black + capturedByWhite > 14) return false;   // blancs ont éjecté des noirs
-  if (white + capturedByBlack > 14) return false;
-  if (capturedByBlack < 0 || capturedByWhite < 0) return false;
-  if (capturedByBlack > 6 || capturedByWhite > 6) return false;
+  if (black + CapturedByWhite.get() > 14) return false;   // blancs ont éjecté des noirs
+  if (white + CapturedByBlack.get() > 14) return false;
+  if (CapturedByBlack.get() < 0 || CapturedByWhite.get() < 0) return false;
+  if (CapturedByBlack.get() > 6 || CapturedByWhite.get() > 6) return false;
   return true;
 }
 
 function winIntegrityOK(winner) {
   // Une vraie victoire exige 6 éjections et un minimum de coups/temps
-  const caps = winner === 'black' ? capturedByBlack : capturedByWhite;
+  const caps = winner === 'black' ? CapturedByBlack.get() : CapturedByWhite.get();
   if (caps < 6) return false;
   // Il faut au moins 6 coups pour éjecter 6 billes (en réalité bien plus)
   if (moveCount < 6) return false;
