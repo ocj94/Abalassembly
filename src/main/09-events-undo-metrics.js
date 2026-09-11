@@ -11,9 +11,9 @@
      });
 
    Événements émis :
-   - abalassembly:movePlayed    { color, label, moveCount, capturedByBlack, capturedByWhite }
+   - abalassembly:movePlayed    { color, label, moveCount, CapturedByBlack.get(), CapturedByWhite.get() }
    - abalassembly:positionChanged { layout }   (nouvelle partie / position chargée)
-   - abalassembly:gameOver      { winner, reason, capturedByBlack, capturedByWhite, moveCount }
+   - abalassembly:gameOver      { winner, reason, CapturedByBlack.get(), CapturedByWhite.get(), moveCount }
 ═══════════════════════════════════════════ */
 function _emitAbaEvent(name, detail){
   try{ document.dispatchEvent(new CustomEvent('abalassembly:'+name, { detail: detail })); }
@@ -25,7 +25,7 @@ function _emitAbaEvent(name, detail){
    le moteur (abalassembly:movePlayed / gameOver / positionChanged, voir la
    doc juste au-dessus de _emitAbaEvent) — exactement comme le ferait un
    outil externe. Ne modifie et ne lit AUCUN etat interne du jeu directement
-   pendant une partie ; capturedByBlack/capturedByWhite/myTime/oppTime sont
+   pendant une partie ; CapturedByBlack.get()/CapturedByWhite.get()/myTime/oppTime sont
    lus au moment de l'affichage, pas caches. moveCount est un compteur
    GLOBAL (toutes couleurs confondues) dans le moteur — le decompte par
    joueur est donc tenu ICI, a partir du flux d'evenements, puisque rien
@@ -55,8 +55,8 @@ function _commentatorRefresh() {
   const opp = mine === 'black' ? 'white' : 'black';
   _commentatorLabel('commentator-p1-name', mine);
   _commentatorLabel('commentator-p2-name', opp);
-  const perdues = { black: (typeof capturedByWhite !== 'undefined') ? capturedByWhite : 0, white: (typeof capturedByBlack !== 'undefined') ? capturedByBlack : 0 };
-  // capturedByBlack = billes BLANCHES ejectees par les noirs (voir le
+  const perdues = { black: (typeof CapturedByWhite !== 'undefined') ? CapturedByWhite.get() : 0, white: (typeof CapturedByBlack !== 'undefined') ? CapturedByBlack.get() : 0 };
+  // CapturedByBlack.get() = billes BLANCHES ejectees par les noirs (voir le
   // commentaire a sa declaration) : donc les pertes du camp BLANC, pas du
   // camp noir — inversion deliberee, pas une faute de frappe.
   const p1lost = document.getElementById('commentator-p1-lost'); if (p1lost) p1lost.textContent = perdues[mine];
@@ -198,8 +198,8 @@ function resetGame() {
   if (typeof progress !== 'undefined') { progress.__firstEjDone = false; progress.__hadLead = false; }
   gameOver = false;
   selected = [];
-  capturedByBlack = 0;
-  capturedByWhite = 0;
+  CapturedByBlack.set(0);
+  CapturedByWhite.set(0);
   moveCount = 0;
   CurrentTurn.set('black');
   // _timeCtlBase===0 (cadence Libre) est un "faux" en JS : "_timeCtlBase || 600"
@@ -460,7 +460,7 @@ function _flagFall(loser){
 function pushUndoState() {
   undoStack.push({
     board: JSON.parse(JSON.stringify(board)),
-    capturedByBlack, capturedByWhite, moveCount,
+    capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(), moveCount,
     currentTurn: CurrentTurn.get(), myTime, oppTime,
     player: CurrentTurn.get()   // qui s'apprête à jouer
   });
@@ -509,8 +509,8 @@ function doUndo() {
   if (undoStack.length === 0) return;
   const st = undoStack.pop();
   board = st.board;
-  capturedByBlack = st.capturedByBlack;
-  capturedByWhite = st.capturedByWhite;
+  CapturedByBlack.set(st.capturedByBlack);
+  CapturedByWhite.set(st.capturedByWhite);
   moveCount = st.moveCount;
   CurrentTurn.set(st.currentTurn);
   myTime = st.myTime;
@@ -584,11 +584,11 @@ function updateCaptures() {
   const oppDiv = document.getElementById('captured-by-opp');
   myDiv.innerHTML = '';
   oppDiv.innerHTML = '';
-  for (let i=0;i<capturedByBlack;i++) {
+  for (let i=0;i<CapturedByBlack.get();i++) {
     const d = document.createElement('div');
     d.className='cap-marble w'; myDiv.appendChild(d);
   }
-  for (let i=0;i<capturedByWhite;i++) {
+  for (let i=0;i<CapturedByWhite.get();i++) {
     const d = document.createElement('div');
     d.className='cap-marble b'; oppDiv.appendChild(d);
   }
