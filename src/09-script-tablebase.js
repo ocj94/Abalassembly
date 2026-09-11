@@ -114,8 +114,8 @@ window.canInteractWithBoard = function () {
   if (typeof replayMode !== 'undefined' && replayMode
       && !(typeof variantMode !== 'undefined' && variantMode)) return false;
   if (typeof GameMode !== 'undefined' && GameMode.get() === 'ai'
-      && typeof currentTurn !== 'undefined' && typeof HumanColor !== 'undefined'
-      && currentTurn !== HumanColor.get()) return false;
+      && typeof CurrentTurn !== 'undefined' && typeof HumanColor !== 'undefined'
+      && CurrentTurn.get() !== HumanColor.get()) return false;
   return true;
 };
 window._1dCanPlay = window.canInteractWithBoard;
@@ -125,7 +125,7 @@ window.render1D = function () {
   if (!pre || typeof board === 'undefined') return;
   const rows = (typeof ROWS !== 'undefined') ? ROWS : [5,6,7,8,9,8,7,6,5];
   const L = [];        // rangees du plateau + reperes de coordonnees (taille .plateau1d)
-  const trait = (typeof currentTurn !== 'undefined') ? currentTurn : 'black';
+  const trait = (typeof CurrentTurn !== 'undefined') ? CurrentTurn.get() : 'black';
   const sel = (typeof selected !== 'undefined' && Array.isArray(selected)) ? selected : [];
   const jouable = window._1dCanPlay();
   const estSel = function (r, c) {
@@ -700,8 +700,8 @@ function start3DScene() {
     // Indices de coups : memes regles que la 1D — computeMoveHints est le
     // moteur commun, on ne colore que ce qu'il renvoie.
     const aideOn = (typeof showMoveHints !== 'undefined') ? showMoveHints : true;
-    const hints = (aideOn && sel.length && typeof computeMoveHints === 'function' && typeof currentTurn !== 'undefined')
-      ? computeMoveHints(sel, currentTurn, board) : [];
+    const hints = (aideOn && sel.length && typeof computeMoveHints === 'function' && typeof CurrentTurn !== 'undefined')
+      ? computeMoveHints(sel, CurrentTurn.get(), board) : [];
     hints.forEach(function(h){
       if (sel.some(function(s){ return s.r === h.r && s.c === h.c; })) return;  // jamais sur une case deja selectionnee
       const p = cellPos3(h.r, h.c);
