@@ -221,8 +221,8 @@ function analyzeProfondeurTactique(color, maxDepth, movesPrecalcules) {
    (comparaison par valeur, pas par ordre JSON — un premier test a donné une
    fausse alerte à cause de ça, corrigé). */
 function _searchAvecLigne(depth, alpha, beta, maxi, pov) {
-  if (capturedByWhite>=6) return { score: pov==='white'?100000:-100000, ligne:[] };
-  if (capturedByBlack>=6) return { score: pov==='black'?100000:-100000, ligne:[] };
+  if (CapturedByWhite.get()>=6) return { score: pov==='white'?100000:-100000, ligne:[] };
+  if (CapturedByBlack.get()>=6) return { score: pov==='black'?100000:-100000, ligne:[] };
   if (depth === 0) return { score: evaluateBoard(pov, false), ligne:[] };
   const mc = maxi ? pov : (pov==='white'?'black':'white');
   const moves = getAllMovesForColor(mc);
@@ -327,12 +327,12 @@ function analyzeMobilite2Coups(color, movesPrecalcules) {
    JS est mono-thread, pas de risque de collision avec la partie en
    cours. Le `finally` garantit la restauration même en cas d'erreur. */
 function _avecPlateau(b, capB, capW, fn) {
-  const savedBoard = board, savedCapB = capturedByBlack, savedCapW = capturedByWhite;
-  board = b; capturedByBlack = capB; capturedByWhite = capW;
+  const savedBoard = board, savedCapB = CapturedByBlack.get(), savedCapW = CapturedByWhite.get();
+  board = b; CapturedByBlack.set(capB); CapturedByWhite.set(capW);
   try {
     return fn();
   } finally {
-    board = savedBoard; capturedByBlack = savedCapB; capturedByWhite = savedCapW;
+    board = savedBoard; CapturedByBlack.set(savedCapB); CapturedByWhite.set(savedCapW);
   }
 }
 
@@ -587,13 +587,13 @@ async function ensureMigsWinners(onProgress){
   } catch(e){}
   if (typeof MIGS_GAMES === 'undefined' || !MIGS_GAMES.length) return new Map();
   const winnerByGame = new Map();
-  const saveLayout = currentLayout, saveBoard = board, saveCB = capturedByBlack, saveCW = capturedByWhite;
+  const saveLayout = currentLayout, saveBoard = board, saveCB = CapturedByBlack.get(), saveCW = CapturedByWhite.get();
   let done = 0;
   const candidats = [];
   MIGS_GAMES.forEach(function(g, idx){ if (g[4] === 'Au score') candidats.push(idx); });
   for (const idx of candidats) {
     const g = MIGS_GAMES[idx];
-    currentLayout = 'belgian'; initBoardState(); capturedByBlack = 0; capturedByWhite = 0;
+    currentLayout = 'belgian'; initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
     const toks = (g[5]||'').replace(/\d+\./g,' ').trim().split(/\s+/).filter(Boolean);
     let color = 'black';
     for (const tok of toks) {
@@ -604,15 +604,15 @@ async function ensureMigsWinners(onProgress){
       applyMove({cells:mv.cells, dir:mv.dir, info:info}, color);
       color = color === 'black' ? 'white' : 'black';
     }
-    if (capturedByBlack >= 6) winnerByGame.set(idx, 'black');
-    else if (capturedByWhite >= 6) winnerByGame.set(idx, 'white');
+    if (CapturedByBlack.get() >= 6) winnerByGame.set(idx, 'black');
+    else if (CapturedByWhite.get() >= 6) winnerByGame.set(idx, 'white');
     done++;
     if (done % 40 === 0) {
       if (onProgress) onProgress(done, candidats.length);
       await new Promise(function(r){ setTimeout(r, 0); }); // rend la main au navigateur
     }
   }
-  currentLayout = saveLayout; board = saveBoard; capturedByBlack = saveCB; capturedByWhite = saveCW;
+  currentLayout = saveLayout; board = saveBoard; CapturedByBlack.set(saveCB); CapturedByWhite.set(saveCW);
   try { localStorage.setItem(MIGS_WINNERS_KEY, JSON.stringify(Array.from(winnerByGame.entries()))); } catch(e){}
   _migsWinnersCache = winnerByGame;
   return winnerByGame;
@@ -879,7 +879,7 @@ function computeEjectionStats(){
   const history = getGameHistory();
   if (!history.length) return null;
 
-  const saveLayout = currentLayout, saveBoard = board, saveCB = capturedByBlack, saveCW = capturedByWhite;
+  const saveLayout = currentLayout, saveBoard = board, saveCB = CapturedByBlack.get(), saveCW = CapturedByWhite.get();
   let realisees = 0, subies = 0, opportunites = 0, gamesWithData = 0;
   let bestGame = 0, firstEjPlies = [];
   const byPhase = { ouverture:0, milieu:0, finale:0 };
@@ -890,14 +890,14 @@ function computeEjectionStats(){
     if (!parsed.ok) return;
     const humanC = entry.humanColor || 'black';
     currentLayout = parsed.layout || 'standard';
-    initBoardState(); capturedByBlack = 0; capturedByWhite = 0;
+    initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
     let turn = 'black', thisGameEj = 0, firstEjThisGame = null, ply = 0;
     for (let i = 0; i < parsed.moves.length; i++) {
       const mv = parsed.moves[i];
       const v = validateMove(mv.cells, mv.dir, turn);
       if (!v || !v.valid) break;
       ply++;
-      const capB0 = capturedByBlack, capW0 = capturedByWhite;
+      const capB0 = CapturedByBlack.get(), capW0 = CapturedByWhite.get();
       // phase AVANT ce coup, basee sur les pertes deja subies par chaque camp
       const maxLoss = Math.max(capB0, capW0);
       const phase = (capB0===0 && capW0===0) ? 'ouverture' : (maxLoss>=3 ? 'finale' : 'milieu');
@@ -922,7 +922,7 @@ function computeEjectionStats(){
     if (firstEjThisGame !== null) firstEjPlies.push(firstEjThisGame);
   });
 
-  currentLayout = saveLayout; board = saveBoard; capturedByBlack = saveCB; capturedByWhite = saveCW;
+  currentLayout = saveLayout; board = saveBoard; CapturedByBlack.set(saveCB); CapturedByWhite.set(saveCW);
 
   if (!gamesWithData) return null;
   return {
@@ -1094,7 +1094,7 @@ function computeDecisionProfile(){
   const history = getGameHistory();
   if (!history.length) return null;
 
-  const saveLayout = currentLayout, saveBoard = board, saveCB = capturedByBlack, saveCW = capturedByWhite;
+  const saveLayout = currentLayout, saveBoard = board, saveCB = CapturedByBlack.get(), saveCW = CapturedByWhite.get();
   let totalMoves = 0, closeToBest = 0, brancheSum = 0;
   let easyCount = 0, easyFound = 0, hardCount = 0, hardFound = 0;
 
@@ -1104,7 +1104,7 @@ function computeDecisionProfile(){
     if (!parsed.ok) return;
     const humanC = entry.humanColor || 'black';
     currentLayout = parsed.layout || 'standard';
-    initBoardState(); capturedByBlack = 0; capturedByWhite = 0;
+    initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
     let turn = 'black';
     for (let i = 0; i < parsed.moves.length; i++) {
       const mv = parsed.moves[i];
@@ -1135,7 +1135,7 @@ function computeDecisionProfile(){
     }
   });
 
-  currentLayout = saveLayout; board = saveBoard; capturedByBlack = saveCB; capturedByWhite = saveCW;
+  currentLayout = saveLayout; board = saveBoard; CapturedByBlack.set(saveCB); CapturedByWhite.set(saveCW);
 
   if (!totalMoves) return null;
   return {
