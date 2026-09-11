@@ -372,8 +372,8 @@ var AbaSolve = (function () {
 function _tbOut(html){ var e=document.getElementById('tb-verdict'); if(e) e.innerHTML=html; }
 function tbConsultCurrent(){
   if (typeof AbaTB === 'undefined' || !AbaTB.ready) { _tbOut('Tables non chargées.'); return; }
-  var r = AbaTB.probe(board, currentTurn);
-  var camp = currentTurn === 'black' ? 'Noirs' : 'Blancs';
+  var r = AbaTB.probe(board, CurrentTurn.get());
+  var camp = CurrentTurn.get() === 'black' ? 'Noirs' : 'Blancs';
   if (!r) { _tbOut('<strong>Hors table.</strong> Les tables ne couvrent que 2 contre 2 et 3 contre 2 (mode Découverte). En jeu standard, ces positions ne surviennent jamais — utilise le solveur ci-dessus.'); return; }
   if (r.wdl === 'DRAW') { _tbOut('<strong style="color:var(--gold)">Nulle démontrée.</strong> Aucun des deux camps ne peut forcer le gain, quoi qu\'il joue.'); return; }
   var mv = r.moves && r.moves[0];
@@ -385,10 +385,10 @@ function tbSolveCurrent(plies){
   if (typeof AbaSolve === 'undefined' || !AbaSolve.ready()) { _tbOut('Solveur indisponible.'); return; }
   _tbOut('Recherche en cours…');
   setTimeout(function(){
-    var w = AbaSolve.win(currentTurn, plies, { timeMs: 4000 });
-    if (w.proved) { _tbOut('<strong style="color:var(--gold)">' + AbaSolve.describe(w, currentTurn) + '</strong><br><span style="color:var(--muted)">' + w.nodes.toLocaleString('fr-FR') + ' positions examinées en ' + w.ms + ' ms. Résultat certain : la partie s\'arrête à la 6e éjection.</span>'); return; }
-    var g = AbaSolve.gain(currentTurn, plies, 1, { timeMs: 4000 });
-    _tbOut('<strong>' + AbaSolve.describe(g, currentTurn) + '</strong><br><span style="color:var(--muted)">' + g.nodes.toLocaleString('fr-FR') + ' positions examinées en ' + g.ms + ' ms. ' + (g.proved ? 'Certitude bornée à l\'horizon : l\'adversaire peut se refaire au-delà.' : 'Une réponse négative signifie « pas de preuve dans cet horizon », jamais « impossible ».') + '</span>');
+    var w = AbaSolve.win(CurrentTurn.get(), plies, { timeMs: 4000 });
+    if (w.proved) { _tbOut('<strong style="color:var(--gold)">' + AbaSolve.describe(w, CurrentTurn.get()) + '</strong><br><span style="color:var(--muted)">' + w.nodes.toLocaleString('fr-FR') + ' positions examinées en ' + w.ms + ' ms. Résultat certain : la partie s\'arrête à la 6e éjection.</span>'); return; }
+    var g = AbaSolve.gain(CurrentTurn.get(), plies, 1, { timeMs: 4000 });
+    _tbOut('<strong>' + AbaSolve.describe(g, CurrentTurn.get()) + '</strong><br><span style="color:var(--muted)">' + g.nodes.toLocaleString('fr-FR') + ' positions examinées en ' + g.ms + ' ms. ' + (g.proved ? 'Certitude bornée à l\'horizon : l\'adversaire peut se refaire au-delà.' : 'Une réponse négative signifie « pas de preuve dans cet horizon », jamais « impossible ».') + '</span>');
   }, 30);
 }
 
@@ -545,14 +545,14 @@ function opShowCurrent() {
   var el = document.getElementById('op-current');
   if (!el) return;
   if (typeof AbaOpening === 'undefined' || !AbaOpening.ready()) { el.innerHTML = 'Répertoire non chargé.'; return; }
-  var r = AbaOpening.probe(board, currentTurn);
+  var r = AbaOpening.probe(board, CurrentTurn.get());
   if (!r) {
     el.innerHTML = '<div style="color:var(--muted);font-size:13px">Cette position n\'est pas dans le répertoire. ' +
       'Il ne couvre que les débuts de partie en Marguerite belge, la position des tournois — au-delà, ' +
       'les parties divergent trop pour que des statistiques aient un sens.</div>';
     return;
   }
-  el.innerHTML = _opTable(r, 'Trait aux ' + (currentTurn === 'black' ? 'Noirs' : 'Blancs'));
+  el.innerHTML = _opTable(r, 'Trait aux ' + (CurrentTurn.get() === 'black' ? 'Noirs' : 'Blancs'));
 }
 function opRenderRoot() {
   var el = document.getElementById('op-root');
