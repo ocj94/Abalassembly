@@ -585,7 +585,7 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
   if (capturedByWhite >= 6) { if (variantMode) { _variantConclude('white'); return; } triggerWin('white'); return; }
 
   _clockInc(me);   // ⏱️ incrément de cadence pour celui qui vient de jouer
-  currentTurn = (me === 'black') ? 'white' : 'black';
+  CurrentTurn.set((me === 'black') ? 'white' : 'black');
   _emitAbaEvent('movePlayed', { color: me, label: (typeof moveNotation !== 'undefined') ? moveNotation : null,
     moveCount: moveCount, capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite });
   updateStatus();
@@ -601,7 +601,7 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
 
 function handleClick(r, c) {
   const piece = board[akey(r,c)];
-  const me = currentTurn;
+  const me = CurrentTurn.get();
 
   // Clic sur une de ses propres billes → sélection/désélection
   if (piece === me) {
@@ -655,7 +655,7 @@ function afterHumanMove() {
   gameBestHint = null;  // efface la suggestion après avoir joué
   if (_puzzleActive) { checkPuzzleMove(); return; }   // mode puzzle : vérifie, pas d'IA ni de sauvegarde
   if (!variantMode) saveGameState();      // sauvegarde automatique — jamais pendant l'exploration d'une variante
-  if (GameMode.get() === 'ai' && currentTurn === aiColor() && !gameOver) {
+  if (GameMode.get() === 'ai' && CurrentTurn.get() === aiColor() && !gameOver) {
     setTimeout(aiMove, 800 + Math.random()*600);
   }
 }
