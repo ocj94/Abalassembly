@@ -38,6 +38,7 @@ function ensureGameBanks(){
    maximise la redondance locale exploitée par deflate (~56x vs JSON brut).
 ═══════════════════════════════════════════ */
 let EMPREINTES_HISTORIQUES=[];  // rempli par ensureEmpreintesHistoriques() — banque compressée ci-dessous
+let EMPREINTES_FLAT=null;
 const EMPREINTES_CHAMPS=['materialDiff','cohesionMoyenne','soutienMoyen','proportionSansSoutien','zoneForteCohesion','zoneFaibleCohesion','coeurRatio','bordRatio','sumitoRatio','menaceRatio','profondeurTactique','mobilite2Ratio'];
 const EMPREINTES_N=418595;
 let _empreintesReady=null;
@@ -53,13 +54,15 @@ function ensureEmpreintesHistoriques(){
     const champOffs=[];
     for(let c=0;c<12;c++){ champOffs.push(off); off+=n*2; }
     const out=new Array(n);
+    const flat=new Float32Array(n*12);
     for(let i=0;i<n;i++){
       const scv=dv.getUint8(scOff+i);
       const e={};
-      for(let c=0;c<12;c++) e[EMPREINTES_CHAMPS[c]]=dv.getInt16(champOffs[c]+i*2, true)/1000;
+      for(let c=0;c<12;c++){ const v=dv.getInt16(champOffs[c]+i*2, true)/1000; e[EMPREINTES_CHAMPS[c]]=v; flat[i*12+c]=v; }
       out[i]={s:(scv<2?'MIGS':'AO'), g:dv.getUint16(gOff+i*2,true), m:dv.getUint16(mOff+i*2,true), c:((scv%2===0)?'black':'white'), e:e};
     }
     EMPREINTES_HISTORIQUES=out;
+    EMPREINTES_FLAT=flat;
     return true;
   }).catch(function(){ return false; });
   return _empreintesReady;
