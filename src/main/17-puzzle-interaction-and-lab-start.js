@@ -14,7 +14,7 @@ function startPuzzle(idx){
   board={}; p.bm.forEach(function(k){board[k]='black';}); p.wm.forEach(function(k){board[k]='white';});
   capturedByBlack=p.cb; capturedByWhite=p.cw;
   gameOver=false; replayMode=false; selected=[]; undoStack=[]; boardSnapshots=[]; moveCount=0;
-  HumanColor.set(p.c); currentTurn=p.c; _bookNode=null; gameBestHint=null;
+  HumanColor.set(p.c); CurrentTurn.set(p.c); _bookNode=null; gameBestHint=null;
   const rb=document.getElementById('replay-btn'); if(rb) rb.style.display='none';
   _puzzleActive={ idx:idx, sig:_pzSig(p.sol.cells,p.sol.dir), alts:(p.alt||[]), tries:0 };
   localStorage.setItem('abaPuzzleIdx', String(idx));
@@ -1126,7 +1126,7 @@ function _tourneyAfterStart(){
   if(t) t.textContent='\ud83c\udfc6 '+M.name+' \u2014 vs '+M.opp+' \u00b7 tu joues les '+(M.human==='black'?'\u26ab Noirs':'\u26aa Blancs');
   _tClockStart();
   updateStatus();
-  if(currentTurn!==HumanColor.get() && !gameOver){ setTimeout(function(){ if(typeof aiMove==='function') aiMove(); }, 700); }
+  if(CurrentTurn.get()!==HumanColor.get() && !gameOver){ setTimeout(function(){ if(typeof aiMove==='function') aiMove(); }, 700); }
 }
 function tourneyMatchEnd(winner, reason){
   const M=_tourneyMatch; if(!M) return;
@@ -1150,7 +1150,7 @@ function tourneyMatchEnd(winner, reason){
 function resignGame(){
   if(typeof gameOver!=='undefined' && gameOver){ showToast('La partie est d\u00e9j\u00e0 termin\u00e9e'); return; }
   if(!confirm('Abandonner la partie ?')) return;
-  const loser=currentTurn, winner=(loser==='black'?'white':'black');
+  const loser=CurrentTurn.get(), winner=(loser==='black'?'white':'black');
   showToast('\ud83c\udff3\ufe0f Abandon \u2014 victoire des '+(winner==='black'?'Noirs':'Blancs'));
   triggerWin(winner,'resign');
 }
@@ -1167,7 +1167,7 @@ function _tClockStop(){ clearInterval(_tClockTimer); _tClockTimer=null; _tClock=
 function _tClockTick(){
   const C=_tClock; if(!C||C.paused) return;
   if(typeof gameOver!=='undefined' && gameOver) return;
-  const mover=currentTurn, now=Date.now();
+  const mover=CurrentTurn.get(), now=Date.now();
   C[mover]-=(now-C.last); C[mover]+=C.inc;
   C.run=(mover==='black'?'white':'black'); C.last=now;
   _tClockRender();
@@ -1257,7 +1257,7 @@ function switchSide(){
 
 // Résoudre : meilleur coup de la position courante (recherche synchrone, profondeur modérée)
 function solveProblem(){
-  const side = (typeof currentTurn !== 'undefined' && currentTurn) ? currentTurn : 'black';
+const side = (typeof CurrentTurn !== 'undefined' && CurrentTurn.get()) ? CurrentTurn.get() : 'black';
   if(typeof showToast==='function') showToast('🧩 Recherche du meilleur coup…');
   setTimeout(function(){
     let best = null;
@@ -1322,7 +1322,7 @@ function aiMove() {
   const ai = aiColor();          // couleur jouée par l'IA (blanc par défaut, noir si on affronte le Bot Noir)
   const human = HumanColor.get();
   const moves = getAllMovesForColor(ai);
-  if (!moves.length) { currentTurn=human; updateStatus(); return; }
+  if (!moves.length) { CurrentTurn.set(human); updateStatus(); return; }
 
   // ── Livre d'ouvertures STATISTIQUE (~15000 parties Migs + AbalOnline, 5 variantes, pondéré par taux de victoire) ──
   if (_bookNode && _bookNode.k) {
@@ -1379,7 +1379,7 @@ function aiMove() {
     if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
     if (metrics) updateAIMetrics(metrics);
     if (gameOver) return;
-    if (!chosen) { currentTurn=human; updateStatus(); return; }
+    if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
     executeAIMove(chosen);
   });
   if (pooledStarted) return;
@@ -1397,7 +1397,7 @@ function aiMove() {
       const chosen = e.data && e.data.move;
       if (e.data) updateAIMetrics(e.data.metrics);
       if (gameOver) return;
-      if (!chosen) { currentTurn=human; updateStatus(); return; }
+      if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
       executeAIMove(chosen);
     };
     worker.addEventListener('message', onResult);
@@ -1410,7 +1410,7 @@ function aiMove() {
       if (gen !== _aiGen) return;   // reset entre-temps → on ne joue pas sur la nouvelle partie
       if (gameOver) return;
       const chosen = searchBestMove(ai, config.depth, config.time, _gameHistKeys());
-      if (!chosen) { currentTurn=human; updateStatus(); return; }
+      if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
       executeAIMove(chosen);
     }, config.time + 4000);
     // Envoie la position au worker
@@ -1439,7 +1439,7 @@ function aiMove() {
       showAIThinking(false);
       if (gen !== _aiGen) return;   // reset pendant le calcul → résultat périmé
       if (gameOver) return;
-      if (!chosen) { currentTurn=human; updateStatus(); return; }
+      if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
       executeAIMove(chosen);
     }, 30);
   }
@@ -1522,7 +1522,7 @@ function executeAIMove(chosen) {
   // Heatmap : enregistre le coup de l'IA sous 'opponent'
   if (typeof recordOpponentHeat === 'function') recordOpponentHeat(chosen.cells);
   _clockInc(human==='black'?'white':'black');   // ⏱️ incrément pour l'IA qui vient de jouer
-  currentTurn=human; moveCount++;
+  CurrentTurn.set(human); moveCount++;
   _emitAbaEvent('movePlayed', { color: (human==='black'?'white':'black'), label: label,
     moveCount: moveCount, capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite });
   if (!gameOver) playSfx('occ_change');   // 🔊 « c'est ton tour »
