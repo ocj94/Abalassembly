@@ -513,11 +513,11 @@ function arDetectBalls() {
    garantie de synchronicité (jamais de await entre swap et restore). ── */
 let _arSavedBoard = null, _arSavedCapB = 0, _arSavedCapW = 0;
 function arSwapBoard() {
-  _arSavedBoard = board; _arSavedCapB = capturedByBlack; _arSavedCapW = capturedByWhite;
-  board = _arBoard; capturedByBlack = 0; capturedByWhite = 0;
+  _arSavedBoard = board; _arSavedCapB = CapturedByBlack.get(); _arSavedCapW = CapturedByWhite.get();
+  board = _arBoard; CapturedByBlack.set(0); CapturedByWhite.set(0);
 }
 function arRestoreBoard() {
-  board = _arSavedBoard; capturedByBlack = _arSavedCapB; capturedByWhite = _arSavedCapW;
+  board = _arSavedBoard; CapturedByBlack.set(_arSavedCapB); CapturedByWhite.set(_arSavedCapW);
 }
 
 // Construit les sélections candidates (1, 2 ou 3 billes alignées) passant
@@ -1366,10 +1366,10 @@ function _scanBoardToAOStart(b){
 }
 // Exécute fn dans un bac à sable : sauvegarde puis restaure les globals du jeu
 function _scanSandbox(startB, fn){
-  const sb=board, scb=capturedByBlack, scw=capturedByWhite;
-  board=JSON.parse(JSON.stringify(startB)); capturedByBlack=0; capturedByWhite=0;
+  const sb=board, scb=CapturedByBlack.get(), scw=CapturedByWhite.get();
+  board=JSON.parse(JSON.stringify(startB)); CapturedByBlack.set(0); CapturedByWhite.set(0);
   try { return fn(); }
-  finally { board=sb; capturedByBlack=scb; capturedByWhite=scw; }
+  finally { board=sb; CapturedByBlack.set(scb); CapturedByWhite.set(scw); }
 }
 function _scanInferMove(P, N, color){
   return _scanSandbox(P, function(){
@@ -1800,10 +1800,10 @@ function _advVerifyCandidate(cand){
       applyMove(mv, color);
       color = color === 'black' ? 'white' : 'black';
       plies++;
-      if (score && capturedByBlack >= score.black && capturedByWhite >= score.white) break;
-      if (capturedByBlack >= 6 || capturedByWhite >= 6) break;
+      if (score && CapturedByBlack.get() >= score.black && CapturedByWhite.get() >= score.white) break;
+      if (CapturedByBlack.get() >= 6 || CapturedByWhite.get() >= 6) break;
     }
-    const scoreMatches = !score || (capturedByBlack === score.black && capturedByWhite === score.white);
+    const scoreMatches = !score || (CapturedByBlack.get() === score.black && CapturedByWhite.get() === score.white);
     const labels = _advGuessLabels(cand.title);
     return { ok: true, game: {
       date: new Date().toISOString().slice(0,10), black: labels.black, white: labels.white,
