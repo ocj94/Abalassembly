@@ -66,12 +66,28 @@ function pickEmpreinteFallbackMove(color, legalMoves, moveCountActuel){
   if (!legalMoves || !legalMoves.length) return null;
   const emp = calculerEmpreinte(color);
   let meilleur = null, meilleureDist = Infinity;
-  for (let i = 0; i < EMPREINTES_HISTORIQUES.length; i++) {
-    const p = EMPREINTES_HISTORIQUES[i];
-    if (p.c !== color) continue;
-    if (Math.abs(p.m - moveCountActuel) > 6) continue;
-    const d = distanceEmpreintes(emp, p.e);
-    if (d < meilleureDist) { meilleureDist = d; meilleur = p; }
+  const D = EMPREINTES_CHAMPS.length;
+  if (EMPREINTES_FLAT) {
+    const empFlat = new Float64Array(D);
+    for (let c = 0; c < D; c++) empFlat[c] = emp[EMPREINTES_CHAMPS[c]];
+    for (let i = 0; i < EMPREINTES_HISTORIQUES.length; i++) {
+      const p = EMPREINTES_HISTORIQUES[i];
+      if (p.c !== color) continue;
+      if (Math.abs(p.m - moveCountActuel) > 6) continue;
+      const off = i * D;
+      let sq = 0;
+      for (let c = 0; c < D; c++) { const diff = empFlat[c] - EMPREINTES_FLAT[off+c]; sq += diff*diff; }
+      const d = Math.sqrt(sq);
+      if (d < meilleureDist) { meilleureDist = d; meilleur = p; }
+    }
+  } else {
+    for (let i = 0; i < EMPREINTES_HISTORIQUES.length; i++) {
+      const p = EMPREINTES_HISTORIQUES[i];
+      if (p.c !== color) continue;
+      if (Math.abs(p.m - moveCountActuel) > 6) continue;
+      const d = distanceEmpreintes(emp, p.e);
+      if (d < meilleureDist) { meilleureDist = d; meilleur = p; }
+    }
   }
   if (!meilleur) return null;
   const jeu = meilleur.s === 'MIGS' ? MIGS_GAMES[meilleur.g] : AO_GAMES[meilleur.g];
