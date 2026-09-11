@@ -852,18 +852,18 @@ function gymStartMat(level){
     }
     // VERIFICATION par le moteur reel, decor compris (le decor pourrait bloquer le coup)
     const savedBoard = (typeof board !== 'undefined') ? board : null;
-    const savedCB = (typeof capturedByBlack !== 'undefined') ? capturedByBlack : 0;
-    const savedCW = (typeof capturedByWhite !== 'undefined') ? capturedByWhite : 0;
+    const savedCB = (typeof CapturedByBlack !== 'undefined') ? CapturedByBlack.get() : 0;
+    const savedCW = (typeof CapturedByWhite !== 'undefined') ? CapturedByWhite.get() : 0;
     board = {};
     bm.forEach(function(v,k){ board[k] = v; });
-    capturedByBlack = 0; capturedByWhite = 0;
+    CapturedByBlack.set(0); CapturedByWhite.set(0);
     const cells = p.noirs.map(function(k){ const [rr,cc]=p.ligne[k]; return {r:rr, c:cc}; });
     let ok = false;
     try {
       const info = validateMove(cells, p.dir, 'black');
       ok = !!(info && info.valid && info.ejection);
     } catch(e){ ok = false; }
-    board = savedBoard; capturedByBlack = savedCB; capturedByWhite = savedCW;
+    board = savedBoard; CapturedByBlack.set(savedCB); CapturedByWhite.set(savedCW);
     if (ok){
       chosen = p; boardMap = bm;
       solutionKeys = new Set(cells.map(function(x){ return gymKey(x.r, x.c); }));
