@@ -274,7 +274,7 @@ function toggleKidsMode() {
   applyMarbleSkin();
   selected = [];
   if (typeof initBoardState === 'function') initBoardState();  // recharge avec la disposition Découverte (7 billes/camp)
-  capturedByBlack = 0; capturedByWhite = 0;
+  CapturedByBlack.set(0); CapturedByWhite.set(0);
   if (typeof updateCaptures === 'function') updateCaptures();
   if (typeof drawBoard === 'function') drawBoard();
   // si le chat était affiché, on bascule sur l'onglet Jeu (jamais laisser le chat visible)
@@ -375,7 +375,7 @@ function _kidsExitCheck() {
   applyMarbleSkin();
   selected = [];
   if (typeof initBoardState === 'function') initBoardState();  // revient à la disposition normale (currentLayout)
-  capturedByBlack = 0; capturedByWhite = 0;
+  CapturedByBlack.set(0); CapturedByWhite.set(0);
   if (typeof updateCaptures === 'function') updateCaptures();
   if (typeof drawBoard === 'function') drawBoard();
   const statusEl = document.getElementById('kids-mode-status');
