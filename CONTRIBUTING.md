@@ -61,8 +61,8 @@ documenté dans `src/README.md`, pas un chantier abandonné en cours de route.
   depuis `file://`. Toute fonctionnalité qui suppose une connexion doit
   avoir un repli honnête, jamais un échec silencieux.
 - **Documenter les limites plutôt que les taire.** Voir
-  [`docs/Multi-worker`](docs/Moteur-multi-worker.md) ou
-  [`docs/Calcul-distribue`](docs/Calcul-distribue.md) comme exemples : un
+  [`docs-fr/Multi-worker`](docs-fr/Moteur-multi-worker.fr.md) ou
+  [`docs-fr/Calcul-distribue`](docs-fr/Calcul-distribue.fr.md) comme exemples : un
   vrai problème non résolu, documenté honnêtement, vaut mieux qu'un silence.
 
 ## Ce qui aide vraiment
