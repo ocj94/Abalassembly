@@ -4,15 +4,15 @@
 
 Ce document part d'une hypothèse précise : tu reprends ce projet sans
 pouvoir poser de question à son créateur. Il ne remplace pas le
-[wiki](docs/Home.md) ni [`CONTRIBUTING.md`](CONTRIBUTING.md) — il donne le
+[wiki](docs-fr/Home.fr.md) ni [`CONTRIBUTING.md`](CONTRIBUTING.md) — il donne le
 contexte que ni l'un ni l'autre ne couvre : par où commencer, ce qui est
 vraiment tranché, et ce qui ne l'est pas.
 
 ## Par où commencer
 
 1. [`README.md`](README.md) — la vue d'ensemble
-2. [`docs/Home.md`](docs/Home.md) — le sommaire du wiki, toutes les pages
-3. [`docs/Architecture.md`](docs/Architecture.md) — les 3 schémas (moteur, données, modes de jeu)
+2. [`docs-fr/Home.fr.md`](docs-fr/Home.fr.md) — le sommaire du wiki, toutes les pages
+3. [`docs-fr/Architecture.fr.md`](docs-fr/Architecture.fr.md) — les 3 schémas (moteur, données, modes de jeu)
 4. [`src/README.md`](src/README.md) — comment le code source est organisé
 
 Tout le wiki existe en français et en anglais (lien de bascule en tête de
@@ -38,8 +38,8 @@ casses, changent la nature du projet :
   vrais modules.
 - **Documenter une limite plutôt que la taire.** Le projet a plusieurs pages
   qui disent explicitement "ceci ne marche pas encore, voici pourquoi"
-  ([`docs/Moteur-multi-worker.md`](docs/Moteur-multi-worker.md),
-  [`docs/Calcul-distribue.md`](docs/Calcul-distribue.md)). C'est un choix
+  ([`docs-fr/Moteur-multi-worker.fr.md`](docs-fr/Moteur-multi-worker.fr.md),
+  [`docs-fr/Calcul-distribue.fr.md`](docs-fr/Calcul-distribue.fr.md)). C'est un choix
   assumé, pas un aveu à corriger en cachant le problème.
 
 ## Comment le code est vraiment organisé
