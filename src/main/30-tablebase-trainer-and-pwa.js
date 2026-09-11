@@ -491,7 +491,7 @@ function handleTutorialClick(r, c) {
     if (!dir) { tutoSelected = []; drawTutorialBoard(); return; }
 
     // applique via le moteur (bascule board)
-    const savedB = board, savedCW = capturedByWhite, savedCB = capturedByBlack;
+    const savedB = board, savedCW = CapturedByWhite.get(), savedCB = CapturedByBlack.get();
     board = tutoBoard;
     const info = validateMove(tutoSelected, dir, 'black');
     if (info.valid) {
@@ -507,7 +507,7 @@ function handleTutorialClick(r, c) {
       if (info.type === 'broadside' && wasGroup) { tutoMovedGroup = true; tutoBroadside = true; }
       tutoSelected = [];
     } else {
-      board = savedB; capturedByWhite = savedCW; capturedByBlack = savedCB;
+      board = savedB; CapturedByWhite.set(savedCW); CapturedByBlack.set(savedCB);
       // Cas spécial "barrière imprenable" : la tentative de pousser 3 billes
       // ÉCHOUE volontairement — c'est justement la leçon à apprendre.
       const step = TUTORIAL_STEPS[tutoStep];
@@ -524,7 +524,7 @@ function handleTutorialClick(r, c) {
       document.getElementById('tuto-feedback').style.color = '#e05c4b';
       return;
     }
-    board = savedB; capturedByWhite = savedCW; capturedByBlack = savedCB;
+    board = savedB; CapturedByWhite.set(savedCW); CapturedByBlack.set(savedCB);
     drawTutorialBoard();
     checkTutorialStep();
     return;
