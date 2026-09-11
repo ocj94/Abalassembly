@@ -124,7 +124,7 @@ function recordPlayerMove(opts) {
     });
   }
   // Suivi de l'avance (pour le taux de conversion) : le joueur mène-t-il ?
-  if (capturedByBlack > capturedByWhite) progress.__hadLead = true;
+  if (CapturedByBlack.get() > CapturedByWhite.get()) progress.__hadLead = true;
   saveProgress(progress);
 }
 
@@ -494,7 +494,7 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
   // Applique le coup
   pushUndoState();
   // Mode Coach : capture l'état stratégique AVANT le coup (du point de vue de l'humain)
-  let coachBefore = null, coachCapBefore = (HumanColor.get() === 'black' ? capturedByBlack : capturedByWhite);
+  let coachBefore = null, coachCapBefore = (HumanColor.get() === 'black' ? CapturedByBlack.get() : CapturedByWhite.get());
   if ((coachEnabled || advisorEnabled) && me === HumanColor.get()) coachBefore = evalFactors(HumanColor.get());
   // Analyse de style : état AVANT le coup (toujours active, réutilise coachBefore si dispo)
   let styleBefore = (me === HumanColor.get()) ? (coachBefore || evalFactors(HumanColor.get())) : null;
@@ -523,8 +523,8 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
       if (rc) { const p = hexCoord(rc.r, rc.c); ejX = p.x; ejY = p.y; }
     }
     soundEject();  // 🔊 son d'éjection
-    if (me === 'black') { capturedByBlack++; if (ejX!==null) animateEjection(ejX, ejY, 'white', capturedByBlack-1); }
-    else                { capturedByWhite++; if (ejX!==null) animateEjection(ejX, ejY, 'black', capturedByWhite-1); }
+    if (me === 'black') { CapturedByBlack.inc(); if (ejX!==null) animateEjection(ejX, ejY, 'white', CapturedByBlack.get()-1); }
+    else                { CapturedByWhite.inc(); if (ejX!==null) animateEjection(ejX, ejY, 'black', CapturedByWhite.get()-1); }
   } else if (info.type === 'push') {
     soundPush();   // 🔊 son de poussée (sans éjection)
   } else {
@@ -558,7 +558,7 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
   // Mode Coach : commente le coup du joueur
   if (coachEnabled && me === HumanColor.get() && coachBefore) {
     const coachAfter = evalFactors(HumanColor.get());
-    const capDelta = (HumanColor.get() === 'black' ? capturedByBlack : capturedByWhite) - coachCapBefore;
+    const capDelta = (HumanColor.get() === 'black' ? CapturedByBlack.get() : CapturedByWhite.get()) - coachCapBefore;
     showCoachBubble(coachComment(coachBefore, coachAfter, capDelta));
   }
 
@@ -567,7 +567,7 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
     const advColor = advisorBotColor();
     if (advColor) {
       const aAfter = evalFactors(HumanColor.get());
-      const capDelta = (HumanColor.get() === 'black' ? capturedByBlack : capturedByWhite) - coachCapBefore;
+      const capDelta = (HumanColor.get() === 'black' ? CapturedByBlack.get() : CapturedByWhite.get()) - coachCapBefore;
       const txt = botAdvisorComment(advColor, coachBefore, aAfter, capDelta);
       showBotBubble(advColor, txt);
     }
@@ -576,18 +576,18 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
   // Analyse de style : enregistre ce coup humain (toujours, même hors coach/conseiller)
   if (me === HumanColor.get() && styleBefore) {
     const styleAfter = evalFactors(HumanColor.get());
-    const sCapDelta = (HumanColor.get() === 'black' ? capturedByBlack : capturedByWhite) - coachCapBefore;
+    const sCapDelta = (HumanColor.get() === 'black' ? CapturedByBlack.get() : CapturedByWhite.get()) - coachCapBefore;
     recordStyleMove(styleBefore, styleAfter, sCapDelta, info);
   }
 
   // Victoire ?
-  if (capturedByBlack >= 6) { if (variantMode) { _variantConclude('black'); return; } triggerWin('black'); return; }
-  if (capturedByWhite >= 6) { if (variantMode) { _variantConclude('white'); return; } triggerWin('white'); return; }
+  if (CapturedByBlack.get() >= 6) { if (variantMode) { _variantConclude('black'); return; } triggerWin('black'); return; }
+  if (CapturedByWhite.get() >= 6) { if (variantMode) { _variantConclude('white'); return; } triggerWin('white'); return; }
 
   _clockInc(me);   // ⏱️ incrément de cadence pour celui qui vient de jouer
   CurrentTurn.set((me === 'black') ? 'white' : 'black');
   _emitAbaEvent('movePlayed', { color: me, label: (typeof moveNotation !== 'undefined') ? moveNotation : null,
-    moveCount: moveCount, capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite });
+    moveCount: moveCount, capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get() });
   updateStatus();
   // Animation de glissement si déplacement simple/latéral, sinon rendu direct
   if (slidePieces && slidePieces.length) {
