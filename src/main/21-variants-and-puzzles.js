@@ -530,14 +530,14 @@ function _stashLive(){
   _liveStash = {
     board: JSON.parse(JSON.stringify(board)),
     capB: capturedByBlack, capW: capturedByWhite,
-    turn: currentTurn, moveCount: moveCount
+    turn: CurrentTurn.get(), moveCount: moveCount
   };
 }
 function _restoreLive(){
   if (!_liveStash) return false;
   board = _liveStash.board;
   capturedByBlack = _liveStash.capB; capturedByWhite = _liveStash.capW;
-  currentTurn = _liveStash.turn; moveCount = _liveStash.moveCount;
+  CurrentTurn.set(_liveStash.turn); moveCount = _liveStash.moveCount;
   _liveStash = null;
   return true;
 }
