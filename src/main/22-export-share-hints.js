@@ -146,7 +146,7 @@ function exportGameNotation() {
                   && typeof replayCurrentIdx !== 'undefined');
   var bound = inReplay ? replayCurrentIdx : undefined;
   const notation = buildGameNotation(system, bound);
-  var scB = capturedByBlack, scW = capturedByWhite;
+  var scB = CapturedByBlack.get(), scW = CapturedByWhite.get();
   if (inReplay) {
     /* CORRECTIF (signale par Olivier) : au chargement d'une partie depuis
        l'historique, le replay se positionne desormais AU DEBUT (v2.30) --
@@ -435,7 +435,7 @@ function runBotDuelStep() {
     setTimeout(function(){ if (done) return; let b=null; try{ b=searchBestMove(side, depth, time, _gameHistKeys()); }catch(e){} finish(b); }, time + 4000);
     worker.postMessage({
       board: JSON.parse(JSON.stringify(board)),
-      capturedByWhite: capturedByWhite, capturedByBlack: capturedByBlack,
+      capturedByWhite: CapturedByWhite.get(), capturedByBlack: CapturedByBlack.get(),
       color: side, depth: depth, time: time,
       weights: (typeof AI_WEIGHT_PRESETS !== 'undefined' && AI_WEIGHT_PRESETS.balanced) ? AI_WEIGHT_PRESETS.balanced : undefined,
       hist: _gameHistKeys()
@@ -492,8 +492,8 @@ function applyDuelMove(mv, color) {
       if (rc) { const p = hexCoord(rc.r, rc.c); ejX = p.x; ejY = p.y; }
     }
     const victim = (color === 'black') ? 'white' : 'black';
-    if (color === 'black') capturedByBlack++; else capturedByWhite++;
-    const ejCount = (color === 'black') ? capturedByBlack : capturedByWhite;
+    if (color === 'black') CapturedByBlack.inc(); else CapturedByWhite.inc();
+    const ejCount = (color === 'black') ? CapturedByBlack.get() : CapturedByWhite.get();
     soundEject();
     if (ejX!==null) animateEjection(ejX, ejY, victim, ejCount-1);
   } else if (info.type === 'push') {
@@ -506,8 +506,8 @@ function applyDuelMove(mv, color) {
   CurrentTurn.set((color === 'black') ? 'white' : 'black');
   moveCount++;
   updateStatus(); updateCaptures(); drawBoard();
-  if (capturedByBlack >= 6) { triggerWin('black'); botDuelMode=false; showDuelStopBtn(false); }
-  if (capturedByWhite >= 6) { triggerWin('white'); botDuelMode=false; showDuelStopBtn(false); }
+  if (CapturedByBlack.get() >= 6) { triggerWin('black'); botDuelMode=false; showDuelStopBtn(false); }
+  if (CapturedByWhite.get() >= 6) { triggerWin('white'); botDuelMode=false; showDuelStopBtn(false); }
 }
 
 let botDifficulty = 'easy';
