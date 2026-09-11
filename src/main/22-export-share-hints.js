@@ -356,7 +356,7 @@ function startBotGame(botColor) {
     else showBotBubble('white', 'Tiens, tu prends les noirs contre le Bot Noir ? Hmph. Je regarde… et je commenterai. Ne me déçois pas trop. 😒');
   }, 600);
   // Si l'humain joue les blancs, c'est l'IA (noirs) qui commence
-  if (HumanColor.get() === 'white' && currentTurn === 'black') {
+  if (HumanColor.get() === 'white' && CurrentTurn.get() === 'black') {
     setTimeout(aiMove, 1400);
   }
 }
@@ -397,10 +397,10 @@ function runBotDuelStep() {
       return;
     }
   }
-  const side = currentTurn;  // 'black' ou 'white'
+  const side = CurrentTurn.get();  // 'black' ou 'white'
   const moves = getAllMovesForColor(side);
   if (!moves.length) {
-    currentTurn = (side === 'black') ? 'white' : 'black';
+    CurrentTurn.set((side === 'black') ? 'white' : 'black');
     updateStatus();
     botDuelTimer = setTimeout(runBotDuelStep, 600);
     return;
@@ -503,7 +503,7 @@ function applyDuelMove(mv, color) {
   }
   const label = moveLabel(mv.cells, mv.dir, info.type, !!info.ejection);
   addMoveToHistory(label, color, { cells: mv.cells.slice(), dir: mv.dir, type: info.type, ejection: !!info.ejection });
-  currentTurn = (color === 'black') ? 'white' : 'black';
+  CurrentTurn.set((color === 'black') ? 'white' : 'black');
   moveCount++;
   updateStatus(); updateCaptures(); drawBoard();
   if (capturedByBlack >= 6) { triggerWin('black'); botDuelMode=false; showDuelStopBtn(false); }
