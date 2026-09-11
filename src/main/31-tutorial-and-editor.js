@@ -127,7 +127,7 @@ function playFromEditor() {
   showPage('game');
   setTimeout(function() {
     board = JSON.parse(JSON.stringify(editorBoard));
-    capturedByWhite = editorCapturedWhite; capturedByBlack = editorCapturedBlack;
+    CapturedByWhite.set(editorCapturedWhite); CapturedByBlack.set(editorCapturedBlack);
     CurrentTurn.set('black'); moveCount = 0; gameOver = false;
     selected = [];
     if (typeof updateCaptures === 'function') updateCaptures();
@@ -444,13 +444,13 @@ function analysisShowBestMove() {
   if (info) info.textContent = '🧠 Calcul en cours...';
   // laisse l'UI se rafraîchir avant le calcul
   setTimeout(function() {
-    const savedB = board, savedCB = capturedByBlack, savedCW = capturedByWhite;
-    board = analysisBoard; capturedByBlack = analysisCapB; capturedByWhite = analysisCapW;
+    const savedB = board, savedCB = CapturedByBlack.get(), savedCW = CapturedByWhite.get();
+    board = analysisBoard; CapturedByBlack.set(analysisCapB); CapturedByWhite.set(analysisCapW);
     let best = null;
     try {
       best = searchBestMove(analysisTurn, 3, 2000);  // profondeur 3, max 2s
     } catch(e) { best = null; }
-    board = savedB; capturedByBlack = savedCB; capturedByWhite = savedCW;
+    board = savedB; CapturedByBlack.set(savedCB); CapturedByWhite.set(savedCW);
 
     if (best && best.cells) {
       analysisBestHint = { cells: best.cells, dir: best.dir };
