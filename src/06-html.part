@@ -4250,7 +4250,7 @@
     <!-- Attestation -->
     <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Attestation</div>
     <div id="formateur-attestation-locked" style="background:var(--surface);border:1px dashed var(--border);border-radius:12px;padding:24px;max-width:720px;color:var(--muted);font-size:13px">
-      🔒 Réussis l'évaluation (6/8 ou plus) pour débloquer l'attestation imprimable.
+      🔒 Coche les 6 séances et réussis l'évaluation (6/8 ou plus) pour débloquer l'attestation imprimable.
     </div>
     <div id="formateur-attestation-unlocked" style="display:none;max-width:720px">
       <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center;flex-wrap:wrap" class="formateur-noprint">
