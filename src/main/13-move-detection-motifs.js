@@ -129,8 +129,8 @@ function orderMoves(moves, depth, ttMove){
 
 // — Quiescence search : prolonge sur les positions "non calmes" (éjections) —
 function quiescence(alpha, beta, povColor, maximizing, qdepth) {
-  if (capturedByWhite>=6) return povColor==='white'?100000:-100000;
-  if (capturedByBlack>=6) return povColor==='black'?100000:-100000;
+  if (CapturedByWhite.get()>=6) return povColor==='white'?100000:-100000;
+  if (CapturedByBlack.get()>=6) return povColor==='black'?100000:-100000;
   const standPat = evaluateBoard(povColor);
   if (qdepth <= 0) return standPat;
   if (maximizing) { if (standPat >= beta) return beta; if (standPat > alpha) alpha = standPat; }
@@ -152,8 +152,8 @@ let _nodesSearched = 0;
 function search(depth, alpha, beta, maximizing, povColor) {
   _nodesSearched++;
   const alphaOrig = alpha;
-  if (capturedByWhite>=6) return povColor==='white'?100000:-100000;
-  if (capturedByBlack>=6) return povColor==='black'?100000:-100000;
+  if (CapturedByWhite.get()>=6) return povColor==='white'?100000:-100000;
+  if (CapturedByBlack.get()>=6) return povColor==='black'?100000:-100000;
 
   const h = hashBoard();
   const tt = TT.get(h);
