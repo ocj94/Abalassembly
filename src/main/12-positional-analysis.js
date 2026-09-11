@@ -429,22 +429,48 @@ function calculerAnalyseHistorique(color, k) {
   const stats = {};
   EMPREINTES_CHAMPS.forEach(function(ch){ stats[ch] = { sum:0, sumSq:0, n:0, rangInf:0 }; });
   let nMigs = 0, nAo = 0;
-  const meilleurs = [];  // liste triee croissante par distance, taille plafonnee a k
-  for (let i = 0; i < EMPREINTES_HISTORIQUES.length; i++) {
+  const n = EMPREINTES_HISTORIQUES.length;
+  const D = EMPREINTES_CHAMPS.length;
+  const empFlat = EMPREINTES_FLAT ? new Float64Array(D) : null;
+  if (empFlat) for (let c = 0; c < D; c++) empFlat[c] = emp[EMPREINTES_CHAMPS[c]];
+  const topIdx = EMPREINTES_FLAT ? new Int32Array(k).fill(-1) : null;
+  const topDist = EMPREINTES_FLAT ? new Float64Array(k).fill(Infinity) : null;
+  const meilleurs = [];
+  for (let i = 0; i < n; i++) {
     const p = EMPREINTES_HISTORIQUES[i];
     if (p.c !== color) continue;
     if (p.s === 'MIGS') nMigs++; else nAo++;
-    for (let c = 0; c < EMPREINTES_CHAMPS.length; c++) {
-      const ch = EMPREINTES_CHAMPS[c], v = p.e[ch], st = stats[ch];
-      st.sum += v; st.sumSq += v*v; st.n++;
-      if (v <= emp[ch]) st.rangInf++;
+    if (EMPREINTES_FLAT) {
+      const off = i * D;
+      let sq = 0;
+      for (let c = 0; c < D; c++) {
+        const ch = EMPREINTES_CHAMPS[c], v = EMPREINTES_FLAT[off + c], st = stats[ch];
+        st.sum += v; st.sumSq += v*v; st.n++;
+        if (v <= emp[ch]) st.rangInf++;
+        const diff = empFlat[c] - v; sq += diff*diff;
+      }
+      const d = Math.sqrt(sq);
+      if (d < topDist[k-1]) {
+        let pos = k-1;
+        while (pos>0 && topDist[pos-1] > d) { topDist[pos]=topDist[pos-1]; topIdx[pos]=topIdx[pos-1]; pos--; }
+        topDist[pos]=d; topIdx[pos]=i;
+      }
+    } else {
+      for (let c = 0; c < D; c++) {
+        const ch = EMPREINTES_CHAMPS[c], v = p.e[ch], st = stats[ch];
+        st.sum += v; st.sumSq += v*v; st.n++;
+        if (v <= emp[ch]) st.rangInf++;
+      }
+      const d = distanceEmpreintes(emp, p.e);
+      if (meilleurs.length < k) {
+        meilleurs.push({ d:d, p:p }); meilleurs.sort(function(a,b){ return a.d-b.d; });
+      } else if (d < meilleurs[k-1].d) {
+        meilleurs[k-1] = { d:d, p:p }; meilleurs.sort(function(a,b){ return a.d-b.d; });
+      }
     }
-    const d = distanceEmpreintes(emp, p.e);
-    if (meilleurs.length < k) {
-      meilleurs.push({ d:d, p:p }); meilleurs.sort(function(a,b){ return a.d-b.d; });
-    } else if (d < meilleurs[k-1].d) {
-      meilleurs[k-1] = { d:d, p:p }; meilleurs.sort(function(a,b){ return a.d-b.d; });
-    }
+  }
+  if (EMPREINTES_FLAT) {
+    for (let j = 0; j < k; j++) { if (topIdx[j] === -1) break; meilleurs.push({ d: topDist[j], p: EMPREINTES_HISTORIQUES[topIdx[j]] }); }
   }
   const champs = {};
   EMPREINTES_CHAMPS.forEach(function(ch){
