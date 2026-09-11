@@ -93,7 +93,7 @@ function resolveAbaProToken(token,color){
 // perdu de bille. Retourne false si le format ne peut pas etre lu (partie
 // ignoree plutot que plantee), true si le plateau a ete installe avec succes.
 function _setupFromAOStart(startStr){
-  board={}; capturedByBlack=0; capturedByWhite=0;
+  board={}; CapturedByBlack.set(0); CapturedByWhite.set(0);
   const parts=String(startStr).split(','); if(parts.length!==2) return false;
   // place() lit un segment "<nbEjectees><cases>" pour UNE couleur : le premier
   // chiffre est le nombre de billes deja perdues par ce camp (score adverse),
@@ -106,7 +106,7 @@ function _setupFromAOStart(startStr){
   }
   const sb=place(parts[0],'black'), sw=place(parts[1],'white');
   if(sb===false||sw===false) return false;
-  capturedByWhite=sb; capturedByBlack=sw;   // billes noires éjectées = score blanc, et inversement
+  CapturedByWhite.set(sb); CapturedByBlack.set(sw);   // billes noires éjectées = score blanc, et inversement
   return true;
 }
 // Rejoue une séquence ABA-PRO sur le plateau courant et bascule en mode rejeu
@@ -129,7 +129,7 @@ function _replaySeqToSnapshots(seq, labelText, startColor){
     const moveInfo={cells:mv.cells,dir:mv.dir,type:(mv.info&&mv.info.type)||mv.type,ejection:!!mv.eject};
     let lab; try{ lab=moveToABAPRO(mv.cells,mv.dir,moveInfo.type); }catch(e){ lab=tokens[i]; }
     applyMove(mv,color);
-    boardSnapshots.push({board:JSON.parse(JSON.stringify(board)),capturedByBlack:capturedByBlack,capturedByWhite:capturedByWhite,moveCount:played,label:lab,color:color,moveInfo:moveInfo});
+    boardSnapshots.push({board:JSON.parse(JSON.stringify(board)),capturedByBlack:CapturedByBlack.get(),capturedByWhite:CapturedByWhite.get(),moveCount:played,label:lab,color:color,moveInfo:moveInfo});
     color=color==='black'?'white':'black'; played++;
   }
   gameOver=true;
@@ -150,7 +150,7 @@ function loadMigsGame(idx){
      une autre page, le plateau reste invisible. On bascule donc sur la page
      jeu AVANT de construire le replay. */
   if(typeof showPage==='function') showPage('game');
-  currentLayout='belgian'; initBoardState(); capturedByBlack=0; capturedByWhite=0;
+  currentLayout='belgian'; initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
   _replaySeqToSnapshots(g[5], g[2]+' vs '+g[3]);
 }
 // Charge une partie AbalOnline (variante quelconque, position de départ propre) en mode rejeu
@@ -286,7 +286,7 @@ function renderPSGamesList(){
 function loadPSGame(idx){
   const g = PS_GAMES[idx]; if (!g) return;
   if (typeof showPage === 'function') showPage('game');
-  currentLayout = 'belgian'; initBoardState(); capturedByBlack = 0; capturedByWhite = 0;
+  currentLayout = 'belgian'; initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
   _replaySeqToSnapshots(g[5], g[2] + ' vs ' + g[3] + ' (PlayStrategy)');
   closePSImportModal();
 }
@@ -430,7 +430,7 @@ function computeAnalysis(){
     function cat(arr){ const o={}; arr.forEach(function(m){ const key=m.cells.length+'/'+(m.info.push||1); o[key]=(o[key]||0)+1; }); return o; }
     function fmtCat(o){ const ks=Object.keys(o).sort(); return ks.length? ks.map(function(k){ return k+'×'+o[k]; }).join('  ') : '—'; }
     return {
-      marbles:n, score:(c==='black'?capturedByBlack:capturedByWhite),
+      marbles:n, score:(c==='black'?CapturedByBlack.get():CapturedByWhite.get()),
       distAvg:(n? distSum/n : 0), cohesion:coh, isolated:iso, edge:edge,
       threats:pushes.length, ejects:ejects.length,
       ejectCat:fmtCat(cat(ejects)), pushCat:fmtCat(cat(pushes)),
