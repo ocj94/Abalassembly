@@ -7593,7 +7593,7 @@ function exportPuzzleAPGN(idx){
    affirmation) : verifie que le coup EXACT annonce (p.sol) est bien un
    coup legal dans la position du puzzle, ET qu'il produit reellement la
    capture revendiquee. Sauvegarde/restaure l'etat global du plateau
-   (board/capturedByBlack/capturedByWhite/currentTurn) car applyMove/
+   (board/CapturedByBlack.get()/CapturedByWhite.get()/currentTurn) car applyMove/
    getAllMovesForColor operent dessus directement -- jamais laisser un
    appel de certification affecter la partie en cours de l'utilisateur. */
 /* Compte les coups d'une couleur qui capturent immediatement (utilise pour
@@ -7611,14 +7611,14 @@ function _countImmediateCaptures(color){
 function certifyPuzzle(idx){
   const p = PUZZLES[idx];
   if (!p || !p.sol) return { proved: false, reason: 'no-sol' };
-  const savedBoard = board, savedCB = capturedByBlack, savedCW = capturedByWhite, savedTurn = CurrentTurn.get();
+  const savedBoard = board, savedCB = CapturedByBlack.get(), savedCW = CapturedByWhite.get(), savedTurn = CurrentTurn.get();
   try {
     const b = {};
     p.bm.forEach(function(s){ b[s] = 'black'; });
     p.wm.forEach(function(s){ b[s] = 'white'; });
     board = b;
-    capturedByBlack = p.cb || 0;
-    capturedByWhite = p.cw || 0;
+    CapturedByBlack.set(p.cb || 0);
+    CapturedByWhite.set(p.cw || 0);
     CurrentTurn.set(p.c);
 
     if (p.multi && p.seq && p.seq.length === 3) {
@@ -7646,9 +7646,9 @@ function certifyPuzzle(idx){
       const k3 = p.seq[2].cells.map(function(c){ return c.r+','+c.c; }).sort().join('|');
       const m3 = legal3.find(function(m){ return keyOf(m) === k3 && m.dir.q === p.seq[2].dir.q && m.dir.r === p.seq[2].dir.r; });
       if (!m3) return { proved: false, reason: 'illegal-move2' };
-      const baseCap = p.c === 'black' ? capturedByBlack : capturedByWhite;
+      const baseCap = p.c === 'black' ? CapturedByBlack.get() : CapturedByWhite.get();
       applyMove(m3, p.c);
-      const afterCap = p.c === 'black' ? capturedByBlack : capturedByWhite;
+      const afterCap = p.c === 'black' ? CapturedByBlack.get() : CapturedByWhite.get();
       const gained = afterCap - baseCap;
       return { proved: gained >= 1, reason: gained >= 1 ? 'ok-multi' : 'no-gain', gained: gained };
     }
@@ -7673,14 +7673,14 @@ function certifyPuzzle(idx){
     }
 
     // Puzzle OFFENSIF (par defaut) : le coup doit capturer immediatement.
-    const baseCap = p.c === 'black' ? capturedByBlack : capturedByWhite;
+    const baseCap = p.c === 'black' ? CapturedByBlack.get() : CapturedByWhite.get();
     const undo = applyMove(found, p.c);
-    const afterCap = p.c === 'black' ? capturedByBlack : capturedByWhite;
+    const afterCap = p.c === 'black' ? CapturedByBlack.get() : CapturedByWhite.get();
     undoMove(undo);
     const gained = afterCap - baseCap;
     return { proved: gained >= 1, reason: gained >= 1 ? 'ok' : 'no-gain', gained: gained };
   } finally {
-    board = savedBoard; capturedByBlack = savedCB; capturedByWhite = savedCW; CurrentTurn.set(savedTurn);
+    board = savedBoard; CapturedByBlack.set(savedCB); CapturedByWhite.set(savedCW); CurrentTurn.set(savedTurn);
   }
 }
 
@@ -9880,7 +9880,7 @@ function importHistoryFromText(text, myColor, variant) {
 
   var saved = {
     board: JSON.parse(JSON.stringify(board)),
-    cb: capturedByBlack, cw: capturedByWhite,
+    cb: CapturedByBlack.get(), cw: CapturedByWhite.get(),
     layout: (typeof currentLayout !== 'undefined') ? currentLayout : 'standard'
   };
   var best = { path: [], depth: 0 };
@@ -9910,12 +9910,12 @@ function importHistoryFromText(text, myColor, variant) {
   try {
     if (typeof currentLayout !== 'undefined' && HEAT_VARIANTS.indexOf(variant) >= 0) currentLayout = variant;
     initBoardState();
-    capturedByBlack = 0; capturedByWhite = 0;
+    CapturedByBlack.set(0); CapturedByWhite.set(0);
     explore(0, 'black', []);
   } catch(e) {
     // on ne laisse jamais l'import casser l'etat
   } finally {
-    board = saved.board; capturedByBlack = saved.cb; capturedByWhite = saved.cw;
+    board = saved.board; CapturedByBlack.set(saved.cb); CapturedByWhite.set(saved.cw);
     if (typeof currentLayout !== 'undefined') currentLayout = saved.layout;
   }
 
@@ -11781,8 +11781,37 @@ function monCamp() {
 // courant, exposee separement pour les endroits qui posent la question
 // plutot que d'avoir besoin de la couleur elle-meme.
 function estMonTour() { return (typeof CurrentTurn !== 'undefined') && CurrentTurn.get() === monCamp(); }
-let capturedByBlack = 0;
-let capturedByWhite = 0;
+const CapturedByBlack = (function(){
+  // Encapsulation, meme motif que GameMode/HumanColor/CurrentTurn : interface
+  // explicite sur un script classique (pas de vrais import/export,
+  // incompatibles avec file:// hors-ligne). .inc()/.dec() en plus des
+  // accesseurs parce que ce sont des COMPTEURS : capturedByBlack++ et -- n'ont
+  // pas d'equivalent direct en .get()/.set(), et certains sites lisent la
+  // valeur AVANT increment (animateEjection recoit .get()-1).
+  //
+  // NOTE IMPORTANTE : le code du worker IA (AI_WORKER_CODE) garde deliberement
+  // ses propres variables capturedByBlack/capturedByWhite en minuscules. Le
+  // worker s'execute dans un thread separe, sans acces a cette portee : y
+  // injecter CapturedByBlack le casserait, et aucun controle de syntaxe ne le
+  // verrait puisque ce code vit dans une chaine. La chaine s'etend sur DEUX
+  // fichiers source (13-move-detection-motifs.js -> 14-engine-experimental-workers.js).
+  let value = 0;
+  return {
+    get: function(){ return value; },
+    set: function(v){ value = v; },
+    inc: function(){ value++; return value; },
+    dec: function(){ value--; return value; }
+  };
+})();
+const CapturedByWhite = (function(){
+  let value = 0;
+  return {
+    get: function(){ return value; },
+    set: function(v){ value = v; },
+    inc: function(){ value++; return value; },
+    dec: function(){ value--; return value; }
+  };
+})();
 let moveCount = 14;
 let gameOver = false;
 let timerInterval;
@@ -13188,7 +13217,7 @@ function drawGutterMarbles(ctx, corners, mx, my, pad, gutterW, opts) {
      montrait 6. On la reconstruit ici depuis les compteurs du snapshot
      courant, seule source exacte pour la position affichee. Signale par Saab
      (« eject colonne gauche -0b3w OK / Rigole -0b6w ?? »).
-     Note : capturedByBlack = billes BLANCHES ejectees par les Noirs. */
+     Note : CapturedByBlack.get() = billes BLANCHES ejectees par les Noirs. */
   if (typeof replayMode !== 'undefined' && replayMode) {
     const snap = (typeof replayCurrentIdx !== 'undefined' && replayCurrentIdx >= 0
                   && typeof boardSnapshots !== 'undefined') ? boardSnapshots[replayCurrentIdx] : null;
@@ -14207,9 +14236,9 @@ function showResumePrompt() {
      });
 
    Événements émis :
-   - abalassembly:movePlayed    { color, label, moveCount, capturedByBlack, capturedByWhite }
+   - abalassembly:movePlayed    { color, label, moveCount, CapturedByBlack.get(), CapturedByWhite.get() }
    - abalassembly:positionChanged { layout }   (nouvelle partie / position chargée)
-   - abalassembly:gameOver      { winner, reason, capturedByBlack, capturedByWhite, moveCount }
+   - abalassembly:gameOver      { winner, reason, CapturedByBlack.get(), CapturedByWhite.get(), moveCount }
 ═══════════════════════════════════════════ */
 function _emitAbaEvent(name, detail){
   try{ document.dispatchEvent(new CustomEvent('abalassembly:'+name, { detail: detail })); }
@@ -14221,7 +14250,7 @@ function _emitAbaEvent(name, detail){
    le moteur (abalassembly:movePlayed / gameOver / positionChanged, voir la
    doc juste au-dessus de _emitAbaEvent) — exactement comme le ferait un
    outil externe. Ne modifie et ne lit AUCUN etat interne du jeu directement
-   pendant une partie ; capturedByBlack/capturedByWhite/myTime/oppTime sont
+   pendant une partie ; CapturedByBlack.get()/CapturedByWhite.get()/myTime/oppTime sont
    lus au moment de l'affichage, pas caches. moveCount est un compteur
    GLOBAL (toutes couleurs confondues) dans le moteur — le decompte par
    joueur est donc tenu ICI, a partir du flux d'evenements, puisque rien
@@ -14251,8 +14280,8 @@ function _commentatorRefresh() {
   const opp = mine === 'black' ? 'white' : 'black';
   _commentatorLabel('commentator-p1-name', mine);
   _commentatorLabel('commentator-p2-name', opp);
-  const perdues = { black: (typeof capturedByWhite !== 'undefined') ? capturedByWhite : 0, white: (typeof capturedByBlack !== 'undefined') ? capturedByBlack : 0 };
-  // capturedByBlack = billes BLANCHES ejectees par les noirs (voir le
+  const perdues = { black: (typeof CapturedByWhite !== 'undefined') ? CapturedByWhite.get() : 0, white: (typeof CapturedByBlack !== 'undefined') ? CapturedByBlack.get() : 0 };
+  // CapturedByBlack.get() = billes BLANCHES ejectees par les noirs (voir le
   // commentaire a sa declaration) : donc les pertes du camp BLANC, pas du
   // camp noir — inversion deliberee, pas une faute de frappe.
   const p1lost = document.getElementById('commentator-p1-lost'); if (p1lost) p1lost.textContent = perdues[mine];
@@ -14394,8 +14423,8 @@ function resetGame() {
   if (typeof progress !== 'undefined') { progress.__firstEjDone = false; progress.__hadLead = false; }
   gameOver = false;
   selected = [];
-  capturedByBlack = 0;
-  capturedByWhite = 0;
+  CapturedByBlack.set(0);
+  CapturedByWhite.set(0);
   moveCount = 0;
   CurrentTurn.set('black');
   // _timeCtlBase===0 (cadence Libre) est un "faux" en JS : "_timeCtlBase || 600"
@@ -14656,7 +14685,7 @@ function _flagFall(loser){
 function pushUndoState() {
   undoStack.push({
     board: JSON.parse(JSON.stringify(board)),
-    capturedByBlack, capturedByWhite, moveCount,
+    capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(), moveCount,
     currentTurn: CurrentTurn.get(), myTime, oppTime,
     player: CurrentTurn.get()   // qui s'apprête à jouer
   });
@@ -14705,8 +14734,8 @@ function doUndo() {
   if (undoStack.length === 0) return;
   const st = undoStack.pop();
   board = st.board;
-  capturedByBlack = st.capturedByBlack;
-  capturedByWhite = st.capturedByWhite;
+  CapturedByBlack.set(st.capturedByBlack);
+  CapturedByWhite.set(st.capturedByWhite);
   moveCount = st.moveCount;
   CurrentTurn.set(st.currentTurn);
   myTime = st.myTime;
@@ -14780,11 +14809,11 @@ function updateCaptures() {
   const oppDiv = document.getElementById('captured-by-opp');
   myDiv.innerHTML = '';
   oppDiv.innerHTML = '';
-  for (let i=0;i<capturedByBlack;i++) {
+  for (let i=0;i<CapturedByBlack.get();i++) {
     const d = document.createElement('div');
     d.className='cap-marble w'; myDiv.appendChild(d);
   }
-  for (let i=0;i<capturedByWhite;i++) {
+  for (let i=0;i<CapturedByWhite.get();i++) {
     const d = document.createElement('div');
     d.className='cap-marble b'; oppDiv.appendChild(d);
   }
@@ -15191,7 +15220,7 @@ function recordPlayerMove(opts) {
     });
   }
   // Suivi de l'avance (pour le taux de conversion) : le joueur mène-t-il ?
-  if (capturedByBlack > capturedByWhite) progress.__hadLead = true;
+  if (CapturedByBlack.get() > CapturedByWhite.get()) progress.__hadLead = true;
   saveProgress(progress);
 }
 
@@ -15561,7 +15590,7 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
   // Applique le coup
   pushUndoState();
   // Mode Coach : capture l'état stratégique AVANT le coup (du point de vue de l'humain)
-  let coachBefore = null, coachCapBefore = (HumanColor.get() === 'black' ? capturedByBlack : capturedByWhite);
+  let coachBefore = null, coachCapBefore = (HumanColor.get() === 'black' ? CapturedByBlack.get() : CapturedByWhite.get());
   if ((coachEnabled || advisorEnabled) && me === HumanColor.get()) coachBefore = evalFactors(HumanColor.get());
   // Analyse de style : état AVANT le coup (toujours active, réutilise coachBefore si dispo)
   let styleBefore = (me === HumanColor.get()) ? (coachBefore || evalFactors(HumanColor.get())) : null;
@@ -15590,8 +15619,8 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
       if (rc) { const p = hexCoord(rc.r, rc.c); ejX = p.x; ejY = p.y; }
     }
     soundEject();  // 🔊 son d'éjection
-    if (me === 'black') { capturedByBlack++; if (ejX!==null) animateEjection(ejX, ejY, 'white', capturedByBlack-1); }
-    else                { capturedByWhite++; if (ejX!==null) animateEjection(ejX, ejY, 'black', capturedByWhite-1); }
+    if (me === 'black') { CapturedByBlack.inc(); if (ejX!==null) animateEjection(ejX, ejY, 'white', CapturedByBlack.get()-1); }
+    else                { CapturedByWhite.inc(); if (ejX!==null) animateEjection(ejX, ejY, 'black', CapturedByWhite.get()-1); }
   } else if (info.type === 'push') {
     soundPush();   // 🔊 son de poussée (sans éjection)
   } else {
@@ -15625,7 +15654,7 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
   // Mode Coach : commente le coup du joueur
   if (coachEnabled && me === HumanColor.get() && coachBefore) {
     const coachAfter = evalFactors(HumanColor.get());
-    const capDelta = (HumanColor.get() === 'black' ? capturedByBlack : capturedByWhite) - coachCapBefore;
+    const capDelta = (HumanColor.get() === 'black' ? CapturedByBlack.get() : CapturedByWhite.get()) - coachCapBefore;
     showCoachBubble(coachComment(coachBefore, coachAfter, capDelta));
   }
 
@@ -15634,7 +15663,7 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
     const advColor = advisorBotColor();
     if (advColor) {
       const aAfter = evalFactors(HumanColor.get());
-      const capDelta = (HumanColor.get() === 'black' ? capturedByBlack : capturedByWhite) - coachCapBefore;
+      const capDelta = (HumanColor.get() === 'black' ? CapturedByBlack.get() : CapturedByWhite.get()) - coachCapBefore;
       const txt = botAdvisorComment(advColor, coachBefore, aAfter, capDelta);
       showBotBubble(advColor, txt);
     }
@@ -15643,18 +15672,18 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
   // Analyse de style : enregistre ce coup humain (toujours, même hors coach/conseiller)
   if (me === HumanColor.get() && styleBefore) {
     const styleAfter = evalFactors(HumanColor.get());
-    const sCapDelta = (HumanColor.get() === 'black' ? capturedByBlack : capturedByWhite) - coachCapBefore;
+    const sCapDelta = (HumanColor.get() === 'black' ? CapturedByBlack.get() : CapturedByWhite.get()) - coachCapBefore;
     recordStyleMove(styleBefore, styleAfter, sCapDelta, info);
   }
 
   // Victoire ?
-  if (capturedByBlack >= 6) { if (variantMode) { _variantConclude('black'); return; } triggerWin('black'); return; }
-  if (capturedByWhite >= 6) { if (variantMode) { _variantConclude('white'); return; } triggerWin('white'); return; }
+  if (CapturedByBlack.get() >= 6) { if (variantMode) { _variantConclude('black'); return; } triggerWin('black'); return; }
+  if (CapturedByWhite.get() >= 6) { if (variantMode) { _variantConclude('white'); return; } triggerWin('white'); return; }
 
   _clockInc(me);   // ⏱️ incrément de cadence pour celui qui vient de jouer
   CurrentTurn.set((me === 'black') ? 'white' : 'black');
   _emitAbaEvent('movePlayed', { color: me, label: (typeof moveNotation !== 'undefined') ? moveNotation : null,
-    moveCount: moveCount, capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite });
+    moveCount: moveCount, capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get() });
   updateStatus();
   // Animation de glissement si déplacement simple/latéral, sinon rendu direct
   if (slidePieces && slidePieces.length) {
@@ -15895,8 +15924,8 @@ function evaluateBoard(color, detail) {
   const cohesion   = (myCohesion - enCohesion) * 4;
   const edgePenalty= (enEdge - myEdge) * 8;     // billes adverses au bord = bon pour moi
   const capScore   = (color === 'white'
-                      ? (capturedByWhite - capturedByBlack)
-                      : (capturedByBlack - capturedByWhite)) * 1000;
+                      ? (CapturedByWhite.get() - CapturedByBlack.get())
+                      : (CapturedByBlack.get() - CapturedByWhite.get())) * 1000;
   const mobScore   = (myMob - enMob) * 2;       // V13 : plus de cases libres autour de mes billes
   const isoScore   = (enIso - myIso) * 18;      // V13 : billes adverses isolées = bon (divide & conquer)
   const dngScore   = (enDng - myDng) * 14;      // V13 : billes adverses en danger d'éjection = bon
@@ -16048,8 +16077,8 @@ function applyMove(move, color) {
   undo.__captured = null;
   // met à jour le compteur de captures pendant la recherche
   if (move.info.type === 'push' && move.info.ejection) {
-    if (color === 'white') { capturedByWhite++; undo.__captured = 'white'; }
-    else                   { capturedByBlack++; undo.__captured = 'black'; }
+    if (color === 'white') { CapturedByWhite.inc(); undo.__captured = 'white'; }
+    else                   { CapturedByBlack.inc(); undo.__captured = 'black'; }
   }
   // abApplyMove fait la modification reelle du board (deplacement/poussee/ejection) —
   // toute la logique de detection ci-dessus ne sert qu'a preparer l'annulation.
@@ -16060,8 +16089,8 @@ function applyMove(move, color) {
 // Annule exactement le coup applique par applyMove, en restaurant chaque case
 // suivie a sa valeur d'avant (v===undefined signifie que la case etait vide).
 function undoMove(undo) {
-  if (undo.__captured === 'white') capturedByWhite--;
-  else if (undo.__captured === 'black') capturedByBlack--;
+  if (undo.__captured === 'white') CapturedByWhite.dec();
+  else if (undo.__captured === 'black') CapturedByBlack.dec();
   undo.forEach(function(entry) {
     if (entry.v === undefined) delete board[entry.k];
     else board[entry.k] = entry.v;
@@ -16310,8 +16339,8 @@ function analyzeProfondeurTactique(color, maxDepth, movesPrecalcules) {
    (comparaison par valeur, pas par ordre JSON — un premier test a donné une
    fausse alerte à cause de ça, corrigé). */
 function _searchAvecLigne(depth, alpha, beta, maxi, pov) {
-  if (capturedByWhite>=6) return { score: pov==='white'?100000:-100000, ligne:[] };
-  if (capturedByBlack>=6) return { score: pov==='black'?100000:-100000, ligne:[] };
+  if (CapturedByWhite.get()>=6) return { score: pov==='white'?100000:-100000, ligne:[] };
+  if (CapturedByBlack.get()>=6) return { score: pov==='black'?100000:-100000, ligne:[] };
   if (depth === 0) return { score: evaluateBoard(pov, false), ligne:[] };
   const mc = maxi ? pov : (pov==='white'?'black':'white');
   const moves = getAllMovesForColor(mc);
@@ -16416,12 +16445,12 @@ function analyzeMobilite2Coups(color, movesPrecalcules) {
    JS est mono-thread, pas de risque de collision avec la partie en
    cours. Le `finally` garantit la restauration même en cas d'erreur. */
 function _avecPlateau(b, capB, capW, fn) {
-  const savedBoard = board, savedCapB = capturedByBlack, savedCapW = capturedByWhite;
-  board = b; capturedByBlack = capB; capturedByWhite = capW;
+  const savedBoard = board, savedCapB = CapturedByBlack.get(), savedCapW = CapturedByWhite.get();
+  board = b; CapturedByBlack.set(capB); CapturedByWhite.set(capW);
   try {
     return fn();
   } finally {
-    board = savedBoard; capturedByBlack = savedCapB; capturedByWhite = savedCapW;
+    board = savedBoard; CapturedByBlack.set(savedCapB); CapturedByWhite.set(savedCapW);
   }
 }
 
@@ -16676,13 +16705,13 @@ async function ensureMigsWinners(onProgress){
   } catch(e){}
   if (typeof MIGS_GAMES === 'undefined' || !MIGS_GAMES.length) return new Map();
   const winnerByGame = new Map();
-  const saveLayout = currentLayout, saveBoard = board, saveCB = capturedByBlack, saveCW = capturedByWhite;
+  const saveLayout = currentLayout, saveBoard = board, saveCB = CapturedByBlack.get(), saveCW = CapturedByWhite.get();
   let done = 0;
   const candidats = [];
   MIGS_GAMES.forEach(function(g, idx){ if (g[4] === 'Au score') candidats.push(idx); });
   for (const idx of candidats) {
     const g = MIGS_GAMES[idx];
-    currentLayout = 'belgian'; initBoardState(); capturedByBlack = 0; capturedByWhite = 0;
+    currentLayout = 'belgian'; initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
     const toks = (g[5]||'').replace(/\d+\./g,' ').trim().split(/\s+/).filter(Boolean);
     let color = 'black';
     for (const tok of toks) {
@@ -16693,15 +16722,15 @@ async function ensureMigsWinners(onProgress){
       applyMove({cells:mv.cells, dir:mv.dir, info:info}, color);
       color = color === 'black' ? 'white' : 'black';
     }
-    if (capturedByBlack >= 6) winnerByGame.set(idx, 'black');
-    else if (capturedByWhite >= 6) winnerByGame.set(idx, 'white');
+    if (CapturedByBlack.get() >= 6) winnerByGame.set(idx, 'black');
+    else if (CapturedByWhite.get() >= 6) winnerByGame.set(idx, 'white');
     done++;
     if (done % 40 === 0) {
       if (onProgress) onProgress(done, candidats.length);
       await new Promise(function(r){ setTimeout(r, 0); }); // rend la main au navigateur
     }
   }
-  currentLayout = saveLayout; board = saveBoard; capturedByBlack = saveCB; capturedByWhite = saveCW;
+  currentLayout = saveLayout; board = saveBoard; CapturedByBlack.set(saveCB); CapturedByWhite.set(saveCW);
   try { localStorage.setItem(MIGS_WINNERS_KEY, JSON.stringify(Array.from(winnerByGame.entries()))); } catch(e){}
   _migsWinnersCache = winnerByGame;
   return winnerByGame;
@@ -16968,7 +16997,7 @@ function computeEjectionStats(){
   const history = getGameHistory();
   if (!history.length) return null;
 
-  const saveLayout = currentLayout, saveBoard = board, saveCB = capturedByBlack, saveCW = capturedByWhite;
+  const saveLayout = currentLayout, saveBoard = board, saveCB = CapturedByBlack.get(), saveCW = CapturedByWhite.get();
   let realisees = 0, subies = 0, opportunites = 0, gamesWithData = 0;
   let bestGame = 0, firstEjPlies = [];
   const byPhase = { ouverture:0, milieu:0, finale:0 };
@@ -16979,14 +17008,14 @@ function computeEjectionStats(){
     if (!parsed.ok) return;
     const humanC = entry.humanColor || 'black';
     currentLayout = parsed.layout || 'standard';
-    initBoardState(); capturedByBlack = 0; capturedByWhite = 0;
+    initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
     let turn = 'black', thisGameEj = 0, firstEjThisGame = null, ply = 0;
     for (let i = 0; i < parsed.moves.length; i++) {
       const mv = parsed.moves[i];
       const v = validateMove(mv.cells, mv.dir, turn);
       if (!v || !v.valid) break;
       ply++;
-      const capB0 = capturedByBlack, capW0 = capturedByWhite;
+      const capB0 = CapturedByBlack.get(), capW0 = CapturedByWhite.get();
       // phase AVANT ce coup, basee sur les pertes deja subies par chaque camp
       const maxLoss = Math.max(capB0, capW0);
       const phase = (capB0===0 && capW0===0) ? 'ouverture' : (maxLoss>=3 ? 'finale' : 'milieu');
@@ -17011,7 +17040,7 @@ function computeEjectionStats(){
     if (firstEjThisGame !== null) firstEjPlies.push(firstEjThisGame);
   });
 
-  currentLayout = saveLayout; board = saveBoard; capturedByBlack = saveCB; capturedByWhite = saveCW;
+  currentLayout = saveLayout; board = saveBoard; CapturedByBlack.set(saveCB); CapturedByWhite.set(saveCW);
 
   if (!gamesWithData) return null;
   return {
@@ -17183,7 +17212,7 @@ function computeDecisionProfile(){
   const history = getGameHistory();
   if (!history.length) return null;
 
-  const saveLayout = currentLayout, saveBoard = board, saveCB = capturedByBlack, saveCW = capturedByWhite;
+  const saveLayout = currentLayout, saveBoard = board, saveCB = CapturedByBlack.get(), saveCW = CapturedByWhite.get();
   let totalMoves = 0, closeToBest = 0, brancheSum = 0;
   let easyCount = 0, easyFound = 0, hardCount = 0, hardFound = 0;
 
@@ -17193,7 +17222,7 @@ function computeDecisionProfile(){
     if (!parsed.ok) return;
     const humanC = entry.humanColor || 'black';
     currentLayout = parsed.layout || 'standard';
-    initBoardState(); capturedByBlack = 0; capturedByWhite = 0;
+    initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
     let turn = 'black';
     for (let i = 0; i < parsed.moves.length; i++) {
       const mv = parsed.moves[i];
@@ -17224,7 +17253,7 @@ function computeDecisionProfile(){
     }
   });
 
-  currentLayout = saveLayout; board = saveBoard; capturedByBlack = saveCB; capturedByWhite = saveCW;
+  currentLayout = saveLayout; board = saveBoard; CapturedByBlack.set(saveCB); CapturedByWhite.set(saveCW);
 
   if (!totalMoves) return null;
   return {
@@ -17367,8 +17396,8 @@ function orderMoves(moves, depth, ttMove){
 
 // — Quiescence search : prolonge sur les positions "non calmes" (éjections) —
 function quiescence(alpha, beta, povColor, maximizing, qdepth) {
-  if (capturedByWhite>=6) return povColor==='white'?100000:-100000;
-  if (capturedByBlack>=6) return povColor==='black'?100000:-100000;
+  if (CapturedByWhite.get()>=6) return povColor==='white'?100000:-100000;
+  if (CapturedByBlack.get()>=6) return povColor==='black'?100000:-100000;
   const standPat = evaluateBoard(povColor);
   if (qdepth <= 0) return standPat;
   if (maximizing) { if (standPat >= beta) return beta; if (standPat > alpha) alpha = standPat; }
@@ -17390,8 +17419,8 @@ let _nodesSearched = 0;
 function search(depth, alpha, beta, maximizing, povColor) {
   _nodesSearched++;
   const alphaOrig = alpha;
-  if (capturedByWhite>=6) return povColor==='white'?100000:-100000;
-  if (capturedByBlack>=6) return povColor==='black'?100000:-100000;
+  if (CapturedByWhite.get()>=6) return povColor==='white'?100000:-100000;
+  if (CapturedByBlack.get()>=6) return povColor==='black'?100000:-100000;
 
   const h = hashBoard();
   const tt = TT.get(h);
@@ -19944,7 +19973,7 @@ function resolveAbaProToken(token,color){
 // perdu de bille. Retourne false si le format ne peut pas etre lu (partie
 // ignoree plutot que plantee), true si le plateau a ete installe avec succes.
 function _setupFromAOStart(startStr){
-  board={}; capturedByBlack=0; capturedByWhite=0;
+  board={}; CapturedByBlack.set(0); CapturedByWhite.set(0);
   const parts=String(startStr).split(','); if(parts.length!==2) return false;
   // place() lit un segment "<nbEjectees><cases>" pour UNE couleur : le premier
   // chiffre est le nombre de billes deja perdues par ce camp (score adverse),
@@ -19957,7 +19986,7 @@ function _setupFromAOStart(startStr){
   }
   const sb=place(parts[0],'black'), sw=place(parts[1],'white');
   if(sb===false||sw===false) return false;
-  capturedByWhite=sb; capturedByBlack=sw;   // billes noires éjectées = score blanc, et inversement
+  CapturedByWhite.set(sb); CapturedByBlack.set(sw);   // billes noires éjectées = score blanc, et inversement
   return true;
 }
 // Rejoue une séquence ABA-PRO sur le plateau courant et bascule en mode rejeu
@@ -19980,7 +20009,7 @@ function _replaySeqToSnapshots(seq, labelText, startColor){
     const moveInfo={cells:mv.cells,dir:mv.dir,type:(mv.info&&mv.info.type)||mv.type,ejection:!!mv.eject};
     let lab; try{ lab=moveToABAPRO(mv.cells,mv.dir,moveInfo.type); }catch(e){ lab=tokens[i]; }
     applyMove(mv,color);
-    boardSnapshots.push({board:JSON.parse(JSON.stringify(board)),capturedByBlack:capturedByBlack,capturedByWhite:capturedByWhite,moveCount:played,label:lab,color:color,moveInfo:moveInfo});
+    boardSnapshots.push({board:JSON.parse(JSON.stringify(board)),capturedByBlack:CapturedByBlack.get(),capturedByWhite:CapturedByWhite.get(),moveCount:played,label:lab,color:color,moveInfo:moveInfo});
     color=color==='black'?'white':'black'; played++;
   }
   gameOver=true;
@@ -20001,7 +20030,7 @@ function loadMigsGame(idx){
      une autre page, le plateau reste invisible. On bascule donc sur la page
      jeu AVANT de construire le replay. */
   if(typeof showPage==='function') showPage('game');
-  currentLayout='belgian'; initBoardState(); capturedByBlack=0; capturedByWhite=0;
+  currentLayout='belgian'; initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
   _replaySeqToSnapshots(g[5], g[2]+' vs '+g[3]);
 }
 // Charge une partie AbalOnline (variante quelconque, position de départ propre) en mode rejeu
@@ -20137,7 +20166,7 @@ function renderPSGamesList(){
 function loadPSGame(idx){
   const g = PS_GAMES[idx]; if (!g) return;
   if (typeof showPage === 'function') showPage('game');
-  currentLayout = 'belgian'; initBoardState(); capturedByBlack = 0; capturedByWhite = 0;
+  currentLayout = 'belgian'; initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
   _replaySeqToSnapshots(g[5], g[2] + ' vs ' + g[3] + ' (PlayStrategy)');
   closePSImportModal();
 }
@@ -20281,7 +20310,7 @@ function computeAnalysis(){
     function cat(arr){ const o={}; arr.forEach(function(m){ const key=m.cells.length+'/'+(m.info.push||1); o[key]=(o[key]||0)+1; }); return o; }
     function fmtCat(o){ const ks=Object.keys(o).sort(); return ks.length? ks.map(function(k){ return k+'×'+o[k]; }).join('  ') : '—'; }
     return {
-      marbles:n, score:(c==='black'?capturedByBlack:capturedByWhite),
+      marbles:n, score:(c==='black'?CapturedByBlack.get():CapturedByWhite.get()),
       distAvg:(n? distSum/n : 0), cohesion:coh, isolated:iso, edge:edge,
       threats:pushes.length, ejects:ejects.length,
       ejectCat:fmtCat(cat(ejects)), pushCat:fmtCat(cat(pushes)),
@@ -20540,7 +20569,7 @@ function startPuzzle(idx){
   if(typeof botDuelMode!=='undefined' && botDuelMode && typeof stopBotDuel==='function') stopBotDuel();
   // Pose la position
   board={}; p.bm.forEach(function(k){board[k]='black';}); p.wm.forEach(function(k){board[k]='white';});
-  capturedByBlack=p.cb; capturedByWhite=p.cw;
+  CapturedByBlack.set(p.cb); CapturedByWhite.set(p.cw);
   gameOver=false; replayMode=false; selected=[]; undoStack=[]; boardSnapshots=[]; moveCount=0;
   HumanColor.set(p.c); CurrentTurn.set(p.c); _bookNode=null; gameBestHint=null;
   const rb=document.getElementById('replay-btn'); if(rb) rb.style.display='none';
@@ -20909,9 +20938,9 @@ const LAB_BOOK_KEY = 'abaLabBookLearned';
 const LAB_BOOK_MAX_PLY = 10;   // meme profondeur que le book historique
 function _labMineBook(moves) {
   if (!moves || !moves.length) return;
-  const savedBoard = board, savedCB = capturedByBlack, savedCW = capturedByWhite;
+  const savedBoard = board, savedCB = CapturedByBlack.get(), savedCW = CapturedByWhite.get();
   try {
-    board = {}; capturedByBlack = 0; capturedByWhite = 0;
+    board = {}; CapturedByBlack.set(0); CapturedByWhite.set(0);
     // Meme position de depart standard que _duelSetup (cote worker) — verifiee
     // par decodage direct de sa chaine de depart : NOIR est en bas (lignes 6-8),
     // BLANC en haut (lignes 0-2). Sens inverse de ce a quoi on pourrait s'attendre
@@ -20942,7 +20971,7 @@ function _labMineBook(moves) {
   } catch(e) {
     // jamais bloquant pour le Labo — une erreur de minage ne doit pas arreter les duels
   } finally {
-    board = savedBoard; capturedByBlack = savedCB; capturedByWhite = savedCW;
+    board = savedBoard; CapturedByBlack.set(savedCB); CapturedByWhite.set(savedCW);
   }
 }
 function _labOnMsg(e){
@@ -21777,7 +21806,7 @@ function switchSide(){
   const nb = {};
   for(const k in board){ if(board[k]==='black') nb[k]='white'; else if(board[k]==='white') nb[k]='black'; }
   board = nb;
-  const t = capturedByBlack; capturedByBlack = capturedByWhite; capturedByWhite = t;
+  const t = CapturedByBlack.get(); CapturedByBlack.set(capturedByWhite); CapturedByWhite.set(t);
   if(typeof drawBoard==='function') drawBoard();
   if(typeof updateCaptures==='function') updateCaptures();
   if(typeof showToast==='function') showToast('🔄 Camps inversés');
@@ -21892,8 +21921,8 @@ function aiMove() {
   // chemin mono-worker existant si non disponible ou pas avantageux.
   const pooledParams = {
     board: JSON.parse(JSON.stringify(board)),
-    capturedByWhite: capturedByWhite,
-    capturedByBlack: capturedByBlack,
+    capturedByWhite: CapturedByWhite.get(),
+    capturedByBlack: CapturedByBlack.get(),
     color: ai,
     depth: config.depth,
     time: config.time,
@@ -21944,8 +21973,8 @@ function aiMove() {
     // Envoie la position au worker
     worker.postMessage({
       board: JSON.parse(JSON.stringify(board)),
-      capturedByWhite: capturedByWhite,
-      capturedByBlack: capturedByBlack,
+      capturedByWhite: CapturedByWhite.get(),
+      capturedByBlack: CapturedByBlack.get(),
       color: ai,
       depth: config.depth,
       time: config.time,
@@ -22025,9 +22054,9 @@ function executeAIMove(chosen) {
       if (rc) { const p = hexCoord(rc.r, rc.c); ejX = p.x; ejY = p.y; }
     }
     soundEject();  // 🔊
-    if (ai === 'white') capturedByWhite++; else capturedByBlack++;
+    if (ai === 'white') CapturedByWhite.inc(); else CapturedByBlack.inc();
     updateCaptures();
-    const ejCount = (ai === 'white') ? capturedByWhite : capturedByBlack;
+    const ejCount = (ai === 'white') ? CapturedByWhite.get() : CapturedByBlack.get();
     if (ejX!==null) animateEjection(ejX, ejY, human, ejCount-1);
     /* Le coup gagnant doit etre ENREGISTRE avant de conclure. Le retour
        anticipe sautait addMoveToHistory : le 6e coup d'ejection de l'IA
@@ -22052,7 +22081,7 @@ function executeAIMove(chosen) {
   _clockInc(human==='black'?'white':'black');   // ⏱️ incrément pour l'IA qui vient de jouer
   CurrentTurn.set(human); moveCount++;
   _emitAbaEvent('movePlayed', { color: (human==='black'?'white':'black'), label: label,
-    moveCount: moveCount, capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite });
+    moveCount: moveCount, capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get() });
   if (!gameOver) playSfx('occ_change');   // 🔊 « c'est ton tour »
   updateStatus(); drawBoard();
   if (explicationIA && !gameOver) showAIExplainBubble(explicationIA);
@@ -22089,16 +22118,16 @@ function boardIntegrityOK() {
   const { black, white } = countMarbles();
   // Jamais plus de 14 billes par couleur, et le compte éjecté doit concorder
   if (black > 14 || white > 14) return false;
-  if (black + capturedByWhite > 14) return false;   // blancs ont éjecté des noirs
-  if (white + capturedByBlack > 14) return false;
-  if (capturedByBlack < 0 || capturedByWhite < 0) return false;
-  if (capturedByBlack > 6 || capturedByWhite > 6) return false;
+  if (black + CapturedByWhite.get() > 14) return false;   // blancs ont éjecté des noirs
+  if (white + CapturedByBlack.get() > 14) return false;
+  if (CapturedByBlack.get() < 0 || CapturedByWhite.get() < 0) return false;
+  if (CapturedByBlack.get() > 6 || CapturedByWhite.get() > 6) return false;
   return true;
 }
 
 function winIntegrityOK(winner) {
   // Une vraie victoire exige 6 éjections et un minimum de coups/temps
-  const caps = winner === 'black' ? capturedByBlack : capturedByWhite;
+  const caps = winner === 'black' ? CapturedByBlack.get() : CapturedByWhite.get();
   if (caps < 6) return false;
   // Il faut au moins 6 coups pour éjecter 6 billes (en réalité bien plus)
   if (moveCount < 6) return false;
@@ -22244,7 +22273,7 @@ function triggerWin(winner, reason) {
   if (typeof disarmInactivityCancel === 'function') disarmInactivityCancel();
   try{ localStorage.setItem('abaGamesFinished', String((parseInt(localStorage.getItem('abaGamesFinished')||'0',10)||0)+1)); }catch(e){}
   _emitAbaEvent('gameOver', { winner: winner, reason: reason || null,
-    capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite, moveCount: moveCount });
+    capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(), moveCount: moveCount });
   if (typeof updateHeroStats==='function') updateHeroStats();
   if (typeof _tourneyMatch!=='undefined' && _tourneyMatch && typeof tourneyMatchEnd==='function') { tourneyMatchEnd(winner, reason); }
   clearInterval(timerInterval);
@@ -22278,7 +22307,7 @@ function triggerWin(winner, reason) {
   // ── Hook engagement : XP, streak, ELO, badges ──
   sanitizeProgress();
   // ── Taux de conversion : le joueur a-t-il mené puis gagné ? ──
-  if ((progress.__hadLead || capturedByBlack > 0) && !(typeof moveCount !== 'undefined' && moveCount === 0)) {
+  if ((progress.__hadLead || CapturedByBlack.get() > 0) && !(typeof moveCount !== 'undefined' && moveCount === 0)) {
     progress.leadGames = (progress.leadGames||0) + 1;
     if (winner === 'black') progress.leadWins = (progress.leadWins||0) + 1;
     progress.__hadLead = false;
@@ -22293,7 +22322,7 @@ function triggerWin(winner, reason) {
     if (typeof showToast === 'function') showToast('Partie annulée — aucun coup joué, ELO inchangé');
   }
   // Badge Blanchissage : le joueur gagne 6-0 sans avoir perdu une seule bille
-  if (winner === 'black' && capturedByWhite === 0 && typeof awardBadge === 'function') {
+  if (winner === 'black' && CapturedByWhite.get() === 0 && typeof awardBadge === 'function') {
     awardBadge('shutout');
     showToast('🧺 Blanchissage ! Victoire 6-0 sans perdre une bille !');
   }
@@ -22338,7 +22367,7 @@ function recordStyleMove(before, after, capDelta, info){
   else if((dE>=1 && after.edge>=3) || dC<=-3 || dCo<=-3) q='warn';
   if(q==='good') g.qGood++; else if(q==='warn') g.qWarn++; else g.qNeutral++;
   // Bulle d'analyse live (ton analytique), tous les 5 coups, jamais sur le coup gagnant
-  if(capturedByBlack<6 && capturedByWhite<6 && g.moves%5===0) showStyleLiveBubble(g);
+  if(CapturedByBlack.get()<6 && CapturedByWhite.get()<6 && g.moves%5===0) showStyleLiveBubble(g);
 }
 
 function clamp01(x){ return Math.max(0, Math.min(100, Math.round(x))); }
@@ -22744,8 +22773,8 @@ function addMoveToHistory(move, color, moveInfo) {
   // Save snapshot for replay (avec les infos du coup pour recalculer la notation)
   boardSnapshots.push({
     board: JSON.parse(JSON.stringify(board)),
-    capturedByBlack: capturedByBlack,
-    capturedByWhite: capturedByWhite,
+    capturedByBlack: CapturedByBlack.get(),
+    capturedByWhite: CapturedByWhite.get(),
     moveCount: moveCount,
     label: move, color: color,
     moveInfo: moveInfo || null   // {cells, dir, type, ejection} pour re-notation
@@ -22801,8 +22830,8 @@ function appendMoveRow(list, moveInfo, fallbackLabel, color, plyNum) {
     // (fiable aussi bien en direct qu'au réaffichage de l'historique).
     if (moveInfo.ejection) {
       const snap = (typeof boardSnapshots !== 'undefined') ? boardSnapshots[plyNum - 1] : null;
-      const cb = snap ? snap.capturedByBlack : (typeof capturedByBlack !== 'undefined' ? capturedByBlack : 0);
-      const cw = snap ? snap.capturedByWhite : (typeof capturedByWhite !== 'undefined' ? capturedByWhite : 0);
+      const cb = snap ? snap.capturedByBlack : (typeof CapturedByBlack !== 'undefined' ? CapturedByBlack.get() : 0);
+      const cw = snap ? snap.capturedByWhite : (typeof CapturedByWhite !== 'undefined' ? CapturedByWhite.get() : 0);
       ejx = ' (' + cb + '-' + cw + ')';
     }
   } else { aba = nac = fallbackLabel || ''; }
@@ -23397,11 +23426,11 @@ function arDetectBalls() {
    garantie de synchronicité (jamais de await entre swap et restore). ── */
 let _arSavedBoard = null, _arSavedCapB = 0, _arSavedCapW = 0;
 function arSwapBoard() {
-  _arSavedBoard = board; _arSavedCapB = capturedByBlack; _arSavedCapW = capturedByWhite;
-  board = _arBoard; capturedByBlack = 0; capturedByWhite = 0;
+  _arSavedBoard = board; _arSavedCapB = CapturedByBlack.get(); _arSavedCapW = CapturedByWhite.get();
+  board = _arBoard; CapturedByBlack.set(0); CapturedByWhite.set(0);
 }
 function arRestoreBoard() {
-  board = _arSavedBoard; capturedByBlack = _arSavedCapB; capturedByWhite = _arSavedCapW;
+  board = _arSavedBoard; CapturedByBlack.set(_arSavedCapB); CapturedByWhite.set(_arSavedCapW);
 }
 
 // Construit les sélections candidates (1, 2 ou 3 billes alignées) passant
@@ -24250,10 +24279,10 @@ function _scanBoardToAOStart(b){
 }
 // Exécute fn dans un bac à sable : sauvegarde puis restaure les globals du jeu
 function _scanSandbox(startB, fn){
-  const sb=board, scb=capturedByBlack, scw=capturedByWhite;
-  board=JSON.parse(JSON.stringify(startB)); capturedByBlack=0; capturedByWhite=0;
+  const sb=board, scb=CapturedByBlack.get(), scw=CapturedByWhite.get();
+  board=JSON.parse(JSON.stringify(startB)); CapturedByBlack.set(0); CapturedByWhite.set(0);
   try { return fn(); }
-  finally { board=sb; capturedByBlack=scb; capturedByWhite=scw; }
+  finally { board=sb; CapturedByBlack.set(scb); CapturedByWhite.set(scw); }
 }
 function _scanInferMove(P, N, color){
   return _scanSandbox(P, function(){
@@ -24684,10 +24713,10 @@ function _advVerifyCandidate(cand){
       applyMove(mv, color);
       color = color === 'black' ? 'white' : 'black';
       plies++;
-      if (score && capturedByBlack >= score.black && capturedByWhite >= score.white) break;
-      if (capturedByBlack >= 6 || capturedByWhite >= 6) break;
+      if (score && CapturedByBlack.get() >= score.black && CapturedByWhite.get() >= score.white) break;
+      if (CapturedByBlack.get() >= 6 || CapturedByWhite.get() >= 6) break;
     }
-    const scoreMatches = !score || (capturedByBlack === score.black && capturedByWhite === score.white);
+    const scoreMatches = !score || (CapturedByBlack.get() === score.black && CapturedByWhite.get() === score.white);
     const labels = _advGuessLabels(cand.title);
     return { ok: true, game: {
       date: new Date().toISOString().slice(0,10), black: labels.black, white: labels.white,
@@ -25261,9 +25290,9 @@ function runAnalysis() {
   // Compute simple position evaluation
   const blackPieces = Object.values(board).filter(v=>v==='black').length;
   const whitePieces = Object.values(board).filter(v=>v==='white').length;
-  const blackEj = 14 - blackPieces + capturedByWhite;
-  const whiteEj = 14 - whitePieces + capturedByBlack;
-  const advantage = blackPieces - whitePieces + (capturedByBlack - capturedByWhite)*2;
+  const blackEj = 14 - blackPieces + CapturedByWhite.get();
+  const whiteEj = 14 - whitePieces + CapturedByBlack.get();
+  const advantage = blackPieces - whitePieces + (CapturedByBlack.get() - CapturedByWhite.get())*2;
   const advPct = Math.min(100, Math.max(0, 50 + advantage*8));
   // Coups reellement calcules sur la position courante (voir computeTopMoves).
   // Cette liste etait auparavant ecrite en dur et affichait toujours les memes
@@ -25398,7 +25427,7 @@ function runAnalysis() {
     '<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:12px 0 8px">Meilleurs coups (position actuelle)</div>',
     moves.map(m => '<div class="analysis-move '+m.type+'"><span class="am-icon">'+m.icon+'</span><span class="am-move">'+m.move+'</span><span class="am-comment">'+m.comment+'</span></div>').join(''),
     '<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--muted);line-height:1.6">',
-    '📊 Billes éjectées — Vous: '+(HumanColor.get()==='black'?capturedByBlack:capturedByWhite)+' · Adversaire: '+(HumanColor.get()==='black'?capturedByWhite:capturedByBlack),
+    '📊 Billes éjectées — Vous: '+(HumanColor.get()==='black'?CapturedByBlack.get():CapturedByWhite.get())+' · Adversaire: '+(HumanColor.get()==='black'?CapturedByWhite.get():CapturedByBlack.get()),
     '<br>⚡ Coups joués: '+moveCount,
     '</div>',
     histoHtml,
@@ -25704,7 +25733,7 @@ function toggleKidsMode() {
   applyMarbleSkin();
   selected = [];
   if (typeof initBoardState === 'function') initBoardState();  // recharge avec la disposition Découverte (7 billes/camp)
-  capturedByBlack = 0; capturedByWhite = 0;
+  CapturedByBlack.set(0); CapturedByWhite.set(0);
   if (typeof updateCaptures === 'function') updateCaptures();
   if (typeof drawBoard === 'function') drawBoard();
   // si le chat était affiché, on bascule sur l'onglet Jeu (jamais laisser le chat visible)
@@ -25805,7 +25834,7 @@ function _kidsExitCheck() {
   applyMarbleSkin();
   selected = [];
   if (typeof initBoardState === 'function') initBoardState();  // revient à la disposition normale (currentLayout)
-  capturedByBlack = 0; capturedByWhite = 0;
+  CapturedByBlack.set(0); CapturedByWhite.set(0);
   if (typeof updateCaptures === 'function') updateCaptures();
   if (typeof drawBoard === 'function') drawBoard();
   const statusEl = document.getElementById('kids-mode-status');
@@ -26776,14 +26805,14 @@ function _stashLive(){
   if (_liveStash) return;   // deja mis de cote, ne pas ecraser
   _liveStash = {
     board: JSON.parse(JSON.stringify(board)),
-    capB: capturedByBlack, capW: capturedByWhite,
+    capB: CapturedByBlack.get(), capW: CapturedByWhite.get(),
     turn: CurrentTurn.get(), moveCount: moveCount
   };
 }
 function _restoreLive(){
   if (!_liveStash) return false;
   board = _liveStash.board;
-  capturedByBlack = _liveStash.capB; capturedByWhite = _liveStash.capW;
+  CapturedByBlack.set(_liveStash.capB); CapturedByWhite.set(_liveStash.capW);
   CurrentTurn.set(_liveStash.turn); moveCount = _liveStash.moveCount;
   _liveStash = null;
   return true;
@@ -26965,7 +26994,7 @@ function exportGameNotation() {
                   && typeof replayCurrentIdx !== 'undefined');
   var bound = inReplay ? replayCurrentIdx : undefined;
   const notation = buildGameNotation(system, bound);
-  var scB = capturedByBlack, scW = capturedByWhite;
+  var scB = CapturedByBlack.get(), scW = CapturedByWhite.get();
   if (inReplay) {
     /* CORRECTIF (signale par Olivier) : au chargement d'une partie depuis
        l'historique, le replay se positionne desormais AU DEBUT (v2.30) --
@@ -27254,7 +27283,7 @@ function runBotDuelStep() {
     setTimeout(function(){ if (done) return; let b=null; try{ b=searchBestMove(side, depth, time, _gameHistKeys()); }catch(e){} finish(b); }, time + 4000);
     worker.postMessage({
       board: JSON.parse(JSON.stringify(board)),
-      capturedByWhite: capturedByWhite, capturedByBlack: capturedByBlack,
+      capturedByWhite: CapturedByWhite.get(), capturedByBlack: CapturedByBlack.get(),
       color: side, depth: depth, time: time,
       weights: (typeof AI_WEIGHT_PRESETS !== 'undefined' && AI_WEIGHT_PRESETS.balanced) ? AI_WEIGHT_PRESETS.balanced : undefined,
       hist: _gameHistKeys()
@@ -27311,8 +27340,8 @@ function applyDuelMove(mv, color) {
       if (rc) { const p = hexCoord(rc.r, rc.c); ejX = p.x; ejY = p.y; }
     }
     const victim = (color === 'black') ? 'white' : 'black';
-    if (color === 'black') capturedByBlack++; else capturedByWhite++;
-    const ejCount = (color === 'black') ? capturedByBlack : capturedByWhite;
+    if (color === 'black') CapturedByBlack.inc(); else CapturedByWhite.inc();
+    const ejCount = (color === 'black') ? CapturedByBlack.get() : CapturedByWhite.get();
     soundEject();
     if (ejX!==null) animateEjection(ejX, ejY, victim, ejCount-1);
   } else if (info.type === 'push') {
@@ -27325,8 +27354,8 @@ function applyDuelMove(mv, color) {
   CurrentTurn.set((color === 'black') ? 'white' : 'black');
   moveCount++;
   updateStatus(); updateCaptures(); drawBoard();
-  if (capturedByBlack >= 6) { triggerWin('black'); botDuelMode=false; showDuelStopBtn(false); }
-  if (capturedByWhite >= 6) { triggerWin('white'); botDuelMode=false; showDuelStopBtn(false); }
+  if (CapturedByBlack.get() >= 6) { triggerWin('black'); botDuelMode=false; showDuelStopBtn(false); }
+  if (CapturedByWhite.get() >= 6) { triggerWin('white'); botDuelMode=false; showDuelStopBtn(false); }
 }
 
 let botDifficulty = 'easy';
@@ -27703,7 +27732,7 @@ function extractPV(rootColor, firstMove, maxLen) {
     let mover = (rootColor === 'black') ? 'white' : 'black';
 
     for (let i = 1; i < maxLen; i++) {
-      if (capturedByBlack >= 6 || capturedByWhite >= 6) break;
+      if (CapturedByBlack.get() >= 6 || CapturedByWhite.get() >= 6) break;
       const h = hashBoard();
       const tt = TT.get(h);
       if (!tt || !tt.move) break;
@@ -27869,8 +27898,8 @@ function saveGameState() {
     const state = {
       board: board,
       turn: CurrentTurn.get(),
-      capB: capturedByBlack,
-      capW: capturedByWhite,
+      capB: CapturedByBlack.get(),
+      capW: CapturedByWhite.get(),
       timer: gameTimerSeconds,
       mode: (typeof GameMode !== 'undefined') ? GameMode.get() : 'ai',
       ts: Date.now()
@@ -27887,8 +27916,8 @@ function loadSavedGame() {
     if (!state.board || Object.keys(state.board).length === 0) return false;
     board = state.board;
     CurrentTurn.set(state.turn || 'black');
-    capturedByBlack = state.capB || 0;
-    capturedByWhite = state.capW || 0;
+    CapturedByBlack.set(state.capB || 0);
+    CapturedByWhite.set(state.capW || 0);
     gameTimerSeconds = state.timer || 0;
     gameOver = false;
     selected = [];
@@ -27925,7 +27954,7 @@ function loadSnapshot(idx) {
   if (idx === -1) {
     if (!_replayStartBoard) return;
     board = JSON.parse(JSON.stringify(_replayStartBoard));
-    capturedByBlack = 0; capturedByWhite = 0;
+    CapturedByBlack.set(0); CapturedByWhite.set(0);
     drawBoard(); updateCaptures();
     document.querySelectorAll('.move-item').forEach(function(el){ el.classList.remove('current'); });
     const st0 = document.getElementById('game-status-text');
@@ -27935,8 +27964,8 @@ function loadSnapshot(idx) {
   if (!boardSnapshots[idx]) return;
   const snap = boardSnapshots[idx];
   board = JSON.parse(JSON.stringify(snap.board));
-  capturedByBlack = snap.capturedByBlack;
-  capturedByWhite = snap.capturedByWhite;
+  CapturedByBlack.set(snap.capturedByBlack);
+  CapturedByWhite.set(snap.capturedByWhite);
   drawBoard();
   updateCaptures();
   // Highlight current move in list
@@ -27963,14 +27992,14 @@ function startVariant() {
   const snap = boardSnapshots[replayCurrentIdx];
   _variantStash = {
     board: JSON.parse(JSON.stringify(board)),
-    capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite,
+    capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(),
     currentTurn: CurrentTurn.get(), gameMode: GameMode.get(), humanColor: HumanColor.get(), gameOver: gameOver,
     fromLive: false
   };
   variantMode = true;
   board = JSON.parse(JSON.stringify(snap.board));
-  capturedByBlack = snap.capturedByBlack;
-  capturedByWhite = snap.capturedByWhite;
+  CapturedByBlack.set(snap.capturedByBlack);
+  CapturedByWhite.set(snap.capturedByWhite);
   CurrentTurn.set((snap.color === 'black') ? 'white' : 'black');
   HumanColor.set(CurrentTurn.get());   // on explore en jouant le prochain coup, quel que soit le camp
   GameMode.set('ai');            // pour que l'IA réponde automatiquement au coup exploratoire
@@ -27994,7 +28023,7 @@ function startLiveVariant() {
   if (GameMode.get() === 'ai' && CurrentTurn.get() !== HumanColor.get()) { showToast('Attends ton tour pour essayer un coup'); return; }
   _variantStash = {
     board: JSON.parse(JSON.stringify(board)),
-    capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite,
+    capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(),
     currentTurn: CurrentTurn.get(), gameMode: GameMode.get(), humanColor: HumanColor.get(), gameOver: gameOver,
     fromLive: true
   };
@@ -28010,8 +28039,8 @@ function exitVariant() {
   if (!variantMode || !_variantStash) return;
   const wasFromLive = !!_variantStash.fromLive;
   board = _variantStash.board;
-  capturedByBlack = _variantStash.capturedByBlack;
-  capturedByWhite = _variantStash.capturedByWhite;
+  CapturedByBlack.set(_variantStash.capturedByBlack);
+  CapturedByWhite.set(_variantStash.capturedByWhite);
   CurrentTurn.set(_variantStash.currentTurn);
   GameMode.set(_variantStash.gameMode);
   HumanColor.set(_variantStash.humanColor);
@@ -29546,18 +29575,18 @@ function gymStartMat(level){
     }
     // VERIFICATION par le moteur reel, decor compris (le decor pourrait bloquer le coup)
     const savedBoard = (typeof board !== 'undefined') ? board : null;
-    const savedCB = (typeof capturedByBlack !== 'undefined') ? capturedByBlack : 0;
-    const savedCW = (typeof capturedByWhite !== 'undefined') ? capturedByWhite : 0;
+    const savedCB = (typeof CapturedByBlack !== 'undefined') ? CapturedByBlack.get() : 0;
+    const savedCW = (typeof CapturedByWhite !== 'undefined') ? CapturedByWhite.get() : 0;
     board = {};
     bm.forEach(function(v,k){ board[k] = v; });
-    capturedByBlack = 0; capturedByWhite = 0;
+    CapturedByBlack.set(0); CapturedByWhite.set(0);
     const cells = p.noirs.map(function(k){ const [rr,cc]=p.ligne[k]; return {r:rr, c:cc}; });
     let ok = false;
     try {
       const info = validateMove(cells, p.dir, 'black');
       ok = !!(info && info.valid && info.ejection);
     } catch(e){ ok = false; }
-    board = savedBoard; capturedByBlack = savedCB; capturedByWhite = savedCW;
+    board = savedBoard; CapturedByBlack.set(savedCB); CapturedByWhite.set(savedCW);
     if (ok){
       chosen = p; boardMap = bm;
       solutionKeys = new Set(cells.map(function(x){ return gymKey(x.r, x.c); }));
@@ -30532,7 +30561,7 @@ function puzzleSelectionValid(sel) {
 // Applique un coup de puzzle via le moteur principal (bascule board ↔ puzzleBoard)
 function puzzleApplyMove(sel, dir) {
   const savedBoard = board;
-  const savedCW = capturedByWhite, savedCB = capturedByBlack;
+  const savedCW = CapturedByWhite.get(), savedCB = CapturedByBlack.get();
   board = puzzleBoard;  // le moteur travaille sur puzzleBoard
   const info = validateMove(sel, dir, 'black');
   let res = { valid:false, reason:'Coup invalide', ejected:false, ejectRC:null };
@@ -30551,7 +30580,7 @@ function puzzleApplyMove(sel, dir) {
   }
   puzzleBoard = board;   // récupère le plateau modifié
   board = savedBoard;    // restaure le plateau de jeu principal
-  capturedByWhite = savedCW; capturedByBlack = savedCB;
+  CapturedByWhite.set(savedCW); CapturedByBlack.set(savedCB);
   return res;
 }
 
@@ -31366,7 +31395,7 @@ function handleTutorialClick(r, c) {
     if (!dir) { tutoSelected = []; drawTutorialBoard(); return; }
 
     // applique via le moteur (bascule board)
-    const savedB = board, savedCW = capturedByWhite, savedCB = capturedByBlack;
+    const savedB = board, savedCW = CapturedByWhite.get(), savedCB = CapturedByBlack.get();
     board = tutoBoard;
     const info = validateMove(tutoSelected, dir, 'black');
     if (info.valid) {
@@ -31382,7 +31411,7 @@ function handleTutorialClick(r, c) {
       if (info.type === 'broadside' && wasGroup) { tutoMovedGroup = true; tutoBroadside = true; }
       tutoSelected = [];
     } else {
-      board = savedB; capturedByWhite = savedCW; capturedByBlack = savedCB;
+      board = savedB; CapturedByWhite.set(savedCW); CapturedByBlack.set(savedCB);
       // Cas spécial "barrière imprenable" : la tentative de pousser 3 billes
       // ÉCHOUE volontairement — c'est justement la leçon à apprendre.
       const step = TUTORIAL_STEPS[tutoStep];
@@ -31399,7 +31428,7 @@ function handleTutorialClick(r, c) {
       document.getElementById('tuto-feedback').style.color = '#e05c4b';
       return;
     }
-    board = savedB; capturedByWhite = savedCW; capturedByBlack = savedCB;
+    board = savedB; CapturedByWhite.set(savedCW); CapturedByBlack.set(savedCB);
     drawTutorialBoard();
     checkTutorialStep();
     return;
@@ -31551,7 +31580,7 @@ function playFromEditor() {
   showPage('game');
   setTimeout(function() {
     board = JSON.parse(JSON.stringify(editorBoard));
-    capturedByWhite = editorCapturedWhite; capturedByBlack = editorCapturedBlack;
+    CapturedByWhite.set(editorCapturedWhite); CapturedByBlack.set(editorCapturedBlack);
     CurrentTurn.set('black'); moveCount = 0; gameOver = false;
     selected = [];
     if (typeof updateCaptures === 'function') updateCaptures();
@@ -31868,13 +31897,13 @@ function analysisShowBestMove() {
   if (info) info.textContent = '🧠 Calcul en cours...';
   // laisse l'UI se rafraîchir avant le calcul
   setTimeout(function() {
-    const savedB = board, savedCB = capturedByBlack, savedCW = capturedByWhite;
-    board = analysisBoard; capturedByBlack = analysisCapB; capturedByWhite = analysisCapW;
+    const savedB = board, savedCB = CapturedByBlack.get(), savedCW = CapturedByWhite.get();
+    board = analysisBoard; CapturedByBlack.set(analysisCapB); CapturedByWhite.set(analysisCapW);
     let best = null;
     try {
       best = searchBestMove(analysisTurn, 3, 2000);  // profondeur 3, max 2s
     } catch(e) { best = null; }
-    board = savedB; capturedByBlack = savedCB; capturedByWhite = savedCW;
+    board = savedB; CapturedByBlack.set(savedCB); CapturedByWhite.set(savedCW);
 
     if (best && best.cells) {
       analysisBestHint = { cells: best.cells, dir: best.dir };
@@ -32015,12 +32044,12 @@ function updateAnalysisEval() {
   if (!evalText || !evalBar) return;
   // utilise evaluateBoard si dispo, sinon compte le matériel
   let score = 0;
-  const savedB = board, savedCB = capturedByBlack, savedCW = capturedByWhite;
-  board = analysisBoard; capturedByBlack = analysisCapB; capturedByWhite = analysisCapW;
+  const savedB = board, savedCB = CapturedByBlack.get(), savedCW = CapturedByWhite.get();
+  board = analysisBoard; CapturedByBlack.set(analysisCapB); CapturedByWhite.set(analysisCapW);
   try {
     if (typeof evaluateBoard === 'function') score = evaluateBoard('black');
   } catch(e) { score = 0; }
-  board = savedB; capturedByBlack = savedCB; capturedByWhite = savedCW;
+  board = savedB; CapturedByBlack.set(savedCB); CapturedByWhite.set(savedCW);
 
   // position du curseur sur la barre (0% = blanc gagne, 100% = noir gagne)
   const clamped = Math.max(-2000, Math.min(2000, score));
@@ -32096,14 +32125,14 @@ function renderAnalysisMoves() {
    les inversions de signe qui ont deja pose probleme dans ce projet. */
 function computeEvalCurve(){
   if (typeof analysisHistory === 'undefined' || analysisHistory.length < 2) return null;
-  const savedB = board, savedCB = capturedByBlack, savedCW = capturedByWhite;
+  const savedB = board, savedCB = CapturedByBlack.get(), savedCW = CapturedByWhite.get();
   const evals = analysisHistory.map(function(snap){
-    board = snap.board; capturedByBlack = snap.capB; capturedByWhite = snap.capW;
+    board = snap.board; CapturedByBlack.set(snap.capB); CapturedByWhite.set(snap.capW);
     let s = 0;
     try { s = evaluateBoard('black'); } catch(e){ s = 0; }
     return s;
   });
-  board = savedB; capturedByBlack = savedCB; capturedByWhite = savedCW;
+  board = savedB; CapturedByBlack.set(savedCB); CapturedByWhite.set(savedCW);
   return evals;
 }
 
@@ -32219,14 +32248,14 @@ function _evalCurveClick(ev, svgEl){
 
 function computeGameMistakes(humanColor, topN){
   if (typeof analysisHistory === 'undefined' || analysisHistory.length < 2) return [];
-  const savedB = board, savedCB = capturedByBlack, savedCW = capturedByWhite;
+  const savedB = board, savedCB = CapturedByBlack.get(), savedCW = CapturedByWhite.get();
   const evals = analysisHistory.map(function(snap){
-    board = snap.board; capturedByBlack = snap.capB; capturedByWhite = snap.capW;
+    board = snap.board; CapturedByBlack.set(snap.capB); CapturedByWhite.set(snap.capW);
     let s = 0;
     try { s = evaluateBoard('black'); } catch(e){ s = 0; }
     return s;
   });
-  board = savedB; capturedByBlack = savedCB; capturedByWhite = savedCW;
+  board = savedB; CapturedByBlack.set(savedCB); CapturedByWhite.set(savedCW);
 
   const mistakes = [];
   for (let i = 1; i < analysisHistory.length; i++){
@@ -32423,8 +32452,8 @@ function handleAnalysisClick(r, c) {
     if (!dir) { analysisSelected = []; drawAnalysisBoard(); return; }
 
     // applique via le moteur
-    const savedB = board, savedCB = capturedByBlack, savedCW = capturedByWhite;
-    board = analysisBoard; capturedByBlack = analysisCapB; capturedByWhite = analysisCapW;
+    const savedB = board, savedCB = CapturedByBlack.get(), savedCW = CapturedByWhite.get();
+    board = analysisBoard; CapturedByBlack.set(analysisCapB); CapturedByWhite.set(analysisCapW);
     const info = validateMove(analysisSelected, dir, me);
     if (info.valid) {
       const ejated = !!(info.type === 'push' && info.ejection);
@@ -32432,11 +32461,11 @@ function handleAnalysisClick(r, c) {
       // position de depart, et analysisSelected est vide plus bas.
       const _movedCells = analysisSelected.map(function(s){ return {r:s.r, c:s.c}; });
       abApplyMove(analysisSelected, dir, me, info);
-      if (ejated) { if (me === 'black') capturedByBlack++; else capturedByWhite++; soundEject(); }
+      if (ejated) { if (me === 'black') CapturedByBlack.inc(); else CapturedByWhite.inc(); soundEject(); }
       else if (info.type === 'push') soundPush();
       else soundMove();
-      analysisBoard = board; analysisCapB = capturedByBlack; analysisCapW = capturedByWhite;
-      board = savedB; capturedByBlack = savedCB; capturedByWhite = savedCW;
+      analysisBoard = board; analysisCapB = CapturedByBlack.get(); analysisCapW = CapturedByWhite.get();
+      board = savedB; CapturedByBlack.set(savedCB); CapturedByWhite.set(savedCW);
 
       // tronque l'historique après la position courante (nouvelle variante)
       analysisHistory = analysisHistory.slice(0, analysisIdx + 1);
@@ -32461,7 +32490,7 @@ function handleAnalysisClick(r, c) {
       updateAnalysisPositionInfo();
       renderAnalysisMoves();
     } else {
-      board = savedB; capturedByBlack = savedCB; capturedByWhite = savedCW;
+      board = savedB; CapturedByBlack.set(savedCB); CapturedByWhite.set(savedCW);
       analysisSelected = [];
       drawAnalysisBoard();
       showToast('⛔ ' + (info.reason || 'Coup invalide'));
@@ -32644,7 +32673,7 @@ function gameCodeLoad(code) {
   const savedLayout = (typeof currentLayout !== 'undefined') ? currentLayout : 'standard';
   if (typeof currentLayout !== 'undefined') currentLayout = parsed.layout;
   if (typeof resetGame === 'function') resetGame();
-  else { initBoardState(); boardSnapshots = []; capturedByBlack = 0; capturedByWhite = 0; }
+  else { initBoardState(); boardSnapshots = []; CapturedByBlack.set(0); CapturedByWhite.set(0); }
   /* CORRECTIF (signale par Olivier) : gameCodeLoad() a sa propre boucle de
      rejeu, separee de _replaySeqToSnapshots() -- elle ne renseignait jamais
      _replayStartBoard, dont loadSnapshot(-1) a besoin pour afficher la
@@ -33818,7 +33847,7 @@ function _bulkResultLabel(entry){
 function exportFullHistoryAbaPro(){
   const history = (typeof getGameHistory === 'function') ? getGameHistory() : [];
   if (!history.length){ if (typeof showToast === 'function') showToast('Aucune partie à exporter.'); return; }
-  const saveLayout = currentLayout, saveBoard = board, saveCB = capturedByBlack, saveCW = capturedByWhite;
+  const saveLayout = currentLayout, saveBoard = board, saveCB = CapturedByBlack.get(), saveCW = CapturedByWhite.get();
   const blocks = [];
   let skipped = 0;
   // Ordre chronologique (l'historique local est range du plus recent au
@@ -33829,7 +33858,7 @@ function exportFullHistoryAbaPro(){
     const parsed = gameCodeParse(entry.code);
     if (!parsed.ok) { skipped++; return; }
     currentLayout = parsed.layout || 'standard';
-    initBoardState(); capturedByBlack = 0; capturedByWhite = 0;
+    initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
     let turn = 'black';
     const tokens = [];
     for (let i = 0; i < parsed.moves.length; i++) {
@@ -33849,7 +33878,7 @@ function exportFullHistoryAbaPro(){
     const body = tokens.map(function(t,i){ return (i%2===0 ? (Math.floor(i/2)+1)+'.' : '') + t; }).join(' ');
     blocks.push(head + '\n' + body);
   });
-  currentLayout = saveLayout; board = saveBoard; capturedByBlack = saveCB; capturedByWhite = saveCW;
+  currentLayout = saveLayout; board = saveBoard; CapturedByBlack.set(saveCB); CapturedByWhite.set(saveCW);
   if (!blocks.length){ if (typeof showToast === 'function') showToast('Aucune partie exploitable — rien à exporter.'); return; }
   const text = '# Abalassembly — export complet de l\u2019historique (' + blocks.length + ' partie' + (blocks.length>1?'s':'') + ')\n'
     + '# Notation Aba-Pro. Chaque bloc commence par une ligne "# date · variante · résultat · joueurs".\n\n'
@@ -33899,7 +33928,7 @@ function openBulkHistoryImportModal(){
    fausse en silence : meme principe que gameCodeLoad(). */
 function _parseBulkHistoryText(text){
   const blocks = String(text||'').split(/\n(?=#)/).map(function(s){ return s.trim(); }).filter(Boolean);
-  const saveLayout = currentLayout, saveBoard = board, saveCB = capturedByBlack, saveCW = capturedByWhite;
+  const saveLayout = currentLayout, saveBoard = board, saveCB = CapturedByBlack.get(), saveCW = CapturedByWhite.get();
   const results = [];
   blocks.forEach(function(block){
     const lines = block.split('\n');
@@ -33924,7 +33953,7 @@ function _parseBulkHistoryText(text){
     const tokens = bodyLines.replace(/\d+\./g, ' ').trim().split(/\s+/).filter(Boolean);
     if (!tokens.length){ results.push({ok:false, reason:'bloc sans coup lisible'}); return; }
 
-    currentLayout = layout; initBoardState(); capturedByBlack = 0; capturedByWhite = 0;
+    currentLayout = layout; initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
     let turn = 'black', body = '', played = 0;
     for (let i = 0; i < tokens.length; i++) {
       const mv = resolveAbaProToken(tokens[i], turn);
@@ -33962,7 +33991,7 @@ function _parseBulkHistoryText(text){
       }
     });
   });
-  currentLayout = saveLayout; board = saveBoard; capturedByBlack = saveCB; capturedByWhite = saveCW;
+  currentLayout = saveLayout; board = saveBoard; CapturedByBlack.set(saveCB); CapturedByWhite.set(saveCW);
   return results;
 }
 function _doBulkHistoryImport(){
@@ -34068,7 +34097,7 @@ function _doApgnImport(){
   if (typeof showPage === 'function') showPage('game');
   currentLayout = variant;
   if (typeof initBoardState === 'function') initBoardState();
-  capturedByBlack = 0; capturedByWhite = 0;
+  CapturedByBlack.set(0); CapturedByWhite.set(0);
   _replaySeqToSnapshots(text, 'Partie importée', first);
 
   const played = boardSnapshots.length;
@@ -34203,15 +34232,15 @@ function submitGameCode() {
 function postGameReview(myColor) {
   if (typeof boardSnapshots === 'undefined' || boardSnapshots.length < 2) return null;
   const me = myColor || (typeof HumanColor !== 'undefined' ? HumanColor.get() : 'black');
-  const saved = { b: board, cb: capturedByBlack, cw: capturedByWhite };
+  const saved = { b: board, cb: CapturedByBlack.get(), cw: CapturedByWhite.get() };
   const evals = [];
   let firstLoss = -1;
   try {
     for (let i = 0; i < boardSnapshots.length; i++) {
       const s = boardSnapshots[i];
       board = s.board;
-      capturedByBlack = s.capturedByBlack;
-      capturedByWhite = s.capturedByWhite;
+      CapturedByBlack.set(s.capturedByBlack);
+      CapturedByWhite.set(s.capturedByWhite);
       evals.push(evaluateBoard(me));
       const lost = (me === 'black') ? s.capturedByWhite : s.capturedByBlack;
       if (firstLoss < 0 && lost > 0) firstLoss = i + 1;
@@ -34219,7 +34248,7 @@ function postGameReview(myColor) {
   } catch (e) {
     return null;
   } finally {
-    board = saved.b; capturedByBlack = saved.cb; capturedByWhite = saved.cw;
+    board = saved.b; CapturedByBlack.set(saved.cb); CapturedByWhite.set(saved.cw);
   }
 
   /* Coup charniere : la plus forte chute d'evaluation entre deux positions
@@ -36096,7 +36125,7 @@ var AbaTB = (function () {
    Une reponse negative signifie toujours "pas de preuve dans cet horizon",
    jamais "impossible".
 
-   Depend du moteur de la page : board, capturedByBlack, capturedByWhite,
+   Depend du moteur de la page : board, CapturedByBlack.get(), CapturedByWhite.get(),
    getAllMovesForColor, applyMove, undoMove, hashBoard.
    ========================================================================== */
 var AbaSolve = (function () {
@@ -36106,7 +36135,7 @@ var AbaSolve = (function () {
   var ctx = null;
 
   function other(c) { return c === 'black' ? 'white' : 'black'; }
-  function capturedBy(c) { return c === 'black' ? capturedByBlack : capturedByWhite; }
+  function capturedBy(c) { return c === 'black' ? CapturedByBlack.get() : CapturedByWhite.get(); }
 
   // cle de transposition : plateau + trait. Les compteurs d'ejection se
   // deduisent du nombre de billes, donc le hash du plateau les porte deja.
