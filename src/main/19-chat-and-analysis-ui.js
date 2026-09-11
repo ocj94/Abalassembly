@@ -306,9 +306,9 @@ function runAnalysis() {
   // Compute simple position evaluation
   const blackPieces = Object.values(board).filter(v=>v==='black').length;
   const whitePieces = Object.values(board).filter(v=>v==='white').length;
-  const blackEj = 14 - blackPieces + capturedByWhite;
-  const whiteEj = 14 - whitePieces + capturedByBlack;
-  const advantage = blackPieces - whitePieces + (capturedByBlack - capturedByWhite)*2;
+  const blackEj = 14 - blackPieces + CapturedByWhite.get();
+  const whiteEj = 14 - whitePieces + CapturedByBlack.get();
+  const advantage = blackPieces - whitePieces + (CapturedByBlack.get() - CapturedByWhite.get())*2;
   const advPct = Math.min(100, Math.max(0, 50 + advantage*8));
   // Coups reellement calcules sur la position courante (voir computeTopMoves).
   // Cette liste etait auparavant ecrite en dur et affichait toujours les memes
@@ -443,7 +443,7 @@ function runAnalysis() {
     '<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:12px 0 8px">Meilleurs coups (position actuelle)</div>',
     moves.map(m => '<div class="analysis-move '+m.type+'"><span class="am-icon">'+m.icon+'</span><span class="am-move">'+m.move+'</span><span class="am-comment">'+m.comment+'</span></div>').join(''),
     '<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--muted);line-height:1.6">',
-    '📊 Billes éjectées — Vous: '+(HumanColor.get()==='black'?capturedByBlack:capturedByWhite)+' · Adversaire: '+(HumanColor.get()==='black'?capturedByWhite:capturedByBlack),
+    '📊 Billes éjectées — Vous: '+(HumanColor.get()==='black'?CapturedByBlack.get():CapturedByWhite.get())+' · Adversaire: '+(HumanColor.get()==='black'?CapturedByWhite.get():CapturedByBlack.get()),
     '<br>⚡ Coups joués: '+moveCount,
     '</div>',
     histoHtml,
