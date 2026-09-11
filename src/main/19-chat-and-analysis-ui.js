@@ -236,7 +236,7 @@ function choisirDimCarteTactique(dim) {
 // montrer que le plateau REEL courant, pas un instantane reconstitue).
 function _carteTactiqueSnapshotAt(idx) {
   if (idx < 0 || typeof boardSnapshots === 'undefined' || !boardSnapshots.length) {
-    return { board: board, color: currentTurn };
+    return { board: board, color: CurrentTurn.get() };
   }
   const clamped = Math.max(0, Math.min(idx, boardSnapshots.length - 1));
   const snap = boardSnapshots[clamped];
@@ -266,7 +266,7 @@ function carteTactiqueStepForward() {
 function dessinerCarteTactique() {
   const zone = document.getElementById('carte-tactique-svg');
   if (!zone) return;
-  const snap = _carteTactiqueLive ? { board: board, color: currentTurn } : _carteTactiqueSnapshotAt(_carteTactiqueViewIdx);
+  const snap = _carteTactiqueLive ? { board: board, color: CurrentTurn.get() } : _carteTactiqueSnapshotAt(_carteTactiqueViewIdx);
   zone.innerHTML = buildCarteTactiqueSVG(snap.color, _carteTactiqueDim, _carteTactiqueLive ? null : snap.board);
   document.querySelectorAll('.carte-dim-btn').forEach(function(b){
     b.classList.toggle('active', b.dataset.dim === _carteTactiqueDim);
@@ -313,11 +313,11 @@ function runAnalysis() {
   // Coups reellement calcules sur la position courante (voir computeTopMoves).
   // Cette liste etait auparavant ecrite en dur et affichait toujours les memes
   // quatre coups, quelle que soit la partie — signale par Olivier.
-  const moves = computeTopMoves(currentTurn, 3);
+  const moves = computeTopMoves(CurrentTurn.get(), 3);
   // Comparaison a la base historique reconstruite (voir calculerAnalyseHistorique) :
   // percentile de la position sur quelques dimensions cles + positions reelles les
   // plus proches (memes trait), avec lien direct vers la partie source pour rejouer.
-  const histo = calculerAnalyseHistorique(currentTurn, 5);
+  const histo = calculerAnalyseHistorique(CurrentTurn.get(), 5);
   let histoHtml;
   if (histo) {
     const dimsAffichees = ['cohesionMoyenne','mobilite2Ratio','sumitoRatio','menaceRatio','profondeurTactique'];
@@ -374,7 +374,7 @@ function runAnalysis() {
   // frequence, le taux de victoire du joueur au trait, et les coups reellement joues ensuite.
   let grapheHtml = '';
   if (typeof GRAFFE_POSITIONS !== 'undefined' && GRAFFE_POSITIONS) {
-    const h = hashPositionActuelle(currentTurn);
+    const h = hashPositionActuelle(CurrentTurn.get());
     const noeud = GRAFFE_POSITIONS.nodes[h];
     if (noeud) {
       const pctVictoire = noeud.wg ? Math.round(1000 * noeud.w / noeud.wg) / 10 : null;
@@ -392,7 +392,7 @@ function runAnalysis() {
   }
   // Carte tactique par case (voir calculerCarteTactique) : liste texte toujours
   // visible (peu couteux), carte visuelle optionnelle via case a cocher.
-  const carteCases = calculerCarteTactique(currentTurn);
+  const carteCases = calculerCarteTactique(CurrentTurn.get());
   let carteHtml = '';
   if (carteCases.length) {
     const plusMenacees = carteCases.filter(function(c){ return c.menace>0; }).sort(function(a,b){ return b.menace-a.menace; }).slice(0,3);
@@ -422,7 +422,7 @@ function runAnalysis() {
   }
   // Profil de decision — mesures reelles (branching, ecart de score, coups proches
   // du meilleur), jamais fusionnees en un score "complexite X/100" fabrique.
-  const profil = calculerProfilDecision(currentTurn);
+  const profil = calculerProfilDecision(CurrentTurn.get());
   let profilHtml = '';
   if (profil) {
     profilHtml = '<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:16px 0 8px">Profil de décision</div>'+
