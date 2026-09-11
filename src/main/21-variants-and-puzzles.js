@@ -529,14 +529,14 @@ function _stashLive(){
   if (_liveStash) return;   // deja mis de cote, ne pas ecraser
   _liveStash = {
     board: JSON.parse(JSON.stringify(board)),
-    capB: capturedByBlack, capW: capturedByWhite,
+    capB: CapturedByBlack.get(), capW: CapturedByWhite.get(),
     turn: CurrentTurn.get(), moveCount: moveCount
   };
 }
 function _restoreLive(){
   if (!_liveStash) return false;
   board = _liveStash.board;
-  capturedByBlack = _liveStash.capB; capturedByWhite = _liveStash.capW;
+  CapturedByBlack.set(_liveStash.capB); CapturedByWhite.set(_liveStash.capW);
   CurrentTurn.set(_liveStash.turn); moveCount = _liveStash.moveCount;
   _liveStash = null;
   return true;
