@@ -142,7 +142,7 @@ function gameCodeLoad(code) {
   const savedLayout = (typeof currentLayout !== 'undefined') ? currentLayout : 'standard';
   if (typeof currentLayout !== 'undefined') currentLayout = parsed.layout;
   if (typeof resetGame === 'function') resetGame();
-  else { initBoardState(); boardSnapshots = []; capturedByBlack = 0; capturedByWhite = 0; }
+  else { initBoardState(); boardSnapshots = []; CapturedByBlack.set(0); CapturedByWhite.set(0); }
   /* CORRECTIF (signale par Olivier) : gameCodeLoad() a sa propre boucle de
      rejeu, separee de _replaySeqToSnapshots() -- elle ne renseignait jamais
      _replayStartBoard, dont loadSnapshot(-1) a besoin pour afficher la
