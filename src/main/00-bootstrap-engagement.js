@@ -131,7 +131,7 @@ function exportPuzzleAPGN(idx){
    affirmation) : verifie que le coup EXACT annonce (p.sol) est bien un
    coup legal dans la position du puzzle, ET qu'il produit reellement la
    capture revendiquee. Sauvegarde/restaure l'etat global du plateau
-   (board/capturedByBlack/capturedByWhite/currentTurn) car applyMove/
+   (board/CapturedByBlack.get()/CapturedByWhite.get()/currentTurn) car applyMove/
    getAllMovesForColor operent dessus directement -- jamais laisser un
    appel de certification affecter la partie en cours de l'utilisateur. */
 /* Compte les coups d'une couleur qui capturent immediatement (utilise pour
@@ -149,14 +149,14 @@ function _countImmediateCaptures(color){
 function certifyPuzzle(idx){
   const p = PUZZLES[idx];
   if (!p || !p.sol) return { proved: false, reason: 'no-sol' };
-  const savedBoard = board, savedCB = capturedByBlack, savedCW = capturedByWhite, savedTurn = CurrentTurn.get();
+  const savedBoard = board, savedCB = CapturedByBlack.get(), savedCW = CapturedByWhite.get(), savedTurn = CurrentTurn.get();
   try {
     const b = {};
     p.bm.forEach(function(s){ b[s] = 'black'; });
     p.wm.forEach(function(s){ b[s] = 'white'; });
     board = b;
-    capturedByBlack = p.cb || 0;
-    capturedByWhite = p.cw || 0;
+    CapturedByBlack.set(p.cb || 0);
+    CapturedByWhite.set(p.cw || 0);
     CurrentTurn.set(p.c);
 
     if (p.multi && p.seq && p.seq.length === 3) {
@@ -184,9 +184,9 @@ function certifyPuzzle(idx){
       const k3 = p.seq[2].cells.map(function(c){ return c.r+','+c.c; }).sort().join('|');
       const m3 = legal3.find(function(m){ return keyOf(m) === k3 && m.dir.q === p.seq[2].dir.q && m.dir.r === p.seq[2].dir.r; });
       if (!m3) return { proved: false, reason: 'illegal-move2' };
-      const baseCap = p.c === 'black' ? capturedByBlack : capturedByWhite;
+      const baseCap = p.c === 'black' ? CapturedByBlack.get() : CapturedByWhite.get();
       applyMove(m3, p.c);
-      const afterCap = p.c === 'black' ? capturedByBlack : capturedByWhite;
+      const afterCap = p.c === 'black' ? CapturedByBlack.get() : CapturedByWhite.get();
       const gained = afterCap - baseCap;
       return { proved: gained >= 1, reason: gained >= 1 ? 'ok-multi' : 'no-gain', gained: gained };
     }
@@ -211,14 +211,14 @@ function certifyPuzzle(idx){
     }
 
     // Puzzle OFFENSIF (par defaut) : le coup doit capturer immediatement.
-    const baseCap = p.c === 'black' ? capturedByBlack : capturedByWhite;
+    const baseCap = p.c === 'black' ? CapturedByBlack.get() : CapturedByWhite.get();
     const undo = applyMove(found, p.c);
-    const afterCap = p.c === 'black' ? capturedByBlack : capturedByWhite;
+    const afterCap = p.c === 'black' ? CapturedByBlack.get() : CapturedByWhite.get();
     undoMove(undo);
     const gained = afterCap - baseCap;
     return { proved: gained >= 1, reason: gained >= 1 ? 'ok' : 'no-gain', gained: gained };
   } finally {
-    board = savedBoard; capturedByBlack = savedCB; capturedByWhite = savedCW; CurrentTurn.set(savedTurn);
+    board = savedBoard; CapturedByBlack.set(savedCB); CapturedByWhite.set(savedCW); CurrentTurn.set(savedTurn);
   }
 }
 
