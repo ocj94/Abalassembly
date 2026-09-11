@@ -1,0 +1,1322 @@
+🇬🇧 [English version](Glossaire-fonctions.en.md)
+
+# Glossaire des fonctions — Abalassembly
+
+**1236 fonctions** extraites directement du code (bloc principal), pas recopiées à la main — chaque nom vient d'un vrai `function nom(...)`, `const nom = function(...)` ou `const nom = (...) => `, détecté par analyse du fichier réel.
+
+**Ce que ça ne couvre pas** : les méthodes en raccourci d'objet (`{ nom(args){...} }`), et le code du Worker IA séparé (qui duplique certaines fonctions du moteur pour tourner hors thread principal). Un compte plus large existe ailleurs (« ~1 351 fonctions » cité dans un audit externe) — la différence vient probablement de ces formes non couvertes ici, pas d'une divergence de version.
+
+**Section** = le bloc de code le plus proche au-dessus de la déclaration, pas une description de ce que fait la fonction. Pour ça, il faut lire le code — ce glossaire sert à savoir *où chercher*, pas *ce que ça fait*.
+
+Généré le 2026-09-11 depuis `index.html` déployé. Cette page peut devenir datée si des fonctions sont ajoutées, renommées ou supprimées ensuite — elle ne se régénère pas toute seule.
+
+## A
+
+- `abApplyMove()` — *MOTIFS TACTIQUES — bibliothèque de structures locales nommée*
+- `abaproOfficialLabels()` — *GRAPHE DES POSITIONS — transpositions réelles (839 positions*
+- `abaproToRc()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `addGroup()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `addJunction()` — *ANIMATION D'ÉJECTION*
+- `addMoveToHistory()` — *LECTEUR DE FITTINGS — retiré.*
+- `addToHistory()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `addXp()` — *COUCHE API — aiguillage local / backend (feature flag)*
+- `advCancelImport()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `advConfirmImport()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `advisorBotColor()` — *BOTS CONSEILLERS — Noir (gentil/malin) et Blanc (dur/humain)*
+- `afterHumanMove()` — *NAVIGATION CLAVIER + ARIA — accessibilite du plateau 2D*
+- `aiColor()` — *ABALONE BOARD ENGINE*
+- `aiMove()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `akey()` — *MOTEUR ABALONE — coordonnées axiales + règles officielles*
+- `analysisFromEditor()` — *COURBE D'EVALUATION — fonctionnalite universelle chez les au*
+- `analysisFromStandard()` — *COURBE D'EVALUATION — fonctionnalite universelle chez les au*
+- `analysisGoto()` — *COURBE D'EVALUATION — fonctionnalite universelle chez les au*
+- `analysisInit()` — *COURBE D'EVALUATION — fonctionnalite universelle chez les au*
+- `analysisLoadLastGame()` — *COURBE D'EVALUATION — fonctionnalite universelle chez les au*
+- `analysisShowBestMove()` — *ANALYSE DE PARTIE*
+- `analysisStep()` — *COURBE D'EVALUATION — fonctionnalite universelle chez les au*
+- `analyzeBoard()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `analyzeGame()` — *OUTILS (style manuel, inverser camps, résoudre, diagramme AS*
+- `analyzeMenaceImmediate()` — *MOTEUR DE COMPRÉHENSION — étage 1 : décomposition spatiale*
+- `analyzeMenaceNCoups()` — *MOTEUR DE COMPRÉHENSION — étage 1 : décomposition spatiale*
+- `analyzeMobilite2Coups()` — *MOTEUR DE COMPRÉHENSION — étage 1 : décomposition spatiale*
+- `analyzePosition()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `analyzeProfondeurTactique()` — *MOTEUR DE COMPRÉHENSION — étage 1 : décomposition spatiale*
+- `analyzeSumitoPotential()` — *MOTEUR DE COMPRÉHENSION — étage 1 : décomposition spatiale*
+- `analyzeSupport()` — *MOTEUR DE COMPRÉHENSION — étage 1 : décomposition spatiale*
+- `analyzeZones()` — *MOTEUR DE COMPRÉHENSION — étage 1 : décomposition spatiale*
+- `animateEjection()` — *ANIMATION D'ÉJECTION*
+- `animateMarbleSlide()` — *ANIMATION D'ÉJECTION*
+- `animatePuzzleEjection()` — *PUZZLES — état & interaction*
+- `answerHintsPreference()` — *CARTE TACTIQUE EN OVERLAY — mêmes 4 dimensions réelles que l*
+- `appendBotChatMsg()` — *BASE DE CONNAISSANCES ABALONE (embarquée, hors-ligne)*
+- `appendMoveRow()` — *LECTEUR DE FITTINGS — retiré.*
+- `applyA11y()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `applyAccessibility()` — *ACCESSIBILITÉ & NUANCES*
+- `applyAllA11Y()` — *ACCESSIBILITÉ & NUANCES*
+- `applyCropAndProcess()` — *TRAITEMENT CONFIDENTIALITÉ DES IMAGES*
+- `applyDuelMove()` — *BOTS CONSEILLERS — Noir (gentil/malin) et Blanc (dur/humain)*
+- `applyEngineMode()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `applyLabChampion()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `applyMarbleSkin()` — *SKINS DE BILLES — dégradés multi-stops*
+- `applyMove()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `applyPovOrientation()` — *ABALONE BOARD ENGINE*
+- `applySidebarState()` — *SIDEBAR — chess.com style*
+- `applyTechMode()` — *MODE TECHNIQUE — plusieurs niveaux de lecture*
+- `applyTournamentLocks()` — *RÈGLES DE TOURNOI (définies par l'organisateur)*
+- `applyTranslations()` — *SYSTÈME DE TRADUCTION (i18n)*
+- `applyTrombiFilter()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `applyWelcomePerms()` — *PERMISSIONS SYSTEM*
+- `arBuildRcList()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arCandidateSelections()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arCanvasPoint()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arComputeHomographyAndProject()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arComputeMovesForRc()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arDetectBalls()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arDrawCoverFrame()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arDrawLoop()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arExportPosition()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `armInactivityCancel()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `arOnPointerDown()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arOnPointerMove()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arOnPointerUp()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arRecalibrate()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arResizeCanvas()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arRestoreBoard()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arSelectHole()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arSetupCanvasEvents()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arShowBestMove()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arStartCamera()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arStopCamera()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arSwapBoard()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arSwitchPlayer()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `arToggleFreeze()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `assignNext()` — *VOL DE TRAVAIL — distribution dynamique des coups racine.*
+- `awardBadge()` — *COUCHE API — aiguillage local / backend (feature flag)*
+- `axHexDist()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `axialToRc()` — *MOTEUR ABALONE — coordonnées axiales + règles officielles*
+
+## B
+
+- `back()` — *MODULE OTP — saisie des chiffres de code (2FA classique + TO*
+- `bar()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `bestDragDir()` — *ANNULATION DE COUP & PAUSE (avec accord de l'adversaire)*
+- `boardIntegrityOK()` — *ANTI-TRICHE / INTÉGRITÉ*
+- `boardRotationToTheta3D()` — *ABALONE BOARD ENGINE*
+- `bookDescend()` — *MOTEUR EXPERIMENTAL NNUE — options selectionnables dans Para*
+- `botAdvisorComment()` — *BOTS CONSEILLERS — Noir (gentil/malin) et Blanc (dur/humain)*
+- `botDuelDepth()` — *BOTS CONSEILLERS — Noir (gentil/malin) et Blanc (dur/humain)*
+- `botDuelTime()` — *BOTS CONSEILLERS — Noir (gentil/malin) et Blanc (dur/humain)*
+- `botKbHelp()` — *BASE DE CONNAISSANCES ABALONE (embarquée, hors-ligne)*
+- `botKbReply()` — *BASE DE CONNAISSANCES ABALONE (embarquée, hors-ligne)*
+- `buildCanon()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `buildCarteTactiqueSVG()` — *COURBE D'EVOLUTION D'UNE PARTIE HISTORIQUE*
+- `buildGameHeatmapSVG()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `buildGameNotation()` — *PARTAGE D'UNE POSITION PAR URL*
+- `buildHeatmapSVG()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `buildPuzzleBoard()` — *REPETITION ESPACEE (SRS) — sur les puzzles.*
+- `buildRadar15()` — *RADAR A 15 AXES, NORMALISE PAR PERCENTILE*
+- `buildRadarSVG()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `buildShareText()` — *PARTAGE SUR LES RÉSEAUX SOCIAUX*
+- `buildSiteBriefing()` — *FICHE TECHNIQUE POUR IA — donnees factuelles sur le site.*
+
+## C
+
+- `calculerAnalyseHistorique()` — *COMPARAISON AUX 418595 POSITIONS HISTORIQUES*
+- `calculerCarteTactique()` — *COURBE D'EVOLUTION D'UNE PARTIE HISTORIQUE*
+- `calculerCorrelationsVictoire()` — *COURBE D'EVOLUTION D'UNE PARTIE HISTORIQUE*
+- `calculerEmpreinte()` — *MOTEUR DE COMPRÉHENSION — étage 1 : décomposition spatiale*
+- `calculerExplicationCoup()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `calculerProfilDecision()` — *PROFIL DE DÉCISION — pas un score composite "complexité X/10*
+- `canonId()` — *MOTEUR EXPERIMENTAL NNUE — options selectionnables dans Para*
+- `canvasPos()` — *ANNULATION DE COUP & PAUSE (avec accord de l'adversaire)*
+- `capturerReference()` — *ANALYSE DE PARTIE*
+- `card()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `carteTactiqueStepBack()` — *GAME ANALYSIS*
+- `carteTactiqueStepForward()` — *GAME ANALYSIS*
+- `carteTactiqueTogglePlay()` — *GAME ANALYSIS*
+- `cat()` — *OUTILS (style manuel, inverser camps, résoudre, diagramme AS*
+- `cell()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `cells()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `cellsOf()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `centerControl()` — *SUIVI DES MÉTRIQUES DE JEU (alimente le radar)*
+- `certifyAllPuzzles()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+- `certifyPuzzle()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+- `check()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `checkAllPermissions()` — *PERMISSIONS SYSTEM*
+- `checkBadges()` — *COUCHE API — aiguillage local / backend (feature flag)*
+- `checkBarrierStep()` — *TUTORIEL INTERACTIF*
+- `checkDailyCompletion()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `checkDailyGameComplete()` — *DÉFI DU JOUR — PARTIE (distinct du puzzle du jour)*
+- `checkFilled()` — *MODULE OTP — saisie des chiffres de code (2FA classique + TO*
+- `checkFirstVisit()` — *PERMISSIONS SYSTEM*
+- `checkIncomingReferral()` — *PARRAINAGE — invite des amis, gagne des récompenses*
+- `checkMonthlyCompletion()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+- `checkOTPFilled()` — *MODULE OTP — saisie des chiffres de code (2FA classique + TO*
+- `checkPuzzleMove()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `checkPwStrength()` — *MODALS*
+- `checkSkinUnlocks()` — *COUCHE API — aiguillage local / backend (feature flag)*
+- `checkTutorialStep()` — *TUTORIEL INTERACTIF*
+- `checkWeeklyComplete()` — *DÉFIS HEBDOMADAIRES (objectifs + récompenses)*
+- `chercherMenaceTactique()` — *ANALYSE DE PARTIE*
+- `chercherMotif()` — *MOTIFS TACTIQUES — bibliothèque de structures locales nommée*
+- `choisirDimCarteTactique()` — *GAME ANALYSIS*
+- `clamp01()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `classifierCoup()` — *COURBE D'EVALUATION — fonctionnalite universelle chez les au*
+- `classifyLoss()` — *OUTILS (style manuel, inverser camps, résoudre, diagramme AS*
+- `clearAll()` — *TRAITEMENT CONFIDENTIALITÉ DES IMAGES*
+- `clearGameHistory()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `clearImage()` — *TRAITEMENT CONFIDENTIALITÉ DES IMAGES*
+- `clearSavedGame()` — *SAUVEGARDE AUTOMATIQUE DE LA PARTIE*
+- `clearSession()` — *SÉCURITÉ — Chiffrement localStorage (AES-GCM)*
+- `closeAnalysisModal()` — *OUTILS (style manuel, inverser camps, résoudre, diagramme AS*
+- `closeAsciiModal()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `closeLabModal()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `closeLabReplay()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `closeMigsBrowser()` — *IMPORT PLAYSTRATEGY — récupération live des parties d'un jou*
+- `closeModal()` — *MODALS*
+- `closePSImportModal()` — *IMPORT PLAYSTRATEGY — récupération live des parties d'un jou*
+- `closeReferralModal()` — *PARRAINAGE — invite des amis, gagne des récompenses*
+- `closeReportModal()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `closeShareModal()` — *PARTAGE SUR LES RÉSEAUX SOCIAUX*
+- `closeSidebarMobile()` — *SYSTÈME DE TRADUCTION (i18n)*
+- `closeTranslateHint()` — *SYSTÈME DE TRADUCTION (i18n)*
+- `closeTutorial()` — *TUTORIEL INTERACTIF*
+- `coachComment()` — *BASE DE CONNAISSANCES ABALONE (embarquée, hors-ligne)*
+- `cohesionScore()` — *SUIVI DES MÉTRIQUES DE JEU (alimente le radar)*
+- `colorsFromCounts()` — *ABALONE BOARD ENGINE*
+- `completeDailyChallenge()` — *COUCHE API — aiguillage local / backend (feature flag)*
+- `computeActivityHeatmap()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `computeAnalysis()` — *OUTILS (style manuel, inverser camps, résoudre, diagramme AS*
+- `computeColorStats()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `computeCorpusStats()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `computeDecisionProfile()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `computeDimensionCorrelations()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `computeDimensionDistributions()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `computeDragFromSelection()` — *ANNULATION DE COUP & PAUSE (avec accord de l'adversaire)*
+- `computeDragMove()` — *ANNULATION DE COUP & PAUSE (avec accord de l'adversaire)*
+- `computeEjectionStats()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `computeEngineStats()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `computeEvalCurve()` — *COURBE D'EVALUATION — fonctionnalite universelle chez les au*
+- `computeGameHeatmap()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `computeGameMistakes()` — *COURBE D'EVALUATION — fonctionnalite universelle chez les au*
+- `computeMoveHints()` — *ABALONE BOARD ENGINE*
+- `computeMoveQuality()` — *COURBE D'EVALUATION — fonctionnalite universelle chez les au*
+- `computePerfMetrics()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `computePlayableCells()` — *ABALONE BOARD ENGINE*
+- `computePlayerRadar()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `computeRadarPercentiles()` — *RADAR A 15 AXES, NORMALISE PAR PERCENTILE*
+- `computeRadarRaw()` — *RADAR A 15 AXES, NORMALISE PAR PERCENTILE*
+- `computeSecurityScore()` — *SECURITY SCORE*
+- `computeStyleProfile()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `computeTopMoves()` — *GAME ANALYSIS*
+- `coordToABAPRO()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `copyAsciiDiagram()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `copyGameCode()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `copyGameLink()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `copyReferralLink()` — *PARRAINAGE — invite des amis, gagne des récompenses*
+- `copyScannedGame()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `copyShareLink()` — *PARTAGE SUR LES RÉSEAUX SOCIAUX*
+- `cornerEpoxy()` — *ABALONE BOARD ENGINE*
+- `countMarbles()` — *ANTI-TRICHE / INTÉGRITÉ*
+- `creatorApply()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `creatorBootstrap()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `creatorBuildRecipe()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `creatorEnsurePersoSwatch()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `creatorInitControls()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `creatorLoadSaved()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `creatorReadControls()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `creatorRefreshSwatchGradient()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `creatorRegisterPerso()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `creatorReset()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `creatorSaveToStorage()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `creatorScaleLayers()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `creatorUpdate()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `creditPendingReferrals()` — *PARRAINAGE — invite des amis, gagne des récompenses*
+- `currentDailyGame()` — *DÉFI DU JOUR — PARTIE (distinct du puzzle du jour)*
+- `currentDailyPuzzle()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `currentLang()` — *SÉLECTEUR DE LANGUE*
+- `currentMonthlyPuzzle()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+- `currentTournamentId()` — *TOURNOI MENSUEL — inscription, prix, compte à rebours*
+- `currentWeekly()` — *DÉFIS HEBDOMADAIRES (objectifs + récompenses)*
+
+## D
+
+- `dailyChallenge()` — *COUCHE API — aiguillage local / backend (feature flag)*
+- `dailyGameProgressValue()` — *DÉFI DU JOUR — PARTIE (distinct du puzzle du jour)*
+- `dailySeed()` — *COUCHE API — aiguillage local / backend (feature flag)*
+- `daysBetween()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+- `daySeed()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `dayStr()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `decodePosition()` — *PARTAGE D'UNE POSITION PAR URL*
+- `decodeTB32Entry()` — *TRAINER DE FINALES — positions REELLES tirees de tb-3v2.json*
+- `defaultProgress()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+- `defaultTournamentRules()` — *RÈGLES DE TOURNOI (définies par l'organisateur)*
+- `deleteGameHistoryEntry()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `deleteScannedGame()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `den()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `denyPerm()` — *PERMISSIONS SYSTEM*
+- `deriveAIMode()` — *MOTEUR EXPERIMENTAL NNUE — options selectionnables dans Para*
+- `dessinerCarteTactique()` — *GAME ANALYSIS*
+- `detApplyHomography()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `detCalibCancel()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `detCalibClick()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `detCalibRender()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `detCalibReset()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `detCellFlatPos()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `detClassify()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `detComputeHomography()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `detConfirmDetection()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `detCorrectClick()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `detCorrectRender()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `detectAIWorkerCount()` — *BENCHMARK MOTEUR — mesure réelle avant toute promesse de gai*
+- `detecterContenuProbleme()` — *MODÉRATION DU CHAT — insultes, appel à la haine, violence/me*
+- `detecterMotifCoup()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `detEffCoord()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `detFlipHorizontal()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `detFlipVertical()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `detGaussSolve()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `detRcToAx()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `detRunDetection()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `detSamplePatch()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `detStartOffline()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `directionName()` — *PUZZLES DATA & RENDER*
+- `dirPixelVec()` — *ANNULATION DE COUP & PAUSE (avec accord de l'adversaire)*
+- `disarmInactivityCancel()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `dismissLangBanner()` — *SYSTÈME DE TRADUCTION (i18n)*
+- `distanceEmpreintes()` — *MOTEUR DE COMPRÉHENSION — étage 1 : décomposition spatiale*
+- `dit()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `dl()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `doUndo()` — *ANNULATION DE COUP & PAUSE (avec accord de l'adversaire)*
+- `drawA11YPreview()` — *ACCESSIBILITÉ & NUANCES*
+- `drawAnalysisBoard()` — *ANALYSE DE PARTIE*
+- `drawBestMoveHint()` — *ANALYSE DE PARTIE*
+- `drawBoard()` — *ABALONE BOARD ENGINE*
+- `drawBoardTriangles()` — *ANIMATION D'ÉJECTION*
+- `drawBottomRow()` — *ABALONE BOARD ENGINE*
+- `drawCarteTactiqueOverlay()` — *CARTE TACTIQUE EN OVERLAY — mêmes 4 dimensions réelles que l*
+- `drawDragHint()` — *ANNULATION DE COUP & PAUSE (avec accord de l'adversaire)*
+- `drawEditorBoard()` — *ÉDITEUR DE POSITION*
+- `drawFakeQR()` — *MODULE OTP — saisie des chiffres de code (2FA classique + TO*
+- `drawGameBestHint()` — *VARIANTE PRINCIPALE (PV) — reconstruction a posteriori*
+- `drawGutterMarbles()` — *ABALONE BOARD ENGINE*
+- `drawLastMoveArrow()` — *ANALYSE DE PARTIE*
+- `drawMarble()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `drawMiniBoard()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `drawPuzzleBoardInteractive()` — *TRAINER DE FINALES — positions REELLES tirees de tb-3v2.json*
+- `drawSmallMarble()` — *ABALONE BOARD ENGINE*
+- `drawThreats()` — *ANALYSE DE PARTIE*
+- `drawTutorialBoard()` — *TUTORIEL INTERACTIF*
+- `duelDelay()` — *BOTS CONSEILLERS — Noir (gentil/malin) et Blanc (dur/humain)*
+
+## E
+
+- `easeInQuad()` — *ANIMATION D'ÉJECTION*
+- `easeOutQuad()` — *ANIMATION D'ÉJECTION*
+- `editorAdjustCaptured()` — *ÉDITEUR DE POSITION*
+- `effacerReference()` — *ANALYSE DE PARTIE*
+- `ejectAnimStep()` — *ANIMATION D'ÉJECTION*
+- `el()` — *STATS PAGE*
+- `encodeBoardForNNUE()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `encodePosition()` — *PARTAGE D'UNE POSITION PAR URL*
+- `endPause()` — *ANNULATION DE COUP & PAUSE (avec accord de l'adversaire)*
+- `endStorm()` — *PUZZLES DATA & RENDER*
+- `ensureEmpreintesHistoriques()` — *EMPREINTES HISTORIQUES — 418595 positions (2589 MIGS + 1890 *
+- `ensureGameBanks()` — *PARTIES MIGS — 2589 parties Belgian Daisy (notation ABA-PRO)*
+- `ensureMigsWinners()` — *COURBE D'EVOLUTION D'UNE PARTIE HISTORIQUE*
+- `ensurePositionsGraph()` — *GRAPHE DES POSITIONS — transpositions réelles (839 positions*
+- `escapeHtml()` — *MODÉRATION DU CHAT — insultes, appel à la haine, violence/me*
+- `estMonTour()` — *ABALONE BOARD ENGINE*
+- `evalFactors()` — *BASE DE CONNAISSANCES ABALONE (embarquée, hors-ligne)*
+- `evaluateBoard()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `evaluateBoard_nnue()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `executeAIMove()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `executePlayerMove()` — *NAVIGATION CLAVIER + ARIA — accessibilite du plateau 2D*
+- `exitTournamentMode()` — *RÈGLES DE TOURNOI (définies par l'organisateur)*
+- `exitVariant()` — *ANALYSE INTERACTIVE — bifurcation depuis le replay*
+- `explore()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `exportAllScannedGames()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `exportEditorPosition()` — *ÉDITEUR DE POSITION*
+- `exportFullHistoryAbaPro()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `exportGameAbaPro()` — *FICHE TECHNIQUE POUR IA — donnees factuelles sur le site.*
+- `exportGameNotation()` — *PARTAGE D'UNE POSITION PAR URL*
+- `exportMyData()` — *SÉCURITÉ — Chiffrement localStorage (AES-GCM)*
+- `exportPerfJSON()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `exportPSGamesJSON()` — *IMPORT PLAYSTRATEGY — récupération live des parties d'un jou*
+- `exportPuzzleAPGN()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+- `exportScannedGame()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `extractPV()` — *VARIANTE PRINCIPALE (PV) — reconstruction a posteriori*
+
+## F
+
+- `fetchPSGames()` — *IMPORT PLAYSTRATEGY — récupération live des parties d'un jou*
+- `fillBotSVGs()` — *BOTS CONSEILLERS — Noir (gentil/malin) et Blanc (dur/humain)*
+- `filterBiblio()` — *VARIANTS — 20 variantes officielles (galerie jouable du site*
+- `filterGameHistory()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `filterTrombi()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `filterTrombiCat()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `filterVariants()` — *VARIANTS — 20 variantes officielles (galerie jouable du site*
+- `findEjectingMoveOn()` — *REPETITION ESPACEE (SRS) — sur les puzzles.*
+- `finish()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `fmt()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `fmtCat()` — *OUTILS (style manuel, inverser camps, résoudre, diagramme AS*
+- `forceAINow()` — *VOL DE TRAVAIL — distribution dynamique des coups racine.*
+- `forColor()` — *OUTILS (style manuel, inverser camps, résoudre, diagramme AS*
+- `formaterExplicationCoup()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `formateurOpenPuzzleMode()` — *FORMATION FORMATEURS*
+- `formateurOpenTool()` — *FORMATION FORMATEURS*
+- `formateurQuizAnswer()` — *FORMATION FORMATEURS*
+- `formateurQuizBuild()` — *FORMATION FORMATEURS*
+- `formateurQuizFinish()` — *FORMATION FORMATEURS*
+- `formateurQuizRenderQuestion()` — *FORMATION FORMATEURS*
+- `formateurQuizStart()` — *FORMATION FORMATEURS*
+- `formateurRenderAttestation()` — *FORMATION FORMATEURS*
+- `formateurRenderAttestationGate()` — *FORMATION FORMATEURS*
+- `formateurSetPublic()` — *FORMATION FORMATEURS*
+- `formateurToggleSeance()` — *FORMATION FORMATEURS*
+- `formatMoveABAPRO()` — *LECTEUR DE FITTINGS — retiré.*
+- `formatTime()` — *ANNULATION DE COUP & PAUSE (avec accord de l'adversaire)*
+- `frame()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `friendRow()` — *FRIENDS PAGE*
+- `fromBoard()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+
+## G
+
+- `gameCodeEncode()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `gameCodeLoad()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `gameCodeParse()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `gameShareLink()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `gameShowBestMove()` — *VARIANTE PRINCIPALE (PV) — reconstruction a posteriori*
+- `gcOnNameInput()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `gcSetMyColor()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `gcSetMyName()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `generateAbaloneDiagram()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `generateRandomPuzzle()` — *REPETITION ESPACEE (SRS) — sur les puzzles.*
+- `genMoves()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `getA11y()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `getAIWorker()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `getAIWorkerPool()` — *BENCHMARK MOTEUR — mesure réelle avant toute promesse de gai*
+- `getAllMovesForColor()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `getAudioCtx()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `getDisp()` — *TRAITEMENT CONFIDENTIALITÉ DES IMAGES*
+- `getFilteredLeaderboard()` — *LEADERBOARD DATA*
+- `getGameHistory()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `getHADSummary()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `getHexAt()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `getLabWorker()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `getOpeningMove()` — *VOL DE TRAVAIL — distribution dynamique des coups racine.*
+- `getPlayerHeatmap()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+- `getReferralCode()` — *PARRAINAGE — invite des amis, gagne des récompenses*
+- `getThemeCanvas2D()` — *ABALONE BOARD ENGINE*
+- `getWeaknessSummary()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `gymBrainSvg()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymCells()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymColorSwatch()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymFinish()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymHexDist()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymInBounds()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymKey()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymMarbleGradient()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymNeighbors()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymRandCell()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymRenderBoard()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymRing()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymRotate60cw()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymRotateSteps()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymSetLevel()` — *FORMATION FORMATEURS*
+- `gymStartAcuity()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymStartAnticipation()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymStartCertitude()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymStartCountdown()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymStartDiagnostic()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymStartFlexibility()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymStartInhibition()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymStartJugement()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymStartMemory()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymStartReflex()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymStartRepertoire()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymStartSpatial()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `gymStopCountdown()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+
+## H
+
+- `h1_centerDistance()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `h2_cohesion()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `h3_pushThreats()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `handleAnalysisClick()` — *COURBE D'EVALUATION — fonctionnalite universelle chez les au*
+- `handleBotCommand()` — *BASE DE CONNAISSANCES ABALONE (embarquée, hors-ligne)*
+- `handleClick()` — *NAVIGATION CLAVIER + ARIA — accessibilite du plateau 2D*
+- `handleEditorClick()` — *ÉDITEUR DE POSITION*
+- `handleFileSelect()` — *CAMERA DETECTION — CLAUDE VISION*
+- `handlePuzzleClick()` — *PUZZLES — état & interaction*
+- `handleTutorialClick()` — *TUTORIEL INTERACTIF*
+- `has()` — *FICHE TECHNIQUE POUR IA — donnees factuelles sur le site.*
+- `hashBoard()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `hashPositionActuelle()` — *GRAPHE DES POSITIONS — transpositions réelles (839 positions*
+- `heatColor()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `heatmapInsight()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `heatmapLegend()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `hexCoord()` — *ABALONE BOARD ENGINE*
+- `hexPath()` — *ANIMATION D'ÉJECTION*
+- `hideAIExplainBubble()` — *BASE DE CONNAISSANCES ABALONE (embarquée, hors-ligne)*
+- `hideCoachBubble()` — *BASE DE CONNAISSANCES ABALONE (embarquée, hors-ligne)*
+- `hideResults()` — *TRAITEMENT CONFIDENTIALITÉ DES IMAGES*
+- `hideWinOverlay()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+
+## I
+
+- `importHistoryFromText()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `importMyData()` — *SÉCURITÉ — Chiffrement localStorage (AES-GCM)*
+- `importScannedGamesFile()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `importToGame()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `initA11y()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `initBoardState()` — *ABALONE BOARD ENGINE*
+- `initGame()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `initPuzzleInteraction()` — *PUZZLES — état & interaction*
+- `initPWA()` — *PWA — SERVICE WORKER + MANIFEST*
+- `initSession()` — *SÉCURITÉ — Chiffrement localStorage (AES-GCM)*
+- `initSidebar()` — *SIDEBAR — chess.com style*
+- `initTutorialClick()` — *TUTORIEL INTERACTIF*
+- `input()` — *MODULE OTP — saisie des chiffres de code (2FA classique + TO*
+- `insertGutterMarble()` — *ANIMATION D'ÉJECTION*
+- `insertGutterMarbleXY()` — *ANIMATION D'ÉJECTION*
+- `isEdgeCell()` — *REPETITION ESPACEE (SRS) — sur les puzzles.*
+- `isMyColor()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+- `isOffBoard()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `isPuzzleCertified()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+- `isQuiescentPosition()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `isRegisteredForTournament()` — *TOURNOI MENSUEL — inscription, prix, compte à rebours*
+- `isRTL()` — *SÉLECTEUR DE LANGUE*
+- `isSkinUnlocked()` — *SKINS DE BILLES — dégradés multi-stops*
+- `isTechMode()` — *MODE TECHNIQUE — plusieurs niveaux de lecture*
+
+## K
+
+- `kbFindTopic()` — *BASE DE CONNAISSANCES ABALONE (embarquée, hors-ligne)*
+- `kbNorm()` — *BASE DE CONNAISSANCES ABALONE (embarquée, hors-ligne)*
+- `keyOf()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+
+## L
+
+- `labAddCustomMutant()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labApplyChampion()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labCfgLoad()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labCfgReset()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labCfgSave()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labCfgSet()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `label()` — *GAME ANALYSIS*
+- `labExport()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labExportCSV()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labExportDataJSON()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labImportFile()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labImportPrompt()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labLoad()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labMutants()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labReplay()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labReplayPlay()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labReplayStep()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labResetWeightsInputs()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labSave()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labSetMode()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labSpsaReset()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labStep()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labToggleAdvanced()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `labToggleUse()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `launch2FA()` — *MODALS*
+- `lbVariant()` — *LEADERBOARD DATA*
+- `lengthMatches()` — *IMPORT PLAYSTRATEGY — récupération live des parties d'un jou*
+- `lerp()` — *ABALONE BOARD ENGINE*
+- `levelFromXp()` — *COUCHE API — aiguillage local / backend (feature flag)*
+- `ligne()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `line()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `loadA11Y()` — *ACCESSIBILITÉ & NUANCES*
+- `loadAOGame()` — *GRAPHE DES POSITIONS — transpositions réelles (839 positions*
+- `loadDemoImage()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `loadEditorPreset()` — *ÉDITEUR DE POSITION*
+- `loadFrom()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `loadGameFromURL()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `loadGeneratedPuzzle()` — *TRAINER DE FINALES — positions REELLES tirees de tb-3v2.json*
+- `loadImageFile()` — *TRAITEMENT CONFIDENTIALITÉ DES IMAGES*
+- `loadImageFileOld()` — *TRAITEMENT CONFIDENTIALITÉ DES IMAGES*
+- `loadMigsGame()` — *GRAPHE DES POSITIONS — transpositions réelles (839 positions*
+- `loadNNUEWeights()` — *MOTEUR EXPERIMENTAL NNUE — options selectionnables dans Para*
+- `loadPermState()` — *PERMISSIONS SYSTEM*
+- `loadPositionFromURL()` — *PARTAGE D'UNE POSITION PAR URL*
+- `loadProgress()` — *COUCHE API — aiguillage local / backend (feature flag)*
+- `loadPSGame()` — *IMPORT PLAYSTRATEGY — récupération live des parties d'un jou*
+- `loadPuzzle()` — *PUZZLES DATA & RENDER*
+- `loadSavedGame()` — *SAUVEGARDE AUTOMATIQUE DE LA PARTIE*
+- `loadSnapshot()` — *SAUVEGARDE AUTOMATIQUE DE LA PARTIE*
+- `loadTablebasePuzzle()` — *TRAINER DE FINALES — positions REELLES tirees de tb-3v2.json*
+- `loadTablebaseSequencePuzzle()` — *TRAINER DE FINALES — positions REELLES tirees de tb-3v2.json*
+- `loadTournamentRules()` — *RÈGLES DE TOURNOI (définies par l'organisateur)*
+- `loadTutorialStep()` — *TUTORIEL INTERACTIF*
+- `localPlayerId()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+- `loginSuccess()` — *MODULE OTP — saisie des chiffres de code (2FA classique + TO*
+- `logout()` — *SÉCURITÉ — Chiffrement localStorage (AES-GCM)*
+- `lookup()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `lossToPrecision()` — *OUTILS (style manuel, inverser camps, résoudre, diagramme AS*
+
+## M
+
+- `makeHandlers()` — *MODULE OTP — saisie des chiffres de code (2FA classique + TO*
+- `maskEmail()` — *MODALS*
+- `maybeAskHintsPreference()` — *CARTE TACTIQUE EN OVERLAY — mêmes 4 dimensions réelles que l*
+- `maybeFinishDepth()` — *VOL DE TRAVAIL — distribution dynamique des coups racine.*
+- `maybeShowLangBanner()` — *SYSTÈME DE TRADUCTION (i18n)*
+- `med()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `minimax()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `monCamp()` — *ABALONE BOARD ENGINE*
+- `monthSeed()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+- `monthStr()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+- `motifEstJouable()` — *MOTIFS TACTIQUES — bibliothèque de structures locales nommée*
+- `moveEndpointCells()` — *LECTEUR DE FITTINGS — retiré.*
+- `moveKey()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `moveLabel()` — *LECTEUR DE FITTINGS — retiré.*
+- `moveOptimalityPercents()` — *OUTILS (style manuel, inverser camps, résoudre, diagramme AS*
+- `moveToABAPRO()` — *LECTEUR DE FITTINGS — retiré.*
+- `moveToNACRE()` — *LECTEUR DE FITTINGS — retiré.*
+- `moveToPlayStrategy()` — *VOL DE TRAVAIL — distribution dynamique des coups racine.*
+- `moy()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+
+## N
+
+- `near()` — *ANIMATION D'ÉJECTION*
+- `neighbors()` — *ANNULATION DE COUP & PAUSE (avec accord de l'adversaire)*
+- `next()` — *BOTS CONSEILLERS — Noir (gentil/malin) et Blanc (dur/humain)*
+- `nextPuzzle()` — *PUZZLES DATA & RENDER*
+- `nextRound()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `nnueAddBias()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `nnueForward()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `nnueLoad()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `nnueMatVec()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `nnueRelu()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `normaliserTexteModeration()` — *MODÉRATION DU CHAT — insultes, appel à la haine, violence/me*
+- `num()` — *FICHE TECHNIQUE POUR IA — donnees factuelles sur le site.*
+
+## O
+
+- `onDown()` — *TRAITEMENT CONFIDENTIALITÉ DES IMAGES*
+- `onGamePlayed()` — *DÉFI DU JOUR — PARTIE (distinct du puzzle du jour)*
+- `onMove()` — *TRAITEMENT CONFIDENTIALITÉ DES IMAGES*
+- `onMsg()` — *OUTILS (style manuel, inverser camps, résoudre, diagramme AS*
+- `onPick()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `onPuzzleSolved()` — *DÉFI DU JOUR — PARTIE (distinct du puzzle du jour)*
+- `onResult()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `onUp()` — *TRAITEMENT CONFIDENTIALITÉ DES IMAGES*
+- `openApgnImportModal()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `openBulkHistoryImportModal()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `openCorrelationsPanel()` — *COURBE D'EVOLUTION D'UNE PARTIE HISTORIQUE*
+- `openDailyPuzzle()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `openDailyPuzzleInline()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `openExternalEnginePanel()` — *DUEL CONTRE UN MOTEUR EXTERNE*
+- `openGameCodePanel()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `openGameSetup()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `openHelp()` — *SYSTÈME DE TRADUCTION (i18n)*
+- `openHistoryModal()` — *SCHEMAS D'ARCHITECTURE — rendus en SVG NATIF.*
+- `openingKeyFromHistory()` — *VOL DE TRAVAIL — distribution dynamique des coups racine.*
+- `openLabFromMenu()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `openLabModal()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `openMigsBrowser()` — *IMPORT PLAYSTRATEGY — récupération live des parties d'un jou*
+- `openMistakesReview()` — *COURBE D'EVALUATION — fonctionnalite universelle chez les au*
+- `openModal()` — *MODALS*
+- `openPlayerStats()` — *LEADERBOARD DATA*
+- `openProjectorWindow()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `openPSImportModal()` — *IMPORT PLAYSTRATEGY — récupération live des parties d'un jou*
+- `openPuzzles()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `openReferralModal()` — *PARRAINAGE — invite des amis, gagne des récompenses*
+- `openReportModal()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `openRtcPanel()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `openShareModal()` — *PARTAGE SUR LES RÉSEAUX SOCIAUX*
+- `openSiteBriefing()` — *FICHE TECHNIQUE POUR IA — donnees factuelles sur le site.*
+- `openTrajectoryChart()` — *COURBE D'EVOLUTION D'UNE PARTIE HISTORIQUE*
+- `orderMoves()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `orderMoves_nnue_full()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `otpBack()` — *MODULE OTP — saisie des chiffres de code (2FA classique + TO*
+- `otpBack2()` — *MODULE OTP — saisie des chiffres de code (2FA classique + TO*
+- `otpInput()` — *MODULE OTP — saisie des chiffres de code (2FA classique + TO*
+- `otpInput2()` — *MODULE OTP — saisie des chiffres de code (2FA classique + TO*
+
+## P
+
+- `P()` — *FICHE TECHNIQUE POUR IA — donnees factuelles sur le site.*
+- `p2()` — *PARTAGE D'UNE POSITION PAR URL*
+- `parseCell()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+- `parseSide()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `pastille()` — *ABALONE BOARD ENGINE*
+- `pathFromCorners()` — *ABALONE BOARD ENGINE*
+- `pauseLab()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `pct()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `peindreTextureTheme2D()` — *ABALONE BOARD ENGINE*
+- `pickBookMove()` — *MOTEUR EXPERIMENTAL NNUE — options selectionnables dans Para*
+- `pickEmpreinteFallbackMove()` — *MOTEUR EXPERIMENTAL NNUE — options selectionnables dans Para*
+- `pickLine()` — *BOTS CONSEILLERS — Noir (gentil/malin) et Blanc (dur/humain)*
+- `pid()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `place()` — *GRAPHE DES POSITIONS — transpositions réelles (839 positions*
+- `playDailyPuzzle()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `playDuelGame()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `playerRegion()` — *LEADERBOARD DATA*
+- `playFromEditor()` — *ÉDITEUR DE POSITION*
+- `playGame()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `playMarbleRainTransition()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `playMonthlyPuzzle()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+- `playSequence()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `playSfx()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `playTone()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `pointerDown()` — *ANNULATION DE COUP & PAUSE (avec accord de l'adversaire)*
+- `pointerMove()` — *ANNULATION DE COUP & PAUSE (avec accord de l'adversaire)*
+- `pointerUp()` — *ANNULATION DE COUP & PAUSE (avec accord de l'adversaire)*
+- `pointOnGutter()` — *ANIMATION D'ÉJECTION*
+- `pos()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `positionCropBox()` — *TRAITEMENT CONFIDENTIALITÉ DES IMAGES*
+- `postGameReview()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `postJob()` — *OUTILS (style manuel, inverser camps, résoudre, diagramme AS*
+- `prec()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `probe()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `probeTablebase()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `processImagePrivacy()` — *TRAITEMENT CONFIDENTIALITÉ DES IMAGES*
+- `progressIntegrityOK()` — *ANTI-TRICHE / INTÉGRITÉ*
+- `proj()` — *GRAPHE DES POSITIONS — transpositions réelles (839 positions*
+- `projectToGutter()` — *ANIMATION D'ÉJECTION*
+- `projectToGutterHex()` — *ANIMATION D'ÉJECTION*
+- `psGameToMigsFormat()` — *IMPORT PLAYSTRATEGY — récupération live des parties d'un jou*
+- `ptAt()` — *RADAR A 15 AXES, NORMALISE PAR PERCENTILE*
+- `publishArticle()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `pushUndoState()` — *ANNULATION DE COUP & PAUSE (avec accord de l'adversaire)*
+- `puzzleApplyMove()` — *PUZZLES — état & interaction*
+- `puzzleHexAt()` — *PUZZLES — état & interaction*
+- `puzzleHint()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `puzzleNeighbors()` — *PUZZLES — état & interaction*
+- `puzzleNext()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `puzzlePos()` — *PUZZLES — état & interaction*
+- `puzzleQuit()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `puzzleSelectionValid()` — *PUZZLES — état & interaction*
+- `puzzleSolution()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `pzEnd()` — *PUZZLES — état & interaction*
+
+## Q
+
+- `q()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `quiescence()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+
+## R
+
+- `r()` — *RADAR A 15 AXES, NORMALISE PAR PERCENTILE*
+- `randomDrawPosition()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `randPos()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `ratio()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `rc()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `rcToAxial()` — *MOTEUR ABALONE — coordonnées axiales + règles officielles*
+- `rebuildMoveListLabels()` — *LECTEUR DE FITTINGS — retiré.*
+- `recordHeatmapForPlayer()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+- `recordMyHeat()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+- `recordOpponentHeat()` — *SUIVI DES MÉTRIQUES DE JEU (alimente le radar)*
+- `recordPlayerMove()` — *SUIVI DES MÉTRIQUES DE JEU (alimente le radar)*
+- `recordStyleMove()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `recordWhiteHeatmap()` — *SUIVI DES MÉTRIQUES DE JEU (alimente le radar)*
+- `ref()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `referralLink()` — *PARRAINAGE — invite des amis, gagne des récompenses*
+- `refreshAnalysisIfOpen()` — *OUTILS (style manuel, inverser camps, résoudre, diagramme AS*
+- `refreshMoveHistory()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `refreshSetupMarbleSwatches()` — *SKINS DE BILLES — dégradés multi-stops*
+- `refreshWriterArticles()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `renderA11yPanel()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `renderActivityHeatmap()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `renderAnalysisMoves()` — *ANALYSE DE PARTIE*
+- `renderArchiPage()` — *SCHEMAS D'ARCHITECTURE — rendus en SVG NATIF.*
+- `renderBiblio()` — *VARIANTS — 20 variantes officielles (galerie jouable du site*
+- `renderBots()` — *BOTS*
+- `renderCandidateMoves()` — *OUTILS (style manuel, inverser camps, résoudre, diagramme AS*
+- `renderColorStats()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `renderCompare()` — *FORMATION FORMATEURS*
+- `renderComprehensionPanel()` — *ANALYSE DE PARTIE*
+- `renderCoordTable()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `renderCorpusStatsPage()` — *SCHEMAS D'ARCHITECTURE — rendus en SVG NATIF.*
+- `renderDailyCard()` — *RÈGLES DE TOURNOI (définies par l'organisateur)*
+- `renderDailyGameCard()` — *DÉFI DU JOUR — PARTIE (distinct du puzzle du jour)*
+- `renderDecisionProfile()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `renderEjectionStats()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `renderEngageBar()` — *RÈGLES DE TOURNOI (définies par l'organisateur)*
+- `renderEngineStats()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `renderEvalCurve()` — *COURBE D'EVALUATION — fonctionnalite universelle chez les au*
+- `renderFormateurs()` — *FORMATION FORMATEURS*
+- `renderFormateurSeances()` — *FORMATION FORMATEURS*
+- `renderFriends()` — *FRIENDS PAGE*
+- `renderGameReport()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `renderGymCerveau()` — *FORMATION FORMATEURS*
+- `renderHeatmap()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `renderHeatmapCard()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `renderHistoriquePage()` — *SCHEMAS D'ARCHITECTURE — rendus en SVG NATIF.*
+- `renderImportCard()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `renderLab()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `renderLabAdvanced()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `renderLangMenu()` — *SÉLECTEUR DE LANGUE*
+- `renderLeaderboard()` — *LEADERBOARD DATA*
+- `renderMigsList()` — *IMPORT PLAYSTRATEGY — récupération live des parties d'un jou*
+- `renderMonthlyCard()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+- `renderOneHeatmapCard()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `renderPerfDetail()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `renderPersonalRadar()` — *RADAR A 15 AXES, NORMALISE PAR PERCENTILE*
+- `renderProfile()` — *PROFILE DATA*
+- `renderProfileProgression()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `renderPSGamesList()` — *IMPORT PLAYSTRATEGY — récupération live des parties d'un jou*
+- `renderPuzzles()` — *PUZZLES DATA & RENDER*
+- `renderScannedGames()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `renderSkinGallery()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `renderSrsReviewCard()` — *REPETITION ESPACEE (SRS) — sur les puzzles.*
+- `renderStats()` — *STATS PAGE*
+- `renderStreak()` — *STREAK / DAILY CHALLENGE*
+- `renderStyleCard()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `renderTournament()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `renderTournamentRules()` — *RÈGLES DE TOURNOI (définies par l'organisateur)*
+- `renderTournamentState()` — *RÈGLES DE TOURNOI (définies par l'organisateur)*
+- `renderTourneyRun()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `renderTrombi()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `renderVariants()` — *VARIANTS — 20 variantes officielles (galerie jouable du site*
+- `renderWeeklyCard()` — *DÉFIS HEBDOMADAIRES (objectifs + récompenses)*
+- `replayFromMoves()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `replayScannedGame()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `replayStep()` — *SAUVEGARDE AUTOMATIQUE DE LA PARTIE*
+- `reportGoto()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `requestAIMovePooled()` — *BENCHMARK MOTEUR — mesure réelle avant toute promesse de gai*
+- `requestAIMovePooledStealing()` — *VOL DE TRAVAIL — distribution dynamique des coups racine.*
+- `requestPause()` — *ANNULATION DE COUP & PAUSE (avec accord de l'adversaire)*
+- `requestPerm()` — *PERMISSIONS SYSTEM*
+- `requestPermReal()` — *PERMISSIONS SYSTEM*
+- `requestUndo()` — *ANNULATION DE COUP & PAUSE (avec accord de l'adversaire)*
+- `resendCode()` — *MODULE OTP — saisie des chiffres de code (2FA classique + TO*
+- `resetA11y()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `resetAccessibility()` — *ACCESSIBILITÉ & NUANCES*
+- `resetAllData()` — *SÉCURITÉ — Chiffrement localStorage (AES-GCM)*
+- `resetCurrentPuzzle()` — *REPETITION ESPACEE (SRS) — sur les puzzles.*
+- `resetGame()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `resetGutterPositions()` — *ANIMATION D'ÉJECTION*
+- `resetLab()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `resetStyleGame()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `resignGame()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `resolveAbaProToken()` — *GRAPHE DES POSITIONS — transpositions réelles (839 positions*
+- `resolveThemeColors()` — *ABALONE BOARD ENGINE*
+- `resolveTournamentRule()` — *RÈGLES DE TOURNOI (définies par l'organisateur)*
+- `revealMonthlySolution()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+- `ring()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `riverY()` — *ABALONE BOARD ENGINE*
+- `rnd()` — *BOTS CONSEILLERS — Noir (gentil/malin) et Blanc (dur/humain)*
+- `rot()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `rotateBoard()` — *ABALONE BOARD ENGINE*
+- `roundedHexPath()` — *ABALONE BOARD ENGINE*
+- `row()` — *OUTILS (style manuel, inverser camps, résoudre, diagramme AS*
+- `rtcAcceptAnswer()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `rtcAcceptOffer()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `rtcClose()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `rtcCreateOffer()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `rtcDecodeMove()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `rtcEncodeMove()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `rtcSendMove()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `runAnalysis()` — *GAME ANALYSIS*
+- `runBotDuelStep()` — *BOTS CONSEILLERS — Noir (gentil/malin) et Blanc (dur/humain)*
+- `runDepth()` — *VOL DE TRAVAIL — distribution dynamique des coups racine.*
+- `runEngineBenchmark()` — *BENCHMARK MOTEUR — mesure réelle avant toute promesse de gai*
+- `runHistoryImport()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+
+## S
+
+- `sanitizeProgress()` — *ANTI-TRICHE / INTÉGRITÉ*
+- `saveA11Y()` — *ACCESSIBILITÉ & NUANCES*
+- `saveGameState()` — *SAUVEGARDE AUTOMATIQUE DE LA PARTIE*
+- `saveGeneralSettings()` — *SÉCURITÉ — Chiffrement localStorage (AES-GCM)*
+- `saveNotationPrefs()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `savePassword()` — *SÉCURITÉ — Chiffrement localStorage (AES-GCM)*
+- `savePermState()` — *PERMISSIONS SYSTEM*
+- `saveProgress()` — *COUCHE API — aiguillage local / backend (feature flag)*
+- `saveSession()` — *SÉCURITÉ — Chiffrement localStorage (AES-GCM)*
+- `saveTournamentRules()` — *RÈGLES DE TOURNOI (définies par l'organisateur)*
+- `saveViewAVFX()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `scanRecAdd()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `scanRecRender()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `scanRecResync()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `scanRecSave()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `scanRecSideChange()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `scanRecStart()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `scanRecUndo()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `scrollMoveListToEnd()` — *LECTEUR DE FITTINGS — retiré.*
+- `search()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `searchBestMove()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `searchComparePlayer()` — *COMPARE PAGE*
+- `select2FAMethod()` — *MODALS*
+- `selectionAxis()` — *ANNULATION DE COUP & PAUSE (avec accord de l'adversaire)*
+- `selectionLine()` — *MOTIFS TACTIQUES — bibliothèque de structures locales nommée*
+- `selectRadarAxis()` — *RADAR A 15 AXES, NORMALISE PAR PERCENTILE*
+- `sendChatMsg()` — *MODÉRATION DU CHAT — insultes, appel à la haine, violence/me*
+- `sendGeneralChat()` — *MODÉRATION DU CHAT — insultes, appel à la haine, violence/me*
+- `set()` — *PROFILE DATA*
+- `setA11y()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `setAIStyle()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `setAvatarColor()` — *SÉCURITÉ — Chiffrement localStorage (AES-GCM)*
+- `setBoardTheme()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `setBotDifficulty()` — *BOTS CONSEILLERS — Noir (gentil/malin) et Blanc (dur/humain)*
+- `setCarteTactiqueOverlayDim()` — *CARTE TACTIQUE EN OVERLAY — mêmes 4 dimensions réelles que l*
+- `setColorMode()` — *ACCESSIBILITÉ & NUANCES*
+- `setComprehensionColor()` — *ANALYSE DE PARTIE*
+- `setDifficulty()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `setEditorTool()` — *ÉDITEUR DE POSITION*
+- `setEngineMode()` — *MOTEUR EXPERIMENTAL NNUE — options selectionnables dans Para*
+- `setErr()` — *DUEL CONTRE UN MOTEUR EXTERNE*
+- `setFontSize()` — *ACCESSIBILITÉ & NUANCES*
+- `setGameMode()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `setGutterAlign()` — *ANIMATION D'ÉJECTION*
+- `setLanguage()` — *SYSTÈME DE TRADUCTION (i18n)*
+- `setLayout()` — *NAVIGATION CLAVIER + ARIA — accessibilite du plateau 2D*
+- `setLbMode()` — *LEADERBOARD DATA*
+- `setLbPeriod()` — *LEADERBOARD DATA*
+- `setLbRegion()` — *LEADERBOARD DATA*
+- `setMarbleColor()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `setMarbleSkin()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `setPad()` — *SIDEBAR — chess.com style*
+- `setPuzzleMode()` — *PUZZLES DATA & RENDER*
+- `setSideView()` — *ABALONE BOARD ENGINE*
+- `setStatsPeriod()` — *STATS PAGE*
+- `setTechMode()` — *MODE TECHNIQUE — plusieurs niveaux de lecture*
+- `setTimeControl()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `setTournamentRule()` — *RÈGLES DE TOURNOI (définies par l'organisateur)*
+- `setupCropDrag()` — *TRAITEMENT CONFIDENTIALITÉ DES IMAGES*
+- `setupDragDrop()` — *CAMERA DETECTION — CLAUDE VISION*
+- `setupPick()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `setupPickLayoutSelect()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `setupPickTwoPlayers()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `setupRenderLayoutThumb()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `setupToggle()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `setViewSound()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `setViewVibration()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `shakeModal()` — *SÉCURITÉ — Chiffrement localStorage (AES-GCM)*
+- `shareEditorPositionURL()` — *PARTAGE D'UNE POSITION PAR URL*
+- `shareInvite()` — *PARTAGE SUR LES RÉSEAUX SOCIAUX*
+- `sharePositionURL()` — *PARTAGE D'UNE POSITION PAR URL*
+- `shareResult()` — *PARTAGE SUR LES RÉSEAUX SOCIAUX*
+- `show2FAMethodSelect()` — *MODALS*
+- `showAIExplainBubble()` — *BASE DE CONNAISSANCES ABALONE (embarquée, hors-ligne)*
+- `showAIThinking()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `showAnalysisError()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `showAnalysisPanel()` — *OUTILS (style manuel, inverser camps, résoudre, diagramme AS*
+- `showAnalysisResult()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `showAsciiDiagram()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `showBotBubble()` — *BOTS CONSEILLERS — Noir (gentil/malin) et Blanc (dur/humain)*
+- `showBrowserTranslateHint()` — *SYSTÈME DE TRADUCTION (i18n)*
+- `showCoachBubble()` — *BASE DE CONNAISSANCES ABALONE (embarquée, hors-ligne)*
+- `showCompareResult()` — *COMPARE PAGE*
+- `showCropInterface()` — *TRAITEMENT CONFIDENTIALITÉ DES IMAGES*
+- `showDuelStopBtn()` — *BOTS CONSEILLERS — Noir (gentil/malin) et Blanc (dur/humain)*
+- `showErrorBanner()` — *FILET DE SÉCURITÉ GLOBAL — capture les erreurs et rejets non*
+- `showExportModal()` — *PARTAGE D'UNE POSITION PAR URL*
+- `showInstallBanner()` — *PWA — SERVICE WORKER + MANIFEST*
+- `showLearnSection()` — *LEARN SIDEBAR*
+- `showPage()` — *NAVIGATION — showPage + sync bottom nav*
+- `showPostGameReview()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `showPuzzleResult()` — *REPETITION ESPACEE (SRS) — sur les puzzles.*
+- `showPuzzleSolution()` — *PUZZLES DATA & RENDER*
+- `showResumePrompt()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `showSettingsTab()` — *SECURITY SCORE*
+- `showStyleLiveBubble()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `showToast()` — *TOAST*
+- `showTrombiModal()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `showVariantDetail()` — *VARIANTS — 20 variantes officielles (galerie jouable du site*
+- `showWelcomePopup()` — *PERMISSIONS SYSTEM*
+- `sidebarNav()` — *SYSTÈME DE TRADUCTION (i18n)*
+- `sig()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `simulateYubiKey()` — *MODULE OTP — saisie des chiffres de code (2FA classique + TO*
+- `skinUnlockText()` — *SKINS DE BILLES — dégradés multi-stops*
+- `skipWelcome()` — *PERMISSIONS SYSTEM*
+- `slider()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `slug()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `snapPhoto()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `solveProblem()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `somme()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `soundBadge()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `soundCancel()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `soundDraw()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `soundEject()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `soundForceAI()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `soundLevelUp()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `soundMove()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `soundPush()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `soundPuzzleOk()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `soundRain()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `soundSelect()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `soundThreat()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `soundUndo()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `soundUnlock()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `soundWin()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `sparkline()` — *RÈGLES DE TOURNOI (définies par l'organisateur)*
+- `srsCountDue()` — *REPETITION ESPACEE (SRS) — sur les puzzles.*
+- `srsGetDuePuzzles()` — *REPETITION ESPACEE (SRS) — sur les puzzles.*
+- `srsRecordResult()` — *REPETITION ESPACEE (SRS) — sur les puzzles.*
+- `srsStartReview()` — *REPETITION ESPACEE (SRS) — sur les puzzles.*
+- `srsStats()` — *REPETITION ESPACEE (SRS) — sur les puzzles.*
+- `start()` — *PARTIES MIGS — 2589 parties Belgian Daisy (notation ABA-PRO)*
+- `startBotDuel()` — *BOTS CONSEILLERS — Noir (gentil/malin) et Blanc (dur/humain)*
+- `startBotGame()` — *BOTS CONSEILLERS — Noir (gentil/malin) et Blanc (dur/humain)*
+- `startCamera()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `startConfiguredGame()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `startGameTimer()` — *CHRONOMÈTRE DE PARTIE*
+- `startGymExercise()` — *FORMATION FORMATEURS*
+- `startLab()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `startLiveVariant()` — *ANALYSE INTERACTIVE — bifurcation depuis le replay*
+- `startPause()` — *ANNULATION DE COUP & PAUSE (avec accord de l'adversaire)*
+- `startPuzzle()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `startPuzzleStorm()` — *PUZZLES DATA & RENDER*
+- `startResendTimer()` — *MODULE OTP — saisie des chiffres de code (2FA classique + TO*
+- `startTournamentGame()` — *RÈGLES DE TOURNOI (définies par l'organisateur)*
+- `startTournamentMatch()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `startTutorial()` — *TUTORIEL INTERACTIF*
+- `startVariant()` — *ANALYSE INTERACTIVE — bifurcation depuis le replay*
+- `step()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `stopBotDuel()` — *BOTS CONSEILLERS — Noir (gentil/malin) et Blanc (dur/humain)*
+- `stopCamera()` — *MODE AR — flux vidéo continu + overlay temps réel*
+- `stopGameTimer()` — *CHRONOMÈTRE DE PARTIE*
+- `stormPuzzleSolved()` — *PUZZLES DATA & RENDER*
+- `stormTick()` — *PUZZLES DATA & RENDER*
+- `styleBar()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `styleBotColor()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `submitGameCode()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `submitLogin()` — *MODALS*
+- `submitSignup()` — *MODALS*
+- `switchCamMode()` — *CAMERA DETECTION — CLAUDE VISION*
+- `switchGameTab()` — *GAME TABS*
+- `switchSide()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `syncA11YControls()` — *ACCESSIBILITÉ & NUANCES*
+- `syncCoordsToggles()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `syncDisplayToggles()` — *ANIMATION D'ÉJECTION*
+- `syncNotationToggles()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `syncRadarToggle()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `syncSideButtonColors()` — *ABALONE BOARD ENGINE*
+- `syncSoundToggles()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `syncViewAVFXToggles()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+
+## T
+
+- `tabBtn()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `tbSeqHandleMove()` — *TRAINER DE FINALES — positions REELLES tirees de tb-3v2.json*
+- `terminateAIWorker()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `terminateAIWorkerPool()` — *BENCHMARK MOTEUR — mesure réelle avant toute promesse de gai*
+- `testAsPuzzle()` — *ÉDITEUR DE POSITION*
+- `theta3DToBoardRotation()` — *ABALONE BOARD ENGINE*
+- `tick()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `tickTimers()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `tid()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `toastEngage()` — *RÈGLES DE TOURNOI (définies par l'organisateur)*
+- `todayStr()` — *MOTEUR D'ENGAGEMENT — XP · Streak · Défi quotidien · Badges*
+- `toggle()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `toggle2FAMethod()` — *SÉCURITÉ — Chiffrement localStorage (AES-GCM)*
+- `toggleAIExplain()` — *BASE DE CONNAISSANCES ABALONE (embarquée, hors-ligne)*
+- `toggleBoardCoords()` — *CARTE TACTIQUE EN OVERLAY — mêmes 4 dimensions réelles que l*
+- `toggleCarteTactique()` — *GAME ANALYSIS*
+- `toggleCarteTactiqueOverlay()` — *CARTE TACTIQUE EN OVERLAY — mêmes 4 dimensions réelles que l*
+- `toggleCoachMode()` — *BASE DE CONNAISSANCES ABALONE (embarquée, hors-ligne)*
+- `toggleCommentatorMode()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `toggleCoordinates()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `toggleFocusMode()` — *ACCESSIBILITÉ & NUANCES*
+- `toggleFullscreenBoard()` — *SUGGESTION DU MEILLEUR COUP (jeu principal)*
+- `toggleHelpMenu()` — *SYSTÈME DE TRADUCTION (i18n)*
+- `toggleKidsMode()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `toggleLangMenu()` — *SÉLECTEUR DE LANGUE*
+- `toggleLargeBoard()` — *ACCESSIBILITÉ & NUANCES*
+- `toggleLastMoveArrow()` — *CARTE TACTIQUE EN OVERLAY — mêmes 4 dimensions réelles que l*
+- `toggleLiveVariant()` — *ANALYSE INTERACTIVE — bifurcation depuis le replay*
+- `toggleMoveHints()` — *CARTE TACTIQUE EN OVERLAY — mêmes 4 dimensions réelles que l*
+- `toggleNotationAbaPro()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `toggleNotationNacre()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `togglePuzzleCoords()` — *TRAINER DE FINALES — positions REELLES tirees de tb-3v2.json*
+- `togglePuzzleHint()` — *PUZZLES DATA & RENDER*
+- `togglePw()` — *MODALS*
+- `toggleRadarVisibility()` — *RADAR A 15 AXES, NORMALISE PAR PERCENTILE*
+- `toggleReduceMotion()` — *ACCESSIBILITÉ & NUANCES*
+- `toggleReplay()` — *PUZZLES DATA & RENDER*
+- `toggleSidebar()` — *SYSTÈME DE TRADUCTION (i18n)*
+- `toggleSidebarExpand()` — *SYSTÈME DE TRADUCTION (i18n)*
+- `toggleSound()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `toggleTechMode()` — *MODE TECHNIQUE — plusieurs niveaux de lecture*
+- `toggleThemeNight()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `toggleThreats()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `toggleTournamentRegister()` — *TOURNOI MENSUEL — inscription, prix, compte à rebours*
+- `toggleVariant()` — *ANALYSE INTERACTIVE — bifurcation depuis le replay*
+- `toggleWelcomePerm()` — *PERMISSIONS SYSTEM*
+- `toMap()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `touchStreak()` — *COUCHE API — aiguillage local / backend (feature flag)*
+- `tourneyMatchEnd()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `tourneyPause()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `tourneyRunLoad()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `tourneyRunSave()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `triggerWin()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `tryHyp()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `tryNext()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `tutorialNext()` — *TUTORIEL INTERACTIF*
+- `tutorialPrev()` — *TUTORIEL INTERACTIF*
+
+## U
+
+- `undoMove()` — *AI ENGINE — MINIMAX + ALPHA-BETA PRUNING*
+- `unlockSfx()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `unpack()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `updateAIMetrics()` — *OUTILS (style manuel, inverser camps, résoudre, diagramme AS*
+- `updateAIStyle()` — *MOTEUR EXPERIMENTAL NNUE — options selectionnables dans Para*
+- `updateAnalysisEval()` — *ANALYSE DE PARTIE*
+- `updateAnalysisPositionInfo()` — *COURBE D'EVALUATION — fonctionnalite universelle chez les au*
+- `updateAnalysisScore()` — *ANALYSE DE PARTIE*
+- `updateCaptures()` — *ANNULATION DE COUP & PAUSE (avec accord de l'adversaire)*
+- `updateCropRegion()` — *TRAITEMENT CONFIDENTIALITÉ DES IMAGES*
+- `updateEditorStatus()` — *ÉDITEUR DE POSITION*
+- `updateExpandBtn()` — *SIDEBAR — chess.com style*
+- `updateGameTimerDisplay()` — *CHRONOMÈTRE DE PARTIE*
+- `updateHeroDaily()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `updateHeroStats()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `updateHint()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `updateNavAuth()` — *SÉCURITÉ — Chiffrement localStorage (AES-GCM)*
+- `updatePermUI()` — *PERMISSIONS SYSTEM*
+- `updatePuzzleProgressBar()` — *PUZZLES DATA & RENDER*
+- `updateStatus()` — *ANNULATION DE COUP & PAUSE (avec accord de l'adversaire)*
+- `updateStormUI()` — *PUZZLES DATA & RENDER*
+- `updateTopBar()` — *MOBILE TOP BAR SYNC*
+- `updateWeaknessProfile()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+
+## V
+
+- `validateMove()` — *MOTIFS TACTIQUES — bibliothèque de structures locales nommée*
+- `verifierMessageChat()` — *MODÉRATION DU CHAT — insultes, appel à la haine, violence/me*
+- `verify2FACode()` — *MODULE OTP — saisie des chiffres de code (2FA classique + TO*
+- `verifyTOTP()` — *MODULE OTP — saisie des chiffres de code (2FA classique + TO*
+- `vibrate()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+
+## W
+
+- `weeklyProgressValue()` — *DÉFIS HEBDOMADAIRES (objectifs + récompenses)*
+- `weekStr()` — *DÉFIS HEBDOMADAIRES (objectifs + récompenses)*
+- `weight()` — *MOTEUR EXPERIMENTAL NNUE — options selectionnables dans Para*
+- `why()` — *GAME ANALYSIS*
+- `winIntegrityOK()` — *ANTI-TRICHE / INTÉGRITÉ*
+
+## X
+
+- `x()` — *COURBE D'EVALUATION — fonctionnalite universelle chez les au*
+- `xpForLevel()` — *COUCHE API — aiguillage local / backend (feature flag)*
+- `xpProgressInLevel()` — *COUCHE API — aiguillage local / backend (feature flag)*
+
+## Y
+
+- `y()` — *COURBE D'EVALUATION — fonctionnalite universelle chez les au*
+
+## _
+
+- `_a11yBuildOverlay()` — *NAVIGATION CLAVIER + ARIA — accessibilite du plateau 2D*
+- `_a11yCellKey()` — *NAVIGATION CLAVIER + ARIA — accessibilite du plateau 2D*
+- `_a11yCellLabel()` — *NAVIGATION CLAVIER + ARIA — accessibilite du plateau 2D*
+- `_a11yHandleKeydown()` — *NAVIGATION CLAVIER + ARIA — accessibilite du plateau 2D*
+- `_a11yMoveCursor()` — *NAVIGATION CLAVIER + ARIA — accessibilite du plateau 2D*
+- `_a11yRefreshOverlay()` — *NAVIGATION CLAVIER + ARIA — accessibilite du plateau 2D*
+- `_advDeclaredScore()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_advEnsureXLSX()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_advExtractCandidates()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_advGuessLabels()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_advGuessLayout()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_advKAAToAOStart()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_advLooksLikeNacre()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_advLooksLikeSeq()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_advLooksLikeTitle()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_advParseKAACompactPosition()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_advResolveNacreSidestep()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_advResolveNacreToken()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_advRowsFromText()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_advRowsFromWorkbook()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_advShowPreview()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_advVerifyCandidate()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_ajouterParticuleLave()` — *ANIMATION D'ÉJECTION*
+- `_apiFetch()` — *COUCHE API — aiguillage local / backend (feature flag)*
+- `_archiSVG()` — *SCHEMAS D'ARCHITECTURE — rendus en SVG NATIF.*
+- `_avecPlateau()` — *MOTEUR DE COMPRÉHENSION — étage 1 : décomposition spatiale*
+- `_axisPercentile()` — *RADAR A 15 AXES, NORMALISE PAR PERCENTILE*
+- `_benchBuildStartBoard()` — *BENCHMARK MOTEUR — mesure réelle avant toute promesse de gai*
+- `_benchRunWorkers()` — *BENCHMARK MOTEUR — mesure réelle avant toute promesse de gai*
+- `_billesViseesParCoup()` — *MOTEUR DE COMPRÉHENSION — étage 1 : décomposition spatiale*
+- `_boardRepKey()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `_broadcastProjectorState()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `_bulkResultLabel()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `_carteTactiqueSnapshotAt()` — *GAME ANALYSIS*
+- `_casesAtteintes()` — *MOTEUR DE COMPRÉHENSION — étage 1 : décomposition spatiale*
+- `_clockExempt()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `_clockInc()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `_clockNames()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `_clockPaint()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `_clockPaintFree()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `_commentatorLabel()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `_commentatorRefresh()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `_compactness()` — *SUIVI DES MÉTRIQUES DE JEU (alimente le radar)*
+- `_copyBriefing()` — *FICHE TECHNIQUE POUR IA — donnees factuelles sur le site.*
+- `_countImmediateCaptures()` — *PROBLÈME DU MOIS — dans l'esprit de la tradition d'Abalone O*
+- `_currentBoardView()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `_dA2rc()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `_dailyPuzzleIdx()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_decodeFrontCodedBook()` — *VOL DE TRAVAIL — distribution dynamique des coups racine.*
+- `_dessinerExplosionLave()` — *ANIMATION D'ÉJECTION*
+- `_dessinerTraineeLave()` — *ANIMATION D'ÉJECTION*
+- `_detToBoardMap()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_dl()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_doApgnImport()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `_doBulkHistoryImport()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `_dot()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `_duelSetup()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `_emitAbaEvent()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `_enterProjectorMode()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `_esc()` — *SCHEMAS D'ARCHITECTURE — rendus en SVG NATIF.*
+- `_evalCurveClick()` — *COURBE D'EVALUATION — fonctionnalite universelle chez les au*
+- `_extCopyLastMove()` — *DUEL CONTRE UN MOTEUR EXTERNE*
+- `_extLastMoveText()` — *DUEL CONTRE UN MOTEUR EXTERNE*
+- `_extPlayMove()` — *DUEL CONTRE UN MOTEUR EXTERNE*
+- `_extRefreshLastMove()` — *DUEL CONTRE UN MOTEUR EXTERNE*
+- `_flagFall()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `_formatComparaisonEmpreinte()` — *ANALYSE DE PARTIE*
+- `_formatComprehensionDetail()` — *ANALYSE DE PARTIE*
+- `_formatComprehensionSummary()` — *ANALYSE DE PARTIE*
+- `_formateurLoad()` — *FORMATION FORMATEURS*
+- `_formateurMotifQuestion()` — *FORMATION FORMATEURS*
+- `_formateurSave()` — *FORMATION FORMATEURS*
+- `_friendsDemoNotice()` — *FRIENDS PAGE*
+- `_gameHistKeys()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `_gameTimerBudgetFromControl()` — *CHRONOMÈTRE DE PARTIE*
+- `_gcDecodeNameFromCode()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_gcDirIndex()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_gcEncodeNameForCode()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_gcGuessMyColor()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_gcParseBody()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_gcRefreshCodeDisplay()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_gcSanitizeName()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_getProjectorChannel()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `_gotoMoveFromHistory()` — *LECTEUR DE FITTINGS — retiré.*
+- `_groupCount()` — *SUIVI DES MÉTRIQUES DE JEU (alimente le radar)*
+- `_gymCertitudeAnswer()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `_gymDiagnosticAnswer()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `_gymJugementAnswer()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `_gymRepertoireAnswer()` — *GYM CERVEAU — moteur d'exercices, VRAI plateau (61 cases)*
+- `_heatHexToRgb()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `_heatIsLight()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `_hexDist()` — *LECTEUR DE FITTINGS — retiré.*
+- `_highlightMoveRow()` — *LECTEUR DE FITTINGS — retiré.*
+- `_historyDateLabel()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_historyOpponentLabel()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `_historyResultBadge()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_historySetFilter()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_icon()` — *PWA — SERVICE WORKER + MANIFEST*
+- `_importCandidates()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `_importExtractTokens()` — *HEATMAP DES COUPS — carte de chaleur du plateau*
+- `_importJsonScannedGames()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_inflB64()` — *PARTIES MIGS — 2589 parties Belgian Daisy (notation ABA-PRO)*
+- `_injectHonestyBanners()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_kidsExitCancel()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `_kidsExitCheck()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `_kidsExitPrompt()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `_kidsExitSetLocked()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `_kidsExitShowLock()` — *MODE ENFANT — plateau adapté, restrictions de sécurité*
+- `_labAdopt()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labBounds()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labCurrentJob()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labDataClear()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labDataLoad()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labDataPush()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labDefaultState()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labDrawFrame()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labEloStr()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labEloVal()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labHBstart()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labHBstop()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labKillWorker()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labLLR()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labMigrateToPage()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labMineBook()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labMkMutant()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labNum()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labOnMsg()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labReject()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labReplayRender()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labStats()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labStatus()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labTransition()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_labWeightsFromInputs()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_letter()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `_loadGymProgress()` — *COMPARE PAGE*
+- `_loadSolvedPuzzleTitles()` — *PUZZLES DATA & RENDER*
+- `_marbleSwatch()` — *SKINS DE BILLES — dégradés multi-stops*
+- `_mb32()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `_migsMoveCount()` — *IMPORT PLAYSTRATEGY — récupération live des parties d'un jou*
+- `_migsPopulateVariantFilter()` — *IMPORT PLAYSTRATEGY — récupération live des parties d'un jou*
+- `_moveZone()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_nacreGroupEnds()` — *LECTEUR DE FITTINGS — retiré.*
+- `_parseBulkHistoryText()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `_perfFmt()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `_perfPercentile()` — *PROFIL DE PERFORMANCE DETAILLE*
+- `_pzSig()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_rand32()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `_recordGameHistory()` — *HISTORIQUE DE PARTIES — consultable, filtrable, rejouable.*
+- `_renderHistoryList()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_renderTrajectoire()` — *COURBE D'EVOLUTION D'UNE PARTIE HISTORIQUE*
+- `_repCountMap()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `_repKeyOf()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `_replayHistoryGame()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_replaySeqToSnapshots()` — *GRAPHE DES POSITIONS — transpositions réelles (839 positions*
+- `_restoreLive()` — *PUZZLES DATA & RENDER*
+- `_rtcCompress()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_rtcDecompress()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_rtcHandleMessage()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_rtcOnDisconnect()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_rtcSetupChannelHandlers()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_rtcSetupPeerHandlers()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_rtcUiAcceptAnswer()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_rtcUiAcceptOffer()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_rtcUiCreateOffer()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_rtcUiShowJoin()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_rtcUpdateStatus()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_rtcWaitIceGathering()` — *NOMS DES JOUEURS DANS LE CODE DE PARTIE — extension du forma*
+- `_saveGymProgress()` — *COMPARE PAGE*
+- `_saveSolvedPuzzleTitle()` — *PUZZLES DATA & RENDER*
+- `_scanBoardToAOStart()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_scanDownload()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_scanGameFileStub()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_scanGameNotationText()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_scanGamesLoad()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_scanGamesSave()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_scanInferMove()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_scanKey()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_scanReplayMoves()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_scanSandbox()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_scanSeqString()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_scanVerifyImported()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_scanVerifyReplay()` — *DÉTECTION DE PLATEAU — HORS-LIGNE, SANS IA, SANS RÉSEAU*
+- `_searchAvecLigne()` — *MOTEUR DE COMPRÉHENSION — étage 1 : décomposition spatiale*
+- `_setupFromAOStart()` — *GRAPHE DES POSITIONS — transpositions réelles (839 positions*
+- `_skinDotColor()` — *ÉVÉNEMENTS PUBLICS — point d'extension léger*
+- `_snapCompact()` — *PROFIL DE DÉCISION PERSONNEL — agrege calculerProfilDecision*
+- `_spsaClamp()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_spsaInit()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_spsaOnResult()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_spsaPerturb()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_spsaStep()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_spsaUpdate()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_srsLoad()` — *REPETITION ESPACEE (SRS) — sur les puzzles.*
+- `_srsNextInQueue()` — *REPETITION ESPACEE (SRS) — sur les puzzles.*
+- `_srsSave()` — *REPETITION ESPACEE (SRS) — sur les puzzles.*
+- `_stashLive()` — *PUZZLES DATA & RENDER*
+- `_stripApgnHeaders()` — *HISTORIQUE COMPLET — export/import en Aba-Pro*
+- `_tClockFmt()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_tClockRender()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_tClockStart()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_tClockStop()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_tClockTick()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_testEncryptionWorks()` — *SECURITY SCORE*
+- `_tourneyAfterStart()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_tourneyAward()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_tourneyPalmares()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_tourneyRunKey()` — *PROFIL DE FAIBLESSE PAR ZONE — construit à partir de vraies *
+- `_trajectoireDonnees()` — *COURBE D'EVOLUTION D'UNE PARTIE HISTORIQUE*
+- `_trajectoireSVG()` — *COURBE D'EVOLUTION D'UNE PARTIE HISTORIQUE*
+- `_variantConclude()` — *ANALYSE INTERACTIVE — bifurcation depuis le replay*
+- `_viewAllowsSound()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `_viewAllowsVibration()` — *SONS (Web Audio API — synthèse, aucun fichier externe)*
+- `_volcaniqueActif()` — *ANIMATION D'ÉJECTION*
+- `_zoneColonne()` — *MOTEUR DE COMPRÉHENSION — étage 1 : décomposition spatiale*
+- `_zoneDistance()` — *MOTEUR DE COMPRÉHENSION — étage 1 : décomposition spatiale*
+- `_zoneVide()` — *MOTEUR DE COMPRÉHENSION — étage 1 : décomposition spatiale*
