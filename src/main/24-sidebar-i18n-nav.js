@@ -15,15 +15,15 @@ function startVariant() {
   _variantStash = {
     board: JSON.parse(JSON.stringify(board)),
     capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite,
-    currentTurn: currentTurn, gameMode: GameMode.get(), humanColor: HumanColor.get(), gameOver: gameOver,
+    currentTurn: CurrentTurn.get(), gameMode: GameMode.get(), humanColor: HumanColor.get(), gameOver: gameOver,
     fromLive: false
   };
   variantMode = true;
   board = JSON.parse(JSON.stringify(snap.board));
   capturedByBlack = snap.capturedByBlack;
   capturedByWhite = snap.capturedByWhite;
-  currentTurn = (snap.color === 'black') ? 'white' : 'black';
-  HumanColor.set(currentTurn);   // on explore en jouant le prochain coup, quel que soit le camp
+  CurrentTurn.set((snap.color === 'black') ? 'white' : 'black');
+  HumanColor.set(CurrentTurn.get());   // on explore en jouant le prochain coup, quel que soit le camp
   GameMode.set('ai');            // pour que l'IA réponde automatiquement au coup exploratoire
   gameOver = false;
   selected = [];
@@ -42,11 +42,11 @@ function startVariant() {
 function startLiveVariant() {
   if (replayMode || variantMode) return;
   if (gameOver) { showToast('La partie est terminée — rien à essayer'); return; }
-  if (GameMode.get() === 'ai' && currentTurn !== HumanColor.get()) { showToast('Attends ton tour pour essayer un coup'); return; }
+  if (GameMode.get() === 'ai' && CurrentTurn.get() !== HumanColor.get()) { showToast('Attends ton tour pour essayer un coup'); return; }
   _variantStash = {
     board: JSON.parse(JSON.stringify(board)),
     capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite,
-    currentTurn: currentTurn, gameMode: GameMode.get(), humanColor: HumanColor.get(), gameOver: gameOver,
+    currentTurn: CurrentTurn.get(), gameMode: GameMode.get(), humanColor: HumanColor.get(), gameOver: gameOver,
     fromLive: true
   };
   variantMode = true;
@@ -63,7 +63,7 @@ function exitVariant() {
   board = _variantStash.board;
   capturedByBlack = _variantStash.capturedByBlack;
   capturedByWhite = _variantStash.capturedByWhite;
-  currentTurn = _variantStash.currentTurn;
+  CurrentTurn.set(_variantStash.currentTurn);
   GameMode.set(_variantStash.gameMode);
   HumanColor.set(_variantStash.humanColor);
   gameOver = _variantStash.gameOver;
