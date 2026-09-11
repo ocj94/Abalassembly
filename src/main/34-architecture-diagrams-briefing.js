@@ -315,7 +315,7 @@ function _extPlayMove(){
   if (!tok) { setErr('Colle le coup renvoyé par le moteur externe.'); return; }
   if (gameOver) { setErr('La partie est terminée.'); return; }
 
-  const color = currentTurn;
+  const color = CurrentTurn.get();
   const mv = resolveAbaProToken(tok, color);
   if (!mv) { setErr('Notation illisible ou coup impossible dans cette position pour ' + (color==='black'?'les noirs':'les blancs') + '.'); return; }
   // Revalidation systematique contre le moteur : on ne fait jamais confiance
