@@ -18,6 +18,7 @@ Un jeu d'Abalone complet dans un seul fichier HTML : zéro dépendance, hors-lig
 - **[Calcul distribué](Calcul-distribue.md)** — pourquoi il n'y a pas de grille de calcul volontaire.
 - **[Moteur multi-worker](Moteur-multi-worker.md)** — ce qui marche, et une vraie limite non résolue, documentée honnêtement.
 - **[Variantes](Variantes.md)** — jouables contre documentées seulement, à travers les trois endroits du site qui en parlent.
+- **[Glossaire des fonctions](Glossaire-fonctions.md)** — 1236 fonctions extraites du code réel, classées par lettre avec leur section de code.
 
 ## En bref
 
