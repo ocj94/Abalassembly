@@ -264,7 +264,7 @@ function puzzleSelectionValid(sel) {
 // Applique un coup de puzzle via le moteur principal (bascule board ↔ puzzleBoard)
 function puzzleApplyMove(sel, dir) {
   const savedBoard = board;
-  const savedCW = capturedByWhite, savedCB = capturedByBlack;
+  const savedCW = CapturedByWhite.get(), savedCB = CapturedByBlack.get();
   board = puzzleBoard;  // le moteur travaille sur puzzleBoard
   const info = validateMove(sel, dir, 'black');
   let res = { valid:false, reason:'Coup invalide', ejected:false, ejectRC:null };
@@ -283,7 +283,7 @@ function puzzleApplyMove(sel, dir) {
   }
   puzzleBoard = board;   // récupère le plateau modifié
   board = savedBoard;    // restaure le plateau de jeu principal
-  capturedByWhite = savedCW; capturedByBlack = savedCB;
+  CapturedByWhite.set(savedCW); CapturedByBlack.set(savedCB);
   return res;
 }
 
