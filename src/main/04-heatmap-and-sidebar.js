@@ -218,7 +218,7 @@ function importHistoryFromText(text, myColor, variant) {
 
   var saved = {
     board: JSON.parse(JSON.stringify(board)),
-    cb: capturedByBlack, cw: capturedByWhite,
+    cb: CapturedByBlack.get(), cw: CapturedByWhite.get(),
     layout: (typeof currentLayout !== 'undefined') ? currentLayout : 'standard'
   };
   var best = { path: [], depth: 0 };
@@ -248,12 +248,12 @@ function importHistoryFromText(text, myColor, variant) {
   try {
     if (typeof currentLayout !== 'undefined' && HEAT_VARIANTS.indexOf(variant) >= 0) currentLayout = variant;
     initBoardState();
-    capturedByBlack = 0; capturedByWhite = 0;
+    CapturedByBlack.set(0); CapturedByWhite.set(0);
     explore(0, 'black', []);
   } catch(e) {
     // on ne laisse jamais l'import casser l'etat
   } finally {
-    board = saved.board; capturedByBlack = saved.cb; capturedByWhite = saved.cw;
+    board = saved.board; CapturedByBlack.set(saved.cb); CapturedByWhite.set(saved.cw);
     if (typeof currentLayout !== 'undefined') currentLayout = saved.layout;
   }
 
