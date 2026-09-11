@@ -152,7 +152,7 @@ function _enterProjectorMode(dim) {
     if (!d || d.type !== 'state') return;
     board = d.board || board;
     selected = d.selected || [];
-    currentTurn = d.currentTurn || currentTurn;
+    CurrentTurn.set(d.currentTurn || CurrentTurn.get());
     if (typeof d.boardRotation === 'number') window.boardRotation = d.boardRotation;
     if (d.boardTheme && typeof boardTheme !== 'undefined') Object.assign(boardTheme, d.boardTheme);
     if (typeof drawBoard === 'function') drawBoard();   // redessine 2D, et rafraichit 1D/3D via ses propres accroches internes
@@ -176,7 +176,7 @@ function _broadcastProjectorState() {
   try {
     ch.postMessage({
       type: 'state',
-      board: board, selected: selected, currentTurn: currentTurn,
+      board: board, selected: selected, currentTurn: CurrentTurn.get(),
       boardRotation: window.boardRotation,
       boardTheme: (typeof boardTheme !== 'undefined') ? {
         marbleSkin: boardTheme.marbleSkin, blackStops: boardTheme.blackStops, whiteStops: boardTheme.whiteStops,
@@ -201,7 +201,7 @@ function resetGame() {
   capturedByBlack = 0;
   capturedByWhite = 0;
   moveCount = 0;
-  currentTurn = 'black';
+  CurrentTurn.set('black');
   // _timeCtlBase===0 (cadence Libre) est un "faux" en JS : "_timeCtlBase || 600"
   // retombait donc sur 600s (10:00) meme en Libre, ce que le panneau
   // Commentateur affichait tel quel avant sa propre verification. Comparaison
@@ -283,7 +283,7 @@ function tickTimers() {
   // Cadence libre : aucune horloge ne tourne, aucun temps ne s'affiche.
   if (!_timeCtlBase || _clockExempt()) { _clockPaintFree(); return; }
   const _mine = monCamp();
-  if (currentTurn === _mine) {
+  if (CurrentTurn.get() === _mine) {
     myTime = Math.max(0, myTime-1);
     if (myTime === 30 || myTime === 10) playSfx('time_alert');   // 🔊 alerte temps
     document.getElementById('timer-me').textContent = formatTime(myTime);
@@ -294,7 +294,7 @@ function tickTimers() {
     document.getElementById('timer-opponent').textContent = formatTime(oppTime);
     if (oppTime === 0 && _timeCtlBase && !_clockExempt()) { _flagFall(_mine === 'black' ? 'white' : 'black'); return; }
   }
-  _clockPaint(currentTurn === _mine);
+  _clockPaint(CurrentTurn.get() === _mine);
 }
 
 /* ── ⏱️ PENDULE RÉELLE (parties normales) ──
@@ -461,8 +461,8 @@ function pushUndoState() {
   undoStack.push({
     board: JSON.parse(JSON.stringify(board)),
     capturedByBlack, capturedByWhite, moveCount,
-    currentTurn, myTime, oppTime,
-    player: currentTurn   // qui s'apprête à jouer
+    currentTurn: CurrentTurn.get(), myTime, oppTime,
+    player: CurrentTurn.get()   // qui s'apprête à jouer
   });
   if (undoStack.length > 20) undoStack.shift();
 }
@@ -477,7 +477,7 @@ function requestUndo() {
   if (undoStack.length === 0) { showToast('Aucun coup à annuler.'); return; }
 
   // Celui qui demande = celui qui vient de jouer = l'adversaire du tour courant
-  const requester = currentTurn === 'black' ? 'white' : 'black';
+  const requester = CurrentTurn.get() === 'black' ? 'white' : 'black';
   const requesterName = requester === 'black' ? 'Les Noirs' : 'Les Blancs';
 
   if (GameMode.get() === 'ai') {
@@ -495,7 +495,7 @@ function requestUndo() {
     }, 1200);
   } else {
     // 2 joueurs : l'adversaire (joueur courant) accepte via confirm
-    const opponentName = currentTurn === 'black' ? 'Joueur Noir' : 'Joueur Blanc';
+    const opponentName = CurrentTurn.get() === 'black' ? 'Joueur Noir' : 'Joueur Blanc';
     const ok = confirm(requesterName + ' demandent à annuler leur dernier coup.\n\n'
       + opponentName + ', acceptez-vous ?\n\n(OK = accepter, Annuler = refuser)');
     if (ok) { doUndo(); showToast('✅ Annulation acceptée'); }
@@ -512,7 +512,7 @@ function doUndo() {
   capturedByBlack = st.capturedByBlack;
   capturedByWhite = st.capturedByWhite;
   moveCount = st.moveCount;
-  currentTurn = st.currentTurn;
+  CurrentTurn.set(st.currentTurn);
   myTime = st.myTime;
   oppTime = st.oppTime;
   selected = [];
@@ -529,7 +529,7 @@ function requestPause() {
   }
   if (timerPaused) { showToast('⏸️ Le jeu est déjà en pause.'); return; }
 
-  const requesterName = currentTurn === 'black' ? 'Joueur Noir' : 'Joueur Blanc';
+  const requesterName = CurrentTurn.get() === 'black' ? 'Joueur Noir' : 'Joueur Blanc';
 
   if (GameMode.get() === 'ai') {
     showToast('⏳ Demande de pause envoyée à l\'adversaire…');
@@ -542,7 +542,7 @@ function requestPause() {
       }
     }, 1000);
   } else {
-    const opponentName = currentTurn === 'black' ? 'Joueur Blanc' : 'Joueur Noir';
+    const opponentName = CurrentTurn.get() === 'black' ? 'Joueur Blanc' : 'Joueur Noir';
     const ok = confirm(requesterName + ' demande une pause d\'1 minute.\n\n'
       + opponentName + ', acceptez-vous ?\n\n(OK = accepter, Annuler = refuser)');
     if (ok) { startPause(); showToast('✅ Pause accordée (1 min)'); }
@@ -601,9 +601,9 @@ function updateStatus() {
   let txt, msg;
   if (GameMode.get() === 'local') {
     // Mode 2 joueurs : on nomme la couleur active
-    const who = currentTurn === 'black' ? 'Noirs ⚫' : 'Blancs ⚪';
+    const who = CurrentTurn.get() === 'black' ? 'Noirs ⚫' : 'Blancs ⚪';
     txt = `Tour des ${who} — Coup ${moveCount+1}`;
-    msg = `Joueur ${currentTurn === 'black' ? 'Noir' : 'Blanc'} : sélectionnez vos billes`;
+    msg = `Joueur ${CurrentTurn.get() === 'black' ? 'Noir' : 'Blanc'} : sélectionnez vos billes`;
   } else {
     // Base sur humanColor, pas sur 'black' code en dur : un humain qui joue
     // les blancs (Bot Noir, ou tout mode ou humanColor='white') voyait ce
@@ -611,7 +611,7 @@ function updateStatus() {
     // propre tour, et "A votre tour, cliquez vos billes noires" pendant que
     // l'IA reflechissait. Bug en direct, atteignable des qu'on joue blanc
     // contre l'IA.
-    const monTour = currentTurn === HumanColor.get();
+    const monTour = CurrentTurn.get() === HumanColor.get();
     const monEmoji = HumanColor.get() === 'black' ? '⚫' : '⚪';
     txt = monTour
       ? `À votre tour — Coup ${moveCount+1}`
@@ -780,7 +780,7 @@ if (canvas) {
     if (window._isProjector) return;   // fenetre projecteur : jamais interactif
     canvas._dragJustEnded = false;   // nouvelle interaction : on repart propre
     if (gameOver) return;
-    if (GameMode.get() === 'ai' && currentTurn !== HumanColor.get()) return;
+    if (GameMode.get() === 'ai' && CurrentTurn.get() !== HumanColor.get()) return;
     const pos = canvasPos(clientX, clientY);
     const hex = getHexAt(pos.x, pos.y);
     if (!hex) return;
@@ -789,7 +789,7 @@ if (canvas) {
     dragData = {
       startX: pos.x, startY: pos.y, curX: pos.x, curY: pos.y,
       hex: hex, moved: false, lastMove: null,
-      onOwnPiece: (board[akey(hex.r, hex.c)] === currentTurn),
+      onOwnPiece: (board[akey(hex.r, hex.c)] === CurrentTurn.get()),
       // si on tire depuis une sélection multiple existante, on la mémorise (pour broadside)
       fromSelection: (onSelected && selected.length >= 2) ? selected.slice() : null
     };
@@ -817,7 +817,7 @@ if (canvas) {
     }
     // Ajoute la bille survolée si : elle est à soi, alignée/contiguë, et moins de 3 sélectionnées
     const hex = getHexAt(pos.x, pos.y);
-    if (hex && board[akey(hex.r, hex.c)] === currentTurn) {
+    if (hex && board[akey(hex.r, hex.c)] === CurrentTurn.get()) {
       const already = selected.some(function(s){ return s.r === hex.r && s.c === hex.c; });
       if (!already && selected.length < 3) {
         const candidate = selected.concat([{ r: hex.r, c: hex.c }]);
@@ -852,7 +852,7 @@ if (canvas) {
     if (canvas._dragJustEnded) { canvas._dragJustEnded = false; return; }
     if (gameOver) return;
     if (replayMode && !variantMode) return;   // navigation replay = lecture seule, sauf en exploration de variante
-    if (GameMode.get() === 'ai' && currentTurn !== HumanColor.get()) return;
+    if (GameMode.get() === 'ai' && CurrentTurn.get() !== HumanColor.get()) return;
     const pos = canvasPos(e.clientX, e.clientY);
     const hex = getHexAt(pos.x, pos.y);
     if (!hex) return;
