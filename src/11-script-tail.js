@@ -219,7 +219,7 @@ var AbaTB = (function () {
    Une reponse negative signifie toujours "pas de preuve dans cet horizon",
    jamais "impossible".
 
-   Depend du moteur de la page : board, capturedByBlack, capturedByWhite,
+   Depend du moteur de la page : board, CapturedByBlack.get(), CapturedByWhite.get(),
    getAllMovesForColor, applyMove, undoMove, hashBoard.
    ========================================================================== */
 var AbaSolve = (function () {
@@ -229,7 +229,7 @@ var AbaSolve = (function () {
   var ctx = null;
 
   function other(c) { return c === 'black' ? 'white' : 'black'; }
-  function capturedBy(c) { return c === 'black' ? capturedByBlack : capturedByWhite; }
+  function capturedBy(c) { return c === 'black' ? CapturedByBlack.get() : CapturedByWhite.get(); }
 
   // cle de transposition : plateau + trait. Les compteurs d'ejection se
   // deduisent du nombre de billes, donc le hash du plateau les porte deja.
