@@ -17,7 +17,7 @@ function _bulkResultLabel(entry){
 function exportFullHistoryAbaPro(){
   const history = (typeof getGameHistory === 'function') ? getGameHistory() : [];
   if (!history.length){ if (typeof showToast === 'function') showToast('Aucune partie à exporter.'); return; }
-  const saveLayout = currentLayout, saveBoard = board, saveCB = capturedByBlack, saveCW = capturedByWhite;
+  const saveLayout = currentLayout, saveBoard = board, saveCB = CapturedByBlack.get(), saveCW = CapturedByWhite.get();
   const blocks = [];
   let skipped = 0;
   // Ordre chronologique (l'historique local est range du plus recent au
@@ -28,7 +28,7 @@ function exportFullHistoryAbaPro(){
     const parsed = gameCodeParse(entry.code);
     if (!parsed.ok) { skipped++; return; }
     currentLayout = parsed.layout || 'standard';
-    initBoardState(); capturedByBlack = 0; capturedByWhite = 0;
+    initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
     let turn = 'black';
     const tokens = [];
     for (let i = 0; i < parsed.moves.length; i++) {
@@ -48,7 +48,7 @@ function exportFullHistoryAbaPro(){
     const body = tokens.map(function(t,i){ return (i%2===0 ? (Math.floor(i/2)+1)+'.' : '') + t; }).join(' ');
     blocks.push(head + '\n' + body);
   });
-  currentLayout = saveLayout; board = saveBoard; capturedByBlack = saveCB; capturedByWhite = saveCW;
+  currentLayout = saveLayout; board = saveBoard; CapturedByBlack.set(saveCB); CapturedByWhite.set(saveCW);
   if (!blocks.length){ if (typeof showToast === 'function') showToast('Aucune partie exploitable — rien à exporter.'); return; }
   const text = '# Abalassembly — export complet de l\u2019historique (' + blocks.length + ' partie' + (blocks.length>1?'s':'') + ')\n'
     + '# Notation Aba-Pro. Chaque bloc commence par une ligne "# date · variante · résultat · joueurs".\n\n'
@@ -98,7 +98,7 @@ function openBulkHistoryImportModal(){
    fausse en silence : meme principe que gameCodeLoad(). */
 function _parseBulkHistoryText(text){
   const blocks = String(text||'').split(/\n(?=#)/).map(function(s){ return s.trim(); }).filter(Boolean);
-  const saveLayout = currentLayout, saveBoard = board, saveCB = capturedByBlack, saveCW = capturedByWhite;
+  const saveLayout = currentLayout, saveBoard = board, saveCB = CapturedByBlack.get(), saveCW = CapturedByWhite.get();
   const results = [];
   blocks.forEach(function(block){
     const lines = block.split('\n');
@@ -123,7 +123,7 @@ function _parseBulkHistoryText(text){
     const tokens = bodyLines.replace(/\d+\./g, ' ').trim().split(/\s+/).filter(Boolean);
     if (!tokens.length){ results.push({ok:false, reason:'bloc sans coup lisible'}); return; }
 
-    currentLayout = layout; initBoardState(); capturedByBlack = 0; capturedByWhite = 0;
+    currentLayout = layout; initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
     let turn = 'black', body = '', played = 0;
     for (let i = 0; i < tokens.length; i++) {
       const mv = resolveAbaProToken(tokens[i], turn);
@@ -161,7 +161,7 @@ function _parseBulkHistoryText(text){
       }
     });
   });
-  currentLayout = saveLayout; board = saveBoard; capturedByBlack = saveCB; capturedByWhite = saveCW;
+  currentLayout = saveLayout; board = saveBoard; CapturedByBlack.set(saveCB); CapturedByWhite.set(saveCW);
   return results;
 }
 function _doBulkHistoryImport(){
@@ -267,7 +267,7 @@ function _doApgnImport(){
   if (typeof showPage === 'function') showPage('game');
   currentLayout = variant;
   if (typeof initBoardState === 'function') initBoardState();
-  capturedByBlack = 0; capturedByWhite = 0;
+  CapturedByBlack.set(0); CapturedByWhite.set(0);
   _replaySeqToSnapshots(text, 'Partie importée', first);
 
   const played = boardSnapshots.length;
@@ -402,15 +402,15 @@ function submitGameCode() {
 function postGameReview(myColor) {
   if (typeof boardSnapshots === 'undefined' || boardSnapshots.length < 2) return null;
   const me = myColor || (typeof HumanColor !== 'undefined' ? HumanColor.get() : 'black');
-  const saved = { b: board, cb: capturedByBlack, cw: capturedByWhite };
+  const saved = { b: board, cb: CapturedByBlack.get(), cw: CapturedByWhite.get() };
   const evals = [];
   let firstLoss = -1;
   try {
     for (let i = 0; i < boardSnapshots.length; i++) {
       const s = boardSnapshots[i];
       board = s.board;
-      capturedByBlack = s.capturedByBlack;
-      capturedByWhite = s.capturedByWhite;
+      CapturedByBlack.set(s.capturedByBlack);
+      CapturedByWhite.set(s.capturedByWhite);
       evals.push(evaluateBoard(me));
       const lost = (me === 'black') ? s.capturedByWhite : s.capturedByBlack;
       if (firstLoss < 0 && lost > 0) firstLoss = i + 1;
@@ -418,7 +418,7 @@ function postGameReview(myColor) {
   } catch (e) {
     return null;
   } finally {
-    board = saved.b; capturedByBlack = saved.cb; capturedByWhite = saved.cw;
+    board = saved.b; CapturedByBlack.set(saved.cb); CapturedByWhite.set(saved.cw);
   }
 
   /* Coup charniere : la plus forte chute d'evaluation entre deux positions
