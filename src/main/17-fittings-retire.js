@@ -174,8 +174,8 @@ function addMoveToHistory(move, color, moveInfo) {
   // Save snapshot for replay (avec les infos du coup pour recalculer la notation)
   boardSnapshots.push({
     board: JSON.parse(JSON.stringify(board)),
-    capturedByBlack: capturedByBlack,
-    capturedByWhite: capturedByWhite,
+    capturedByBlack: CapturedByBlack.get(),
+    capturedByWhite: CapturedByWhite.get(),
     moveCount: moveCount,
     label: move, color: color,
     moveInfo: moveInfo || null   // {cells, dir, type, ejection} pour re-notation
@@ -231,8 +231,8 @@ function appendMoveRow(list, moveInfo, fallbackLabel, color, plyNum) {
     // (fiable aussi bien en direct qu'au réaffichage de l'historique).
     if (moveInfo.ejection) {
       const snap = (typeof boardSnapshots !== 'undefined') ? boardSnapshots[plyNum - 1] : null;
-      const cb = snap ? snap.capturedByBlack : (typeof capturedByBlack !== 'undefined' ? capturedByBlack : 0);
-      const cw = snap ? snap.capturedByWhite : (typeof capturedByWhite !== 'undefined' ? capturedByWhite : 0);
+      const cb = snap ? snap.capturedByBlack : (typeof CapturedByBlack !== 'undefined' ? CapturedByBlack.get() : 0);
+      const cw = snap ? snap.capturedByWhite : (typeof CapturedByWhite !== 'undefined' ? CapturedByWhite.get() : 0);
       ejx = ' (' + cb + '-' + cw + ')';
     }
   } else { aba = nac = fallbackLabel || ''; }
