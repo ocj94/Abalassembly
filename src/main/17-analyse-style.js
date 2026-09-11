@@ -35,7 +35,7 @@ function recordStyleMove(before, after, capDelta, info){
   else if((dE>=1 && after.edge>=3) || dC<=-3 || dCo<=-3) q='warn';
   if(q==='good') g.qGood++; else if(q==='warn') g.qWarn++; else g.qNeutral++;
   // Bulle d'analyse live (ton analytique), tous les 5 coups, jamais sur le coup gagnant
-  if(capturedByBlack<6 && capturedByWhite<6 && g.moves%5===0) showStyleLiveBubble(g);
+  if(CapturedByBlack.get()<6 && CapturedByWhite.get()<6 && g.moves%5===0) showStyleLiveBubble(g);
 }
 
 function clamp01(x){ return Math.max(0, Math.min(100, Math.round(x))); }
