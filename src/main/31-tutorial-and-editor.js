@@ -128,7 +128,7 @@ function playFromEditor() {
   setTimeout(function() {
     board = JSON.parse(JSON.stringify(editorBoard));
     capturedByWhite = editorCapturedWhite; capturedByBlack = editorCapturedBlack;
-    currentTurn = 'black'; moveCount = 0; gameOver = false;
+    CurrentTurn.set('black'); moveCount = 0; gameOver = false;
     selected = [];
     if (typeof updateCaptures === 'function') updateCaptures();
     if (typeof updateStatus === 'function') updateStatus();
