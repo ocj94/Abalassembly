@@ -158,7 +158,8 @@ const GYM_ZONES = [
   { id: 'diagnostic',  icon: '🩺', name: 'Diagnostic',   zone: 'Frontal',         desc: 'Identifier ce qu\u2019un coup vient d\u2019abimer dans sa position.' },
   { id: 'certitude',   icon: '⚖️', name: 'Certitude',    zone: 'Métacognition',   desc: 'Distinguer un gain prouvé d\u2019une position juste séduisante.' },
   { id: 'repertoire',  icon: '📖', name: 'Répertoire',   zone: 'Temporal',        desc: 'Reconnaître ce que jouent les forts en ouverture, sur des vraies parties.' },
-  { id: 'jugement',    icon: '🎚️', name: 'Jugement',     zone: 'Parietal',        desc: 'Comparer deux positions sur un critère précis.' }
+  { id: 'jugement',    icon: '🎚️', name: 'Jugement',     zone: 'Parietal',        desc: 'Comparer deux positions sur un critère précis.' },
+  { id: 'mat',         icon: '🎯', name: 'Mat au bord',  zone: 'Reconnaissance de motif', desc: 'Trouver l\u2019éjection qui gagne immédiatement (attaque, pas défense).' }
 ];
 
 function _loadGymProgress(){
