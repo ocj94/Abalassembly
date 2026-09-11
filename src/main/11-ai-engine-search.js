@@ -165,8 +165,8 @@ function evaluateBoard(color, detail) {
   const cohesion   = (myCohesion - enCohesion) * 4;
   const edgePenalty= (enEdge - myEdge) * 8;     // billes adverses au bord = bon pour moi
   const capScore   = (color === 'white'
-                      ? (capturedByWhite - capturedByBlack)
-                      : (capturedByBlack - capturedByWhite)) * 1000;
+                      ? (CapturedByWhite.get() - CapturedByBlack.get())
+                      : (CapturedByBlack.get() - CapturedByWhite.get())) * 1000;
   const mobScore   = (myMob - enMob) * 2;       // V13 : plus de cases libres autour de mes billes
   const isoScore   = (enIso - myIso) * 18;      // V13 : billes adverses isolées = bon (divide & conquer)
   const dngScore   = (enDng - myDng) * 14;      // V13 : billes adverses en danger d'éjection = bon
@@ -318,8 +318,8 @@ function applyMove(move, color) {
   undo.__captured = null;
   // met à jour le compteur de captures pendant la recherche
   if (move.info.type === 'push' && move.info.ejection) {
-    if (color === 'white') { capturedByWhite++; undo.__captured = 'white'; }
-    else                   { capturedByBlack++; undo.__captured = 'black'; }
+    if (color === 'white') { CapturedByWhite.inc(); undo.__captured = 'white'; }
+    else                   { CapturedByBlack.inc(); undo.__captured = 'black'; }
   }
   // abApplyMove fait la modification reelle du board (deplacement/poussee/ejection) —
   // toute la logique de detection ci-dessus ne sert qu'a preparer l'annulation.
@@ -330,8 +330,8 @@ function applyMove(move, color) {
 // Annule exactement le coup applique par applyMove, en restaurant chaque case
 // suivie a sa valeur d'avant (v===undefined signifie que la case etait vide).
 function undoMove(undo) {
-  if (undo.__captured === 'white') capturedByWhite--;
-  else if (undo.__captured === 'black') capturedByBlack--;
+  if (undo.__captured === 'white') CapturedByWhite.dec();
+  else if (undo.__captured === 'black') CapturedByBlack.dec();
   undo.forEach(function(entry) {
     if (entry.v === undefined) delete board[entry.k];
     else board[entry.k] = entry.v;
