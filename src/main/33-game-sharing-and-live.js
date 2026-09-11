@@ -168,7 +168,7 @@ function gameCodeLoad(code) {
     turn = (turn === 'black') ? 'white' : 'black';
   }
 
-  currentTurn = turn;
+  CurrentTurn.set(turn);
   moveCount = parsed.moves.length;
   if (typeof updateCaptures === 'function') updateCaptures();
   if (typeof drawBoard === 'function') drawBoard();
@@ -180,7 +180,7 @@ function _gcGuessMyColor(){
   // a jouer) ; partie deja en cours (code recu) -> la couleur actuellement
   // au trait, puisque c'est celle qui va jouer ensuite dans CE navigateur.
   if (typeof boardSnapshots === 'undefined' || !boardSnapshots.length) return 'black';
-  return (typeof currentTurn !== 'undefined') ? currentTurn : 'black';
+  return (typeof CurrentTurn !== 'undefined') ? CurrentTurn.get() : 'black';
 }
 let _gcMyColorChoice = null;
 
@@ -415,14 +415,14 @@ function rtcSendMove(cells, dir){
 function _rtcHandleMessage(data){
   const decoded = rtcDecodeMove(data);
   if (!decoded) return;
-  const color = currentTurn;
+  const color = CurrentTurn.get();
   const v = validateMove(decoded.cells, decoded.dir, color);
   if (!v || !v.valid) return;
   _rtcApplyingRemote = true;
   applyMove({ cells: decoded.cells, dir: decoded.dir, info: v }, color);
   const label = moveLabel(decoded.cells, decoded.dir, v.type, !!v.ejection);
   addMoveToHistory(label, color, { cells: decoded.cells.slice(), dir: decoded.dir, type: v.type, ejection: !!v.ejection });
-  currentTurn = (color === 'black') ? 'white' : 'black';
+  CurrentTurn.set((color === 'black') ? 'white' : 'black');
   if (typeof updateCaptures === 'function') updateCaptures();
   if (typeof drawBoard === 'function') drawBoard();
   if (typeof updateStatus === 'function') updateStatus();
