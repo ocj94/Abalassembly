@@ -287,7 +287,7 @@ function extractPV(rootColor, firstMove, maxLen) {
     let mover = (rootColor === 'black') ? 'white' : 'black';
 
     for (let i = 1; i < maxLen; i++) {
-      if (capturedByBlack >= 6 || capturedByWhite >= 6) break;
+      if (CapturedByBlack.get() >= 6 || CapturedByWhite.get() >= 6) break;
       const h = hashBoard();
       const tt = TT.get(h);
       if (!tt || !tt.move) break;
@@ -453,8 +453,8 @@ function saveGameState() {
     const state = {
       board: board,
       turn: CurrentTurn.get(),
-      capB: capturedByBlack,
-      capW: capturedByWhite,
+      capB: CapturedByBlack.get(),
+      capW: CapturedByWhite.get(),
       timer: gameTimerSeconds,
       mode: (typeof GameMode !== 'undefined') ? GameMode.get() : 'ai',
       ts: Date.now()
@@ -471,8 +471,8 @@ function loadSavedGame() {
     if (!state.board || Object.keys(state.board).length === 0) return false;
     board = state.board;
     CurrentTurn.set(state.turn || 'black');
-    capturedByBlack = state.capB || 0;
-    capturedByWhite = state.capW || 0;
+    CapturedByBlack.set(state.capB || 0);
+    CapturedByWhite.set(state.capW || 0);
     gameTimerSeconds = state.timer || 0;
     gameOver = false;
     selected = [];
@@ -509,7 +509,7 @@ function loadSnapshot(idx) {
   if (idx === -1) {
     if (!_replayStartBoard) return;
     board = JSON.parse(JSON.stringify(_replayStartBoard));
-    capturedByBlack = 0; capturedByWhite = 0;
+    CapturedByBlack.set(0); CapturedByWhite.set(0);
     drawBoard(); updateCaptures();
     document.querySelectorAll('.move-item').forEach(function(el){ el.classList.remove('current'); });
     const st0 = document.getElementById('game-status-text');
@@ -519,8 +519,8 @@ function loadSnapshot(idx) {
   if (!boardSnapshots[idx]) return;
   const snap = boardSnapshots[idx];
   board = JSON.parse(JSON.stringify(snap.board));
-  capturedByBlack = snap.capturedByBlack;
-  capturedByWhite = snap.capturedByWhite;
+  CapturedByBlack.set(snap.capturedByBlack);
+  CapturedByWhite.set(snap.capturedByWhite);
   drawBoard();
   updateCaptures();
   // Highlight current move in list
