@@ -315,13 +315,13 @@ function gameShowBestMove() {
   // propre tour ('Ce n'est pas votre tour' alors que si), et le coup
   // cherche ensuite (voir plus bas) etait celui des noirs -- le coup de
   // l'IA elle-meme, affiche comme si c'etait "votre" suggestion.
-  if (GameMode.get() === 'ai' && currentTurn !== HumanColor.get()) { showToast('⛔ Ce n\'est pas votre tour'); return; }
+  if (GameMode.get() === 'ai' && CurrentTurn.get() !== HumanColor.get()) { showToast('⛔ Ce n\'est pas votre tour'); return; }
   showToast('🧠 Recherche du meilleur coup...');
   setTimeout(function() {
     // searchBestMove travaille sur la globale board (qui est déjà la position courante)
     const SEARCH_DEPTH = 2;
     let best = null;
-    try { best = searchBestMove(currentTurn, SEARCH_DEPTH, 1500); }
+    try { best = searchBestMove(CurrentTurn.get(), SEARCH_DEPTH, 1500); }
     catch(e) { best = null; }
     if (best && best.cells) {
       gameBestHint = { cells: best.cells, dir: best.dir };
@@ -339,7 +339,7 @@ function gameShowBestMove() {
          que le moteur n'a pas fait. */
       let replyMsg = '';
       try {
-        const pv = extractPV(currentTurn, best, SEARCH_DEPTH);
+        const pv = extractPV(CurrentTurn.get(), best, SEARCH_DEPTH);
         if (pv.length > 1) {
           const reply = pv[1].move;
           const replyNotation = moveToABAPRO(reply.cells, reply.dir, reply.type);
@@ -452,7 +452,7 @@ function saveGameState() {
   try {
     const state = {
       board: board,
-      turn: currentTurn,
+      turn: CurrentTurn.get(),
       capB: capturedByBlack,
       capW: capturedByWhite,
       timer: gameTimerSeconds,
@@ -470,7 +470,7 @@ function loadSavedGame() {
     const state = JSON.parse(raw);
     if (!state.board || Object.keys(state.board).length === 0) return false;
     board = state.board;
-    currentTurn = state.turn || 'black';
+    CurrentTurn.set(state.turn || 'black');
     capturedByBlack = state.capB || 0;
     capturedByWhite = state.capW || 0;
     gameTimerSeconds = state.timer || 0;
