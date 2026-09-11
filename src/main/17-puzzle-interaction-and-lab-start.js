@@ -12,7 +12,7 @@ function startPuzzle(idx){
   if(typeof botDuelMode!=='undefined' && botDuelMode && typeof stopBotDuel==='function') stopBotDuel();
   // Pose la position
   board={}; p.bm.forEach(function(k){board[k]='black';}); p.wm.forEach(function(k){board[k]='white';});
-  capturedByBlack=p.cb; capturedByWhite=p.cw;
+  CapturedByBlack.set(p.cb); CapturedByWhite.set(p.cw);
   gameOver=false; replayMode=false; selected=[]; undoStack=[]; boardSnapshots=[]; moveCount=0;
   HumanColor.set(p.c); CurrentTurn.set(p.c); _bookNode=null; gameBestHint=null;
   const rb=document.getElementById('replay-btn'); if(rb) rb.style.display='none';
@@ -381,9 +381,9 @@ const LAB_BOOK_KEY = 'abaLabBookLearned';
 const LAB_BOOK_MAX_PLY = 10;   // meme profondeur que le book historique
 function _labMineBook(moves) {
   if (!moves || !moves.length) return;
-  const savedBoard = board, savedCB = capturedByBlack, savedCW = capturedByWhite;
+  const savedBoard = board, savedCB = CapturedByBlack.get(), savedCW = CapturedByWhite.get();
   try {
-    board = {}; capturedByBlack = 0; capturedByWhite = 0;
+    board = {}; CapturedByBlack.set(0); CapturedByWhite.set(0);
     // Meme position de depart standard que _duelSetup (cote worker) — verifiee
     // par decodage direct de sa chaine de depart : NOIR est en bas (lignes 6-8),
     // BLANC en haut (lignes 0-2). Sens inverse de ce a quoi on pourrait s'attendre
@@ -414,7 +414,7 @@ function _labMineBook(moves) {
   } catch(e) {
     // jamais bloquant pour le Labo — une erreur de minage ne doit pas arreter les duels
   } finally {
-    board = savedBoard; capturedByBlack = savedCB; capturedByWhite = savedCW;
+    board = savedBoard; CapturedByBlack.set(savedCB); CapturedByWhite.set(savedCW);
   }
 }
 function _labOnMsg(e){
@@ -1249,7 +1249,7 @@ function switchSide(){
   const nb = {};
   for(const k in board){ if(board[k]==='black') nb[k]='white'; else if(board[k]==='white') nb[k]='black'; }
   board = nb;
-  const t = capturedByBlack; capturedByBlack = capturedByWhite; capturedByWhite = t;
+  const t = CapturedByBlack.get(); CapturedByBlack.set(capturedByWhite); CapturedByWhite.set(t);
   if(typeof drawBoard==='function') drawBoard();
   if(typeof updateCaptures==='function') updateCaptures();
   if(typeof showToast==='function') showToast('🔄 Camps inversés');
@@ -1364,8 +1364,8 @@ function aiMove() {
   // chemin mono-worker existant si non disponible ou pas avantageux.
   const pooledParams = {
     board: JSON.parse(JSON.stringify(board)),
-    capturedByWhite: capturedByWhite,
-    capturedByBlack: capturedByBlack,
+    capturedByWhite: CapturedByWhite.get(),
+    capturedByBlack: CapturedByBlack.get(),
     color: ai,
     depth: config.depth,
     time: config.time,
@@ -1416,8 +1416,8 @@ function aiMove() {
     // Envoie la position au worker
     worker.postMessage({
       board: JSON.parse(JSON.stringify(board)),
-      capturedByWhite: capturedByWhite,
-      capturedByBlack: capturedByBlack,
+      capturedByWhite: CapturedByWhite.get(),
+      capturedByBlack: CapturedByBlack.get(),
       color: ai,
       depth: config.depth,
       time: config.time,
@@ -1497,9 +1497,9 @@ function executeAIMove(chosen) {
       if (rc) { const p = hexCoord(rc.r, rc.c); ejX = p.x; ejY = p.y; }
     }
     soundEject();  // 🔊
-    if (ai === 'white') capturedByWhite++; else capturedByBlack++;
+    if (ai === 'white') CapturedByWhite.inc(); else CapturedByBlack.inc();
     updateCaptures();
-    const ejCount = (ai === 'white') ? capturedByWhite : capturedByBlack;
+    const ejCount = (ai === 'white') ? CapturedByWhite.get() : CapturedByBlack.get();
     if (ejX!==null) animateEjection(ejX, ejY, human, ejCount-1);
     /* Le coup gagnant doit etre ENREGISTRE avant de conclure. Le retour
        anticipe sautait addMoveToHistory : le 6e coup d'ejection de l'IA
@@ -1524,7 +1524,7 @@ function executeAIMove(chosen) {
   _clockInc(human==='black'?'white':'black');   // ⏱️ incrément pour l'IA qui vient de jouer
   CurrentTurn.set(human); moveCount++;
   _emitAbaEvent('movePlayed', { color: (human==='black'?'white':'black'), label: label,
-    moveCount: moveCount, capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite });
+    moveCount: moveCount, capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get() });
   if (!gameOver) playSfx('occ_change');   // 🔊 « c'est ton tour »
   updateStatus(); drawBoard();
   if (explicationIA && !gameOver) showAIExplainBubble(explicationIA);
