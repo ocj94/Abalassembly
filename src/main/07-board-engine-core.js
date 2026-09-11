@@ -78,8 +78,37 @@ function monCamp() {
 // courant, exposee separement pour les endroits qui posent la question
 // plutot que d'avoir besoin de la couleur elle-meme.
 function estMonTour() { return (typeof CurrentTurn !== 'undefined') && CurrentTurn.get() === monCamp(); }
-let capturedByBlack = 0;
-let capturedByWhite = 0;
+const CapturedByBlack = (function(){
+  // Encapsulation, meme motif que GameMode/HumanColor/CurrentTurn : interface
+  // explicite sur un script classique (pas de vrais import/export,
+  // incompatibles avec file:// hors-ligne). .inc()/.dec() en plus des
+  // accesseurs parce que ce sont des COMPTEURS : capturedByBlack++ et -- n'ont
+  // pas d'equivalent direct en .get()/.set(), et certains sites lisent la
+  // valeur AVANT increment (animateEjection recoit .get()-1).
+  //
+  // NOTE IMPORTANTE : le code du worker IA (AI_WORKER_CODE) garde deliberement
+  // ses propres variables capturedByBlack/capturedByWhite en minuscules. Le
+  // worker s'execute dans un thread separe, sans acces a cette portee : y
+  // injecter CapturedByBlack le casserait, et aucun controle de syntaxe ne le
+  // verrait puisque ce code vit dans une chaine. La chaine s'etend sur DEUX
+  // fichiers source (13-move-detection-motifs.js -> 14-engine-experimental-workers.js).
+  let value = 0;
+  return {
+    get: function(){ return value; },
+    set: function(v){ value = v; },
+    inc: function(){ value++; return value; },
+    dec: function(){ value--; return value; }
+  };
+})();
+const CapturedByWhite = (function(){
+  let value = 0;
+  return {
+    get: function(){ return value; },
+    set: function(v){ value = v; },
+    inc: function(){ value++; return value; },
+    dec: function(){ value--; return value; }
+  };
+})();
 let moveCount = 14;
 let gameOver = false;
 let timerInterval;
@@ -1485,7 +1514,7 @@ function drawGutterMarbles(ctx, corners, mx, my, pad, gutterW, opts) {
      montrait 6. On la reconstruit ici depuis les compteurs du snapshot
      courant, seule source exacte pour la position affichee. Signale par Saab
      (« eject colonne gauche -0b3w OK / Rigole -0b6w ?? »).
-     Note : capturedByBlack = billes BLANCHES ejectees par les Noirs. */
+     Note : CapturedByBlack.get() = billes BLANCHES ejectees par les Noirs. */
   if (typeof replayMode !== 'undefined' && replayMode) {
     const snap = (typeof replayCurrentIdx !== 'undefined' && replayCurrentIdx >= 0
                   && typeof boardSnapshots !== 'undefined') ? boardSnapshots[replayCurrentIdx] : null;
