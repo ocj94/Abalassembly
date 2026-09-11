@@ -107,7 +107,7 @@ function triggerWin(winner, reason) {
   if (typeof disarmInactivityCancel === 'function') disarmInactivityCancel();
   try{ localStorage.setItem('abaGamesFinished', String((parseInt(localStorage.getItem('abaGamesFinished')||'0',10)||0)+1)); }catch(e){}
   _emitAbaEvent('gameOver', { winner: winner, reason: reason || null,
-    capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite, moveCount: moveCount });
+    capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(), moveCount: moveCount });
   if (typeof updateHeroStats==='function') updateHeroStats();
   if (typeof _tourneyMatch!=='undefined' && _tourneyMatch && typeof tourneyMatchEnd==='function') { tourneyMatchEnd(winner, reason); }
   clearInterval(timerInterval);
@@ -141,7 +141,7 @@ function triggerWin(winner, reason) {
   // ── Hook engagement : XP, streak, ELO, badges ──
   sanitizeProgress();
   // ── Taux de conversion : le joueur a-t-il mené puis gagné ? ──
-  if ((progress.__hadLead || capturedByBlack > 0) && !(typeof moveCount !== 'undefined' && moveCount === 0)) {
+  if ((progress.__hadLead || CapturedByBlack.get() > 0) && !(typeof moveCount !== 'undefined' && moveCount === 0)) {
     progress.leadGames = (progress.leadGames||0) + 1;
     if (winner === 'black') progress.leadWins = (progress.leadWins||0) + 1;
     progress.__hadLead = false;
@@ -156,7 +156,7 @@ function triggerWin(winner, reason) {
     if (typeof showToast === 'function') showToast('Partie annulée — aucun coup joué, ELO inchangé');
   }
   // Badge Blanchissage : le joueur gagne 6-0 sans avoir perdu une seule bille
-  if (winner === 'black' && capturedByWhite === 0 && typeof awardBadge === 'function') {
+  if (winner === 'black' && CapturedByWhite.get() === 0 && typeof awardBadge === 'function') {
     awardBadge('shutout');
     showToast('🧺 Blanchissage ! Victoire 6-0 sans perdre une bille !');
   }
