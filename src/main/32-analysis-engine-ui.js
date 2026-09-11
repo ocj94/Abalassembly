@@ -125,12 +125,12 @@ function updateAnalysisEval() {
   if (!evalText || !evalBar) return;
   // utilise evaluateBoard si dispo, sinon compte le matériel
   let score = 0;
-  const savedB = board, savedCB = capturedByBlack, savedCW = capturedByWhite;
-  board = analysisBoard; capturedByBlack = analysisCapB; capturedByWhite = analysisCapW;
+  const savedB = board, savedCB = CapturedByBlack.get(), savedCW = CapturedByWhite.get();
+  board = analysisBoard; CapturedByBlack.set(analysisCapB); CapturedByWhite.set(analysisCapW);
   try {
     if (typeof evaluateBoard === 'function') score = evaluateBoard('black');
   } catch(e) { score = 0; }
-  board = savedB; capturedByBlack = savedCB; capturedByWhite = savedCW;
+  board = savedB; CapturedByBlack.set(savedCB); CapturedByWhite.set(savedCW);
 
   // position du curseur sur la barre (0% = blanc gagne, 100% = noir gagne)
   const clamped = Math.max(-2000, Math.min(2000, score));
@@ -206,14 +206,14 @@ function renderAnalysisMoves() {
    les inversions de signe qui ont deja pose probleme dans ce projet. */
 function computeEvalCurve(){
   if (typeof analysisHistory === 'undefined' || analysisHistory.length < 2) return null;
-  const savedB = board, savedCB = capturedByBlack, savedCW = capturedByWhite;
+  const savedB = board, savedCB = CapturedByBlack.get(), savedCW = CapturedByWhite.get();
   const evals = analysisHistory.map(function(snap){
-    board = snap.board; capturedByBlack = snap.capB; capturedByWhite = snap.capW;
+    board = snap.board; CapturedByBlack.set(snap.capB); CapturedByWhite.set(snap.capW);
     let s = 0;
     try { s = evaluateBoard('black'); } catch(e){ s = 0; }
     return s;
   });
-  board = savedB; capturedByBlack = savedCB; capturedByWhite = savedCW;
+  board = savedB; CapturedByBlack.set(savedCB); CapturedByWhite.set(savedCW);
   return evals;
 }
 
@@ -329,14 +329,14 @@ function _evalCurveClick(ev, svgEl){
 
 function computeGameMistakes(humanColor, topN){
   if (typeof analysisHistory === 'undefined' || analysisHistory.length < 2) return [];
-  const savedB = board, savedCB = capturedByBlack, savedCW = capturedByWhite;
+  const savedB = board, savedCB = CapturedByBlack.get(), savedCW = CapturedByWhite.get();
   const evals = analysisHistory.map(function(snap){
-    board = snap.board; capturedByBlack = snap.capB; capturedByWhite = snap.capW;
+    board = snap.board; CapturedByBlack.set(snap.capB); CapturedByWhite.set(snap.capW);
     let s = 0;
     try { s = evaluateBoard('black'); } catch(e){ s = 0; }
     return s;
   });
-  board = savedB; capturedByBlack = savedCB; capturedByWhite = savedCW;
+  board = savedB; CapturedByBlack.set(savedCB); CapturedByWhite.set(savedCW);
 
   const mistakes = [];
   for (let i = 1; i < analysisHistory.length; i++){
@@ -533,8 +533,8 @@ function handleAnalysisClick(r, c) {
     if (!dir) { analysisSelected = []; drawAnalysisBoard(); return; }
 
     // applique via le moteur
-    const savedB = board, savedCB = capturedByBlack, savedCW = capturedByWhite;
-    board = analysisBoard; capturedByBlack = analysisCapB; capturedByWhite = analysisCapW;
+    const savedB = board, savedCB = CapturedByBlack.get(), savedCW = CapturedByWhite.get();
+    board = analysisBoard; CapturedByBlack.set(analysisCapB); CapturedByWhite.set(analysisCapW);
     const info = validateMove(analysisSelected, dir, me);
     if (info.valid) {
       const ejated = !!(info.type === 'push' && info.ejection);
@@ -542,11 +542,11 @@ function handleAnalysisClick(r, c) {
       // position de depart, et analysisSelected est vide plus bas.
       const _movedCells = analysisSelected.map(function(s){ return {r:s.r, c:s.c}; });
       abApplyMove(analysisSelected, dir, me, info);
-      if (ejated) { if (me === 'black') capturedByBlack++; else capturedByWhite++; soundEject(); }
+      if (ejated) { if (me === 'black') CapturedByBlack.inc(); else CapturedByWhite.inc(); soundEject(); }
       else if (info.type === 'push') soundPush();
       else soundMove();
-      analysisBoard = board; analysisCapB = capturedByBlack; analysisCapW = capturedByWhite;
-      board = savedB; capturedByBlack = savedCB; capturedByWhite = savedCW;
+      analysisBoard = board; analysisCapB = CapturedByBlack.get(); analysisCapW = CapturedByWhite.get();
+      board = savedB; CapturedByBlack.set(savedCB); CapturedByWhite.set(savedCW);
 
       // tronque l'historique après la position courante (nouvelle variante)
       analysisHistory = analysisHistory.slice(0, analysisIdx + 1);
@@ -571,7 +571,7 @@ function handleAnalysisClick(r, c) {
       updateAnalysisPositionInfo();
       renderAnalysisMoves();
     } else {
-      board = savedB; capturedByBlack = savedCB; capturedByWhite = savedCW;
+      board = savedB; CapturedByBlack.set(savedCB); CapturedByWhite.set(savedCW);
       analysisSelected = [];
       drawAnalysisBoard();
       showToast('⛔ ' + (info.reason || 'Coup invalide'));
