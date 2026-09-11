@@ -14,14 +14,14 @@ function startVariant() {
   const snap = boardSnapshots[replayCurrentIdx];
   _variantStash = {
     board: JSON.parse(JSON.stringify(board)),
-    capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite,
+    capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(),
     currentTurn: CurrentTurn.get(), gameMode: GameMode.get(), humanColor: HumanColor.get(), gameOver: gameOver,
     fromLive: false
   };
   variantMode = true;
   board = JSON.parse(JSON.stringify(snap.board));
-  capturedByBlack = snap.capturedByBlack;
-  capturedByWhite = snap.capturedByWhite;
+  CapturedByBlack.set(snap.capturedByBlack);
+  CapturedByWhite.set(snap.capturedByWhite);
   CurrentTurn.set((snap.color === 'black') ? 'white' : 'black');
   HumanColor.set(CurrentTurn.get());   // on explore en jouant le prochain coup, quel que soit le camp
   GameMode.set('ai');            // pour que l'IA réponde automatiquement au coup exploratoire
@@ -45,7 +45,7 @@ function startLiveVariant() {
   if (GameMode.get() === 'ai' && CurrentTurn.get() !== HumanColor.get()) { showToast('Attends ton tour pour essayer un coup'); return; }
   _variantStash = {
     board: JSON.parse(JSON.stringify(board)),
-    capturedByBlack: capturedByBlack, capturedByWhite: capturedByWhite,
+    capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(),
     currentTurn: CurrentTurn.get(), gameMode: GameMode.get(), humanColor: HumanColor.get(), gameOver: gameOver,
     fromLive: true
   };
@@ -61,8 +61,8 @@ function exitVariant() {
   if (!variantMode || !_variantStash) return;
   const wasFromLive = !!_variantStash.fromLive;
   board = _variantStash.board;
-  capturedByBlack = _variantStash.capturedByBlack;
-  capturedByWhite = _variantStash.capturedByWhite;
+  CapturedByBlack.set(_variantStash.capturedByBlack);
+  CapturedByWhite.set(_variantStash.capturedByWhite);
   CurrentTurn.set(_variantStash.currentTurn);
   GameMode.set(_variantStash.gameMode);
   HumanColor.set(_variantStash.humanColor);
