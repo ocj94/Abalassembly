@@ -695,9 +695,9 @@ function setCarteTactiqueOverlayDim(dim) {
 function drawCarteTactiqueOverlay(ctx) {
   if (!showCarteTactique) return;
   if (typeof gameOver !== 'undefined' && gameOver) return;
-  if (typeof calculerCarteTactique !== 'function' || typeof currentTurn === 'undefined') return;
+  if (typeof calculerCarteTactique !== 'function' || typeof CurrentTurn === 'undefined') return;
   let cases;
-  try { cases = calculerCarteTactique(currentTurn); } catch(e) { return; }
+  try { cases = calculerCarteTactique(CurrentTurn.get()); } catch(e) { return; }
   if (!cases || !cases.length) return;
   const dim = carteTactiqueOverlayDim;
   let maxVal = 0;
