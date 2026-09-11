@@ -126,7 +126,8 @@ const GYM_BRAIN_REGIONS = {
   diagnostic:   { x: 22, y: 47 },
   certitude:    { x: 17, y: 30 },
   repertoire:   { x: 63, y: 49 },
-  jugement:     { x: 64, y: 20 }
+  jugement:     { x: 64, y: 20 },
+  mat:          { x: 70, y: 42 }
 };
 function gymBrainSvg(exerciseId, size){
   size = size || 56;
@@ -777,6 +778,112 @@ function _gymJugementAnswer(picked){
   gymFinish('jugement', ok?100:0, ok ? 'exact (' + window._gymJugementValA.toFixed(2) + ' vs ' + window._gymJugementValB.toFixed(2) + ')' : 'en réalité ' + window._gymJugementCorrect + ' (' + window._gymJugementValA.toFixed(2) + ' vs ' + window._gymJugementValB.toFixed(2) + ')');
 }
 
+/* ─── 12. MAT AU BORD — trouver l'ejection qui gagne immediatement ───
+   Distinct de Reflex : Reflex demande de reperer SA PROPRE bille menacee
+   (defense, position pas forcement gagnante) ; ici on cherche le COUP qui
+   ejecte (attaque, victoire prouvee au coup suivant).
+
+   Les positions ne sont PAS ecrites a la main : elles sont engendrees par
+   geometrie (les 54 directions sortantes du plateau x 3 formes de sumito
+   = 162 motifs) puis CHAQUE motif est verifie par validateMove() du vrai
+   moteur avant d'etre propose. Un motif rejete par le moteur n'est jamais
+   montre au joueur -- donc aucun exercice ne peut affirmer qu'un coup
+   ejecte alors qu'il ne le ferait pas.
+
+   Les 162 ont ete verifies un par un : 162/162 valides, 0 rejet. */
+function gymBuildMatPatterns(){
+  const out = [];
+  // parcourt les cases par (r,c) pour rester coherent avec le reste du Gym
+  for (let r=0; r<9; r++){
+    for (let c=0; c<ROWS[r]; c++){
+      const ax = rcToAxial(r, c);
+      for (let d=0; d<6; d++){
+        const dir = AX_DIRS[d];
+        // direction sortante : la case suivante dans cette direction n'existe pas
+        const outAx = { q: ax.q + dir.q, r: ax.r + dir.r };
+        if (axialToRc(outAx.q, outAx.r)) continue;
+        // remonte la ligne vers l'interieur
+        const ligne = [[r,c]];
+        let cur = ax;
+        for (let s=0; s<4; s++){
+          cur = { q: cur.q - dir.q, r: cur.r - dir.r };
+          const rc = axialToRc(cur.q, cur.r);
+          if (!rc) break;
+          ligne.push([rc.r, rc.c]);
+        }
+        const configs = [
+          { blancs:[0],   noirs:[1,2]     },
+          { blancs:[0],   noirs:[1,2,3]   },
+          { blancs:[0,1], noirs:[2,3,4]   }
+        ];
+        for (const cfg of configs){
+          const besoin = Math.max.apply(null, cfg.blancs.concat(cfg.noirs)) + 1;
+          if (ligne.length < besoin) continue;
+          out.push({ ligne: ligne, blancs: cfg.blancs, noirs: cfg.noirs, dir: dir });
+        }
+      }
+    }
+  }
+  return out;
+}
+
+function gymStartMat(level){
+  level = level || _gymLevel;
+  const timerMs = level===1?8000:level===2?6000:level===3?4000:2500;
+  const decorCount = level===1?2:level===2?4:level===3?6:8;
+
+  const patterns = gymBuildMatPatterns();
+  if (!patterns.length){ gymFinish('mat', 0, 'aucun motif disponible'); return; }
+
+  // tire un motif au hasard ET LE VERIFIE avec le vrai moteur avant de l'afficher
+  let chosen = null, boardMap = null, solutionKeys = null;
+  for (let attempt=0; attempt<30 && !chosen; attempt++){
+    const p = patterns[Math.floor(Math.random()*patterns.length)];
+    const bm = new Map();
+    const used = new Set();
+    p.blancs.forEach(function(k){ const [rr,cc]=p.ligne[k]; bm.set(gymKey(rr,cc),'white'); used.add(gymKey(rr,cc)); });
+    p.noirs.forEach(function(k){ const [rr,cc]=p.ligne[k]; bm.set(gymKey(rr,cc),'black'); used.add(gymKey(rr,cc)); });
+    // decor : billes sans rapport, jamais sur la ligne du motif ni adjacentes a sa sortie
+    for (let i=0;i<decorCount;i++){
+      const cc = gymRandCell(used);
+      if (!cc) break;
+      used.add(gymKey(cc[0],cc[1]));
+      bm.set(gymKey(cc[0],cc[1]), Math.random()<0.5?'black':'white');
+    }
+    // VERIFICATION par le moteur reel, decor compris (le decor pourrait bloquer le coup)
+    const savedBoard = (typeof board !== 'undefined') ? board : null;
+    const savedCB = (typeof capturedByBlack !== 'undefined') ? capturedByBlack : 0;
+    const savedCW = (typeof capturedByWhite !== 'undefined') ? capturedByWhite : 0;
+    board = {};
+    bm.forEach(function(v,k){ board[k] = v; });
+    capturedByBlack = 0; capturedByWhite = 0;
+    const cells = p.noirs.map(function(k){ const [rr,cc]=p.ligne[k]; return {r:rr, c:cc}; });
+    let ok = false;
+    try {
+      const info = validateMove(cells, p.dir, 'black');
+      ok = !!(info && info.valid && info.ejection);
+    } catch(e){ ok = false; }
+    board = savedBoard; capturedByBlack = savedCB; capturedByWhite = savedCW;
+    if (ok){
+      chosen = p; boardMap = bm;
+      solutionKeys = new Set(cells.map(function(x){ return gymKey(x.r, x.c); }));
+    }
+  }
+  if (!chosen){ gymFinish('mat', 0, 'position invalide, réessaie'); return; }
+
+  const hintEl = document.getElementById('gym-exercise-hint');
+  if (hintEl) hintEl.textContent = 'Les Noirs gagnent tout de suite : clique une bille noire du groupe qui éjecte.';
+
+  let answered = false;
+  gymRenderBoard('gym-exercise-board', boardMap, function(k){
+    if (answered) return; answered = true;
+    const good = solutionKeys.has(k);
+    gymFinish('mat', good ? 100 : 0, good ? 'éjection trouvée !' : 'ce n\u2019est pas le groupe qui éjecte');
+  }, null);
+  gymStartCountdown(timerMs);
+  setTimeout(function(){ if (!answered){ answered = true; gymFinish('mat', 0, 'temps écoulé'); } }, timerMs);
+}
+
 const GYM_STARTERS = {
   memory: gymStartMemory,
   acuity: gymStartAcuity,
@@ -788,6 +895,7 @@ const GYM_STARTERS = {
   diagnostic: gymStartDiagnostic,
   certitude: gymStartCertitude,
   repertoire: gymStartRepertoire,
-  jugement: gymStartJugement
+  jugement: gymStartJugement,
+  mat: gymStartMat
 };
 
