@@ -70,6 +70,7 @@ function formateurToggleSeance(id){
   d.seances[id] = !d.seances[id];
   _formateurSave(d);
   renderFormateurSeances(d.public||'enfants');
+  if (typeof formateurRenderAttestationGate === 'function') formateurRenderAttestationGate();
 }
 
 function renderFormateurSeances(pub){
@@ -212,10 +213,22 @@ function formateurQuizFinish(){
 }
 function formateurRenderAttestationGate(){
   const d = _formateurLoad();
-  const passed = typeof d.quizScore==='number' && d.quizScore >= 6;
+  const quizOk = typeof d.quizScore==='number' && d.quizScore >= 6;
+  const nSeances = Object.values(d.seances||{}).filter(Boolean).length;
+  const totalSeances = SEANCES_FORMATEUR.length;
+  const seancesOk = nSeances >= totalSeances;
+  const passed = quizOk && seancesOk;
   const locked = document.getElementById('formateur-attestation-locked');
   const unlocked = document.getElementById('formateur-attestation-unlocked');
-  if (locked) locked.style.display = passed ? 'none' : 'block';
+  if (locked) {
+    locked.style.display = passed ? 'none' : 'block';
+    if (!passed) {
+      const manque = [];
+      if (!seancesOk) manque.push(nSeances+'/'+totalSeances+' séances cochées');
+      if (!quizOk) manque.push(typeof d.quizScore==='number' ? 'évaluation en dessous de 6/8' : 'évaluation pas encore passée');
+      locked.innerHTML = '🔒 Il manque : '+manque.join(' — ')+' pour débloquer l\u2019attestation imprimable.';
+    }
+  }
   if (unlocked) unlocked.style.display = passed ? 'block' : 'none';
   if (passed) formateurRenderAttestation();
 }
