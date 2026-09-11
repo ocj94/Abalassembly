@@ -19,7 +19,17 @@ const LANGUAGES = [
 const ROWS = [5,6,7,8,9,8,7,6,5];
 let board = {};
 let selected = [];
-let currentTurn = 'black';
+const CurrentTurn = (function(){
+  // Encapsulation, meme motif que GameMode/HumanColor : interface explicite
+  // .get()/.set() sur un script classique (pas de vrais import/export,
+  // incompatibles avec file:// hors-ligne). La valeur reste 'black' OU
+  // 'white' selon le camp reellement au trait -- jamais suppose.
+  let value = 'black';
+  return {
+    get: function(){ return value; },
+    set: function(v){ value = v; }
+  };
+})();
 const GameMode = (function(){
   // Encapsulation, pas de vrais import/export : ceux-ci exigent
   // type="module" sur la balise <script>, bloque par CORS quand ouvert
@@ -67,7 +77,7 @@ function monCamp() {
 // "Est-ce mon tour ?" — juste une lecture de monCamp() par rapport au trait
 // courant, exposee separement pour les endroits qui posent la question
 // plutot que d'avoir besoin de la couleur elle-meme.
-function estMonTour() { return (typeof currentTurn !== 'undefined') && currentTurn === monCamp(); }
+function estMonTour() { return (typeof CurrentTurn !== 'undefined') && CurrentTurn.get() === monCamp(); }
 let capturedByBlack = 0;
 let capturedByWhite = 0;
 let moveCount = 14;
@@ -1265,7 +1275,7 @@ function drawBoard(opts) {
   if (!boardTheme.wood) drawBoardTriangles(ctx);
 
   // ── Indices de coups : cases où la sélection peut aller (si activé) ──
-  const turnForHints = opts.turn || currentTurn;
+  const turnForHints = opts.turn || CurrentTurn.get();
   const hintCells = (showHints && sel.length > 0)
     ? computeMoveHints(sel, turnForHints, boardData) : [];
 
