@@ -1,5 +1,7 @@
 /* ═══════════════════════════════════════════
-   TRAINER DE FINALES — positions REELLES tirees de tb-3v2.json
+   TRAINER DE FINALES — positions REELLES tirees de la table 3v2 embarquee
+   (chaine base64 D32 dans ce fichier, decodee par AbaTB -- il n'existe aucun
+   fichier tb-3v2.json separe : tout est dans le mono-fichier)
    Contrairement a generateRandomPuzzle() (position fabriquee, verifiee a
    posteriori par le moteur), chaque position ici provient d'une entree
    PROUVEE par induction retrograde exhaustive : la table dit que le camp au
