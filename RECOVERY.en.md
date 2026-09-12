@@ -1,4 +1,4 @@
-🇫🇷 [Version française](RECOVERY.md)
+🇫🇷 [Version française](RECOVERY.fr.md)
 
 # Recovery guide
 
