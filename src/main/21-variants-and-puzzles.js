@@ -530,14 +530,14 @@ function _stashLive(){
   _liveStash = {
     board: JSON.parse(JSON.stringify(board)),
     capB: CapturedByBlack.get(), capW: CapturedByWhite.get(),
-    turn: CurrentTurn.get(), moveCount: moveCount
+    turn: CurrentTurn.get(), moveCount: MoveCount.get()
   };
 }
 function _restoreLive(){
   if (!_liveStash) return false;
   board = _liveStash.board;
   CapturedByBlack.set(_liveStash.capB); CapturedByWhite.set(_liveStash.capW);
-  CurrentTurn.set(_liveStash.turn); moveCount = _liveStash.moveCount;
+  CurrentTurn.set(_liveStash.turn); MoveCount.set(_liveStash.moveCount);
   _liveStash = null;
   return true;
 }
@@ -557,7 +557,7 @@ function toggleReplay() {
   if (replayMode) {
     /* Partie non terminee : on met l'etat reel de cote AVANT de charger un
        instantane, pour pouvoir y revenir intact en sortant. */
-    if (typeof gameOver !== 'undefined' && !gameOver) _stashLive();
+    if (typeof GameOver !== 'undefined' && !GameOver.get()) _stashLive();
     showToast('📽 Mode replay — utilisez Précédent/Suivant');
     loadSnapshot(replayCurrentIdx);
   } else {
