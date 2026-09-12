@@ -14726,8 +14726,11 @@ function requestUndo() {
   const requesterName = requester === 'black' ? 'Les Noirs' : 'Les Blancs';
 
   if (GameMode.get() === 'ai') {
-    // Le joueur humain (noir) demande, l'IA (blanc) décide aléatoirement
-    if (requester !== 'black') { showToast('Seul vous pouvez demander une annulation.'); return; }
+    // Le joueur humain demande, l'IA decide aleatoirement.
+    // monCamp() et pas 'black' en dur : avant correction, un humain tenant
+    // les blancs s'entendait dire "Seul vous pouvez demander une annulation"
+    // alors qu'il EST le joueur -- la fonction lui etait inaccessible.
+    if (requester !== monCamp()) { showToast('Seul vous pouvez demander une annulation.'); return; }
     showToast('⏳ Demande d\'annulation envoyée à l\'adversaire…');
     setTimeout(function() {
       // L'IA accepte ~60% du temps, comme une personne
@@ -22455,7 +22458,9 @@ function styleBar(name, val, color){
    reconstruit à partir de boardSnapshots (aucune donnée supplémentaire à
    stocker). Idée d'Olivier (fin de partie + stats). */
 function computeGameHeatmap(snapshots, forColor) {
-  // forColor : 'black' (le joueur) ou 'white' (l'adversaire)
+  // forColor : la couleur a cartographier, quelle qu'elle soit. Ne suppose
+  // PAS que noir est le joueur -- renderHeatmapCard() la derive de
+  // HumanColor (et laisse les deux camps neutres en mode 2 joueurs).
   // Chaque snapshot stocke color = la couleur qui a joué CE coup, et
   // moveInfo.cells = les cases occupées au départ du coup.
   const counts = {};   // "r,c" -> nombre d'occupations
