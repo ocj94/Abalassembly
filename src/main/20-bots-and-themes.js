@@ -694,7 +694,7 @@ function setCarteTactiqueOverlayDim(dim) {
 // coherent visuellement dans toute l'appli.
 function drawCarteTactiqueOverlay(ctx) {
   if (!showCarteTactique) return;
-  if (typeof gameOver !== 'undefined' && gameOver) return;
+  if (typeof GameOver !== 'undefined' && GameOver.get()) return;
   if (typeof calculerCarteTactique !== 'function' || typeof CurrentTurn === 'undefined') return;
   let cases;
   try { cases = calculerCarteTactique(CurrentTurn.get()); } catch(e) { return; }
