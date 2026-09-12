@@ -3395,7 +3395,7 @@ document.addEventListener('keydown', function(e){
           <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">restant</span>
         </div>
         <!-- Mode commentateur : stats des deux joueurs, mises a jour en direct
-             via les evenements publics abalassembly:movePlayed/gameOver deja
+             via les evenements publics abalassembly:movePlayed/GameOver.get() deja
              emis par le moteur (aucune modification du jeu lui-meme requise —
              pur observateur, voir _emitAbaEvent). Demande d'Olivier, pour
              suivre une partie (tournoi ou non) de l'exterieur. -->
@@ -9319,8 +9319,8 @@ function startConfiguredGame() {
      coup humain et en tournoi) : si ce n'est pas au tour de l'humain, l'IA
      joue. Robuste quel que soit le camp choisi. */
   if (c.mode === 'ai' && typeof CurrentTurn !== 'undefined'
-      && CurrentTurn.get() !== HumanColor.get() && !gameOver && typeof aiMove === 'function') {
-    setTimeout(function(){ if (!gameOver && CurrentTurn.get() !== HumanColor.get()) aiMove(); }, 700);
+      && CurrentTurn.get() !== HumanColor.get() && !GameOver.get() && typeof aiMove === 'function') {
+    setTimeout(function(){ if (!GameOver.get() && CurrentTurn.get() !== HumanColor.get()) aiMove(); }, 700);
   }
 
   /* Partie en direct : ouvre le panneau de connexion apres le lancement,
@@ -11812,8 +11812,28 @@ const CapturedByWhite = (function(){
     dec: function(){ value--; return value; }
   };
 })();
-let moveCount = 14;
-let gameOver = false;
+const MoveCount = (function(){
+  // Encapsulation, meme motif que les precedentes. .inc() parce que c'est un
+  // COMPTEUR (moveCount++ n'a pas d'equivalent en .get()/.set()).
+  // Valeur initiale 14 conservee telle quelle : c'est ce que faisait la
+  // declaration d'origine, et une vraie partie la remet a 0 au demarrage.
+  //
+  // ATTENTION : renderPSGamesList() declare sa PROPRE const moveCount locale,
+  // sans rapport avec ce compteur global -- elle doit rester en minuscules.
+  let value = 14;
+  return {
+    get: function(){ return value; },
+    set: function(v){ value = v; },
+    inc: function(){ value++; return value; }
+  };
+})();
+const GameOver = (function(){
+  let value = false;
+  return {
+    get: function(){ return value; },
+    set: function(v){ value = v; }
+  };
+})();
 let timerInterval;
 /* 555 et 522 — soit 09:15 et 08:42 — etaient des valeurs inventees, affichees
    comme un temps de partie reel avant meme le premier coup. Les deux horloges
@@ -14164,7 +14184,7 @@ function playMarbleRainTransition(onDone) {
 }
 
 function initGame() {
-  if (gameOver === 'init') return;
+  if (GameOver.get() === 'init') return;
   // Propose de reprendre une partie sauvegardée (avant de réinitialiser)
   let savedExists = false;
   try {
@@ -14236,9 +14256,9 @@ function showResumePrompt() {
      });
 
    Événements émis :
-   - abalassembly:movePlayed    { color, label, moveCount, CapturedByBlack.get(), CapturedByWhite.get() }
+   - abalassembly:movePlayed    { color, label, moveCount, capturedByBlack, capturedByWhite }
    - abalassembly:positionChanged { layout }   (nouvelle partie / position chargée)
-   - abalassembly:gameOver      { winner, reason, CapturedByBlack.get(), CapturedByWhite.get(), moveCount }
+   - abalassembly:gameOver      { winner, reason, capturedByBlack, capturedByWhite, moveCount }
 ═══════════════════════════════════════════ */
 function _emitAbaEvent(name, detail){
   try{ document.dispatchEvent(new CustomEvent('abalassembly:'+name, { detail: detail })); }
@@ -14247,11 +14267,11 @@ function _emitAbaEvent(name, detail){
 
 /* ── Mode commentateur : stats des deux joueurs, mises a jour en direct ──
    PUR OBSERVATEUR : ecoute uniquement les evenements publics deja emis par
-   le moteur (abalassembly:movePlayed / gameOver / positionChanged, voir la
+   le moteur (abalassembly:movePlayed / GameOver.get() / positionChanged, voir la
    doc juste au-dessus de _emitAbaEvent) — exactement comme le ferait un
    outil externe. Ne modifie et ne lit AUCUN etat interne du jeu directement
    pendant une partie ; CapturedByBlack.get()/CapturedByWhite.get()/myTime/oppTime sont
-   lus au moment de l'affichage, pas caches. moveCount est un compteur
+   lus au moment de l'affichage, pas caches. MoveCount.get() est un compteur
    GLOBAL (toutes couleurs confondues) dans le moteur — le decompte par
    joueur est donc tenu ICI, a partir du flux d'evenements, puisque rien
    d'equivalent n'existe deja cote moteur. Demande d'Olivier. */
@@ -14303,7 +14323,7 @@ document.addEventListener('abalassembly:movePlayed', function(e){
     if (last) last.textContent = 'Dernier coup : ' + (d.label || '—') + ' (' + (d.color === 'black' ? 'noirs' : 'blancs') + ', coup n°' + (d.moveCount != null ? d.moveCount : '?') + ')';
   }
 });
-document.addEventListener('abalassembly:gameOver', function(e){
+document.addEventListener('abalassembly:GameOver.get()', function(e){
   if (!_commentatorOn) return;
   const d = e && e.detail; if (!d) return;
   _commentatorRefresh();
@@ -14421,11 +14441,11 @@ function hideWinOverlay() {
 
 function resetGame() {
   if (typeof progress !== 'undefined') { progress.__firstEjDone = false; progress.__hadLead = false; }
-  gameOver = false;
+  GameOver.set(false);
   selected = [];
   CapturedByBlack.set(0);
   CapturedByWhite.set(0);
-  moveCount = 0;
+  MoveCount.set(0);
   CurrentTurn.set('black');
   // _timeCtlBase===0 (cadence Libre) est un "faux" en JS : "_timeCtlBase || 600"
   // retombait donc sur 600s (10:00) meme en Libre, ce que le panneau
@@ -14459,7 +14479,7 @@ function resetGame() {
   clearSavedGame();     // nouvelle partie = efface l'ancienne sauvegarde
   clearInterval(timerInterval);
   timerInterval = setInterval(tickTimers, 1000);
-  gameOver = false;
+  GameOver.set(false);
   gameStartTime = Date.now();
   lastMoveTime = Date.now();
   resetStyleGame();   // remet à zéro le profil de style pour la nouvelle partie
@@ -14472,19 +14492,19 @@ function resetGame() {
 
 /* Annulation de partie pour inactivité — idée d'Olivier : si aucun coup n'est
    joué durant la première minute, la partie est annulée (aucun ELO retiré,
-   aucune stat comptée, puisque moveCount vaut toujours 0). Le minuteur est
+   aucune stat comptée, puisque MoveCount.get() vaut toujours 0). Le minuteur est
    armé à chaque nouvelle partie et désarmé dès le premier coup. */
 let _inactivityTimer = null;
 function armInactivityCancel() {
   clearTimeout(_inactivityTimer);
   _inactivityTimer = setTimeout(function() {
     // Ne s'applique qu'à une partie encore vierge et en cours
-    if (typeof gameOver !== 'undefined' && gameOver) return;
-    if (typeof moveCount !== 'undefined' && moveCount > 0) return;
+    if (typeof GameOver !== 'undefined' && GameOver.get()) return;
+    if (typeof MoveCount !== 'undefined' && MoveCount.get() > 0) return;
     if (typeof replayMode !== 'undefined' && replayMode) return;
     if (typeof _tourneyMatch !== 'undefined' && _tourneyMatch) return;  // pas en tournoi
     // Annule proprement : pas de vainqueur, pas d'ELO, retour à l'accueil
-    if (typeof gameOver !== 'undefined') gameOver = true;
+    if (typeof GameOver !== 'undefined') GameOver.set(true);
     if (typeof clearInterval === 'function' && typeof timerInterval !== 'undefined') clearInterval(timerInterval);
     if (typeof stopGameTimer === 'function') stopGameTimer();
     if (typeof clearSavedGame === 'function') clearSavedGame();
@@ -14503,7 +14523,7 @@ function disarmInactivityCancel() {
    defini plus haut avec humanColor/aiColor(). */
 
 function tickTimers() {
-  if (gameOver) return;
+  if (GameOver.get()) return;
   if (timerPaused) return;   // timer en pause
   // Cadence libre : aucune horloge ne tourne, aucun temps ne s'affiche.
   if (!_timeCtlBase || _clockExempt()) { _clockPaintFree(); return; }
@@ -14621,7 +14641,7 @@ function _clockPaintFree(){
      chiffres. Demande d'Olivier.
      Aucun trait n'est marque hors partie vivante : replay, puzzle, match de
      tournoi ou partie terminee — marquer un camp y serait trompeur. */
-  const vivante = !((typeof gameOver !== 'undefined' && gameOver) || _clockExempt());
+  const vivante = !((typeof GameOver !== 'undefined' && GameOver.get()) || _clockExempt());
   const mienActif = vivante && estMonTour();
   const advActif  = vivante && !mienActif;
   [['clock-bottom', mienActif], ['clock-top', advActif]].forEach(function(p){
@@ -14659,12 +14679,12 @@ function _clockExempt(){
       || (typeof replayMode!=='undefined' && replayMode);
 }
 function _clockInc(mover){
-  if(!_timeCtlInc || gameOver || _clockExempt()) return;
+  if(!_timeCtlInc || GameOver.get() || _clockExempt()) return;
   if(mover===monCamp()){ myTime+=_timeCtlInc; const el=document.getElementById('timer-me'); if(el) el.textContent=formatTime(myTime); }
   else { oppTime+=_timeCtlInc; const el=document.getElementById('timer-opponent'); if(el) el.textContent=formatTime(oppTime); }
 }
 function _flagFall(loser){
-  if(gameOver) return;
+  if(GameOver.get()) return;
   const winner = loser==='black' ? 'white' : 'black';
   triggerWin(winner, 'temps');
   const ti=document.getElementById('win-title'), sub=document.getElementById('win-sub');
@@ -14685,7 +14705,7 @@ function _flagFall(loser){
 function pushUndoState() {
   undoStack.push({
     board: JSON.parse(JSON.stringify(board)),
-    capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(), moveCount,
+    capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(), moveCount: MoveCount.get(),
     currentTurn: CurrentTurn.get(), myTime, oppTime,
     player: CurrentTurn.get()   // qui s'apprête à jouer
   });
@@ -14695,7 +14715,7 @@ function pushUndoState() {
 // Le joueur courant demande à annuler son dernier coup.
 // C'est l'ADVERSAIRE (celui dont c'est le tour maintenant) qui accepte/refuse.
 function requestUndo() {
-  if (gameOver) { showToast('La partie est terminée.'); return; }
+  if (GameOver.get()) { showToast('La partie est terminée.'); return; }
   if (tournamentGame && tournamentActiveRules && !tournamentActiveRules.undo) {
     showToast('⛔ Annulation interdite dans ce tournoi'); return;
   }
@@ -14736,7 +14756,7 @@ function doUndo() {
   board = st.board;
   CapturedByBlack.set(st.capturedByBlack);
   CapturedByWhite.set(st.capturedByWhite);
-  moveCount = st.moveCount;
+  MoveCount.set(st.moveCount);
   CurrentTurn.set(st.currentTurn);
   myTime = st.myTime;
   oppTime = st.oppTime;
@@ -14748,7 +14768,7 @@ function doUndo() {
 
 // Demande de pause du timer (1 minute), accordée par l'adversaire
 function requestPause() {
-  if (gameOver) { showToast('La partie est terminée.'); return; }
+  if (GameOver.get()) { showToast('La partie est terminée.'); return; }
   if (tournamentGame && tournamentActiveRules && !tournamentActiveRules.pause) {
     showToast('⛔ Pause interdite dans ce tournoi'); return;
   }
@@ -14827,7 +14847,7 @@ function updateStatus() {
   if (GameMode.get() === 'local') {
     // Mode 2 joueurs : on nomme la couleur active
     const who = CurrentTurn.get() === 'black' ? 'Noirs ⚫' : 'Blancs ⚪';
-    txt = `Tour des ${who} — Coup ${moveCount+1}`;
+    txt = `Tour des ${who} — Coup ${MoveCount.get()+1}`;
     msg = `Joueur ${CurrentTurn.get() === 'black' ? 'Noir' : 'Blanc'} : sélectionnez vos billes`;
   } else {
     // Base sur humanColor, pas sur 'black' code en dur : un humain qui joue
@@ -14839,8 +14859,8 @@ function updateStatus() {
     const monTour = CurrentTurn.get() === HumanColor.get();
     const monEmoji = HumanColor.get() === 'black' ? '⚫' : '⚪';
     txt = monTour
-      ? `À votre tour — Coup ${moveCount+1}`
-      : `Adversaire réfléchit — Coup ${moveCount+1}`;
+      ? `À votre tour — Coup ${MoveCount.get()+1}`
+      : `Adversaire réfléchit — Coup ${MoveCount.get()+1}`;
     msg = monTour
       ? `Cliquez sur vos billes ${monEmoji} pour les sélectionner`
       : 'Attendre le coup de l\'adversaire…';
@@ -15004,7 +15024,7 @@ if (canvas) {
   function pointerDown(clientX, clientY, e) {
     if (window._isProjector) return;   // fenetre projecteur : jamais interactif
     canvas._dragJustEnded = false;   // nouvelle interaction : on repart propre
-    if (gameOver) return;
+    if (GameOver.get()) return;
     if (GameMode.get() === 'ai' && CurrentTurn.get() !== HumanColor.get()) return;
     const pos = canvasPos(clientX, clientY);
     const hex = getHexAt(pos.x, pos.y);
@@ -15075,7 +15095,7 @@ if (canvas) {
   canvas.addEventListener('click', e => {
     if (window._isProjector) return;   // fenetre projecteur : jamais interactif (voir canInteractWithBoard)
     if (canvas._dragJustEnded) { canvas._dragJustEnded = false; return; }
-    if (gameOver) return;
+    if (GameOver.get()) return;
     if (replayMode && !variantMode) return;   // navigation replay = lecture seule, sauf en exploration de variante
     if (GameMode.get() === 'ai' && CurrentTurn.get() !== HumanColor.get()) return;
     const pos = canvasPos(e.clientX, e.clientY);
@@ -15644,7 +15664,7 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
   }
 
   selected = [];
-  moveCount++;
+  MoveCount.inc();
   // Libellé du coup selon les systèmes de notation activés (Aba-Pro et/ou Nacre)
   const ejected = !!(info.type === 'push' && info.ejection);
   const moveNotation = moveLabel(selCopy, chosenDir, info.type, ejected);
@@ -15683,7 +15703,7 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
   _clockInc(me);   // ⏱️ incrément de cadence pour celui qui vient de jouer
   CurrentTurn.set((me === 'black') ? 'white' : 'black');
   _emitAbaEvent('movePlayed', { color: me, label: (typeof moveNotation !== 'undefined') ? moveNotation : null,
-    moveCount: moveCount, capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get() });
+    moveCount: MoveCount.get(), capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get() });
   updateStatus();
   // Animation de glissement si déplacement simple/latéral, sinon rendu direct
   if (slidePieces && slidePieces.length) {
@@ -15751,7 +15771,7 @@ function afterHumanMove() {
   gameBestHint = null;  // efface la suggestion après avoir joué
   if (_puzzleActive) { checkPuzzleMove(); return; }   // mode puzzle : vérifie, pas d'IA ni de sauvegarde
   if (!variantMode) saveGameState();      // sauvegarde automatique — jamais pendant l'exploration d'une variante
-  if (GameMode.get() === 'ai' && CurrentTurn.get() === aiColor() && !gameOver) {
+  if (GameMode.get() === 'ai' && CurrentTurn.get() === aiColor() && !GameOver.get()) {
     setTimeout(aiMove, 800 + Math.random()*600);
   }
 }
@@ -18617,7 +18637,7 @@ function requestAIMovePooledStealing(params, onDone) {
    (évite qu'il joue un second coup par-dessus). */
 let _aiForcing = false;
 function forceAINow() {
-  if (gameOver) return;
+  if (GameOver.get()) return;
   if (typeof aiColor !== 'function') return;
   const ai = aiColor();
   // on n'agit que si c'est bien à l'IA de jouer et qu'elle réfléchit
@@ -20012,7 +20032,7 @@ function _replaySeqToSnapshots(seq, labelText, startColor){
     boardSnapshots.push({board:JSON.parse(JSON.stringify(board)),capturedByBlack:CapturedByBlack.get(),capturedByWhite:CapturedByWhite.get(),moveCount:played,label:lab,color:color,moveInfo:moveInfo});
     color=color==='black'?'white':'black'; played++;
   }
-  gameOver=true;
+  GameOver.set(true);
   if(typeof rebuildMoveListLabels==='function') rebuildMoveListLabels();
   replayMode=true; replayCurrentIdx=-1;   // -1 = position de depart
   const rb=document.getElementById('replay-btn'); if(rb){ rb.style.display='block'; rb.textContent='■ Quitter replay'; }
@@ -20570,7 +20590,7 @@ function startPuzzle(idx){
   // Pose la position
   board={}; p.bm.forEach(function(k){board[k]='black';}); p.wm.forEach(function(k){board[k]='white';});
   CapturedByBlack.set(p.cb); CapturedByWhite.set(p.cw);
-  gameOver=false; replayMode=false; selected=[]; undoStack=[]; boardSnapshots=[]; moveCount=0;
+  GameOver.set(false); replayMode=false; selected=[]; undoStack=[]; boardSnapshots=[]; MoveCount.set(0);
   HumanColor.set(p.c); CurrentTurn.set(p.c); _bookNode=null; gameBestHint=null;
   const rb=document.getElementById('replay-btn'); if(rb) rb.style.display='none';
   _puzzleActive={ idx:idx, sig:_pzSig(p.sol.cells,p.sol.dir), alts:(p.alt||[]), tries:0 };
@@ -21683,7 +21703,7 @@ function _tourneyAfterStart(){
   if(t) t.textContent='\ud83c\udfc6 '+M.name+' \u2014 vs '+M.opp+' \u00b7 tu joues les '+(M.human==='black'?'\u26ab Noirs':'\u26aa Blancs');
   _tClockStart();
   updateStatus();
-  if(CurrentTurn.get()!==HumanColor.get() && !gameOver){ setTimeout(function(){ if(typeof aiMove==='function') aiMove(); }, 700); }
+  if(CurrentTurn.get()!==HumanColor.get() && !GameOver.get()){ setTimeout(function(){ if(typeof aiMove==='function') aiMove(); }, 700); }
 }
 function tourneyMatchEnd(winner, reason){
   const M=_tourneyMatch; if(!M) return;
@@ -21705,7 +21725,7 @@ function tourneyMatchEnd(winner, reason){
   renderTournamentState();
 }
 function resignGame(){
-  if(typeof gameOver!=='undefined' && gameOver){ showToast('La partie est d\u00e9j\u00e0 termin\u00e9e'); return; }
+  if(typeof GameOver!=='undefined' && GameOver.get()){ showToast('La partie est d\u00e9j\u00e0 termin\u00e9e'); return; }
   if(!confirm('Abandonner la partie ?')) return;
   const loser=CurrentTurn.get(), winner=(loser==='black'?'white':'black');
   showToast('\ud83c\udff3\ufe0f Abandon \u2014 victoire des '+(winner==='black'?'Noirs':'Blancs'));
@@ -21723,7 +21743,7 @@ function _tClockStart(){
 function _tClockStop(){ clearInterval(_tClockTimer); _tClockTimer=null; _tClock=null; }
 function _tClockTick(){
   const C=_tClock; if(!C||C.paused) return;
-  if(typeof gameOver!=='undefined' && gameOver) return;
+  if(typeof GameOver!=='undefined' && GameOver.get()) return;
   const mover=CurrentTurn.get(), now=Date.now();
   C[mover]-=(now-C.last); C[mover]+=C.inc;
   C.run=(mover==='black'?'white':'black'); C.last=now;
@@ -21733,11 +21753,11 @@ function _tClockFmt(ms){ ms=Math.max(0,ms); const s=Math.floor(ms/1000); return 
 function _tClockRender(){
   const C=_tClock; if(!C) return;
   let b=C.black, w=C.white;
-  if(!C.paused && !(typeof gameOver!=='undefined'&&gameOver)){ const el=Date.now()-C.last; if(C.run==='black') b-=el; else w-=el; }
+  if(!C.paused && !(typeof GameOver!=='undefined'&&GameOver.get())){ const el=Date.now()-C.last; if(C.run==='black') b-=el; else w-=el; }
   const eb=document.getElementById('tb-cb'), ew=document.getElementById('tb-cw');
   if(eb){ eb.textContent=_tClockFmt(b); eb.style.color=(C.run==='black'&&!C.paused)?'var(--gold)':'var(--text)'; }
   if(ew){ ew.textContent=_tClockFmt(w); ew.style.color=(C.run==='white'&&!C.paused)?'var(--gold)':'var(--text)'; }
-  if(_tourneyMatch && !C.paused && !(typeof gameOver!=='undefined'&&gameOver)){
+  if(_tourneyMatch && !C.paused && !(typeof GameOver!=='undefined'&&GameOver.get())){
     if(b<=0){ triggerWin('white','time'); showToast('\u23f1\ufe0f Temps \u00e9coul\u00e9 \u2014 les Blancs gagnent'); }
     else if(w<=0){ triggerWin('black','time'); showToast('\u23f1\ufe0f Temps \u00e9coul\u00e9 \u2014 les Noirs gagnent'); }
   }
@@ -21868,12 +21888,12 @@ document.addEventListener('keydown', function(e){
 })();
 
 function aiMove() {
-  if (gameOver) return;
+  if (GameOver.get()) return;
   // Mode moteur experimental (NNUE) : les poids doivent etre prets AVANT de
   // lancer le calcul. Meme patron que ensureGameBanks() -- charge une fois
   // (mis en cache), puis relance aiMove() automatiquement.
   if (_engineMode && !NNUE_WEIGHTS_CACHE) {
-    loadNNUEWeights().then(function(){ if (!gameOver) aiMove(); });
+    loadNNUEWeights().then(function(){ if (!GameOver.get()) aiMove(); });
     return;
   }
   const ai = aiColor();          // couleur jouée par l'IA (blanc par défaut, noir si on affronte le Bot Noir)
@@ -21935,7 +21955,7 @@ function aiMove() {
     showAIThinking(false);
     if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
     if (metrics) updateAIMetrics(metrics);
-    if (gameOver) return;
+    if (GameOver.get()) return;
     if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
     executeAIMove(chosen);
   });
@@ -21953,7 +21973,7 @@ function aiMove() {
       if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
       const chosen = e.data && e.data.move;
       if (e.data) updateAIMetrics(e.data.metrics);
-      if (gameOver) return;
+      if (GameOver.get()) return;
       if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
       executeAIMove(chosen);
     };
@@ -21965,7 +21985,7 @@ function aiMove() {
       worker.removeEventListener('message', onResult);
       showAIThinking(false);
       if (gen !== _aiGen) return;   // reset entre-temps → on ne joue pas sur la nouvelle partie
-      if (gameOver) return;
+      if (GameOver.get()) return;
       const chosen = searchBestMove(ai, config.depth, config.time, _gameHistKeys());
       if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
       executeAIMove(chosen);
@@ -21995,7 +22015,7 @@ function aiMove() {
       const chosen = searchBestMove(ai, config.depth, config.time, _gameHistKeys());
       showAIThinking(false);
       if (gen !== _aiGen) return;   // reset pendant le calcul → résultat périmé
-      if (gameOver) return;
+      if (GameOver.get()) return;
       if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
       executeAIMove(chosen);
     }, 30);
@@ -22035,7 +22055,7 @@ function showAIThinking(on) {
 
 // Exécute le coup choisi par l'IA (partie commune worker / synchrone)
 function executeAIMove(chosen) {
-  if (gameOver || !chosen) return;
+  if (GameOver.get() || !chosen) return;
   const ai = aiColor();              // couleur de l'IA
   const human = HumanColor.get();          // couleur de l'humain (= victime des éjections de l'IA)
   // Calculee ICI, AVANT abApplyMove : calculerExplicationCoup simule le coup
@@ -22079,14 +22099,14 @@ function executeAIMove(chosen) {
   // Heatmap : enregistre le coup de l'IA sous 'opponent'
   if (typeof recordOpponentHeat === 'function') recordOpponentHeat(chosen.cells);
   _clockInc(human==='black'?'white':'black');   // ⏱️ incrément pour l'IA qui vient de jouer
-  CurrentTurn.set(human); moveCount++;
+  CurrentTurn.set(human); MoveCount.inc();
   _emitAbaEvent('movePlayed', { color: (human==='black'?'white':'black'), label: label,
-    moveCount: moveCount, capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get() });
-  if (!gameOver) playSfx('occ_change');   // 🔊 « c'est ton tour »
+    moveCount: MoveCount.get(), capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get() });
+  if (!GameOver.get()) playSfx('occ_change');   // 🔊 « c'est ton tour »
   updateStatus(); drawBoard();
-  if (explicationIA && !gameOver) showAIExplainBubble(explicationIA);
+  if (explicationIA && !GameOver.get()) showAIExplainBubble(explicationIA);
   // Mode Coach : avertit le joueur si l'IA menace une éjection
-  if (coachEnabled && !gameOver) {
+  if (coachEnabled && !GameOver.get()) {
     setTimeout(function() {
       const myMoves = getAllMovesForColor(ai);  // ce que l'IA pourrait faire ensuite
       const threat = myMoves.some(function(m){ return m.eject; });
@@ -22130,7 +22150,7 @@ function winIntegrityOK(winner) {
   const caps = winner === 'black' ? CapturedByBlack.get() : CapturedByWhite.get();
   if (caps < 6) return false;
   // Il faut au moins 6 coups pour éjecter 6 billes (en réalité bien plus)
-  if (moveCount < 6) return false;
+  if (MoveCount.get() < 6) return false;
   // Partie anormalement instantanée (< 3 s) = manipulation probable
   if (Date.now() - gameStartTime < 3000) return false;
   return boardIntegrityOK();
@@ -22200,7 +22220,7 @@ function _recordGameHistory(winner, reason){
       humanColor: (typeof HumanColor !== 'undefined') ? HumanColor.get() : 'black',
       winner: winner || null,
       reason: reason || null,
-      moveCount: (typeof moveCount !== 'undefined') ? moveCount : 0,
+      moveCount: (typeof MoveCount !== 'undefined') ? MoveCount.get() : 0,
       aiStyle: (mode === 'ai' && typeof _setupCfg !== 'undefined') ? _setupCfg.style : null,
       aiDiff: (mode === 'ai' && typeof _setupCfg !== 'undefined') ? _setupCfg.diff : null,
       // 'actuel' si _engineMode est vide (null/undefined), meme convention que
@@ -22269,11 +22289,11 @@ function triggerWin(winner, reason) {
     // sinon on ignore simplement le déclenchement suspect
     return;
   }
-  gameOver = true;
+  GameOver.set(true);
   if (typeof disarmInactivityCancel === 'function') disarmInactivityCancel();
   try{ localStorage.setItem('abaGamesFinished', String((parseInt(localStorage.getItem('abaGamesFinished')||'0',10)||0)+1)); }catch(e){}
-  _emitAbaEvent('gameOver', { winner: winner, reason: reason || null,
-    capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(), moveCount: moveCount });
+  _emitAbaEvent('GameOver.get()', { winner: winner, reason: reason || null,
+    capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(), moveCount: MoveCount.get() });
   if (typeof updateHeroStats==='function') updateHeroStats();
   if (typeof _tourneyMatch!=='undefined' && _tourneyMatch && typeof tourneyMatchEnd==='function') { tourneyMatchEnd(winner, reason); }
   clearInterval(timerInterval);
@@ -22307,18 +22327,18 @@ function triggerWin(winner, reason) {
   // ── Hook engagement : XP, streak, ELO, badges ──
   sanitizeProgress();
   // ── Taux de conversion : le joueur a-t-il mené puis gagné ? ──
-  if ((progress.__hadLead || CapturedByBlack.get() > 0) && !(typeof moveCount !== 'undefined' && moveCount === 0)) {
+  if ((progress.__hadLead || CapturedByBlack.get() > 0) && !(typeof MoveCount !== 'undefined' && MoveCount.get() === 0)) {
     progress.leadGames = (progress.leadGames||0) + 1;
     if (winner === 'black') progress.leadWins = (progress.leadWins||0) + 1;
     progress.__hadLead = false;
     saveProgress(progress);
   }
-  if (typeof onGamePlayed === 'function' && !(typeof moveCount !== 'undefined' && moveCount === 0)) {
+  if (typeof onGamePlayed === 'function' && !(typeof MoveCount !== 'undefined' && MoveCount.get() === 0)) {
     onGamePlayed(winner === 'black');
   }
   // Partie sans aucun coup joué (abandon immédiat, annulation) : aucun ELO
   // retiré, aucune stat comptée — idée d'Olivier. On informe juste discrètement.
-  if (typeof moveCount !== 'undefined' && moveCount === 0) {
+  if (typeof MoveCount !== 'undefined' && MoveCount.get() === 0) {
     if (typeof showToast === 'function') showToast('Partie annulée — aucun coup joué, ELO inchangé');
   }
   // Badge Blanchissage : le joueur gagne 6-0 sans avoir perdu une seule bille
@@ -22775,7 +22795,7 @@ function addMoveToHistory(move, color, moveInfo) {
     board: JSON.parse(JSON.stringify(board)),
     capturedByBlack: CapturedByBlack.get(),
     capturedByWhite: CapturedByWhite.get(),
-    moveCount: moveCount,
+    moveCount: MoveCount.get(),
     label: move, color: color,
     moveInfo: moveInfo || null   // {cells, dir, type, ejection} pour re-notation
   });
@@ -22869,7 +22889,7 @@ function _gotoMoveFromHistory(idx){
        restaure a la sortie du replay -- sans quoi la partie en cours
        serait perdue (bug preexistant sur toggleReplay, corrige en meme
        temps). Le bouton "Quitter replay" ramene a la position reelle. */
-    if (typeof gameOver !== 'undefined' && !gameOver) {
+    if (typeof GameOver !== 'undefined' && !GameOver.get()) {
       _stashLive();
       if (typeof showToast === 'function') showToast('📽 Relecture — « Quitter replay » pour revenir à ta partie');
       const btn = document.getElementById('replay-btn');
@@ -25428,7 +25448,7 @@ function runAnalysis() {
     moves.map(m => '<div class="analysis-move '+m.type+'"><span class="am-icon">'+m.icon+'</span><span class="am-move">'+m.move+'</span><span class="am-comment">'+m.comment+'</span></div>').join(''),
     '<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--muted);line-height:1.6">',
     '📊 Billes éjectées — Vous: '+(HumanColor.get()==='black'?CapturedByBlack.get():CapturedByWhite.get())+' · Adversaire: '+(HumanColor.get()==='black'?CapturedByWhite.get():CapturedByBlack.get()),
-    '<br>⚡ Coups joués: '+moveCount,
+    '<br>⚡ Coups joués: '+MoveCount.get(),
     '</div>',
     histoHtml,
     motifsHtml,
@@ -26153,7 +26173,7 @@ function setCarteTactiqueOverlayDim(dim) {
 // coherent visuellement dans toute l'appli.
 function drawCarteTactiqueOverlay(ctx) {
   if (!showCarteTactique) return;
-  if (typeof gameOver !== 'undefined' && gameOver) return;
+  if (typeof GameOver !== 'undefined' && GameOver.get()) return;
   if (typeof calculerCarteTactique !== 'function' || typeof CurrentTurn === 'undefined') return;
   let cases;
   try { cases = calculerCarteTactique(CurrentTurn.get()); } catch(e) { return; }
@@ -26806,14 +26826,14 @@ function _stashLive(){
   _liveStash = {
     board: JSON.parse(JSON.stringify(board)),
     capB: CapturedByBlack.get(), capW: CapturedByWhite.get(),
-    turn: CurrentTurn.get(), moveCount: moveCount
+    turn: CurrentTurn.get(), moveCount: MoveCount.get()
   };
 }
 function _restoreLive(){
   if (!_liveStash) return false;
   board = _liveStash.board;
   CapturedByBlack.set(_liveStash.capB); CapturedByWhite.set(_liveStash.capW);
-  CurrentTurn.set(_liveStash.turn); moveCount = _liveStash.moveCount;
+  CurrentTurn.set(_liveStash.turn); MoveCount.set(_liveStash.moveCount);
   _liveStash = null;
   return true;
 }
@@ -26833,7 +26853,7 @@ function toggleReplay() {
   if (replayMode) {
     /* Partie non terminee : on met l'etat reel de cote AVANT de charger un
        instantane, pour pouvoir y revenir intact en sortant. */
-    if (typeof gameOver !== 'undefined' && !gameOver) _stashLive();
+    if (typeof GameOver !== 'undefined' && !GameOver.get()) _stashLive();
     showToast('📽 Mode replay — utilisez Précédent/Suivant');
     loadSnapshot(replayCurrentIdx);
   } else {
@@ -27232,14 +27252,14 @@ function startBotDuel() {
 let _duelGen = 0;
 function duelDelay() { return 700; }   // pause entre deux coups pour que le spectateur suive
 function runBotDuelStep() {
-  if (!botDuelMode || gameOver) return;
+  if (!botDuelMode || GameOver.get()) return;
   // Règle officielle anti-blocage : la même position revient une 3e fois → nulle
   if (boardSnapshots.length > 8) {
     const curKey = _repKeyOf(board);
     let occ = 0;
     for (const s of boardSnapshots) { if (_repKeyOf(s.board) === curKey) occ++; }
     if (occ >= 3) {
-      gameOver = true;
+      GameOver.set(true);
       showToast('🤝 Nulle par triple répétition — duel terminé');
       stopBotDuel();
       return;
@@ -27253,7 +27273,7 @@ function runBotDuelStep() {
     botDuelTimer = setTimeout(runBotDuelStep, 600);
     return;
   }
-  const next = function(){ if (!gameOver && botDuelMode) botDuelTimer = setTimeout(runBotDuelStep, duelDelay()); };
+  const next = function(){ if (!GameOver.get() && botDuelMode) botDuelTimer = setTimeout(runBotDuelStep, duelDelay()); };
   // Livre d'ouvertures : coup connu joué tout de suite (réaliste, sans solliciter le worker)
   if (_bookNode && _bookNode.k) {
     const bm = pickBookMove(_bookNode, moves);
@@ -27273,7 +27293,7 @@ function runBotDuelStep() {
     const finish = function(chosen){
       if (done) return; done = true;
       worker.removeEventListener('message', onResult);
-      if (gen !== _duelGen || !botDuelMode || gameOver) return;   // arrêté / périmé / partie finie
+      if (gen !== _duelGen || !botDuelMode || GameOver.get()) return;   // arrêté / périmé / partie finie
       applyDuelMove((chosen && chosen.cells) ? chosen : rnd(), side);
       next();
     };
@@ -27352,7 +27372,7 @@ function applyDuelMove(mv, color) {
   const label = moveLabel(mv.cells, mv.dir, info.type, !!info.ejection);
   addMoveToHistory(label, color, { cells: mv.cells.slice(), dir: mv.dir, type: info.type, ejection: !!info.ejection });
   CurrentTurn.set((color === 'black') ? 'white' : 'black');
-  moveCount++;
+  MoveCount.inc();
   updateStatus(); updateCaptures(); drawBoard();
   if (CapturedByBlack.get() >= 6) { triggerWin('black'); botDuelMode=false; showDuelStopBtn(false); }
   if (CapturedByWhite.get() >= 6) { triggerWin('white'); botDuelMode=false; showDuelStopBtn(false); }
@@ -27753,7 +27773,7 @@ function extractPV(rootColor, firstMove, maxLen) {
   return pv;
 }
 function gameShowBestMove() {
-  if (gameOver) { showToast('⛔ La partie est terminée'); return; }
+  if (GameOver.get()) { showToast('⛔ La partie est terminée'); return; }
   // Meme garde que les fonctions voisines (ex. la verification "attends ton
   // tour" un peu plus bas dans ce fichier) : base sur humanColor, pas sur
   // 'black'. Sans ca, un humain jouant les blancs etait bloque sur SON
@@ -27919,7 +27939,7 @@ function loadSavedGame() {
     CapturedByBlack.set(state.capB || 0);
     CapturedByWhite.set(state.capW || 0);
     gameTimerSeconds = state.timer || 0;
-    gameOver = false;
+    GameOver.set(false);
     selected = [];
     updateGameTimerDisplay();
     drawBoard();
@@ -27993,7 +28013,7 @@ function startVariant() {
   _variantStash = {
     board: JSON.parse(JSON.stringify(board)),
     capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(),
-    currentTurn: CurrentTurn.get(), gameMode: GameMode.get(), humanColor: HumanColor.get(), gameOver: gameOver,
+    currentTurn: CurrentTurn.get(), gameMode: GameMode.get(), humanColor: HumanColor.get(), gameOver: GameOver.get(),
     fromLive: false
   };
   variantMode = true;
@@ -28003,7 +28023,7 @@ function startVariant() {
   CurrentTurn.set((snap.color === 'black') ? 'white' : 'black');
   HumanColor.set(CurrentTurn.get());   // on explore en jouant le prochain coup, quel que soit le camp
   GameMode.set('ai');            // pour que l'IA réponde automatiquement au coup exploratoire
-  gameOver = false;
+  GameOver.set(false);
   selected = [];
   drawBoard();
   updateCaptures();
@@ -28019,12 +28039,12 @@ function startVariant() {
    actuelle) — seul l'état est sauvegardé pour un retour exact garanti. */
 function startLiveVariant() {
   if (replayMode || variantMode) return;
-  if (gameOver) { showToast('La partie est terminée — rien à essayer'); return; }
+  if (GameOver.get()) { showToast('La partie est terminée — rien à essayer'); return; }
   if (GameMode.get() === 'ai' && CurrentTurn.get() !== HumanColor.get()) { showToast('Attends ton tour pour essayer un coup'); return; }
   _variantStash = {
     board: JSON.parse(JSON.stringify(board)),
     capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(),
-    currentTurn: CurrentTurn.get(), gameMode: GameMode.get(), humanColor: HumanColor.get(), gameOver: gameOver,
+    currentTurn: CurrentTurn.get(), gameMode: GameMode.get(), humanColor: HumanColor.get(), gameOver: GameOver.get(),
     fromLive: true
   };
   variantMode = true;
@@ -28044,7 +28064,7 @@ function exitVariant() {
   CurrentTurn.set(_variantStash.currentTurn);
   GameMode.set(_variantStash.gameMode);
   HumanColor.set(_variantStash.humanColor);
-  gameOver = _variantStash.gameOver;
+  GameOver.set(_variantStash.gameOver);
   variantMode = false;
   _variantStash = null;
   selected = [];
@@ -28484,7 +28504,7 @@ function showPage(name) {
       // Pluie de billes : uniquement quand une NOUVELLE partie demarre,
       // pas au retour sur une partie deja engagee.
       if (typeof playMarbleRainTransition === 'function'
-          && (typeof moveCount === 'undefined' || moveCount === 0)
+          && (typeof MoveCount === 'undefined' || MoveCount.get() === 0)
           && !(typeof replayMode !== 'undefined' && replayMode)) { playMarbleRainTransition(); } setTimeout(function(){ if(typeof maybeAskHintsPreference==='function') maybeAskHintsPreference(); }, 400);
       setTimeout(function(){ if (typeof _a11yBuildOverlay === 'function') _a11yBuildOverlay(); }, 100); },
     leaderboard:function(){ renderLeaderboard(); },
@@ -31583,7 +31603,7 @@ function playFromEditor() {
   setTimeout(function() {
     board = JSON.parse(JSON.stringify(editorBoard));
     CapturedByWhite.set(editorCapturedWhite); CapturedByBlack.set(editorCapturedBlack);
-    CurrentTurn.set('black'); moveCount = 0; gameOver = false;
+    CurrentTurn.set('black'); MoveCount.set(0); GameOver.set(false);
     selected = [];
     if (typeof updateCaptures === 'function') updateCaptures();
     if (typeof updateStatus === 'function') updateStatus();
@@ -31842,7 +31862,7 @@ function drawLastMoveArrow(ctx) {
 function drawThreats(ctx) {
   if (typeof showThreats !== 'undefined' && !showThreats) return;
   if (typeof board === 'undefined' || typeof getAllMovesForColor !== 'function') return;
-  if (typeof gameOver !== 'undefined' && gameOver) return;
+  if (typeof GameOver !== 'undefined' && GameOver.get()) return;
 
   // Collecte les billes menacées d'éjection, par couleur de la VICTIME
   const menaced = {};   // "r,c" -> couleur de la bille menacée
@@ -32702,7 +32722,7 @@ function gameCodeLoad(code) {
   }
 
   CurrentTurn.set(turn);
-  moveCount = parsed.moves.length;
+  MoveCount.set(parsed.moves.length);
   if (typeof updateCaptures === 'function') updateCaptures();
   if (typeof drawBoard === 'function') drawBoard();
   return { ok: true, plies: parsed.moves.length, turn: turn, layout: parsed.layout };
@@ -33076,15 +33096,15 @@ function _replayHistoryGame(code){
   if (!result.ok) { if (typeof showToast === 'function') showToast('⚠️ Partie illisible : ' + result.reason); return false; }
   // Anciennement : fermait le modal d'historique (obsolete depuis que
   // l'historique est une page normale du site, plus un modal flottant).
-  // Sentinelle deja prevue dans initGame() ("if (gameOver === 'init') return;")
+  // Sentinelle deja prevue dans initGame() ("if (GameOver.get() === 'init') return;")
   // mais jamais exploitee avant : sans elle, showPage('game') declenche
   // initGame() -> resetGame() qui ecrase tout ce qu'on vient de charger.
   // On la pose AVANT de naviguer, puis on finalise l'etat replay APRES --
   // trouve et corrige en testant en conditions reelles (Chromium headless),
   // pas suppose correct depuis la seule lecture du code.
-  gameOver = 'init';
+  GameOver.set('init');
   if (typeof showPage === 'function') showPage('game');
-  gameOver = true;
+  GameOver.set(true);
   replayMode = true; replayCurrentIdx = -1;
   const rb = document.getElementById('replay-btn');
   if (rb) { rb.style.display = 'block'; rb.textContent = '■ Quitter replay'; }
@@ -33642,7 +33662,7 @@ function _extPlayMove(){
   if (!input) return;
   const tok = input.value.trim();
   if (!tok) { setErr('Colle le coup renvoyé par le moteur externe.'); return; }
-  if (gameOver) { setErr('La partie est terminée.'); return; }
+  if (GameOver.get()) { setErr('La partie est terminée.'); return; }
 
   const color = CurrentTurn.get();
   const mv = resolveAbaProToken(tok, color);
@@ -34498,7 +34518,7 @@ window.setBoardView = function(view) {
    ne devait casser une reference existante), en simple alias. */
 window.canInteractWithBoard = function () {
   if (window._isProjector) return false;   // fenetre projecteur : affichage seul, jamais interactif
-  if (typeof gameOver !== 'undefined' && gameOver) return false;
+  if (typeof GameOver !== 'undefined' && GameOver.get()) return false;
   if (typeof replayMode !== 'undefined' && replayMode
       && !(typeof variantMode !== 'undefined' && variantMode)) return false;
   if (typeof GameMode !== 'undefined' && GameMode.get() === 'ai'
