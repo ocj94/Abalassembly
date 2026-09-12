@@ -103,7 +103,9 @@ function styleBar(name, val, color){
    reconstruit à partir de boardSnapshots (aucune donnée supplémentaire à
    stocker). Idée d'Olivier (fin de partie + stats). */
 function computeGameHeatmap(snapshots, forColor) {
-  // forColor : 'black' (le joueur) ou 'white' (l'adversaire)
+  // forColor : la couleur a cartographier, quelle qu'elle soit. Ne suppose
+  // PAS que noir est le joueur -- renderHeatmapCard() la derive de
+  // HumanColor (et laisse les deux camps neutres en mode 2 joueurs).
   // Chaque snapshot stocke color = la couleur qui a joué CE coup, et
   // moveInfo.cells = les cases occupées au départ du coup.
   const counts = {};   // "r,c" -> nombre d'occupations
