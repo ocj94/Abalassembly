@@ -895,7 +895,7 @@ function playMarbleRainTransition(onDone) {
 }
 
 function initGame() {
-  if (gameOver === 'init') return;
+  if (GameOver.get() === 'init') return;
   // Propose de reprendre une partie sauvegardée (avant de réinitialiser)
   let savedExists = false;
   try {
