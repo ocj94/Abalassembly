@@ -15,7 +15,7 @@ function startVariant() {
   _variantStash = {
     board: JSON.parse(JSON.stringify(board)),
     capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(),
-    currentTurn: CurrentTurn.get(), gameMode: GameMode.get(), humanColor: HumanColor.get(), gameOver: gameOver,
+    currentTurn: CurrentTurn.get(), gameMode: GameMode.get(), humanColor: HumanColor.get(), gameOver: GameOver.get(),
     fromLive: false
   };
   variantMode = true;
@@ -25,7 +25,7 @@ function startVariant() {
   CurrentTurn.set((snap.color === 'black') ? 'white' : 'black');
   HumanColor.set(CurrentTurn.get());   // on explore en jouant le prochain coup, quel que soit le camp
   GameMode.set('ai');            // pour que l'IA réponde automatiquement au coup exploratoire
-  gameOver = false;
+  GameOver.set(false);
   selected = [];
   drawBoard();
   updateCaptures();
@@ -41,12 +41,12 @@ function startVariant() {
    actuelle) — seul l'état est sauvegardé pour un retour exact garanti. */
 function startLiveVariant() {
   if (replayMode || variantMode) return;
-  if (gameOver) { showToast('La partie est terminée — rien à essayer'); return; }
+  if (GameOver.get()) { showToast('La partie est terminée — rien à essayer'); return; }
   if (GameMode.get() === 'ai' && CurrentTurn.get() !== HumanColor.get()) { showToast('Attends ton tour pour essayer un coup'); return; }
   _variantStash = {
     board: JSON.parse(JSON.stringify(board)),
     capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(),
-    currentTurn: CurrentTurn.get(), gameMode: GameMode.get(), humanColor: HumanColor.get(), gameOver: gameOver,
+    currentTurn: CurrentTurn.get(), gameMode: GameMode.get(), humanColor: HumanColor.get(), gameOver: GameOver.get(),
     fromLive: true
   };
   variantMode = true;
@@ -66,7 +66,7 @@ function exitVariant() {
   CurrentTurn.set(_variantStash.currentTurn);
   GameMode.set(_variantStash.gameMode);
   HumanColor.set(_variantStash.humanColor);
-  gameOver = _variantStash.gameOver;
+  GameOver.set(_variantStash.gameOver);
   variantMode = false;
   _variantStash = null;
   selected = [];
@@ -506,7 +506,7 @@ function showPage(name) {
       // Pluie de billes : uniquement quand une NOUVELLE partie demarre,
       // pas au retour sur une partie deja engagee.
       if (typeof playMarbleRainTransition === 'function'
-          && (typeof moveCount === 'undefined' || moveCount === 0)
+          && (typeof MoveCount === 'undefined' || MoveCount.get() === 0)
           && !(typeof replayMode !== 'undefined' && replayMode)) { playMarbleRainTransition(); } setTimeout(function(){ if(typeof maybeAskHintsPreference==='function') maybeAskHintsPreference(); }, 400);
       setTimeout(function(){ if (typeof _a11yBuildOverlay === 'function') _a11yBuildOverlay(); }, 100); },
     leaderboard:function(){ renderLeaderboard(); },
