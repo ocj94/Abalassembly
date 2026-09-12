@@ -128,7 +128,7 @@ function playFromEditor() {
   setTimeout(function() {
     board = JSON.parse(JSON.stringify(editorBoard));
     CapturedByWhite.set(editorCapturedWhite); CapturedByBlack.set(editorCapturedBlack);
-    CurrentTurn.set('black'); moveCount = 0; gameOver = false;
+    CurrentTurn.set('black'); MoveCount.set(0); GameOver.set(false);
     selected = [];
     if (typeof updateCaptures === 'function') updateCaptures();
     if (typeof updateStatus === 'function') updateStatus();
@@ -387,7 +387,7 @@ function drawLastMoveArrow(ctx) {
 function drawThreats(ctx) {
   if (typeof showThreats !== 'undefined' && !showThreats) return;
   if (typeof board === 'undefined' || typeof getAllMovesForColor !== 'function') return;
-  if (typeof gameOver !== 'undefined' && gameOver) return;
+  if (typeof GameOver !== 'undefined' && GameOver.get()) return;
 
   // Collecte les billes menacées d'éjection, par couleur de la VICTIME
   const menaced = {};   // "r,c" -> couleur de la bille menacée
