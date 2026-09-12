@@ -308,7 +308,7 @@ function extractPV(rootColor, firstMove, maxLen) {
   return pv;
 }
 function gameShowBestMove() {
-  if (gameOver) { showToast('⛔ La partie est terminée'); return; }
+  if (GameOver.get()) { showToast('⛔ La partie est terminée'); return; }
   // Meme garde que les fonctions voisines (ex. la verification "attends ton
   // tour" un peu plus bas dans ce fichier) : base sur humanColor, pas sur
   // 'black'. Sans ca, un humain jouant les blancs etait bloque sur SON
@@ -474,7 +474,7 @@ function loadSavedGame() {
     CapturedByBlack.set(state.capB || 0);
     CapturedByWhite.set(state.capW || 0);
     gameTimerSeconds = state.timer || 0;
-    gameOver = false;
+    GameOver.set(false);
     selected = [];
     updateGameTimerDisplay();
     drawBoard();
