@@ -82,6 +82,30 @@ side but not the other is a real bug that has already happened once
   not for the multi-PV panel: extending every candidate shown there would
   give a reliable line for the top one and rough guesses for the rest,
   because of alpha-beta pruning.
+- **Modular encapsulation stopped at six variables** — `GameMode`,
+  `HumanColor`, `CurrentTurn`, `CapturedByBlack`/`CapturedByWhite`,
+  `MoveCount` and `GameOver` sit behind a `.get()`/`.set()` interface
+  (plus `.inc()`/`.dec()` for the counters). **`board` was deliberately
+  left out, not forgotten.** The figures behind that decision, so nobody
+  has to recompute them:
+  - *Risk*: 24 scopes where `board` isn't the global — 15 local variables
+    (one per Gym exercise, `const board = new Map()`) and 9 function
+    parameters (`probe(board, color)`, `fromBoard(board)`,
+    `gymRenderBoard(id, board, ...)`). That's 78 of the 447 affected
+    lines, 17% needing exact scope boundaries. The other six variables
+    had 0 or 1.
+  - *Nature of the risk*: a slightly wrong boundary doesn't break syntax
+    (CI would see nothing), it produces valid but wrong code — a Gym
+    exercise reading the live game board instead of its own grid.
+  - *Benefit*: `board` is a **mutable object**, unlike the six scalars.
+    Of ~217 access sites, only the 85 reassignments would gain a real
+    control point; the 69 key reads, 11 `board[k] = v` writes, 3
+    `delete`s and 49 pass-by-reference calls bypass the interface anyway
+    (`Board.get()[k] = 'black'` mutates with no control at all).
+  - *Conclusion*: the riskiest work of the series for the smallest gain.
+    Anyone who still wants to do it should start by mapping the 24
+    scopes, not by a line-by-line transformation.
+
 - **Abalassembly Intelligence** — a name that comes up in discussions for
   an orchestration layer that doesn't exist yet. The capabilities (engine,
   history, fingerprints, profile, analysis, puzzles, Lab) already exist,
@@ -90,6 +114,28 @@ side but not the other is a real bug that has already happened once
 
 ## Pitfalls already hit, so you don't repeat them
 
+- **The `AI_WORKER_CODE` string spans TWO source files**
+  (`main/13-move-detection-motifs.js` → `main/14-engine-experimental-workers.js`).
+  It holds the complete AI worker code, which runs in a separate thread
+  with its **own** local variables sharing the globals' names. Any
+  automated transformation must exclude it: injecting a main-thread
+  interface there breaks the AI, and **no syntax check will catch it**
+  because that code lives inside a string. The puzzle audit caught the
+  case — not `check-scripts`.
+- **Local variables shadow the globals.** `renderPSGamesList()` declares
+  its own `const moveCount`, unrelated to the global counter; `board` has
+  15 such cases. Transforming a local declaration yields
+  `const MoveCount.set(...)`, which is invalid — but transforming its
+  *uses* yields code that is valid and wrong.
+- **Object shorthand doesn't survive automated transformation.** In
+  `pushUndoState()`, `{ capturedByBlack, moveCount }` cannot become
+  `{ CapturedByBlack.get(), MoveCount.get() }` — the key must be made
+  explicit, or move undo breaks.
+- **Documentation comments get transformed too.** One pass rewrote two
+  comments describing emitted event payloads (`abalassembly:movePlayed`,
+  `gameOver`), which then showed method calls instead of the real
+  property names. Check the actually emitted payload before fixing such
+  text.
 - **`console.assert` doesn't halt anything in Node.js.** A test using it
   can look like it passed when it actually failed. Always check the
   process's real exit code.
