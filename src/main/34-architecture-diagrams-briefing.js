@@ -313,7 +313,7 @@ function _extPlayMove(){
   if (!input) return;
   const tok = input.value.trim();
   if (!tok) { setErr('Colle le coup renvoyé par le moteur externe.'); return; }
-  if (gameOver) { setErr('La partie est terminée.'); return; }
+  if (GameOver.get()) { setErr('La partie est terminée.'); return; }
 
   const color = CurrentTurn.get();
   const mv = resolveAbaProToken(tok, color);
