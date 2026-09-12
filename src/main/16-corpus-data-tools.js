@@ -132,7 +132,7 @@ function _replaySeqToSnapshots(seq, labelText, startColor){
     boardSnapshots.push({board:JSON.parse(JSON.stringify(board)),capturedByBlack:CapturedByBlack.get(),capturedByWhite:CapturedByWhite.get(),moveCount:played,label:lab,color:color,moveInfo:moveInfo});
     color=color==='black'?'white':'black'; played++;
   }
-  gameOver=true;
+  GameOver.set(true);
   if(typeof rebuildMoveListLabels==='function') rebuildMoveListLabels();
   replayMode=true; replayCurrentIdx=-1;   // -1 = position de depart
   const rb=document.getElementById('replay-btn'); if(rb){ rb.style.display='block'; rb.textContent='■ Quitter replay'; }
