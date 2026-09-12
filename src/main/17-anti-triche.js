@@ -31,7 +31,7 @@ function winIntegrityOK(winner) {
   const caps = winner === 'black' ? CapturedByBlack.get() : CapturedByWhite.get();
   if (caps < 6) return false;
   // Il faut au moins 6 coups pour éjecter 6 billes (en réalité bien plus)
-  if (moveCount < 6) return false;
+  if (MoveCount.get() < 6) return false;
   // Partie anormalement instantanée (< 3 s) = manipulation probable
   if (Date.now() - gameStartTime < 3000) return false;
   return boardIntegrityOK();
