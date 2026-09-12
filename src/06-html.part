@@ -980,7 +980,7 @@
           <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">restant</span>
         </div>
         <!-- Mode commentateur : stats des deux joueurs, mises a jour en direct
-             via les evenements publics abalassembly:movePlayed/gameOver deja
+             via les evenements publics abalassembly:movePlayed/GameOver.get() deja
              emis par le moteur (aucune modification du jeu lui-meme requise —
              pur observateur, voir _emitAbaEvent). Demande d'Olivier, pour
              suivre une partie (tournoi ou non) de l'exterieur. -->
