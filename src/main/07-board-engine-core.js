@@ -109,8 +109,28 @@ const CapturedByWhite = (function(){
     dec: function(){ value--; return value; }
   };
 })();
-let moveCount = 14;
-let gameOver = false;
+const MoveCount = (function(){
+  // Encapsulation, meme motif que les precedentes. .inc() parce que c'est un
+  // COMPTEUR (moveCount++ n'a pas d'equivalent en .get()/.set()).
+  // Valeur initiale 14 conservee telle quelle : c'est ce que faisait la
+  // declaration d'origine, et une vraie partie la remet a 0 au demarrage.
+  //
+  // ATTENTION : renderPSGamesList() declare sa PROPRE const moveCount locale,
+  // sans rapport avec ce compteur global -- elle doit rester en minuscules.
+  let value = 14;
+  return {
+    get: function(){ return value; },
+    set: function(v){ value = v; },
+    inc: function(){ value++; return value; }
+  };
+})();
+const GameOver = (function(){
+  let value = false;
+  return {
+    get: function(){ return value; },
+    set: function(v){ value = v; }
+  };
+})();
 let timerInterval;
 /* 555 et 522 — soit 09:15 et 08:42 — etaient des valeurs inventees, affichees
    comme un temps de partie reel avant meme le premier coup. Les deux horloges
