@@ -86,6 +86,33 @@ passé (« OPP_DIR »), pas une simple négligence de style.
   réellement cherchée), pas pour le panneau multi-PV : étendre chaque
   candidat du panneau donnerait des suites fiables pour le premier et
   approximatives pour les autres, à cause de l'élagage alpha-bêta.
+- **Découpage modulaire arrêté à six variables** — `GameMode`,
+  `HumanColor`, `CurrentTurn`, `CapturedByBlack`/`CapturedByWhite`,
+  `MoveCount` et `GameOver` sont encapsulées derrière une interface
+  `.get()`/`.set()` (plus `.inc()`/`.dec()` pour les compteurs). **`board`
+  a été écarté sciemment, pas oublié.** Les chiffres qui ont conduit à
+  cette décision, pour ne pas les recalculer :
+  - *Risque* : 24 portées où `board` n'est pas la globale — 15 variables
+    locales (dont une par exercice du Gym, `const board = new Map()`) et
+    9 paramètres de fonction (`probe(board, color)`, `fromBoard(board)`,
+    `gymRenderBoard(id, board, ...)`). Soit 78 des 447 lignes concernées,
+    17 % à exclure avec des frontières de portée exactes. Les six autres
+    variables en avaient 0 ou 1.
+  - *Nature du risque* : une frontière légèrement fausse ne casse pas la
+    syntaxe (le CI ne verrait rien), elle produit du code valide mais
+    faux — un exercice du Gym lisant le plateau de la partie en cours au
+    lieu de sa propre grille.
+  - *Bénéfice* : `board` est un objet **mutable**, contrairement aux six
+    autres qui sont des scalaires. Sur ~217 sites d'accès, seules les 85
+    réaffectations gagneraient un vrai point de contrôle ; les 69
+    lectures par clé, 11 écritures `board[k] = v`, 3 `delete` et 49
+    passages par référence contournent l'interface de toute façon
+    (`Board.get()[k] = 'black'` mute sans aucun contrôle).
+  - *Conclusion* : le travail le plus risqué de la série pour le gain le
+    plus faible. Si quelqu'un veut quand même le faire, qu'il commence
+    par cartographier les 24 portées, pas par une transformation ligne à
+    ligne.
+
 - **Abalassembly Intelligence** — un nom qui circule dans les discussions
   pour désigner une couche d'orchestration qui n'existe pas encore. Les
   capacités (moteur, historique, empreintes, profil, analyse, puzzles,
@@ -94,6 +121,28 @@ passé (« OPP_DIR »), pas une simple négligence de style.
 
 ## Pièges déjà rencontrés, pour ne pas les retrouver
 
+- **La chaîne `AI_WORKER_CODE` s'étend sur DEUX fichiers source**
+  (`main/13-move-detection-motifs.js` → `main/14-engine-experimental-workers.js`).
+  Elle contient le code complet du worker IA, qui s'exécute dans un thread
+  séparé avec ses **propres** variables locales du même nom que les
+  globales. Toute transformation automatique doit l'exclure : y injecter
+  une interface du thread principal casse l'IA, et **aucun contrôle de
+  syntaxe ne le voit** puisque ce code vit dans une chaîne. C'est l'audit
+  des puzzles qui a attrapé le cas — pas `check-scripts`.
+- **Des variables locales masquent les globales.** `renderPSGamesList()`
+  déclare sa propre `const moveCount`, sans rapport avec le compteur
+  global ; `board` a 15 cas de ce genre. Transformer une déclaration
+  locale produit `const MoveCount.set(...)`, invalide — mais transformer
+  ses *usages* produit du code valide et faux.
+- **Les raccourcis d'objet ne survivent pas à une transformation
+  automatique.** Dans `pushUndoState()`, `{ capturedByBlack, moveCount }`
+  ne peut pas devenir `{ CapturedByBlack.get(), MoveCount.get() }` — il
+  faut rendre la clé explicite, sinon l'annulation de coup casse.
+- **Les commentaires de documentation se font transformer aussi.** Une
+  passe a modifié deux commentaires décrivant la forme des événements
+  émis (`abalassembly:movePlayed`, `gameOver`), qui affichaient ensuite
+  des appels de méthode au lieu des vrais noms de propriétés. Vérifier la
+  charge utile réellement émise avant de corriger ce genre de texte.
 - **`console.assert` ne stoppe rien en Node.js.** Un test qui l'utilise
   peut sembler passer alors qu'il a échoué. Toujours vérifier le vrai code
   de sortie du processus.
