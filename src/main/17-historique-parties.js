@@ -34,7 +34,7 @@ function _recordGameHistory(winner, reason){
       humanColor: (typeof HumanColor !== 'undefined') ? HumanColor.get() : 'black',
       winner: winner || null,
       reason: reason || null,
-      moveCount: (typeof moveCount !== 'undefined') ? moveCount : 0,
+      moveCount: (typeof MoveCount !== 'undefined') ? MoveCount.get() : 0,
       aiStyle: (mode === 'ai' && typeof _setupCfg !== 'undefined') ? _setupCfg.style : null,
       aiDiff: (mode === 'ai' && typeof _setupCfg !== 'undefined') ? _setupCfg.diff : null,
       // 'actuel' si _engineMode est vide (null/undefined), meme convention que
@@ -103,11 +103,11 @@ function triggerWin(winner, reason) {
     // sinon on ignore simplement le déclenchement suspect
     return;
   }
-  gameOver = true;
+  GameOver.set(true);
   if (typeof disarmInactivityCancel === 'function') disarmInactivityCancel();
   try{ localStorage.setItem('abaGamesFinished', String((parseInt(localStorage.getItem('abaGamesFinished')||'0',10)||0)+1)); }catch(e){}
-  _emitAbaEvent('gameOver', { winner: winner, reason: reason || null,
-    capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(), moveCount: moveCount });
+  _emitAbaEvent('GameOver.get()', { winner: winner, reason: reason || null,
+    capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(), moveCount: MoveCount.get() });
   if (typeof updateHeroStats==='function') updateHeroStats();
   if (typeof _tourneyMatch!=='undefined' && _tourneyMatch && typeof tourneyMatchEnd==='function') { tourneyMatchEnd(winner, reason); }
   clearInterval(timerInterval);
@@ -141,18 +141,18 @@ function triggerWin(winner, reason) {
   // ── Hook engagement : XP, streak, ELO, badges ──
   sanitizeProgress();
   // ── Taux de conversion : le joueur a-t-il mené puis gagné ? ──
-  if ((progress.__hadLead || CapturedByBlack.get() > 0) && !(typeof moveCount !== 'undefined' && moveCount === 0)) {
+  if ((progress.__hadLead || CapturedByBlack.get() > 0) && !(typeof MoveCount !== 'undefined' && MoveCount.get() === 0)) {
     progress.leadGames = (progress.leadGames||0) + 1;
     if (winner === 'black') progress.leadWins = (progress.leadWins||0) + 1;
     progress.__hadLead = false;
     saveProgress(progress);
   }
-  if (typeof onGamePlayed === 'function' && !(typeof moveCount !== 'undefined' && moveCount === 0)) {
+  if (typeof onGamePlayed === 'function' && !(typeof MoveCount !== 'undefined' && MoveCount.get() === 0)) {
     onGamePlayed(winner === 'black');
   }
   // Partie sans aucun coup joué (abandon immédiat, annulation) : aucun ELO
   // retiré, aucune stat comptée — idée d'Olivier. On informe juste discrètement.
-  if (typeof moveCount !== 'undefined' && moveCount === 0) {
+  if (typeof MoveCount !== 'undefined' && MoveCount.get() === 0) {
     if (typeof showToast === 'function') showToast('Partie annulée — aucun coup joué, ELO inchangé');
   }
   // Badge Blanchissage : le joueur gagne 6-0 sans avoir perdu une seule bille
