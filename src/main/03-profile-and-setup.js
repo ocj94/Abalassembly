@@ -548,8 +548,8 @@ function startConfiguredGame() {
      coup humain et en tournoi) : si ce n'est pas au tour de l'humain, l'IA
      joue. Robuste quel que soit le camp choisi. */
   if (c.mode === 'ai' && typeof CurrentTurn !== 'undefined'
-      && CurrentTurn.get() !== HumanColor.get() && !gameOver && typeof aiMove === 'function') {
-    setTimeout(function(){ if (!gameOver && CurrentTurn.get() !== HumanColor.get()) aiMove(); }, 700);
+      && CurrentTurn.get() !== HumanColor.get() && !GameOver.get() && typeof aiMove === 'function') {
+    setTimeout(function(){ if (!GameOver.get() && CurrentTurn.get() !== HumanColor.get()) aiMove(); }, 700);
   }
 
   /* Partie en direct : ouvre le panneau de connexion apres le lancement,
