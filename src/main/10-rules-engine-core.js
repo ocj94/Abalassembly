@@ -548,7 +548,7 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
   }
 
   selected = [];
-  moveCount++;
+  MoveCount.inc();
   // Libellé du coup selon les systèmes de notation activés (Aba-Pro et/ou Nacre)
   const ejected = !!(info.type === 'push' && info.ejection);
   const moveNotation = moveLabel(selCopy, chosenDir, info.type, ejected);
@@ -587,7 +587,7 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
   _clockInc(me);   // ⏱️ incrément de cadence pour celui qui vient de jouer
   CurrentTurn.set((me === 'black') ? 'white' : 'black');
   _emitAbaEvent('movePlayed', { color: me, label: (typeof moveNotation !== 'undefined') ? moveNotation : null,
-    moveCount: moveCount, capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get() });
+    moveCount: MoveCount.get(), capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get() });
   updateStatus();
   // Animation de glissement si déplacement simple/latéral, sinon rendu direct
   if (slidePieces && slidePieces.length) {
@@ -655,7 +655,7 @@ function afterHumanMove() {
   gameBestHint = null;  // efface la suggestion après avoir joué
   if (_puzzleActive) { checkPuzzleMove(); return; }   // mode puzzle : vérifie, pas d'IA ni de sauvegarde
   if (!variantMode) saveGameState();      // sauvegarde automatique — jamais pendant l'exploration d'une variante
-  if (GameMode.get() === 'ai' && CurrentTurn.get() === aiColor() && !gameOver) {
+  if (GameMode.get() === 'ai' && CurrentTurn.get() === aiColor() && !GameOver.get()) {
     setTimeout(aiMove, 800 + Math.random()*600);
   }
 }
