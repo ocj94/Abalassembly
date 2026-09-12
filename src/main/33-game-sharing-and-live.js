@@ -169,7 +169,7 @@ function gameCodeLoad(code) {
   }
 
   CurrentTurn.set(turn);
-  moveCount = parsed.moves.length;
+  MoveCount.set(parsed.moves.length);
   if (typeof updateCaptures === 'function') updateCaptures();
   if (typeof drawBoard === 'function') drawBoard();
   return { ok: true, plies: parsed.moves.length, turn: turn, layout: parsed.layout };
@@ -543,15 +543,15 @@ function _replayHistoryGame(code){
   if (!result.ok) { if (typeof showToast === 'function') showToast('⚠️ Partie illisible : ' + result.reason); return false; }
   // Anciennement : fermait le modal d'historique (obsolete depuis que
   // l'historique est une page normale du site, plus un modal flottant).
-  // Sentinelle deja prevue dans initGame() ("if (gameOver === 'init') return;")
+  // Sentinelle deja prevue dans initGame() ("if (GameOver.get() === 'init') return;")
   // mais jamais exploitee avant : sans elle, showPage('game') declenche
   // initGame() -> resetGame() qui ecrase tout ce qu'on vient de charger.
   // On la pose AVANT de naviguer, puis on finalise l'etat replay APRES --
   // trouve et corrige en testant en conditions reelles (Chromium headless),
   // pas suppose correct depuis la seule lecture du code.
-  gameOver = 'init';
+  GameOver.set('init');
   if (typeof showPage === 'function') showPage('game');
-  gameOver = true;
+  GameOver.set(true);
   replayMode = true; replayCurrentIdx = -1;
   const rb = document.getElementById('replay-btn');
   if (rb) { rb.style.display = 'block'; rb.textContent = '■ Quitter replay'; }
