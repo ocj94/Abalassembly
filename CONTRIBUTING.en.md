@@ -1,4 +1,4 @@
-🇫🇷 [Version française](CONTRIBUTING.md)
+🇫🇷 [Version française](CONTRIBUTING.fr.md)
 
 # Contributing
 
