@@ -13,7 +13,7 @@ function startPuzzle(idx){
   // Pose la position
   board={}; p.bm.forEach(function(k){board[k]='black';}); p.wm.forEach(function(k){board[k]='white';});
   CapturedByBlack.set(p.cb); CapturedByWhite.set(p.cw);
-  gameOver=false; replayMode=false; selected=[]; undoStack=[]; boardSnapshots=[]; moveCount=0;
+  GameOver.set(false); replayMode=false; selected=[]; undoStack=[]; boardSnapshots=[]; MoveCount.set(0);
   HumanColor.set(p.c); CurrentTurn.set(p.c); _bookNode=null; gameBestHint=null;
   const rb=document.getElementById('replay-btn'); if(rb) rb.style.display='none';
   _puzzleActive={ idx:idx, sig:_pzSig(p.sol.cells,p.sol.dir), alts:(p.alt||[]), tries:0 };
@@ -1126,7 +1126,7 @@ function _tourneyAfterStart(){
   if(t) t.textContent='\ud83c\udfc6 '+M.name+' \u2014 vs '+M.opp+' \u00b7 tu joues les '+(M.human==='black'?'\u26ab Noirs':'\u26aa Blancs');
   _tClockStart();
   updateStatus();
-  if(CurrentTurn.get()!==HumanColor.get() && !gameOver){ setTimeout(function(){ if(typeof aiMove==='function') aiMove(); }, 700); }
+  if(CurrentTurn.get()!==HumanColor.get() && !GameOver.get()){ setTimeout(function(){ if(typeof aiMove==='function') aiMove(); }, 700); }
 }
 function tourneyMatchEnd(winner, reason){
   const M=_tourneyMatch; if(!M) return;
@@ -1148,7 +1148,7 @@ function tourneyMatchEnd(winner, reason){
   renderTournamentState();
 }
 function resignGame(){
-  if(typeof gameOver!=='undefined' && gameOver){ showToast('La partie est d\u00e9j\u00e0 termin\u00e9e'); return; }
+  if(typeof GameOver!=='undefined' && GameOver.get()){ showToast('La partie est d\u00e9j\u00e0 termin\u00e9e'); return; }
   if(!confirm('Abandonner la partie ?')) return;
   const loser=CurrentTurn.get(), winner=(loser==='black'?'white':'black');
   showToast('\ud83c\udff3\ufe0f Abandon \u2014 victoire des '+(winner==='black'?'Noirs':'Blancs'));
@@ -1166,7 +1166,7 @@ function _tClockStart(){
 function _tClockStop(){ clearInterval(_tClockTimer); _tClockTimer=null; _tClock=null; }
 function _tClockTick(){
   const C=_tClock; if(!C||C.paused) return;
-  if(typeof gameOver!=='undefined' && gameOver) return;
+  if(typeof GameOver!=='undefined' && GameOver.get()) return;
   const mover=CurrentTurn.get(), now=Date.now();
   C[mover]-=(now-C.last); C[mover]+=C.inc;
   C.run=(mover==='black'?'white':'black'); C.last=now;
@@ -1176,11 +1176,11 @@ function _tClockFmt(ms){ ms=Math.max(0,ms); const s=Math.floor(ms/1000); return 
 function _tClockRender(){
   const C=_tClock; if(!C) return;
   let b=C.black, w=C.white;
-  if(!C.paused && !(typeof gameOver!=='undefined'&&gameOver)){ const el=Date.now()-C.last; if(C.run==='black') b-=el; else w-=el; }
+  if(!C.paused && !(typeof GameOver!=='undefined'&&GameOver.get())){ const el=Date.now()-C.last; if(C.run==='black') b-=el; else w-=el; }
   const eb=document.getElementById('tb-cb'), ew=document.getElementById('tb-cw');
   if(eb){ eb.textContent=_tClockFmt(b); eb.style.color=(C.run==='black'&&!C.paused)?'var(--gold)':'var(--text)'; }
   if(ew){ ew.textContent=_tClockFmt(w); ew.style.color=(C.run==='white'&&!C.paused)?'var(--gold)':'var(--text)'; }
-  if(_tourneyMatch && !C.paused && !(typeof gameOver!=='undefined'&&gameOver)){
+  if(_tourneyMatch && !C.paused && !(typeof GameOver!=='undefined'&&GameOver.get())){
     if(b<=0){ triggerWin('white','time'); showToast('\u23f1\ufe0f Temps \u00e9coul\u00e9 \u2014 les Blancs gagnent'); }
     else if(w<=0){ triggerWin('black','time'); showToast('\u23f1\ufe0f Temps \u00e9coul\u00e9 \u2014 les Noirs gagnent'); }
   }
@@ -1311,12 +1311,12 @@ document.addEventListener('keydown', function(e){
 })();
 
 function aiMove() {
-  if (gameOver) return;
+  if (GameOver.get()) return;
   // Mode moteur experimental (NNUE) : les poids doivent etre prets AVANT de
   // lancer le calcul. Meme patron que ensureGameBanks() -- charge une fois
   // (mis en cache), puis relance aiMove() automatiquement.
   if (_engineMode && !NNUE_WEIGHTS_CACHE) {
-    loadNNUEWeights().then(function(){ if (!gameOver) aiMove(); });
+    loadNNUEWeights().then(function(){ if (!GameOver.get()) aiMove(); });
     return;
   }
   const ai = aiColor();          // couleur jouée par l'IA (blanc par défaut, noir si on affronte le Bot Noir)
@@ -1378,7 +1378,7 @@ function aiMove() {
     showAIThinking(false);
     if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
     if (metrics) updateAIMetrics(metrics);
-    if (gameOver) return;
+    if (GameOver.get()) return;
     if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
     executeAIMove(chosen);
   });
@@ -1396,7 +1396,7 @@ function aiMove() {
       if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
       const chosen = e.data && e.data.move;
       if (e.data) updateAIMetrics(e.data.metrics);
-      if (gameOver) return;
+      if (GameOver.get()) return;
       if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
       executeAIMove(chosen);
     };
@@ -1408,7 +1408,7 @@ function aiMove() {
       worker.removeEventListener('message', onResult);
       showAIThinking(false);
       if (gen !== _aiGen) return;   // reset entre-temps → on ne joue pas sur la nouvelle partie
-      if (gameOver) return;
+      if (GameOver.get()) return;
       const chosen = searchBestMove(ai, config.depth, config.time, _gameHistKeys());
       if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
       executeAIMove(chosen);
@@ -1438,7 +1438,7 @@ function aiMove() {
       const chosen = searchBestMove(ai, config.depth, config.time, _gameHistKeys());
       showAIThinking(false);
       if (gen !== _aiGen) return;   // reset pendant le calcul → résultat périmé
-      if (gameOver) return;
+      if (GameOver.get()) return;
       if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
       executeAIMove(chosen);
     }, 30);
@@ -1478,7 +1478,7 @@ function showAIThinking(on) {
 
 // Exécute le coup choisi par l'IA (partie commune worker / synchrone)
 function executeAIMove(chosen) {
-  if (gameOver || !chosen) return;
+  if (GameOver.get() || !chosen) return;
   const ai = aiColor();              // couleur de l'IA
   const human = HumanColor.get();          // couleur de l'humain (= victime des éjections de l'IA)
   // Calculee ICI, AVANT abApplyMove : calculerExplicationCoup simule le coup
@@ -1522,14 +1522,14 @@ function executeAIMove(chosen) {
   // Heatmap : enregistre le coup de l'IA sous 'opponent'
   if (typeof recordOpponentHeat === 'function') recordOpponentHeat(chosen.cells);
   _clockInc(human==='black'?'white':'black');   // ⏱️ incrément pour l'IA qui vient de jouer
-  CurrentTurn.set(human); moveCount++;
+  CurrentTurn.set(human); MoveCount.inc();
   _emitAbaEvent('movePlayed', { color: (human==='black'?'white':'black'), label: label,
-    moveCount: moveCount, capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get() });
-  if (!gameOver) playSfx('occ_change');   // 🔊 « c'est ton tour »
+    moveCount: MoveCount.get(), capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get() });
+  if (!GameOver.get()) playSfx('occ_change');   // 🔊 « c'est ton tour »
   updateStatus(); drawBoard();
-  if (explicationIA && !gameOver) showAIExplainBubble(explicationIA);
+  if (explicationIA && !GameOver.get()) showAIExplainBubble(explicationIA);
   // Mode Coach : avertit le joueur si l'IA menace une éjection
-  if (coachEnabled && !gameOver) {
+  if (coachEnabled && !GameOver.get()) {
     setTimeout(function() {
       const myMoves = getAllMovesForColor(ai);  // ce que l'IA pourrait faire ensuite
       const threat = myMoves.some(function(m){ return m.eject; });
