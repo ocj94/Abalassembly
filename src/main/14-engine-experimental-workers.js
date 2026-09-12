@@ -553,7 +553,7 @@ function requestAIMovePooledStealing(params, onDone) {
    (évite qu'il joue un second coup par-dessus). */
 let _aiForcing = false;
 function forceAINow() {
-  if (gameOver) return;
+  if (GameOver.get()) return;
   if (typeof aiColor !== 'function') return;
   const ai = aiColor();
   // on n'agit que si c'est bien à l'IA de jouer et qu'elle réfléchit
