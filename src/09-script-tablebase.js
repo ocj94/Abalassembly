@@ -110,7 +110,7 @@ window.setBoardView = function(view) {
    ne devait casser une reference existante), en simple alias. */
 window.canInteractWithBoard = function () {
   if (window._isProjector) return false;   // fenetre projecteur : affichage seul, jamais interactif
-  if (typeof gameOver !== 'undefined' && gameOver) return false;
+  if (typeof GameOver !== 'undefined' && GameOver.get()) return false;
   if (typeof replayMode !== 'undefined' && replayMode
       && !(typeof variantMode !== 'undefined' && variantMode)) return false;
   if (typeof GameMode !== 'undefined' && GameMode.get() === 'ai'
