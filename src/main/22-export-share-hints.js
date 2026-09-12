@@ -384,14 +384,14 @@ function startBotDuel() {
 let _duelGen = 0;
 function duelDelay() { return 700; }   // pause entre deux coups pour que le spectateur suive
 function runBotDuelStep() {
-  if (!botDuelMode || gameOver) return;
+  if (!botDuelMode || GameOver.get()) return;
   // Règle officielle anti-blocage : la même position revient une 3e fois → nulle
   if (boardSnapshots.length > 8) {
     const curKey = _repKeyOf(board);
     let occ = 0;
     for (const s of boardSnapshots) { if (_repKeyOf(s.board) === curKey) occ++; }
     if (occ >= 3) {
-      gameOver = true;
+      GameOver.set(true);
       showToast('🤝 Nulle par triple répétition — duel terminé');
       stopBotDuel();
       return;
@@ -405,7 +405,7 @@ function runBotDuelStep() {
     botDuelTimer = setTimeout(runBotDuelStep, 600);
     return;
   }
-  const next = function(){ if (!gameOver && botDuelMode) botDuelTimer = setTimeout(runBotDuelStep, duelDelay()); };
+  const next = function(){ if (!GameOver.get() && botDuelMode) botDuelTimer = setTimeout(runBotDuelStep, duelDelay()); };
   // Livre d'ouvertures : coup connu joué tout de suite (réaliste, sans solliciter le worker)
   if (_bookNode && _bookNode.k) {
     const bm = pickBookMove(_bookNode, moves);
@@ -425,7 +425,7 @@ function runBotDuelStep() {
     const finish = function(chosen){
       if (done) return; done = true;
       worker.removeEventListener('message', onResult);
-      if (gen !== _duelGen || !botDuelMode || gameOver) return;   // arrêté / périmé / partie finie
+      if (gen !== _duelGen || !botDuelMode || GameOver.get()) return;   // arrêté / périmé / partie finie
       applyDuelMove((chosen && chosen.cells) ? chosen : rnd(), side);
       next();
     };
@@ -504,7 +504,7 @@ function applyDuelMove(mv, color) {
   const label = moveLabel(mv.cells, mv.dir, info.type, !!info.ejection);
   addMoveToHistory(label, color, { cells: mv.cells.slice(), dir: mv.dir, type: info.type, ejection: !!info.ejection });
   CurrentTurn.set((color === 'black') ? 'white' : 'black');
-  moveCount++;
+  MoveCount.inc();
   updateStatus(); updateCaptures(); drawBoard();
   if (CapturedByBlack.get() >= 6) { triggerWin('black'); botDuelMode=false; showDuelStopBtn(false); }
   if (CapturedByWhite.get() >= 6) { triggerWin('white'); botDuelMode=false; showDuelStopBtn(false); }
