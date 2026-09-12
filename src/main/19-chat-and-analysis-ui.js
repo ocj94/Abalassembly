@@ -444,7 +444,7 @@ function runAnalysis() {
     moves.map(m => '<div class="analysis-move '+m.type+'"><span class="am-icon">'+m.icon+'</span><span class="am-move">'+m.move+'</span><span class="am-comment">'+m.comment+'</span></div>').join(''),
     '<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--muted);line-height:1.6">',
     '📊 Billes éjectées — Vous: '+(HumanColor.get()==='black'?CapturedByBlack.get():CapturedByWhite.get())+' · Adversaire: '+(HumanColor.get()==='black'?CapturedByWhite.get():CapturedByBlack.get()),
-    '<br>⚡ Coups joués: '+moveCount,
+    '<br>⚡ Coups joués: '+MoveCount.get(),
     '</div>',
     histoHtml,
     motifsHtml,
