@@ -481,8 +481,11 @@ function requestUndo() {
   const requesterName = requester === 'black' ? 'Les Noirs' : 'Les Blancs';
 
   if (GameMode.get() === 'ai') {
-    // Le joueur humain (noir) demande, l'IA (blanc) décide aléatoirement
-    if (requester !== 'black') { showToast('Seul vous pouvez demander une annulation.'); return; }
+    // Le joueur humain demande, l'IA decide aleatoirement.
+    // monCamp() et pas 'black' en dur : avant correction, un humain tenant
+    // les blancs s'entendait dire "Seul vous pouvez demander une annulation"
+    // alors qu'il EST le joueur -- la fonction lui etait inaccessible.
+    if (requester !== monCamp()) { showToast('Seul vous pouvez demander une annulation.'); return; }
     showToast('⏳ Demande d\'annulation envoyée à l\'adversaire…');
     setTimeout(function() {
       // L'IA accepte ~60% du temps, comme une personne
