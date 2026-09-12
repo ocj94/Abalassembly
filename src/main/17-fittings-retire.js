@@ -176,7 +176,7 @@ function addMoveToHistory(move, color, moveInfo) {
     board: JSON.parse(JSON.stringify(board)),
     capturedByBlack: CapturedByBlack.get(),
     capturedByWhite: CapturedByWhite.get(),
-    moveCount: moveCount,
+    moveCount: MoveCount.get(),
     label: move, color: color,
     moveInfo: moveInfo || null   // {cells, dir, type, ejection} pour re-notation
   });
@@ -270,7 +270,7 @@ function _gotoMoveFromHistory(idx){
        restaure a la sortie du replay -- sans quoi la partie en cours
        serait perdue (bug preexistant sur toggleReplay, corrige en meme
        temps). Le bouton "Quitter replay" ramene a la position reelle. */
-    if (typeof gameOver !== 'undefined' && !gameOver) {
+    if (typeof GameOver !== 'undefined' && !GameOver.get()) {
       _stashLive();
       if (typeof showToast === 'function') showToast('📽 Relecture — « Quitter replay » pour revenir à ta partie');
       const btn = document.getElementById('replay-btn');
