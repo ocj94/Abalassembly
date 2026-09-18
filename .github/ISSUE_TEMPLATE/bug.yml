@@ -1,0 +1,79 @@
+name: Signaler un bug / Report a bug
+description: Un comportement inattendu dans le jeu
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de prendre le temps de signaler ce problème.
+
+        **Pourquoi les questions ci-dessous ?** Plusieurs bugs réels de ce
+        projet n'apparaissaient *que* pour un joueur tenant les blancs : le
+        code supposait par endroits que le joueur avait les noirs. Ces
+        champs font remonter cette famille de problèmes tout de suite.
+
+        *Several real bugs in this project only appeared for a player
+        holding White: the code assumed in places that the player was Black.
+        These fields surface that class of problem immediately.*
+
+  - type: textarea
+    id: quoi
+    attributes:
+      label: Que s'est-il passé ? / What happened?
+      description: Ce que vous attendiez, et ce qui s'est produit à la place.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: couleur
+    attributes:
+      label: Quelle couleur teniez-vous ? / Which colour were you playing?
+      options:
+        - Noir / Black
+        - Blanc / White
+        - Les deux (2 joueurs) / Both (2-player)
+        - Je ne sais plus / Not sure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode de jeu / Game mode
+      options:
+        - Contre l'IA / Against the AI
+        - 2 joueurs même écran / 2 players, same screen
+        - En direct (WebRTC) / Live (WebRTC)
+        - Puzzle / Gym Cerveau / Puzzle or Brain Gym
+        - Analyse / Analysis
+        - Autre / Other
+    validations:
+      required: true
+
+  - type: input
+    id: variante
+    attributes:
+      label: Disposition de départ / Starting layout
+      placeholder: Standard, Belgian Daisy, Découverte, Alitration…
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Affichée en bas de la page (ex. v2.46).
+      placeholder: v2.46
+
+  - type: input
+    id: contexte
+    attributes:
+      label: Navigateur et appareil / Browser and device
+      placeholder: Firefox 130 sur Android, Chrome sur PC, hors-ligne depuis une clé USB…
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Code de partie (facultatif) / Game code (optional)
+      description: >-
+        Si le bug concerne une partie précise, le code de partie permet de la
+        rejouer à l'identique. Il se copie depuis le menu de partage.
+      render: text
