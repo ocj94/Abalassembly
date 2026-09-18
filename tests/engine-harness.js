@@ -1,36 +1,57 @@
-/* Harnais Node : extrait les vraies fonctions du moteur depuis index.html
-   et rejoue le format de code de partie contre elles. */
-const fs=require('fs');
-const H=fs.readFileSync(require('path').join(__dirname,'..','index.html'),'utf8');
-const S=[...H.matchAll(/<script(?![^>]*ld\+json)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]).join('\n');
+/* ═══════════════════════════════════════════════════════════════
+   HARNAIS HISTORIQUE — interface conservee pour nacre.js et gamecode.js
 
-function grab(kind,name){
-  const pat = kind==='fn' ? ('function '+name+'(') : (name+' =');
-  const i = S.indexOf(kind==='fn'?pat:('const '+name+' ='));
-  if(i<0) throw new Error('introuvable: '+name);
-  if(kind==='const'){ const e=S.indexOf(';',i); return S.slice(i,e+1); }
-  const o=S.indexOf('{',i); let d=0;
-  for(let k=o;k<S.length;k++){ if(S[k]==='{')d++; else if(S[k]==='}'){d--; if(!d) return S.slice(i,k+1);} }
-  throw new Error('accolades: '+name);
+   Version precedente : ce fichier extrayait CHIRURGICALEMENT une liste de
+   fonctions codee en dur (grab('fn','validateMove') ...) et les recollait
+   dans un new Function(). Deux fragilites l'ont casse :
+
+     1. Une fonction appelee mais absente de la liste devient undefined a
+        l'execution. C'est arrive avec _gcParseBody, appelee par
+        gameCodeParse : gamecode.js plantait sur "_gcParseBody is not defined".
+     2. Toute variable globale du moteur devait etre re-simulee a la main
+        (board, capturedByBlack...). Quand les compteurs sont passes derriere
+        CapturedByBlack.get()/.set(), la portee bricolee ne les connaissait
+        plus.
+
+   Les deux problemes viennent de la meme cause : reconstituer un
+   sous-ensemble du moteur au lieu de le charger. On charge donc maintenant
+   le moteur ENTIER via ./harness.js, et on se contente d'exposer la meme
+   interface publique qu'avant — nacre.js et gamecode.js sont inchanges.
+   ═══════════════════════════════════════════════════════════════ */
+'use strict';
+const { chargerMoteur } = require('./harness.js');
+
+const ctx = chargerMoteur();
+
+/** Les fonctions du moteur, telles que les attendaient les tests existants. */
+function run() {
+  return {
+    validateMove: ctx.validateMove,
+    applyMove: ctx.applyMove,
+    undoMove: ctx.undoMove,
+    getAllMovesForColor: ctx.getAllMovesForColor,
+    coordToABAPRO: ctx.coordToABAPRO,
+    abaproToRc: ctx.abaproToRc,
+    gameCodeParse: ctx.gameCodeParse,
+    resolveAbaProToken: ctx.resolveAbaProToken,
+    abaproOfficialLabels: ctx.abaproOfficialLabels,
+    AX_DIRS: ctx.AX_DIRS,
+    akey: ctx.akey,
+    rcToAxial: ctx.rcToAxial,
+    axialToRc: ctx.axialToRc
+  };
 }
-const parts=[];
-for(const c of ['ROWS','ABAPRO_ROWS','AX_DIRS','akey']) parts.push(grab('const',c));
-for(const f of ['rcToAxial','axialToRc','selectionLine','validateMove','abApplyMove',
-                'applyMove','undoMove','getAllMovesForColor','coordToABAPRO','abaproToRc',
-                'gameCodeParse','_gcDirIndex','resolveAbaProToken','abaproOfficialLabels','selectionLine']) parts.push(grab('fn',f));
 
-let board={}, capturedByBlack=0, capturedByWhite=0;
-const ctx={board:null};
-const code=parts.join('\n\n');
-const run=new Function('getBoard','setBoard','getCap','setCap', `
-  Object.defineProperty(globalThis,'board',{get:getBoard,set:setBoard,configurable:true});
-  Object.defineProperty(globalThis,'capturedByBlack',{get:()=>getCap('b'),set:v=>setCap('b',v),configurable:true});
-  Object.defineProperty(globalThis,'capturedByWhite',{get:()=>getCap('w'),set:v=>setCap('w',v),configurable:true});
-  ${code}
-  return {validateMove,applyMove,undoMove,getAllMovesForColor,coordToABAPRO,abaproToRc,gameCodeParse,resolveAbaProToken,abaproOfficialLabels,AX_DIRS,akey,rcToAxial,axialToRc};
-`);
-module.exports={run:()=> run(()=>board,v=>{board=v},k=>k==='b'?capturedByBlack:capturedByWhite,
-  (k,v)=>{ if(k==='b')capturedByBlack=v; else capturedByWhite=v; }),
-  state:{get board(){return board}, set board(v){board=v},
-         get cb(){return capturedByBlack}, set cb(v){capturedByBlack=v},
-         get cw(){return capturedByWhite}, set cw(v){capturedByWhite=v}}};
+/* L'etat partage. Les compteurs passent par les accesseurs encapsules :
+   les tests continuent d'ecrire st.cb = 0 sans savoir que c'est devenu
+   CapturedByBlack.set(0) derriere. */
+const state = {
+  get board() { return ctx.board; },
+  set board(v) { ctx.board = v; },
+  get cb() { return ctx.CapturedByBlack.get(); },
+  set cb(v) { ctx.CapturedByBlack.set(v); },
+  get cw() { return ctx.CapturedByWhite.get(); },
+  set cw(v) { ctx.CapturedByWhite.set(v); }
+};
+
+module.exports = { run, state, ctx };
