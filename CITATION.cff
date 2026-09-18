@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+title: "Abalassembly"
+message: >-
+  Si vous utilisez ce projet — le jeu, le corpus de parties, les tables de
+  finales ou la notation APGN — merci de le citer comme ci-dessous.
+type: software
+authors:
+  - given-names: Olivier
+    alias: ocj94
+    # family-names: à compléter si vous souhaitez apparaître sous votre nom complet
+repository-code: "https://github.com/ocj94/Abalassembly"
+url: "https://ocj94.github.io/Abalassembly/"
+abstract: >-
+  Jeu d'Abalone complet en un seul fichier HTML, hors-ligne et sans
+  dépendance : moteur de règles, IA de recherche, puzzles vérifiés,
+  analyse de partie et détection de plateau par photo. Le dépôt contient
+  aussi des ressources réutilisables au-delà du jeu : un corpus de 4 480
+  parties réelles (dont les 2 589 parties du serveur MiGs, fermé en 2017,
+  republiées à des fins de préservation), des tables de finales 2v2 et 3v2
+  prouvées par analyse rétrograde, et APGN, une proposition de notation
+  portable pour l'Abalone inspirée du PGN des échecs.
+keywords:
+  - abalone
+  - jeu de plateau
+  - board game
+  - tablebase
+  - analyse rétrograde
+  - retrograde analysis
+  - APGN
+  - notation
+  - corpus de parties
+  - hors-ligne
+  - single-file
+license: GPL-3.0-or-later
