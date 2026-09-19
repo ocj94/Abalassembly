@@ -1,7 +1,11 @@
 /* ═══════════════════════════════════════════
-   TRAINER DE FINALES — positions REELLES tirees de la table 3v2 embarquee
-   (chaine base64 D32 dans ce fichier, decodee par AbaTB -- il n'existe aucun
-   fichier tb-3v2.json separe : tout est dans le mono-fichier)
+   TRAINER DE FINALES — positions REELLES tirees de la table 3v2.
+   Deux formes coexistent, et c'est voulu : la source tablebase/tb-3v2.json
+   dans le depot (lue par les outils et par tools/check-embedded.js), et sa
+   copie encodee en base64 dans ce fichier (chaine D32, decodee par AbaTB),
+   qui est celle reellement utilisee a l'execution -- le jeu doit tourner
+   hors-ligne depuis un fichier unique. check-embedded.js verifie que les
+   deux restent identiques.
    Contrairement a generateRandomPuzzle() (position fabriquee, verifiee a
    posteriori par le moteur), chaque position ici provient d'une entree
    PROUVEE par induction retrograde exhaustive : la table dit que le camp au
