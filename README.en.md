@@ -94,7 +94,7 @@ What it hides: **chat**, the **AI Lab**, **settings**, and **external links**. I
 **Library**
 - 4,480 real games embedded (AbalOnline + MIGS), replayable move by move
 - Opening book mined from these games
-- **2,589 of these games republished** in [APGN](APGN.md) under [`games/`](games/) — the ones from the MiGs server, which closed on May 30, 2017, and for which no other known public source exists
+- **2,589 of these games republished** in [APGN](APGN.en.md) under [`games/`](games/) — the ones from the MiGs server, which closed on May 30, 2017, and for which no other known public source exists
 
 **Lab**
 - Engine self-improvement: SPRT duels (Fishtest/Stockfish-style methodology) and continuous SPSA tuning across 8 evaluation weights (center, cohesion, edge, mobility, isolation, danger, alignments, fortress), with Elo tracking and CSV/JSON exports
@@ -106,7 +106,7 @@ What it hides: **chat**, the **AI Lab**, **settings**, and **external links**. I
 
 **Game by code.** An asynchronous game via a simple text exchange: you play, copy the code, send it; your opponent pastes it, plays, and sends theirs back. No account, no server. The code carries the entire game from the first move, and whoever receives it replays it against the engine — it's rejected at the first illegal move rather than trusted blindly.
 
-**APGN.** Abalone never had an equivalent to chess's PGN. [`APGN.md`](APGN.md) proposes one: a tag header, numbered moves, a result. A game is only valid there if it replays. The converter [`tools/to-apgn.js`](tools/to-apgn.js) produces the file and rejects anything that doesn't pass.
+**APGN.** Abalone never had an equivalent to chess's PGN. [`APGN.en.md`](APGN.en.md) proposes one: a tag header, numbered moves, a result. A game is only valid there if it replays. The converter [`tools/to-apgn.js`](tools/to-apgn.js) produces the file and rejects anything that doesn't pass.
 
 **[`ecosysteme.html`](ecosysteme.html).** An interactive map of the Abalone ecosystem, drawn as a game position: projects enter the board and slide into the gutter when they shut down.
 
