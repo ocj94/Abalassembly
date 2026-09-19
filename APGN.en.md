@@ -1,4 +1,4 @@
-🇫🇷 [Version française](APGN.md)
+🇫🇷 [Version française](APGN.fr.md)
 
 # APGN — Abalone Portable Game Notation
 
