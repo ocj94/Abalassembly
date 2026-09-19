@@ -112,6 +112,7 @@ const PASSERELLE = `
   }
   if (typeof board !== 'undefined')            relier('board', function(){return board;}, function(v){board=v;});
   if (typeof undoStack !== 'undefined')        relier('undoStack', function(){return undoStack;}, function(v){undoStack=v;});
+  if (typeof selected !== 'undefined')         relier('selected', function(){return selected;}, function(v){selected=v;});
   if (typeof LAYOUTS !== 'undefined')          relier('LAYOUTS', function(){return LAYOUTS;});
   if (typeof ROWS !== 'undefined')             relier('ROWS', function(){return ROWS;});
   if (typeof AX_DIRS !== 'undefined')          relier('AX_DIRS', function(){return AX_DIRS;});
