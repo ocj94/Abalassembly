@@ -1,9 +1,17 @@
 name: Vérification
 
-# Abalassembly est un mono-fichier de 2,8 Mo : rien ne signale une régression
+# Abalassembly est un mono-fichier de ~8 Mo : rien ne signale une régression
 # avant l'ouverture dans un navigateur. Ces contrôles s'exécutent à chaque
 # poussée et transforment « ça marchait la dernière fois » en fait vérifié.
-# Durée totale : environ 30 secondes.
+#
+# Les trois premiers vérifient l'INTÉGRITÉ (syntaxe, données, puzzles), les
+# suivants le COMPORTEMENT (règles, camps, notation, code de partie).
+#
+# Les suites de tests existaient déjà mais n'étaient exécutées nulle part :
+# au moment de les brancher ici, les trois échouaient, silencieusement
+# périmées par des refontes. C'est précisément ce que cette étape empêche.
+#
+# Durée totale : environ une minute.
 
 on:
   push:
@@ -12,34 +20,60 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Permissions du jeton CI, reduites au strict necessaire (OpenSSF Scorecard,
+# controle Token-Permissions). Sans ce bloc, GITHUB_TOKEN herite des
+# permissions par defaut du depot, qui incluent l'ecriture sur le contenu :
+# une action tierce compromise pourrait alors ecrire dans le depot.
+permissions:
+  contents: read
+
 jobs:
   verifier:
     runs-on: ubuntu-latest
     steps:
       - name: Récupérer le dépôt
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
 
       - name: Installer Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
         with:
           node-version: '20'
 
-      # 1/3 — une erreur de syntaxe dans n'importe quel bloc casse toute l'app
+      # 1/7 — une erreur de syntaxe dans n'importe quel bloc casse toute l'app
       - name: Syntaxe des blocs script
         run: node tools/check-scripts.js index.html
 
-      # 2/3 — les tables embarquées en base64 doivent rester égales aux JSON sources
+      # 2/7 — les tables embarquées en base64 doivent rester égales aux JSON sources
       - name: Tables embarquées conformes aux références
         run: node tools/check-embedded.js index.html
 
-      # 3/3 — chaque puzzle doit avoir une solution démontrable.
+      # 3/7 — chaque puzzle doit avoir une solution démontrable.
       # La référence fige les cas connus : on échoue seulement si ça empire.
       - name: Audit des puzzles par preuve
         run: node tablebase/audit-puzzles.js index.html --baseline tablebase/puzzles-baseline.json
 
+      # 4/7 — tests unitaires du moteur : géométrie, règles, sumito, éjection,
+      # et la famille « noir = moi » (le code qui suppose que le joueur tient
+      # les noirs et casse pour un joueur blanc).
+      - name: Tests unitaires du moteur
+        run: node --test "tests/*.test.js"
+
+      # 5/7 — contrôles de régression sur le source et le README
+      - name: Contrôles de régression
+        run: node tests/regression.js
+
+      # 6/7 — la notation Nacre doit se relire sans ambiguïté
+      - name: Notation Nacre
+        run: node tests/nacre.js
+
+      # 7/7 — un code de partie doit rejouer à l'identique, et les codes
+      # corrompus doivent être refusés
+      - name: Aller-retour du code de partie
+        run: node tests/gamecode.js
+
       - name: Rapport d'audit
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: audit-puzzles
           path: audit-puzzles.json
