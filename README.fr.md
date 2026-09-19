@@ -94,7 +94,7 @@ Ce qu'il masque : le **chat**, le **Labo IA**, les **paramètres** et les **lien
 **Bibliothèque**
 - 4 480 parties réelles embarquées (AbalOnline + MIGS), rejouables coup par coup
 - Book d'ouvertures miné depuis ces parties
-- **2 589 de ces parties republiées** en [APGN](APGN.md) dans [`games/`](games/) — celles du serveur MiGs, fermé le 30 mai 2017, dont il n'existe aucune autre source publique connue
+- **2 589 de ces parties republiées** en [APGN](APGN.fr.md) dans [`games/`](games/) — celles du serveur MiGs, fermé le 30 mai 2017, dont il n'existe aucune autre source publique connue
 
 **Labo**
 - Auto-amélioration du moteur : duels SPRT (méthodologie façon Fishtest/Stockfish) et réglage continu SPSA sur 8 poids d'évaluation (centre, cohésion, bord, mobilité, isolement, danger, alignements, forteresse), suivi Elo, exports CSV/JSON
@@ -106,7 +106,7 @@ Ce qu'il masque : le **chat**, le **Labo IA**, les **paramètres** et les **lien
 
 **Partie par code.** Une partie en différé, par simple échange de texte : vous jouez, vous copiez le code, vous l'envoyez ; votre adversaire le colle, joue, et vous renvoie le sien. Aucun compte, aucun serveur. Le code porte la partie entière depuis le premier coup, et celui qui le reçoit la rejoue contre le moteur — il la refuse au premier coup illégal plutôt que de faire confiance.
 
-**APGN.** L'Abalone n'avait pas d'équivalent du PGN des échecs. [`APGN.md`](APGN.md) en propose un : en-tête de balises, coups numérotés, résultat. Une partie n'y est valide que si elle rejoue. Le convertisseur [`tools/to-apgn.js`](tools/to-apgn.js) produit le fichier et rejette ce qui ne passe pas.
+**APGN.** L'Abalone n'avait pas d'équivalent du PGN des échecs. [`APGN.fr.md`](APGN.fr.md) en propose un : en-tête de balises, coups numérotés, résultat. Une partie n'y est valide que si elle rejoue. Le convertisseur [`tools/to-apgn.js`](tools/to-apgn.js) produit le fichier et rejette ce qui ne passe pas.
 
 **[`ecosysteme.html`](ecosysteme.html).** Une carte interactive de l'écosystème Abalone, dessinée comme une position de jeu : les projets entrent sur le plateau et glissent dans la gouttière quand ils ferment.
 
