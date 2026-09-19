@@ -24,7 +24,7 @@ Menu du jeu → **Partie en direct**.
 
 ## Format APGN
 
-L'Abalone n'avait pas d'équivalent du PGN des échecs. [`APGN.md`](../APGN.md) en propose un : en-tête de balises, coups numérotés, résultat.
+L'Abalone n'avait pas d'équivalent du PGN des échecs. [`APGN.md`](../APGN.fr.md) en propose un : en-tête de balises, coups numérotés, résultat.
 
 Deux choix le distinguent d'un simple fichier texte :
 
