@@ -243,3 +243,53 @@ test('aucune disposition ne place deux billes sur la meme case', () => {
     }
   }
 });
+
+/* ─── 7. Non-regression : selection pendant le tour de l'IA ─── */
+
+test('NON-REGRESSION : on ne peut pas selectionner les billes adverses pendant que l IA reflechit', () => {
+  // Bug reel signale en partie : pendant le calcul de l'IA, le joueur pouvait
+  // selectionner ET deplacer les billes ADVERSES. handleClick comparait la
+  // case au camp AU TRAIT (`piece === CurrentTurn.get()`), or pendant le tour
+  // de l'IA ce camp est le sien. La garde existait sur le clic canevas et le
+  // glisser-deposer, mais pas sur les autres entrees (clavier/ARIA, vue 1D,
+  // plateau du commentateur) : elle est desormais dans handleClick lui-meme.
+  ctx.drawBoard = () => {}; ctx.updateStatus = () => {}; ctx.showToast = () => {};
+  ctx.soundSelect = () => {};
+  const poser = () => { poserCases(ctx, [[6,2],[6,3]], [[2,2],[2,3]]); ctx.selected = []; };
+
+  poser();
+  ctx.GameMode.set('ai'); ctx.HumanColor.set('black'); ctx.CurrentTurn.set('white');
+  ctx.handleClick(2, 2);
+  assert.strictEqual(ctx.selected.length, 0, 'aucune bille adverse selectionnable pendant le tour de l IA');
+
+  poser();
+  ctx.CurrentTurn.set('black');
+  ctx.handleClick(6, 2);
+  assert.strictEqual(ctx.selected.length, 1, 'le joueur doit pouvoir selectionner les siennes a son tour');
+});
+
+test('NON-REGRESSION : la garde vaut aussi pour un joueur BLANC', () => {
+  ctx.drawBoard = () => {}; ctx.updateStatus = () => {}; ctx.soundSelect = () => {};
+  poserCases(ctx, [[6,2],[6,3]], [[2,2],[2,3]]); ctx.selected = [];
+  ctx.GameMode.set('ai'); ctx.HumanColor.set('white'); ctx.CurrentTurn.set('black');
+  ctx.handleClick(6, 2);
+  assert.strictEqual(ctx.selected.length, 0, 'pas de selection pendant le tour de l IA');
+  ctx.CurrentTurn.set('white');
+  ctx.handleClick(2, 2);
+  assert.strictEqual(ctx.selected.length, 1, 'le joueur blanc selectionne bien les siennes');
+});
+
+test('le mode 2 joueurs sur le meme ecran n est PAS bloque par la garde', () => {
+  // La garde ne s'applique qu'au mode IA : a deux sur un ecran, les deux
+  // camps jouent a tour de role et doivent rester selectionnables.
+  ctx.drawBoard = () => {}; ctx.updateStatus = () => {}; ctx.soundSelect = () => {};
+  poserCases(ctx, [[6,2],[6,3]], [[2,2],[2,3]]); ctx.selected = [];
+  ctx.GameMode.set('local');
+  ctx.CurrentTurn.set('black');
+  ctx.handleClick(6, 2);
+  assert.strictEqual(ctx.selected.length, 1, 'noir joue');
+  ctx.selected = [];
+  ctx.CurrentTurn.set('white');
+  ctx.handleClick(2, 2);
+  assert.strictEqual(ctx.selected.length, 1, 'blanc joue aussi');
+});
