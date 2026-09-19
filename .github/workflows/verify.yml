@@ -56,7 +56,10 @@ jobs:
       # et la famille « noir = moi » (le code qui suppose que le joueur tient
       # les noirs et casse pour un joueur blanc).
       - name: Tests unitaires du moteur
-        run: node --test "tests/*.test.js"
+        # Fichier nomme explicitement : le motif glob de node --test n'existe
+        # qu'a partir de Node 21, et ce workflow tourne sur Node 20. Ajouter un
+        # fichier de test ici lorsqu'il y en aura un nouveau.
+        run: node --test tests/engine.test.js
 
       # 5/7 — contrôles de régression sur le source et le README
       - name: Contrôles de régression
