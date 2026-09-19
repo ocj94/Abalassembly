@@ -600,6 +600,20 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
 
 
 function handleClick(r, c) {
+  /* Garde centrale : en mode IA, on ne touche a rien tant que ce n'est pas
+     son tour. Elle etait posee sur le clic canevas et le glisser-deposer,
+     mais PAS sur les autres points d'entree (navigation clavier/ARIA, vue 1D,
+     plateau du commentateur). Par ces chemins, pendant que l'IA reflechit, on
+     pouvait selectionner et deplacer les billes ADVERSES : le trait etant a
+     l'IA, `piece === me` etait vrai pour ses billes.
+     Ici plutot qu'aux appelants : cinq entrees, une seule regle.
+     En 2 joueurs sur le meme ecran, les deux camps jouent a tour de role --
+     la garde ne s'applique donc qu'au mode IA, volontairement.
+     Les coups d'un moteur externe passent par executePlayerMove() et ne sont
+     pas concernes. */
+  if (GameOver.get()) return;
+  if (GameMode.get() === 'ai' && CurrentTurn.get() !== HumanColor.get()) return;
+
   const piece = board[akey(r,c)];
   const me = CurrentTurn.get();
 
