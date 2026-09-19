@@ -1,0 +1,22 @@
+# Suivi automatique des dépendances (Dependabot)
+#
+# Pourquoi ce fichier, alors que le jeu n'a aucune dépendance npm : les
+# actions GitHub utilisées par le CI en sont, elles, de vraies dépendances —
+# du code tiers qui s'exécute avec accès au dépôt.
+#
+# C'est surtout le complément indispensable de l'épinglage par empreinte de
+# commit. Épingler protège d'un déplacement d'étiquette malveillant, mais
+# fige aussi la version : sans suivi, une action épinglée ne reçoit jamais
+# ses correctifs. Dependabot comprend les empreintes et propose la mise à
+# jour avec la nouvelle, en gardant l'étiquette en commentaire.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "dépendances"
