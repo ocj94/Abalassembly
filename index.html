@@ -5211,19 +5211,28 @@ document.addEventListener('keydown', function(e){
         <div style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:20px">Notifications</div>
         <div style="display:flex;flex-direction:column;gap:12px">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
-            <div><div style="font-size:14px;font-weight:500;color:var(--white)">Invitations de partie</div><div style="font-size:12px;color:var(--muted)">Quand un joueur vous defie</div></div>
-            <label class="notif-toggle"><input type="checkbox" checked onchange="this.nextElementSibling.style.background=this.checked?'var(--gold)':'var(--border)'"><span class="notif-toggle-track"></span></label>
+            <div><div style="font-size:14px;font-weight:500;color:var(--white)">À vous de jouer</div><div style="font-size:12px;color:var(--muted)">Quand l'adversaire a joué et que l'onglet est en arrière-plan</div></div>
+            <label class="notif-toggle"><input type="checkbox" id="notif-mon-tour" onchange="notifPrefsChange('monTour', this)"><span class="notif-toggle-track"><span class="notif-toggle-thumb"></span></span></label>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
-            <div><div style="font-size:14px;font-weight:500;color:var(--white)">Fin de partie</div><div style="font-size:12px;color:var(--muted)">Resultats de vos parties</div></div>
-            <label class="notif-toggle"><input type="checkbox" checked onchange="this.nextElementSibling.style.background=this.checked?'var(--gold)':'var(--border)'"><span class="notif-toggle-track"></span></label>
+            <div><div style="font-size:14px;font-weight:500;color:var(--white)">Fin de partie</div><div style="font-size:12px;color:var(--muted)">Le résultat, si vous avez quitté l'onglet</div></div>
+            <label class="notif-toggle"><input type="checkbox" id="notif-fin-partie" onchange="notifPrefsChange('finPartie', this)"><span class="notif-toggle-track"><span class="notif-toggle-thumb"></span></span></label>
           </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
-            <div><div style="font-size:14px;font-weight:500;color:var(--white)">Evenements et tournois</div><div style="font-size:12px;color:var(--muted)">Annonces de la communaute</div></div>
-            <label class="notif-toggle"><input type="checkbox" checked onchange="this.nextElementSibling.style.background=this.checked?'var(--gold)':'var(--border)'"><span class="notif-toggle-track"></span></label>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;opacity:.55">
+            <div><div style="font-size:14px;font-weight:500;color:var(--white)">Invitations de partie</div><div style="font-size:12px;color:var(--muted)">Demande un serveur pour vous joindre — pas encore déployé</div></div>
+            <span style="font-size:11px;color:var(--muted);border:1px solid var(--border);border-radius:99px;padding:3px 9px;white-space:nowrap">indisponible</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;opacity:.55">
+            <div><div style="font-size:14px;font-weight:500;color:var(--white)">Événements et tournois</div><div style="font-size:12px;color:var(--muted)">Demande un serveur pour annoncer — pas encore déployé</div></div>
+            <span style="font-size:11px;color:var(--muted);border:1px solid var(--border);border-radius:99px;padding:3px 9px;white-space:nowrap">indisponible</span>
           </div>
         </div>
-        <button class="modal-submit" style="max-width:200px;margin-top:20px" onclick="showToast('Preferences sauvegardees !')">Enregistrer</button>
+        <div style="font-size:12px;color:var(--muted);margin-top:14px;line-height:1.5">
+          Ces notifications sont <strong>locales</strong> : c'est cette page qui prévient votre appareil,
+          et seulement si elle est ouverte en arrière-plan. Le jeu étant hébergé en fichiers statiques,
+          aucun serveur ne peut vous envoyer quoi que ce soit lorsque l'application est fermée.
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:10px">Vos choix sont enregistrés immédiatement.</div>
       </div>
       <!-- ══ ACCESSIBILITÉ & NUANCES ══ -->
       <div class="settings-panel" id="spanel-accessibility">
@@ -10435,6 +10444,79 @@ function skipWelcome() {
   const overlay = document.getElementById('welcome-overlay');
   if (overlay) overlay.style.display = 'none';
   showToast('⚙️ Configurez vos autorisations dans Paramètres → Autorisations');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NOTIFICATIONS LOCALES
+
+   Pas de « push » au sens Web Push : celui-ci exige un serveur qui envoie
+   la notification (souscription pushManager + cles VAPID). Abalassembly est
+   hebergee en fichiers statiques sur GitHub Pages, qui ne peut rien envoyer,
+   et le backend reste dormant. Ce qui suit est donc de la notification
+   LOCALE : le navigateur previent l'utilisateur pour un evenement survenu
+   dans sa propre page, pendant qu'elle tourne en arriere-plan.
+
+   Consequence assumee : seuls les evenements que la page constate elle-meme
+   sont notifiables. Une invitation d'un autre joueur ou une annonce de
+   tournoi supposent un serveur, et les interrupteurs correspondants sont
+   desactives dans les reglages plutot que de laisser croire le contraire.
+
+   Etat precedent, corrige ici : les trois interrupteurs ne sauvegardaient
+   RIEN (le bouton Enregistrer se contentait d'un message), et la permission
+   etait demandee sans qu'aucune notification ne soit jamais envoyee. */
+const NOTIF_PREFS_KEY = 'aba_notif_prefs';
+
+function notifPrefsCharger() {
+  try {
+    const brut = localStorage.getItem(NOTIF_PREFS_KEY);
+    const p = brut ? JSON.parse(brut) : {};
+    return { monTour: p.monTour !== false, finPartie: p.finPartie !== false };
+  } catch (e) {
+    return { monTour: true, finPartie: true };
+  }
+}
+
+function notifPrefsEnregistrer(prefs) {
+  try { localStorage.setItem(NOTIF_PREFS_KEY, JSON.stringify(prefs)); return true; }
+  catch (e) { return false; }
+}
+
+/* Applique l'etat sauvegarde aux interrupteurs a l'ouverture des reglages. */
+function notifPrefsAppliquerUI() {
+  const prefs = notifPrefsCharger();
+  [['notif-mon-tour', prefs.monTour], ['notif-fin-partie', prefs.finPartie]].forEach(function(paire){
+    const el = document.getElementById(paire[0]);
+    if (!el) return;
+    el.checked = !!paire[1];
+    const piste = el.nextElementSibling;
+    if (piste) piste.style.background = el.checked ? 'var(--gold)' : 'var(--border)';
+  });
+}
+
+function notifPrefsChange(cle, el) {
+  const prefs = notifPrefsCharger();
+  prefs[cle] = !!el.checked;
+  const piste = el.nextElementSibling;
+  if (piste) piste.style.background = el.checked ? 'var(--gold)' : 'var(--border)';
+  if (notifPrefsEnregistrer(prefs)) showToast(el.checked ? '🔔 Activé' : '🔕 Désactivé');
+  else showToast('⚠️ Préférence non enregistrée (stockage indisponible)');
+}
+
+/* Envoie une notification UNIQUEMENT si l'onglet n'est pas au premier plan :
+   prevenir quelqu'un qui regarde deja l'ecran n'a aucun interet et serait
+   percu comme du bruit. */
+function notifierSiAbsent(cle, titre, corps) {
+  try {
+    if (typeof Notification === 'undefined') return false;
+    if (Notification.permission !== 'granted') return false;
+    if (typeof document !== 'undefined' && !document.hidden) return false;
+    if (!notifPrefsCharger()[cle]) return false;
+    const n = new Notification(titre, { body: corps, tag: 'abalassembly-' + cle, icon: 'favicon.ico' });
+    n.onclick = function(){ try { window.focus(); n.close(); } catch(e){} };
+    return true;
+  } catch (e) {
+    return false;   // navigateur sans support, ou permission revoquee entre-temps
+  }
 }
 
 // Real browser permission requests
@@ -22120,6 +22202,9 @@ function executeAIMove(chosen) {
   _emitAbaEvent('movePlayed', { color: (human==='black'?'white':'black'), label: label,
     moveCount: MoveCount.get(), capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get() });
   if (!GameOver.get()) playSfx('occ_change');   // 🔊 « c'est ton tour »
+  /* Meme evenement, mais pour qui a quitte l'onglet pendant le calcul :
+     notifierSiAbsent() ne fait rien si la page est au premier plan. */
+  if (!GameOver.get()) notifierSiAbsent('monTour', 'À vous de jouer', "L'adversaire a joué son coup.");
   updateStatus(); drawBoard();
   if (explicationIA && !GameOver.get()) showAIExplainBubble(explicationIA);
   // Mode Coach : avertit le joueur si l'IA menace une éjection
@@ -22309,8 +22394,15 @@ function triggerWin(winner, reason) {
   GameOver.set(true);
   if (typeof disarmInactivityCancel === 'function') disarmInactivityCancel();
   try{ localStorage.setItem('abaGamesFinished', String((parseInt(localStorage.getItem('abaGamesFinished')||'0',10)||0)+1)); }catch(e){}
-  _emitAbaEvent('GameOver.get()', { winner: winner, reason: reason || null,
+  _emitAbaEvent('gameOver', { winner: winner, reason: reason || null,
     capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(), moveCount: MoveCount.get() });
+  /* Previent qui a quitte l'onglet pendant la partie. Sans effet si la page
+     est au premier plan : l'ecran affiche deja le resultat. */
+  (function(){
+    const moi = (typeof monCamp === 'function') ? monCamp() : 'black';
+    const issue = (winner === moi) ? 'Vous gagnez !' : 'Vous perdez.';
+    notifierSiAbsent('finPartie', 'Partie terminée', issue);
+  })();
   if (typeof updateHeroStats==='function') updateHeroStats();
   if (typeof _tourneyMatch!=='undefined' && _tourneyMatch && typeof tourneyMatchEnd==='function') { tourneyMatchEnd(winner, reason); }
   clearInterval(timerInterval);
@@ -30392,6 +30484,9 @@ const _origShowSettingsTab = showSettingsTab;
 function showSettingsTab(tab) {
   _origShowSettingsTab(tab);
   if (tab === 'twofa') setTimeout(computeSecurityScore, 100);
+  // Restaure l'etat sauvegarde des interrupteurs de notification : sans ca
+  // ils paraitraient tous eteints a chaque ouverture.
+  if (tab === 'notifs' && typeof notifPrefsAppliquerUI === 'function') notifPrefsAppliquerUI();
 }
 
 
