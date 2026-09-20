@@ -293,3 +293,65 @@ test('le mode 2 joueurs sur le meme ecran n est PAS bloque par la garde', () => 
   ctx.handleClick(2, 2);
   assert.strictEqual(ctx.selected.length, 1, 'blanc joue aussi');
 });
+
+/* ─── 8. Notifications locales ─── */
+
+test('les preferences de notification persistent vraiment', () => {
+  // Avant : les trois interrupteurs ne sauvegardaient RIEN -- le bouton
+  // "Enregistrer" se contentait d'afficher un message de confirmation.
+  ctx.showToast = () => {};
+  ctx.localStorage.removeItem('aba_notif_prefs');
+  assert.strictEqual(ctx.notifPrefsCharger().monTour, true, 'actif par defaut');
+  ctx.notifPrefsEnregistrer({ monTour: false, finPartie: true });
+  const r = ctx.notifPrefsCharger();
+  assert.strictEqual(r.monTour, false, 'le choix doit survivre a la relecture');
+  assert.strictEqual(r.finPartie, true);
+});
+
+test('aucune notification si l onglet est au premier plan', () => {
+  // Prevenir quelqu'un qui regarde deja l'ecran serait du bruit pur.
+  ctx.showToast = () => {};
+  ctx.notifPrefsEnregistrer({ monTour: true, finPartie: true });
+  const envoyees = [];
+  ctx.Notification = function (t, o) { envoyees.push({ t, o }); };
+  ctx.Notification.permission = 'granted';
+  ctx.document.hidden = false;
+  assert.strictEqual(ctx.notifierSiAbsent('monTour', 'T', 'C'), false);
+  assert.strictEqual(envoyees.length, 0);
+  ctx.document.hidden = true;
+  assert.strictEqual(ctx.notifierSiAbsent('monTour', 'T', 'C'), true);
+  assert.strictEqual(envoyees.length, 1, 'mais bien envoyee en arriere-plan');
+});
+
+test('rien sans permission, rien si la preference est coupee', () => {
+  ctx.showToast = () => {};
+  const envoyees = [];
+  ctx.Notification = function (t, o) { envoyees.push({ t, o }); };
+  ctx.document.hidden = true;
+
+  ctx.Notification.permission = 'denied';
+  ctx.notifPrefsEnregistrer({ monTour: true, finPartie: true });
+  assert.strictEqual(ctx.notifierSiAbsent('monTour', 'T', 'C'), false, 'permission refusee');
+
+  ctx.Notification.permission = 'granted';
+  ctx.notifPrefsEnregistrer({ monTour: false, finPartie: true });
+  assert.strictEqual(ctx.notifierSiAbsent('monTour', 'T', 'C'), false, 'preference coupee');
+  assert.strictEqual(ctx.notifierSiAbsent('finPartie', 'T', 'C'), true, 'l autre reste active');
+});
+
+test('aucune exception sur un navigateur sans API Notification', () => {
+  ctx.showToast = () => {};
+  ctx.notifPrefsEnregistrer({ monTour: true, finPartie: true });
+  ctx.Notification = undefined;
+  assert.doesNotThrow(() => ctx.notifierSiAbsent('monTour', 'T', 'C'));
+  assert.strictEqual(ctx.notifierSiAbsent('monTour', 'T', 'C'), false);
+});
+
+test("NON-REGRESSION : l evenement public s appelle bien 'gameOver'", () => {
+  // L'encapsulation de gameOver avait remplace le nom DANS le litteral :
+  // _emitAbaEvent('GameOver.get()', ...) au lieu de 'gameOver'. L'evenement
+  // public documente etait donc emis sous un nom errone.
+  const src = ctx.triggerWin.toString();
+  assert.ok(src.indexOf("_emitAbaEvent('gameOver'") !== -1, 'nom d evenement abime');
+  assert.ok(src.indexOf("GameOver.get()'") === -1, 'aucun accesseur ne doit trainer dans un litteral');
+});
