@@ -775,6 +775,79 @@ function skipWelcome() {
   showToast('⚙️ Configurez vos autorisations dans Paramètres → Autorisations');
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   NOTIFICATIONS LOCALES
+
+   Pas de « push » au sens Web Push : celui-ci exige un serveur qui envoie
+   la notification (souscription pushManager + cles VAPID). Abalassembly est
+   hebergee en fichiers statiques sur GitHub Pages, qui ne peut rien envoyer,
+   et le backend reste dormant. Ce qui suit est donc de la notification
+   LOCALE : le navigateur previent l'utilisateur pour un evenement survenu
+   dans sa propre page, pendant qu'elle tourne en arriere-plan.
+
+   Consequence assumee : seuls les evenements que la page constate elle-meme
+   sont notifiables. Une invitation d'un autre joueur ou une annonce de
+   tournoi supposent un serveur, et les interrupteurs correspondants sont
+   desactives dans les reglages plutot que de laisser croire le contraire.
+
+   Etat precedent, corrige ici : les trois interrupteurs ne sauvegardaient
+   RIEN (le bouton Enregistrer se contentait d'un message), et la permission
+   etait demandee sans qu'aucune notification ne soit jamais envoyee. */
+const NOTIF_PREFS_KEY = 'aba_notif_prefs';
+
+function notifPrefsCharger() {
+  try {
+    const brut = localStorage.getItem(NOTIF_PREFS_KEY);
+    const p = brut ? JSON.parse(brut) : {};
+    return { monTour: p.monTour !== false, finPartie: p.finPartie !== false };
+  } catch (e) {
+    return { monTour: true, finPartie: true };
+  }
+}
+
+function notifPrefsEnregistrer(prefs) {
+  try { localStorage.setItem(NOTIF_PREFS_KEY, JSON.stringify(prefs)); return true; }
+  catch (e) { return false; }
+}
+
+/* Applique l'etat sauvegarde aux interrupteurs a l'ouverture des reglages. */
+function notifPrefsAppliquerUI() {
+  const prefs = notifPrefsCharger();
+  [['notif-mon-tour', prefs.monTour], ['notif-fin-partie', prefs.finPartie]].forEach(function(paire){
+    const el = document.getElementById(paire[0]);
+    if (!el) return;
+    el.checked = !!paire[1];
+    const piste = el.nextElementSibling;
+    if (piste) piste.style.background = el.checked ? 'var(--gold)' : 'var(--border)';
+  });
+}
+
+function notifPrefsChange(cle, el) {
+  const prefs = notifPrefsCharger();
+  prefs[cle] = !!el.checked;
+  const piste = el.nextElementSibling;
+  if (piste) piste.style.background = el.checked ? 'var(--gold)' : 'var(--border)';
+  if (notifPrefsEnregistrer(prefs)) showToast(el.checked ? '🔔 Activé' : '🔕 Désactivé');
+  else showToast('⚠️ Préférence non enregistrée (stockage indisponible)');
+}
+
+/* Envoie une notification UNIQUEMENT si l'onglet n'est pas au premier plan :
+   prevenir quelqu'un qui regarde deja l'ecran n'a aucun interet et serait
+   percu comme du bruit. */
+function notifierSiAbsent(cle, titre, corps) {
+  try {
+    if (typeof Notification === 'undefined') return false;
+    if (Notification.permission !== 'granted') return false;
+    if (typeof document !== 'undefined' && !document.hidden) return false;
+    if (!notifPrefsCharger()[cle]) return false;
+    const n = new Notification(titre, { body: corps, tag: 'abalassembly-' + cle, icon: 'favicon.ico' });
+    n.onclick = function(){ try { window.focus(); n.close(); } catch(e){} };
+    return true;
+  } catch (e) {
+    return false;   // navigateur sans support, ou permission revoquee entre-temps
+  }
+}
+
 // Real browser permission requests
 async function requestPermReal(key) {
   try {
