@@ -56,6 +56,9 @@ const _origShowSettingsTab = showSettingsTab;
 function showSettingsTab(tab) {
   _origShowSettingsTab(tab);
   if (tab === 'twofa') setTimeout(computeSecurityScore, 100);
+  // Restaure l'etat sauvegarde des interrupteurs de notification : sans ca
+  // ils paraitraient tous eteints a chaque ouverture.
+  if (tab === 'notifs' && typeof notifPrefsAppliquerUI === 'function') notifPrefsAppliquerUI();
 }
 
 
