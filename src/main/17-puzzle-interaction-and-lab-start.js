@@ -1526,6 +1526,9 @@ function executeAIMove(chosen) {
   _emitAbaEvent('movePlayed', { color: (human==='black'?'white':'black'), label: label,
     moveCount: MoveCount.get(), capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get() });
   if (!GameOver.get()) playSfx('occ_change');   // 🔊 « c'est ton tour »
+  /* Meme evenement, mais pour qui a quitte l'onglet pendant le calcul :
+     notifierSiAbsent() ne fait rien si la page est au premier plan. */
+  if (!GameOver.get()) notifierSiAbsent('monTour', 'À vous de jouer', "L'adversaire a joué son coup.");
   updateStatus(); drawBoard();
   if (explicationIA && !GameOver.get()) showAIExplainBubble(explicationIA);
   // Mode Coach : avertit le joueur si l'IA menace une éjection
