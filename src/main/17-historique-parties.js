@@ -106,8 +106,15 @@ function triggerWin(winner, reason) {
   GameOver.set(true);
   if (typeof disarmInactivityCancel === 'function') disarmInactivityCancel();
   try{ localStorage.setItem('abaGamesFinished', String((parseInt(localStorage.getItem('abaGamesFinished')||'0',10)||0)+1)); }catch(e){}
-  _emitAbaEvent('GameOver.get()', { winner: winner, reason: reason || null,
+  _emitAbaEvent('gameOver', { winner: winner, reason: reason || null,
     capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(), moveCount: MoveCount.get() });
+  /* Previent qui a quitte l'onglet pendant la partie. Sans effet si la page
+     est au premier plan : l'ecran affiche deja le resultat. */
+  (function(){
+    const moi = (typeof monCamp === 'function') ? monCamp() : 'black';
+    const issue = (winner === moi) ? 'Vous gagnez !' : 'Vous perdez.';
+    notifierSiAbsent('finPartie', 'Partie terminée', issue);
+  })();
   if (typeof updateHeroStats==='function') updateHeroStats();
   if (typeof _tourneyMatch!=='undefined' && _tourneyMatch && typeof tourneyMatchEnd==='function') { tourneyMatchEnd(winner, reason); }
   clearInterval(timerInterval);
