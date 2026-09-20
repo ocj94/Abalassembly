@@ -2796,19 +2796,28 @@
         <div style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:20px">Notifications</div>
         <div style="display:flex;flex-direction:column;gap:12px">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
-            <div><div style="font-size:14px;font-weight:500;color:var(--white)">Invitations de partie</div><div style="font-size:12px;color:var(--muted)">Quand un joueur vous defie</div></div>
-            <label class="notif-toggle"><input type="checkbox" checked onchange="this.nextElementSibling.style.background=this.checked?'var(--gold)':'var(--border)'"><span class="notif-toggle-track"></span></label>
+            <div><div style="font-size:14px;font-weight:500;color:var(--white)">À vous de jouer</div><div style="font-size:12px;color:var(--muted)">Quand l'adversaire a joué et que l'onglet est en arrière-plan</div></div>
+            <label class="notif-toggle"><input type="checkbox" id="notif-mon-tour" onchange="notifPrefsChange('monTour', this)"><span class="notif-toggle-track"><span class="notif-toggle-thumb"></span></span></label>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
-            <div><div style="font-size:14px;font-weight:500;color:var(--white)">Fin de partie</div><div style="font-size:12px;color:var(--muted)">Resultats de vos parties</div></div>
-            <label class="notif-toggle"><input type="checkbox" checked onchange="this.nextElementSibling.style.background=this.checked?'var(--gold)':'var(--border)'"><span class="notif-toggle-track"></span></label>
+            <div><div style="font-size:14px;font-weight:500;color:var(--white)">Fin de partie</div><div style="font-size:12px;color:var(--muted)">Le résultat, si vous avez quitté l'onglet</div></div>
+            <label class="notif-toggle"><input type="checkbox" id="notif-fin-partie" onchange="notifPrefsChange('finPartie', this)"><span class="notif-toggle-track"><span class="notif-toggle-thumb"></span></span></label>
           </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
-            <div><div style="font-size:14px;font-weight:500;color:var(--white)">Evenements et tournois</div><div style="font-size:12px;color:var(--muted)">Annonces de la communaute</div></div>
-            <label class="notif-toggle"><input type="checkbox" checked onchange="this.nextElementSibling.style.background=this.checked?'var(--gold)':'var(--border)'"><span class="notif-toggle-track"></span></label>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;opacity:.55">
+            <div><div style="font-size:14px;font-weight:500;color:var(--white)">Invitations de partie</div><div style="font-size:12px;color:var(--muted)">Demande un serveur pour vous joindre — pas encore déployé</div></div>
+            <span style="font-size:11px;color:var(--muted);border:1px solid var(--border);border-radius:99px;padding:3px 9px;white-space:nowrap">indisponible</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;opacity:.55">
+            <div><div style="font-size:14px;font-weight:500;color:var(--white)">Événements et tournois</div><div style="font-size:12px;color:var(--muted)">Demande un serveur pour annoncer — pas encore déployé</div></div>
+            <span style="font-size:11px;color:var(--muted);border:1px solid var(--border);border-radius:99px;padding:3px 9px;white-space:nowrap">indisponible</span>
           </div>
         </div>
-        <button class="modal-submit" style="max-width:200px;margin-top:20px" onclick="showToast('Preferences sauvegardees !')">Enregistrer</button>
+        <div style="font-size:12px;color:var(--muted);margin-top:14px;line-height:1.5">
+          Ces notifications sont <strong>locales</strong> : c'est cette page qui prévient votre appareil,
+          et seulement si elle est ouverte en arrière-plan. Le jeu étant hébergé en fichiers statiques,
+          aucun serveur ne peut vous envoyer quoi que ce soit lorsque l'application est fermée.
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:10px">Vos choix sont enregistrés immédiatement.</div>
       </div>
       <!-- ══ ACCESSIBILITÉ & NUANCES ══ -->
       <div class="settings-panel" id="spanel-accessibility">
