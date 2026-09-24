@@ -73,6 +73,9 @@ function openBulkHistoryImportModal(){
     + '<input type="file" id="bulk-history-file" accept=".txt" style="width:100%;margin-bottom:10px;font-size:12px;color:var(--muted)">'
     + '<div style="font-size:11px;color:var(--muted);margin:4px 0">— ou colle le contenu directement —</div>'
     + '<textarea id="bulk-history-text" placeholder="# 2026-01-01 · Standard · Noir gagne...\n1.a1b2 c3d4 ..." style="width:100%;height:110px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:11px;box-sizing:border-box"></textarea>'
+    + '<label for="bulk-history-pseudo" style="display:block;font-size:12px;color:var(--muted);margin:10px 0 4px">Ton pseudo dans ces parties (facultatif)</label>'
+    + '<input type="text" id="bulk-history-pseudo" autocomplete="nickname" placeholder="ex. ocj94" style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">'
+    + '<div style="font-size:11px;color:var(--muted);margin-top:4px">Tes parties sont enregistrées de ton côté ; celles des autres joueurs sont gardées comme parties consultées, hors de tes statistiques.</div>'
     + '<div id="bulk-history-status" style="font-size:12px;margin:8px 0;min-height:16px"></div>'
     + '<div style="display:flex;gap:8px">'
       + '<button class="ctrl-btn" onclick="_doBulkHistoryImport()" style="flex:1">Importer</button>'
@@ -80,6 +83,8 @@ function openBulkHistoryImportModal(){
     + '</div>'
     + '</div>';
   document.body.appendChild(modal);
+  const pseudoInput = document.getElementById('bulk-history-pseudo');
+  if (pseudoInput) { try { pseudoInput.value = localStorage.getItem('abaGcMyName') || ''; } catch(e){} }
   const fileInput = document.getElementById('bulk-history-file');
   if (fileInput) fileInput.addEventListener('change', function(){
     const f = fileInput.files && fileInput.files[0];
@@ -96,7 +101,12 @@ function openBulkHistoryImportModal(){
    aucune logique d'encodage reinventee ici. Un token illisible arrete la
    partie a cet endroit (import partiel) plutot que d'accepter une suite
    fausse en silence : meme principe que gameCodeLoad(). */
-function _parseBulkHistoryText(text){
+function _parseBulkHistoryText(text, monPseudo){
+  /* monPseudo (facultatif) : si l'un des deux joueurs de l'en-tete porte ce
+     pseudo, la partie est enregistree de SON cote ; sinon c'est une partie
+     consultee, hors statistiques. Sans pseudo, comportement historique
+     conserve (cote noir) pour ne pas changer les re-imports existants. */
+  const _moi = String(monPseudo || '').trim().toLowerCase();
   const blocks = String(text||'').split(/\n(?=#)/).map(function(s){ return s.trim(); }).filter(Boolean);
   const saveLayout = currentLayout, saveBoard = board, saveCB = CapturedByBlack.get(), saveCW = CapturedByWhite.get();
   const results = [];
@@ -147,6 +157,9 @@ function _parseBulkHistoryText(text){
       winner = resultLabel.indexOf('Noir')===0 ? 'black' : (resultLabel.indexOf('Blanc')===0 ? 'white' : null);
       const rm = resultLabel.match(/\(([^)]+)\)/); if (rm) reason = rm[1];
     }
+    const _bn = blackName.trim().toLowerCase(), _wn = whiteName.trim().toLowerCase();
+    const _cote = !_moi ? null : (_bn === _moi ? 'black' : (_wn === _moi ? 'white' : null));
+    const _consultee = !!_moi && !_cote && !!(_bn || _wn);
     const names = _gcEncodeNameForCode(blackName) + '|' + _gcEncodeNameForCode(whiteName);
     const code = GAME_CODE_TAG + ':' + layout + ':' + names + ':' + body;
     results.push({
@@ -154,7 +167,13 @@ function _parseBulkHistoryText(text){
       entry: {
         id: 'import_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
         date: dateStr ? new Date(dateStr).toISOString() : new Date().toISOString(),
-        variant: layout, mode: 'import', humanColor: 'black',
+        variant: layout, mode: 'import',
+        // Partie consultee seulement si l'en-tete NOMME des joueurs et qu'aucun
+        // n'est toi. Sans noms (tes parties contre l'IA, re-importees depuis un
+        // export), c'est toujours ta partie -- le pseudo prerempli ne doit pas
+        // les reclasser a tort.
+        humanColor: _cote || (_consultee ? null : 'black'),
+        spectateur: _consultee,
         winner: winner, reason: reason, moveCount: played,
         aiStyle: null, aiDiff: null, engine: null,
         blackName: blackName, whiteName: whiteName, code: code
@@ -169,18 +188,25 @@ function _doBulkHistoryImport(){
   const status = document.getElementById('bulk-history-status');
   const text = ta ? ta.value : '';
   if (!text || !text.trim()){ if (status){ status.style.color='#e05c4b'; status.textContent = 'Colle un texte ou choisis un fichier.'; } return; }
-  const results = _parseBulkHistoryText(text);
+  const pseudoEl = document.getElementById('bulk-history-pseudo');
+  const monPseudo = pseudoEl ? pseudoEl.value.trim() : '';
+  if (monPseudo) { try { localStorage.setItem('abaGcMyName', monPseudo); } catch(e){} }
+  const results = _parseBulkHistoryText(text, monPseudo);
   if (!results.length){ if (status){ status.style.color='#e05c4b'; status.textContent = 'Aucun bloc reconnu (attendu : une ligne "# ..." par partie).'; } return; }
 
   let history = (typeof getGameHistory === 'function') ? getGameHistory() : [];
   const existingCodes = new Set(history.map(function(e){ return e.code; }));
-  let added = 0, dupes = 0, partial = 0, failed = 0;
+  let added = 0, dupes = 0, partial = 0, failed = 0, consultees = 0, plein = 0;
   results.forEach(function(r){
     if (!r.ok){ failed++; return; }
     if (existingCodes.has(r.entry.code)){ dupes++; return; }
+    // Une partie consultee ne prend jamais la place d'une de tes parties :
+    // historique plein = elle n'est pas importee (et c'est dit).
+    if (r.entry.spectateur && history.length >= HIST_MAX){ plein++; return; }
     existingCodes.add(r.entry.code);
     history.unshift(r.entry);
     added++;
+    if (r.entry.spectateur) consultees++;
     if (r.partial) partial++;
   });
   if (history.length > HIST_MAX) history = history.slice(0, HIST_MAX);
@@ -192,7 +218,9 @@ function _doBulkHistoryImport(){
     status.textContent = added + ' partie' + (added>1?'s':'') + ' importée' + (added>1?'s':'')
       + (dupes?(', ' + dupes + ' déjà présente' + (dupes>1?'s':'')):'')
       + (partial?(', ' + partial + ' partielle' + (partial>1?'s':'') + ' (coup illisible en route)'):'')
-      + (failed?(', ' + failed + ' illisible' + (failed>1?'s':'')):'');
+      + (failed?(', ' + failed + ' illisible' + (failed>1?'s':'')):'')
+      + (consultees?(' — dont ' + consultees + ' consultée' + (consultees>1?'s':'') + ', hors de tes statistiques'):'')
+      + (plein?(' — ' + plein + ' non importée' + (plein>1?'s':'') + ' : historique plein (' + HIST_MAX + ' max), tes propres parties ont été préservées'):'');
   }
   if (typeof _renderHistoryList === 'function') _renderHistoryList();
 }
