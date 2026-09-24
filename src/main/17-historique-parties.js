@@ -11,6 +11,7 @@ const GAME_HISTORY_KEY = 'abaGameHistory';
 const HIST_MAX = 200;
 
 function _historyOpponentLabel(entry){
+  if (entry.spectateur) return 'Partie consultée — ' + (entry.blackName||'?') + ' vs ' + (entry.whiteName||'?');
   if (entry.mode === 'import') return 'Partie importée' + ((entry.blackName || entry.whiteName) ? ' — ' + (entry.blackName||'?') + ' vs ' + (entry.whiteName||'?') : '');
   if (entry.mode === 'local') return (entry.blackName || entry.whiteName) ? 'Partie par code/direct' : 'Local (même écran)';
   const styleLabels = { auto:'Auto', aggressive:'Agressif', defensive:'Défensif', divide:'Division', balanced:'Équilibré' };
@@ -55,6 +56,13 @@ function _recordGameHistory(winner, reason){
 function getGameHistory(){
   try { return JSON.parse(localStorage.getItem(GAME_HISTORY_KEY) || '[]'); } catch(e) { return []; }
 }
+/* Parties "consultees" : importees d'un tournoi ou d'une autre source, mais
+   jouees par D'AUTRES joueurs. Elles restent dans l'historique pour etre
+   rejouees, mais n'entrent dans aucune statistique personnelle -- sans ce
+   filtre, importer 85 parties d'un tournoi les comptait toutes comme les
+   tiennes (ejections, noir/blanc, profil de decision, carte d'activite). */
+function estMaPartie(e){ return !(e && e.spectateur); }
+function getMesParties(){ return getGameHistory().filter(estMaPartie); }
 
 function deleteGameHistoryEntry(id){
   try {
