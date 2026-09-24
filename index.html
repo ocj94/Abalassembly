@@ -23179,6 +23179,8 @@ function showCropInterface(dataUrl, fileName) {
   if (!cropBox) {
     cropBox = document.createElement('div');
     cropBox.id = 'crop-box';
+    // Deplacable au doigt : ne doit pas declencher le balayage du menu.
+    cropBox.setAttribute('data-no-swipe', '');
     cropBox.style.cssText = 'position:absolute;border:2px solid var(--gold);box-shadow:0 0 0 9999px rgba(0,0,0,0.55);'
       + 'cursor:move;z-index:5;border-radius:4px';
     // poignée coin bas-droit pour redimensionner
@@ -28578,6 +28580,99 @@ function closeSidebarMobile() {
   sb.className = 'sidebar sidebar-hidden';
   if (overlay) overlay.classList.remove('visible');
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   GESTES DE BALAYAGE SUR TELEPHONE
+   Balayer vers la droite ouvre le menu, vers la gauche le ferme.
+   En mode droite-a-gauche (arabe, hebreu), le menu est a DROITE :
+   les deux sens s'inversent.
+
+   Le vrai risque n'est pas d'ouvrir le menu, c'est de l'ouvrir au mauvais
+   moment -- en plein recadrage d'une photo, en faisant pivoter le plateau
+   3D. Un balayage n'est donc reconnu que s'il part d'une zone qui ne gere
+   pas deja ses propres glissements :
+     - aucun <canvas> (plateau 3D, realite augmentee, calibration photo,
+       puzzles : tous utilisent le doigt pour autre chose) ;
+     - aucun element en touch-action:none ;
+     - aucun champ de saisie (y compris les curseurs) ;
+     - aucune zone qui defile horizontalement (tableaux larges...) ;
+     - aucune boite de dialogue ;
+     - aucun element marque data-no-swipe. CONVENTION : tout nouvel
+       element deplacable au doigt doit porter cet attribut.
+
+   Seuils : un balayage parcourt au moins SWIPE_DIST_MIN pixels, nettement
+   plus a l'horizontale qu'a la verticale, en moins de SWIPE_DUREE_MAX ms.
+   Un defilement vertical, un tap, un appui long pour selectionner du texte
+   ne declenchent donc rien. Les ecouteurs sont passifs : le defilement de
+   la page n'est jamais bloque.
+
+   Uniquement sous 600 px de large, comme toggleSidebar() : au-dela, le
+   menu est toujours visible et le geste n'aurait pas de sens.
+
+   Limite : sur Android en navigation par gestes, un balayage parti du bord
+   exact de l'ecran est capte par le systeme (retour arriere) avant d'arriver
+   a la page. Il suffit de commencer le geste un peu plus loin du bord. */
+const SWIPE_DIST_MIN = 60;
+const SWIPE_RAPPORT = 1.5;
+const SWIPE_DUREE_MAX = 600;
+
+/* Decision pure, sans DOM : 'ouvrir', 'fermer' ou null. */
+function swipeDecision(dx, dy, dt, menuOuvert, rtl) {
+  if (dt > SWIPE_DUREE_MAX) return null;
+  if (Math.abs(dx) < SWIPE_DIST_MIN) return null;
+  if (Math.abs(dx) < SWIPE_RAPPORT * Math.abs(dy)) return null;
+  const versOuverture = rtl ? dx < 0 : dx > 0;
+  if (versOuverture && !menuOuvert) return 'ouvrir';
+  if (!versOuverture && menuOuvert) return 'fermer';
+  return null;
+}
+
+/* Vrai si le geste part d'une zone qui gere deja ses propres glissements. */
+function swipeCibleExclue(el) {
+  for (let n = el; n && n.tagName; n = n.parentElement) {
+    const tag = String(n.tagName).toUpperCase();
+    if (tag === 'CANVAS' || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
+    if (n.isContentEditable) return true;
+    if (typeof n.hasAttribute === 'function' &&
+        (n.hasAttribute('data-no-swipe') || n.getAttribute('role') === 'dialog' ||
+         n.getAttribute('aria-modal') === 'true')) return true;
+    if (typeof getComputedStyle === 'function') {
+      const s = getComputedStyle(n);
+      if (s) {
+        if (s.touchAction === 'none') return true;
+        if ((s.overflowX === 'auto' || s.overflowX === 'scroll') && n.scrollWidth > n.clientWidth + 1) return true;
+      }
+    }
+    if (tag === 'BODY' || tag === 'HTML') break;
+  }
+  return false;
+}
+
+(function(){
+  if (typeof document === 'undefined' || typeof window === 'undefined') return;
+  if (!(('ontouchstart' in window) || (navigator.maxTouchPoints > 0))) return;
+  let debut = null;
+  document.addEventListener('touchstart', function(e){
+    debut = null;
+    if (!e.touches || e.touches.length !== 1) return;   // deux doigts = zoom, jamais un balayage
+    if (window.innerWidth >= 600) return;
+    if (swipeCibleExclue(e.target)) return;
+    const t = e.touches[0];
+    debut = { x: t.clientX, y: t.clientY, t: Date.now() };
+  }, { passive: true });
+  document.addEventListener('touchend', function(e){
+    if (!debut || !e.changedTouches || !e.changedTouches.length) { debut = null; return; }
+    const t = e.changedTouches[0];
+    const sb = document.getElementById('sidebar');
+    const d = swipeDecision(t.clientX - debut.x, t.clientY - debut.y, Date.now() - debut.t,
+      !!(sb && sb.classList.contains('sidebar-mobile-open')),
+      document.documentElement.getAttribute('dir') === 'rtl');
+    debut = null;
+    if (d === 'ouvrir') toggleSidebar();
+    else if (d === 'fermer') closeSidebarMobile();
+  }, { passive: true });
+  document.addEventListener('touchcancel', function(){ debut = null; }, { passive: true });
+})();
 
 function sidebarNav(page, btn) {
   if (typeof page === 'string' && page === 'openings' && typeof opRenderRoot === 'function') { setTimeout(opRenderRoot, 30); setTimeout(opExploreReset, 30); }
