@@ -876,7 +876,7 @@ const SEUIL_ECART_DECISION_DISPUTEE = 100; // points d'evaluateBoard -- choix do
      une (les parties sans ejection n'entrent pas dans cette moyenne). */
 function computeEjectionStats(){
   if (typeof getGameHistory !== 'function') return null;
-  const history = getGameHistory();
+  const history = getMesParties();
   if (!history.length) return null;
 
   const saveLayout = currentLayout, saveBoard = board, saveCB = CapturedByBlack.get(), saveCW = CapturedByWhite.get();
@@ -1073,7 +1073,7 @@ async function computeCorpusStats(onProgress){
 
 function computeColorStats(){
   if (typeof getGameHistory !== 'function') return null;
-  const history = getGameHistory();
+  const history = getMesParties();
   if (!history.length) return null;
   const out = { black:{games:0,wins:0,losses:0,draws:0}, white:{games:0,wins:0,losses:0,draws:0} };
   history.forEach(function(entry){
@@ -1091,7 +1091,7 @@ function computeColorStats(){
 
 function computeDecisionProfile(){
   if (typeof getGameHistory !== 'function') return null;
-  const history = getGameHistory();
+  const history = getMesParties();
   if (!history.length) return null;
 
   const saveLayout = currentLayout, saveBoard = board, saveCB = CapturedByBlack.get(), saveCW = CapturedByWhite.get();
