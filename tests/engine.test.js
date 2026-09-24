@@ -394,3 +394,46 @@ test("NON-REGRESSION : bille isolee vue sur plateau gris (l'Abalone standard)", 
   assert.strictEqual(parfait(depart, 30), 30, 'position de depart complete, 14v14');
   assert.strictEqual(parfait({}, 30), 30, 'plateau vide : aucune bille fantome');
 });
+
+/* ─── 11. Balayage du menu sur telephone ─── */
+
+test('balayage : ouverture, fermeture, et rien dans le mauvais sens', () => {
+  const D = ctx.swipeDecision;
+  assert.strictEqual(D(120, 10, 250, false, false), 'ouvrir');
+  assert.strictEqual(D(-120, 10, 250, true, false), 'fermer');
+  assert.strictEqual(D(120, 0, 250, true, false), null, 'menu deja ouvert');
+  assert.strictEqual(D(-120, 0, 250, false, false), null, 'menu deja ferme');
+});
+
+test('balayage : un tap, un defilement vertical ou un glisse lent ne declenchent rien', () => {
+  const D = ctx.swipeDecision;
+  assert.strictEqual(D(40, 0, 150, false, false), null, 'trop court');
+  assert.strictEqual(D(70, 200, 300, false, false), null, 'defilement vertical');
+  assert.strictEqual(D(150, 0, 900, false, false), null, 'trop lent (selection de texte)');
+});
+
+test('balayage : en droite-a-gauche le menu est a droite, les sens s inversent', () => {
+  const D = ctx.swipeDecision;
+  assert.strictEqual(D(-120, 0, 250, false, true), 'ouvrir');
+  assert.strictEqual(D(120, 0, 250, true, true), 'fermer');
+});
+
+test('balayage : jamais depuis une zone qui gere deja ses propres glissements', () => {
+  // Le vrai risque : ouvrir le menu en plein recadrage photo ou en faisant
+  // pivoter le plateau 3D. Elements factices, style calcule simule.
+  const el = (tag, o = {}) => {
+    const a = o.attrs || {};
+    return { tagName: tag, parentElement: o.parent || null, scrollWidth: o.sw || 100,
+      clientWidth: o.cw || 100, _style: o.style || {},
+      hasAttribute: n => n in a, getAttribute: n => (n in a ? a[n] : null) };
+  };
+  ctx.getComputedStyle = n => n._style || {};
+  const E = ctx.swipeCibleExclue, body = el('BODY');
+  assert.strictEqual(E(el('DIV', { parent: body })), false, 'zone ordinaire autorisee');
+  assert.strictEqual(E(el('CANVAS', { parent: body })), true, 'canvas (3D, AR, puzzles)');
+  assert.strictEqual(E(el('INPUT', { parent: body })), true, 'champ de saisie');
+  const cadre = el('DIV', { parent: body, attrs: { 'data-no-swipe': '' } });
+  assert.strictEqual(E(el('DIV', { parent: cadre })), true, 'cadre de recadrage et sa poignee');
+  assert.strictEqual(E(el('DIV', { parent: el('DIV', { parent: body, style: { touchAction: 'none' } }) })), true, 'touch-action:none');
+  assert.strictEqual(E(el('TD', { parent: el('DIV', { parent: body, style: { overflowX: 'auto' }, sw: 900, cw: 360 }) })), true, 'defilement horizontal');
+});
