@@ -437,3 +437,107 @@ test('balayage : jamais depuis une zone qui gere deja ses propres glissements', 
   assert.strictEqual(E(el('DIV', { parent: el('DIV', { parent: body, style: { touchAction: 'none' } }) })), true, 'touch-action:none');
   assert.strictEqual(E(el('TD', { parent: el('DIV', { parent: body, style: { overflowX: 'auto' }, sw: 900, cw: 360 }) })), true, 'defilement horizontal');
 });
+
+/* ─── 12. Import d'un tournoi dans l'historique : ton cote, et tes statistiques ─── */
+
+// Trois parties reelles du Yearly Abalone Arena (PlayStrategy, 18/09/2026),
+// converties et verifiees coup par coup : ocj94 en blanc, ocj94 en noir, et
+// une partie entre deux autres joueurs.
+const ECHANTILLON_TOURNOI = "# 2026-09-18 \u00b7 Belgian Daisy \u00b7 Blanc gagne (6 \u00e9jections) \u00b7 PST-Greedy-Tom vs ocj94\n1. i9h8 i5h5 2. i8h7 h5g5 3. h9h8 h4g4 4. f6g6 g4f4 5. i6h6 f4e4 6. f6f7 f5f6 7. h8h7 h4g4 8. h6g6 g4g5f4 9. g8f8 d4e5c4 10. b3c3 f5e5 11. a1b1 a4b4 12. a2b2 b4c5 13. g6h7g5 d6d5 14. d2c2 f4e4f3 15. h6g6 f3e3 16. c1d1 e6e5 17. e1f2 d3e3 18. h5h6 d5e5 19. a2b3 c3d4 20. c4b4 b6c6 21. g7h8h7 d5d4 22. b1c2c1 a5b5 23. d2e2 c6d6 24. f7e7 d6e6 25. h6g5 e4f5 26. i8h8 d5e5 27. b3b4 b6c6 28. b4a4 c5c6d5 29. c1d1 f5g5 30. i5h4 f6g6 31. a4b4 g6h6 32. h4g4 d3e4 33. d1e2c1 d5c4 34. e1f2d1 c4d4 35. g4g3 g5f4 36. c1c2 e3f3 37. h4i5 e5e4 38. c2c3 f4e3 39. d1e2e1 e4e3 40. e1d1 h7h6 41. b2c2 c1d2 42. c2c3 d2e2 43. h8i9 f2g3\n\n# 2026-09-18 \u00b7 Belgian Daisy \u00b7 Noir gagne (6 \u00e9jections) \u00b7 ocj94 vs SOLFAREMI\n1. a1b2 a5b5 2. a2b3 b5c5 3. b2c3 c5d5 4. i8h7 b6c6 5. g8g7 g3g4f3 6. c4d4 d5d6e6 7. d4e4 h5g4 8. c3b3d4 e7e6 9. b1c2 g4g3 10. c4c3 f3e2 11. d4d3 e2f2 12. d3d2 e6e5 13. c2d2 g3i5f3 14. g7g6 g3f3 15. h9h8 f6e5 16. h8h7 e5d4 17. h7h6 a4b4 18. f2g3 e4e3 19. e1f2 f3e2 20. g3f3 e2e3 21. f2e2 d1c1 22. b2c2 c6c5 23. i9i8 c1b1 24. i8h7 b1b2 25. d2c2 a2b3 26. g6h6 c5c4 27. c1d1 b4b3 28. b1c1 c3c2 29. h6g5 c1c2 30. e2e3 b3c3 31. h4h5 c4c3 32. h7g6 b2b1 33. g4f4 e5d5 34. h5g5 d5c4 35. f3f4 c4b3 36. d1e2 a2b3a1 37. g5f5 a1b1 38. h6g6 c3b2 39. g3f3 e3d3 40. e2e3 d1d2 41. f4e4 a1b1 42. i6h6 c4b3 43. h6g5 b3a2 44. g5f4 a2b3 45. e6d5 b3c3 46. e5e4 b2c3 47. g3f3 b1c2a1 48. f3e3 b3a3b4 49. g6g5 d2e2 50. e5e4 e1f2 51. f4g5f3 g3h4 52. f3e2\n\n# 2026-09-18 \u00b7 Belgian Daisy \u00b7 Noir gagne (6 \u00e9jections) \u00b7 SOLFAREMI vs PST-Greedy-Tom\n1. a1b2 i5h5 2. a2b3 i6h6 3. c2c3 a5b5 4. b1c2 h6g5 5. g7g8f6 h4g4 6. f6f7e5 e4f5 7. i8h8 f4g5 8. h9g8 c5c7d6 9. b3c3 g4g5 10. c4d4 h6h7 11. g8h9f8 g7h8 12. f8f7 g5f5g4 13. g9f8 i9i8 14. f8f7 h8h7 15. f7f6 f3g4f2 16. d5e5 b4b5c5 17. c3d3 d8d7 18. b2c2 f2e1 19. g5f5 d6c5 20. d3d4 b4c5 21. f5e5 a5b6 22. c2d3 b6c7 23. f4e4 b5b6 24. e3d3 c7d7 25. c3c4 c7b6 26. e4e5 a4a3 27. e5d5 h7i8g7 28. d5c5 a3a2 29. a5b5 e8e9 30. f7e7 e1e2 31. c4c5 g3f2 32. b5c6 f2e2f3 33. e7e8 f3f4 34. e9e8 h6g6g5 35. d3d4e4 g7g6 36. d2d3 e3f4 37. d3d4 f4g4 38. c7d7 h8h7 39. f7f6 h5h4 40. d5e5 h5g4 41. d7e7 f3f4e2 42. f7f6 g4g3 43. e6e5 e1e2d1 44. d4e4 h4h5 45. e5f5 a2b2 46. e3f4 i7h7i8 47. f5g5 g3f2 48. i5h5 g6g7 49. h6g5 d1d2c1 50. f6f5 f2e1 51. h5g4 c1d2 52. g5f4 c1c2 53. e4e3 g7h8g6 54. g4f4 c2c3 55. f3e3 b2b3 56. e7d7 c4b4 57. c6c5 c3b2 58. f4e4 b2a2 59. e3d3 a2b3 60. e1e2 b3c4 61. e2e3 g6h6 62. d7e7 d8d7 63. e6e8f6 h6g6 64. e3e4 g6i8g7 65. f6e6 h8i9h7 66. f8f7 c6b5 67. d6c5 a3a4 68. f6e6 d7c6 69. f7f6 c6d7 70. f6e6 b6a5 71. d3c3 d5c4 72. a2a3 d7e8 73. f5e5 g7g6 74. e5d5";
+
+function _importerEchantillon(pseudo) {
+  const els = {};
+  const faux = () => ({ value: '', style: {}, textContent: '', innerHTML: '',
+    classList: { add(){}, remove(){}, toggle(){}, contains(){ return false; } },
+    appendChild(){}, remove(){}, querySelectorAll(){ return []; } });
+  const origine = ctx.document.getElementById;
+  ctx.document.getElementById = id => (els[id] || (els[id] = faux()));
+  els['bulk-history-text'] = Object.assign(faux(), { value: ECHANTILLON_TOURNOI });
+  els['bulk-history-pseudo'] = Object.assign(faux(), { value: pseudo });
+  ctx._renderHistoryList = () => {};
+  ctx.localStorage.setItem('abaGameHistory', '[]');
+  ctx._doBulkHistoryImport();
+  ctx.document.getElementById = origine;
+  return ctx.getGameHistory();
+}
+
+test('import avec pseudo : tes parties de TON cote, meme quand tu jouais blanc', () => {
+  // Avant : humanColor 'black' code en dur -- une victoire en blanc etait
+  // enregistree comme une defaite en noir.
+  const h = _importerEchantillon('ocj94');
+  const miennes = h.filter(e => !e.spectateur);
+  assert.strictEqual(miennes.length, 2);
+  assert.ok(miennes.some(e => e.humanColor === 'white'), 'la partie jouee en blanc');
+  assert.ok(miennes.some(e => e.humanColor === 'black'), 'la partie jouee en noir');
+  assert.ok(miennes.every(e => e.winner === e.humanColor), 'deux victoires, de ton point de vue');
+});
+
+test("import avec pseudo : la partie d'autres joueurs est consultee, hors statistiques", () => {
+  const h = _importerEchantillon('ocj94');
+  assert.strictEqual(h.filter(e => e.spectateur).length, 1);
+  assert.strictEqual(ctx.getMesParties().length, 2);
+  const s = ctx.computeColorStats();
+  assert.strictEqual(s.black.games + s.white.games, 2, 'les stats ne comptent que tes parties');
+});
+
+test('import sans pseudo : comportement historique conserve', () => {
+  const h = _importerEchantillon('');
+  assert.strictEqual(h.filter(e => e.spectateur).length, 0);
+  assert.strictEqual(h.length, 3);
+});
+
+/* ─── 13. Import PlayStrategy : conversion de notation verifiee ─── */
+
+// Deux parties REELLES du Yearly Abalone Arena, en notation PlayStrategy brute.
+const PS_BRUTES = ["a1d4 i5f5 a2c4 i6g6 c2c7 a5d5 b1c2 h6f4 g8f6 h4e4 f7e5 e4i8 i8g8 f4h6 h9f7 c5d8 b3d3 g4g7 c4e4 h6h9 h9f8 g7i9 f8f6 f5g4 g9f8 i9i8 f8f5 h8h6 f7f3 g4f2 d5g5 b4c6 c3e3 d8d5 b2d2 f2e1 g5b5 d6b4 d3d6 b4e7 f5a5 a5c7 c2d3 b6d8 f4c4 b5b6 e3c3 c7f7 c3c7 c7a5 e4e8 a4a3 e5b5 i8g7 d5a5 a3a2 a5d5 e8e9 f7c7 e1e2 c4c7 g3f2 b5e8 f2e3 e7e9 f3f4 e9e7 h6f5 d3e5 g7g6 d2d3 e3h6 d3d4 f4g4 c7f7 h8h7 f7f4 h5h4 d5h5 h5f3 d7f7 f4e2 f7f4 g4g3 e6e1 e1d2 d4g4 h4h5 e5i5 a2b2 e3i7 i7h8 f5i5 g3f2 i5f5 g6g7 h6e3 d1c2 f6f3 f2e1 h5e2 c1d2 g5c1 c1c3 e4e1 h8g6 g4e4 c2c4 f3d3 b2b3 e7d7 c4b4 c6c4 c3b2 f4d4 b2a2 e3c3 a2d5 e1e3 b3e6 e2e5 g6h6 d7e7 d8d7 e8f6 h6g6 e3e6 g6i9 f6c6 i9h7 f8f6 c6b5 d6a3 a3a4 f6d6 d7c6 f7f6 c6d7 f6c6 b6a5 d3b3 d5a2 a2a3 d7e8 f5d5 g7g6 e5a5", "i9f6 i5f5 i8g6 h4f4 a1c1 a4c4 a2d5 f4e5 h9h4 h4f4 g8g3 g3f3 h8h4 g4d4 f6i6 h4g4 c2c7 b6d6 c3c7 c7d7 b1b6 f4a4 b2b6 e4a4 c5a5 d6c5 b5e8 e5b5 g7g3 g3e3 c6f9 f9f8 b3b2 d4a4 e8d6 f8f7 h6f4 f3d3 d6d7 e3d4 f4f5 f7e6 d7e8 d5a5 e8e5 a5d5 i6h6 c4f7 e7g8 a4c4 b2b1 b6b3 b1d1 e5c3 h6f6 b5e5 h7h6 c3g7 g8h7 b4d6 f8g9 c4f7 h6f4 d6e7 h7h6 e7f8 g4f3 b3c4 g9h9 c4b4 h9h7 b4d6 g6g4 d6g6 h7h4 d4d3 h6e3 g6d6 f5f2 d3f5 h8h7 d5i5 e3h6 h6g6 h7i7 c5d5 i7i6 g6d3 g5g3 d6d4 i5i7 f7c4 d1e2 e6e3 i6g5 d5d2 c1b1 d2c2 b1a1 c4c3 g5d2 d2d5 h4c4 f5c5 f2f5 f6e6 i7g6 d3b3 f5d3 b3b4 h7f6 c2b2 a1b1 c3b3 b1c2 b2c3 c2d2 c3h8 g7g8 f8e7 g3g5 b4d6 d3f5 c5h5 d2f2 c4f7 g8i9 d4g7 g5d2 d6g6 d2d3 d5g8 h9i8 e5i9 i8i7 e6h6 e3g5 e7h7 h5e5 g8g3 g3e3 g5i7 g4g5 i7i8 f2g4 f7g8 f4f7 h6e6 e6d6 f6i9 e3c3 e5f6 g3f4 b3c4 c3d4 c4d5 g5e3 d5e5 f3f8 f8g9 d6c5 e5e6 e2e5 e6h9 e3e6 g6h6 e6g6 g9g5 f6c3 h6f6 g5d5 i8f8 f5c2 f8f5 c5g5 i9i8 c2c4 i8f8 c4c5 f8f3 c5h5 h5h6 d5h5 h5i6 d3i8 i8i9 e4g4 i9g9 f3f8 h7e7 f4i7 i7h7 f6i6 h7i8 h6f6 i8i9 i6h5 h9f9 f6c4 f9f6 c4h9 h9f9 c3c4 g8i8 f5h7 i8i7 h5h6 h8g8 g5i7"];
+
+function _rejouerJetons(seq) {
+  ['drawBoard','updateStatus','showToast','rebuildMoveListLabels','loadSnapshot','closeMigsBrowser',
+   'resetGutterPositions','closePSImportModal','showPage'].forEach(n => { ctx[n] = () => {}; });
+  const b = {};
+  ctx.LAYOUTS.belgian.black.forEach(p => { b[p[0]+','+p[1]] = 'black'; });
+  ctx.LAYOUTS.belgian.white.forEach(p => { b[p[0]+','+p[1]] = 'white'; });
+  ctx.board = b; ctx.CapturedByBlack.set(0); ctx.CapturedByWhite.set(0); ctx.GameOver.set(false);
+  ctx._replaySeqToSnapshots(seq, 'test');
+  return ctx.boardSnapshots.length;
+}
+
+test("NON-REGRESSION : la notation PlayStrategy brute ne se rejoue PAS telle quelle", () => {
+  // L'ancien import stockait les coups PlayStrategy tels quels, en croyant la
+  // notation identique. Mesure : 3 demi-coups rejoues sur 7 705. Ce test fige
+  // le constat, pour que personne ne "simplifie" la conversion.
+  const n = PS_BRUTES[0].split(' ').length;
+  assert.ok(_rejouerJetons(PS_BRUTES[0]) < n, 'la chaine brute doit echouer');
+});
+
+test('conversion PlayStrategy : parties reelles converties et rejouees en entier', () => {
+  for (const brute of PS_BRUTES) {
+    const conv = ctx.psConvertirSequence(brute);
+    assert.strictEqual(conv.complet, true);
+    assert.strictEqual(_rejouerJetons(conv.jetons.join(' ')), brute.split(' ').length);
+  }
+});
+
+test('conversion PlayStrategy : coup impossible = arret net, jamais une suite fausse', () => {
+  const coups = PS_BRUTES[1].split(' ').slice(0, 20);
+  coups[10] = 'a9a8';   // a9 n'existe pas
+  const conv = ctx.psConvertirSequence(coups.join(' '));
+  assert.strictEqual(conv.complet, false);
+  assert.strictEqual(conv.jetons.length, 10);
+});
+
+test('conversion PlayStrategy : la partie en cours reste intacte', () => {
+  ctx.board = { '6,2': 'black', '2,2': 'white' };
+  ctx.CapturedByBlack.set(3); ctx.CapturedByWhite.set(1);
+  const ref = JSON.stringify(ctx.board);
+  ctx.psConvertirSequence(PS_BRUTES[0]);
+  assert.strictEqual(JSON.stringify(ctx.board), ref);
+  assert.strictEqual(ctx.CapturedByBlack.get(), 3);
+});
+
+test('tournoi embarque : 90 parties, toutes rejouables jusqu au dernier coup', () => {
+  const banque = ctx.PS_TOURNOI_YEARLY_2026;
+  assert.strictEqual(banque.length, 90);
+  for (const e of banque) assert.strictEqual(_rejouerJetons(e[5]), ctx._migsMoveCount(e[5]), e[0]);
+});
+
