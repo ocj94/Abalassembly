@@ -355,3 +355,42 @@ test("NON-REGRESSION : l evenement public s appelle bien 'gameOver'", () => {
   assert.ok(src.indexOf("_emitAbaEvent('gameOver'") !== -1, 'nom d evenement abime');
   assert.ok(src.indexOf("GameOver.get()'") === -1, 'aucun accesseur ne doit trainer dans un litteral');
 });
+
+/* ─── 10. Detection de plateau par photo : separation plateau/bille ─── */
+
+test("NON-REGRESSION : bille isolee vue sur plateau gris (l'Abalone standard)", () => {
+  // L'ancienne version separait plateau et bille par la CHALEUR de teinte
+  // (r-b), qui suppose un plateau chaud comme le bois. Simule sur du
+  // plastique gris -- le plateau Abalone standard -- la bille reelle etait
+  // manquee a quasiment chaque photo (0 a 2/20 essais dans la simulation
+  // qui a motive ce correctif).
+  let seed = 54321;
+  const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+  const bruit = (v, a) => Math.max(0, Math.min(255, v + (rnd()*2-1)*a));
+  const GRIS = { r:125, g:125, b:130 }, NOIR = { r:30, g:30, b:32 }, BLANC = { r:230, g:228, b:220 };
+  function genere(billes) {
+    const s = [];
+    for (let k = 0; k < 61; k++) {
+      const vrai = billes[k] || 'empty';
+      const base = vrai === 'black' ? NOIR : vrai === 'white' ? BLANC : GRIS;
+      const r = bruit(base.r,12), g = bruit(base.g,12), b = bruit(base.b,12);
+      s.push({ key:'k'+k, r, g, b, lum:0.299*r+0.587*g+0.114*b, vrai });
+    }
+    return s;
+  }
+  function parfait(billes, essais) {
+    let ok = 0;
+    for (let t = 0; t < essais; t++) {
+      const s = genere(billes);
+      const lab = ctx.detClassify(s);
+      if (s.every(x => lab[x.key] === x.vrai)) ok++;
+    }
+    return ok;
+  }
+  assert.strictEqual(parfait({ 30:'black' }, 30), 30, 'bille isolee, 30 essais');
+  assert.strictEqual(parfait({ 10:'black',11:'black',40:'white',41:'white' }, 30), 30,
+    'noir ET blanc ensemble : un seuil unique engloutissait le groupe le moins contraste');
+  const depart = {}; for (let i=0;i<14;i++) depart[i]='black'; for (let i=47;i<61;i++) depart[i]='white';
+  assert.strictEqual(parfait(depart, 30), 30, 'position de depart complete, 14v14');
+  assert.strictEqual(parfait({}, 30), 30, 'plateau vide : aucune bille fantome');
+});
