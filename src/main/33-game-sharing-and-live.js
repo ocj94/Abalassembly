@@ -598,7 +598,7 @@ const ENGINE_LABELS = { actuel:'Moteur actuel', 'nnue-eval':'NNUE — évaluatio
 function computeActivityHeatmap(weeks){
   weeks = weeks || 12;
   if (typeof getGameHistory !== 'function') return null;
-  const history = getGameHistory();
+  const history = getMesParties();
   const counts = {};
   history.forEach(function(e){
     if (!e.date) return;
