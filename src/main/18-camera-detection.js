@@ -135,6 +135,8 @@ function showCropInterface(dataUrl, fileName) {
   if (!cropBox) {
     cropBox = document.createElement('div');
     cropBox.id = 'crop-box';
+    // Deplacable au doigt : ne doit pas declencher le balayage du menu.
+    cropBox.setAttribute('data-no-swipe', '');
     cropBox.style.cssText = 'position:absolute;border:2px solid var(--gold);box-shadow:0 0 0 9999px rgba(0,0,0,0.55);'
       + 'cursor:move;z-index:5;border-radius:4px';
     // poignée coin bas-droit pour redimensionner
