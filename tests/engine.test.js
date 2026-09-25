@@ -541,3 +541,34 @@ test('tournoi embarque : 90 parties, toutes rejouables jusqu au dernier coup', (
   for (const e of banque) assert.strictEqual(_rejouerJetons(e[5]), ctx._migsMoveCount(e[5]), e[0]);
 });
 
+/* ─── 14. Suivi en direct d'une partie PlayStrategy : decodeur de FEN ─── */
+
+test('FEN de depart PlayStrategy = exactement le Belgian Daisy Abalassembly', () => {
+  const FEN = "ss1SS/sssSSS/1ss1SS1/8/9/8/1SS1ss1/SSSsss/SS1ss b";
+  const pos = ctx._psDecoderFen(FEN);
+  assert.ok(pos, 'decodage reussi');
+  assert.strictEqual(pos.trait, 'black');
+  const sig = b => Object.keys(b).filter(k => b[k]).sort().map(k => k + b[k]).join('|');
+  const bel = {};
+  ctx.LAYOUTS.belgian.black.forEach(p2 => bel[p2[0]+','+p2[1]] = 'black');
+  ctx.LAYOUTS.belgian.white.forEach(p2 => bel[p2[0]+','+p2[1]] = 'white');
+  assert.strictEqual(sig(pos.board), sig(bel));
+});
+
+test('FEN : trait blanc correctement lu', () => {
+  assert.strictEqual(ctx._psDecoderFen("ss1SS/sssSSS/1ss1SS1/8/9/8/1SS1ss1/SSSsss/SS1ss w").trait, 'white');
+});
+
+test('FEN : rejette un decompte de cases incorrect plutot que de planter', () => {
+  assert.strictEqual(ctx._psDecoderFen("ss1SS/sssSSS/1ss1SS1/8/9/8/1SS1ss1/SSSsss/SS1s b"), null);
+});
+
+test("FEN : rejette une chaine vide ou un format etranger (echecs 8x8) sans exception", () => {
+  assert.strictEqual(ctx._psDecoderFen(''), null);
+  assert.strictEqual(ctx._psDecoderFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w'), null);
+});
+
+test("suivi en direct : ne se connecte jamais tout seul au chargement de la page", () => {
+  assert.strictEqual(ctx._psLiveActive, false);
+});
+
