@@ -113,6 +113,7 @@ const PASSERELLE = `
   if (typeof board !== 'undefined')            relier('board', function(){return board;}, function(v){board=v;});
   if (typeof boardSnapshots !== 'undefined')   relier('boardSnapshots', function(){return boardSnapshots;}, function(v){boardSnapshots=v;});
   if (typeof PS_TOURNOI_YEARLY_2026 !== 'undefined') relier('PS_TOURNOI_YEARLY_2026', function(){return PS_TOURNOI_YEARLY_2026;});
+  if (typeof _psLiveActive !== 'undefined')    relier('_psLiveActive', function(){return _psLiveActive;});
   if (typeof undoStack !== 'undefined')        relier('undoStack', function(){return undoStack;}, function(v){undoStack=v;});
   if (typeof selected !== 'undefined')         relier('selected', function(){return selected;}, function(v){selected=v;});
   if (typeof LAYOUTS !== 'undefined')          relier('LAYOUTS', function(){return LAYOUTS;});
