@@ -20380,6 +20380,21 @@ function _psDecoderFen(ligne){
   return { board: board2, trait: trait };
 }
 
+/* Partie en cours d'un joueur : GET /api/user/:name/current-game
+   (controllers.User.tvExport, public). ATTENTION, lu dans le code : a defaut
+   de partie en cours, la route renvoie la DERNIERE partie jouee -- d'ou la
+   verification du statut avant de s'y connecter. */
+async function _psPartieEnCours(pseudo){
+  try {
+    const r = await fetch('https://playstrategy.org/api/user/' + encodeURIComponent(pseudo) + '/current-game',
+      { headers: { 'Accept': 'application/json' } });
+    if (!r.ok) return null;
+    const g = await r.json();
+    if (!g || !g.id) return null;
+    return { id: g.id, enCours: g.status === 'started' || g.status === 'created',
+             variante: String(g.variant || '').toLowerCase() };
+  } catch (e) { return null; }
+}
 let _psLiveLecteur = null, _psLiveActive = false;
 function psLiveArreter(){
   _psLiveActive = false;
@@ -20391,10 +20406,21 @@ async function psLiveDemarrer(){
   const input = document.getElementById('ps-live-id');
   const statut = document.getElementById('ps-live-statut');
   if (!input || !statut) return;
-  let id = input.value.trim();
-  const m = id.match(/playstrategy\.org\/([A-Za-z0-9]{8})/);
+  const saisie = input.value.trim();
+  let id = null;
+  const m = saisie.match(/playstrategy\.org\/([A-Za-z0-9]{8})/);
   if (m) id = m[1];
-  if (!/^[A-Za-z0-9]{8}$/.test(id)) { statut.textContent = "Identifiant de partie invalide (8 caractères, ou colle l'adresse complète)."; return; }
+  else if (saisie) {
+    // un pseudo : on cherche SA partie en cours
+    statut.textContent = 'Recherche de la partie en cours de ' + saisie + '…';
+    const p = await _psPartieEnCours(saisie);
+    if (p && p.id) {
+      if (!p.enCours) { statut.textContent = saisie + " n'a pas de partie en cours."; return; }
+      if (p.variante !== 'abalone') { statut.textContent = 'La partie en cours de ' + saisie + " n'est pas une partie d'Abalone."; return; }
+      id = p.id;
+    } else if (/^[A-Za-z0-9]{8}$/.test(saisie)) id = saisie;   // identifiant de partie seul
+  }
+  if (!id) { statut.textContent = "Colle un lien de partie PlayStrategy, ou le pseudo d'un joueur."; return; }
   psLiveArreter(); _psLiveActive = true;
   statut.textContent = 'Connexion…';
   let resp;
@@ -20445,9 +20471,9 @@ function openPSLiveModal(){
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
     + '<strong style="color:var(--white)">🔴 Suivre une partie en direct</strong>'
     + '<button type="button" onclick="psLiveArreter();document.getElementById(\'ps-live-modal\').style.display=\'none\'" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer">×</button></div>'
-    + '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">Colle un lien de partie Abalone PlayStrategy (playstrategy.org/xxxxxxxx) ou son identifiant seul.</div>'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">Colle un lien de partie Abalone PlayStrategy, ou le pseudo d\'un joueur pour suivre sa partie en cours.</div>'
     + '<div style="display:flex;gap:6px;margin-bottom:10px">'
-    + '<input type="text" id="ps-live-id" placeholder="playstrategy.org/xxxxxxxx" style="flex:1;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">'
+    + '<input type="text" id="ps-live-id" placeholder="lien de partie, ou pseudo" style="flex:1;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">'
     + '<button type="button" onclick="psLiveDemarrer()" class="ctrl-btn" style="width:auto;padding:8px 12px">Suivre</button></div>'
     + '<div id="ps-live-statut" style="font-size:12px;color:var(--muted);min-height:16px;margin-bottom:10px"></div>'
     + '<div id="ps-live-board"></div>'
@@ -20467,11 +20493,139 @@ async function psChampionAbaloneActuel(){
     return c && c.user ? c.user.name : null;
   } catch (e) { return null; }
 }
+/* ═══════════════════════════════════════════════════════════════
+   TOURNOIS ABALONE A VENIR SUR PLAYSTRATEGY
+   GET /api/tournament -- controllers.Api.currentTournaments, AUCUNE portee
+   OAuth (verifie dans le code source avant d'ecrire ceci, meme demarche que
+   pour le suivi en direct). Renvoie TOUS les tournois, tous jeux confondus ;
+   le filtre sur variant.key === 'abalone' se fait cote client, comme pour
+   /api/tv/channels.
+
+   Volontairement : les tournois "finished" ne sont pas affiches ici (ce
+   n'est pas leur place -- l'import de tournoi existant sert deja a recuperer
+   un tournoi termine, comme le Yearly Abalone Arena deja embarque). Cet
+   encart ne montre que ce qui reste a jouer : en cours et a venir. */
+async function psTournoisAbaloneAVenir(){
+  try {
+    const r = await fetch('https://playstrategy.org/api/tournament');
+    if (!r.ok) return null;
+    const data = await r.json();
+    const tri = function(a, b){ return new Date(a.startsAt) - new Date(b.startsAt); };
+    const filtre = function(liste){ return (liste || []).filter(function(t){ return t.variant && t.variant.key === 'abalone'; }); };
+    return {
+      enCours: filtre(data.started).sort(tri),
+      aVenir: filtre(data.created).sort(tri)
+    };
+  } catch (e) { return null; }
+}
+function _psFormatDate(iso){
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' ' +
+      d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  } catch (e) { return iso; }
+}
+function _psTournoiLigne(t, enCours){
+  const lien = 'https://playstrategy.org/tournament/' + encodeURIComponent(t.id);
+  const badge = enCours
+    ? '<span style="color:var(--gold);font-size:11px">● en cours</span>'
+    : '<span style="color:var(--muted);font-size:11px">' + _psFormatDate(t.startsAt) + '</span>';
+  // Nom saisi par des utilisateurs de PlayStrategy : TOUJOURS echappe, sinon
+  // un nom de tournoi contenant du HTML s'executerait dans notre page (XSS).
+  return '<a href="' + lien + '" target="_blank" rel="noopener" style="display:flex;justify-content:space-between;' +
+    'gap:8px;padding:8px 10px;background:var(--surface2);border-radius:8px;margin-bottom:6px;text-decoration:none;color:var(--text);font-size:13px">' +
+    '<span>🏆 ' + escapeHtml(t.fullName || 'Tournoi Abalone') + '</span>' + badge + '</a>';
+}
+async function psAfficherTournoisAVenir(){
+  const zone = document.getElementById('ps-tournois-avenir');
+  if (!zone) return;
+  zone.innerHTML = '<div style="font-size:12px;color:var(--muted)">Recherche des tournois Abalone…</div>';
+  const t = await psTournoisAbaloneAVenir();
+  if (!t) { zone.innerHTML = '<div style="font-size:12px;color:var(--muted)">Impossible de joindre PlayStrategy pour le moment.</div>'; return; }
+  const tous = t.enCours.concat(t.aVenir);
+  if (!tous.length) { zone.innerHTML = '<div style="font-size:12px;color:var(--muted)">Aucun tournoi Abalone en cours ou annoncé sur PlayStrategy pour le moment.</div>'; return; }
+  zone.innerHTML = tous.map(function(x){ return _psTournoiLigne(x, t.enCours.indexOf(x) !== -1); }).join('');
+}
+/* ═══════════════════════════════════════════════════════════════
+   COMMUNAUTE ABALONE SUR PLAYSTRATEGY : EQUIPES ET DIRECTS
+   Deux routes publiques (CORS ouvert sur /api/, verifie dans le code) :
+     GET /api/team/search?text=abalone  -- controllers.Team.apiSearch
+     GET /api/streamer/featured         -- controllers.Streamer.featured
+
+   Ce qui a ete ECARTE, et pourquoi, verifie dans le code source :
+   - problemes (/api/puzzle/daily) : la liste puzzleVariants ne contient que
+     six variantes d'echecs ; le probleme du jour n'est JAMAIS de l'Abalone.
+   - cache d'analyse (/api/cloud-eval) : le moteur Abalone declare
+     hasFishnet = false ; aucune partie d'Abalone n'est jamais analysee par
+     le serveur, le cache ne peut donc contenir aucune evaluation d'Abalone.
+   - retransmissions (/api/broadcast) : "Broadcasts currently support chess
+     only" dans le code, toute partie non-echecs y est rejetee.
+
+   Equipes et directs ne portent AUCUN champ "jeu" : le filtre Abalone porte
+   sur le texte (nom/description d'equipe, titre du direct). C'est une
+   approximation, dite comme telle a l'ecran. Tout texte venant de
+   PlayStrategy est ecrit par des utilisateurs : toujours echappe. */
+async function psEquipesAbalone(){
+  try {
+    const r = await fetch('https://playstrategy.org/api/team/search?text=abalone');
+    if (!r.ok) return null;
+    const data = await r.json();
+    return (data && data.currentPageResults || [])
+      .filter(function(t){ return t && t.id; })
+      .sort(function(a, b){ return (b.nbMembers || 0) - (a.nbMembers || 0); })
+      .slice(0, 8);
+  } catch (e) { return null; }
+}
+async function psDirectsAbalone(){
+  try {
+    const r = await fetch('https://playstrategy.org/api/streamer/featured');
+    if (!r.ok) return null;
+    const liste = await r.json();
+    return (Array.isArray(liste) ? liste : []).filter(function(s){
+      const texte = String((s && s.status) || '') + ' ' + String((s && s.headline) || '');
+      // lien exige sur playstrategy.org : on ne fabrique pas de lien vers
+      // une adresse arbitraire fournie par la reponse
+      return /abalone/i.test(texte) && typeof s.url === 'string' && s.url.indexOf('https://playstrategy.org/') === 0;
+    });
+  } catch (e) { return null; }
+}
+function _psEquipeLigne(t){
+  const lien = 'https://playstrategy.org/team/' + encodeURIComponent(t.id);
+  const membres = (t.nbMembers || 0) + ' membre' + ((t.nbMembers || 0) > 1 ? 's' : '');
+  return '<a href="' + lien + '" target="_blank" rel="noopener" style="display:flex;justify-content:space-between;' +
+    'gap:8px;padding:8px 10px;background:var(--surface2);border-radius:8px;margin-bottom:6px;text-decoration:none;color:var(--text);font-size:13px">' +
+    '<span>👥 ' + escapeHtml(t.name || t.id) + '</span><span style="color:var(--muted);font-size:11px">' + membres + '</span></a>';
+}
+function _psDirectLigne(s){
+  const nom = (s.user && s.user.name) || '';
+  return '<a href="' + escapeHtml(s.url) + '" target="_blank" rel="noopener" style="display:block;padding:8px 10px;' +
+    'background:var(--surface2);border-radius:8px;margin-bottom:6px;text-decoration:none;color:var(--text);font-size:13px">' +
+    '📺 <strong>' + escapeHtml(nom) + '</strong> — ' + escapeHtml(s.status || '') + '</a>';
+}
+async function psAfficherCommunauteAbalone(){
+  const zEq = document.getElementById('ps-equipes-abalone');
+  const zDi = document.getElementById('ps-directs-abalone');
+  if (zEq) {
+    const eq = await psEquipesAbalone();
+    zEq.innerHTML = !eq ? '<div style="font-size:12px;color:var(--muted)">Équipes indisponibles pour le moment.</div>'
+      : (!eq.length ? '<div style="font-size:12px;color:var(--muted)">Aucune équipe trouvée.</div>'
+      : eq.map(_psEquipeLigne).join('') + '<div style="font-size:11px;color:var(--muted);margin-top:2px">Équipes dont le nom ou la description mentionne l\u2019Abalone.</div>');
+  }
+  if (zDi) {
+    // n'apparait QUE s'il y a un direct : pas de rubrique vide en permanence
+    const di = await psDirectsAbalone();
+    zDi.innerHTML = (di && di.length)
+      ? '<div style="font-size:12px;font-weight:600;color:var(--muted);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.03em">En direct sur Twitch / YouTube</div>' + di.map(_psDirectLigne).join('')
+      : '';
+  }
+}
 function openPSImportModal(){
   const m = document.getElementById('ps-import-modal');
   if (!m) return;
   m.style.display = 'flex';
   renderPSGamesList();   // le tournoi prechage s'affiche des l'ouverture
+  psAfficherTournoisAVenir();   // tournois Abalone en cours/a venir, tries par date
+  psAfficherCommunauteAbalone(); // equipes Abalone, et directs s'il y en a
   const input = document.getElementById('ps-import-usernames');
   if (input) input.focus();
 }
@@ -20502,6 +20656,25 @@ function psGameToMigsFormat(record){
   return [record.id, dateStr, p1, p2, result, conv.jetons.join(' ')];
 }
 
+/* Une ligne du champ d'import peut etre un pseudo OU un lien de tournoi
+   (arena ou suisse). Les parties d'un tournoi sortent du meme moteur
+   d'export (GameApiV2) que celles d'un joueur : meme format, meme conversion
+   (psGameToMigsFormat, qui ne garde que la variante 'abalone' -- un tournoi
+   "medley" ou en Grand Abalone ne peut donc rien faire entrer d'incompatible),
+   meme dedoublonnage par identifiant de partie.
+   Routes publiques ; CORS ouvert sur tout /api/ -- verifie dans le code
+   source de PlayStrategy (HttpFilter.addApiResponseHeaders ajoute
+   Access-Control-Allow-Origin: * a toute requete dont le chemin commence
+   par /api/). */
+function _psUrlImport(entree){
+  const e = String(entree);
+  const t = e.match(/playstrategy\.org\/tournament\/([A-Za-z0-9]{8})/);
+  if (t) return 'https://playstrategy.org/api/tournament/' + t[1] + '/games?moves=true&tags=false&opening=false';
+  const s = e.match(/playstrategy\.org\/swiss\/([A-Za-z0-9]{8})/);
+  if (s) return 'https://playstrategy.org/api/swiss/' + s[1] + '/games?moves=true&tags=false&opening=false';
+  return 'https://playstrategy.org/api/games/user/' + encodeURIComponent(e)
+    + '?perfType=abalone&max=100&moves=true&tags=false&opening=false';
+}
 async function fetchPSGames(){
   const ta = document.getElementById('ps-import-usernames');
   const statusEl = document.getElementById('ps-import-status');
@@ -20526,8 +20699,7 @@ async function fetchPSGames(){
     const username = uniqueUsernames[i];
     if (statusEl) statusEl.textContent = '⏳ (' + (i+1) + '/' + uniqueUsernames.length + ') ' + username + '…';
 
-    const url = 'https://playstrategy.org/api/games/user/' + encodeURIComponent(username)
-      + '?perfType=abalone&max=100&moves=true&tags=false&opening=false';
+    const url = _psUrlImport(username);   // pseudo, ou lien de tournoi arena/suisse
 
     try {
       const resp = await fetch(url, { headers: { 'Accept': 'application/x-ndjson' } });
@@ -36393,8 +36565,13 @@ window.refresh3DIfActive = function() {
       <button class="ctrl-btn" onclick="closePSImportModal()" style="width:auto;padding:4px 10px">✕</button>
     </div>
     <div style="padding:14px 18px">
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em">Tournois Abalone en cours / à venir</div>
+      <div id="ps-tournois-avenir" style="margin-bottom:16px"></div>
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em">Équipes Abalone</div>
+      <div id="ps-equipes-abalone"></div>
+      <div id="ps-directs-abalone" style="margin-bottom:16px"></div>
       <p style="font-size:12px;color:var(--muted);margin:0 0 12px;line-height:1.6">
-        Récupère de vraies parties d'Abalone jouées sur <a href="https://playstrategy.org" target="_blank" rel="noopener">playstrategy.org</a> (abal.online), directement depuis ton navigateur — rien n'est envoyé à un serveur intermédiaire. Un pseudo par ligne pour en récupérer plusieurs d'un coup.
+        Récupère de vraies parties d'Abalone jouées sur <a href="https://playstrategy.org" target="_blank" rel="noopener">playstrategy.org</a> (abal.online), directement depuis ton navigateur — rien n'est envoyé à un serveur intermédiaire. Un pseudo par ligne pour en récupérer plusieurs d'un coup — ou un lien de tournoi (arena ou suisse) pour en importer toutes les parties.
       </p>
       <textarea id="ps-import-usernames" placeholder="Un pseudo par ligne, ex :&#10;ocj94&#10;saabalone&#10;vincent" rows="4" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-family:'DM Mono',monospace;resize:vertical;margin-bottom:8px"></textarea>
       <div style="display:flex;gap:8px;margin-bottom:10px">
