@@ -128,8 +128,15 @@ async function renderCorpusStatsPage(){
       + '<span style="color:var(--text)">'+label+'</span><span style="font-weight:700;color:var(--gold)">'+val+'</span></div>';
   }
 
+  // Le titre suit le vrai total au lieu d'un nombre ecrit en dur.
+  const titre = document.getElementById('corpus-stats-titre');
+  if (titre) titre.textContent = 'Ce que disent ' + s.totalGames.toLocaleString('fr-FR') + ' vraies parties';
+
   const avantage = (s.blackPct != null) ? (s.blackPct - 50).toFixed(1) : null;
   let html = '';
+  html += '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">Sources : MIGS (' + s.nMigs.toLocaleString('fr-FR') + ' parties), AbalOnline (' + s.nAo.toLocaleString('fr-FR') + ')'
+    + (s.nPs ? ', Yearly Abalone Arena de PlayStrategy (' + s.nPs + (s.nPsSansCoup ? ', dont ' + s.nPsSansCoup + ' abandonnées avant le premier coup' : '') + ')' : '') + '. Toutes les parties comptent, même abandonnées.'
+    + (s.nPs ? ' Les 12 dimensions et le livre d\u2019ouvertures restent calculés sur MIGS et AbalOnline : ils sont précalculés hors-ligne.' : '') + '</div>';
 
   html += card('L\u2019avantage du premier joueur',
     '<div style="display:flex;gap:10px;margin-bottom:8px">'
@@ -141,14 +148,14 @@ async function renderCorpusStatsPage(){
       + '<div style="font-size:11px;color:var(--muted)">'+s.white.toLocaleString('fr-FR')+' victoires</div></div>'
     + '</div>'
     + (avantage!=null ? '<div style="font-size:12px;color:var(--text)">Celui qui commence gagne <strong style="color:var(--gold)">'+avantage+' points de pourcentage</strong> plus souvent que l\u2019autre.</div>' : ''),
-    'Sur '+s.decided.toLocaleString('fr-FR')+' parties dont le vainqueur est connu avec certitude. Les parties MIGS terminées par abandon ou fin de temps sont exclues : impossible de savoir qui a abandonné depuis les seules données.');
+    'Sur '+s.decided.toLocaleString('fr-FR')+' parties dont le vainqueur est connu avec certitude. Les parties MIGS terminées par abandon ou fin de temps sont exclues : impossible de savoir qui a abandonné depuis les seules données.' + (s.nPs ? ' Les ' + s.nPs + ' parties du tournoi PlayStrategy comptent avec le résultat enregistré par le serveur, abandons compris.' : ''));
 
   html += card('Durée d\u2019une partie',
     ligne('Médiane', s.lenMedian + ' coups')
     + ligne('Moyenne', s.lenMean + ' coups')
     + ligne('La plus courte', s.lenMin + ' coups')
     + ligne('La plus longue', s.lenMax + ' coups'),
-    'Mesuré sur les '+s.nMigs.toLocaleString('fr-FR')+' parties MIGS (notation complète disponible). La médiane est plus représentative que la moyenne, tirée vers le haut par quelques parties très longues.');
+    'Mesuré sur les '+s.nLens.toLocaleString('fr-FR')+' parties MIGS' + (s.nPs ? ' et PlayStrategy' : '') + ' (notation complète disponible). La médiane est plus représentative que la moyenne, tirée vers le haut par quelques parties très longues.');
 
   const totalEnd = Object.values(s.endTypes).reduce(function(a,c){return a+c;},0);
   html += card('Comment se terminent les parties',
@@ -162,7 +169,7 @@ async function renderCorpusStatsPage(){
       const label = (typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[v[0]]) ? HEAT_VARIANT_LABEL[v[0]] : v[0];
       return ligne(label, v[1].toLocaleString('fr-FR') + ' parties');
     }).join(''),
-    s.nVariants + ' variantes distinctes recensées dans le corpus AbalOnline ('+s.nAo.toLocaleString('fr-FR')+' parties).');
+    s.nVariants + ' variantes distinctes recensées dans le corpus AbalOnline ('+s.nAo.toLocaleString('fr-FR')+' parties)' + (s.nPs ? ', plus le Belgian Daisy du tournoi PlayStrategy (' + s.nPs + ' parties)' : '') + '.');
 
   // --- Distribution des 12 dimensions (referentiel objectif) ---
   const dist = computeDimensionDistributions();
