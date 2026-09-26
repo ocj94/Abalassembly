@@ -115,6 +115,8 @@ const PASSERELLE = `
   if (typeof PS_TOURNOI_YEARLY_2026 !== 'undefined') relier('PS_TOURNOI_YEARLY_2026', function(){return PS_TOURNOI_YEARLY_2026;});
   if (typeof _psLiveActive !== 'undefined')    relier('_psLiveActive', function(){return _psLiveActive;});
   if (typeof PS_GAMES !== 'undefined')         relier('PS_GAMES', function(){return PS_GAMES;}, function(v){PS_GAMES=v;});
+  if (typeof MIGS_GAMES !== 'undefined')       relier('MIGS_GAMES', function(){return MIGS_GAMES;}, function(v){MIGS_GAMES=v;});
+  if (typeof AO_GAMES !== 'undefined')         relier('AO_GAMES', function(){return AO_GAMES;}, function(v){AO_GAMES=v;});
   if (typeof undoStack !== 'undefined')        relier('undoStack', function(){return undoStack;}, function(v){undoStack=v;});
   if (typeof selected !== 'undefined')         relier('selected', function(){return selected;}, function(v){selected=v;});
   if (typeof LAYOUTS !== 'undefined')          relier('LAYOUTS', function(){return LAYOUTS;});
