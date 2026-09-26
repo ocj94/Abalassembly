@@ -4111,7 +4111,7 @@
 ══════════════════════════════════════════ -->
 <div class="page" id="page-corpusstats">
   <div class="page-header" style="padding-bottom:32px">
-    <div class="section-label">Ce que disent 4 479 vraies parties</div>
+    <div class="section-label" id="corpus-stats-titre">Ce que disent 4 479 vraies parties</div>
     <h2>Statistiques du jeu</h2>
   </div>
   <div style="padding:0 60px 80px;max-width:680px">
