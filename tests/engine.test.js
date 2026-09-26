@@ -572,3 +572,119 @@ test("suivi en direct : ne se connecte jamais tout seul au chargement de la page
   assert.strictEqual(ctx._psLiveActive, false);
 });
 
+/* ─── 15. Tournois Abalone a venir sur PlayStrategy ─── */
+
+const _T_ABALONE_1 = { id: 'aaaaaaaa', fullName: 'Weekly Abalone', variant: { key: 'abalone' }, startsAt: '2026-10-01T18:00:00Z' };
+const _T_ABALONE_2 = { id: 'bbbbbbbb', fullName: 'Daily Abalone', variant: { key: 'abalone' }, startsAt: '2026-09-27T12:00:00Z' };
+const _T_ECHECS   = { id: 'cccccccc', fullName: 'Blitz Battle', variant: { key: 'chess' }, startsAt: '2026-09-26T10:00:00Z' };
+function _armerReponseTournois(json) { ctx.fetch = async () => ({ ok: true, json: async () => json }); }
+
+test('tournois : seuls ceux en Abalone sont retenus, tries par date, les termines ignores', async () => {
+  _armerReponseTournois({
+    created: [_T_ABALONE_1, _T_ECHECS],
+    started: [_T_ABALONE_2],
+    finished: [{ ..._T_ABALONE_1, id: 'ffffffff' }]
+  });
+  const r = await ctx.psTournoisAbaloneAVenir();
+  assert.strictEqual(r.enCours.length, 1); assert.strictEqual(r.enCours[0].id, 'bbbbbbbb');
+  assert.strictEqual(r.aVenir.length, 1); assert.strictEqual(r.aVenir[0].id, 'aaaaaaaa');
+  assert.ok(!r.enCours.concat(r.aVenir).some(t => t.id === 'ffffffff'), 'un tournoi termine ne doit jamais apparaitre');
+});
+
+test('tournois : reseau indisponible ou reponse en erreur renvoie null, jamais une exception', async () => {
+  ctx.fetch = async () => { throw new Error('offline'); };
+  assert.strictEqual(await ctx.psTournoisAbaloneAVenir(), null);
+  ctx.fetch = async () => ({ ok: false });
+  assert.strictEqual(await ctx.psTournoisAbaloneAVenir(), null);
+});
+
+test("tournois : l'affichage distingue bien 'en cours' de la date programmee", () => {
+  assert.match(ctx._psTournoiLigne(_T_ABALONE_2, true), /en cours/);
+  const ligne = ctx._psTournoiLigne(_T_ABALONE_1, false);
+  assert.doesNotMatch(ligne, /en cours/);
+  assert.match(ligne, /playstrategy\.org\/tournament\/aaaaaaaa/);
+});
+
+/* ─── 16. Import d'un tournoi par son lien, suivi en direct par pseudo ─── */
+
+const _fauxEl = () => ({ value: '', style: {}, textContent: '', innerHTML: '', focus(){},
+  classList: { add(){}, remove(){}, toggle(){}, contains(){ return false; } },
+  appendChild(){}, remove(){}, querySelectorAll(){ return []; } });
+
+test('import : lien de tournoi arena ou suisse -> route du tournoi ; pseudo -> route joueur', () => {
+  assert.strictEqual(ctx._psUrlImport('https://playstrategy.org/tournament/rshUi5eV'),
+    'https://playstrategy.org/api/tournament/rshUi5eV/games?moves=true&tags=false&opening=false');
+  assert.match(ctx._psUrlImport('playstrategy.org/swiss/AbCd1234'), /\/api\/swiss\/AbCd1234\/games/);
+  assert.match(ctx._psUrlImport('vincent'), /\/api\/games\/user\/vincent\?perfType=abalone/);
+});
+
+test('import par lien de tournoi : les parties Abalone entrent, le Grand Abalone est ecarte', async () => {
+  const els = {};
+  const origine = ctx.document.getElementById;
+  ctx.document.getElementById = id => (els[id] || (els[id] = _fauxEl()));
+  els['ps-import-usernames'] = Object.assign(_fauxEl(), { value: 'https://playstrategy.org/tournament/rshUi5eV' });
+  const rec = (id, variant) => JSON.stringify({ id, variant, createdAt: Date.UTC(2026,8,18), winner: 'p1',
+    status: 'mate', players: { p1: { user: { name: 'A' } }, p2: { user: { name: 'B' } } }, moves: 'a1d4 i5f5 a2c4 i6g6' });
+  ctx.fetch = async () => ({ ok: true, text: async () => rec('abal0001', 'abalone') + '\n' + rec('gran0001', 'grandabalone') + '\n' });
+  ctx.renderPSGamesList = () => {};
+  await ctx.fetchPSGames();
+  ctx.document.getElementById = origine;
+  const ids = ctx.PS_GAMES.map(g => g[0]);
+  assert.ok(ids.includes('abal0001'));
+  assert.ok(!ids.includes('gran0001'), 'plateau incompatible, jamais importe');
+});
+
+test("PIEGE : sans partie en cours, current-game renvoie la DERNIERE partie -- elle ne passe pas pour du direct", async () => {
+  ctx.fetch = async () => ({ ok: true, json: async () => ({ id: 'fini0001', status: 'mate', variant: 'abalone' }) });
+  assert.strictEqual((await ctx._psPartieEnCours('vincent')).enCours, false);
+  ctx.fetch = async () => ({ ok: true, json: async () => ({ id: 'live0001', status: 'started', variant: 'abalone' }) });
+  assert.strictEqual((await ctx._psPartieEnCours('vincent')).enCours, true);
+  ctx.fetch = async () => { throw new Error('offline'); };
+  assert.strictEqual(await ctx._psPartieEnCours('vincent'), null);
+});
+
+test('suivi par pseudo : partie terminee -> message clair et AUCUN flux ouvert', async () => {
+  const els = {};
+  const origine = ctx.document.getElementById;
+  ctx.document.getElementById = id => (els[id] || (els[id] = _fauxEl()));
+  els['ps-live-id'] = Object.assign(_fauxEl(), { value: 'vincent' });
+  const appels = [];
+  ctx.fetch = async (url) => { appels.push(url); return { ok: true, json: async () => ({ id: 'fini0001', status: 'mate', variant: 'abalone' }) }; };
+  await ctx.psLiveDemarrer();
+  ctx.document.getElementById = origine;
+  assert.match(els['ps-live-statut'].textContent, /n'a pas de partie en cours/);
+  assert.ok(!appels.some(u => /\/api\/stream\/game\//.test(u)));
+});
+
+/* ─── 17. Communaute Abalone : equipes, directs, et securite des textes ─── */
+
+const _PIEGE_HTML = '<img src=x onerror=alert(1)>';
+
+test('SECURITE : noms de tournoi, d equipe et titres de direct echappes -- jamais executes', () => {
+  // Textes ecrits par des utilisateurs de PlayStrategy. Le premier jet de
+  // l'encart des tournois les inserait tels quels (faille XSS) : corrige.
+  const t = ctx._psTournoiLigne({ id: 'aaaaaaaa', fullName: _PIEGE_HTML, startsAt: '2026-10-01T18:00:00Z' }, false);
+  assert.ok(!t.includes('<img') && t.includes('&lt;img'));
+  assert.ok(!ctx._psEquipeLigne({ id: 'abc', name: _PIEGE_HTML, nbMembers: 3 }).includes('<img'));
+  assert.ok(!ctx._psDirectLigne({ url: 'https://playstrategy.org/streamer/x', status: _PIEGE_HTML, user: { name: _PIEGE_HTML } }).includes('<img'));
+});
+
+test('SECURITE : un direct dont le lien sort de playstrategy.org est ecarte', async () => {
+  ctx.fetch = async () => ({ ok: true, json: async () => ([
+    { url: 'https://playstrategy.org/streamer/bon', status: 'Abalone ce soir', user: { name: 'A' } },
+    { url: 'javascript:alert(1)', status: 'Abalone', user: { name: 'B' } },
+    { url: 'https://site-pirate.example/', status: 'Abalone', user: { name: 'C' } }
+  ]) });
+  const d = await ctx.psDirectsAbalone();
+  assert.deepStrictEqual(d.map(x => x.user.name), ['A']);
+});
+
+test('equipes : triees par membres, 8 au plus ; reseau coupe -> null sans exception', async () => {
+  const eq = Array.from({ length: 12 }, (_, i) => ({ id: 't' + i, name: 'T' + i, nbMembers: i }));
+  ctx.fetch = async () => ({ ok: true, json: async () => ({ currentPageResults: eq }) });
+  const r = await ctx.psEquipesAbalone();
+  assert.strictEqual(r.length, 8); assert.strictEqual(r[0].nbMembers, 11);
+  ctx.fetch = async () => { throw new Error('offline'); };
+  assert.strictEqual(await ctx.psEquipesAbalone(), null);
+});
+
