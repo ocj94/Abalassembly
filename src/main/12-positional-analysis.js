@@ -1034,12 +1034,27 @@ async function computeCorpusStats(onProgress){
   let migsBlack = 0, migsWhite = 0;
   migsWinners.forEach(function(v){ if (v === 'black') migsBlack++; else if (v === 'white') migsWhite++; });
 
-  const black = aoBlack + migsBlack, white = aoWhite + migsWhite;
+  // --- Tournoi PlayStrategy embarque ---
+  // Seule la banque EMBARQUEE compte : verifiee coup par coup, et identique
+  // pour tout le monde. Les parties importees a la volee (par pseudo ou par
+  // lien) ne sont ni sauvegardees ni communes a tous : elles fausseraient un
+  // corpus cense etre le meme pour chacun. Vainqueur : celui enregistre par
+  // le serveur PlayStrategy, abandons compris -- le serveur sait qui a
+  // abandonne, contrairement aux archives MIGS (d'ou leur exclusion).
+  // P1 = noir (verifie sur la position de depart, identique au Belgian Daisy).
+  const PS = (typeof PS_TOURNOI_YEARLY_2026 !== 'undefined') ? PS_TOURNOI_YEARLY_2026 : [];
+  let psBlack = 0, psWhite = 0;
+  PS.forEach(function(g){
+    if (g[4] === g[2] + ' gagne') psBlack++;
+    else if (g[4] === g[3] + ' gagne') psWhite++;
+  });
+
+  const black = aoBlack + migsBlack + psBlack, white = aoWhite + migsWhite + psWhite;
   const decided = black + white;
 
   // --- Longueur des parties (comptage de jetons, pas de rejeu) ---
   const lens = [];
-  MIGS_GAMES.forEach(function(g){
+  MIGS_GAMES.concat(PS).forEach(function(g){   // PlayStrategy : notation complete aussi
     const n = (g[5]||'').replace(/\d+\./g,' ').trim().split(/\s+/).filter(Boolean).length;
     if (n) lens.push(n);
   });
@@ -1054,11 +1069,13 @@ async function computeCorpusStats(onProgress){
   // --- Variantes representees (AbalOnline) ---
   const byVariant = {};
   AO_GAMES.forEach(function(g){ byVariant[g[4]] = (byVariant[g[4]]||0) + 1; });
+  if (PS.length) byVariant.belgian = (byVariant.belgian||0) + PS.length;   // AbalOnline n'en a aucune
   const topVariants = Object.entries(byVariant).sort(function(a,b){ return b[1]-a[1]; }).slice(0, 8);
 
   return {
-    totalGames: MIGS_GAMES.length + AO_GAMES.length,
-    nMigs: MIGS_GAMES.length, nAo: AO_GAMES.length,
+    totalGames: MIGS_GAMES.length + AO_GAMES.length + PS.length,
+    nMigs: MIGS_GAMES.length, nAo: AO_GAMES.length, nPs: PS.length, nLens: lens.length,
+    nPsSansCoup: PS.filter(function(g){ return !String(g[5]||'').trim(); }).length,
     decided: decided,
     black: black, white: white,
     blackPct: decided ? +(black/decided*100).toFixed(1) : null,
