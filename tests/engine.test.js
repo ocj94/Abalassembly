@@ -535,9 +535,12 @@ test('conversion PlayStrategy : la partie en cours reste intacte', () => {
   assert.strictEqual(ctx.CapturedByBlack.get(), 3);
 });
 
-test('tournoi embarque : 90 parties, toutes rejouables jusqu au dernier coup', () => {
+test('tournoi embarque : les 93 parties, dont 90 rejouables jusqu au dernier coup', () => {
+  // 3 parties ont ete abandonnees avant le premier coup : coups vides, rien a
+  // rejouer (0 == 0 ci-dessous), mais elles comptent dans le corpus.
   const banque = ctx.PS_TOURNOI_YEARLY_2026;
-  assert.strictEqual(banque.length, 90);
+  assert.strictEqual(banque.length, 93);
+  assert.strictEqual(banque.filter(e => ctx._migsMoveCount(e[5]) > 0).length, 90);
   for (const e of banque) assert.strictEqual(_rejouerJetons(e[5]), ctx._migsMoveCount(e[5]), e[0]);
 });
 
@@ -686,5 +689,36 @@ test('equipes : triees par membres, 8 au plus ; reseau coupe -> null sans except
   assert.strictEqual(r.length, 8); assert.strictEqual(r[0].nbMembers, 11);
   ctx.fetch = async () => { throw new Error('offline'); };
   assert.strictEqual(await ctx.psEquipesAbalone(), null);
+});
+
+/* ─── 18. Stats du corpus : le tournoi PlayStrategy compte, toutes parties ─── */
+
+test('corpus : MIGS + AbalOnline + les 93 parties du tournoi = 4 572', async () => {
+  assert.ok(await ctx.ensureGameBanks());
+  const s = await ctx.computeCorpusStats(() => {});
+  assert.strictEqual(s.nMigs, 2589); assert.strictEqual(s.nAo, 1890);
+  assert.strictEqual(s.nPs, 93); assert.strictEqual(s.nPsSansCoup, 3);
+  assert.strictEqual(s.totalGames, 4572);
+  // la duree ne compte que les parties jouees : pas de partie "a 0 coup"
+  assert.strictEqual(s.nLens, 2589 + 90);
+  assert.ok(s.lenMin > 0);
+  const bel = s.topVariants.find(v => v[0] === 'belgian');
+  assert.ok(bel && bel[1] === 93, 'Belgian Daisy : les 93 parties du tournoi');
+});
+
+test("corpus : les parties importees a la volee n'y entrent pas (meme corpus pour tous)", async () => {
+  ctx.PS_GAMES.push(['vol00001', '2026-09-01', 'X', 'Y', 'X gagne', 'a1b2 i5h5']);
+  const s = await ctx.computeCorpusStats(() => {});
+  ctx.PS_GAMES.pop();
+  assert.strictEqual(s.totalGames, 4572);
+});
+
+test('bibliotheque : une partie sans coup est annoncee, jamais chargee comme une partie jouee', () => {
+  let msg = null, page = null;
+  ctx.showToast = m => { msg = m; }; ctx.showPage = p => { page = p; };
+  const idx = ctx.PS_GAMES.findIndex(g => g[0] === 'KUDSzpMa');
+  ctx.loadPSGame(idx);
+  assert.match(msg, /abandonnée avant le premier coup/);
+  assert.strictEqual(page, null);
 });
 
