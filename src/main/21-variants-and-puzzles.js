@@ -69,6 +69,12 @@ const variantsData = [
   { id:'alitration', name:'Alitration', emoji:'🌀', players:'2', duration:'25 min', diff:'Moyen', src:'onlineabalone.wordpress.com',
     desc:'Variante expérimentale créée par un joueur nommé Joey lors de la conception de MiGs. Le nom est un mot-valise : Al(ien) + (infil)tration -- un mélange des deux positions. Symétrie de rotation à 180°, jouable dès maintenant, position vérifiée en rejouant intégralement une vraie partie MiGs (122 demi-coups) jusqu\'à sa conclusion.',
     origin:'MiGs -- créée par Joey' },
+  { id:'pyramide', name:'Pyramide', emoji:'🔺', players:'2', duration:'30 min', diff:'Moyen', src:'onlineabalone.wordpress.com',
+    desc:'Variante de type bloc défensif : deux pyramides de 14 billes face à face. Symétrique par un axe oblique Nord-Ouest/Sud-Est (g3–c7, vérifié par calcul). Peu jouée : plus fermée que les variantes à combinaisons, moins familière que le Standard, les parties y sont souvent longues tant que personne ne « débloque » la position. Jouable dès maintenant, position vérifiée en rejouant intégralement une vraie partie (FightClub contre Aba-Pro 8, 83 demi-coups, Noirs gagnants 6 à 3).',
+    origin:'Variante classique, documentée sur onlineabalone.wordpress.com' },
+  { id:'french-daisy', name:'Marguerite française', emoji:'🌼', players:'2', duration:'20 min', diff:'Moyen', src:'onlineabalone.wordpress.com',
+    desc:'Quatre marguerites en trèfle : deux noires au Nord et au Sud, deux blanches à l\'Ouest et à l\'Est. Trois symétries (centrale, horizontale, verticale), mais aucune qui échange les couleurs : c\'est une variante déséquilibrée, la seule du jeu. Les Noirs commencent et touchent le centre avec 4 billes contre 2 ; chaque camp dispose d\'emblée de 4 sumitos de 3 contre 2, mais ceux des Noirs sont à l\'intérieur. Tout cela vérifié par calcul, et la position en rejouant intégralement une vraie partie MiGs (n° 31299, 31 demi-coups, Noirs gagnants 6 à 5).',
+    origin:'Variante déséquilibrée, documentée sur onlineabalone.wordpress.com' },
 ];
 
 /* ── Bibliothèque de documents ────────────────────────────────────────

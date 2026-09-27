@@ -154,6 +154,12 @@ function loadMigsGame(idx){
   _replaySeqToSnapshots(g[5], g[2]+' vs '+g[3]);
 }
 // Charge une partie AbalOnline (variante quelconque, position de départ propre) en mode rejeu
+function loadRefGame(idx){
+  const g = PARTIES_REFERENCE[idx]; if (!g) return;
+  if (typeof LAYOUTS === 'undefined' || !LAYOUTS[g[4]]) { showToast('Disposition inconnue'); return; }
+  currentLayout = g[4]; initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
+  _replaySeqToSnapshots(g[6], g[1] + ' vs ' + g[2] + ' (' + (HEAT_VARIANT_LABEL[g[4]] || g[4]) + ')');
+}
 function loadAOGame(idx){
   if(!AO_GAMES.length){ ensureGameBanks().then(function(ok){ if(ok)loadAOGame(idx); else showToast('Bibliothèque indisponible (navigateur trop ancien)'); }); showToast('⏳ Chargement de la bibliothèque…'); return; }
   const g=AO_GAMES[idx]; if(!g) return;   // [date,x,y,win,var,start,seq]
@@ -789,6 +795,7 @@ function _migsPopulateVariantFilter(){
   const variants = new Set();
   AO_GAMES.forEach(function(g){ if (g[4]) variants.add(g[4]); });
   variants.add('belgian'); // toutes les parties MIGS
+  PARTIES_REFERENCE.forEach(function(g){ variants.add(g[4]); });
   [...variants].sort().forEach(function(v){
     const opt = document.createElement('option');
     opt.value = v; opt.textContent = v.replace('_daisy',' daisy').replace(/_/g,' ');
@@ -809,6 +816,14 @@ function renderMigsList(){
     return;
   }
   _migsPopulateVariantFilter();
+  const entete = document.getElementById('migs-entete');
+  if (entete) {
+    const vs = new Set(['belgian']); AO_GAMES.forEach(function(g){ if (g[4]) vs.add(g[4]); });
+    PARTIES_REFERENCE.forEach(function(g){ vs.add(g[4]); });
+    const n = MIGS_GAMES.length + AO_GAMES.length + PARTIES_REFERENCE.length;
+    entete.textContent = n.toLocaleString('fr-FR') + ' parties · ' + vs.size + ' variantes (MIGS, AbalOnline'
+      + (PARTIES_REFERENCE.length ? ', ' + PARTIES_REFERENCE.length + ' de référence' : '') + ')';
+  }
   function lengthMatches(seq){
     if (!lengthFilter) return true;
     const n = _migsMoveCount(seq);
@@ -818,7 +833,16 @@ function renderMigsList(){
     return true;
   }
   let html='', a=0, m=0;
-  // Variété AbalOnline d'abord (autres variantes) — max 180
+  // Parties de reference des variantes d'abord (peu nombreuses, verifiees)
+  for(let i=0;i<PARTIES_REFERENCE.length;i++){
+    const g=PARTIES_REFERENCE[i];
+    if(q && (g[1]+' '+g[2]+' '+g[4]).toLowerCase().indexOf(q)===-1) continue;
+    if(variantFilter && g[4]!==variantFilter) continue;
+    if(!lengthMatches(g[6])) continue;
+    const vl=(HEAT_VARIANT_LABEL[g[4]]||g[4]);
+    html+='<div onclick="loadRefGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px" title="Partie de référence -- source : '+escapeHtml(g[5])+'"><span>📜 '+escapeHtml(g[1])+' <span style="color:var(--muted)">vs</span> '+escapeHtml(g[2])+'</span><span style="color:var(--gold);font-size:11px;white-space:nowrap">'+escapeHtml(vl)+' · '+escapeHtml(g[0])+'</span></div>';
+  }
+  // Variété AbalOnline ensuite (autres variantes) — max 180
   if (!variantFilter || variantFilter !== 'belgian') {
     for(let i=0;i<AO_GAMES.length && a<180;i++){
       const g=AO_GAMES[i]; // [date,x,y,win,var,start,seq]

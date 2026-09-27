@@ -693,14 +693,14 @@ test('equipes : triees par membres, 8 au plus ; reseau coupe -> null sans except
 
 /* ─── 18. Stats du corpus : le tournoi PlayStrategy compte, toutes parties ─── */
 
-test('corpus : MIGS + AbalOnline + les 93 parties du tournoi = 4 572', async () => {
+test('corpus : MIGS + AbalOnline + 93 parties du tournoi + 2 de reference = 4 574', async () => {
   assert.ok(await ctx.ensureGameBanks());
   const s = await ctx.computeCorpusStats(() => {});
   assert.strictEqual(s.nMigs, 2589); assert.strictEqual(s.nAo, 1890);
   assert.strictEqual(s.nPs, 93); assert.strictEqual(s.nPsSansCoup, 3);
-  assert.strictEqual(s.totalGames, 4572);
+  assert.strictEqual(s.totalGames, 4574);
   // la duree ne compte que les parties jouees : pas de partie "a 0 coup"
-  assert.strictEqual(s.nLens, 2589 + 90);
+  assert.strictEqual(s.nLens, 2589 + 90 + 2);
   assert.ok(s.lenMin > 0);
   const bel = s.topVariants.find(v => v[0] === 'belgian');
   assert.ok(bel && bel[1] === 93, 'Belgian Daisy : les 93 parties du tournoi');
@@ -710,7 +710,7 @@ test("corpus : les parties importees a la volee n'y entrent pas (meme corpus pou
   ctx.PS_GAMES.push(['vol00001', '2026-09-01', 'X', 'Y', 'X gagne', 'a1b2 i5h5']);
   const s = await ctx.computeCorpusStats(() => {});
   ctx.PS_GAMES.pop();
-  assert.strictEqual(s.totalGames, 4572);
+  assert.strictEqual(s.totalGames, 4574);
 });
 
 test('bibliotheque : une partie sans coup est annoncee, jamais chargee comme une partie jouee', () => {
@@ -720,5 +720,111 @@ test('bibliotheque : une partie sans coup est annoncee, jamais chargee comme une
   ctx.loadPSGame(idx);
   assert.match(msg, /abandonnée avant le premier coup/);
   assert.strictEqual(page, null);
+});
+
+/* ─── 19. Variante Pyramide : position et partie de reference ─── */
+
+// Partie publiee avec la variante (onlineabalone.wordpress.com, 25/02/2018) :
+// FightClub (Noirs) contre Aba-Pro 8. Elle a servi a VERIFIER la position
+// lue sur l'image avant integration : elle doit se rejouer en entier.
+const PARTIE_PYRAMIDE = `1.b5c5 h4h5 2.d7d6 g4f4 3.c6d6 f3f4 4.a5c7b5 g3f2g4 5.d7d6 g4f4 6.d8e8c7 g5f4 7.c5d5 d3e4 8.b5c5 d2e2 9.d7d6 d3e4 10.h7g7 f2f3g3 11.g7f7 e2f2 12.d4e5 f2e1f3 13.d6e7 g4h4 14.d7e7 e4f4 15.c6c7d6 h7g6 16.e9e8 g4g5 17.d6e6 e4f5 18.b4c5 e2e3 19.e7e6 g6f5 20.d6e6 i6h5 21.e5f6 h5g5 22.e8f8 i8i7 23.e6f6 h4h5 24.f6g6 f3g4 25.h8g7 i6h5 26.c5d5d6 g3f3 27.g8g7 d3e4 28.g7h7 e4f5 29.i7h6 d2d3 30.h6g5 g6h7 31.f6f8g6 g3h4 32.g7g6 h5h6 33.d6e6e7 d3e4 34.d7e7 g3f3 35.f4g5 i7i6 36.e7f7 e5f5 37.h7h6 d2e3 38.f7g7 i6i7 39.g6h7 e2e3 40.g7h7 i9h8 41.h6i6 h8i9 42.i7i6`;
+
+test('Pyramide : disposition conforme a l image source', () => {
+  const noms = l => l.map(([r, c]) => String(ctx.coordToABAPRO(r, c))).sort().join(' ');
+  assert.strictEqual(noms(ctx.LAYOUTS.pyramide.white), 'e1 e2 e3 e4 f2 f3 f4 f5 g3 g4 g5 h4 h5 i5');
+  assert.strictEqual(noms(ctx.LAYOUTS.pyramide.black), 'a5 b5 b6 c5 c6 c7 d5 d6 d7 d8 e6 e7 e8 e9');
+});
+
+test('Pyramide : la partie de reference se rejoue en entier, une seule lecture par coup, 6e ejection au dernier', () => {
+  const toks = PARTIE_PYRAMIDE.replace(/\d+\./g, ' ').trim().split(/\s+/);
+  assert.strictEqual(toks.length, 83);
+  ctx.board = {};
+  ctx.LAYOUTS.pyramide.black.forEach(p => { ctx.board[p[0]+','+p[1]] = 'black'; });
+  ctx.LAYOUTS.pyramide.white.forEach(p => { ctx.board[p[0]+','+p[1]] = 'white'; });
+  ctx.CapturedByBlack.set(0); ctx.CapturedByWhite.set(0); ctx.GameOver.set(false);
+  let col = 'black';
+  toks.forEach((tk, k) => {
+    assert.ok(ctx.CapturedByBlack.get() < 6 && ctx.CapturedByWhite.get() < 6, 'partie finie avant le coup ' + (k + 1));
+    const c = ctx.getAllMovesForColor(col).filter(m => (ctx.abaproOfficialLabels(m) || []).includes(tk));
+    assert.strictEqual(c.length, 1, 'coup ' + (k + 1) + ' ' + tk);
+    ctx.applyMove({ cells: c[0].cells, dir: c[0].dir, info: ctx.validateMove(c[0].cells, c[0].dir, col) }, col);
+    col = col === 'black' ? 'white' : 'black';
+  });
+  assert.strictEqual(ctx.CapturedByBlack.get(), 6);
+  assert.strictEqual(ctx.CapturedByWhite.get(), 3);
+});
+
+/* ─── 20. Parties de reference des variantes : bibliotheque et corpus ─── */
+
+const _stubsAffichage = () => ['drawBoard','updateStatus','showToast','rebuildMoveListLabels','loadSnapshot',
+  'closeMigsBrowser','resetGutterPositions','showPage'].forEach(n => { ctx[n] = () => {}; });
+
+test('bibliotheque : la partie Pyramide s ouvre et se rejoue jusqu au dernier coup, 6 a 3', () => {
+  _stubsAffichage();
+  ctx.loadRefGame(0);
+  assert.strictEqual(ctx.boardSnapshots.length, 83);
+  assert.strictEqual(ctx.CapturedByBlack.get(), 6);
+  assert.strictEqual(ctx.CapturedByWhite.get(), 3);
+});
+
+test('bibliotheque : listee avec sa source, filtrable, et en-tete calcule (4 481 parties, 21 variantes)', async () => {
+  assert.ok(await ctx.ensureGameBanks());
+  const els = {}, opts = [{ value: '' }];
+  const origine = ctx.document.getElementById, origineCreate = ctx.document.createElement;
+  els['migs-search'] = { value: '' }; els['migs-filter-length'] = { value: '' };
+  els['migs-filter-variant'] = { value: 'pyramide', options: opts, appendChild(o){ opts.push(o); } };
+  els['migs-list'] = { innerHTML: '' }; els['migs-entete'] = { textContent: '' };
+  ctx.document.getElementById = id => els[id] || null;
+  ctx.document.createElement = () => ({});
+  ctx.renderMigsList();
+  ctx.document.getElementById = origine; ctx.document.createElement = origineCreate;
+  assert.match(els['migs-list'].innerHTML, /loadRefGame\(0\)/);
+  assert.match(els['migs-list'].innerHTML, /onlineabalone\.wordpress\.com/, 'la source est indiquee');
+  assert.doesNotMatch(els['migs-list'].innerHTML, /loadAOGame|loadMigsGame/, 'jamais presentee comme AbalOnline ou MIGS');
+  assert.ok(opts.some(o => o.value === 'pyramide'));
+  assert.match(els['migs-entete'].textContent, /^4\u202f?481 parties · 21 variantes/);
+});
+
+/* ─── 21. Marguerite francaise : variante desequilibree ─── */
+
+test('Marguerite francaise : disposition conforme a l image source', () => {
+  const noms = l => l.map(([r, c]) => String(ctx.coordToABAPRO(r, c))).sort().join(' ');
+  assert.strictEqual(noms(ctx.LAYOUTS.french.black), 'b3 b4 c3 c4 c5 d4 d5 f5 f6 g5 g6 g7 h6 h7');
+  assert.strictEqual(noms(ctx.LAYOUTS.french.white), 'd2 d3 d6 d7 e2 e3 e4 e6 e7 e8 f3 f4 f7 f8');
+});
+
+test('Marguerite francaise : la partie MiGs 31299 se rejoue en entier depuis la bibliotheque, 6 a 5', () => {
+  ['drawBoard','updateStatus','showToast','rebuildMoveListLabels','loadSnapshot','closeMigsBrowser',
+   'resetGutterPositions','showPage'].forEach(n => { ctx[n] = () => {}; });
+  const i = ctx.PARTIES_REFERENCE.findIndex(g => g[4] === 'french');
+  ctx.loadRefGame(i);
+  assert.strictEqual(ctx.boardSnapshots.length, 31);
+  assert.strictEqual(ctx.CapturedByBlack.get(), 6);
+  assert.strictEqual(ctx.CapturedByWhite.get(), 5);
+});
+
+test("Marguerite francaise : desequilibree -- aucune symetrie n'echange Noirs et Blancs, 4 contre 2 au centre", () => {
+  // Verifie ce que la fiche affirme. Toute autre disposition du jeu est
+  // equitable ; celle-ci ne l'est pas, par nature.
+  const L = ctx.LAYOUTS.french, pos = {};
+  L.black.forEach(p => { pos[p[0]+','+p[1]] = 'black'; }); L.white.forEach(p => { pos[p[0]+','+p[1]] = 'white'; });
+  const cube = k => { const [r, c] = k.split(',').map(Number); const a = ctx.rcToAxial(r, c); return [a.q, -a.q - a.r, a.r]; };
+  const cle = ([x, , z]) => { const rc = ctx.axialToRc(x, z); return rc ? rc.r + ',' + rc.c : null; };
+  const rot = ([x, y, z]) => [-z, -x, -y], refl = ([x, y, z]) => [x, z, y];
+  const inv = { black: 'white', white: 'black' };
+  let f = p => p, echange = 0, meme = 0;
+  for (let i = 0; i < 6; i++) {
+    for (const t of [f, p => refl(f(p))]) {
+      let m = true, e = true;
+      for (const [k, v] of Object.entries(pos)) { const k2 = cle(t(cube(k))); if (pos[k2] !== v) m = false; if (pos[k2] !== inv[v]) e = false; }
+      if (m) meme++; if (e) echange++;
+    }
+    const g = f; f = p => rot(g(p));
+  }
+  assert.strictEqual(meme, 4, 'identite + 3 symetries (centrale, horizontale, verticale)');
+  assert.strictEqual(echange, 0, 'aucune symetrie equitable');
+  const n2 = n => { for (let r = 0; r < 9; r++) for (let c = 0; c < ctx.ROWS[r]; c++) if (String(ctx.coordToABAPRO(r, c)) === n) return r + ',' + c; };
+  const autour = col => ['e4','e6','d4','d5','f5','f6'].filter(n => pos[n2(n)] === col).length;
+  assert.strictEqual(autour('black'), 4); assert.strictEqual(autour('white'), 2);
 });
 
