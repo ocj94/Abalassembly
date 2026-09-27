@@ -743,6 +743,7 @@
       <div id="setup-layout">
         <select id="setup-layout-select" onchange="setupPickLayoutSelect(this)" class="setup-layout-select">
         <option value="standard" title="Configuration officielle : 14 billes par camp sur 3 rangées" selected>Standard</option>
+        <option value="decouverte" title="Plateau réduit du Mode Enfant : 7 billes par camp, pour débuter -- choisi explicitement ici, toujours exclu du tirage aléatoire">Découverte (7 billes, débutants)</option>
         <option value="belgian">Belgian Daisy</option>
         <option value="german">German Daisy</option>
         <option value="dutch">Dutch Daisy</option>

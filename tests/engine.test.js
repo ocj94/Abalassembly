@@ -804,8 +804,9 @@ test('Marguerite francaise : la partie MiGs 31299 se rejoue en entier depuis la 
 });
 
 test("Marguerite francaise : desequilibree -- aucune symetrie n'echange Noirs et Blancs, 4 contre 2 au centre", () => {
-  // Verifie ce que la fiche affirme. Toute autre disposition du jeu est
-  // equitable ; celle-ci ne l'est pas, par nature.
+  // Verifie ce que la fiche affirme. Domination partage cette propriete (voir
+  // le test "exactement 2 dispositions sur 23") -- le premier jet de ce
+  // commentaire la disait unique, c'etait faux.
   const L = ctx.LAYOUTS.french, pos = {};
   L.black.forEach(p => { pos[p[0]+','+p[1]] = 'black'; }); L.white.forEach(p => { pos[p[0]+','+p[1]] = 'white'; });
   const cube = k => { const [r, c] = k.split(',').map(Number); const a = ctx.rcToAxial(r, c); return [a.q, -a.q - a.r, a.r]; };
@@ -828,3 +829,154 @@ test("Marguerite francaise : desequilibree -- aucune symetrie n'echange Noirs et
   assert.strictEqual(autour('black'), 4); assert.strictEqual(autour('white'), 2);
 });
 
+/* ─── 22. Galerie des variantes : detail sous la fiche, plateau, bouton Jouer ─── */
+
+const _SRC_INDEX = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
+
+
+test('correspondance : 23 fiches jouables, chacune reliee a une disposition du moteur ET du menu Jouer', () => {
+  const m = ctx.VARIANTE_DISPOSITION;
+  assert.strictEqual(Object.keys(m).length, 23);
+  assert.deepStrictEqual([...new Set(Object.values(m))].sort(), Object.keys(ctx.LAYOUTS).sort(), 'TOUTES les dispositions ont une fiche');
+  for (const [id, lay] of Object.entries(m)) {
+    assert.ok(ctx.variantsData.some(v => v.id === id), 'fiche ' + id);
+    assert.ok(ctx.LAYOUTS[lay], 'disposition ' + lay);
+    assert.ok(_SRC_INDEX.includes('<option value="' + lay + '"'), 'menu Jouer : ' + lay);
+  }
+});
+
+test("miniature de la page Jouer : rendu STRICTEMENT identique a l'ancien, pour les 23 dispositions", () => {
+  const ancien = key => {   // copie exacte de l'ancien code
+    const lay = ctx.LAYOUTS[key], posMap = {};
+    lay.black.forEach(p => posMap[p[0]+','+p[1]] = 'black'); lay.white.forEach(p => posMap[p[0]+','+p[1]] = 'white');
+    const cell = 10; let html = '<div style="display:flex;flex-direction:column;align-items:center;gap:1px">';
+    for (let r = 0; r < 9; r++) { html += '<div style="display:flex;gap:1px;justify-content:center">';
+      for (let c = 0; c < ctx.ROWS[r]; c++) { const piece = posMap[r+','+c];
+        const bg = piece ? (typeof ctx.gymMarbleGradient === 'function' ? ctx.gymMarbleGradient(piece) : (piece === 'black' ? '#1a1a1a' : '#e8e0d0')) : 'var(--border)';
+        html += '<div style="width:'+cell+'px;height:'+cell+'px;border-radius:50%;background:'+bg+';opacity:'+(piece?1:0.3)+'"></div>'; }
+      html += '</div>'; }
+    return html + '</div>';
+  };
+  for (const k of Object.keys(ctx.LAYOUTS)) assert.strictEqual(ctx._miniDispositionHTML(k, 10), ancien(k), k);
+});
+
+// ── faux DOM : une grille de 3 colonnes
+function monterGalerie() {
+  const cartes = ctx.variantsData.map(v => ({ id: v.id, style: {}, apres: null,
+    insertAdjacentElement(pos, el) { el._placeApres = this.id; } }));
+  const detail = { style: { display: 'none' }, dataset: {}, scrollIntoView(){} };
+  const contenu = { innerHTML: '' };
+  const grid = {
+    querySelector: s => cartes.find(c => s.includes('"' + c.id + '"')) || null,
+    querySelectorAll: () => cartes
+  };
+  ctx.document.getElementById = id => ({ 'variant-detail': detail, 'variant-detail-content': contenu, 'variants-grid': grid })[id] || null;
+  ctx.getComputedStyle = () => ({ gridTemplateColumns: '200px 200px 200px' });
+  return { detail, contenu, cartes };
+}
+
+test('clic sur une variante jouable : explications, plateau et bouton "Jouer cette variante"', () => {
+  const g = monterGalerie();
+  ctx.showVariantDetail('pyramide');
+  assert.strictEqual(g.detail.style.display, 'block');
+  assert.match(g.contenu.innerHTML, /Jouer cette variante/);
+  assert.match(g.contenu.innerHTML, /jouerVariante\('pyramide'\)/);
+  const billes = (g.contenu.innerHTML.match(/opacity:1"/g) || []).length;
+  assert.strictEqual(billes, 28, 'le plateau montre les 28 billes');
+  assert.match(g.contenu.innerHTML, /une vraie partie/, 'les explications de la fiche');
+});
+
+test('le detail se place au bout de la rangee de la fiche cliquee (grille a 3 colonnes)', () => {
+  const g = monterGalerie();
+  const i = ctx.variantsData.findIndex(v => v.id === 'german-daisy');   // 3e fiche -> fin de la 1re rangee
+  ctx.showVariantDetail('german-daisy');
+  assert.strictEqual(g.detail._placeApres, ctx.variantsData[Math.floor(i / 3) * 3 + 2].id);
+  assert.strictEqual(g.detail.style.gridColumn, '1 / -1', 'sur toute la largeur');
+});
+
+test('un second clic sur la meme fiche referme le detail', () => {
+  const g = monterGalerie();
+  ctx.showVariantDetail('french-daisy'); assert.strictEqual(g.detail.style.display, 'block');
+  ctx.showVariantDetail('french-daisy'); assert.strictEqual(g.detail.style.display, 'none');
+});
+
+test('variante sans position jouable : pas de bouton, et c est dit', () => {
+  const g = monterGalerie();
+  ctx.showVariantDetail('the-pillar');
+  assert.doesNotMatch(g.contenu.innerHTML, /Jouer cette variante/);
+  assert.match(g.contenu.innerHTML, /reste documentée/);
+});
+
+test('"Jouer cette variante" ouvre la configuration avec la variante deja choisie', () => {
+  const options = Object.keys(ctx.LAYOUTS).map(k => ({ value: k, getAttribute: () => 'titre', textContent: k }));
+  const sel = { value: 'standard', options, get selectedIndex() { return options.findIndex(o => o.value === this.value); } };
+  let page = null;
+  const faux = () => ({ innerHTML: '', textContent: '', style: {}, value: '', classList: { add(){}, remove(){}, toggle(){}, contains(){ return false; } }, appendChild(){}, remove(){}, querySelectorAll(){ return []; } });
+  ctx.document.getElementById = id => (id === 'setup-layout-select' ? sel : faux());
+  ctx.sidebarNav = p => { page = p; };
+  assert.strictEqual(ctx.jouerVariante('french'), true);
+  assert.strictEqual(sel.value, 'french');
+  assert.strictEqual(ctx._setupCfg.layout, 'french', 'la partie lancee utilisera bien cette disposition');
+  assert.strictEqual(page, 'setup');
+  assert.strictEqual(ctx.jouerVariante('inexistante'), false, 'disposition inconnue : aucun effet');
+});
+
+/* ─── 23. Les dix fiches ajoutees : chaque chiffre ecrit est verifie ─── */
+
+const _AO_FICHES = { star:'star', alliances:'alliances', domination:'domination', atomouche:'atomouche', centrifuge:'centrifugeuse', snakes_variant:'snakes_variant' };
+const _cubeF = k => { const [r, c] = k.split(',').map(Number); const a = ctx.rcToAxial(r, c); return [a.q, -a.q - a.r, a.r]; };
+const _cleF = ([x, , z]) => { const rc = ctx.axialToRc(x, z); return rc ? rc.r + ',' + rc.c : null; };
+const _rotF = ([x, y, z]) => [-z, -x, -y], _reflF = ([x, y, z]) => [x, z, y];
+function _echanges(k) {
+  const L = ctx.LAYOUTS[k], pos = {}, inv = { black: 'white', white: 'black' };
+  L.black.forEach(p => pos[p[0]+','+p[1]] = 'black'); L.white.forEach(p => pos[p[0]+','+p[1]] = 'white');
+  let f = p => p, n = 0;
+  for (let i = 0; i < 6; i++) { for (const t of [f, p => _reflF(f(p))]) { let e = true;
+    for (const [q, v] of Object.entries(pos)) if (pos[_cleF(t(_cubeF(q)))] !== inv[v]) { e = false; break; } if (e) n++; }
+    const g = f; f = p => _rotF(g(p)); }
+  return n;
+}
+const _carte = id => ctx.variantsData.find(v => v.id === id);
+
+test('les chiffres du corpus ecrits dans les fiches sont EXACTS (parties, victoires, mediane)', async () => {
+  assert.ok(await ctx.ensureGameBanks());
+  for (const [lay, aoKey] of Object.entries(_AO_FICHES)) {
+    const id = Object.keys(ctx.VARIANTE_DISPOSITION).find(k => ctx.VARIANTE_DISPOSITION[k] === lay);
+    const gs = ctx.AO_GAMES.filter(g => g[4] === aoKey);
+    const nb = gs.filter(g => g[3] === g[1]).length, bl = gs.filter(g => g[3] === g[2]).length;
+    const lens = gs.map(g => (g[6] || '').replace(/\d+\./g, ' ').trim().split(/\s+/).filter(Boolean).length).filter(Boolean).sort((a, b) => a - b);
+    const med = lens[Math.floor(lens.length / 2)];
+    const d = _carte(id).desc;
+    assert.ok(d.includes(gs.length + ' parties'), id + ' : ' + gs.length + ' parties');
+    assert.ok(d.includes(nb + ' ') && d.includes(bl + ' '), id + ' : ' + nb + '/' + bl);
+    assert.ok(d.includes(med + ' coups en médiane'), id + ' : mediane ' + med);
+    assert.strictEqual(_carte(id).duration, med + ' coups (médiane)');
+  }
+});
+
+test('les symetries annoncees dans les fiches sont celles que le calcul trouve', () => {
+  for (const [id, lay] of Object.entries(ctx.VARIANTE_DISPOSITION)) {
+    const d = _carte(id).desc, n = _echanges(lay);
+    if (/Deux symétries échangent/.test(d)) assert.strictEqual(n, 2, id);
+    if (/Une symétrie échange/.test(d)) assert.strictEqual(n, 1, id);
+    if (/aucune symétrie n.échange|aucune qui échange les couleurs/.test(d)) assert.strictEqual(n, 0, id);
+  }
+});
+
+test('exactement 2 dispositions sur 23 sans symetrie echangeant les camps : Domination et Marguerite francaise', () => {
+  const sans = Object.keys(ctx.LAYOUTS).filter(k => _echanges(k) === 0).sort();
+  assert.deepStrictEqual(sans, ['domination', 'french']);
+});
+
+test('nombres de billes annonces : Atomouche 12, Decouverte 7, coins de Decouverte a1 et i5', () => {
+  assert.strictEqual(ctx.LAYOUTS.atomouche.black.length, 12); assert.strictEqual(ctx.LAYOUTS.atomouche.white.length, 12);
+  assert.strictEqual(ctx.LAYOUTS.decouverte.black.length, 7);
+  const noms = l => l.map(([r, c]) => String(ctx.coordToABAPRO(r, c)));
+  assert.ok(noms(ctx.LAYOUTS.decouverte.black).includes('a1')); assert.ok(noms(ctx.LAYOUTS.decouverte.white).includes('i5'));
+});
+
+test('aucune difficulte inventee : "Non evaluee" (badge neutre) sauf Decouverte', () => {
+  for (const id of ['69','star','alliances','domination','atomouche','centrifugeuse','snakes-variant','korean-daisy','anglattack'])
+    assert.strictEqual(_carte(id).diff, 'Non évaluée', id);
+  assert.strictEqual(_carte('decouverte').diff, 'Débutant');
+});
