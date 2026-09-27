@@ -9,19 +9,30 @@ directement dans le code à chaque révision, jamais supposé.
 
 ## 1. La galerie « Variantes » face à l'écran de configuration
 
-**La galerie** (menu → Explorer → Variantes) est une encyclopédie de 23
+**La galerie** (menu → Explorer → Variantes) est une encyclopédie de 33
 fiches — nom, joueurs, durée, difficulté, description, source historique.
-Cliquer sur une fiche l'affiche en détail. **Aucune fiche n'a de bouton
-« jouer »** : c'est un catalogue de lecture, pas un point d'entrée vers
-une partie.
+Toucher une fiche ouvre ses explications juste en dessous. Pour les 23
+fiches jouables, s'y ajoutent le plateau de départ, dessiné depuis la vraie
+position du moteur, et un bouton **« ▶ Jouer cette variante »** qui ouvre la
+configuration avec la variante déjà choisie.
 
 **L'écran de configuration** (Jouer → Disposition de départ) propose 23
 positions de départ réelles dans son menu déroulant, chacune avec sa
 propre miniature — c'est ce que le moteur sait effectivement charger.
+(Jusqu'ici ce document annonçait ce chiffre alors que le menu n'en
+comptait que 22 : Découverte, le plateau réduit du mode Enfant, n'y
+figurait pas. Elle y est désormais, et reste exclue du tirage aléatoire.)
 
-Les deux listes ne correspondent pas terme à terme.
+Les deux listes correspondent terme à terme pour tout ce qui est jouable :
+chaque position du moteur a sa fiche, vérifié par les tests.
 
-### Réellement jouables (13 sur 23)
+Pour les fiches ajoutées en dernier, les textes s'appuient uniquement sur
+des sources déjà vérifiées et sur des mesures : nombre de parties, victoires
+et durée médiane dans le corpus AbalOnline, symétries calculées. Aucune
+difficulté n'est inventée : faute de donnée, elle est marquée « Non
+évaluée ».
+
+### Réellement jouables (23 sur 33)
 
 | Galerie | Configuration |
 |---|---|
@@ -38,8 +49,18 @@ Les deux listes ne correspondent pas terme à terme.
 | Alitration | Alitration |
 | Pyramide | Pyramide |
 | Marguerite française | Marguerite française |
+| Découverte | Découverte (7 billes) |
+| 69 | 69 |
+| Star | Star |
+| Alliances | Alliances |
+| Domination | Domination |
+| Atomouche | Atomouche |
+| Centrifugeuse | Centrifugeuse |
+| Snakes variant | Snakes variant |
+| Korean Daisy | Korean Daisy |
+| Anglattack | Anglattack |
 
-### Documentées seulement (10 sur 23)
+### Documentées seulement (10 sur 33)
 
 - **The Pillar** — sa description mentionne une bille neutre inamovible au
   centre : un troisième type de pièce que le moteur ne gère pas (seuls
@@ -55,10 +76,12 @@ Les deux listes ne correspondent pas terme à terme.
   structure de plateau différente. Voir la section 2 : ce mode a en fait
   sa propre page dédiée, distincte de ces fiches de galerie.
 
-### Et dans l'autre sens : jouables mais pas dans la galerie (10 sur 23)
+### Et dans l'autre sens : jouables mais pas dans la galerie (0 sur 23)
 
-Découverte, 69, Star, Alliances, Domination, Atomouche, Centrifuge, Snakes
-variant, Korean Daisy, Anglattack. Le fossé va donc dans les deux sens.
+Il y en avait dix — Découverte, 69, Star, Alliances, Domination, Atomouche,
+Centrifugeuse, Snakes variant, Korean Daisy, Anglattack. Elles ont toutes
+leur fiche désormais : le fossé ne va plus que dans un sens, celui des
+variantes documentées que le moteur ne sait pas jouer.
 
 ## 2. La page Apprendre : variantes multijoueurs, en attente assumée
 

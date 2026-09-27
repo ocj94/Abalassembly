@@ -313,14 +313,21 @@ function setupRenderLayoutThumb(layoutKey, labelText){
     if (labelEl) labelEl.textContent = labelText || 'Tirée au sort au lancement de la partie';
     return;
   }
+  box.innerHTML = _miniDispositionHTML(layoutKey, 10);
+  if (labelEl) labelEl.textContent = labelText || '';
+}
+/* Plateau miniature d'une disposition, dessine depuis LAYOUTS -- la meme
+   source que le moteur, jamais une image a part qui pourrait diverger.
+   Partage par la page Jouer (10 px) et la galerie des variantes (plus grand). */
+function _miniDispositionHTML(layoutKey, cell){
   const lay = LAYOUTS[layoutKey];
   const posMap = {};
   lay.black.forEach(function(p){ posMap[p[0]+','+p[1]] = 'black'; });
   lay.white.forEach(function(p){ posMap[p[0]+','+p[1]] = 'white'; });
-  const cell = 10;
-  let html = '<div style="display:flex;flex-direction:column;align-items:center;gap:1px">';
+  const gap = cell >= 14 ? 2 : 1;
+  let html = '<div style="display:flex;flex-direction:column;align-items:center;gap:'+gap+'px">';
   for (let r=0; r<9; r++){
-    html += '<div style="display:flex;gap:1px;justify-content:center">';
+    html += '<div style="display:flex;gap:'+gap+'px;justify-content:center">';
     for (let c=0; c<ROWS[r]; c++){
       const piece = posMap[r+','+c];
       const bg = piece ? (typeof gymMarbleGradient==='function' ? gymMarbleGradient(piece) : (piece==='black'?'#1a1a1a':'#e8e0d0')) : 'var(--border)';
@@ -328,9 +335,7 @@ function setupRenderLayoutThumb(layoutKey, labelText){
     }
     html += '</div>';
   }
-  html += '</div>';
-  box.innerHTML = html;
-  if (labelEl) labelEl.textContent = labelText || '';
+  return html + '</div>';
 }
 
 /* Dedie au menu deroulant des dispositions (21 entrees -- trop pour des

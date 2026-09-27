@@ -73,9 +73,72 @@ const variantsData = [
     desc:'Variante de type bloc défensif : deux pyramides de 14 billes face à face. Symétrique par un axe oblique Nord-Ouest/Sud-Est (g3–c7, vérifié par calcul). Peu jouée : plus fermée que les variantes à combinaisons, moins familière que le Standard, les parties y sont souvent longues tant que personne ne « débloque » la position. Jouable dès maintenant, position vérifiée en rejouant intégralement une vraie partie (FightClub contre Aba-Pro 8, 83 demi-coups, Noirs gagnants 6 à 3).',
     origin:'Variante classique, documentée sur onlineabalone.wordpress.com' },
   { id:'french-daisy', name:'Marguerite française', emoji:'🌼', players:'2', duration:'20 min', diff:'Moyen', src:'onlineabalone.wordpress.com',
-    desc:'Quatre marguerites en trèfle : deux noires au Nord et au Sud, deux blanches à l\'Ouest et à l\'Est. Trois symétries (centrale, horizontale, verticale), mais aucune qui échange les couleurs : c\'est une variante déséquilibrée, la seule du jeu. Les Noirs commencent et touchent le centre avec 4 billes contre 2 ; chaque camp dispose d\'emblée de 4 sumitos de 3 contre 2, mais ceux des Noirs sont à l\'intérieur. Tout cela vérifié par calcul, et la position en rejouant intégralement une vraie partie MiGs (n° 31299, 31 demi-coups, Noirs gagnants 6 à 5).',
+    desc:'Quatre marguerites en trèfle : deux noires au Nord et au Sud, deux blanches à l\'Ouest et à l\'Est. Trois symétries (centrale, horizontale, verticale), mais aucune qui échange les couleurs : les deux camps ne partent pas de la même forme (comme Domination, seule autre disposition du jeu dans ce cas). L\'article la décrit comme la plus déséquilibrée des variantes : les Noirs y cumulent le trait et l\'avantage de position, avec 4 billes au contact du centre contre 2 ; chaque camp dispose d\'emblée de 4 sumitos de 3 contre 2, mais ceux des Noirs sont à l\'intérieur. Tout cela vérifié par calcul, et la position en rejouant intégralement une vraie partie MiGs (n° 31299, 31 demi-coups, Noirs gagnants 6 à 5).',
     origin:'Variante déséquilibrée, documentée sur onlineabalone.wordpress.com' },
+  /* ── Les 10 dispositions jouables qui n'avaient pas de fiche. Textes tires
+     des sources deja verifiees dans LAYOUTS et de MESURES : nombre de parties
+     et resultats du corpus AbalOnline, duree mediane, symetries calculees
+     sur les 12 de l'hexagone. Aucune difficulte inventee : "Non evaluee"
+     faute de donnee, sauf Decouverte (le mode Enfant). Tous ces chiffres sont
+     verifies par les tests contre les vraies banques. */
+  { id:'decouverte', name:'Découverte', emoji:'🧒', players:'2', duration:'Non mesurée', diff:'Débutant', src:'Abalassembly',
+    desc:'Pour débuter : 7 billes par camp au lieu de 14, une seule marguerite chacun — les Noirs au coin a1, les Blancs au coin i5 —, reprises telles quelles du Belgian Daisy. Moins de billes à surveiller pour apprendre les poussées et les sumitos. Une symétrie échange exactement les deux camps : chacun part de la même position.',
+    origin:'Mode Enfant d\'Abalassembly, dérivé du Belgian Daisy' },
+  { id:'69', name:'69', emoji:'🙂', players:'2', duration:'Non mesurée', diff:'Non évaluée', src:'image fournie',
+    desc:'Une disposition artistique, pas une variante de tournoi : les billes dessinent un visage souriant. 14 billes par camp, et une symétrie échange exactement les deux camps. Aucune partie connue dans le corpus.',
+    origin:'Disposition artistique, relue case par case sur une image' },
+  { id:'star', name:'Star', emoji:'⭐', players:'2', duration:'98 coups (médiane)', diff:'Non évaluée', src:'AbalOnline',
+    desc:'Un motif en étoile qui rayonne depuis le centre. Variante communautaire réellement jouée : 123 parties dans le corpus AbalOnline, 57 gagnées par les Noirs et 66 par les Blancs, en 98 coups en médiane. Deux symétries échangent exactement les camps.',
+    origin:'Variante communautaire, position confirmée case par case sur le corpus AbalOnline' },
+  { id:'alliances', name:'Alliances', emoji:'🔗', players:'2', duration:'103 coups (médiane)', diff:'Non évaluée', src:'AbalOnline',
+    desc:'Deux spirales imbriquées, les blanches s\'enroulant vers les noires. 87 parties dans le corpus AbalOnline : 44 gagnées par les Noirs, 43 par les Blancs, en 103 coups en médiane. Une symétrie échange exactement les deux camps.',
+    origin:'Variante communautaire, position confirmée case par case sur le corpus AbalOnline' },
+  { id:'domination', name:'Domination', emoji:'📐', players:'2', duration:'99 coups (médiane)', diff:'Non évaluée', src:'AbalOnline',
+    desc:'Deux triangles noirs, avec deux billes noires près du centre, face à deux groupes blancs de sept. Particularité vérifiée par calcul : aucune symétrie n\'échange les couleurs, les deux camps ne partent pas de la même forme — comme la Marguerite française, seule autre disposition du jeu dans ce cas. Pourtant ses 33 parties dans le corpus AbalOnline se partagent 16 pour les Noirs et 17 pour les Blancs, en 99 coups en médiane.',
+    origin:'Variante communautaire, position confirmée case par case sur le corpus AbalOnline' },
+  { id:'atomouche', name:'Atomouche', emoji:'⚛️', players:'2', duration:'123 coups (médiane)', diff:'Non évaluée', src:'AbalOnline',
+    desc:'Un motif dispersé, avec une vraie particularité : seulement 12 billes par camp, contre 14 partout ailleurs. 76 parties dans le corpus AbalOnline : 44 gagnées par les Noirs, 32 par les Blancs, en 123 coups en médiane. Une symétrie échange exactement les deux camps.',
+    origin:'Variante communautaire, position confirmée case par case sur le corpus AbalOnline' },
+  { id:'centrifugeuse', name:'Centrifugeuse', emoji:'🌪️', players:'2', duration:'72 coups (médiane)', diff:'Non évaluée', src:'AbalOnline',
+    desc:'Deux anneaux imbriqués. 39 parties dans le corpus AbalOnline : 24 gagnées par les Noirs, 15 par les Blancs, en 72 coups en médiane. Deux symétries échangent exactement les camps.',
+    origin:'Variante communautaire, position confirmée case par case sur le corpus AbalOnline' },
+  { id:'snakes-variant', name:'Snakes variant', emoji:'🐉', players:'2', duration:'65 coups (médiane)', diff:'Non évaluée', src:'AbalOnline',
+    desc:'Deux spirales entrelacées — à ne pas confondre avec Snakes, une position différente malgré le nom. 17 parties dans le corpus AbalOnline : 7 gagnées par les Noirs, 9 par les Blancs, en 65 coups en médiane. Une symétrie échange exactement les deux camps.',
+    origin:'Variante communautaire, position prise directement dans le corpus AbalOnline' },
+  { id:'korean-daisy', name:'Korean Daisy', emoji:'🌸', players:'2', duration:'Non mesurée', diff:'Non évaluée', src:'abaloneonline.wordpress.com',
+    desc:'En haut, deux groupes qui échangent leurs couleurs au contact ; en bas, deux blocs. Deux symétries échangent exactement les camps. Aucune partie sous ce nom dans le corpus AbalOnline.',
+    origin:'Créditée à Hyunmin KIM' },
+  { id:'anglattack', name:'Anglattack', emoji:'🔷', players:'2', duration:'Non mesurée', diff:'Non évaluée', src:'onlineabalone.wordpress.com',
+    desc:'Quatre coins, une rangée médiane alternée et deux billes isolées. Deux symétries échangent exactement les camps. Aucune partie sous ce nom dans le corpus AbalOnline.',
+    origin:'Disposition attestée, relue case par case sur une image' },
 ];
+
+/* Fiche de galerie -> disposition jouable (cle de LAYOUTS). Les fiches
+   absentes (The Pillar, Misere, 3 a 6 joueurs...) n'ont pas de position de
+   depart dans le moteur : elles restent documentees, sans bouton "Jouer".
+   Verifie par les tests : chaque cle existe dans LAYOUTS ET dans le menu de
+   la page Jouer. */
+const VARIANTE_DISPOSITION = {
+  'standard':'standard', 'belgian-daisy':'belgian', 'german-daisy':'german', 'dutch-daisy':'dutch',
+  'swiss-daisy':'swiss', 'face2face':'face_a_face', 'alien-attack':'alien', 'fujiyama':'fujiyama',
+  'the-wall':'the_wall', 'snakes':'snakes', 'alitration':'alitration', 'pyramide':'pyramide',
+  'french-daisy':'french', 'decouverte':'decouverte', '69':'69', 'star':'star', 'alliances':'alliances',
+  'domination':'domination', 'atomouche':'atomouche', 'centrifugeuse':'centrifuge', 'snakes-variant':'snakes_variant',
+  'korean-daisy':'korean_daisy', 'anglattack':'anglattack'
+};
+
+/* Depuis la galerie : ouvre "Configurer avant de jouer" avec la variante
+   deja choisie. Ouvrir la page ne reinitialise pas la disposition (verifie :
+   showPage('setup') ne fait que redessiner la miniature). */
+function jouerVariante(layoutKey){
+  if (typeof LAYOUTS === 'undefined' || !LAYOUTS[layoutKey]) return false;
+  const sel = document.getElementById('setup-layout-select');
+  if (!sel || !Array.from(sel.options).some(function(o){ return o.value === layoutKey; })) return false;
+  sel.value = layoutKey;
+  setupPickLayoutSelect(sel);
+  sidebarNav('setup', document.getElementById('sid-game'));
+  return true;
+}
 
 /* ── Bibliothèque de documents ────────────────────────────────────────
    Bibliographie des ouvrages, articles et documents communautaires sur
@@ -143,8 +206,8 @@ function renderVariants() {
   const grid = document.getElementById('variants-grid');
   if (!grid || grid.children.length > 0) return;
   grid.innerHTML = variantsData.map(function(v) {
-    const dc = v.diff==='Débutant'?'#4a9463':v.diff==='Facile'?'var(--accent-green-light)':v.diff==='Moyen'?'var(--gold)':'#e05c4b';
-    return '<div class="variant-card" data-players="'+v.players+'" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:all 0.2s" onclick="showVariantDetail(\''+v.id+'\')" onmouseover="this.style.borderColor=\'var(--gold-dim)\';this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.transform=\'none\'">'
+    const dc = v.diff==='Débutant'?'#4a9463':v.diff==='Facile'?'var(--accent-green-light)':v.diff==='Moyen'?'var(--gold)':v.diff==='Non évaluée'?'var(--muted)':'#e05c4b';
+    return '<div class="variant-card" data-id="'+v.id+'" data-players="'+v.players+'" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:all 0.2s" onclick="showVariantDetail(\''+v.id+'\')" onmouseover="this.style.borderColor=\'var(--gold-dim)\';this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.transform=\'none\'">'
       +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
       +'<div style="font-size:28px">'+v.emoji+'</div>'
       +'<div style="font-size:11px;padding:2px 8px;border-radius:12px;background:rgba(0,0,0,0.3);color:'+dc+';border:1px solid '+dc+'44">'+v.diff+'</div>'
@@ -164,6 +227,9 @@ function showVariantDetail(id) {
   const detail = document.getElementById('variant-detail');
   const dc = document.getElementById('variant-detail-content');
   if (!detail||!dc) return;
+  if (detail.style.display === 'block' && detail.dataset.id === id) {   // 2e clic : referme
+    detail.style.display = 'none'; detail.dataset.id = ''; return;
+  }
   dc.innerHTML = '<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">'
     +'<div style="font-size:36px">'+v.emoji+'</div>'
     +'<div><div style="font-size:20px;font-weight:900;color:var(--white);font-family:\'Playfair Display\',serif">'+v.name+'</div>'
@@ -171,12 +237,46 @@ function showVariantDetail(id) {
     +'<button onclick="document.getElementById(\'variant-detail\').style.display=\'none\'" style="margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px">×</button>'
     +'</div>'
     +'<p style="font-size:14px;color:var(--text);line-height:1.7;margin-bottom:12px">'+v.desc+'</p>'
-    +'<div style="font-size:12px;color:var(--muted);padding:10px 14px;background:var(--surface2);border-radius:7px">📚 Source : '+v.src+' — '+v.origin+'</div>';
+    +_detailJouable(id)
+    +'<div style="font-size:12px;color:var(--muted);padding:10px 14px;background:var(--surface2);border-radius:7px;margin-top:12px">📚 Source : '+v.src+' — '+v.origin+'</div>';
+  // Sous la fiche cliquee : au bout de SA rangee (la grille garde ses
+  // rangees intactes), donc directement dessous sur telephone (1 colonne).
+  const grid = document.getElementById('variants-grid');
+  const carte = grid ? grid.querySelector('.variant-card[data-id="'+id+'"]') : null;
+  if (grid && carte) {
+    const cartes = Array.from(grid.querySelectorAll('.variant-card')).filter(function(x){ return x.style.display !== 'none'; });
+    let nCol = 1;
+    try { nCol = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length || 1; } catch(e){}
+    const k = Math.max(0, cartes.indexOf(carte));
+    const finRangee = cartes[Math.min(cartes.length - 1, Math.floor(k / nCol) * nCol + nCol - 1)] || carte;
+    finRangee.insertAdjacentElement('afterend', detail);
+    detail.style.gridColumn = '1 / -1';
+    detail.style.marginTop = '0';
+  }
+  detail.dataset.id = id;
   detail.style.display='block';
   detail.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
+/* Plateau de la variante + bouton "Jouer", ou la mention honnete qu'elle
+   n'est pas jouable dans le jeu. */
+function _detailJouable(id){
+  const layout = VARIANTE_DISPOSITION[id];
+  if (!layout || typeof LAYOUTS === 'undefined' || !LAYOUTS[layout]) {
+    return '<div style="font-size:13px;color:var(--muted);padding:10px 14px;border:1px dashed var(--border);border-radius:7px">'
+      + 'Pas de position de départ jouable dans le jeu pour cette variante : elle reste documentée.</div>';
+  }
+  const L = LAYOUTS[layout];
+  return '<div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">'
+    + '<div style="padding:10px;background:var(--surface);border-radius:10px">' + _miniDispositionHTML(layout, 16) + '</div>'
+    + '<div style="flex:1;min-width:170px">'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:12px">Position de départ : '
+    + L.black.length + ' billes noires, ' + L.white.length + ' billes blanches.</div>'
+    + '<button type="button" class="ctrl-btn" onclick="jouerVariante(\'' + layout + '\')" style="width:auto;padding:10px 18px;font-size:14px">▶ Jouer cette variante</button>'
+    + '</div></div>';
+}
 
 function filterVariants(players, evt) {
+  const _d = document.getElementById('variant-detail'); if (_d) { _d.style.display = 'none'; _d.dataset.id = ''; }
   document.querySelectorAll('.variant-card').forEach(function(c){
     c.style.display=(players==='all'||c.dataset.players===players)?'block':'none';
   });

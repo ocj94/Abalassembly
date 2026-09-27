@@ -118,6 +118,9 @@ const PASSERELLE = `
   if (typeof MIGS_GAMES !== 'undefined')       relier('MIGS_GAMES', function(){return MIGS_GAMES;}, function(v){MIGS_GAMES=v;});
   if (typeof AO_GAMES !== 'undefined')         relier('AO_GAMES', function(){return AO_GAMES;}, function(v){AO_GAMES=v;});
   if (typeof PARTIES_REFERENCE !== 'undefined') relier('PARTIES_REFERENCE', function(){return PARTIES_REFERENCE;});
+  if (typeof _setupCfg !== 'undefined')        relier('_setupCfg', function(){return _setupCfg;});
+  if (typeof VARIANTE_DISPOSITION !== 'undefined') relier('VARIANTE_DISPOSITION', function(){return VARIANTE_DISPOSITION;});
+  if (typeof variantsData !== 'undefined')     relier('variantsData', function(){return variantsData;});
   if (typeof undoStack !== 'undefined')        relier('undoStack', function(){return undoStack;}, function(v){undoStack=v;});
   if (typeof selected !== 'undefined')         relier('selected', function(){return selected;}, function(v){selected=v;});
   if (typeof LAYOUTS !== 'undefined')          relier('LAYOUTS', function(){return LAYOUTS;});

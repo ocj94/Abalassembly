@@ -287,7 +287,9 @@ const LAYOUTS = {
   decouverte: {
     // Mode Enfant : 7 billes/camp au lieu de 14 — plus facile à tenir en tête
     // pour un jeune joueur. Sous-ensemble déjà validé de la disposition belge
-    // (coins opposés), pas de nouvelles coordonnées inventées à la main.
+    // (une marguerite par camp, aux coins a1 et i5 -- deux coins du MEME
+    // cote, pas opposes comme l'affirmait ce commentaire), pas de nouvelles
+    // coordonnées inventées à la main.
     black: [[8,0],[8,1],[7,0],[7,1],[7,2],[6,1],[6,2]],
     white: [[0,0],[0,1],[1,0],[1,1],[1,2],[2,1],[2,2]]
   },
@@ -511,8 +513,13 @@ const LAYOUTS = {
     // Affirmations de l'article VERIFIEES PAR CALCUL, pas recopiees :
     // - trois symetries conservant les couleurs, exactement : rotation de
     //   180 degres, axe horizontal e1-e9, axe vertical i7-g6-e5-c4-a3 ;
-    // - AUCUNE symetrie n'echange Noirs et Blancs : position non equitable,
-    //   "variante desequilibree" -- la seule du jeu dans ce cas ;
+    // - AUCUNE symetrie n'echange Noirs et Blancs : les deux camps ne partent
+    //   pas de la meme forme. PAS la seule du jeu dans ce cas, contrairement a
+    //   ce qu'affirmait le premier jet de ce commentaire : Domination non plus
+    //   (verifie sur les 23 dispositions, fige par un test). Et ce n'est pas a
+    //   lui seul un desequilibre : Domination est equilibree en pratique (16
+    //   a 17 sur 33 parties AbalOnline). Le desequilibre de la Marguerite est
+    //   celui que decrit l'article ; une seule partie ne permet pas de le mesurer ;
     // - 4 sumitos de 3 contre 2 disponibles des le depart dans chaque camp ;
     // - 4 billes noires contre 2 blanches au contact du centre e5.
     // VERIFIEE en rejouant integralement la partie MiGs n. 31299 citee par
