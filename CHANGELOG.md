@@ -9,6 +9,57 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.48]
+
+### Ajouté
+- **Suivre une partie PlayStrategy en direct**, en lecture seule, par son
+  lien ou simplement par le pseudo d'un joueur. Chaque coup arrive comme une
+  position complète : aucune notation à interpréter. Sans partie en cours,
+  PlayStrategy renvoie la dernière partie jouée : elle est reconnue et jamais
+  présentée comme du direct.
+- **La fenêtre PlayStrategy s'enrichit** : tournois Abalone en cours et à
+  venir, équipes Abalone, directs Twitch/YouTube (seulement quand il y en a),
+  et import d'un tournoi entier en collant son lien (arena ou suisse) — le
+  *Grand Abalone*, au plateau incompatible, est écarté d'office. Les 82 routes
+  de l'API PlayStrategy ont été passées en revue dans leur code source ;
+  l'ouverture aux requêtes d'autres sites (CORS) y est confirmée pour tout
+  `/api/`, pas encore vérifiée en production. Écartés, preuve dans leur code :
+  problèmes (échecs seulement), cache d'analyse (le moteur Abalone n'est
+  jamais analysé), retransmissions (échecs seulement). Tout texte venant de
+  PlayStrategy est échappé avant affichage.
+- **Deux variantes, vérifiées en rejouant intégralement une vraie partie**
+  depuis la position lue sur l'image : **Pyramide** (83 demi-coups) et la
+  **Marguerite française** (partie MiGs 31299, 31 demi-coups). Les
+  affirmations des articles — symétries, sumitos de départ, contrôle du
+  centre — sont vérifiées par calcul, pas recopiées.
+- **Parties de référence des variantes** : une petite banque à part, ni MIGS
+  ni AbalOnline, pour ne pas mentir sur la provenance, avec la source de
+  chaque partie. Elles s'ouvrent depuis la bibliothèque et comptent dans le
+  corpus.
+- **Galerie des variantes refaite** : toucher une fiche ouvre ses explications
+  juste en dessous, avec le plateau de départ et un bouton « ▶ Jouer cette
+  variante » qui ouvre la configuration avec la variante déjà choisie. Dix
+  fiches ajoutées : les 23 dispositions jouables ont toutes la leur (33 fiches
+  en tout). Leurs textes reposent sur des mesures — parties, victoires, durée
+  médiane dans le corpus, symétries calculées — et aucune difficulté n'est
+  inventée : faute de donnée, elle est « Non évaluée ».
+- **Stats du corpus** : le tournoi *Yearly Abalone Arena* y compte, toutes
+  parties comprises, même abandonnées (93), ainsi que les parties de
+  référence — 4 574 parties au total. Le titre de la page et l'en-tête de la
+  bibliothèque sont désormais calculés au lieu d'être écrits en dur.
+- **Découverte** (7 billes par camp, le plateau du mode Enfant) dans le menu
+  « Jouer », toujours exclue du tirage aléatoire.
+- 78 tests unitaires (41 en v2.47).
+
+### Corrigé
+- La fiche de la Marguerite française la disait « la seule variante
+  déséquilibrée du jeu ». C'était faux : **Domination** n'a pas non plus de
+  symétrie qui échange les camps — et ce n'est pas à lui seul un
+  déséquilibre, ses 33 parties réelles se partagent 16 à 17. Le message du
+  commit `b1182f3c` garde l'erreur ; ce journal fait foi.
+- La documentation des variantes annonçait 23 dispositions dans le menu
+  « Jouer » alors qu'il en comptait 22 (Découverte manquait).
+
 ## [v2.47]
 
 ### Ajouté

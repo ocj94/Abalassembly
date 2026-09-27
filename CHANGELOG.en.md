@@ -9,6 +9,53 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.48]
+
+### Added
+- **Follow a PlayStrategy game live**, read-only, from its link or simply a
+  player's username. Each move arrives as a full position: no notation to
+  interpret. With no game in progress, PlayStrategy returns the player's last
+  game: it's detected and never shown as live.
+- **The PlayStrategy window grows**: Abalone tournaments in progress and
+  upcoming, Abalone teams, Twitch/YouTube streams (only when there are some),
+  and importing a whole tournament by pasting its link (arena or Swiss) —
+  *Grand Abalone*, whose board is incompatible, is filtered out. All 82
+  PlayStrategy API routes were reviewed in their source code; cross-site
+  access (CORS) is confirmed there for all of `/api/`, not yet verified in
+  production. Left out, with proof in their code: puzzles (chess only),
+  analysis cache (Abalone is never analysed), broadcasts (chess only). All
+  text coming from PlayStrategy is escaped before display.
+- **Two variants, verified by replaying a real game in full** from the
+  position read off the image: **Pyramide** (83 plies) and **Marguerite
+  française** / French Daisy (MiGs game 31299, 31 plies). The articles'
+  claims — symmetries, opening sumitos, centre control — are checked by
+  computation, not copied.
+- **Variant reference games**: a small separate bank, neither MIGS nor
+  AbalOnline, so as not to misstate provenance, with each game's source. They
+  open from the library and count in the corpus.
+- **Variants gallery rebuilt**: tapping a card opens its explanation right
+  below, with the starting board and a "▶ Jouer cette variante" (play this
+  variant) button that opens the setup screen with the variant preselected.
+  Ten cards added: all 23 playable layouts now have one (33 cards overall).
+  Their texts rest on measurements — games, wins, median length in the
+  corpus, computed symmetries — and no difficulty is made up: without data,
+  it reads "Non évaluée" (not rated).
+- **Corpus stats**: the *Yearly Abalone Arena* tournament now counts, every
+  game included, even abandoned ones (93), plus the reference games — 4,574
+  games in all. The page title and the library header are now computed
+  instead of hard-coded.
+- **Découverte** (7 marbles a side, the Kids mode board) in the Play menu,
+  still excluded from random draws.
+- 78 unit tests (41 in v2.47).
+
+### Fixed
+- The French Daisy card called it "the only unbalanced variant in the game".
+  Wrong: **Domination** has no colour-swapping symmetry either — and that
+  alone isn't an imbalance, its 33 real games split 16 to 17. Commit
+  `b1182f3c`'s message keeps the error; this changelog is authoritative.
+- The variants documentation claimed 23 layouts in the Play menu while it had
+  22 (Découverte was missing).
+
 ## [v2.47]
 
 ### Added
