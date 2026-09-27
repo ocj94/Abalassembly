@@ -135,7 +135,7 @@ async function renderCorpusStatsPage(){
   const avantage = (s.blackPct != null) ? (s.blackPct - 50).toFixed(1) : null;
   let html = '';
   html += '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">Sources : MIGS (' + s.nMigs.toLocaleString('fr-FR') + ' parties), AbalOnline (' + s.nAo.toLocaleString('fr-FR') + ')'
-    + (s.nPs ? ', Yearly Abalone Arena de PlayStrategy (' + s.nPs + (s.nPsSansCoup ? ', dont ' + s.nPsSansCoup + ' abandonnées avant le premier coup' : '') + ')' : '') + '. Toutes les parties comptent, même abandonnées.'
+    + (s.nPs ? ', Yearly Abalone Arena de PlayStrategy (' + s.nPs + (s.nPsSansCoup ? ', dont ' + s.nPsSansCoup + ' abandonnées avant le premier coup' : '') + ')' : '') + (s.nRef ? ', parties de référence des variantes (' + s.nRef + ')' : '') + '. Toutes les parties comptent, même abandonnées.'
     + (s.nPs ? ' Les 12 dimensions et le livre d\u2019ouvertures restent calculés sur MIGS et AbalOnline : ils sont précalculés hors-ligne.' : '') + '</div>';
 
   html += card('L\u2019avantage du premier joueur',
@@ -155,7 +155,7 @@ async function renderCorpusStatsPage(){
     + ligne('Moyenne', s.lenMean + ' coups')
     + ligne('La plus courte', s.lenMin + ' coups')
     + ligne('La plus longue', s.lenMax + ' coups'),
-    'Mesuré sur les '+s.nLens.toLocaleString('fr-FR')+' parties MIGS' + (s.nPs ? ' et PlayStrategy' : '') + ' (notation complète disponible). La médiane est plus représentative que la moyenne, tirée vers le haut par quelques parties très longues.');
+    'Mesuré sur les '+s.nLens.toLocaleString('fr-FR')+' parties MIGS' + (s.nPs ? ', PlayStrategy' : '') + (s.nRef ? ' et de référence' : '') + ' (notation complète disponible). La médiane est plus représentative que la moyenne, tirée vers le haut par quelques parties très longues.');
 
   const totalEnd = Object.values(s.endTypes).reduce(function(a,c){return a+c;},0);
   html += card('Comment se terminent les parties',

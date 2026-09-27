@@ -9,18 +9,18 @@ revision, never assumed.
 
 ## 1. The "Variants" gallery versus the setup screen
 
-**The gallery** (menu → Explore → Variants) is an encyclopedia of 21
+**The gallery** (menu → Explore → Variants) is an encyclopedia of 23
 cards — name, players, duration, difficulty, description, historical
 source. Clicking a card shows it in detail. **No card has a "play"
 button**: it's a reading catalog, not an entry point into a game.
 
-**The setup screen** (Play → Starting layout) offers 21 real starting
+**The setup screen** (Play → Starting layout) offers 23 real starting
 positions in its dropdown, each with its own thumbnail — this is what the
 engine can actually load.
 
 The two lists don't match one to one.
 
-### Genuinely playable (11 of 21)
+### Genuinely playable (13 of 23)
 
 | Gallery | Setup screen |
 |---|---|
@@ -35,8 +35,10 @@ The two lists don't match one to one.
 | The Wall | The Wall |
 | Snakes | Snakes |
 | Alitration | Alitration |
+| Pyramide | Pyramide |
+| Marguerite française (French Daisy) | Marguerite française |
 
-### Documented only (10 of 21)
+### Documented only (10 of 23)
 
 - **The Pillar** — its description mentions an immovable neutral piece at
   the center: a third piece type the engine doesn't support (only black
@@ -47,12 +49,12 @@ The two lists don't match one to one.
 - **Blitz Contest**, **Misère** — "blitz" does exist elsewhere in the
   code, but only as a filter on a demo leaderboard page — not as an
   actual game mode you can start.
-- **3, 4, 5, 6 players** — all 21 `LAYOUTS` positions are 2-sided
+- **3, 4, 5, 6 players** — all 23 `LAYOUTS` positions are 2-sided
   (black/white); a multiplayer mode would need a different board
   structure. See section 2: this mode actually has its own dedicated
   page, separate from these gallery cards.
 
-### And the other way around: playable but not in the gallery (10 of 21)
+### And the other way around: playable but not in the gallery (10 of 23)
 
 Découverte, 69, Star, Alliances, Domination, Atomouche, Centrifuge, Snakes
 variant, Korean Daisy, Anglattack. The gap runs both ways.

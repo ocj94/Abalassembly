@@ -3177,6 +3177,8 @@ document.addEventListener('keydown', function(e){
         <option value="korean_daisy" title="Disposition attestee (Hyunmin KIM, abaloneonline.wordpress.com) -- aucune partie sous ce nom dans le corpus AbalOnline">Korean Daisy</option>
         <option value="anglattack" title="Disposition attestee (onlineabalone.wordpress.com) -- aucune partie sous ce nom dans le corpus AbalOnline">Anglattack</option>
         <option value="alitration" title="Disposition attestee (onlineabalone.wordpress.com, creee par Joey pour MiGs) -- verifiee en rejouant integralement une vraie partie MiGs (122 demi-coups) depuis cette position jusqu'a sa conclusion">Alitration</option>
+        <option value="pyramide" title="Disposition attestee (onlineabalone.wordpress.com) -- verifiee en rejouant integralement une vraie partie (83 demi-coups) depuis cette position jusqu'a sa conclusion">Pyramide</option>
+        <option value="french" title="Disposition attestee (onlineabalone.wordpress.com) -- variante DESEQUILIBREE en faveur des Noirs -- verifiee en rejouant integralement une vraie partie MiGs (31 demi-coups)">Marguerite française</option>
         <option value="random" title="Tire une vraie disposition au hasard parmi celles disponibles">🎲 Aléatoire</option>
         </select>
       </div>
@@ -7856,9 +7858,9 @@ function isMyColor(color) {
    le seau de la variante en cours (me_black@belgian, etc.). On peut ainsi
    comparer ses habitudes selon la position de depart, qui change beaucoup le
    jeu. Demande d'Olivier. */
-const HEAT_VARIANTS = ['standard','belgian','german','dutch','swiss','decouverte','69','fujiyama','the_wall','star','face_a_face','alliances','domination','atomouche','centrifuge','snakes_variant','snakes','alien','korean_daisy','anglattack','alitration'];
+const HEAT_VARIANTS = ['standard','belgian','german','dutch','swiss','decouverte','69','fujiyama','the_wall','star','face_a_face','alliances','domination','atomouche','centrifuge','snakes_variant','snakes','alien','korean_daisy','anglattack','alitration','pyramide','french'];
 const HEAT_VARIANT_LABEL = { standard:'Standard', belgian:'Belgian Daisy', german:'German Daisy',
-  dutch:'Dutch Daisy', swiss:'Swiss Daisy', decouverte:'D\u00e9couverte', '69':'69', fujiyama:'Fujiyama', the_wall:'The Wall', star:'Star', face_a_face:'Face à face', alliances:'Alliances', domination:'Domination', atomouche:'Atomouche', centrifuge:'Centrifugeuse', snakes_variant:'Snakes variant', snakes:'Snakes', alien:'Alien', korean_daisy:'Korean Daisy', anglattack:'Anglattack', alitration:'Alitration' };
+  dutch:'Dutch Daisy', swiss:'Swiss Daisy', decouverte:'D\u00e9couverte', '69':'69', fujiyama:'Fujiyama', the_wall:'The Wall', star:'Star', face_a_face:'Face à face', alliances:'Alliances', domination:'Domination', atomouche:'Atomouche', centrifuge:'Centrifugeuse', snakes_variant:'Snakes variant', snakes:'Snakes', alien:'Alien', korean_daisy:'Korean Daisy', anglattack:'Anglattack', alitration:'Alitration', pyramide:'Pyramide', french:'Marguerite fran\u00e7aise' };
 
 function recordMyHeat(color, cells) {
   if (typeof isMyColor === 'function' && !isMyColor(color)) return;
@@ -12267,6 +12269,45 @@ const LAYOUTS = {
     // jamais laissees en l'etat sur la seule foi de la lecture visuelle.
     black: [[0,2],[1,2],[1,3],[2,2],[2,4],[3,2],[3,5],[5,1],[5,6],[6,0],[6,3],[6,6],[8,1],[8,3]],
     white: [[0,1],[0,3],[2,0],[2,3],[2,6],[3,1],[3,6],[5,2],[5,5],[6,2],[6,4],[7,2],[7,3],[8,2]]
+  },
+  pyramide: {
+    // "Pyramide" -- variante de type bloc defensif : deux pyramides de 14
+    // billes face a face (Blancs au Nord-Ouest, Noirs au Sud-Est).
+    // Source : onlineabalone.wordpress.com (fevrier 2018), image fournie par
+    // Olivier. Coordonnees relues rangee par rangee, PUIS converties par le
+    // moteur (coordToABAPRO), jamais a la main.
+    // Symetrie CALCULEE sur les 12 symetries de l'hexagone, pas supposee :
+    // une seule reflexion conserve les couleurs, d'axe g3-f4-e5-d6-c7 --
+    // l'"axe oblique Nord-Ouest/Sud-Est" annonce par l'article ; la rotation
+    // de 180 degres echange exactement Noirs et Blancs (position equitable).
+    // VERIFIEE en rejouant integralement la partie publiee avec l'article
+    // (FightClub, Noirs, contre Aba-Pro 8, 25/02/2018) : 83 demi-coups en
+    // notation Aba-Pro, recherche avec retour arriere, UNE seule lecture
+    // possible, aucune ambiguite, 6e ejection noire exactement au 83e
+    // demi-coup -- Noirs gagnent 6 a 3, conforme au recit de l'auteur.
+    // Aucune partie sous ce nom dans le corpus AbalOnline.
+    black: [[4,5],[4,6],[4,7],[4,8],[5,4],[5,5],[5,6],[5,7],[6,4],[6,5],[6,6],[7,4],[7,5],[8,4]],
+    white: [[0,0],[1,0],[1,1],[2,0],[2,1],[2,2],[3,0],[3,1],[3,2],[3,3],[4,0],[4,1],[4,2],[4,3]]
+  },
+  french: {
+    // "Marguerite francaise" -- quatre marguerites en trefle : deux noires
+    // au Nord et au Sud, deux blanches a l'Ouest et a l'Est.
+    // Source : onlineabalone.wordpress.com (janvier 2018), image fournie par
+    // Olivier. Coordonnees relues rangee par rangee, PUIS converties par le
+    // moteur (coordToABAPRO), jamais a la main.
+    // Affirmations de l'article VERIFIEES PAR CALCUL, pas recopiees :
+    // - trois symetries conservant les couleurs, exactement : rotation de
+    //   180 degres, axe horizontal e1-e9, axe vertical i7-g6-e5-c4-a3 ;
+    // - AUCUNE symetrie n'echange Noirs et Blancs : position non equitable,
+    //   "variante desequilibree" -- la seule du jeu dans ce cas ;
+    // - 4 sumitos de 3 contre 2 disponibles des le depart dans chaque camp ;
+    // - 4 billes noires contre 2 blanches au contact du centre e5.
+    // VERIFIEE en rejouant integralement la partie MiGs n. 31299 citee par
+    // l'article : 31 demi-coups en notation Aba-Pro, recherche avec retour
+    // arriere, UNE seule lecture possible, Noirs gagnants 6 a 5 au dernier
+    // coup.
+    black: [[1,2],[1,3],[2,2],[2,3],[2,4],[3,3],[3,4],[5,3],[5,4],[6,2],[6,3],[6,4],[7,2],[7,3]],
+    white: [[3,1],[3,2],[3,5],[3,6],[4,1],[4,2],[4,3],[4,5],[4,6],[4,7],[5,1],[5,2],[5,5],[5,6]]
   },
   korean_daisy: {
     // "Korean Daisy" -- deux clusters en haut avec echange de couleur au
@@ -17286,13 +17327,22 @@ async function computeCorpusStats(onProgress){
     else if (g[4] === g[3] + ' gagne') psWhite++;
   });
 
-  const black = aoBlack + migsBlack + psBlack, white = aoWhite + migsWhite + psWhite;
+  // --- Parties de reference des variantes (verifiees une a une) ---
+  const REF = (typeof PARTIES_REFERENCE !== 'undefined') ? PARTIES_REFERENCE : [];
+  let refBlack = 0, refWhite = 0;
+  REF.forEach(function(g){ if (g[3] === g[1]) refBlack++; else if (g[3] === g[2]) refWhite++; });
+
+  const black = aoBlack + migsBlack + psBlack + refBlack, white = aoWhite + migsWhite + psWhite + refWhite;
   const decided = black + white;
 
   // --- Longueur des parties (comptage de jetons, pas de rejeu) ---
   const lens = [];
   MIGS_GAMES.concat(PS).forEach(function(g){   // PlayStrategy : notation complete aussi
     const n = (g[5]||'').replace(/\d+\./g,' ').trim().split(/\s+/).filter(Boolean).length;
+    if (n) lens.push(n);
+  });
+  REF.forEach(function(g){   // coups en 7e position dans ce format
+    const n = (g[6]||'').replace(/\d+\./g,' ').trim().split(/\s+/).filter(Boolean).length;
     if (n) lens.push(n);
   });
   lens.sort(function(a,b){ return a-b; });
@@ -17307,10 +17357,11 @@ async function computeCorpusStats(onProgress){
   const byVariant = {};
   AO_GAMES.forEach(function(g){ byVariant[g[4]] = (byVariant[g[4]]||0) + 1; });
   if (PS.length) byVariant.belgian = (byVariant.belgian||0) + PS.length;   // AbalOnline n'en a aucune
+  REF.forEach(function(g){ byVariant[g[4]] = (byVariant[g[4]]||0) + 1; });
   const topVariants = Object.entries(byVariant).sort(function(a,b){ return b[1]-a[1]; }).slice(0, 8);
 
   return {
-    totalGames: MIGS_GAMES.length + AO_GAMES.length + PS.length,
+    totalGames: MIGS_GAMES.length + AO_GAMES.length + PS.length + REF.length, nRef: REF.length,
     nMigs: MIGS_GAMES.length, nAo: AO_GAMES.length, nPs: PS.length, nLens: lens.length,
     nPsSansCoup: PS.filter(function(g){ return !String(g[5]||'').trim(); }).length,
     decided: decided,
@@ -19924,6 +19975,21 @@ const MIGS_B64='tL3briRJdiX2KwetFwmYOnC7uz+WMOKIM6QGEMHRAyEIEeEeEYddVVmoy0jDJ33O
 
 // Parties AbalOnline — variété (toutes variantes sauf belgian) : [date,x(noir),y(blanc),winner,variante,startPosition,séquence]
 let AO_GAMES=[];  // rempli par ensureGameBanks() — banque compressée ci-dessous
+/* PARTIES DE REFERENCE DES VARIANTES -- parties publiees avec une variante,
+   ajoutees une par une, chacune VERIFIEE coup par coup avant integration
+   (rejeu complet depuis LAYOUTS, une seule lecture possible par coup).
+   Ni MIGS ni AbalOnline : une banque a part, pour ne pas mentir sur la
+   provenance. Non compressee -- elle reste petite.
+   Format : [date, noir, blanc, vainqueur, variante (cle de LAYOUTS), source, coups] */
+const PARTIES_REFERENCE = [
+  ['2018-02-25', 'FightClub', 'Aba-Pro 8 (IA)', 'FightClub', 'pyramide', 'onlineabalone.wordpress.com',
+   '1.b5c5 h4h5 2.d7d6 g4f4 3.c6d6 f3f4 4.a5c7b5 g3f2g4 5.d7d6 g4f4 6.d8e8c7 g5f4 7.c5d5 d3e4 8.b5c5 d2e2 9.d7d6 d3e4 10.h7g7 f2f3g3 11.g7f7 e2f2 12.d4e5 f2e1f3 13.d6e7 g4h4 14.d7e7 e4f4 15.c6c7d6 h7g6 16.e9e8 g4g5 17.d6e6 e4f5 18.b4c5 e2e3 19.e7e6 g6f5 20.d6e6 i6h5 21.e5f6 h5g5 22.e8f8 i8i7 23.e6f6 h4h5 24.f6g6 f3g4 25.h8g7 i6h5 26.c5d5d6 g3f3 27.g8g7 d3e4 28.g7h7 e4f5 29.i7h6 d2d3 30.h6g5 g6h7 31.f6f8g6 g3h4 32.g7g6 h5h6 33.d6e6e7 d3e4 34.d7e7 g3f3 35.f4g5 i7i6 36.e7f7 e5f5 37.h7h6 d2e3 38.f7g7 i6i7 39.g6h7 e2e3 40.g7h7 i9h8 41.h6i6 h8i9 42.i7i6']
+  // MiGs n. 31299, 31/10/2016, titre 'MLAIA-max vs ccc'. Couleurs DEDUITES de la
+  // convention de ces titres (1er nomme = Blancs), etablie sur la partie MiGs 29744
+  // d'Alitration ('MLA vs ccc'), ou le recit de l'article confirmait que MLA avait les Blancs.
+  ,['2016-10-31', 'ccc', 'MLAIA-max', 'ccc', 'french', 'MiGs n\u00b0 31299 (onlineabalone.wordpress.com)',
+   '1.h6g6 f8e7 2.h7g6 e7d6 3.g5f5 d6c5 4.g6f5 d7e8c7 5.f5e4 e2d2 6.b3b2 d2c2 7.e5d4 e3f3d2 8.g7f6 e2d2 9.e5d4 a3b3 10.d4c3 f4e3 11.a1b2 c6c7b5 12.e4d4 a4b5 13.e6f6e5 e3e2 14.f5e5 e2d2 15.e5d5 d2c2 16.b4b5']
+];
 /* AO_GAMES exclut deliberement 1 partie (sur les 1891 d'origine) :
    2022-09-16, mascotte vs Abadeus, variante "domination". Le premier
    coup enregistre (b1c2) demande de deplacer une bille noire sur une
@@ -20170,6 +20236,12 @@ function loadMigsGame(idx){
   _replaySeqToSnapshots(g[5], g[2]+' vs '+g[3]);
 }
 // Charge une partie AbalOnline (variante quelconque, position de départ propre) en mode rejeu
+function loadRefGame(idx){
+  const g = PARTIES_REFERENCE[idx]; if (!g) return;
+  if (typeof LAYOUTS === 'undefined' || !LAYOUTS[g[4]]) { showToast('Disposition inconnue'); return; }
+  currentLayout = g[4]; initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
+  _replaySeqToSnapshots(g[6], g[1] + ' vs ' + g[2] + ' (' + (HEAT_VARIANT_LABEL[g[4]] || g[4]) + ')');
+}
 function loadAOGame(idx){
   if(!AO_GAMES.length){ ensureGameBanks().then(function(ok){ if(ok)loadAOGame(idx); else showToast('Bibliothèque indisponible (navigateur trop ancien)'); }); showToast('⏳ Chargement de la bibliothèque…'); return; }
   const g=AO_GAMES[idx]; if(!g) return;   // [date,x,y,win,var,start,seq]
@@ -20805,6 +20877,7 @@ function _migsPopulateVariantFilter(){
   const variants = new Set();
   AO_GAMES.forEach(function(g){ if (g[4]) variants.add(g[4]); });
   variants.add('belgian'); // toutes les parties MIGS
+  PARTIES_REFERENCE.forEach(function(g){ variants.add(g[4]); });
   [...variants].sort().forEach(function(v){
     const opt = document.createElement('option');
     opt.value = v; opt.textContent = v.replace('_daisy',' daisy').replace(/_/g,' ');
@@ -20825,6 +20898,14 @@ function renderMigsList(){
     return;
   }
   _migsPopulateVariantFilter();
+  const entete = document.getElementById('migs-entete');
+  if (entete) {
+    const vs = new Set(['belgian']); AO_GAMES.forEach(function(g){ if (g[4]) vs.add(g[4]); });
+    PARTIES_REFERENCE.forEach(function(g){ vs.add(g[4]); });
+    const n = MIGS_GAMES.length + AO_GAMES.length + PARTIES_REFERENCE.length;
+    entete.textContent = n.toLocaleString('fr-FR') + ' parties · ' + vs.size + ' variantes (MIGS, AbalOnline'
+      + (PARTIES_REFERENCE.length ? ', ' + PARTIES_REFERENCE.length + ' de référence' : '') + ')';
+  }
   function lengthMatches(seq){
     if (!lengthFilter) return true;
     const n = _migsMoveCount(seq);
@@ -20834,7 +20915,16 @@ function renderMigsList(){
     return true;
   }
   let html='', a=0, m=0;
-  // Variété AbalOnline d'abord (autres variantes) — max 180
+  // Parties de reference des variantes d'abord (peu nombreuses, verifiees)
+  for(let i=0;i<PARTIES_REFERENCE.length;i++){
+    const g=PARTIES_REFERENCE[i];
+    if(q && (g[1]+' '+g[2]+' '+g[4]).toLowerCase().indexOf(q)===-1) continue;
+    if(variantFilter && g[4]!==variantFilter) continue;
+    if(!lengthMatches(g[6])) continue;
+    const vl=(HEAT_VARIANT_LABEL[g[4]]||g[4]);
+    html+='<div onclick="loadRefGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px" title="Partie de référence -- source : '+escapeHtml(g[5])+'"><span>📜 '+escapeHtml(g[1])+' <span style="color:var(--muted)">vs</span> '+escapeHtml(g[2])+'</span><span style="color:var(--gold);font-size:11px;white-space:nowrap">'+escapeHtml(vl)+' · '+escapeHtml(g[0])+'</span></div>';
+  }
+  // Variété AbalOnline ensuite (autres variantes) — max 180
   if (!variantFilter || variantFilter !== 'belgian') {
     for(let i=0;i<AO_GAMES.length && a<180;i++){
       const g=AO_GAMES[i]; // [date,x,y,win,var,start,seq]
@@ -27022,6 +27112,12 @@ const variantsData = [
   { id:'alitration', name:'Alitration', emoji:'🌀', players:'2', duration:'25 min', diff:'Moyen', src:'onlineabalone.wordpress.com',
     desc:'Variante expérimentale créée par un joueur nommé Joey lors de la conception de MiGs. Le nom est un mot-valise : Al(ien) + (infil)tration -- un mélange des deux positions. Symétrie de rotation à 180°, jouable dès maintenant, position vérifiée en rejouant intégralement une vraie partie MiGs (122 demi-coups) jusqu\'à sa conclusion.',
     origin:'MiGs -- créée par Joey' },
+  { id:'pyramide', name:'Pyramide', emoji:'🔺', players:'2', duration:'30 min', diff:'Moyen', src:'onlineabalone.wordpress.com',
+    desc:'Variante de type bloc défensif : deux pyramides de 14 billes face à face. Symétrique par un axe oblique Nord-Ouest/Sud-Est (g3–c7, vérifié par calcul). Peu jouée : plus fermée que les variantes à combinaisons, moins familière que le Standard, les parties y sont souvent longues tant que personne ne « débloque » la position. Jouable dès maintenant, position vérifiée en rejouant intégralement une vraie partie (FightClub contre Aba-Pro 8, 83 demi-coups, Noirs gagnants 6 à 3).',
+    origin:'Variante classique, documentée sur onlineabalone.wordpress.com' },
+  { id:'french-daisy', name:'Marguerite française', emoji:'🌼', players:'2', duration:'20 min', diff:'Moyen', src:'onlineabalone.wordpress.com',
+    desc:'Quatre marguerites en trèfle : deux noires au Nord et au Sud, deux blanches à l\'Ouest et à l\'Est. Trois symétries (centrale, horizontale, verticale), mais aucune qui échange les couleurs : c\'est une variante déséquilibrée, la seule du jeu. Les Noirs commencent et touchent le centre avec 4 billes contre 2 ; chaque camp dispose d\'emblée de 4 sumitos de 3 contre 2, mais ceux des Noirs sont à l\'intérieur. Tout cela vérifié par calcul, et la position en rejouant intégralement une vraie partie MiGs (n° 31299, 31 demi-coups, Noirs gagnants 6 à 5).',
+    origin:'Variante déséquilibrée, documentée sur onlineabalone.wordpress.com' },
 ];
 
 /* ── Bibliothèque de documents ────────────────────────────────────────
@@ -34241,7 +34337,7 @@ async function renderCorpusStatsPage(){
   const avantage = (s.blackPct != null) ? (s.blackPct - 50).toFixed(1) : null;
   let html = '';
   html += '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">Sources : MIGS (' + s.nMigs.toLocaleString('fr-FR') + ' parties), AbalOnline (' + s.nAo.toLocaleString('fr-FR') + ')'
-    + (s.nPs ? ', Yearly Abalone Arena de PlayStrategy (' + s.nPs + (s.nPsSansCoup ? ', dont ' + s.nPsSansCoup + ' abandonnées avant le premier coup' : '') + ')' : '') + '. Toutes les parties comptent, même abandonnées.'
+    + (s.nPs ? ', Yearly Abalone Arena de PlayStrategy (' + s.nPs + (s.nPsSansCoup ? ', dont ' + s.nPsSansCoup + ' abandonnées avant le premier coup' : '') + ')' : '') + (s.nRef ? ', parties de référence des variantes (' + s.nRef + ')' : '') + '. Toutes les parties comptent, même abandonnées.'
     + (s.nPs ? ' Les 12 dimensions et le livre d\u2019ouvertures restent calculés sur MIGS et AbalOnline : ils sont précalculés hors-ligne.' : '') + '</div>';
 
   html += card('L\u2019avantage du premier joueur',
@@ -34261,7 +34357,7 @@ async function renderCorpusStatsPage(){
     + ligne('Moyenne', s.lenMean + ' coups')
     + ligne('La plus courte', s.lenMin + ' coups')
     + ligne('La plus longue', s.lenMax + ' coups'),
-    'Mesuré sur les '+s.nLens.toLocaleString('fr-FR')+' parties MIGS' + (s.nPs ? ' et PlayStrategy' : '') + ' (notation complète disponible). La médiane est plus représentative que la moyenne, tirée vers le haut par quelques parties très longues.');
+    'Mesuré sur les '+s.nLens.toLocaleString('fr-FR')+' parties MIGS' + (s.nPs ? ', PlayStrategy' : '') + (s.nRef ? ' et de référence' : '') + ' (notation complète disponible). La médiane est plus représentative que la moyenne, tirée vers le haut par quelques parties très longues.');
 
   const totalEnd = Object.values(s.endTypes).reduce(function(a,c){return a+c;},0);
   html += card('Comment se terminent les parties',
@@ -36572,7 +36668,7 @@ window.refresh3DIfActive = function() {
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:min(560px,92vw);max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
     <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
       <strong style="flex:1">📚 Parties — AbalOnline & Migs</strong>
-      <span style="color:var(--muted);font-size:12px">4479 parties · 19 variantes (bibliothèque complète, MIGS + AbalOnline)</span>
+      <span id="migs-entete" style="color:var(--muted);font-size:12px">4479 parties · 19 variantes (bibliothèque complète, MIGS + AbalOnline)</span>
       <button class="ctrl-btn" onclick="openPSImportModal()" style="width:auto;padding:4px 10px" title="Importer tes propres parties Abalone depuis PlayStrategy.org">🔗 PlayStrategy</button>
       <button class="ctrl-btn" onclick="openPSLiveModal()" style="width:auto;padding:4px 10px" title="Suivre une partie Abalone en direct sur PlayStrategy.org (lecture seule)">🔴 En direct</button>
       <button class="ctrl-btn" onclick="closeMigsBrowser()" style="width:auto;padding:4px 10px">✕</button>

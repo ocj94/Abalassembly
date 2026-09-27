@@ -483,6 +483,45 @@ const LAYOUTS = {
     black: [[0,2],[1,2],[1,3],[2,2],[2,4],[3,2],[3,5],[5,1],[5,6],[6,0],[6,3],[6,6],[8,1],[8,3]],
     white: [[0,1],[0,3],[2,0],[2,3],[2,6],[3,1],[3,6],[5,2],[5,5],[6,2],[6,4],[7,2],[7,3],[8,2]]
   },
+  pyramide: {
+    // "Pyramide" -- variante de type bloc defensif : deux pyramides de 14
+    // billes face a face (Blancs au Nord-Ouest, Noirs au Sud-Est).
+    // Source : onlineabalone.wordpress.com (fevrier 2018), image fournie par
+    // Olivier. Coordonnees relues rangee par rangee, PUIS converties par le
+    // moteur (coordToABAPRO), jamais a la main.
+    // Symetrie CALCULEE sur les 12 symetries de l'hexagone, pas supposee :
+    // une seule reflexion conserve les couleurs, d'axe g3-f4-e5-d6-c7 --
+    // l'"axe oblique Nord-Ouest/Sud-Est" annonce par l'article ; la rotation
+    // de 180 degres echange exactement Noirs et Blancs (position equitable).
+    // VERIFIEE en rejouant integralement la partie publiee avec l'article
+    // (FightClub, Noirs, contre Aba-Pro 8, 25/02/2018) : 83 demi-coups en
+    // notation Aba-Pro, recherche avec retour arriere, UNE seule lecture
+    // possible, aucune ambiguite, 6e ejection noire exactement au 83e
+    // demi-coup -- Noirs gagnent 6 a 3, conforme au recit de l'auteur.
+    // Aucune partie sous ce nom dans le corpus AbalOnline.
+    black: [[4,5],[4,6],[4,7],[4,8],[5,4],[5,5],[5,6],[5,7],[6,4],[6,5],[6,6],[7,4],[7,5],[8,4]],
+    white: [[0,0],[1,0],[1,1],[2,0],[2,1],[2,2],[3,0],[3,1],[3,2],[3,3],[4,0],[4,1],[4,2],[4,3]]
+  },
+  french: {
+    // "Marguerite francaise" -- quatre marguerites en trefle : deux noires
+    // au Nord et au Sud, deux blanches a l'Ouest et a l'Est.
+    // Source : onlineabalone.wordpress.com (janvier 2018), image fournie par
+    // Olivier. Coordonnees relues rangee par rangee, PUIS converties par le
+    // moteur (coordToABAPRO), jamais a la main.
+    // Affirmations de l'article VERIFIEES PAR CALCUL, pas recopiees :
+    // - trois symetries conservant les couleurs, exactement : rotation de
+    //   180 degres, axe horizontal e1-e9, axe vertical i7-g6-e5-c4-a3 ;
+    // - AUCUNE symetrie n'echange Noirs et Blancs : position non equitable,
+    //   "variante desequilibree" -- la seule du jeu dans ce cas ;
+    // - 4 sumitos de 3 contre 2 disponibles des le depart dans chaque camp ;
+    // - 4 billes noires contre 2 blanches au contact du centre e5.
+    // VERIFIEE en rejouant integralement la partie MiGs n. 31299 citee par
+    // l'article : 31 demi-coups en notation Aba-Pro, recherche avec retour
+    // arriere, UNE seule lecture possible, Noirs gagnants 6 a 5 au dernier
+    // coup.
+    black: [[1,2],[1,3],[2,2],[2,3],[2,4],[3,3],[3,4],[5,3],[5,4],[6,2],[6,3],[6,4],[7,2],[7,3]],
+    white: [[3,1],[3,2],[3,5],[3,6],[4,1],[4,2],[4,3],[4,5],[4,6],[4,7],[5,1],[5,2],[5,5],[5,6]]
+  },
   korean_daisy: {
     // "Korean Daisy" -- deux clusters en haut avec echange de couleur au
     // contact, deux blocs en bas en symetrie de rotation a 180 degres.

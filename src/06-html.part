@@ -762,6 +762,8 @@
         <option value="korean_daisy" title="Disposition attestee (Hyunmin KIM, abaloneonline.wordpress.com) -- aucune partie sous ce nom dans le corpus AbalOnline">Korean Daisy</option>
         <option value="anglattack" title="Disposition attestee (onlineabalone.wordpress.com) -- aucune partie sous ce nom dans le corpus AbalOnline">Anglattack</option>
         <option value="alitration" title="Disposition attestee (onlineabalone.wordpress.com, creee par Joey pour MiGs) -- verifiee en rejouant integralement une vraie partie MiGs (122 demi-coups) depuis cette position jusqu'a sa conclusion">Alitration</option>
+        <option value="pyramide" title="Disposition attestee (onlineabalone.wordpress.com) -- verifiee en rejouant integralement une vraie partie (83 demi-coups) depuis cette position jusqu'a sa conclusion">Pyramide</option>
+        <option value="french" title="Disposition attestee (onlineabalone.wordpress.com) -- variante DESEQUILIBREE en faveur des Noirs -- verifiee en rejouant integralement une vraie partie MiGs (31 demi-coups)">Marguerite française</option>
         <option value="random" title="Tire une vraie disposition au hasard parmi celles disponibles">🎲 Aléatoire</option>
         </select>
       </div>

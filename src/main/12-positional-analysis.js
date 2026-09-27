@@ -1049,13 +1049,22 @@ async function computeCorpusStats(onProgress){
     else if (g[4] === g[3] + ' gagne') psWhite++;
   });
 
-  const black = aoBlack + migsBlack + psBlack, white = aoWhite + migsWhite + psWhite;
+  // --- Parties de reference des variantes (verifiees une a une) ---
+  const REF = (typeof PARTIES_REFERENCE !== 'undefined') ? PARTIES_REFERENCE : [];
+  let refBlack = 0, refWhite = 0;
+  REF.forEach(function(g){ if (g[3] === g[1]) refBlack++; else if (g[3] === g[2]) refWhite++; });
+
+  const black = aoBlack + migsBlack + psBlack + refBlack, white = aoWhite + migsWhite + psWhite + refWhite;
   const decided = black + white;
 
   // --- Longueur des parties (comptage de jetons, pas de rejeu) ---
   const lens = [];
   MIGS_GAMES.concat(PS).forEach(function(g){   // PlayStrategy : notation complete aussi
     const n = (g[5]||'').replace(/\d+\./g,' ').trim().split(/\s+/).filter(Boolean).length;
+    if (n) lens.push(n);
+  });
+  REF.forEach(function(g){   // coups en 7e position dans ce format
+    const n = (g[6]||'').replace(/\d+\./g,' ').trim().split(/\s+/).filter(Boolean).length;
     if (n) lens.push(n);
   });
   lens.sort(function(a,b){ return a-b; });
@@ -1070,10 +1079,11 @@ async function computeCorpusStats(onProgress){
   const byVariant = {};
   AO_GAMES.forEach(function(g){ byVariant[g[4]] = (byVariant[g[4]]||0) + 1; });
   if (PS.length) byVariant.belgian = (byVariant.belgian||0) + PS.length;   // AbalOnline n'en a aucune
+  REF.forEach(function(g){ byVariant[g[4]] = (byVariant[g[4]]||0) + 1; });
   const topVariants = Object.entries(byVariant).sort(function(a,b){ return b[1]-a[1]; }).slice(0, 8);
 
   return {
-    totalGames: MIGS_GAMES.length + AO_GAMES.length + PS.length,
+    totalGames: MIGS_GAMES.length + AO_GAMES.length + PS.length + REF.length, nRef: REF.length,
     nMigs: MIGS_GAMES.length, nAo: AO_GAMES.length, nPs: PS.length, nLens: lens.length,
     nPsSansCoup: PS.filter(function(g){ return !String(g[5]||'').trim(); }).length,
     decided: decided,

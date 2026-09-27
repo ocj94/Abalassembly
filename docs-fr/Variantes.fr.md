@@ -9,19 +9,19 @@ directement dans le code à chaque révision, jamais supposé.
 
 ## 1. La galerie « Variantes » face à l'écran de configuration
 
-**La galerie** (menu → Explorer → Variantes) est une encyclopédie de 21
+**La galerie** (menu → Explorer → Variantes) est une encyclopédie de 23
 fiches — nom, joueurs, durée, difficulté, description, source historique.
 Cliquer sur une fiche l'affiche en détail. **Aucune fiche n'a de bouton
 « jouer »** : c'est un catalogue de lecture, pas un point d'entrée vers
 une partie.
 
-**L'écran de configuration** (Jouer → Disposition de départ) propose 21
+**L'écran de configuration** (Jouer → Disposition de départ) propose 23
 positions de départ réelles dans son menu déroulant, chacune avec sa
 propre miniature — c'est ce que le moteur sait effectivement charger.
 
 Les deux listes ne correspondent pas terme à terme.
 
-### Réellement jouables (11 sur 21)
+### Réellement jouables (13 sur 23)
 
 | Galerie | Configuration |
 |---|---|
@@ -36,8 +36,10 @@ Les deux listes ne correspondent pas terme à terme.
 | The Wall | The Wall |
 | Snakes | Snakes |
 | Alitration | Alitration |
+| Pyramide | Pyramide |
+| Marguerite française | Marguerite française |
 
-### Documentées seulement (10 sur 21)
+### Documentées seulement (10 sur 23)
 
 - **The Pillar** — sa description mentionne une bille neutre inamovible au
   centre : un troisième type de pièce que le moteur ne gère pas (seuls
@@ -48,12 +50,12 @@ Les deux listes ne correspondent pas terme à terme.
 - **Concours-Blitz**, **Misère** — "blitz" existe ailleurs dans le code,
   mais uniquement comme filtre sur une page de classement de démonstration
   — pas comme mode de partie réel.
-- **3, 4, 5, 6 joueurs** — les 21 positions de `LAYOUTS` sont toutes à 2
+- **3, 4, 5, 6 joueurs** — les 23 positions de `LAYOUTS` sont toutes à 2
   camps (noir/blanc) ; un mode à plusieurs joueurs demanderait une
   structure de plateau différente. Voir la section 2 : ce mode a en fait
   sa propre page dédiée, distincte de ces fiches de galerie.
 
-### Et dans l'autre sens : jouables mais pas dans la galerie (10 sur 21)
+### Et dans l'autre sens : jouables mais pas dans la galerie (10 sur 23)
 
 Découverte, 69, Star, Alliances, Domination, Atomouche, Centrifuge, Snakes
 variant, Korean Daisy, Anglattack. Le fossé va donc dans les deux sens.

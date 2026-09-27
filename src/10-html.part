@@ -40,7 +40,7 @@
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:min(560px,92vw);max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
     <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
       <strong style="flex:1">📚 Parties — AbalOnline & Migs</strong>
-      <span style="color:var(--muted);font-size:12px">4479 parties · 19 variantes (bibliothèque complète, MIGS + AbalOnline)</span>
+      <span id="migs-entete" style="color:var(--muted);font-size:12px">4479 parties · 19 variantes (bibliothèque complète, MIGS + AbalOnline)</span>
       <button class="ctrl-btn" onclick="openPSImportModal()" style="width:auto;padding:4px 10px" title="Importer tes propres parties Abalone depuis PlayStrategy.org">🔗 PlayStrategy</button>
       <button class="ctrl-btn" onclick="openPSLiveModal()" style="width:auto;padding:4px 10px" title="Suivre une partie Abalone en direct sur PlayStrategy.org (lecture seule)">🔴 En direct</button>
       <button class="ctrl-btn" onclick="closeMigsBrowser()" style="width:auto;padding:4px 10px">✕</button>
