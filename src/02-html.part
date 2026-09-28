@@ -1,6 +1,8 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+:root { color-scheme: dark; }  /* meme raison que la balise meta color-scheme */
+
 :root {
   --bg: #151918;
   --surface: #151918;

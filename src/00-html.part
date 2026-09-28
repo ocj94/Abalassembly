@@ -21,6 +21,11 @@
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#151918">
+<!-- Le site est entierement sombre (aucun theme clair). Le DECLARER empeche les
+     navigateurs a "mode sombre force" (Samsung Internet, moteurs Chromium) de
+     re-assombrir la page par-dessus nos couleurs : sans cette ligne, les billes
+     blanches y viraient au gris et les tuiles de l'accueil devenaient ternes. -->
+<meta name="color-scheme" content="dark">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">

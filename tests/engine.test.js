@@ -980,3 +980,14 @@ test('aucune difficulte inventee : "Non evaluee" (badge neutre) sauf Decouverte'
     assert.strictEqual(_carte(id).diff, 'Non évaluée', id);
   assert.strictEqual(_carte('decouverte').diff, 'Débutant');
 });
+
+/* ─── 24. Theme sombre declare au navigateur ─── */
+
+test('le site DECLARE son theme sombre (sinon les navigateurs a mode sombre force re-assombrissent ses couleurs)', () => {
+  // Constate sur Samsung Internet : sans cette declaration, son mode sombre
+  // retouchait la page -- billes blanches grises, tuiles de l'accueil ternes.
+  const src = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
+  assert.match(src, /<meta name="color-scheme" content="dark">/);
+  assert.match(src, /:root \{ color-scheme: dark; \}/);
+  assert.doesNotMatch(src, /data-theme="light"|prefers-color-scheme:\s*light/, 'si un theme clair apparait un jour, la declaration devra devenir "dark light"');
+});
