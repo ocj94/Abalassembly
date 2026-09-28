@@ -693,24 +693,24 @@ test('equipes : triees par membres, 8 au plus ; reseau coupe -> null sans except
 
 /* ─── 18. Stats du corpus : le tournoi PlayStrategy compte, toutes parties ─── */
 
-test('corpus : MIGS + AbalOnline + 93 parties du tournoi + 2 de reference = 4 574', async () => {
+test('corpus : MIGS + AbalOnline + 93 parties du tournoi + 3 de reference = 4 575', async () => {
   assert.ok(await ctx.ensureGameBanks());
   const s = await ctx.computeCorpusStats(() => {});
   assert.strictEqual(s.nMigs, 2589); assert.strictEqual(s.nAo, 1890);
   assert.strictEqual(s.nPs, 93); assert.strictEqual(s.nPsSansCoup, 3);
-  assert.strictEqual(s.totalGames, 4574);
+  assert.strictEqual(s.totalGames, 4575);
   // la duree ne compte que les parties jouees : pas de partie "a 0 coup"
-  assert.strictEqual(s.nLens, 2589 + 90 + 2);
+  assert.strictEqual(s.nLens, 2589 + 90 + 3);
   assert.ok(s.lenMin > 0);
   const bel = s.topVariants.find(v => v[0] === 'belgian');
-  assert.ok(bel && bel[1] === 93, 'Belgian Daisy : les 93 parties du tournoi');
+  assert.ok(bel && bel[1] === 94, 'Belgian Daisy : les 93 parties du tournoi + la partie KAAH');
 });
 
 test("corpus : les parties importees a la volee n'y entrent pas (meme corpus pour tous)", async () => {
   ctx.PS_GAMES.push(['vol00001', '2026-09-01', 'X', 'Y', 'X gagne', 'a1b2 i5h5']);
   const s = await ctx.computeCorpusStats(() => {});
   ctx.PS_GAMES.pop();
-  assert.strictEqual(s.totalGames, 4574);
+  assert.strictEqual(s.totalGames, 4575);
 });
 
 test('bibliotheque : une partie sans coup est annoncee, jamais chargee comme une partie jouee', () => {
@@ -767,7 +767,7 @@ test('bibliotheque : la partie Pyramide s ouvre et se rejoue jusqu au dernier co
   assert.strictEqual(ctx.CapturedByWhite.get(), 3);
 });
 
-test('bibliotheque : listee avec sa source, filtrable, et en-tete calcule (4 481 parties, 21 variantes)', async () => {
+test('bibliotheque : listee avec sa source, filtrable, et en-tete calcule (4 482 parties, 21 variantes)', async () => {
   assert.ok(await ctx.ensureGameBanks());
   const els = {}, opts = [{ value: '' }];
   const origine = ctx.document.getElementById, origineCreate = ctx.document.createElement;
@@ -782,7 +782,7 @@ test('bibliotheque : listee avec sa source, filtrable, et en-tete calcule (4 481
   assert.match(els['migs-list'].innerHTML, /onlineabalone\.wordpress\.com/, 'la source est indiquee');
   assert.doesNotMatch(els['migs-list'].innerHTML, /loadAOGame|loadMigsGame/, 'jamais presentee comme AbalOnline ou MIGS');
   assert.ok(opts.some(o => o.value === 'pyramide'));
-  assert.match(els['migs-entete'].textContent, /^4\u202f?481 parties · 21 variantes/);
+  assert.match(els['migs-entete'].textContent, /^4\u202f?482 parties · 21 variantes/);
 });
 
 /* ─── 21. Marguerite francaise : variante desequilibree ─── */
@@ -1080,3 +1080,36 @@ test('reglage desactive ou position initiale en replay : aucun chevron', () => {
 });
 
 test('chevrons : projection d ecran d origine restauree', () => { ctx.hexCoord = _hexOrigine; assert.ok(true); });
+
+/* ─── 27. Partie jouee sur KAAH, l'application de Saab ─── */
+
+test('KAAH : la partie s ouvre depuis la bibliotheque et se rejoue en entier (204 demi-coups), Blancs 6 a 5', () => {
+  // Fournie en Aba-Pro ET en Nacre ; les deux notations ont ete rejouees
+  // separement avant integration et donnent les 204 memes positions.
+  ['drawBoard','updateStatus','showToast','rebuildMoveListLabels','loadSnapshot','closeMigsBrowser',
+   'resetGutterPositions','showPage'].forEach(n => { ctx[n] = () => {}; });
+  const i = ctx.PARTIES_REFERENCE.findIndex(g => /KAAH/.test(g[5]));
+  assert.ok(i >= 0);
+  ctx.loadRefGame(i);
+  assert.strictEqual(ctx.boardSnapshots.length, 204);
+  assert.strictEqual(ctx.CapturedByWhite.get(), 6);
+  assert.strictEqual(ctx.CapturedByBlack.get(), 5);
+});
+
+test('KAAH : les positions affichees par KAAH lui-meme (tours 21 a 24) sont identiques a notre rejeu', () => {
+  // Codes de position releves sur les captures d'ecran de KAAH (28/09/2026) :
+  // '0' = billes noires, '1' = blanches, puis rangee et numeros. Troisieme
+  // source independante, apres les notations Aba-Pro et Nacre.
+  const KAAH = { 41: '0c256d357e34f4g56h78i7_1c34d46e56f567h56i56', 43: '0c2356d357e34g56h78i7_1b3c4d46e56f456h56i56',
+                 45: '0b3c2356d357e4g56h78i7_1a3c4d4e567f456h56i56', 47: '0b3c2356d356e4g56h78i7_1b4c4d4e567f456h56i56' };
+  const decode = code => { const o = {}; for (const part of code.split('_')) { const coul = part[0] === '0' ? 'black' : 'white'; let rg = null;
+    for (const ch of part.slice(1)) { if (/[a-i]/.test(ch)) rg = ch; else o[rg + ch] = coul; } } return o; };
+  const i = ctx.PARTIES_REFERENCE.findIndex(g => /KAAH/.test(g[5]));
+  ctx.loadRefGame(i);
+  for (const [ply, code] of Object.entries(KAAH)) {
+    const nous = {};
+    for (const [k, v] of Object.entries(ctx.boardSnapshots[ply - 1].board)) if (v) { const [r, cc] = k.split(',').map(Number); nous[String(ctx.coordToABAPRO(r, cc))] = v; }
+    assert.deepStrictEqual(Object.keys(nous).sort().map(k => k + nous[k]), Object.entries(decode(code)).map(([k, v]) => k + v).sort(), 'demi-coup ' + ply);
+  }
+});
+
