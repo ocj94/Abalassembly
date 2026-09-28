@@ -1006,3 +1006,77 @@ test("icones : chaque fichier declare par le manifeste et la page existe ; l'ico
   for (const f of ['favicon-32.png', 'favicon-16.png', 'favicon.ico', 'apple-touch-icon.png'])
     assert.ok(src.includes('href="' + f + '"') && fs.existsSync(path.join(racine, f)), f);
 });
+
+/* ─── 26. Dernier coup : chevrons sur les billes deplacees (modele du site de Saab) ─── */
+
+const _n2rcCh = {}; for (let r = 0; r < 9; r++) for (let c = 0; c < ctx.ROWS[r]; c++) _n2rcCh[String(ctx.coordToABAPRO(r, c))] = { r, c };
+const _Kch = n => _n2rcCh[n].r + ',' + _n2rcCh[n].c;
+// projection ecran simple et deterministe pour les tests
+const _hexOrigine = ctx.hexCoord;
+ctx.hexCoord = (r, c) => { const a = ctx.rcToAxial(r, c); return { x: 40 * (a.q + a.r / 2), y: 35 * a.r }; };
+function _jouerCh(noirs, blancs, groupe, versCase, couleur, avecAvant) {
+  const b = {}; noirs.forEach(n => b[_Kch(n)] = 'black'); blancs.forEach(n => b[_Kch(n)] = 'white');
+  const avant = JSON.parse(JSON.stringify(b));
+  ctx.board = b; ctx.CapturedByBlack.set(0); ctx.CapturedByWhite.set(0); ctx.GameOver.set(false);
+  const cells = groupe.map(n => _n2rcCh[n]);
+  const tete = groupe[groupe.length - 1], A = ctx.rcToAxial(_n2rcCh[tete].r, _n2rcCh[tete].c), B = ctx.rcToAxial(_n2rcCh[versCase].r, _n2rcCh[versCase].c);
+  const dir = { q: B.q - A.q, r: B.r - A.r };
+  const info = ctx.validateMove(cells, dir, couleur); assert.ok(info && info.valid, 'coup legal');
+  ctx.applyMove({ cells, dir, info }, couleur);
+  const snap = { board: JSON.parse(JSON.stringify(ctx.board)), moveInfo: { cells, dir, type: info.type, ejection: !!info.ejection } };
+  ctx.boardSnapshots = avecAvant ? [{ board: avant }, snap] : [snap];
+  ctx._replayStartBoard = null;
+  // les tests precedents peuvent laisser le jeu en mode rejeu (bibliotheque) :
+  // on se place explicitement en partie en direct, reglage active
+  ctx.replayMode = false; ctx.showLastMoveArrow = true;
+}
+function _dessinerCh() {
+  const traits = []; let cur = null;
+  const f = { save(){}, restore(){}, beginPath(){ cur = []; }, moveTo(x, y){ cur.push([x, y]); }, lineTo(x, y){ cur.push([x, y]); },
+    stroke(){ traits.push({ pts: cur, couleur: f.strokeStyle }); } };
+  ctx.drawLastMoveArrow(f); return traits;
+}
+const _clairCh = t => /255,255,255/.test(t.couleur), _sombreCh = t => /18,18,18/.test(t.couleur);
+
+test('coup en ligne de 3 billes noires : 3 chevrons clairs', () => {
+  _jouerCh(['e1','e2','e3'], [], ['e1','e2','e3'], 'e4', 'black', true);
+  const t = _dessinerCh(); assert.strictEqual(t.length, 3); assert.ok(t.every(_clairCh));
+});
+test('poussee 3 contre 2 : 5 chevrons, 3 clairs sur les noires, 2 sombres sur les blanches poussees', () => {
+  _jouerCh(['e1','e2','e3'], ['e4','e5'], ['e1','e2','e3'], 'e4', 'black', true);
+  const t = _dessinerCh(); assert.strictEqual(t.length, 5);
+  assert.strictEqual(t.filter(_clairCh).length, 3); assert.strictEqual(t.filter(_sombreCh).length, 2);
+});
+test('PIEGE : une bille blanche immobile juste derriere la ligne poussee ne recoit PAS de chevron', () => {
+  _jouerCh(['e1','e2','e3'], ['e4','e5','e7'], ['e1','e2','e3'], 'e4', 'black', true);
+  const t = _dessinerCh(); assert.strictEqual(t.length, 5, 'e7 n a pas bouge');
+});
+test('ejection : la bille sortie du plateau n a pas de chevron', () => {
+  _jouerCh(['e7','e8'], ['e9'], ['e7','e8'], 'e9', 'black', true);
+  const t = _dessinerCh(); assert.strictEqual(t.length, 2); assert.ok(t.every(_clairCh));
+});
+test('premier coup d une partie en direct (position d avant inconnue) : seules les billes du joueur sont marquees', () => {
+  _jouerCh(['e1','e2','e3'], ['e4','e5'], ['e1','e2','e3'], 'e4', 'black', false);
+  const t = _dessinerCh(); assert.strictEqual(t.length, 3); assert.ok(t.every(_clairCh));
+});
+test('coup lateral de 2 billes blanches : 2 chevrons sombres', () => {
+  _jouerCh([], ['e4','e5'], ['e4','e5'], 'f5', 'white', true);   // tete e5 -> f5 : glissement lateral
+  const t = _dessinerCh(); assert.strictEqual(t.length, 2); assert.ok(t.every(_sombreCh));
+});
+test('la pointe de chaque chevron est tournee dans le sens du deplacement', () => {
+  _jouerCh(['e1','e2','e3'], [], ['e1','e2','e3'], 'e4', 'black', true);
+  const u = (() => { const a = ctx.hexCoord(_n2rcCh.e3.r, _n2rcCh.e3.c), b = ctx.hexCoord(_n2rcCh.e4.r, _n2rcCh.e4.c); const n = Math.hypot(b.x - a.x, b.y - a.y); return [(b.x - a.x) / n, (b.y - a.y) / n]; })();
+  for (const [t, dest] of _dessinerCh().map((t, i) => [t, ['e2','e3','e4'][i]])) {
+    const c = ctx.hexCoord(_n2rcCh[dest].r, _n2rcCh[dest].c), pointe = t.pts[1];
+    const bras = [t.pts[0], t.pts[2]].map(p => (p[0] - c.x) * u[0] + (p[1] - c.y) * u[1]);
+    const av = (pointe[0] - c.x) * u[0] + (pointe[1] - c.y) * u[1];
+    assert.ok(av > 0 && bras.every(b => b < av), 'pointe en avant, branches en retrait');
+  }
+});
+test('reglage desactive ou position initiale en replay : aucun chevron', () => {
+  _jouerCh(['e1','e2','e3'], [], ['e1','e2','e3'], 'e4', 'black', true);
+  ctx.showLastMoveArrow = false; assert.strictEqual(_dessinerCh().length, 0); ctx.showLastMoveArrow = true;
+  ctx.replayMode = true; ctx.replayCurrentIdx = -1; assert.strictEqual(_dessinerCh().length, 0); ctx.replayMode = false;
+});
+
+test('chevrons : projection d ecran d origine restauree', () => { ctx.hexCoord = _hexOrigine; assert.ok(true); });

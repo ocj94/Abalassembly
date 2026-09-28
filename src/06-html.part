@@ -2434,7 +2434,7 @@
           </label>
           <label style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;cursor:pointer">
             <input type="checkbox" id="show-last-arrow-toggle" checked onchange="toggleLastMoveArrow(this.checked)" style="accent-color:var(--gold)">
-            Afficher la flèche du dernier coup
+            Marquer le dernier coup (chevrons sur les billes déplacées)
           </label>
           <label style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;cursor:pointer">
             <input type="checkbox" id="show-threats-toggle" onchange="toggleThreats(this.checked)" style="accent-color:var(--gold)">

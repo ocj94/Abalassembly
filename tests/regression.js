@@ -238,12 +238,17 @@ check('Nacre lateral : jamais deux cases adjacentes', () => {
   return /moveEndpointCells/.test(b) || 'la notation n\'utilise plus la source partagee';
 });
 
-/* La fleche du dernier coup et la notation doivent nommer les MEMES cases.
-   Calculees separement, l'une avait derive sans l'autre. */
-check('fleche et notation partagent la meme source', () => {
+/* La fleche du dernier coup a ete remplacee par des chevrons sur les billes
+   deplacees (modele du site de Saab). Il n'y a donc plus d'"extremites" a
+   faire concorder avec la notation -- ce controle-la, obsolete, est remplace :
+   les chevrons doivent designer les billes REELLEMENT deplacees, les billes
+   poussees etant comptees sur la position d'AVANT le coup (le deviner sur la
+   position d'apres marquerait une bille adverse immobile posee derriere). */
+check('dernier coup : chevrons sur les billes reellement deplacees', () => {
   const a = functionBody('drawLastMoveArrow');
-  if (!/moveEndpointCells/.test(a)) return 'la fleche recalcule ses extremites de son cote';
-  return !/const p0 = avg\(before\)/.test(a) || 'la fleche repart du barycentre du groupe';
+  if (!/_dernierCoupBillesDeplacees/.test(a)) return 'les chevrons ne passent plus par le calcul des billes deplacees';
+  const b = functionBody('_dernierCoupBillesDeplacees');
+  return /avant\[/.test(b) || 'les billes poussees ne sont plus comptees sur la position d avant le coup';
 });
 
 /* Le rejeu doit montrer le coup affiche, pas le dernier de la partie. */

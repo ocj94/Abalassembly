@@ -301,79 +301,92 @@ function drawBestMoveHint() {
   ctx.restore();
 }
 
-/* ── Flèche du dernier coup — couleur selon le type de coup ──
-   Simple (pas de contact) : bleu clair · Poussée sans capture (sumito) :
-   orange · Poussée AVEC capture (éjection) : rouge · Latéral (broadside) :
-   violet. Dessine du centre du groupe AVANT le coup vers son centre APRÈS
-   — fonctionne identiquement pour un coup en ligne ou latéral, sans code
-   spécial par type (contrairement à une flèche "tête → destination" qui ne
-   marche que pour l'en-ligne). Idée initiale : Saab, avec des diagrammes de
-   référence par type de coup (mail du 20/07/2026). */
-function drawLastMoveArrow(ctx) {
+/* ── Dernier coup : un chevron sur chaque bille deplacee ──
+   Remplace l'ancienne fleche, a la demande d'Olivier, sur le modele du site
+   de Saab : un petit chevron sur le bord de CHAQUE bille qui a bouge, sa
+   pointe tournee dans le sens du deplacement -- blanc sur les billes noires,
+   sombre sur les blanches. Plus de trait qui traverse le plateau et masque
+   d'autres billes, et le principe est le meme pour un coup en ligne, un
+   coup lateral ou une poussee.
+
+   Billes marquees : celles du joueur, a leur case d'arrivee, et les billes
+   adverses poussees (une bille ejectee a quitte le plateau, rien a marquer).
+   Le nombre de billes poussees n'est pas enregistre avec le coup : il est
+   COMPTE sur la position d'avant le coup (instantane precedent). Le deviner
+   sur la position d'apres ne serait pas fiable -- une bille adverse posee
+   juste derriere la ligne poussee serait comptee a tort. Quand la position
+   d'avant est inconnue (premier coup d'une partie en direct), seules les
+   billes du joueur sont marquees : jamais un chevron sur une bille qui n'a
+   pas bouge.
+
+   L'ancienne fleche distinguait les types de coup par sa couleur (idee de
+   Saab, mail du 20/07/2026). Les chevrons s'en passent : une poussee se
+   reconnait aux chevrons des deux couleurs. */
+function _dernierCoupBillesDeplacees(snap, avant) {
+  const info = snap && snap.moveInfo;
+  if (!info || !info.cells || !info.cells.length || !info.dir) return [];
+  const d = info.dir, apres = snap.board || {};
+  const cle = function(rc){ return rc.r + ',' + rc.c; };
+  const out = [];
+  let tete = null, proj = -Infinity;
+  info.cells.forEach(function(c){
+    const a = rcToAxial(c.r, c.c);
+    const dest = axialToRc(a.q + d.q, a.r + d.r);
+    if (dest) out.push({ de: c, a: dest, couleur: apres[cle(dest)] || null });
+    const p = a.q * d.q + a.r * d.r + (a.q + a.r) * (d.q + d.r);   // projection sur la direction
+    if (p > proj) { proj = p; tete = a; }
+  });
+  if (info.type === 'push' && avant && tete) {
+    const moi = avant[cle(info.cells[0])];
+    for (let k = 1; k <= 3; k++) {
+      const rc = axialToRc(tete.q + d.q * k, tete.r + d.r * k);
+      if (!rc) break;
+      const v = avant[cle(rc)];
+      if (!v || v === moi) break;
+      const dest = axialToRc(tete.q + d.q * (k + 1), tete.r + d.r * (k + 1));
+      if (dest) out.push({ de: rc, a: dest, couleur: v });   // sinon : ejectee
+    }
+  }
+  return out;
+}
+function _dessinerChevron(ctx, centre, ux, uy, couleurBille) {
+  const R = HEX_RADIUS * 0.9;                 // rayon approximatif d'une bille
+  const pointe = { x: centre.x + ux * R * 0.55, y: centre.y + uy * R * 0.55 };
+  const bras = R * 0.34, s = Math.SQRT1_2;
+  const bx = -ux, by = -uy;                   // vers l'arriere de la bille
+  ctx.beginPath();
+  ctx.moveTo(pointe.x + bras * (bx * s - by * s), pointe.y + bras * (bx * s + by * s));
+  ctx.lineTo(pointe.x, pointe.y);
+  ctx.lineTo(pointe.x + bras * (bx * s + by * s), pointe.y + bras * (-bx * s + by * s));
+  ctx.strokeStyle = couleurBille === 'white' ? 'rgba(18,18,18,0.85)' : 'rgba(255,255,255,0.92)';
+  ctx.lineWidth = Math.max(2, R * 0.14);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+}
+function drawLastMoveArrow(ctx) {   // nom conserve : appele par drawBoard
   if (typeof showLastMoveArrow !== 'undefined' && !showLastMoveArrow) return;
   if (typeof boardSnapshots === 'undefined' || !boardSnapshots.length) return;
-  /* En replay, la fleche doit designer le coup AFFICHE, pas le dernier coup
-     de la partie. Elle montrait le coup final quelle que soit la position
-     parcourue : une fleche fantome au debut, et aucune fleche utile pendant
-     la navigation. Les deux remarques de Saab n'en faisaient qu'une.
-     A la position initiale (index -1), il n'y a pas encore de coup. */
+  /* En replay, le marquage doit designer le coup AFFICHE, pas le dernier coup
+     de la partie (remarque de Saab). A la position initiale (index -1), il
+     n'y a pas encore de coup. */
   let _idx = boardSnapshots.length - 1;
   if (typeof replayMode !== 'undefined' && replayMode && typeof replayCurrentIdx !== 'undefined') {
     if (replayCurrentIdx < 0) return;
     _idx = replayCurrentIdx;
   }
   const snap = boardSnapshots[_idx];
-  const info = snap && snap.moveInfo;
-  if (!info || !info.cells || !info.dir) return;
-
-  const colors = {
-    move:      '#5fd0f5',   // simple déplacement
-    broadside: '#b088e8',   // latéral
-    pushSafe:  '#f0a030',   // poussée sans capture
-    pushEject: '#e05050',   // poussée AVEC capture
-  };
-  let color;
-  if (info.type === 'broadside') color = colors.broadside;
-  else if (info.type === 'push') color = info.ejection ? colors.pushEject : colors.pushSafe;
-  else color = colors.move;
-
-  const before = info.cells.map(function(c){ return hexCoord(c.r, c.c); });
-  const after = info.cells.map(function(c){
-    const ax = rcToAxial(c.r, c.c);
-    const destRc = axialToRc(ax.q + info.dir.q, ax.r + info.dir.r);
-    return destRc ? hexCoord(destRc.r, destRc.c) : hexCoord(c.r, c.c);
-  });
-  /* La fleche relie les memes deux cases que la notation Nacre : centre de la
-     PREMIERE bille du groupe, centre de la case d'arrivee de la DERNIERE.
-     Elle partait du barycentre du groupe — donc, sur deux billes, du vide qui
-     les separe, et sur trois, de la bille du milieu. Signale par Saab.
-
-     Le tri qui designait la « tete » projetait les billes sur la direction du
-     coup : sur un coup LATERAL, toutes ont la meme projection, l'ordre etait
-     donc indetermine et la fleche visait une bille au hasard. */
-  const ep = moveEndpointCells(info.cells, info.dir);
-  if (!ep) return;
-  const p0 = hexCoord(ep.from.r, ep.from.c);
-  const p1 = hexCoord(ep.to.r, ep.to.c);
-  if (Math.abs(p0.x - p1.x) < 1 && Math.abs(p0.y - p1.y) < 1) return; // rien à dessiner (ne devrait pas arriver)
-
+  const avant = _idx > 0 ? (boardSnapshots[_idx - 1] && boardSnapshots[_idx - 1].board)
+                         : (typeof _replayStartBoard !== 'undefined' ? _replayStartBoard : null);
+  const billes = _dernierCoupBillesDeplacees(snap, avant);
+  if (!billes.length) return;
+  // direction a l'ecran (tient compte de l'orientation du plateau)
+  const p0 = hexCoord(billes[0].de.r, billes[0].de.c), p1 = hexCoord(billes[0].a.r, billes[0].a.c);
+  const n = Math.hypot(p1.x - p0.x, p1.y - p0.y);
+  if (n < 1) return;
+  const ux = (p1.x - p0.x) / n, uy = (p1.y - p0.y) / n;
   ctx.save();
-  ctx.globalAlpha = 0.85;
-  ctx.beginPath();
-  ctx.moveTo(p0.x, p0.y);
-  ctx.lineTo(p1.x, p1.y);
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 4;
-  ctx.lineCap = 'round';
-  ctx.stroke();
-  const angle = Math.atan2(p1.y - p0.y, p1.x - p0.x);
-  ctx.beginPath();
-  ctx.moveTo(p1.x, p1.y);
-  ctx.lineTo(p1.x - 13*Math.cos(angle - Math.PI/6), p1.y - 13*Math.sin(angle - Math.PI/6));
-  ctx.lineTo(p1.x - 13*Math.cos(angle + Math.PI/6), p1.y - 13*Math.sin(angle + Math.PI/6));
-  ctx.closePath();
-  ctx.fillStyle = color;
-  ctx.fill();
+  billes.forEach(function(b){ _dessinerChevron(ctx, hexCoord(b.a.r, b.a.c), ux, uy, b.couleur); });
   ctx.restore();
 }
 
