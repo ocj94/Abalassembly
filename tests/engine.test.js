@@ -991,3 +991,18 @@ test('le site DECLARE son theme sombre (sinon les navigateurs a mode sombre forc
   assert.match(src, /:root \{ color-scheme: dark; \}/);
   assert.doesNotMatch(src, /data-theme="light"|prefers-color-scheme:\s*light/, 'si un theme clair apparait un jour, la declaration devra devenir "dark light"');
 });
+
+/* ─── 25. Icones de l'application ─── */
+
+test("icones : chaque fichier declare par le manifeste et la page existe ; l'icone masquable a son propre fichier", () => {
+  const fs = require('fs'), path = require('path'), racine = path.join(__dirname, '..');
+  const m = JSON.parse(fs.readFileSync(path.join(racine, 'manifest.json'), 'utf8'));
+  for (const i of m.icons) assert.ok(fs.existsSync(path.join(racine, i.src)), 'manquant : ' + i.src);
+  // Une icone "maskable" doit tenir dans la zone sure (cercle de 40 %) : les
+  // sommets de l'hexagone de l'icone normale en sortent, d'ou un fichier a part.
+  const mask = m.icons.find(i => /maskable/.test(i.purpose));
+  assert.ok(mask && !m.icons.some(i => i !== mask && i.src === mask.src), 'icone masquable distincte');
+  const src = fs.readFileSync(path.join(racine, 'index.html'), 'utf8');
+  for (const f of ['favicon-32.png', 'favicon-16.png', 'favicon.ico', 'apple-touch-icon.png'])
+    assert.ok(src.includes('href="' + f + '"') && fs.existsSync(path.join(racine, f)), f);
+});
