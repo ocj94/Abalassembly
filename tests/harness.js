@@ -121,6 +121,10 @@ const PASSERELLE = `
   if (typeof _setupCfg !== 'undefined')        relier('_setupCfg', function(){return _setupCfg;});
   if (typeof VARIANTE_DISPOSITION !== 'undefined') relier('VARIANTE_DISPOSITION', function(){return VARIANTE_DISPOSITION;});
   if (typeof variantsData !== 'undefined')     relier('variantsData', function(){return variantsData;});
+  if (typeof showLastMoveArrow !== 'undefined') relier('showLastMoveArrow', function(){return showLastMoveArrow;}, function(v){showLastMoveArrow=v;});
+  if (typeof replayMode !== 'undefined')       relier('replayMode', function(){return replayMode;}, function(v){replayMode=v;});
+  if (typeof replayCurrentIdx !== 'undefined') relier('replayCurrentIdx', function(){return replayCurrentIdx;}, function(v){replayCurrentIdx=v;});
+  if (typeof _replayStartBoard !== 'undefined') relier('_replayStartBoard', function(){return _replayStartBoard;}, function(v){_replayStartBoard=v;});
   if (typeof undoStack !== 'undefined')        relier('undoStack', function(){return undoStack;}, function(v){undoStack=v;});
   if (typeof selected !== 'undefined')         relier('selected', function(){return selected;}, function(v){selected=v;});
   if (typeof LAYOUTS !== 'undefined')          relier('LAYOUTS', function(){return LAYOUTS;});
