@@ -42,7 +42,7 @@ The reduced method is the one that actually produced the 2v2 and 3v2 tables alre
 
 **What this doesn't change**: 4v3 remains out of reach for single-file storage even reduced by symmetry (roughly 812 MB estimated, versus 3.8 GB raw) — still tens of times the size of the entire site. A real additional obstacle, found while digging further: half of the retrograde computation (the weaker side, when it's their turn to move) changes its table slot on **every single move, without exception** — splitting the work into independent chunks doesn't work, the whole table would need to stay in memory (or virtual memory backed by a swap file) for the entire computation.
 
-**Where this actually stands**: 3v2 (already shipped) and 3v3 (computed, validated, not shipped — no use to a player, 2 exploitable positions out of 224 million) are the two prerequisites for 4v2, itself a prerequisite for 4v3. None of this changes this page's conclusion — 4v3 remains out of the site's reach — but the computation method is now proven, not just estimated on paper.
+**Where this actually stands**: 3v2 (shipped), 3v3 (computed, validated, not shipped — 2 exploitable positions out of 224 million) and **4v2 (solved in September 2026: with the move, the stronger side always wins, in at most 97 plies)**. 4v2 only depended on 3v2; it took about 20 minutes in C on a single core (see `tablebase/RESULTS.md`). 4v3 depends on 3v3 and 4v2, and remains out of the site's reach: about 2.5 billion positions after symmetry.
 
 ## The four computing candidates, and why none holds up
 
