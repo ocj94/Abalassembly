@@ -1,0 +1,12 @@
+# Fichiers generes localement par export-ref-4v2.js, generate-4v2.c et les scripts
+# de verification -- jamais publies (la table 4v2 brute pese 322 Mo).
+ref.bin
+tb32.cache.bin
+lookup_ref.txt
+lookup_nonnul.txt
+tb42
+tb42.bin
+tb42_ckpt.bin
+*.tmp
+pv.txt
+pv_abapro.txt

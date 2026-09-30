@@ -42,7 +42,7 @@ La méthode réduite est celle qui a réellement produit les tables 2v2 et 3v2 d
 
 **Ce que ça ne change pas** : 4v3 reste hors de portée d'un stockage en fichier unique même réduit par symétrie (environ 812 Mo estimés, contre 3,8 Go en brut) — toujours des dizaines de fois la taille du site entier. Un vrai obstacle supplémentaire, découvert en creusant : la moitié du calcul retrograde (le camp faible, quand c'est son tour de jouer) change de case dans la table à **chaque coup, sans exception** — un découpage en tranches indépendantes ne fonctionne donc pas, il faudrait garder toute la table en mémoire (ou en mémoire virtuelle avec un fichier d'échange) d'un bout à l'autre du calcul.
 
-**Où ça en est concrètement** : 3v2 (déjà déployée) et 3v3 (calculée, validée, non déployée — aucune utilité pour un joueur, 2 positions exploitables sur 224 millions) sont les deux étapes préalables à 4v2, elle-même préalable à 4v3. Rien de tout cela ne change la conclusion de cette page — 4v3 reste hors de portée du site — mais la méthode de calcul est maintenant éprouvée, pas seulement estimée sur le papier.
+**Où ça en est concrètement** : 3v2 (déployée), 3v3 (calculée, validée, non déployée — 2 positions exploitables sur 224 millions) et **4v2 (résolue en septembre 2026 : avec le trait, le camp fort gagne toujours, en 97 demi-coups au plus)**. Le 4v2 ne dépendait que du 3v2 ; il a suffi d'environ 20 minutes en C sur un seul cœur (voir `tablebase/RESULTS.md`). Le 4v3, lui, dépend du 3v3 et du 4v2, et reste hors de portée du site : environ 2,5 milliards de positions après symétrie.
 
 ## Les quatre candidats de calcul, et pourquoi aucun ne tient
 

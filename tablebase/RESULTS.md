@@ -91,13 +91,60 @@ entries: [ [index, wdl, dtw], ... ]      wdl : 1 = gain du camp au trait, 2 = pe
 `moves[].after` donne le plateau résultant : il suffit de l'apparier avec le coup
 correspondant du moteur, sans dépendre d'une convention de notation.
 
+## 4 contre 2 : résolu (septembre 2026)
+
+Calculé par `generate-4v2.c` (C, un seul cœur, environ 20 minutes) — méthode,
+vérifications et commandes en tête du fichier.
+
+| Trait | Gains | Pertes | Nulles |
+|---|---:|---:|---:|
+| Camp fort (4 billes) | **70 287 840** | 0 | 0 |
+| Camp faible (2 billes) | 0 | 70 147 792 | 140 048 |
+
+140 575 680 positions légales. **Avec le trait, le camp fort gagne toujours**, en
+**97 demi-coups au plus**. Avec le trait, le camp faible perd toujours, sauf dans
+0,2 % des cas : ceux où il peut pousser une bille forte dehors et retomber dans
+un 3 contre 2 nul.
+
+C'est l'inverse du 3 contre 2, qui s'éteignait au 7ᵉ demi-coup. La conclusion
+ci-dessus — « ajouter des billes augmente la mobilité du défenseur autant que la
+puissance de l'attaquant » — tient à égalité de matériel (3v3 : 2 gains sur
+224 millions), **pas avec deux billes d'avance**.
+
+**La victoire la plus longue** (97 demi-coups) part des 4 billes noires dans
+4 des 6 coins (i5, i9, e1, a5), les 2 blanches en c5 et b5 : le camp fort doit
+d'abord se regrouper. La ligne complète est dans `4v2-plus-longue-victoire.txt`.
+
+**Vérifications**, toutes reproductibles par les scripts du dossier :
+- table 3v2 réutilisée identique à celle du jeu (7 000 consultations, dont
+  4 000 gains ou pertes réels présentés sous symétrie aléatoire) ;
+- générateur de coups identique au **vrai moteur du jeu** sur 10 000 positions,
+  dont 5 263 éjections (`verify-4v2-engine.js`) ;
+- méthode rapide (remontée vers les prédécesseurs) identique au balayage
+  complet sur les niveaux 1 à 32, au décompte près ;
+- **preuve exhaustive** : chacune des 140 575 680 positions recontrôlée contre
+  les équations exactes, profondeur minimale des gains comprise — zéro
+  incohérence (`./tb42 verifyall`) ;
+- la victoire la plus longue rejouée coup par coup par le moteur du jeu :
+  97 demi-coups sur 97 (`replay-4v2-pv.js`).
+
+**Réserve sur le 3v3.** `generate-3v3.js` note toute victoire obtenue par
+éjection vers le 3v2 comme « gagnée en 1 », quelle que soit la profondeur de la
+position 3v2 atteinte. Son classement gain / perte / nulle reste juste ; ses
+profondeurs peuvent être sous-estimées. `generate-4v2.c` compte, lui, la
+profondeur de la position atteinte plus un.
+
+La table (322 Mo brute, 59 Mo compressée) n'est pas dans le dépôt.
+
 ## Pour aller plus loin
 
-| Classe | Positions (après D6) | Faisabilité |
-|--------|---------------------:|-------------|
-| 3 vs 3 | ~185 M | quelques heures hors ligne, ~200 Mo bruts |
-| 4 vs 2 | ~2,5 G | cluster ou indexation combinatoire sérieuse |
-| 4 vs 3 | ~30 G | hors de portée en JavaScript |
+Tailles recalculées. L'ancien tableau était décalé d'une ligne : les « ~2,5 G »
+attribués au 4v2 étaient la taille du 4v3, et les « ~30 G » du 4v3 sa taille
+brute, avant symétrie.
 
-Au vu des résultats 2v2 et 3v2, la probabilité que 3v3 change la conclusion est faible :
-ajouter des billes augmente la mobilité du défenseur autant que la puissance de l'attaquant.
+| Classe | Positions (après symétrie) | État |
+|--------|---------------------:|-------------|
+| 3 vs 3 | 224,7 M | calculée : 2 gains seulement |
+| 4 vs 2 | 140,6 M légales | **résolue** : le camp fort au trait gagne toujours |
+| 5 vs 2 | ~1,8 G | faisable sur 3 Go de mémoire en ne stockant que la profondeur (le statut s'en déduit par sa parité) ; dépend du 4v2 |
+| 4 vs 3 | ~2,5 G | demande une machine plus grosse ; dépend du 3v3 et du 4v2 |
