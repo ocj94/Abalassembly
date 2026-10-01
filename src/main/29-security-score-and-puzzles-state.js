@@ -221,7 +221,7 @@ function handlePuzzleClick(px, py) {
     if (!chosenDir) { puzzleSelected=[]; drawPuzzleBoardInteractive(); if(msgEl) msgEl.textContent='Direction invalide — resélectionnez'; return; }
 
     // Valide et applique le coup via le VRAI moteur (sur puzzleBoard)
-    const _tbSeqBoardBefore = (currentPuzzleIdx === -3) ? Object.assign({}, puzzleBoard) : null;
+    const _tbSeqBoardBefore = (currentPuzzleIdx === -3 || currentPuzzleIdx === -4) ? Object.assign({}, puzzleBoard) : null;
     const result = puzzleApplyMove(puzzleSelected, chosenDir);
     if (!result.valid) {
       if (msgEl) msgEl.textContent = '⛔ ' + result.reason;
@@ -231,6 +231,10 @@ function handlePuzzleClick(px, py) {
     puzzleMovesMade++;
     if (currentPuzzleIdx === -3) {
       tbSeqHandleMove(_tbSeqBoardBefore, result);
+      return;
+    }
+    if (currentPuzzleIdx === -4) {
+      tb42SeqHandleMove(_tbSeqBoardBefore, result);
       return;
     }
     drawPuzzleBoardInteractive();

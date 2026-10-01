@@ -539,6 +539,7 @@ function nextPuzzle() {
   if (currentPuzzleIdx === -1) { loadGeneratedPuzzle(); return; }
   if (currentPuzzleIdx === -2) { loadTablebasePuzzle(); return; }
   if (currentPuzzleIdx === -3) { loadTablebaseSequencePuzzle(); return; }
+  if (currentPuzzleIdx === -4) { loadTablebase42Puzzle(); return; }
   currentPuzzleIdx = (currentPuzzleIdx + 1) % puzzlesData.length;
   loadPuzzle(currentPuzzleIdx);
 }
@@ -559,6 +560,9 @@ function setPuzzleMode(mode, el) {
   }
   if (mode==='tablebase-seq') {
     loadTablebaseSequencePuzzle();
+  }
+  if (mode==='tablebase-42') {
+    loadTablebase42Puzzle();
   }
   if (mode==='storm' && !stormActive) {
     stormScore=0; stormErrors=0; stormSeconds=180;

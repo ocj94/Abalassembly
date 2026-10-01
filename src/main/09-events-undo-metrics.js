@@ -623,6 +623,9 @@ function updateStatus() {
       ? `Cliquez sur vos billes ${monEmoji} pour les sélectionner`
       : 'Attendre le coup de l\'adversaire…';
   }
+  // finale exacte : verdict de la table 4 contre 2 (mode Decouverte), en partie comme en rejeu
+  const verdict42 = (typeof _tb42Verdict === 'function') ? _tb42Verdict() : null;
+  if (verdict42) txt += ' — ' + verdict42;
   document.getElementById('game-status-text').textContent = txt;
   document.getElementById('board-msg').textContent = msg;
 }

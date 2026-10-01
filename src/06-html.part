@@ -3413,6 +3413,11 @@
           <div style="font-size:12px;font-weight:600;color:var(--white)">Finale prouvée — séquence</div>
           <div style="font-size:10px;color:var(--gold)">3, 5 ou 7 coups, adversaire optimal</div>
         </div>
+        <div class="puzzle-mode-btn" id="puzzle-mode-tablebase-42" onclick="setPuzzleMode('tablebase-42',this)">
+          <div style="font-size:18px;margin-bottom:3px">🧮</div>
+          <div style="font-size:12px;font-weight:600;color:var(--white)">Finale 4 contre 2</div>
+          <div style="font-size:10px;color:var(--gold)">gain en 9 à 25 coups, défense parfaite</div>
+        </div>
       </div>
 
       <!-- Storm UI -->

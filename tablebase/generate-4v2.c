@@ -44,6 +44,8 @@
      for k in $(seq 0 15); do ./tb42 verifyall $k 16; done
      ./tb42 stats
      ./tb42 pv 0 4 26 60 47 54 > pv.txt && node replay-4v2-pv.js
+     mkdir -p shards && ./tb42 shards && python3 pack-4v2.py   # morceaux du jeu -> 4v2/
+     ./tb42 perdant        # une position ou un coup laisse echapper le gain (test du Trainer)
    Environ 20 minutes sur un seul coeur ; 3 Go de memoire suffisent. */
 #include <stdio.h>
 #include <stdlib.h>
@@ -566,6 +568,45 @@ int main(int argc, char **argv) {
       else { for (int i = 0; i < 4; i++) A[i] = m->opp[i]; B[0] = m->own[0]; B[1] = m->own[1]; }
       t = 1 - t;
     }
+    return 0;
+  }
+  if (!strcmp(mode, "perdant")) {          /* une position (fort au trait, gain en 9..25) ou un coup laisse echapper le gain */
+    for (size_t i = 0; i < TOTAL; i += 2) {
+      if (st[i] != 1 || dt[i] < 9 || dt[i] > 25) continue;
+      int A[4], B[2], t; decoder(i, A, B, &t);
+      int cc = succ(A, 4, B, 2);
+      for (int s = 0; s < cc; s++) {
+        Mv *m = &MV[s]; if (m->ej) continue;
+        int nA[4], nB[2]; for (int k = 0; k < 4; k++) nA[k] = m->own[k]; nB[0] = m->opp[0]; nB[1] = m->opp[1];
+        size_t ci = idx42(nA, nB, 1);
+        if (st[ci] == 0) { printf("%d %d %d %d %d %d %d\n", A[0], A[1], A[2], A[3], B[0], B[1], dt[i]); return 0; }
+      }
+    }
+    printf("aucune\n"); return 0;
+  }
+  if (!strcmp(mode, "shards")) {           /* export pour le jeu : 1 octet par position, par blocs d'orbites */
+    /* octet = profondeur (1..98) si gain ou perte, 0 si nulle ou position impossible.
+       Le statut se deduit de la PARITE : impair = gain du camp au trait, pair = perte.
+       Morceau k = orbites [64k, 64k+64[ ; dans un morceau : ((rang%64)*NP + paire)*2 + trait. */
+    int R = 64, nS = (K4 + R - 1) / R; size_t viol = 0;
+    for (size_t i = 0; i < TOTAL; i++) {
+      if (st[i] == 1 && !(dt[i] & 1)) viol++;
+      if (st[i] == 2 && (dt[i] & 1)) viol++;
+    }
+    if (viol) { fprintf(stderr, "parite violee : %zu -- export refuse\n", viol); return 1; }
+    uint8_t *buf = malloc((size_t)R * NP * 2);
+    for (int k = 0; k < nS; k++) {
+      int r0 = k * R, r1 = r0 + R > K4 ? K4 : r0 + R;
+      size_t n = (size_t)(r1 - r0) * NP * 2, base = (size_t)r0 * NP * 2;
+      for (size_t j = 0; j < n; j++) { size_t i = base + j; buf[j] = (st[i] == 1 || st[i] == 2) ? dt[i] : 0; }
+      char nom[64]; snprintf(nom, sizeof nom, "shards/s%03d.bin", k);
+      FILE *f = fopen(nom, "wb"); fwrite(buf, 1, n, f); fclose(f);
+    }
+    { /* carte des representants : bit q = 1 si le quadruplet de rang q est le representant de son orbite */
+      uint8_t *bm = calloc((NQ + 7) / 8, 1);
+      for (int r = 0; r < K4; r++) bm[REPQ[r] >> 3] |= 1 << (REPQ[r] & 7);
+      FILE *f = fopen("shards/orbites.bin", "wb"); fwrite(bm, 1, (NQ + 7) / 8, f); fclose(f); free(bm); }
+    printf("%d morceaux ecrits (K4=%d, NP=%d, %d orbites par morceau) + carte des orbites\n", nS, K4, NP, R);
     return 0;
   }
   if (!strcmp(mode, "query")) {          /* "nA a.. nB b.. trait" -> "v dt" (v : 1 gain / 2 perte du trait, 0 nulle ; F = partie finie) */

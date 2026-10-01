@@ -119,6 +119,86 @@ function loadTablebaseSequencePuzzle() {
   initPuzzleInteraction();
 }
 
+/* ── Trainer : finale 4 contre 2 ──
+   Tu as les Noirs (4 billes), les Blancs (2) se defendent PARFAITEMENT (table).
+   Position tiree au hasard dans la table, gain en 9 a 25 demi-coups. Regle :
+   un coup qui laisse echapper le gain est refuse ; un coup gagnant mais plus
+   lent est accepte, son cout affiche ; un coup optimal est salue. Si la
+   defense ejecte une bille noire, on retombe en 3 contre 2 -- toujours gagnant --
+   et l'exercice continue dans le mode sequence 3v2 existant. */
+let _tb42PuzzleDtw = 0;
+async function loadTablebase42Puzzle() {
+  const msg = document.getElementById('puzzle-msg');
+  if (typeof AbaTB42 === 'undefined') { showToast('⚠️ Table 4 contre 2 indisponible'); return; }
+  if (msg) msg.textContent = 'Tirage d\u2019une position dans la table 4 contre 2…';
+  try {
+    await AbaTB42.preparer();
+    let pos = null;
+    for (let essai = 0; essai < 30 && !pos; essai++) {
+      const k = Math.floor(Math.random() * AbaTB42.nMorceaux), m = await AbaTB42.charger(k);
+      for (let t = 0; t < 5000 && !pos; t++) {
+        const off = Math.floor(Math.random() * (m.length >> 1)) * 2;       // trait aux Noirs (fort)
+        const v = m[off];
+        if (v >= 9 && v <= 25 && (v & 1)) { const p = AbaTB42.positionDe(k, off); if (p && p.trait === 0) pos = { A: p.A, B: p.B, dtw: v }; }
+      }
+    }
+    if (!pos) throw new Error('aucune position trouvée');
+    puzzleBoard = {};
+    pos.A.forEach(function(i){ puzzleBoard[AbaTB42.caseVersCle(i)] = 'black'; });
+    pos.B.forEach(function(i){ puzzleBoard[AbaTB42.caseVersCle(i)] = 'white'; });
+    puzzleSelected = []; puzzleMovesMade = 0; puzzleEjectedCount = 0; puzzleEjectAnim = null;
+    currentPuzzleIdx = -4; _tb42PuzzleDtw = pos.dtw;
+    await _tb42Charger('black', puzzleBoard, 5, 3);       // les suites de ton premier coup
+    const stmt = document.getElementById('puzzle-statement');
+    if (stmt) stmt.innerHTML = '<strong>FINALE 4 CONTRE 2</strong><br><br>⚫ Les Noirs ont le trait. La table prouve le gain en <strong style="color:var(--gold)">' + pos.dtw + ' demi-coups</strong> contre la meilleure défense. Éjectez une bille blanche : les Blancs, réduits à une bille, auront perdu.';
+    const title = document.getElementById('puzzle-title'); if (title) title.textContent = 'Finale 4 contre 2';
+    const dl = document.getElementById('puzzle-difficulty-label'); if (dl) dl.textContent = '🧮 Table 4 contre 2 — gain prouvé en ' + pos.dtw + ' demi-coups';
+    if (msg) msg.textContent = '⚫ Sélectionnez vos billes noires';
+    const ov = document.getElementById('puzzle-result-overlay'); if (ov) ov.style.display = 'none';
+    drawPuzzleBoardInteractive(); initPuzzleInteraction();
+  } catch (e) {
+    if (msg) msg.textContent = '';
+    showToast('⚠️ Table 4 contre 2 indisponible (connexion requise) : ' + (e && e.message || e));
+  }
+}
+function tb42SeqHandleMove(boardBefore, result) {
+  const msgEl = document.getElementById('puzzle-msg');
+  if (result.ejected) {
+    drawPuzzleBoardInteractive();
+    if (msgEl) msgEl.textContent = '💥 Éjection — les Blancs n\u2019ont plus qu\u2019une bille !';
+    animatePuzzleEjection(result.ejectRC, function() { showPuzzleResult(true); });
+    return;
+  }
+  const v = AbaTB42.valeur(puzzleBoard, 'white', 5, 3);
+  if (!v || v.wdl !== 'LOSS') {
+    puzzleBoard = boardBefore; puzzleMovesMade--; drawPuzzleBoardInteractive();
+    if (msgEl) msgEl.textContent = v ? '➖ Ce coup laisse échapper le gain. Réessayez.' : '⏳ Table en cours de chargement — réessayez dans un instant.';
+    return;
+  }
+  const attendu = _tb42PuzzleDtw - 2, optimal = v.dtw === _tb42PuzzleDtw - 1;
+  if (msgEl) msgEl.textContent = '… les Blancs cherchent leur meilleure défense';
+  return _tb42Charger('white', puzzleBoard, 5, 3).then(function(){   // (promesse renvoyee : les tests l'attendent)
+    const rep = _tb42MeilleurCoup('white', puzzleBoard, 5, 3);
+    if (!rep) throw new Error('défense introuvable');
+    _tb42Avec(puzzleBoard, 5, 3, function(){ applyMove(rep, 'white'); });
+    const noires = Object.values(puzzleBoard).filter(function(x){ return x === 'black'; }).length;
+    if (noires === 3) {
+      currentPuzzleIdx = -3;                       // retour en 3 contre 2, toujours gagnant
+      drawPuzzleBoardInteractive();
+      if (msgEl) msgEl.textContent = '⚠️ Les Blancs ont éjecté une de vos billes : place au 3 contre 2, toujours gagnant pour vous.';
+      return;
+    }
+    return _tb42Charger('black', puzzleBoard, 5, 3).then(function(){
+      const w = AbaTB42.valeur(puzzleBoard, 'black', 5, 3);
+      _tb42PuzzleDtw = w ? w.dtw : _tb42PuzzleDtw - 2;
+      drawPuzzleBoardInteractive();
+      if (msgEl) msgEl.textContent = optimal
+        ? '✅ Coup optimal. Les Blancs se défendent au mieux — gain en ' + _tb42PuzzleDtw + ' demi-coups.'
+        : '✔️ Coup gagnant, mais pas le plus rapide : gain en ' + _tb42PuzzleDtw + ' demi-coups au lieu de ' + attendu + '.';
+    });
+  }).catch(function(e){ if (msgEl) msgEl.textContent = '⚠️ Table 4 contre 2 indisponible : ' + (e && e.message || e); });
+}
+
 function loadTablebasePuzzle() {
   if (typeof AbaTB === 'undefined' || !AbaTB.ready || !window.TB32_ENTRIES) {
     showToast('⚠️ Tables de finale non chargées');

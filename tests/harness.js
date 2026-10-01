@@ -125,6 +125,13 @@ const PASSERELLE = `
   if (typeof replayMode !== 'undefined')       relier('replayMode', function(){return replayMode;}, function(v){replayMode=v;});
   if (typeof replayCurrentIdx !== 'undefined') relier('replayCurrentIdx', function(){return replayCurrentIdx;}, function(v){replayCurrentIdx=v;});
   if (typeof _replayStartBoard !== 'undefined') relier('_replayStartBoard', function(){return _replayStartBoard;}, function(v){_replayStartBoard=v;});
+  if (typeof AbaTB42 !== 'undefined')          relier('AbaTB42', function(){return AbaTB42;});
+  if (typeof puzzleBoard !== 'undefined') relier('puzzleBoard', function(){return puzzleBoard;}, function(v){puzzleBoard=v;});
+  if (typeof currentPuzzleIdx !== 'undefined') relier('currentPuzzleIdx', function(){return currentPuzzleIdx;}, function(v){currentPuzzleIdx=v;});
+  if (typeof puzzleMovesMade !== 'undefined') relier('puzzleMovesMade', function(){return puzzleMovesMade;}, function(v){puzzleMovesMade=v;});
+  if (typeof _tb42PuzzleDtw !== 'undefined') relier('_tb42PuzzleDtw', function(){return _tb42PuzzleDtw;}, function(v){_tb42PuzzleDtw=v;});
+  if (typeof aiDifficulty !== 'undefined')     relier('aiDifficulty', function(){return aiDifficulty;}, function(v){aiDifficulty=v;});
+  if (typeof _tb42Indispo !== 'undefined')     relier('_tb42Indispo', function(){return _tb42Indispo;}, function(v){_tb42Indispo=v;});
   if (typeof undoStack !== 'undefined')        relier('undoStack', function(){return undoStack;}, function(v){undoStack=v;});
   if (typeof selected !== 'undefined')         relier('selected', function(){return selected;}, function(v){selected=v;});
   if (typeof LAYOUTS !== 'undefined')          relier('LAYOUTS', function(){return LAYOUTS;});
