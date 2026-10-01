@@ -1147,6 +1147,117 @@ function tourneyMatchEnd(winner, reason){
   }
   renderTournamentState();
 }
+/* ═══ NULLE ═══
+   Avant : le bouton « Proposer nulle » affichait « Demande de nulle envoyee »
+   et ne faisait RIEN d'autre -- aucune proposition, aucune nulle possible (seul
+   le duel de robots constatait la triple repetition, sans l'enregistrer).
+   Maintenant (demande d'Olivier, sur le modele de KAAH) :
+   - proposer la nulle : contre l'IA, elle accepte si elle n'a pas l'avantage ;
+     a deux sur le meme ecran, l'autre joueur repond ; a distance, la proposition
+     part chez l'adversaire (messages NULLE:offre / accepte / refuse) ;
+   - nulle par TRIPLE REPETITION : la meme position, avec le meme camp au trait,
+     revient une 3e fois -- constatee automatiquement, dans toute partie.
+   Une nulle termine la partie comme une victoire (pendules, historique, ecran
+   de fin) mais ne change pas l'ELO. L'historique et les statistiques savaient
+   deja compter les nulles a part. */
+let _nulleRefuseeAuCoup = -99;   // apres un refus de l'IA, nouvelle proposition 10 demi-coups plus tard
+function _declarerNulle(raison) {
+  if (GameOver.get()) return;
+  GameOver.set(true);
+  if (typeof disarmInactivityCancel === 'function') disarmInactivityCancel();
+  _emitAbaEvent('gameOver', { winner: null, reason: raison,
+    capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get(), moveCount: MoveCount.get() });
+  if (typeof notifierSiAbsent === 'function') notifierSiAbsent('finPartie', 'Partie terminée', 'Partie nulle.');
+  if (typeof updateHeroStats === 'function') updateHeroStats();
+  clearInterval(timerInterval);
+  if (typeof stopGameTimer === 'function') stopGameTimer();
+  _recordGameHistory(null, raison);      // archive AVANT d'effacer la sauvegarde de reprise
+  if (typeof clearSavedGame === 'function') clearSavedGame();
+  const overlay = document.getElementById('win-overlay'), title = document.getElementById('win-title'), sub = document.getElementById('win-sub');
+  if (title) title.textContent = (typeof kidsMode !== 'undefined' && kidsMode) ? 'Match nul ! 🤝' : 'Partie nulle';
+  if (sub) sub.textContent = raison === 'repetition'
+    ? 'La même position est revenue une 3e fois, avec le même camp au trait.'
+    : 'Nulle acceptée d\u2019un commun accord.';
+  if (overlay) overlay.classList.add('show');
+  if (typeof renderStyleCard === 'function') renderStyleCard();
+  if (typeof renderHeatmapCard === 'function') renderHeatmapCard();
+  if (typeof showToast === 'function') showToast('🤝 Partie nulle — ELO inchangé');
+}
+/* Triple repetition. A appeler juste APRES l'enregistrement d'un coup : la
+   position courante est alors la derniere de boardSnapshots. Meme camp au
+   trait = un instantane sur deux en remontant. Renvoie true si nulle. */
+function _verifierRepetition() {
+  if (GameOver.get()) return false;
+  if ((typeof variantMode !== 'undefined' && variantMode) || (typeof replayMode !== 'undefined' && replayMode)) return false;
+  if ((typeof _tourneyMatch !== 'undefined' && _tourneyMatch) || (typeof botDuelMode !== 'undefined' && botDuelMode)) return false;
+  const n = (typeof boardSnapshots !== 'undefined') ? boardSnapshots.length : 0;
+  if (n < 8) return false;
+  const cle = _repKeyOf(board); let occ = 0;
+  for (let k = n - 1; k >= 0; k -= 2) if (_repKeyOf(boardSnapshots[k].board) === cle) occ++;
+  /* La position de DEPART compte aussi (comme aux echecs) : Noirs au trait, donc
+     meme camp que la position courante quand le nombre de coups joues est pair.
+     Meme reference que le code de partie : la disposition de la partie. */
+  if (n % 2 === 0) { const dep = _positionDeDepartPartie(); if (dep && _repKeyOf(dep) === cle) occ++; }
+  if (occ >= 3) { _declarerNulle('repetition'); return true; }
+  return false;
+}
+function _positionDeDepartPartie() {
+  if (typeof _replayStartBoard !== 'undefined' && _replayStartBoard) return _replayStartBoard;
+  const L = (typeof LAYOUTS !== 'undefined') ? LAYOUTS[(typeof currentLayout !== 'undefined') ? currentLayout : 'standard'] : null;
+  if (!L) return null;
+  const b = {}; L.black.forEach(function(x){ b[x[0] + ',' + x[1]] = 'black'; }); L.white.forEach(function(x){ b[x[0] + ',' + x[1]] = 'white'; });
+  return b;
+}
+/* L'IA accepte la nulle si elle n'a pas l'avantage : derriere aux ejections,
+   ou a egalite d'ejections avec une position qu'elle n'estime pas meilleure.
+   Pas avant le 20e demi-coup : trop tot pour juger. Regle volontairement
+   simple et annoncee au joueur. */
+function _iaAccepteNulle(ia) {
+  if (MoveCount.get() < 20) return { ok: false, pourquoi: 'trop tôt dans la partie' };
+  const adv = ia === 'black' ? 'white' : 'black';
+  const sesEj = ia === 'black' ? CapturedByBlack.get() : CapturedByWhite.get();
+  const tesEj = adv === 'black' ? CapturedByBlack.get() : CapturedByWhite.get();
+  if (sesEj > tesEj) return { ok: false, pourquoi: 'elle mène aux éjections' };
+  if (sesEj < tesEj) return { ok: true };
+  return evaluateBoard(ia) > 0 ? { ok: false, pourquoi: 'elle estime avoir l\u2019avantage' } : { ok: true };
+}
+function proposerNulle() {
+  if (GameOver.get()) { showToast('La partie est déjà terminée'); return; }
+  if ((typeof variantMode !== 'undefined' && variantMode) || (typeof replayMode !== 'undefined' && replayMode)) { showToast('Pas de nulle en mode « Et si » ni en rejeu'); return; }
+  if (typeof _tourneyMatch !== 'undefined' && _tourneyMatch) { showToast('Pas de nulle en tournoi'); return; }
+  if (!MoveCount.get()) { showToast('Aucun coup joué — rien à annuler par une nulle'); return; }
+  const camp = function(x){ return x === 'black' ? 'Noirs' : 'Blancs'; };
+  if (typeof _rtcChannel !== 'undefined' && _rtcChannel && _rtcChannel.readyState === 'open') {
+    _rtcChannel.send('NULLE:offre');
+    showToast('🤝 Nulle proposée — en attente de la réponse de votre adversaire');
+    return;
+  }
+  if (GameMode.get() === 'ai') {
+    if (MoveCount.get() - _nulleRefuseeAuCoup < 10) { showToast('L\u2019IA vient de refuser — reproposez dans quelques coups'); return; }
+    const r = _iaAccepteNulle(aiColor());
+    if (r.ok) { showToast('🤝 L\u2019IA accepte la nulle'); _declarerNulle('accord'); }
+    else { _nulleRefuseeAuCoup = MoveCount.get(); showToast('🙅 L\u2019IA refuse la nulle : ' + r.pourquoi); }
+    return;
+  }
+  // deux joueurs sur le meme ecran : l'autre joueur repond
+  const prop = CurrentTurn.get(), autre = prop === 'black' ? 'white' : 'black';
+  if (confirm('Les ' + camp(prop) + ' proposent la nulle.\n\nLes ' + camp(autre) + ' acceptent-ils ?')) _declarerNulle('accord');
+  else showToast('Nulle refusée — la partie continue');
+}
+// Partie a distance : reponse a une proposition recue, et issue de la sienne
+function _rtcMessageNulle(data) {
+  if (data === 'NULLE:offre') {
+    if (GameOver.get()) return true;
+    const ok = confirm('Votre adversaire propose la nulle.\n\nAcceptez-vous ?');
+    if (_rtcChannel && _rtcChannel.readyState === 'open') _rtcChannel.send(ok ? 'NULLE:accepte' : 'NULLE:refuse');
+    if (ok) _declarerNulle('accord');
+    return true;
+  }
+  if (data === 'NULLE:accepte') { showToast('🤝 Votre adversaire accepte la nulle'); _declarerNulle('accord'); return true; }
+  if (data === 'NULLE:refuse') { showToast('Votre adversaire refuse la nulle — la partie continue'); return true; }
+  return false;
+}
+
 function resignGame(){
   if(typeof GameOver!=='undefined' && GameOver.get()){ showToast('La partie est d\u00e9j\u00e0 termin\u00e9e'); return; }
   if(!confirm('Abandonner la partie ?')) return;
@@ -1536,6 +1647,7 @@ function executeAIMove(chosen) {
   if (typeof recordOpponentHeat === 'function') recordOpponentHeat(chosen.cells);
   _clockInc(human==='black'?'white':'black');   // ⏱️ incrément pour l'IA qui vient de jouer
   CurrentTurn.set(human); MoveCount.inc();
+  if (_verifierRepetition()) { drawBoard(); updateStatus(); return; }
   _emitAbaEvent('movePlayed', { color: (human==='black'?'white':'black'), label: label,
     moveCount: MoveCount.get(), capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get() });
   if (!GameOver.get()) playSfx('occ_change');   // 🔊 « c'est ton tour »

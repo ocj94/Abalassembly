@@ -413,6 +413,7 @@ function rtcSendMove(cells, dir){
    moteur exactement comme gameCodeLoad(), un coup illegal est rejete
    silencieusement plutot que d'accepter une position corrompue. */
 function _rtcHandleMessage(data){
+  if (typeof data === 'string' && data.indexOf('NULLE:') === 0) { _rtcMessageNulle(data); return; }
   const decoded = rtcDecodeMove(data);
   if (!decoded) return;
   const color = CurrentTurn.get();
@@ -427,6 +428,7 @@ function _rtcHandleMessage(data){
   if (typeof drawBoard === 'function') drawBoard();
   if (typeof updateStatus === 'function') updateStatus();
   _rtcApplyingRemote = false;
+  _verifierRepetition();
 }
 
 /* Envoie automatiquement chaque coup local des qu'il est joue -- le drapeau

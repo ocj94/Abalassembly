@@ -1353,3 +1353,111 @@ test('niveaux : le niveau 1 (comme l ancien « Facile ») joue tout de suite, au
   ctx.aiColor = sauve.a; ctx.executeAIMove = sauve.e; ctx.aiDifficulty = '3';
 });
 
+/* ─── 32. Nulle : proposition reelle (IA, meme ecran, a distance) et triple repetition ─── */
+function _nulleReset(mode) {
+  ctx.currentLayout = 'standard'; ctx._replayStartBoard = null;   // disposition fixe : les tests precedents en changent
+  ctx.initBoardState(); ctx.CapturedByBlack.set(0); ctx.CapturedByWhite.set(0); ctx.GameOver.set(false);
+  ctx.boardSnapshots = []; ctx.MoveCount.set(0); ctx.CurrentTurn.set('black'); ctx.GameMode.set(mode || 'ai');
+  ctx._nulleRefuseeAuCoup = -99; ctx.localStorage.removeItem(ctx.GAME_HISTORY_KEY);
+  ctx.replayMode = false; ctx.variantMode = false; ctx.botDuelMode = false;   // une vraie partie en cours
+  ['showToast', 'drawBoard', 'renderStyleCard', 'renderHeatmapCard', 'updateHeroStats', 'notifierSiAbsent'].forEach(n => { ctx[n] = () => {}; });
+}
+// joue un coup sur le vrai plateau et l'enregistre comme le jeu (instantane + compteur)
+function _nulleJouer(m, couleur) {
+  ctx.applyMove(m, couleur);
+  ctx.boardSnapshots.push({ board: JSON.parse(JSON.stringify(ctx.board)), moveInfo: { cells: m.cells.slice(), dir: m.dir, type: m.info.type, ejection: !!m.info.ejection } });
+  ctx.MoveCount.inc(); ctx.CurrentTurn.set(couleur === 'black' ? 'white' : 'black');
+}
+// coup designe par sa case et sa direction, cherche sur la position COURANTE
+function _coup(couleur, rc, dir) {
+  return ctx.getAllMovesForColor(couleur).find(x => x.cells.length === 1 && x.cells[0].r === rc.r && x.cells[0].c === rc.c && x.dir.q === dir.q && x.dir.r === dir.r);
+}
+function _allerRetour(couleur) {   // une bille qui avance d'un pas puis revient
+  const m = ctx.getAllMovesForColor(couleur).find(x => x.cells.length === 1 && x.info.type === 'move');
+  const a = ctx.rcToAxial(m.cells[0].r, m.cells[0].c), dest = ctx.axialToRc(a.q + m.dir.q, a.r + m.dir.r);
+  return { depart: m.cells[0], dest: dest, dir: m.dir, inverse: { q: -m.dir.q, r: -m.dir.r } };
+}
+
+test('nulle : le bouton propose vraiment la nulle (plus de faux message)', () => {
+  const src = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
+  assert.doesNotMatch(src, /showToast\('🤝 Demande de nulle envoyée'\)/);
+  assert.match(src, /onclick="proposerNulle\(\)"/);
+});
+
+test('nulle : triple repetition jouee coup par coup -- 3e retour de la meme position, meme camp au trait', () => {
+  _nulleReset('local'); ctx._replayStartBoard = null;
+  const n = _allerRetour('black'), b = _allerRetour('white');
+  let nulle = false, plis = 0;
+  for (let tour = 0; tour < 4 && !nulle; tour++) {
+    for (const [c, rc, dir] of [['black', n.depart, n.dir], ['white', b.depart, b.dir], ['black', n.dest, n.inverse], ['white', b.dest, b.inverse]]) {
+      const m = _coup(c, rc, dir); assert.ok(m, 'coup ' + (plis + 1));
+      _nulleJouer(m, c); plis++;
+      if (ctx._verifierRepetition()) { nulle = true; break; }
+    }
+  }
+  assert.ok(nulle, 'nulle constatee');
+  // la position de depart revient aux demi-coups 4 et 8 : avec le depart lui-meme, 3 fois
+  // au 8e demi-coup -- avant la position qui suit le 1er coup noir (1, 5 et 9)
+  assert.strictEqual(plis, 8, 'au 3e retour, position de depart comprise');
+  assert.ok(ctx.GameOver.get());
+  const h = ctx.getGameHistory()[0];
+  assert.strictEqual(h.winner, null); assert.strictEqual(h.reason, 'repetition');
+  assert.match(ctx._historyResultBadge({ mode: 'ai', winner: null }), /Nulle/);
+});
+
+test('nulle : une position revenue avec l AUTRE camp au trait ne compte pas', () => {
+  _nulleReset('local');
+  const cle = ctx._repKeyOf(ctx.board), autre = JSON.parse(JSON.stringify(ctx.board));
+  // meme plateau aux instantanes 0, 2, 4... (camp au trait different de l'instantane courant)
+  for (let k = 0; k < 9; k++) ctx.boardSnapshots.push({ board: k % 2 === 0 ? JSON.parse(JSON.stringify(ctx.board)) : autre });
+  ctx.board = autre; ctx.boardSnapshots[8] = { board: autre };
+  const comptes = [];
+  for (let k = 8; k >= 0; k -= 2) comptes.push(ctx._repKeyOf(ctx.boardSnapshots[k].board) === ctx._repKeyOf(ctx.board));
+  assert.ok(comptes.length >= 3);
+  ctx.boardSnapshots = [];
+  for (let k = 0; k < 9; k++) ctx.boardSnapshots.push({ board: { '0,0': k % 2 ? 'white' : 'black' } });   // la position "A" revient 5 fois, mais aux indices pairs
+  ctx.board = { '0,0': 'white' };  ctx.boardSnapshots.push({ board: { '0,0': 'white' } });                // courant : indice 9 (impair) -> 'white' aux indices impairs : 1,3,5,7,9
+  assert.strictEqual(ctx._verifierRepetition(), true, 'meme parite : nulle');
+  _nulleReset('local');
+  for (let k = 0; k < 9; k++) ctx.boardSnapshots.push({ board: { '0,0': k % 2 ? 'white' : 'black' } });
+  ctx.board = { '0,0': 'black' }; ctx.boardSnapshots.push({ board: { '0,1': 'black' } });             // courant different : aucune repetition
+  assert.strictEqual(ctx._verifierRepetition(), false);
+  assert.ok(!ctx.GameOver.get());
+});
+
+test('nulle contre l IA : trop tot, refus quand elle mene, acceptation quand elle est derriere', () => {
+  _nulleReset('ai'); const sauve = ctx.aiColor; ctx.aiColor = () => 'white';
+  let msg = ''; ctx.showToast = m => { msg = m; };
+  ctx.MoveCount.set(5); ctx.proposerNulle();
+  assert.match(msg, /refuse la nulle : trop tôt/); assert.ok(!ctx.GameOver.get());
+  ctx.MoveCount.set(30); ctx._nulleRefuseeAuCoup = -99; ctx.CapturedByWhite.set(2); ctx.CapturedByBlack.set(0);   // l'IA (Blancs) mene
+  ctx.proposerNulle(); assert.match(msg, /elle mène aux éjections/); assert.ok(!ctx.GameOver.get());
+  ctx.MoveCount.set(33); ctx.proposerNulle(); assert.match(msg, /vient de refuser/);                           // anti-harcelement
+  ctx.MoveCount.set(40); ctx.CapturedByWhite.set(0); ctx.CapturedByBlack.set(2);                                // l'IA est derriere
+  _nulleJouer(ctx.getAllMovesForColor('black').find(x => x.info.type === 'move'), 'black');                    // un coup, pour l'historique
+  ctx.MoveCount.set(41); ctx.proposerNulle();
+  assert.ok(ctx.GameOver.get(), 'l IA accepte');
+  assert.strictEqual(ctx.getGameHistory()[0].reason, 'accord');
+  ctx.aiColor = sauve;
+});
+
+test('nulle a deux sur le meme ecran : l autre joueur accepte ou refuse', () => {
+  _nulleReset('local'); _nulleJouer(ctx.getAllMovesForColor('black').find(x => x.info.type === 'move'), 'black');
+  let question = ''; ctx.confirm = q => { question = q; return false; };
+  ctx.proposerNulle();
+  assert.match(question, /Les Blancs proposent la nulle[\s\S]*Les Noirs acceptent-ils/); assert.ok(!ctx.GameOver.get());
+  ctx.confirm = () => true; ctx.proposerNulle(); assert.ok(ctx.GameOver.get());
+});
+
+test('nulle a distance : la proposition part chez l adversaire, qui repond', () => {
+  _nulleReset('local'); _nulleJouer(ctx.getAllMovesForColor('black').find(x => x.info.type === 'move'), 'black');
+  const envoyes = []; ctx._rtcChannel = { readyState: 'open', send: m => envoyes.push(m) };
+  try {
+    ctx.proposerNulle(); assert.deepStrictEqual(envoyes, ['NULLE:offre']); assert.ok(!ctx.GameOver.get(), 'pas de decision locale');
+    ctx._rtcMessageNulle('NULLE:refuse'); assert.ok(!ctx.GameOver.get());
+    ctx.confirm = () => true; ctx._rtcMessageNulle('NULLE:offre');                 // proposition recue, acceptee
+    assert.strictEqual(envoyes[envoyes.length - 1], 'NULLE:accepte'); assert.ok(ctx.GameOver.get());
+    ctx.GameOver.set(false); ctx._rtcMessageNulle('NULLE:accepte'); assert.ok(ctx.GameOver.get());
+  } finally { ctx._rtcChannel = null; }
+});
+

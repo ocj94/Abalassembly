@@ -136,6 +136,11 @@ const PASSERELLE = `
   if (typeof GAME_HISTORY_KEY !== 'undefined') relier('GAME_HISTORY_KEY', function(){return GAME_HISTORY_KEY;});
   if (typeof AI_DIFFICULTY_CONFIG !== 'undefined') relier('AI_DIFFICULTY_CONFIG', function(){return AI_DIFFICULTY_CONFIG;});
   if (typeof AI_NIVEAU_ANCIEN !== 'undefined') relier('AI_NIVEAU_ANCIEN', function(){return AI_NIVEAU_ANCIEN;});
+  if (typeof _rtcChannel !== 'undefined') relier('_rtcChannel', function(){return _rtcChannel;}, function(v){_rtcChannel=v;});
+  if (typeof _nulleRefuseeAuCoup !== 'undefined') relier('_nulleRefuseeAuCoup', function(){return _nulleRefuseeAuCoup;}, function(v){_nulleRefuseeAuCoup=v;});
+  if (typeof variantMode !== 'undefined') relier('variantMode', function(){return variantMode;}, function(v){variantMode=v;});
+  if (typeof botDuelMode !== 'undefined') relier('botDuelMode', function(){return botDuelMode;}, function(v){botDuelMode=v;});
+  if (typeof currentLayout !== 'undefined') relier('currentLayout', function(){return currentLayout;}, function(v){currentLayout=v;});
   if (typeof undoStack !== 'undefined')        relier('undoStack', function(){return undoStack;}, function(v){undoStack=v;});
   if (typeof selected !== 'undefined')         relier('selected', function(){return selected;}, function(v){selected=v;});
   if (typeof LAYOUTS !== 'undefined')          relier('LAYOUTS', function(){return LAYOUTS;});
