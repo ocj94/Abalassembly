@@ -589,6 +589,8 @@ function executePlayerMove(selCopy, chosenDir, me, info) {
   _emitAbaEvent('movePlayed', { color: me, label: (typeof moveNotation !== 'undefined') ? moveNotation : null,
     moveCount: MoveCount.get(), capturedByBlack: CapturedByBlack.get(), capturedByWhite: CapturedByWhite.get() });
   updateStatus();
+  // Triple repetition : constatee apres l'envoi du coup (a distance, l'autre appareil la constate aussi)
+  if (_verifierRepetition()) { drawBoard(); return; }
   // Animation de glissement si déplacement simple/latéral, sinon rendu direct
   if (slidePieces && slidePieces.length) {
     animateMarbleSlide(slidePieces, afterHumanMove);

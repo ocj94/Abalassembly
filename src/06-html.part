@@ -1124,7 +1124,7 @@
                     <button class="ctrl-btn" id="live-variant-btn" onclick="toggleLiveVariant()" title="Essaie un autre coup et vois ce qui se passe — ça ne compte pas pour de vrai">🔮 Et si...?</button>
           <button class="ctrl-btn" onclick="requestUndo()">↩️ Annuler le dernier coup</button>
           <button class="ctrl-btn" onclick="requestPause()" id="pause-btn">⏸️ Pause (1 min)</button>
-          <button class="ctrl-btn primary" onclick="showToast('🤝 Demande de nulle envoyée')">Proposer nulle</button>
+          <button class="ctrl-btn primary" onclick="proposerNulle()">🤝 Proposer nulle</button>
           <button class="ctrl-btn danger" onclick="resignGame()">Abandonner</button>
           <button class="ctrl-btn" onclick="resetGame()">🔄 Nouvelle partie</button>
         </div>
