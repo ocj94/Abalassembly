@@ -693,24 +693,24 @@ test('equipes : triees par membres, 8 au plus ; reseau coupe -> null sans except
 
 /* ─── 18. Stats du corpus : le tournoi PlayStrategy compte, toutes parties ─── */
 
-test('corpus : MIGS + AbalOnline + 93 parties du tournoi + 3 de reference = 4 575', async () => {
+test('corpus : MIGS + AbalOnline + 93 parties du tournoi + 4 de reference = 4 576', async () => {
   assert.ok(await ctx.ensureGameBanks());
   const s = await ctx.computeCorpusStats(() => {});
   assert.strictEqual(s.nMigs, 2589); assert.strictEqual(s.nAo, 1890);
   assert.strictEqual(s.nPs, 93); assert.strictEqual(s.nPsSansCoup, 3);
-  assert.strictEqual(s.totalGames, 4575);
+  assert.strictEqual(s.totalGames, 4576);
   // la duree ne compte que les parties jouees : pas de partie "a 0 coup"
-  assert.strictEqual(s.nLens, 2589 + 90 + 3);
+  assert.strictEqual(s.nLens, 2589 + 90 + 4);
   assert.ok(s.lenMin > 0);
   const bel = s.topVariants.find(v => v[0] === 'belgian');
-  assert.ok(bel && bel[1] === 94, 'Belgian Daisy : les 93 parties du tournoi + la partie KAAH');
+  assert.ok(bel && bel[1] === 95, 'Belgian Daisy : les 93 parties du tournoi + les 2 parties KAAH');
 });
 
 test("corpus : les parties importees a la volee n'y entrent pas (meme corpus pour tous)", async () => {
   ctx.PS_GAMES.push(['vol00001', '2026-09-01', 'X', 'Y', 'X gagne', 'a1b2 i5h5']);
   const s = await ctx.computeCorpusStats(() => {});
   ctx.PS_GAMES.pop();
-  assert.strictEqual(s.totalGames, 4575);
+  assert.strictEqual(s.totalGames, 4576);
 });
 
 test('bibliotheque : une partie sans coup est annoncee, jamais chargee comme une partie jouee', () => {
@@ -767,7 +767,7 @@ test('bibliotheque : la partie Pyramide s ouvre et se rejoue jusqu au dernier co
   assert.strictEqual(ctx.CapturedByWhite.get(), 3);
 });
 
-test('bibliotheque : listee avec sa source, filtrable, et en-tete calcule (4 482 parties, 21 variantes)', async () => {
+test('bibliotheque : listee avec sa source, filtrable, et en-tete calcule (4 483 parties, 21 variantes)', async () => {
   assert.ok(await ctx.ensureGameBanks());
   const els = {}, opts = [{ value: '' }];
   const origine = ctx.document.getElementById, origineCreate = ctx.document.createElement;
@@ -782,7 +782,7 @@ test('bibliotheque : listee avec sa source, filtrable, et en-tete calcule (4 482
   assert.match(els['migs-list'].innerHTML, /onlineabalone\.wordpress\.com/, 'la source est indiquee');
   assert.doesNotMatch(els['migs-list'].innerHTML, /loadAOGame|loadMigsGame/, 'jamais presentee comme AbalOnline ou MIGS');
   assert.ok(opts.some(o => o.value === 'pyramide'));
-  assert.match(els['migs-entete'].textContent, /^4\u202f?482 parties · 21 variantes/);
+  assert.match(els['migs-entete'].textContent, /^4\u202f?483 parties · 21 variantes/);
 });
 
 /* ─── 21. Marguerite francaise : variante desequilibree ─── */
@@ -1088,7 +1088,7 @@ test('KAAH : la partie s ouvre depuis la bibliotheque et se rejoue en entier (20
   // separement avant integration et donnent les 204 memes positions.
   ['drawBoard','updateStatus','showToast','rebuildMoveListLabels','loadSnapshot','closeMigsBrowser',
    'resetGutterPositions','showPage'].forEach(n => { ctx[n] = () => {}; });
-  const i = ctx.PARTIES_REFERENCE.findIndex(g => /KAAH/.test(g[5]));
+  const i = ctx.PARTIES_REFERENCE.findIndex(g => /KAAH/.test(g[5]) && g[0] === '2026-09-28');
   assert.ok(i >= 0);
   ctx.loadRefGame(i);
   assert.strictEqual(ctx.boardSnapshots.length, 204);
@@ -1104,7 +1104,7 @@ test('KAAH : les positions affichees par KAAH lui-meme (tours 21 a 24) sont iden
                  45: '0b3c2356d357e4g56h78i7_1a3c4d4e567f456h56i56', 47: '0b3c2356d356e4g56h78i7_1b4c4d4e567f456h56i56' };
   const decode = code => { const o = {}; for (const part of code.split('_')) { const coul = part[0] === '0' ? 'black' : 'white'; let rg = null;
     for (const ch of part.slice(1)) { if (/[a-i]/.test(ch)) rg = ch; else o[rg + ch] = coul; } } return o; };
-  const i = ctx.PARTIES_REFERENCE.findIndex(g => /KAAH/.test(g[5]));
+  const i = ctx.PARTIES_REFERENCE.findIndex(g => /KAAH/.test(g[5]) && g[0] === '2026-09-28');
   ctx.loadRefGame(i);
   for (const [ply, code] of Object.entries(KAAH)) {
     const nous = {};
@@ -1234,3 +1234,75 @@ test('Trainer 4v2 : un coup qui laisse echapper le gain est refuse, la position 
   assert.strictEqual(ctx.puzzleMovesMade, 0);
   assert.strictEqual(ctx.currentPuzzleIdx, -4);
 });
+
+/* ─── 30. Deuxieme partie KAAH (01/10/2026), et carte de chaleur des parties importees ─── */
+
+test('KAAH 01/10/2026 : se rejoue en entier (84 demi-coups), Blancs 6 a 3, position finale = code affiche par KAAH', () => {
+  ['drawBoard','updateStatus','showToast','rebuildMoveListLabels','loadSnapshot','closeMigsBrowser','resetGutterPositions','showPage'].forEach(n => { ctx[n] = () => {}; });
+  const i = ctx.PARTIES_REFERENCE.findIndex(g => /KAAH/.test(g[5]) && g[0] === '2026-10-01');
+  assert.ok(i >= 0);
+  ctx.loadRefGame(i);
+  assert.strictEqual(ctx.boardSnapshots.length, 84);
+  assert.strictEqual(ctx.CapturedByWhite.get(), 6); assert.strictEqual(ctx.CapturedByBlack.get(), 3);
+  // code KAAH de la position finale : 1re moitie = noires, chiffre de tete = billes ejectees
+  const code = '6a2b3e7f57g8h89_3c2d235e12f3g456h4', attendu = [];
+  code.split('_').forEach((m, k) => { let r = null; for (const ch of m.replace(/^\d+/, '')) { if (/[a-i]/.test(ch)) r = ch; else attendu.push(r + ch + (k ? 'w' : 'b')); } });
+  const nous = [];
+  for (const [kk, v] of Object.entries(ctx.boardSnapshots[83].board)) if (v) { const [r, cc] = kk.split(',').map(Number); nous.push(String(ctx.coordToABAPRO(r, cc)) + (v === 'white' ? 'w' : 'b')); }
+  assert.deepStrictEqual(nous.sort(), attendu.sort());
+});
+
+const _texteKaah2 = '# 2026-10-01 · Belgian Daisy · Blanc gagne (6 éjections) · KAI++ niveau 8 (agressif v2, 30 s) vs ocj94\n1.i9h8 a5b5 2.i8h7 a4b4 3.h7g6 i5h4 4.h8g7 b4c4 5.a1b1 g3g5f2 6.c1c3d1 b5c5 7.f5g5 i5h4 8.g6g5 c5d5 9.g5g4 i6h6 10.d1e2 b6c6 11.d2e2 f4f3 12.a2b2 f2f3 13.b3c3 c6d6 14.b1d3c1 d5e5 15.e2d2 f3f4 16.g7f7 d6d5 17.h5g4 f6e5 18.b2b1 d4e4 19.f3e3 e5e4 20.d2d3 h6g6 21.d3d4 e3d3 22.d5d4 d6d5 23.d4d3 h4h5 24.d3d2 c3c4d3 25.d2e3 f5e4 26.b1a1b2 g5f4 27.d1e2 h5g5 28.d2e2 e4f5 29.f2e1 f6f5 30.e1e2 f5f4 31.g3g4h4 f2f3 32.c1d2 f5g5 33.i5i6 e4f4 34.i6h6 f4g4 35.d2e3 d4d5e4 36.h6h7 e6e5 37.e1e2d1 e4e5d4 38.d1e1 h5g4 39.b2b3 d4d3 40.d1c1 e3d2 41.h7h8 c1d2 42.f4f5 e3e2\n';
+const _somme = hm => Object.values(hm || {}).reduce((a, b) => a + b, 0);
+function _preparerImport(texte, pseudo) {
+  const els = {}, origine = ctx.document.getElementById;
+  ctx.document.getElementById = id => (els[id] || (els[id] = { value: '', textContent: '', style: {} }));
+  els['bulk-history-text'] = { value: texte, style: {} }; els['bulk-history-pseudo'] = { value: pseudo, style: {} };
+  els['bulk-history-status'] = { textContent: '', style: {} };
+  return { els, restaurer: () => { ctx.document.getElementById = origine; } };
+}
+
+test('carte de chaleur : une partie importee (la tienne) l alimente comme une partie jouee, une seule fois', () => {
+  ctx._renderHistoryList = () => {};
+  ctx.localStorage.removeItem(ctx.GAME_HISTORY_KEY);
+  ctx.progress.heatmaps = {};
+  const r = ctx._parseBulkHistoryText(_texteKaah2, 'ocj94'), e = r[0].entry;
+  // attendu : les cases de depart des billes deplacees par les Blancs, coup par coup
+  const g = ctx.gameCodeParse(e.code);
+  const attendu = g.moves.filter((m, k) => k % 2 === 1).reduce((a, m) => a + m.cells.length, 0);
+  const io = _preparerImport(_texteKaah2, 'ocj94');
+  try {
+    ctx._doBulkHistoryImport();
+    assert.match(io.els['bulk-history-status'].textContent, /1 partie importée.*1 ajoutée à ta carte de chaleur/);
+    assert.strictEqual(_somme(ctx.progress.heatmaps['me_white']), attendu);
+    assert.strictEqual(_somme(ctx.progress.heatmaps['me_white@belgian']), attendu);
+    assert.strictEqual(_somme(ctx.progress.heatmaps['me_black']), 0, 'les coups noirs (l IA) ne sont pas les tiens');
+    // reimport : doublon, rien n'est recompte
+    ctx._doBulkHistoryImport();
+    assert.match(io.els['bulk-history-status'].textContent, /déjà présente/);
+    assert.doesNotMatch(io.els['bulk-history-status'].textContent, /carte de chaleur/);
+    assert.strictEqual(_somme(ctx.progress.heatmaps['me_white']), attendu);
+  } finally { io.restaurer(); }
+});
+
+test('carte de chaleur : une partie importee AVANT ce changement est rattrapee une fois au reimport ; une partie consultee jamais', () => {
+  ctx._renderHistoryList = () => {};
+  ctx.progress.heatmaps = {};
+  const e = ctx._parseBulkHistoryText(_texteKaah2, 'ocj94')[0].entry;   // importee "a l'ancienne" : sans marque chaleur
+  ctx.localStorage.setItem(ctx.GAME_HISTORY_KEY, JSON.stringify([e]));
+  const io = _preparerImport(_texteKaah2, 'ocj94');
+  try {
+    ctx._doBulkHistoryImport();
+    assert.match(io.els['bulk-history-status'].textContent, /1 ajoutée à ta carte de chaleur/);
+    const apres1 = _somme(ctx.progress.heatmaps['me_white']); assert.ok(apres1 > 0);
+    ctx._doBulkHistoryImport();
+    assert.strictEqual(_somme(ctx.progress.heatmaps['me_white']), apres1, 'pas une seconde fois');
+  } finally { io.restaurer(); }
+  // partie consultee (ton pseudo n'y figure pas) : jamais dans ta carte
+  ctx.progress.heatmaps = {};
+  const consultee = ctx._parseBulkHistoryText(_texteKaah2, 'quelqu_un')[0].entry;
+  assert.ok(consultee.spectateur);
+  assert.strictEqual(ctx._chaleurDepuisImport(consultee), 0);
+  assert.strictEqual(_somme(ctx.progress.heatmaps['me_white']) + _somme(ctx.progress.heatmaps['me_black']), 0);
+});
+

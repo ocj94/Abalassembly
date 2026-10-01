@@ -183,6 +183,29 @@ function _parseBulkHistoryText(text, monPseudo){
   currentLayout = saveLayout; board = saveBoard; CapturedByBlack.set(saveCB); CapturedByWhite.set(saveCW);
   return results;
 }
+/* Carte de chaleur : une partie IMPORTEE dans l'historique (KAAH, Aba-Pro...)
+   compte comme une partie jouee -- memes cases que le jeu en direct (position de
+   depart des billes deplacees, cf. recordPlayerMove), memes cartes : 'me',
+   'me_<couleur>' et 'me_<couleur>@<variante>'. Uniquement TES parties (jamais une
+   partie consultee), et une seule fois par partie : la marque `chaleur` l'empeche
+   d'etre recomptee. Demande d'Olivier. Renvoie le nombre de coups comptes. */
+function _chaleurDepuisImport(e) {
+  if (!e || e.spectateur || e.chaleur || e.mode !== 'import' || (e.humanColor !== 'black' && e.humanColor !== 'white') || !e.code) return 0;
+  const g = gameCodeParse(e.code);
+  if (!g || !g.ok) return 0;
+  let n = 0, coul = 'black';
+  g.moves.forEach(function(m){
+    if (coul === e.humanColor && m.cells && m.cells.length) {
+      recordHeatmapForPlayer(localPlayerId(), m.cells);
+      recordHeatmapForPlayer('me_' + coul, m.cells);
+      if (typeof HEAT_VARIANTS !== 'undefined' && HEAT_VARIANTS.indexOf(g.layout) >= 0) recordHeatmapForPlayer('me_' + coul + '@' + g.layout, m.cells);
+      n++;
+    }
+    coul = (coul === 'black') ? 'white' : 'black';
+  });
+  if (n) e.chaleur = true;
+  return n;
+}
 function _doBulkHistoryImport(){
   const ta = document.getElementById('bulk-history-text');
   const status = document.getElementById('bulk-history-status');
@@ -196,16 +219,23 @@ function _doBulkHistoryImport(){
 
   let history = (typeof getGameHistory === 'function') ? getGameHistory() : [];
   const existingCodes = new Set(history.map(function(e){ return e.code; }));
-  let added = 0, dupes = 0, partial = 0, failed = 0, consultees = 0, plein = 0;
+  let added = 0, dupes = 0, partial = 0, failed = 0, consultees = 0, plein = 0, chauffees = 0;
   results.forEach(function(r){
     if (!r.ok){ failed++; return; }
-    if (existingCodes.has(r.entry.code)){ dupes++; return; }
+    if (existingCodes.has(r.entry.code)){
+      dupes++;
+      // deja importee AVANT que l'import alimente la carte : comptee une seule fois maintenant
+      const deja = history.find(function(h){ return h.code === r.entry.code; });
+      if (deja && _chaleurDepuisImport(deja)) chauffees++;
+      return;
+    }
     // Une partie consultee ne prend jamais la place d'une de tes parties :
     // historique plein = elle n'est pas importee (et c'est dit).
     if (r.entry.spectateur && history.length >= HIST_MAX){ plein++; return; }
     existingCodes.add(r.entry.code);
     history.unshift(r.entry);
     added++;
+    if (_chaleurDepuisImport(r.entry)) chauffees++;
     if (r.entry.spectateur) consultees++;
     if (r.partial) partial++;
   });
@@ -214,13 +244,14 @@ function _doBulkHistoryImport(){
     if (status){ status.style.color='#e05c4b'; status.textContent = 'Stockage indisponible ou plein.'; } return;
   }
   if (status){
-    status.style.color = added ? 'var(--gold)' : '#e05c4b';
+    status.style.color = (added || chauffees) ? 'var(--gold)' : '#e05c4b';
     status.textContent = added + ' partie' + (added>1?'s':'') + ' importée' + (added>1?'s':'')
       + (dupes?(', ' + dupes + ' déjà présente' + (dupes>1?'s':'')):'')
       + (partial?(', ' + partial + ' partielle' + (partial>1?'s':'') + ' (coup illisible en route)'):'')
       + (failed?(', ' + failed + ' illisible' + (failed>1?'s':'')):'')
       + (consultees?(' — dont ' + consultees + ' consultée' + (consultees>1?'s':'') + ', hors de tes statistiques'):'')
-      + (plein?(' — ' + plein + ' non importée' + (plein>1?'s':'') + ' : historique plein (' + HIST_MAX + ' max), tes propres parties ont été préservées'):'');
+      + (plein?(' — ' + plein + ' non importée' + (plein>1?'s':'') + ' : historique plein (' + HIST_MAX + ' max), tes propres parties ont été préservées'):'')
+      + (chauffees?(' — ' + chauffees + ' ajoutée' + (chauffees>1?'s':'') + ' à ta carte de chaleur'):'');
   }
   if (typeof _renderHistoryList === 'function') _renderHistoryList();
 }
