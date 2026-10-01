@@ -1181,6 +1181,8 @@ function _declarerNulle(raison) {
   if (overlay) overlay.classList.add('show');
   if (typeof renderStyleCard === 'function') renderStyleCard();
   if (typeof renderHeatmapCard === 'function') renderHeatmapCard();
+  // comptee comme partie jouee (et nulle) dans la progression, ELO neutre
+  if (typeof onGamePlayed === 'function' && MoveCount.get() > 0) onGamePlayed('draw');
   if (typeof showToast === 'function') showToast('🤝 Partie nulle — ELO inchangé');
 }
 /* Triple repetition. A appeler juste APRES l'enregistrement d'un coup : la

@@ -141,6 +141,7 @@ const PASSERELLE = `
   if (typeof variantMode !== 'undefined') relier('variantMode', function(){return variantMode;}, function(v){variantMode=v;});
   if (typeof botDuelMode !== 'undefined') relier('botDuelMode', function(){return botDuelMode;}, function(v){botDuelMode=v;});
   if (typeof currentLayout !== 'undefined') relier('currentLayout', function(){return currentLayout;}, function(v){currentLayout=v;});
+  if (typeof kidsMode !== 'undefined') relier('kidsMode', function(){return kidsMode;}, function(v){kidsMode=v;});
   if (typeof undoStack !== 'undefined')        relier('undoStack', function(){return undoStack;}, function(v){undoStack=v;});
   if (typeof selected !== 'undefined')         relier('selected', function(){return selected;}, function(v){selected=v;});
   if (typeof LAYOUTS !== 'undefined')          relier('LAYOUTS', function(){return LAYOUTS;});

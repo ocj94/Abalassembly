@@ -22475,6 +22475,8 @@ function _declarerNulle(raison) {
   if (overlay) overlay.classList.add('show');
   if (typeof renderStyleCard === 'function') renderStyleCard();
   if (typeof renderHeatmapCard === 'function') renderHeatmapCard();
+  // comptee comme partie jouee (et nulle) dans la progression, ELO neutre
+  if (typeof onGamePlayed === 'function' && MoveCount.get() > 0) onGamePlayed('draw');
   if (typeof showToast === 'function') showToast('🤝 Partie nulle — ELO inchangé');
 }
 /* Triple repetition. A appeler juste APRES l'enregistrement d'un coup : la
@@ -23165,22 +23167,37 @@ function triggerWin(winner, reason) {
   const overlay = document.getElementById('win-overlay');
   const title = document.getElementById('win-title');
   const sub = document.getElementById('win-sub');
+  /* Le joueur n'a pas toujours les Noirs. Avant : "Noirs = moi" code en dur ici --
+     une victoire AVEC LES BLANCS s'affichait « Défaite… » et comptait comme une
+     DEFAITE (ELO, XP, serie, conversion, badge). Constate par simulation et
+     signale a Olivier, qui joue souvent les Blancs. On suit monCamp(), le point
+     de verite unique du camp tenu (mode IA : la couleur choisie ; deux joueurs
+     sur le meme ecran : convention Noirs = joueur local, comme partout ailleurs). */
+  const moi = (typeof monCamp === 'function') ? monCamp() : 'black';
+  const jeGagne = (winner === moi);
+  const deuxJoueurs = (typeof GameMode !== 'undefined' && GameMode.get() === 'local');
+  const nomCamp = function(x){ return x === 'black' ? 'Noirs' : 'Blancs'; };
   if (typeof kidsMode !== 'undefined' && kidsMode) {
     // Mode Enfant : jamais de vocabulaire "défaite" — on valide toujours
     // l'effort, on invite à rejouer, peu importe le résultat.
-    if (winner === 'black') {
+    if (jeGagne) {
       title.textContent = 'Bravo, tu as gagné ! 🎉';
       sub.textContent = 'Belle partie, bien joué !';
     } else {
       title.textContent = 'Belle partie ! 💪';
       sub.textContent = 'Cette fois c\'est l\'autre camp qui gagne — à toi de rejouer !';
     }
-  } else if (winner === 'black') {
+  } else if (deuxJoueurs) {
+    // deux joueurs sur le meme ecran : ni « victoire » ni « defaite », le camp gagnant
+    title.textContent = 'Les ' + nomCamp(winner) + ' gagnent !';
+    sub.textContent = reason === 'resign' ? 'Les ' + nomCamp(winner === 'black' ? 'white' : 'black') + ' ont abandonné.'
+                    : 'Les ' + nomCamp(winner) + ' ont éjecté 6 billes adverses.';
+  } else if (jeGagne) {
     title.textContent = 'Victoire !';
-    sub.textContent = `Vous avez éjecté 6 billes adverses !`;
+    sub.textContent = reason === 'resign' ? 'Votre adversaire a abandonné.' : 'Vous avez éjecté 6 billes adverses !';
   } else {
     title.textContent = 'Défaite…';
-    sub.textContent = 'L\'adversaire a éjecté 6 de vos billes.';
+    sub.textContent = reason === 'resign' ? 'Vous avez abandonné.' : 'L\'adversaire a éjecté 6 de vos billes.';
   }
   overlay.classList.add('show');
   if (typeof renderStyleCard === 'function') renderStyleCard();   // carte d'analyse de style
@@ -23188,14 +23205,16 @@ function triggerWin(winner, reason) {
   // ── Hook engagement : XP, streak, ELO, badges ──
   sanitizeProgress();
   // ── Taux de conversion : le joueur a-t-il mené puis gagné ? ──
-  if ((progress.__hadLead || CapturedByBlack.get() > 0) && !(typeof MoveCount !== 'undefined' && MoveCount.get() === 0)) {
+  const mesEj = (moi === 'black') ? CapturedByBlack.get() : CapturedByWhite.get();
+  const sesEj = (moi === 'black') ? CapturedByWhite.get() : CapturedByBlack.get();
+  if ((progress.__hadLead || mesEj > 0) && !(typeof MoveCount !== 'undefined' && MoveCount.get() === 0)) {
     progress.leadGames = (progress.leadGames||0) + 1;
-    if (winner === 'black') progress.leadWins = (progress.leadWins||0) + 1;
+    if (jeGagne) progress.leadWins = (progress.leadWins||0) + 1;
     progress.__hadLead = false;
     saveProgress(progress);
   }
   if (typeof onGamePlayed === 'function' && !(typeof MoveCount !== 'undefined' && MoveCount.get() === 0)) {
-    onGamePlayed(winner === 'black');
+    onGamePlayed(jeGagne);
   }
   // Partie sans aucun coup joué (abandon immédiat, annulation) : aucun ELO
   // retiré, aucune stat comptée — idée d'Olivier. On informe juste discrètement.
@@ -23203,7 +23222,7 @@ function triggerWin(winner, reason) {
     if (typeof showToast === 'function') showToast('Partie annulée — aucun coup joué, ELO inchangé');
   }
   // Badge Blanchissage : le joueur gagne 6-0 sans avoir perdu une seule bille
-  if (winner === 'black' && CapturedByWhite.get() === 0 && typeof awardBadge === 'function') {
+  if (jeGagne && sesEj === 0 && typeof awardBadge === 'function') {
     awardBadge('shutout');
     showToast('🧺 Blanchissage ! Victoire 6-0 sans perdre une bille !');
   }
