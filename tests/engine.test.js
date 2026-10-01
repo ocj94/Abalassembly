@@ -1360,7 +1360,7 @@ function _nulleReset(mode) {
   ctx.boardSnapshots = []; ctx.MoveCount.set(0); ctx.CurrentTurn.set('black'); ctx.GameMode.set(mode || 'ai');
   ctx._nulleRefuseeAuCoup = -99; ctx.localStorage.removeItem(ctx.GAME_HISTORY_KEY);
   ctx.replayMode = false; ctx.variantMode = false; ctx.botDuelMode = false;   // une vraie partie en cours
-  ['showToast', 'drawBoard', 'renderStyleCard', 'renderHeatmapCard', 'updateHeroStats', 'notifierSiAbsent'].forEach(n => { ctx[n] = () => {}; });
+  ['showToast', 'drawBoard', 'renderStyleCard', 'renderHeatmapCard', 'updateHeroStats', 'notifierSiAbsent', 'onGamePlayed'].forEach(n => { ctx[n] = () => {}; });
 }
 // joue un coup sur le vrai plateau et l'enregistre comme le jeu (instantane + compteur)
 function _nulleJouer(m, couleur) {
@@ -1459,5 +1459,64 @@ test('nulle a distance : la proposition part chez l adversaire, qui repond', () 
     assert.strictEqual(envoyes[envoyes.length - 1], 'NULLE:accepte'); assert.ok(ctx.GameOver.get());
     ctx.GameOver.set(false); ctx._rtcMessageNulle('NULLE:accepte'); assert.ok(ctx.GameOver.get());
   } finally { ctx._rtcChannel = null; }
+});
+
+/* ─── 33. Fin de partie : le camp REEL du joueur (une victoire avec les Blancs comptait comme une defaite) ─── */
+function _finPartie(opts) {
+  const els = {}; const origine = ctx.document.getElementById;
+  ctx.document.getElementById = id => (els[id] || (els[id] = { textContent: '', classList: { add(){}, remove(){} }, style: {} }));
+  ['showToast', 'soundWin', 'renderStyleCard', 'renderHeatmapCard', 'updateHeroStats', 'notifierSiAbsent', 'stopGameTimer', 'clearSavedGame', '_recordGameHistory'].forEach(n => { ctx[n] = () => {}; });
+  ctx.winIntegrityOK = () => true;
+  let joue = null, badge = null;
+  const sauveO = ctx.onGamePlayed, sauveB = ctx.awardBadge;
+  ctx.onGamePlayed = r => { joue = r; }; ctx.awardBadge = b => { badge = b; };
+  ctx.GameMode.set(opts.mode || 'ai'); ctx.HumanColor.set(opts.humain || 'black'); ctx.kidsMode = !!opts.enfant;
+  ctx.MoveCount.set(40); ctx.GameOver.set(false);
+  ctx.CapturedByBlack.set(opts.cN || 0); ctx.CapturedByWhite.set(opts.cB || 0);
+  try { ctx.triggerWin(opts.gagnant, opts.raison); }
+  finally { ctx.document.getElementById = origine; ctx.onGamePlayed = sauveO; ctx.awardBadge = sauveB; ctx.kidsMode = false; }
+  return { titre: els['win-title'].textContent, texte: els['win-sub'].textContent, victoire: joue, badge };
+}
+
+test('fin de partie : tu gagnes AVEC LES BLANCS -> « Victoire ! », comptee comme une victoire', () => {
+  const r = _finPartie({ humain: 'white', gagnant: 'white', cB: 6, cN: 2 });
+  assert.strictEqual(r.titre, 'Victoire !'); assert.match(r.texte, /Vous avez éjecté 6 billes adverses/);
+  assert.strictEqual(r.victoire, true, 'ELO / XP / serie : une victoire');
+});
+
+test('fin de partie : tu perds avec les Blancs -> « Défaite… », comptee comme une defaite', () => {
+  const r = _finPartie({ humain: 'white', gagnant: 'black', cN: 6, cB: 1 });
+  assert.strictEqual(r.titre, 'Défaite…'); assert.strictEqual(r.victoire, false);
+});
+
+test('fin de partie : avec les Noirs, rien ne change (non-regression)', () => {
+  assert.strictEqual(_finPartie({ humain: 'black', gagnant: 'black', cN: 6 }).titre, 'Victoire !');
+  const p = _finPartie({ humain: 'black', gagnant: 'white', cB: 6 });
+  assert.strictEqual(p.titre, 'Défaite…'); assert.strictEqual(p.victoire, false);
+});
+
+test('fin de partie : un abandon n est plus decrit comme « 6 billes ejectees »', () => {
+  const r = _finPartie({ humain: 'black', gagnant: 'white', raison: 'resign', cN: 1, cB: 2 });
+  assert.strictEqual(r.titre, 'Défaite…'); assert.strictEqual(r.texte, 'Vous avez abandonné.');
+  assert.strictEqual(_finPartie({ humain: 'white', gagnant: 'white', raison: 'resign', cB: 2 }).texte, 'Votre adversaire a abandonné.');
+});
+
+test('fin de partie : a deux sur le meme ecran, le camp gagnant (ni victoire ni defaite)', () => {
+  const r = _finPartie({ mode: 'local', gagnant: 'white', cB: 6 });
+  assert.strictEqual(r.titre, 'Les Blancs gagnent !'); assert.match(r.texte, /Les Blancs ont éjecté 6 billes/);
+});
+
+test('fin de partie : mode Enfant et badge Blanchissage suivent aussi le camp reel', () => {
+  assert.strictEqual(_finPartie({ humain: 'white', gagnant: 'white', cB: 6, enfant: true }).titre, 'Bravo, tu as gagné ! 🎉');
+  assert.strictEqual(_finPartie({ humain: 'white', gagnant: 'white', cB: 6, cN: 0 }).badge, 'shutout', '6-0 avec les Blancs');
+  assert.strictEqual(_finPartie({ humain: 'white', gagnant: 'white', cB: 6, cN: 1 }).badge, null);
+});
+
+test('nulle : comptee dans la progression (partie jouee, nulle), ELO neutre', () => {
+  ctx.initBoardState(); ctx.GameOver.set(false); ctx.MoveCount.set(30); ctx.GameMode.set('local');
+  ['showToast', 'drawBoard', 'renderStyleCard', 'renderHeatmapCard', 'updateHeroStats', 'notifierSiAbsent', '_recordGameHistory', 'clearSavedGame', 'stopGameTimer'].forEach(n => { ctx[n] = () => {}; });
+  let joue = null; const sauve = ctx.onGamePlayed; ctx.onGamePlayed = r => { joue = r; };
+  try { ctx._declarerNulle('accord'); } finally { ctx.onGamePlayed = sauve; }
+  assert.strictEqual(joue, 'draw');
 });
 
