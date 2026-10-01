@@ -132,6 +132,8 @@ const PASSERELLE = `
   if (typeof _tb42PuzzleDtw !== 'undefined') relier('_tb42PuzzleDtw', function(){return _tb42PuzzleDtw;}, function(v){_tb42PuzzleDtw=v;});
   if (typeof aiDifficulty !== 'undefined')     relier('aiDifficulty', function(){return aiDifficulty;}, function(v){aiDifficulty=v;});
   if (typeof _tb42Indispo !== 'undefined')     relier('_tb42Indispo', function(){return _tb42Indispo;}, function(v){_tb42Indispo=v;});
+  if (typeof progress !== 'undefined') relier('progress', function(){return progress;});
+  if (typeof GAME_HISTORY_KEY !== 'undefined') relier('GAME_HISTORY_KEY', function(){return GAME_HISTORY_KEY;});
   if (typeof undoStack !== 'undefined')        relier('undoStack', function(){return undoStack;}, function(v){undoStack=v;});
   if (typeof selected !== 'undefined')         relier('selected', function(){return selected;}, function(v){selected=v;});
   if (typeof LAYOUTS !== 'undefined')          relier('LAYOUTS', function(){return LAYOUTS;});
