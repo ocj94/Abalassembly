@@ -279,7 +279,7 @@ function resetA11y() {
    Les choix sont accumules dans _setupCfg puis appliques d'un coup au
    demarrage. Variante et camp ne sont modifiables qu'ici ; le reste reste
    ajustable en jeu. */
-let _setupCfg = { layout:'standard', mode:'ai', first:'black', style:'auto', diff:'easy', time:'', hints:true, coords:false, engine:'actuel' };
+let _setupCfg = { layout:'standard', mode:'ai', first:'black', style:'auto', diff:'1', time:'', hints:true, coords:false, engine:'actuel' };
 /* Cadence choisie avant de passer en partie en direct, restauree si on
    revient sur un autre mode -- evite de perdre silencieusement le reglage. */
 let _setupCfgTimeBeforeRtc;
@@ -433,7 +433,7 @@ function setupPick(group, value, btn) {
   if (group === 'diff') {
     const info = document.getElementById('setup-diff-info');
     const cfg = (typeof AI_DIFFICULTY_CONFIG !== 'undefined') ? AI_DIFFICULTY_CONFIG[value] : null;
-    if (info && cfg) info.textContent = cfg.label;
+    if (info && cfg) info.textContent = 'Niveau ' + _niveauIA(value) + ' — ' + cfg.label;
   }
 }
 
@@ -442,11 +442,11 @@ function setupToggle(key, on) { _setupCfg[key] = on; }
 /* Ouvre la configuration. C'est le nouveau point d'entree de « Jouer ». */
 function openGameSetup() {
   showPage('setup');
-  // Affiche l'indication du niveau actif (Facile par defaut) des l'ouverture,
+  // Affiche l'indication du niveau actif (niveau 1 par defaut) des l'ouverture,
   // pas seulement apres un clic — meme table que la decision reelle de l'IA.
   const info = document.getElementById('setup-diff-info');
   const cfg = (typeof AI_DIFFICULTY_CONFIG !== 'undefined') ? AI_DIFFICULTY_CONFIG[_setupCfg.diff] : null;
-  if (info && cfg) info.textContent = cfg.label;
+  if (info && cfg) info.textContent = 'Niveau ' + _niveauIA(_setupCfg.diff) + ' — ' + cfg.label;
   // Reflete le moteur reellement actif (choisi ici ou depuis Labo IA) plutot
   // que de toujours reafficher "Moteur actuel" par defaut -- sans ca, un
   // choix fait dans Labo IA etait silencieusement ecrase des qu'on lancait

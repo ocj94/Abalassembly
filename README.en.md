@@ -120,7 +120,7 @@ What it hides: **chat**, the **AI Lab**, **settings**, and **external links**. I
 | **Offline-first** | No network request required. Progress, settings and solved puzzles live in `localStorage`. |
 | **AI in a Worker** | Search runs on a separate thread; the interface stays smooth while it thinks. |
 | **Adaptive multi-worker search** | On a multi-core device, search is split across several Workers (root moves partitioned, each with its own transposition table — no shared memory, since GitHub Pages doesn't set the headers `SharedArrayBuffer` needs). Adapts via `navigator.hardwareConcurrency`: up to 4 workers on a multi-core PC, a single one (same behavior as before) on a constrained phone. |
-| **RAM-capped transposition table** | The search cache (TT) scales with `navigator.deviceMemory` (falls back to 4 GB if the API is unavailable) instead of growing without bound — mainly relevant in Minimax mode (unbounded-time search). The cap can never change a result, only cache efficiency once it's reached. |
+| **RAM-capped transposition table** | The search cache (TT) scales with `navigator.deviceMemory` (falls back to 4 GB if the API is unavailable) instead of growing without bound — mainly relevant at level 10, formerly "Minimax" (unbounded-time search). The cap can never change a result, only cache efficiency once it's reached. |
 
 ## Backend (dormant)
 

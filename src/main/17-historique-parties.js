@@ -15,9 +15,10 @@ function _historyOpponentLabel(entry){
   if (entry.mode === 'import') return 'Partie importée' + ((entry.blackName || entry.whiteName) ? ' — ' + (entry.blackName||'?') + ' vs ' + (entry.whiteName||'?') : '');
   if (entry.mode === 'local') return (entry.blackName || entry.whiteName) ? 'Partie par code/direct' : 'Local (même écran)';
   const styleLabels = { auto:'Auto', aggressive:'Agressif', defensive:'Défensif', divide:'Division', balanced:'Équilibré' };
-  const diffLabels = { easy:'Facile', medium:'Moyen', advanced:'Avancé', hard:'Expert', master:'Maître', minimax:'Minimax' };
   const style = styleLabels[entry.aiStyle] || entry.aiStyle || '?';
-  const diff = diffLabels[entry.aiDiff] || entry.aiDiff || '?';
+  // anciennes parties ("hard"...) affichees avec leur numero : meme niveau, renomme
+  const _n = _niveauIA(entry.aiDiff);
+  const diff = _n ? 'Niveau ' + _n : (entry.aiDiff || '?');
   return 'IA ' + style + ' — ' + diff;
 }
 

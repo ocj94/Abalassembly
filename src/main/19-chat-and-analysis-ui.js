@@ -459,12 +459,12 @@ function runAnalysis() {
    BOTS
 ═══════════════════════════════════════════ */
 const botsData = [
-  { id:'random', name:'MiniMarble', emoji:'🐣', desc:'Débutant — joue au hasard', elo:400, diff:'easy', color:'#2a4a2a' },
-  { id:'center', name:'CentroBot', emoji:'⭐', desc:'Intermédiaire — vise le centre', elo:800, diff:'medium', color:'#2a2a4a' },
-  { id:'smart',  name:'SumitoAI', emoji:'🧠', desc:'Avancé — calcule les poussées', elo:1200, diff:'medium', color:'#4a2a2a' },
-  { id:'expert', name:'GrandMaster-9', emoji:'👑', desc:'Expert — stratégie complète', elo:1800, diff:'hard', color:'#2a3a2a' },
-  { id:'blitz',  name:'BlitzBot', emoji:'⚡', desc:'Très rapide — répond en 0.2s', elo:1500, diff:'hard', color:'#3a2a4a' },
-  { id:'fightclub', name:'FightClub Bot', emoji:'📝', desc:'Style du fondateur — équilibré', elo:1950, diff:'hard', color:'#4a1c5a' },
+  { id:'random', name:'MiniMarble', emoji:'🐣', desc:'Débutant — joue au hasard', elo:400, diff:'1', color:'#2a4a2a' },
+  { id:'center', name:'CentroBot', emoji:'⭐', desc:'Intermédiaire — vise le centre', elo:800, diff:'3', color:'#2a2a4a' },
+  { id:'smart',  name:'SumitoAI', emoji:'🧠', desc:'Avancé — calcule les poussées', elo:1200, diff:'3', color:'#4a2a2a' },
+  { id:'expert', name:'GrandMaster-9', emoji:'👑', desc:'Expert — stratégie complète', elo:1800, diff:'5', color:'#2a3a2a' },
+  { id:'blitz',  name:'BlitzBot', emoji:'⚡', desc:'Très rapide — répond en 0.2s', elo:1500, diff:'5', color:'#3a2a4a' },
+  { id:'fightclub', name:'FightClub Bot', emoji:'📝', desc:'Style du fondateur — équilibré', elo:1950, diff:'5', color:'#4a1c5a' },
 ];
 let selectedBot = 'smart';
 

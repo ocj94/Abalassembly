@@ -22,7 +22,7 @@ flowchart TD
     C1 -->|no| D
     C -->|no| D{Fewer than 16 moves<br/>and static book available?}
     D -->|yes| D1[Move from the static book]
-    D -->|no| E{Easy level?}
+    D -->|no| E{Level 1?}
     E -->|yes| E1[Random move<br/>among the top 4]
     E -->|no| F[Alpha-beta search]
     F --> G{Multiple cores<br/>available?}

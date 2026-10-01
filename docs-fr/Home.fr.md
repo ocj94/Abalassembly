@@ -28,7 +28,7 @@ Un jeu d'Abalone complet dans un seul fichier HTML : zéro dépendance, hors-lig
 - **Vue à la première personne**, partie par code, analyse d'après-partie, puzzle du jour
 - **12 langues** au sélecteur — anglais et hébreu avec traduction embarquée de la navigation, les autres via la traduction du navigateur ; hébreu en RTL (sidebar et mise en page basculent à droite)
 - **IA multi-worker** — se partage entre plusieurs cœurs si l'appareil en offre (jusqu'à 4), sinon se comporte comme avant
-- **Cache de recherche plafonné selon la RAM** — s'adapte à l'appareil plutôt que de grossir sans limite, surtout utile en mode Minimax (recherche non bornée en temps)
+- **Cache de recherche plafonné selon la RAM** — s'adapte à l'appareil plutôt que de grossir sans limite, surtout utile au niveau 10, l'ancien « Minimax » (recherche non bornée en temps)
 - **Mode technique** — sur les pages qui en ont (Tables de finale, Ouvertures, Labo, Statistiques, Analyse), un bouton révèle méthode et chiffres bruts sans encombrer la vue par défaut
 - **Moteur de compréhension** (page Analyse) — sur n'importe quelle position : décomposition spatiale, faiblesse de soutien, potentiel de sumito, menaces immédiates, profondeur tactique, mobilité à 2 coups, et une recherche de menace ciblée sur demande
 - **Empreinte positionnelle** (même page) — capture une position comme référence, compare toute position suivante à elle (distance + détail par dimension en mode technique). Invariant au miroir gauche-droite : deux positions en miroir exact sont reconnues comme identiques

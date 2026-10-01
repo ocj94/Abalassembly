@@ -30,20 +30,40 @@ function setLayout(name, btn) {
    Heuristics from github.com/altin/abalone-ai
    h1: center distance | h2: cohesion | h3: push threats
 ═══════════════════════════════════════════ */
-let aiDifficulty = 'medium';
+let aiDifficulty = '3';
 /* Table UNIQUE profondeur/budget-temps par niveau — utilisée à la fois par la
    décision réelle de l'IA (plus bas dans aiMove) et par l'indication affichée
    sur l'écran de configuration (setup-diff-info). Une seule source de verité :
    changer un chiffre ici le change partout, jamais deux tables qui pourraient
    diverger et afficher un niveau différent de ce qui est réellement joué. */
+/* Niveaux NUMEROTES de 1 a 10 (demande d'Olivier : des chiffres plutot que des
+   noms, et des niveaux intermediaires). Les 6 anciens niveaux sont conserves A
+   L'IDENTIQUE : 1 = ancien Facile, 3 = Moyen, 4 = Avance, 5 = Expert, 7 = Maitre,
+   10 = Minimax. Les niveaux 2, 6, 8 et 9 s'intercalent entre eux. La recherche
+   approfondit niveau par niveau dans la limite de temps : faute de temps, elle
+   joue le meilleur coup du dernier niveau termine. */
 const AI_DIFFICULTY_CONFIG = {
-  easy:     { depth:1, time:200,     label:'Coup quasi instantané, parmi les meilleurs captures/poussées disponibles, avec un peu de hasard.' },
-  medium:   { depth:2, time:600,     label:'Regarde 2 coups à l\'avance, jusqu\'à 0,6 s de réflexion.' },
-  advanced: { depth:3, time:1200,    label:'Regarde 3 coups à l\'avance, jusqu\'à 1,2 s de réflexion.' },
-  hard:     { depth:4, time:2500,    label:'Regarde 4 coups à l\'avance, jusqu\'à 2,5 s de réflexion.' },
-  master:   { depth:6, time:5000,    label:'Regarde 6 coups à l\'avance, jusqu\'à 5 s de réflexion.' },
-  minimax:  { depth:8, time:3600000, label:'Regarde 8 coups à l\'avance, sans limite de temps pratique (plafond de sécurité 1h) — le plus lent, le plus fort.' },
+  '1':  { depth:1, time:200,     hasard:true, label:'Coup quasi instantané, tiré au hasard parmi les meilleures captures et poussées.' },
+  '2':  { depth:1, time:300,     label:'Regarde 1 coup à l\'avance et joue le meilleur, sans hasard.' },
+  '3':  { depth:2, time:600,     label:'Regarde 2 coups à l\'avance, jusqu\'à 0,6 s de réflexion.' },
+  '4':  { depth:3, time:1200,    label:'Regarde 3 coups à l\'avance, jusqu\'à 1,2 s de réflexion.' },
+  '5':  { depth:4, time:2500,    label:'Regarde 4 coups à l\'avance, jusqu\'à 2,5 s de réflexion.' },
+  '6':  { depth:5, time:3500,    label:'Regarde jusqu\'à 5 coups à l\'avance, 3,5 s de réflexion au plus.' },
+  '7':  { depth:6, time:5000,    label:'Regarde 6 coups à l\'avance, jusqu\'à 5 s de réflexion.' },
+  '8':  { depth:7, time:10000,   label:'Regarde jusqu\'à 7 coups à l\'avance, 10 s de réflexion au plus.' },
+  '9':  { depth:8, time:30000,   label:'Vise 8 coups à l\'avance, 30 s au plus : faute de temps, joue le meilleur coup déjà calculé.' },
+  '10': { depth:8, time:3600000, label:'Regarde 8 coups à l\'avance, sans limite de temps pratique (plafond de sécurité 1h) — le plus lent, le plus fort.' },
 };
+/* Anciens identifiants : toujours reconnus (parties de l'historique, robots,
+   anciens reglages) -- chacun pointe sur son niveau numerote, a l'identique. */
+const AI_NIVEAU_ANCIEN = { easy:'1', medium:'3', advanced:'4', hard:'5', master:'7', minimax:'10' };
+Object.keys(AI_NIVEAU_ANCIEN).forEach(function(k){ AI_DIFFICULTY_CONFIG[k] = AI_DIFFICULTY_CONFIG[AI_NIVEAU_ANCIEN[k]]; });
+// numero 1..10 d'un niveau (nouvel ou ancien identifiant), ou null s'il est inconnu
+function _niveauIA(v) {
+  const k = String(v === undefined ? aiDifficulty : v);
+  const n = parseInt(AI_NIVEAU_ANCIEN[k] || k, 10);
+  return (n >= 1 && n <= 10) ? n : null;
+}
 let aiMoveCount = 0; // track for adaptive difficulty
 
 // Center coordinates

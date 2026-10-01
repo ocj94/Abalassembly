@@ -510,13 +510,13 @@ function applyDuelMove(mv, color) {
   if (CapturedByWhite.get() >= 6) { triggerWin('white'); botDuelMode=false; showDuelStopBtn(false); }
 }
 
-let botDifficulty = 'easy';
+let botDifficulty = '1';
 function setBotDifficulty(level, btn) {
   botDifficulty = level;
-  aiDifficulty = (level === 'hard') ? 'hard' : level;  // synchronise avec l'IA existante
+  aiDifficulty = level;  // synchronise avec l'IA existante
   document.querySelectorAll('.bot-diff-btn').forEach(function(b){ b.classList.remove('active'); });
   if (btn) btn.classList.add('active');
-  showToast('Niveau des bots : ' + (level==='easy'?'Facile':level==='medium'?'Moyen':'Expert'));
+  showToast('Niveau des bots : ' + (_niveauIA(level) || level));
 }
 
 

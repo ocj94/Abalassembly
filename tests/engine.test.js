@@ -1306,3 +1306,50 @@ test('carte de chaleur : une partie importee AVANT ce changement est rattrapee u
   assert.strictEqual(_somme(ctx.progress.heatmaps['me_white']) + _somme(ctx.progress.heatmaps['me_black']), 0);
 });
 
+/* ─── 31. Niveaux de l'IA numerotes de 1 a 10 ─── */
+
+test('niveaux : 10 niveaux de plus en plus forts ; les 6 anciens conserves a l identique sous leur numero', () => {
+  const C = ctx.AI_DIFFICULTY_CONFIG;
+  const prof = [], temps = [];
+  for (let n = 1; n <= 10; n++) { const c = C[String(n)]; assert.ok(c && c.label, 'niveau ' + n); prof.push(c.depth); temps.push(c.time); }
+  for (let n = 1; n < 10; n++) {
+    assert.ok(prof[n] >= prof[n - 1] && temps[n] > temps[n - 1], 'niveau ' + (n + 1) + ' au moins aussi fort que ' + n);
+  }
+  // anciens niveaux : exactement les memes reglages (profondeur, temps), simplement renumerotes
+  const anciens = { easy: [1, 200, 1], medium: [2, 600, 3], advanced: [3, 1200, 4], hard: [4, 2500, 5], master: [6, 5000, 7], minimax: [8, 3600000, 10] };
+  for (const [k, [d, ms, n]] of Object.entries(anciens)) {
+    assert.strictEqual(C[k], C[String(n)], k + ' -> niveau ' + n);
+    assert.deepStrictEqual([C[k].depth, C[k].time], [d, ms], k);
+    assert.strictEqual(ctx._niveauIA(k), n);
+  }
+  assert.ok(C['1'].hasard && !C['2'].hasard, 'seul le niveau 1 joue avec du hasard');
+  assert.strictEqual(ctx._niveauIA('7'), 7); assert.strictEqual(ctx._niveauIA('n\'importe'), null);
+});
+
+test('niveaux : ecran de configuration a 10 boutons numerotes, plus aucun ancien nom de niveau', () => {
+  const src = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
+  const bloc = src.slice(src.indexOf('id="setup-diff"'), src.indexOf('id="setup-diff-info"'));
+  const valeurs = [...bloc.matchAll(/setupPick\('diff','(\w+)'/g)].map(m => m[1]);
+  assert.deepStrictEqual(valeurs, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']);
+  assert.doesNotMatch(bloc, /Facile|Moyen|Avancé|Expert|Maître|Minimax/);
+});
+
+test('niveaux : l historique affiche le numero, y compris pour les anciennes parties (« Expert » -> Niveau 5)', () => {
+  assert.match(ctx._historyOpponentLabel({ mode: 'ai', aiStyle: 'auto', aiDiff: 'hard' }), /— Niveau 5$/);
+  assert.match(ctx._historyOpponentLabel({ mode: 'ai', aiStyle: 'auto', aiDiff: 'minimax' }), /— Niveau 10$/);
+  assert.match(ctx._historyOpponentLabel({ mode: 'ai', aiStyle: 'auto', aiDiff: '9' }), /— Niveau 9$/);
+});
+
+test('niveaux : le niveau 1 (comme l ancien « Facile ») joue tout de suite, au hasard parmi les 4 premiers coups', () => {
+  ctx.initBoardState(); ctx.CapturedByBlack.set(0); ctx.CapturedByWhite.set(0); ctx.GameOver.set(false);
+  const sauve = { a: ctx.aiColor, e: ctx.executeAIMove };
+  for (const niv of ['1', 'easy']) {
+    let joue = null; ctx.aiColor = () => 'white'; ctx.executeAIMove = m => { joue = m; };
+    ctx.aiDifficulty = niv; ctx.aiMove();
+    assert.ok(joue, niv + ' : coup joue immediatement');
+    const tries = ctx.getAllMovesForColor('white').sort((a, b) => (a.code || 9) - (b.code || 9)).slice(0, 4).map(m => JSON.stringify([m.cells, m.dir]));
+    assert.ok(tries.includes(JSON.stringify([joue.cells, joue.dir])), niv + ' : parmi les 4 premiers');
+  }
+  ctx.aiColor = sauve.a; ctx.executeAIMove = sauve.e; ctx.aiDifficulty = '3';
+});
+

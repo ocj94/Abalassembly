@@ -3208,12 +3208,16 @@ document.addEventListener('keydown', function(e){
       </div>
       <div class="setup-row-lbl" style="margin-top:14px">Niveau</div>
       <div style="display:flex;gap:5px;flex-wrap:wrap" id="setup-diff">
-        <button onclick="setupPick('diff','easy',this)" class="setup-opt active">Facile</button>
-        <button onclick="setupPick('diff','medium',this)" class="setup-opt">Moyen</button>
-        <button onclick="setupPick('diff','advanced',this)" class="setup-opt">Avancé</button>
-        <button onclick="setupPick('diff','hard',this)" class="setup-opt">Expert</button>
-        <button onclick="setupPick('diff','master',this)" class="setup-opt">Maître</button>
-        <button onclick="setupPick('diff','minimax',this)" class="setup-opt" style="color:#b89ef0">Minimax</button>
+        <button onclick="setupPick('diff','1',this)" class="setup-opt active">1</button>
+        <button onclick="setupPick('diff','2',this)" class="setup-opt">2</button>
+        <button onclick="setupPick('diff','3',this)" class="setup-opt">3</button>
+        <button onclick="setupPick('diff','4',this)" class="setup-opt">4</button>
+        <button onclick="setupPick('diff','5',this)" class="setup-opt">5</button>
+        <button onclick="setupPick('diff','6',this)" class="setup-opt">6</button>
+        <button onclick="setupPick('diff','7',this)" class="setup-opt">7</button>
+        <button onclick="setupPick('diff','8',this)" class="setup-opt">8</button>
+        <button onclick="setupPick('diff','9',this)" class="setup-opt">9</button>
+        <button onclick="setupPick('diff','10',this)" class="setup-opt" style="color:#b89ef0">10</button>
       </div>
       <div id="setup-diff-info" style="font-size:11px;color:var(--muted);margin-top:6px"></div>
 
@@ -3586,9 +3590,9 @@ document.addEventListener('keydown', function(e){
         <!-- niveau de difficulté des bots -->
         <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Niveau des bots :</div>
         <div style="display:flex;gap:6px;margin-bottom:14px" id="bot-difficulty">
-          <button class="btn-ghost bot-diff-btn active" style="flex:1;font-size:11px;padding:5px" onclick="setBotDifficulty('easy',this)">Facile</button>
-          <button class="btn-ghost bot-diff-btn" style="flex:1;font-size:11px;padding:5px" onclick="setBotDifficulty('medium',this)">Moyen</button>
-          <button class="btn-ghost bot-diff-btn" style="flex:1;font-size:11px;padding:5px" onclick="setBotDifficulty('hard',this)">Expert</button>
+          <button class="btn-ghost bot-diff-btn active" style="flex:1;font-size:11px;padding:5px" onclick="setBotDifficulty('1',this)">Niveau 1</button>
+          <button class="btn-ghost bot-diff-btn" style="flex:1;font-size:11px;padding:5px" onclick="setBotDifficulty('3',this)">Niveau 3</button>
+          <button class="btn-ghost bot-diff-btn" style="flex:1;font-size:11px;padding:5px" onclick="setBotDifficulty('5',this)">Niveau 5</button>
         </div>
 
         <!-- GitHub AI info -->
@@ -9035,7 +9039,7 @@ function resetA11y() {
    Les choix sont accumules dans _setupCfg puis appliques d'un coup au
    demarrage. Variante et camp ne sont modifiables qu'ici ; le reste reste
    ajustable en jeu. */
-let _setupCfg = { layout:'standard', mode:'ai', first:'black', style:'auto', diff:'easy', time:'', hints:true, coords:false, engine:'actuel' };
+let _setupCfg = { layout:'standard', mode:'ai', first:'black', style:'auto', diff:'1', time:'', hints:true, coords:false, engine:'actuel' };
 /* Cadence choisie avant de passer en partie en direct, restauree si on
    revient sur un autre mode -- evite de perdre silencieusement le reglage. */
 let _setupCfgTimeBeforeRtc;
@@ -9189,7 +9193,7 @@ function setupPick(group, value, btn) {
   if (group === 'diff') {
     const info = document.getElementById('setup-diff-info');
     const cfg = (typeof AI_DIFFICULTY_CONFIG !== 'undefined') ? AI_DIFFICULTY_CONFIG[value] : null;
-    if (info && cfg) info.textContent = cfg.label;
+    if (info && cfg) info.textContent = 'Niveau ' + _niveauIA(value) + ' — ' + cfg.label;
   }
 }
 
@@ -9198,11 +9202,11 @@ function setupToggle(key, on) { _setupCfg[key] = on; }
 /* Ouvre la configuration. C'est le nouveau point d'entree de « Jouer ». */
 function openGameSetup() {
   showPage('setup');
-  // Affiche l'indication du niveau actif (Facile par defaut) des l'ouverture,
+  // Affiche l'indication du niveau actif (niveau 1 par defaut) des l'ouverture,
   // pas seulement apres un clic — meme table que la decision reelle de l'IA.
   const info = document.getElementById('setup-diff-info');
   const cfg = (typeof AI_DIFFICULTY_CONFIG !== 'undefined') ? AI_DIFFICULTY_CONFIG[_setupCfg.diff] : null;
-  if (info && cfg) info.textContent = cfg.label;
+  if (info && cfg) info.textContent = 'Niveau ' + _niveauIA(_setupCfg.diff) + ' — ' + cfg.label;
   // Reflete le moteur reellement actif (choisi ici ou depuis Labo IA) plutot
   // que de toujours reafficher "Moteur actuel" par defaut -- sans ca, un
   // choix fait dans Labo IA etait silencieusement ecrase des qu'on lancait
@@ -10121,13 +10125,8 @@ function setDifficulty(level, btn) {
     var b = document.getElementById(id); if (b) b.classList.remove('active');
   });
   btn.classList.add('active');
-  const labels = {
-    easy:    '🎲 Facile — coups aléatoires',
-    medium:  '🧠 Moyen — Alpha-Bêta profondeur 2',
-    hard:    '💪 Expert — Alpha-Bêta profondeur 4',
-    minimax: '♟ α-β — profondeur 8, sans limite de temps (peut prendre plusieurs minutes par coup)'
-  };
-  showToast('🤖 IA : ' + (labels[level]||level));
+  const cfg = AI_DIFFICULTY_CONFIG[level];
+  showToast('🤖 IA : niveau ' + (_niveauIA(level) || level) + (cfg ? ' — ' + cfg.label : ''));
 }
 
 /* ─── MODE DE JEU ─── */
@@ -15938,20 +15937,40 @@ function setLayout(name, btn) {
    Heuristics from github.com/altin/abalone-ai
    h1: center distance | h2: cohesion | h3: push threats
 ═══════════════════════════════════════════ */
-let aiDifficulty = 'medium';
+let aiDifficulty = '3';
 /* Table UNIQUE profondeur/budget-temps par niveau — utilisée à la fois par la
    décision réelle de l'IA (plus bas dans aiMove) et par l'indication affichée
    sur l'écran de configuration (setup-diff-info). Une seule source de verité :
    changer un chiffre ici le change partout, jamais deux tables qui pourraient
    diverger et afficher un niveau différent de ce qui est réellement joué. */
+/* Niveaux NUMEROTES de 1 a 10 (demande d'Olivier : des chiffres plutot que des
+   noms, et des niveaux intermediaires). Les 6 anciens niveaux sont conserves A
+   L'IDENTIQUE : 1 = ancien Facile, 3 = Moyen, 4 = Avance, 5 = Expert, 7 = Maitre,
+   10 = Minimax. Les niveaux 2, 6, 8 et 9 s'intercalent entre eux. La recherche
+   approfondit niveau par niveau dans la limite de temps : faute de temps, elle
+   joue le meilleur coup du dernier niveau termine. */
 const AI_DIFFICULTY_CONFIG = {
-  easy:     { depth:1, time:200,     label:'Coup quasi instantané, parmi les meilleurs captures/poussées disponibles, avec un peu de hasard.' },
-  medium:   { depth:2, time:600,     label:'Regarde 2 coups à l\'avance, jusqu\'à 0,6 s de réflexion.' },
-  advanced: { depth:3, time:1200,    label:'Regarde 3 coups à l\'avance, jusqu\'à 1,2 s de réflexion.' },
-  hard:     { depth:4, time:2500,    label:'Regarde 4 coups à l\'avance, jusqu\'à 2,5 s de réflexion.' },
-  master:   { depth:6, time:5000,    label:'Regarde 6 coups à l\'avance, jusqu\'à 5 s de réflexion.' },
-  minimax:  { depth:8, time:3600000, label:'Regarde 8 coups à l\'avance, sans limite de temps pratique (plafond de sécurité 1h) — le plus lent, le plus fort.' },
+  '1':  { depth:1, time:200,     hasard:true, label:'Coup quasi instantané, tiré au hasard parmi les meilleures captures et poussées.' },
+  '2':  { depth:1, time:300,     label:'Regarde 1 coup à l\'avance et joue le meilleur, sans hasard.' },
+  '3':  { depth:2, time:600,     label:'Regarde 2 coups à l\'avance, jusqu\'à 0,6 s de réflexion.' },
+  '4':  { depth:3, time:1200,    label:'Regarde 3 coups à l\'avance, jusqu\'à 1,2 s de réflexion.' },
+  '5':  { depth:4, time:2500,    label:'Regarde 4 coups à l\'avance, jusqu\'à 2,5 s de réflexion.' },
+  '6':  { depth:5, time:3500,    label:'Regarde jusqu\'à 5 coups à l\'avance, 3,5 s de réflexion au plus.' },
+  '7':  { depth:6, time:5000,    label:'Regarde 6 coups à l\'avance, jusqu\'à 5 s de réflexion.' },
+  '8':  { depth:7, time:10000,   label:'Regarde jusqu\'à 7 coups à l\'avance, 10 s de réflexion au plus.' },
+  '9':  { depth:8, time:30000,   label:'Vise 8 coups à l\'avance, 30 s au plus : faute de temps, joue le meilleur coup déjà calculé.' },
+  '10': { depth:8, time:3600000, label:'Regarde 8 coups à l\'avance, sans limite de temps pratique (plafond de sécurité 1h) — le plus lent, le plus fort.' },
 };
+/* Anciens identifiants : toujours reconnus (parties de l'historique, robots,
+   anciens reglages) -- chacun pointe sur son niveau numerote, a l'identique. */
+const AI_NIVEAU_ANCIEN = { easy:'1', medium:'3', advanced:'4', hard:'5', master:'7', minimax:'10' };
+Object.keys(AI_NIVEAU_ANCIEN).forEach(function(k){ AI_DIFFICULTY_CONFIG[k] = AI_DIFFICULTY_CONFIG[AI_NIVEAU_ANCIEN[k]]; });
+// numero 1..10 d'un niveau (nouvel ou ancien identifiant), ou null s'il est inconnu
+function _niveauIA(v) {
+  const k = String(v === undefined ? aiDifficulty : v);
+  const n = parseInt(AI_NIVEAU_ANCIEN[k] || k, 10);
+  return (n >= 1 && n <= 10) ? n : null;
+}
 let aiMoveCount = 0; // track for adaptive difficulty
 
 // Center coordinates
@@ -22598,9 +22617,9 @@ function aiMove() {
   if (!moves.length) { CurrentTurn.set(human); updateStatus(); return; }
 
   // ── Finale 4 contre 2 (mode Decouverte) : jeu PARFAIT tire de la table, sauf au
-  //    niveau facile. Morceaux absents : on les charge puis on relance aiMove (meme
+  //    niveau 1. Morceaux absents : on les charge puis on relance aiMove (meme
   //    patron que les poids NNUE) ; chargement impossible : IA habituelle. ──
-  if (aiDifficulty !== 'easy' && !_tb42Indispo && _tb42Applicable()) {
+  if (_niveauIA() !== 1 && !_tb42Indispo && _tb42Applicable()) {
     const parfait = _tb42MeilleurCoup(ai);
     if (parfait) { executeAIMove(parfait); return; }
     const genTb = _aiGen;
@@ -22630,11 +22649,11 @@ function aiMove() {
   }
 
   // Profondeur et budget temps par difficulté — table partagée AI_DIFFICULTY_CONFIG
-  const config = Object.assign({}, AI_DIFFICULTY_CONFIG[aiDifficulty] || AI_DIFFICULTY_CONFIG.medium);
+  const config = Object.assign({}, AI_DIFFICULTY_CONFIG[aiDifficulty] || AI_DIFFICULTY_CONFIG['3']);
   if (typeof _tourneyMatch!=='undefined' && _tourneyMatch && _tourneyMatch.cfg) { config.depth=_tourneyMatch.cfg.depth; config.time=_tourneyMatch.cfg.time; }
 
-  // Niveau facile : décision immédiate (un peu d'aléatoire), pas besoin du worker
-  if (aiDifficulty === 'easy' && !(typeof _tourneyMatch!=='undefined' && _tourneyMatch)) {
+  // Niveau 1 : décision immédiate (un peu d'aléatoire), pas besoin du worker
+  if (_niveauIA() === 1 && !(typeof _tourneyMatch!=='undefined' && _tourneyMatch)) {
     moves.sort(function(a,b){ return (a.code||9)-(b.code||9); });
     executeAIMove(moves[Math.floor(Math.random()*Math.min(4,moves.length))]);
     return;
@@ -22913,9 +22932,10 @@ function _historyOpponentLabel(entry){
   if (entry.mode === 'import') return 'Partie importée' + ((entry.blackName || entry.whiteName) ? ' — ' + (entry.blackName||'?') + ' vs ' + (entry.whiteName||'?') : '');
   if (entry.mode === 'local') return (entry.blackName || entry.whiteName) ? 'Partie par code/direct' : 'Local (même écran)';
   const styleLabels = { auto:'Auto', aggressive:'Agressif', defensive:'Défensif', divide:'Division', balanced:'Équilibré' };
-  const diffLabels = { easy:'Facile', medium:'Moyen', advanced:'Avancé', hard:'Expert', master:'Maître', minimax:'Minimax' };
   const style = styleLabels[entry.aiStyle] || entry.aiStyle || '?';
-  const diff = diffLabels[entry.aiDiff] || entry.aiDiff || '?';
+  // anciennes parties ("hard"...) affichees avec leur numero : meme niveau, renomme
+  const _n = _niveauIA(entry.aiDiff);
+  const diff = _n ? 'Niveau ' + _n : (entry.aiDiff || '?');
   return 'IA ' + style + ' — ' + diff;
 }
 
@@ -26228,12 +26248,12 @@ function runAnalysis() {
    BOTS
 ═══════════════════════════════════════════ */
 const botsData = [
-  { id:'random', name:'MiniMarble', emoji:'🐣', desc:'Débutant — joue au hasard', elo:400, diff:'easy', color:'#2a4a2a' },
-  { id:'center', name:'CentroBot', emoji:'⭐', desc:'Intermédiaire — vise le centre', elo:800, diff:'medium', color:'#2a2a4a' },
-  { id:'smart',  name:'SumitoAI', emoji:'🧠', desc:'Avancé — calcule les poussées', elo:1200, diff:'medium', color:'#4a2a2a' },
-  { id:'expert', name:'GrandMaster-9', emoji:'👑', desc:'Expert — stratégie complète', elo:1800, diff:'hard', color:'#2a3a2a' },
-  { id:'blitz',  name:'BlitzBot', emoji:'⚡', desc:'Très rapide — répond en 0.2s', elo:1500, diff:'hard', color:'#3a2a4a' },
-  { id:'fightclub', name:'FightClub Bot', emoji:'📝', desc:'Style du fondateur — équilibré', elo:1950, diff:'hard', color:'#4a1c5a' },
+  { id:'random', name:'MiniMarble', emoji:'🐣', desc:'Débutant — joue au hasard', elo:400, diff:'1', color:'#2a4a2a' },
+  { id:'center', name:'CentroBot', emoji:'⭐', desc:'Intermédiaire — vise le centre', elo:800, diff:'3', color:'#2a2a4a' },
+  { id:'smart',  name:'SumitoAI', emoji:'🧠', desc:'Avancé — calcule les poussées', elo:1200, diff:'3', color:'#4a2a2a' },
+  { id:'expert', name:'GrandMaster-9', emoji:'👑', desc:'Expert — stratégie complète', elo:1800, diff:'5', color:'#2a3a2a' },
+  { id:'blitz',  name:'BlitzBot', emoji:'⚡', desc:'Très rapide — répond en 0.2s', elo:1500, diff:'5', color:'#3a2a4a' },
+  { id:'fightclub', name:'FightClub Bot', emoji:'📝', desc:'Style du fondateur — équilibré', elo:1950, diff:'5', color:'#4a1c5a' },
 ];
 let selectedBot = 'smart';
 
@@ -28253,13 +28273,13 @@ function applyDuelMove(mv, color) {
   if (CapturedByWhite.get() >= 6) { triggerWin('white'); botDuelMode=false; showDuelStopBtn(false); }
 }
 
-let botDifficulty = 'easy';
+let botDifficulty = '1';
 function setBotDifficulty(level, btn) {
   botDifficulty = level;
-  aiDifficulty = (level === 'hard') ? 'hard' : level;  // synchronise avec l'IA existante
+  aiDifficulty = level;  // synchronise avec l'IA existante
   document.querySelectorAll('.bot-diff-btn').forEach(function(b){ b.classList.remove('active'); });
   if (btn) btn.classList.add('active');
-  showToast('Niveau des bots : ' + (level==='easy'?'Facile':level==='medium'?'Moyen':'Expert'));
+  showToast('Niveau des bots : ' + (_niveauIA(level) || level));
 }
 
 
@@ -34443,7 +34463,7 @@ const ARCHI_DIAGRAMS = [
       { t:'Coup de la position historique la plus proche', c:'sortie' },
       { t:'Moins de 16 coups, et le livre statique connaît la position ?', c:'test' },
       { t:'Coup du livre statique', c:'sortie' },
-      { t:'Niveau Facile ?', c:'test' },
+      { t:'Niveau 1 ?', c:'test' },
       { t:'Coup au hasard parmi les 4 meilleurs', c:'sortie' },
       { t:'Recherche alpha-bêta, répartie sur plusieurs cœurs si disponibles', c:'calcul' }
     ]
