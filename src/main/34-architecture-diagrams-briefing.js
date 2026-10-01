@@ -22,7 +22,7 @@ const ARCHI_DIAGRAMS = [
       { t:'Coup de la position historique la plus proche', c:'sortie' },
       { t:'Moins de 16 coups, et le livre statique connaît la position ?', c:'test' },
       { t:'Coup du livre statique', c:'sortie' },
-      { t:'Niveau Facile ?', c:'test' },
+      { t:'Niveau 1 ?', c:'test' },
       { t:'Coup au hasard parmi les 4 meilleurs', c:'sortie' },
       { t:'Recherche alpha-bêta, répartie sur plusieurs cœurs si disponibles', c:'calcul' }
     ]

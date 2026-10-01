@@ -825,12 +825,16 @@
       </div>
       <div class="setup-row-lbl" style="margin-top:14px">Niveau</div>
       <div style="display:flex;gap:5px;flex-wrap:wrap" id="setup-diff">
-        <button onclick="setupPick('diff','easy',this)" class="setup-opt active">Facile</button>
-        <button onclick="setupPick('diff','medium',this)" class="setup-opt">Moyen</button>
-        <button onclick="setupPick('diff','advanced',this)" class="setup-opt">Avancé</button>
-        <button onclick="setupPick('diff','hard',this)" class="setup-opt">Expert</button>
-        <button onclick="setupPick('diff','master',this)" class="setup-opt">Maître</button>
-        <button onclick="setupPick('diff','minimax',this)" class="setup-opt" style="color:#b89ef0">Minimax</button>
+        <button onclick="setupPick('diff','1',this)" class="setup-opt active">1</button>
+        <button onclick="setupPick('diff','2',this)" class="setup-opt">2</button>
+        <button onclick="setupPick('diff','3',this)" class="setup-opt">3</button>
+        <button onclick="setupPick('diff','4',this)" class="setup-opt">4</button>
+        <button onclick="setupPick('diff','5',this)" class="setup-opt">5</button>
+        <button onclick="setupPick('diff','6',this)" class="setup-opt">6</button>
+        <button onclick="setupPick('diff','7',this)" class="setup-opt">7</button>
+        <button onclick="setupPick('diff','8',this)" class="setup-opt">8</button>
+        <button onclick="setupPick('diff','9',this)" class="setup-opt">9</button>
+        <button onclick="setupPick('diff','10',this)" class="setup-opt" style="color:#b89ef0">10</button>
       </div>
       <div id="setup-diff-info" style="font-size:11px;color:var(--muted);margin-top:6px"></div>
 
@@ -1203,9 +1207,9 @@
         <!-- niveau de difficulté des bots -->
         <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Niveau des bots :</div>
         <div style="display:flex;gap:6px;margin-bottom:14px" id="bot-difficulty">
-          <button class="btn-ghost bot-diff-btn active" style="flex:1;font-size:11px;padding:5px" onclick="setBotDifficulty('easy',this)">Facile</button>
-          <button class="btn-ghost bot-diff-btn" style="flex:1;font-size:11px;padding:5px" onclick="setBotDifficulty('medium',this)">Moyen</button>
-          <button class="btn-ghost bot-diff-btn" style="flex:1;font-size:11px;padding:5px" onclick="setBotDifficulty('hard',this)">Expert</button>
+          <button class="btn-ghost bot-diff-btn active" style="flex:1;font-size:11px;padding:5px" onclick="setBotDifficulty('1',this)">Niveau 1</button>
+          <button class="btn-ghost bot-diff-btn" style="flex:1;font-size:11px;padding:5px" onclick="setBotDifficulty('3',this)">Niveau 3</button>
+          <button class="btn-ghost bot-diff-btn" style="flex:1;font-size:11px;padding:5px" onclick="setBotDifficulty('5',this)">Niveau 5</button>
         </div>
 
         <!-- GitHub AI info -->

@@ -22,7 +22,7 @@ flowchart TD
     C1 -->|non| D
     C -->|non| D{Moins de 16 coups<br/>et livre statique ?}
     D -->|oui| D1[Coup du livre statique]
-    D -->|non| E{Niveau Facile ?}
+    D -->|non| E{Niveau 1 ?}
     E -->|oui| E1[Coup au hasard<br/>parmi les 4 meilleurs]
     E -->|non| F[Recherche alpha-bêta]
     F --> G{Plusieurs cœurs<br/>disponibles ?}

@@ -469,13 +469,8 @@ function setDifficulty(level, btn) {
     var b = document.getElementById(id); if (b) b.classList.remove('active');
   });
   btn.classList.add('active');
-  const labels = {
-    easy:    '🎲 Facile — coups aléatoires',
-    medium:  '🧠 Moyen — Alpha-Bêta profondeur 2',
-    hard:    '💪 Expert — Alpha-Bêta profondeur 4',
-    minimax: '♟ α-β — profondeur 8, sans limite de temps (peut prendre plusieurs minutes par coup)'
-  };
-  showToast('🤖 IA : ' + (labels[level]||level));
+  const cfg = AI_DIFFICULTY_CONFIG[level];
+  showToast('🤖 IA : niveau ' + (_niveauIA(level) || level) + (cfg ? ' — ' + cfg.label : ''));
 }
 
 /* ─── MODE DE JEU ─── */

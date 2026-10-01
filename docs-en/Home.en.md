@@ -28,7 +28,7 @@ A complete Abalone game in a single HTML file: zero dependencies, offline, GPL v
 - **First-person view**, game by code, post-game analysis, puzzle of the day
 - **12 languages** in the selector — English and Hebrew ship with embedded navigation translation, the others rely on the browser's own translation; Hebrew in RTL (sidebar and layout flip to the right)
 - **Multi-worker AI** — splits across several cores when the device offers them (up to 4), otherwise behaves as before
-- **RAM-capped search cache** — adapts to the device rather than growing without bound, especially useful in Minimax mode (unbounded-time search)
+- **RAM-capped search cache** — adapts to the device rather than growing without bound, especially useful at level 10, formerly "Minimax" (unbounded-time search)
 - **Technical mode** — on the pages that have it (Endgame tables, Openings, Lab, Statistics, Analysis), a button reveals the method and raw figures without cluttering the default view
 - **Understanding engine** (Analysis page) — for any position: spatial breakdown, support weakness, sumito potential, immediate threats, tactical depth, 2-move mobility, and a targeted threat search on request
 - **Positional fingerprint** (same page) — capture a position as a reference, compare any later position to it (distance + per-dimension detail in technical mode). Invariant under left-right mirroring: two exactly mirrored positions are recognized as identical

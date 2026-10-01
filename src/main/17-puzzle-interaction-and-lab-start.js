@@ -1325,9 +1325,9 @@ function aiMove() {
   if (!moves.length) { CurrentTurn.set(human); updateStatus(); return; }
 
   // ── Finale 4 contre 2 (mode Decouverte) : jeu PARFAIT tire de la table, sauf au
-  //    niveau facile. Morceaux absents : on les charge puis on relance aiMove (meme
+  //    niveau 1. Morceaux absents : on les charge puis on relance aiMove (meme
   //    patron que les poids NNUE) ; chargement impossible : IA habituelle. ──
-  if (aiDifficulty !== 'easy' && !_tb42Indispo && _tb42Applicable()) {
+  if (_niveauIA() !== 1 && !_tb42Indispo && _tb42Applicable()) {
     const parfait = _tb42MeilleurCoup(ai);
     if (parfait) { executeAIMove(parfait); return; }
     const genTb = _aiGen;
@@ -1357,11 +1357,11 @@ function aiMove() {
   }
 
   // Profondeur et budget temps par difficulté — table partagée AI_DIFFICULTY_CONFIG
-  const config = Object.assign({}, AI_DIFFICULTY_CONFIG[aiDifficulty] || AI_DIFFICULTY_CONFIG.medium);
+  const config = Object.assign({}, AI_DIFFICULTY_CONFIG[aiDifficulty] || AI_DIFFICULTY_CONFIG['3']);
   if (typeof _tourneyMatch!=='undefined' && _tourneyMatch && _tourneyMatch.cfg) { config.depth=_tourneyMatch.cfg.depth; config.time=_tourneyMatch.cfg.time; }
 
-  // Niveau facile : décision immédiate (un peu d'aléatoire), pas besoin du worker
-  if (aiDifficulty === 'easy' && !(typeof _tourneyMatch!=='undefined' && _tourneyMatch)) {
+  // Niveau 1 : décision immédiate (un peu d'aléatoire), pas besoin du worker
+  if (_niveauIA() === 1 && !(typeof _tourneyMatch!=='undefined' && _tourneyMatch)) {
     moves.sort(function(a,b){ return (a.code||9)-(b.code||9); });
     executeAIMove(moves[Math.floor(Math.random()*Math.min(4,moves.length))]);
     return;
