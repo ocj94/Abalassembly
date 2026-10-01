@@ -5835,6 +5835,11 @@ document.addEventListener('keydown', function(e){
           <div style="font-size:12px;font-weight:600;color:var(--white)">Finale prouvée — séquence</div>
           <div style="font-size:10px;color:var(--gold)">3, 5 ou 7 coups, adversaire optimal</div>
         </div>
+        <div class="puzzle-mode-btn" id="puzzle-mode-tablebase-42" onclick="setPuzzleMode('tablebase-42',this)">
+          <div style="font-size:18px;margin-bottom:3px">🧮</div>
+          <div style="font-size:12px;font-weight:600;color:var(--white)">Finale 4 contre 2</div>
+          <div style="font-size:10px;color:var(--gold)">gain en 9 à 25 coups, défense parfaite</div>
+        </div>
       </div>
 
       <!-- Storm UI -->
@@ -15011,6 +15016,9 @@ function updateStatus() {
       ? `Cliquez sur vos billes ${monEmoji} pour les sélectionner`
       : 'Attendre le coup de l\'adversaire…';
   }
+  // finale exacte : verdict de la table 4 contre 2 (mode Decouverte), en partie comme en rejeu
+  const verdict42 = (typeof _tb42Verdict === 'function') ? _tb42Verdict() : null;
+  if (verdict42) txt += ' — ' + verdict42;
   document.getElementById('game-status-text').textContent = txt;
   document.getElementById('board-msg').textContent = msg;
 }
@@ -22621,6 +22629,19 @@ function aiMove() {
   const moves = getAllMovesForColor(ai);
   if (!moves.length) { CurrentTurn.set(human); updateStatus(); return; }
 
+  // ── Finale 4 contre 2 (mode Decouverte) : jeu PARFAIT tire de la table, sauf au
+  //    niveau facile. Morceaux absents : on les charge puis on relance aiMove (meme
+  //    patron que les poids NNUE) ; chargement impossible : IA habituelle. ──
+  if (aiDifficulty !== 'easy' && !_tb42Indispo && _tb42Applicable()) {
+    const parfait = _tb42MeilleurCoup(ai);
+    if (parfait) { executeAIMove(parfait); return; }
+    const genTb = _aiGen;
+    showAIThinking(true);
+    _tb42Charger(ai).then(function(){ showAIThinking(false); if (genTb === _aiGen && !GameOver.get()) aiMove(); })
+      .catch(function(){ _tb42Indispo = true; showAIThinking(false); if (genTb === _aiGen && !GameOver.get()) aiMove(); });
+    return;
+  }
+
   // ── Livre d'ouvertures STATISTIQUE (~15000 parties Migs + AbalOnline, 5 variantes, pondéré par taux de victoire) ──
   if (_bookNode && _bookNode.k) {
     const statMove = pickBookMove(_bookNode, moves);
@@ -27611,6 +27632,7 @@ function nextPuzzle() {
   if (currentPuzzleIdx === -1) { loadGeneratedPuzzle(); return; }
   if (currentPuzzleIdx === -2) { loadTablebasePuzzle(); return; }
   if (currentPuzzleIdx === -3) { loadTablebaseSequencePuzzle(); return; }
+  if (currentPuzzleIdx === -4) { loadTablebase42Puzzle(); return; }
   currentPuzzleIdx = (currentPuzzleIdx + 1) % puzzlesData.length;
   loadPuzzle(currentPuzzleIdx);
 }
@@ -27631,6 +27653,9 @@ function setPuzzleMode(mode, el) {
   }
   if (mode==='tablebase-seq') {
     loadTablebaseSequencePuzzle();
+  }
+  if (mode==='tablebase-42') {
+    loadTablebase42Puzzle();
   }
   if (mode==='storm' && !stormActive) {
     stormScore=0; stormErrors=0; stormSeconds=180;
@@ -31513,7 +31538,7 @@ function handlePuzzleClick(px, py) {
     if (!chosenDir) { puzzleSelected=[]; drawPuzzleBoardInteractive(); if(msgEl) msgEl.textContent='Direction invalide — resélectionnez'; return; }
 
     // Valide et applique le coup via le VRAI moteur (sur puzzleBoard)
-    const _tbSeqBoardBefore = (currentPuzzleIdx === -3) ? Object.assign({}, puzzleBoard) : null;
+    const _tbSeqBoardBefore = (currentPuzzleIdx === -3 || currentPuzzleIdx === -4) ? Object.assign({}, puzzleBoard) : null;
     const result = puzzleApplyMove(puzzleSelected, chosenDir);
     if (!result.valid) {
       if (msgEl) msgEl.textContent = '⛔ ' + result.reason;
@@ -31523,6 +31548,10 @@ function handlePuzzleClick(px, py) {
     puzzleMovesMade++;
     if (currentPuzzleIdx === -3) {
       tbSeqHandleMove(_tbSeqBoardBefore, result);
+      return;
+    }
+    if (currentPuzzleIdx === -4) {
+      tb42SeqHandleMove(_tbSeqBoardBefore, result);
       return;
     }
     drawPuzzleBoardInteractive();
@@ -32019,6 +32048,86 @@ function loadTablebaseSequencePuzzle() {
   if (ov) ov.style.display = 'none';
   drawPuzzleBoardInteractive();
   initPuzzleInteraction();
+}
+
+/* ── Trainer : finale 4 contre 2 ──
+   Tu as les Noirs (4 billes), les Blancs (2) se defendent PARFAITEMENT (table).
+   Position tiree au hasard dans la table, gain en 9 a 25 demi-coups. Regle :
+   un coup qui laisse echapper le gain est refuse ; un coup gagnant mais plus
+   lent est accepte, son cout affiche ; un coup optimal est salue. Si la
+   defense ejecte une bille noire, on retombe en 3 contre 2 -- toujours gagnant --
+   et l'exercice continue dans le mode sequence 3v2 existant. */
+let _tb42PuzzleDtw = 0;
+async function loadTablebase42Puzzle() {
+  const msg = document.getElementById('puzzle-msg');
+  if (typeof AbaTB42 === 'undefined') { showToast('⚠️ Table 4 contre 2 indisponible'); return; }
+  if (msg) msg.textContent = 'Tirage d\u2019une position dans la table 4 contre 2…';
+  try {
+    await AbaTB42.preparer();
+    let pos = null;
+    for (let essai = 0; essai < 30 && !pos; essai++) {
+      const k = Math.floor(Math.random() * AbaTB42.nMorceaux), m = await AbaTB42.charger(k);
+      for (let t = 0; t < 5000 && !pos; t++) {
+        const off = Math.floor(Math.random() * (m.length >> 1)) * 2;       // trait aux Noirs (fort)
+        const v = m[off];
+        if (v >= 9 && v <= 25 && (v & 1)) { const p = AbaTB42.positionDe(k, off); if (p && p.trait === 0) pos = { A: p.A, B: p.B, dtw: v }; }
+      }
+    }
+    if (!pos) throw new Error('aucune position trouvée');
+    puzzleBoard = {};
+    pos.A.forEach(function(i){ puzzleBoard[AbaTB42.caseVersCle(i)] = 'black'; });
+    pos.B.forEach(function(i){ puzzleBoard[AbaTB42.caseVersCle(i)] = 'white'; });
+    puzzleSelected = []; puzzleMovesMade = 0; puzzleEjectedCount = 0; puzzleEjectAnim = null;
+    currentPuzzleIdx = -4; _tb42PuzzleDtw = pos.dtw;
+    await _tb42Charger('black', puzzleBoard, 5, 3);       // les suites de ton premier coup
+    const stmt = document.getElementById('puzzle-statement');
+    if (stmt) stmt.innerHTML = '<strong>FINALE 4 CONTRE 2</strong><br><br>⚫ Les Noirs ont le trait. La table prouve le gain en <strong style="color:var(--gold)">' + pos.dtw + ' demi-coups</strong> contre la meilleure défense. Éjectez une bille blanche : les Blancs, réduits à une bille, auront perdu.';
+    const title = document.getElementById('puzzle-title'); if (title) title.textContent = 'Finale 4 contre 2';
+    const dl = document.getElementById('puzzle-difficulty-label'); if (dl) dl.textContent = '🧮 Table 4 contre 2 — gain prouvé en ' + pos.dtw + ' demi-coups';
+    if (msg) msg.textContent = '⚫ Sélectionnez vos billes noires';
+    const ov = document.getElementById('puzzle-result-overlay'); if (ov) ov.style.display = 'none';
+    drawPuzzleBoardInteractive(); initPuzzleInteraction();
+  } catch (e) {
+    if (msg) msg.textContent = '';
+    showToast('⚠️ Table 4 contre 2 indisponible (connexion requise) : ' + (e && e.message || e));
+  }
+}
+function tb42SeqHandleMove(boardBefore, result) {
+  const msgEl = document.getElementById('puzzle-msg');
+  if (result.ejected) {
+    drawPuzzleBoardInteractive();
+    if (msgEl) msgEl.textContent = '💥 Éjection — les Blancs n\u2019ont plus qu\u2019une bille !';
+    animatePuzzleEjection(result.ejectRC, function() { showPuzzleResult(true); });
+    return;
+  }
+  const v = AbaTB42.valeur(puzzleBoard, 'white', 5, 3);
+  if (!v || v.wdl !== 'LOSS') {
+    puzzleBoard = boardBefore; puzzleMovesMade--; drawPuzzleBoardInteractive();
+    if (msgEl) msgEl.textContent = v ? '➖ Ce coup laisse échapper le gain. Réessayez.' : '⏳ Table en cours de chargement — réessayez dans un instant.';
+    return;
+  }
+  const attendu = _tb42PuzzleDtw - 2, optimal = v.dtw === _tb42PuzzleDtw - 1;
+  if (msgEl) msgEl.textContent = '… les Blancs cherchent leur meilleure défense';
+  return _tb42Charger('white', puzzleBoard, 5, 3).then(function(){   // (promesse renvoyee : les tests l'attendent)
+    const rep = _tb42MeilleurCoup('white', puzzleBoard, 5, 3);
+    if (!rep) throw new Error('défense introuvable');
+    _tb42Avec(puzzleBoard, 5, 3, function(){ applyMove(rep, 'white'); });
+    const noires = Object.values(puzzleBoard).filter(function(x){ return x === 'black'; }).length;
+    if (noires === 3) {
+      currentPuzzleIdx = -3;                       // retour en 3 contre 2, toujours gagnant
+      drawPuzzleBoardInteractive();
+      if (msgEl) msgEl.textContent = '⚠️ Les Blancs ont éjecté une de vos billes : place au 3 contre 2, toujours gagnant pour vous.';
+      return;
+    }
+    return _tb42Charger('black', puzzleBoard, 5, 3).then(function(){
+      const w = AbaTB42.valeur(puzzleBoard, 'black', 5, 3);
+      _tb42PuzzleDtw = w ? w.dtw : _tb42PuzzleDtw - 2;
+      drawPuzzleBoardInteractive();
+      if (msgEl) msgEl.textContent = optimal
+        ? '✅ Coup optimal. Les Blancs se défendent au mieux — gain en ' + _tb42PuzzleDtw + ' demi-coups.'
+        : '✔️ Coup gagnant, mais pas le plus rapide : gain en ' + _tb42PuzzleDtw + ' demi-coups au lieu de ' + attendu + '.';
+    });
+  }).catch(function(e){ if (msgEl) msgEl.textContent = '⚠️ Table 4 contre 2 indisponible : ' + (e && e.message || e); });
 }
 
 function loadTablebasePuzzle() {
@@ -37332,13 +37441,258 @@ var AbaSolve = (function () {
 })();
 
 
+/* ═══ TABLE DE FINALE 4 CONTRE 2 (mode Decouverte) ═══
+   Resolue et prouvee par tablebase/generate-4v2.c (voir tablebase/RESULTS.md) :
+   avec le trait, le camp fort gagne toujours, en 97 demi-coups au plus.
+   La table (161 Mo brute) est decoupee en 689 morceaux gzip (tablebase/4v2/),
+   charges A LA DEMANDE quand une partie atteint le 4 contre 2 -- jamais avant.
+
+   Lecture : il faut retrouver EXACTEMENT la case du solveur en C -- cases
+   numerotees ligne par ligne, memes 12 symetries dans le meme ordre, 4 billes
+   fortes ramenees au plus petit rang lexicographique, et en cas d'egalite la
+   PREMIERE symetrie qui l'atteint (celle du solveur). Octet stocke : profondeur
+   1..98, impair = gain du camp au trait, pair = perte ; 0 = nulle.
+
+   Garde-fou : la table suppose la regle de Decouverte (7 billes par camp, on
+   perd en tombant a 1 bille). Elle ne repond que si les compteurs d'ejections
+   le confirment -- jamais pour une position d'editeur aux regles differentes. */
+const AbaTB42 = (function () {
+  const N = 61, NP = 1830, R = 64;
+  // 12 symetries, dans l'ordre du solveur ; une case par caractere (A-Z a-z 0-9)
+  const SYM_TXT = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012345678EKRZiDJQYhqCIPXgpxBHOWfow3AGNVenv28FMUdmu17LTclt06Sbksz5ajry4iqx38Zhpw27RYgov16KQXfnu05EJPWemtz4DIOVdlsyCHNUckrBGMTbjAFLSa876543210zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA4yrja5zskbS60tlcTL71umdUMF82vneVNGA3wofWOHBxpgXPICqhYQJDiZRKEaSLFAjbTMGBrkcUNHCysldVOID4ztmeWPJE50unfXQK61vogYR72wphZ83xqi83xqi72wphZ61vogYR50unfXQK4ztmeWPJEysldVOIDrkcUNHCjbTMGBaSLFA45678yz0123rstuvwxjklmnopqabcdefghiSTUVWXYZLMNOPQRFGHIJKABCDEajry4Sbksz5LTclt06FMUdmu17AGNVenv28BHOWfow3CIPXgpxDJQYhqEKRZiAFLSaBGMTbjCHNUckrDIOVdlsyEJPWemtz4KQXfnu05RYgov16Zhpw27iqx38EDCBAKJIHGFRQPONMLZYXWVUTSihgfedcbaqponmlkjxwvutsr3210zy87654iZRKEqhYQJDxpgXPIC3wofWOHB82vneVNGA71umdUMF60tlcTL5zskbS4yrja', ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const SYM = []; for (let g = 0; g < 12; g++) { const t = []; for (let i = 0; i < N; i++) t.push(ALPHA.indexOf(SYM_TXT[g * N + i])); SYM.push(t); }
+  const L = [5, 6, 7, 8, 9, 8, 7, 6, 5], CELL = {}; let n = 0;
+  for (let r = 0; r < 9; r++) for (let c = 0; c < L[r]; c++) CELL[r + ',' + c] = n++;
+  // rangs lexicographiques des combinaisons (meme ordre d'enumeration que le C)
+  const C = (a, b) => { if (b < 0 || b > a) return 0; let r = 1; for (let i = 0; i < b; i++) r = r * (a - i) / (i + 1); return Math.round(r); };
+  const avant = k => { const t = new Int32Array(N + 1); for (let x = 0; x < N; x++) t[x + 1] = t[x] + C(N - 1 - x, k); return t; };
+  const A3 = avant(3), A2 = avant(2), A1 = avant(1);
+  function rang4(a, b, c, d) {            // a<b<c<d
+    return A3[a] + (A2[b] - A2[a + 1]) + (A1[c] - A1[b + 1]) + (d - c - 1);
+  }
+  function paire(i, j) { if (i > j) { const t = i; i = j; j = t; } return A1[i] + (j - i - 1); }
+  const tri4 = v => v.sort((x, y) => x - y);
+  let repRang = null, nOrbites = 0;
+  /* Representants des orbites : en jeu, lus dans orbites.bin.gz (carte de bits ecrite
+     par le solveur, 5 Ko) -- instantane. calculerOrbites() refait tout le calcul
+     (~2 s) : reserve aux tests, qui verifient que les deux concordent. */
+  let reps = null;                        // rang d'orbite -> rang du quadruplet representant
+  function depuisCarte(carte) {
+    const rr = new Int32Array(C(N, 4)).fill(-1), rp = []; let k = 0;
+    for (let q = 0; q < rr.length; q++) if (carte[q >> 3] & (1 << (q & 7))) { rr[q] = k++; rp.push(q); }
+    repRang = rr; nOrbites = k; reps = rp;
+  }
+  function derang4(q) {                   // inverse de rang4
+    let a = 0; while (a + 1 < N && A3[a + 1] <= q) a++; let r = q - A3[a];
+    let b = a + 1; while (b + 1 < N && A2[b + 1] - A2[a + 1] <= r) b++; r -= A2[b] - A2[a + 1];
+    let c = b + 1; while (c + 1 < N && A1[c + 1] - A1[b + 1] <= r) c++; r -= A1[c] - A1[b + 1];
+    return [a, b, c, c + 1 + r];
+  }
+  function derangPaire(p) { let i = 0; while (i + 1 < N && A1[i + 1] <= p) i++; return [i, i + 1 + (p - A1[i])]; }
+  // adresse (morceau, decalage) -> position {A, B, trait}, ou null si impossible
+  function positionDe(k, off) {
+    if (!reps) return null;
+    const rg = k * R + Math.floor(off / (2 * NP)), dans = off % (2 * NP);
+    if (rg >= reps.length) return null;
+    const A = derang4(reps[rg]), B = derangPaire(dans >> 1);
+    if (A.includes(B[0]) || A.includes(B[1])) return null;
+    return { A: A, B: B, trait: dans & 1 };
+  }
+  function calculerOrbites() {
+    repRang = new Int32Array(C(N, 4)).fill(-1); nOrbites = 0;
+    for (let a = 0; a < N; a++) for (let b = a + 1; b < N; b++) for (let c = b + 1; c < N; c++) for (let d = c + 1; d < N; d++) {
+      const q = rang4(a, b, c, d); let mini = q;
+      for (let g = 1; g < 12; g++) { const S = SYM[g]; const v = tri4([S[a], S[b], S[c], S[d]]); const r = rang4(v[0], v[1], v[2], v[3]); if (r < mini) mini = r; }
+      if (mini === q) repRang[q] = nOrbites++;
+    }
+    return repRang;
+  }
+  // position -> { morceau, decalage } ; A = 4 cases fortes, B = 2 faibles, trait 0 = fort
+  function adresse(A, B, trait) {
+    if (!repRang) return null;
+    const v0 = tri4(A.slice()); const q = rang4(v0[0], v0[1], v0[2], v0[3]);
+    let meilleur = q, g0 = 0;
+    for (let g = 0; g < 12; g++) { const S = SYM[g]; const v = tri4([S[A[0]], S[A[1]], S[A[2]], S[A[3]]]); const r = rang4(v[0], v[1], v[2], v[3]); if (r < meilleur) { meilleur = r; g0 = g; } }
+    const rg = repRang[meilleur], S = SYM[g0];
+    return { morceau: Math.floor(rg / R), decalage: ((rg % R) * NP + paire(S[B[0]], S[B[1]])) * 2 + trait, index: (rg * NP + paire(S[B[0]], S[B[1]])) * 2 + trait };
+  }
+  // plateau du jeu -> { A, B, fort } si c'est un 4 contre 2 conforme a la regle de Decouverte
+  function lire(plateau, capNoir, capBlanc) {
+    const noirs = [], blancs = [];
+    for (const k in plateau) { if (plateau[k] === 'black') noirs.push(CELL[k]); else if (plateau[k] === 'white') blancs.push(CELL[k]); }
+    let fort;
+    if (noirs.length === 4 && blancs.length === 2) fort = 'black';
+    else if (blancs.length === 4 && noirs.length === 2) fort = 'white';
+    else return null;
+    if (capNoir != null && capBlanc != null && (capNoir !== 7 - blancs.length || capBlanc !== 7 - noirs.length)) return null;
+    return fort === 'black' ? { A: noirs, B: blancs, fort } : { A: blancs, B: noirs, fort };
+  }
+  const morceaux = new Map(), enCours = new Map();
+  let manifeste = null, chargeur = null, base = 'tablebase/4v2/';
+  async function sha256hex(u8) { const h = await crypto.subtle.digest('SHA-256', u8); return Array.from(new Uint8Array(h)).map(x => x.toString(16).padStart(2, '0')).join(''); }
+  async function lireOctets(chemin) {
+    if (chargeur) return chargeur(chemin);
+    const rep = await fetch(base + chemin); if (!rep.ok) throw new Error(chemin + ' : HTTP ' + rep.status);
+    return new Uint8Array(await rep.arrayBuffer());
+  }
+  async function degzip(u8) {
+    const flux = new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'));
+    return new Uint8Array(await new Response(flux).arrayBuffer());
+  }
+  async function preparer() {             // manifeste + carte des orbites, une seule fois
+    if (!manifeste) manifeste = JSON.parse(new TextDecoder().decode(await lireOctets('manifest.json')));
+    if (!repRang) {
+      const carte = await degzip(await lireOctets('orbites.bin.gz'));
+      if (await sha256hex(carte) !== manifeste.orbites) throw new Error('orbites.bin : empreinte incorrecte');
+      depuisCarte(carte);
+      if (nOrbites !== manifeste.K4) throw new Error('orbites : ' + nOrbites + ' au lieu de ' + manifeste.K4);
+    }
+  }
+  async function charger(k) {
+    if (morceaux.has(k)) return morceaux.get(k);
+    if (enCours.has(k)) return enCours.get(k);
+    const p = (async () => {
+      await preparer();
+      const nom = 's' + String(k).padStart(3, '0') + '.bin';
+      const brut = await degzip(await lireOctets(nom + '.gz'));
+      if (await sha256hex(brut) !== manifeste.sha256[k]) throw new Error(nom + ' : empreinte incorrecte');
+      morceaux.set(k, brut); enCours.delete(k); return brut;
+    })();
+    enCours.set(k, p);
+    try { return await p; } catch (e) { enCours.delete(k); throw e; }
+  }
+  // valeur SYNCHRONE si le morceau est deja charge, sinon null (la recherche continue sans)
+  function valeur(plateau, auTrait, capNoir, capBlanc) {
+    const p = lire(plateau, capNoir, capBlanc); if (!p) return null;
+    const ad = adresse(p.A, p.B, auTrait === p.fort ? 0 : 1); if (!ad) return null;
+    const m = morceaux.get(ad.morceau); if (!m) return null;
+    const v = m[ad.decalage];
+    return { wdl: v === 0 ? 'DRAW' : (v & 1 ? 'WIN' : 'LOSS'), dtw: v, fort: p.fort };
+  }
+  function morceauDe(plateau, auTrait, capNoir, capBlanc) {
+    const p = lire(plateau, capNoir, capBlanc); if (!p) return -1;
+    const ad = adresse(p.A, p.B, auTrait === p.fort ? 0 : 1); return ad ? ad.morceau : -1;
+  }
+  return {
+    lire, adresse, valeur, morceauDe, charger, preparer, calculerOrbites, positionDe,
+    get nMorceaux() { return manifeste ? manifeste.morceaux : 0; },
+    caseVersCle: i => { for (const k in CELL) if (CELL[k] === i) return k; return null; },
+    get pret() { return !!repRang; },
+    get nOrbites() { return nOrbites; },
+    configurer(o) { if (o.chargeur) chargeur = o.chargeur; if (o.base) base = o.base; },
+    estCharge: k => morceaux.has(k), oublier() { morceaux.clear(); enCours.clear(); manifeste = null; repRang = null; nOrbites = 0; }
+  };
+})();
+
+/* ── Table 4 contre 2 : branchements dans le jeu ──
+   L'IA calcule dans des workers, qui n'ont pas les morceaux charges par la page :
+   le 4v2 se consulte donc A LA RACINE (aiMove, verdict, page Tables de finale),
+   sur le plateau reel -- suites calculees avec le journal d'annulation du jeu
+   (applyMove / undoMove), plateau et compteurs remis intacts. */
+let _tb42Indispo = false;      // chargement impossible (hors ligne...) : on n'insiste pas
+let _tb42Attente = false;
+/* Execute fn sur un AUTRE plateau (celui du Trainer) : plateau et compteurs
+   bascules le temps d'un calcul SYNCHRONE, puis restaures. Les compteurs sont
+   de simples valeurs, sans effet de bord. */
+function _tb42Avec(plateau, cN, cB, fn) {
+  if (!plateau) return fn();
+  const sb = board, sN = CapturedByBlack.get(), sB = CapturedByWhite.get();
+  board = plateau; CapturedByBlack.set(cN); CapturedByWhite.set(cB);
+  try { return fn(); } finally { board = sb; CapturedByBlack.set(sN); CapturedByWhite.set(sB); }
+}
+function _tb42Applicable() {
+  return typeof AbaTB42 !== 'undefined' && !!AbaTB42.lire(board, CapturedByBlack.get(), CapturedByWhite.get());
+}
+function _tb42Suites(couleur) {
+  const out = [];
+  for (const m of getAllMovesForColor(couleur)) {
+    const u = applyMove(m, couleur);
+    out.push({ m: m, apres: JSON.parse(JSON.stringify(board)), cN: CapturedByBlack.get(), cB: CapturedByWhite.get() });
+    undoMove(u);
+  }
+  return out;
+}
+/* Valeur d'une suite pour le camp qui joue : derniere ejection, retour en 3 contre 2
+   (table existante) ou 4 contre 2 (morceau charge). null si l'information manque. */
+function _tb42ValeurSuite(s, couleur) {
+  const adv = couleur === 'black' ? 'white' : 'black';
+  let nN = 0, nB = 0;
+  for (const k in s.apres) { if (s.apres[k] === 'black') nN++; else if (s.apres[k] === 'white') nB++; }
+  if ((adv === 'black' ? nN : nB) <= 1) return { gain: true, dtw: 1 };
+  let v;
+  if (nN + nB === 5) v = (typeof AbaTB !== 'undefined' && AbaTB.ready) ? AbaTB.probe(s.apres, adv) : null;
+  else v = AbaTB42.valeur(s.apres, adv, s.cN, s.cB);
+  if (!v) return null;
+  if (v.wdl === 'DRAW') return { nulle: true };
+  return v.wdl === 'LOSS' ? { gain: true, dtw: v.dtw + 1 } : { perte: true, dtw: v.dtw + 1 };
+}
+/* Coup parfait : gagner au plus vite, sinon tenir la nulle, sinon resister au plus
+   long. Aucun coup "parfait a moitie" : si une seule suite manque, null. */
+function _tb42MeilleurCoup(couleur, plateau, cN, cB) {
+  if (plateau) return _tb42Avec(plateau, cN, cB, function(){ return _tb42MeilleurCoup(couleur); });
+  if (!_tb42Applicable()) return null;
+  let meilleur = null, score = -Infinity;
+  for (const s of _tb42Suites(couleur)) {
+    const v = _tb42ValeurSuite(s, couleur);
+    if (!v) return null;
+    const sc = v.gain ? 1000 - v.dtw : (v.nulle ? 0 : -1000 + v.dtw);
+    if (sc > score) { score = sc; meilleur = s.m; }
+  }
+  return meilleur;
+}
+// Charge les morceaux de la position actuelle ET de toutes ses suites
+function _tb42Charger(couleur, plateau, cN, cB) {
+  return AbaTB42.preparer().then(function(){
+    const adv = couleur === 'black' ? 'white' : 'black', ks = new Set();
+    _tb42Avec(plateau, cN, cB, function(){
+      ks.add(AbaTB42.morceauDe(board, couleur, CapturedByBlack.get(), CapturedByWhite.get()));
+      for (const s of _tb42Suites(couleur)) ks.add(AbaTB42.morceauDe(s.apres, adv, s.cN, s.cB));
+    });
+    ks.delete(-1);
+    return Promise.all(Array.from(ks).map(function(k){ return AbaTB42.charger(k); }));
+  });
+}
+// Verdict affiche pendant la partie et en rejeu ; charge la table au besoin puis se rafraichit
+function _tb42Verdict() {
+  if (_tb42Indispo || !_tb42Applicable()) return null;
+  const tour = CurrentTurn.get();
+  const v = AbaTB42.valeur(board, tour, CapturedByBlack.get(), CapturedByWhite.get());
+  if (!v) {
+    if (!_tb42Attente) {
+      _tb42Attente = true;
+      _tb42Charger(tour).then(function(){ _tb42Attente = false; updateStatus(); })
+        .catch(function(){ _tb42Attente = false; _tb42Indispo = true; updateStatus(); });
+    }
+    return 'Finale 4 contre 2 : consultation de la table…';
+  }
+  if (v.wdl === 'DRAW') return 'Finale 4 contre 2 : nulle démontrée';
+  const gagnant = v.wdl === 'WIN' ? tour : (tour === 'black' ? 'white' : 'black');
+  return 'Finale 4 contre 2 : les ' + (gagnant === 'black' ? 'Noirs' : 'Blancs') + ' gagnent en ' + v.dtw + ' demi-coup' + (v.dtw > 1 ? 's' : '');
+}
+
 /* ── Contrôleur de la page « Tables de finale » ── */
 function _tbOut(html){ var e=document.getElementById('tb-verdict'); if(e) e.innerHTML=html; }
 function tbConsultCurrent(){
   if (typeof AbaTB === 'undefined' || !AbaTB.ready) { _tbOut('Tables non chargées.'); return; }
   var r = AbaTB.probe(board, CurrentTurn.get());
   var camp = CurrentTurn.get() === 'black' ? 'Noirs' : 'Blancs';
-  if (!r) { _tbOut('<strong>Hors table.</strong> Les tables ne couvrent que 2 contre 2 et 3 contre 2 (mode Découverte). En jeu standard, ces positions ne surviennent jamais — utilise le solveur ci-dessus.'); return; }
+  if (!r && _tb42Applicable() && !_tb42Indispo) {
+    var v42 = AbaTB42.valeur(board, CurrentTurn.get(), CapturedByBlack.get(), CapturedByWhite.get());
+    var coup42 = v42 ? _tb42MeilleurCoup(CurrentTurn.get()) : null;
+    if (!v42 || !coup42) {
+      _tbOut('Consultation de la table 4 contre 2 (quelques morceaux à télécharger)…');
+      _tb42Charger(CurrentTurn.get()).then(tbConsultCurrent).catch(function(e){
+        _tbOut('<strong>Table 4 contre 2 indisponible</strong> — elle se télécharge à la demande et demande une connexion (' + escapeHtml(String(e && e.message || e)) + ').'); });
+      return;
+    }
+    if (v42.wdl === 'DRAW') { _tbOut('<strong style="color:var(--gold)">Nulle démontrée</strong> (table 4 contre 2) — le camp faible peut ramener la partie à un 3 contre 2 nul.'); return; }
+    var lab42 = (abaproOfficialLabels(coup42) || [])[0] || '';
+    _tbOut('<strong style="color:var(--gold)">' + (v42.wdl === 'WIN' ? camp + ' gagnent' : camp + ' perdent') + '</strong> — ' +
+      (v42.wdl === 'WIN' ? 'gain forcé en ' : 'défaite forcée en ') + v42.dtw + ' demi-coup' + (v42.dtw > 1 ? 's' : '') + ' (table 4 contre 2).' +
+      (lab42 ? '<br><span style="color:var(--muted)">Meilleur coup : ' + escapeHtml(lab42) + '</span>' : ''));
+    return;
+  }
+  if (!r) { _tbOut('<strong>Hors table.</strong> Les tables ne couvrent que 2 contre 2, 3 contre 2 et 4 contre 2 (mode Découverte). En jeu standard, ces positions ne surviennent jamais — utilise le solveur ci-dessus.'); return; }
   if (r.wdl === 'DRAW') { _tbOut('<strong style="color:var(--gold)">Nulle démontrée.</strong> Aucun des deux camps ne peut forcer le gain, quoi qu\'il joue.'); return; }
   var mv = r.moves && r.moves[0];
   _tbOut('<strong style="color:var(--gold)">' + (r.wdl === 'WIN' ? camp + ' gagnent' : camp + ' perdent') + '</strong> — ' +

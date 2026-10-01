@@ -1113,3 +1113,124 @@ test('KAAH : les positions affichees par KAAH lui-meme (tours 21 a 24) sont iden
   }
 });
 
+/* ─── 29. Table 4 contre 2 (mode Decouverte) : lecture et branchements dans le jeu ─── */
+// Les morceaux sont lus sur disque (tablebase/4v2/) au lieu d'etre telecharges.
+const _tb42Rep = require('path').join(__dirname, '..', 'tablebase', '4v2');
+const _tb42L = [5, 6, 7, 8, 9, 8, 7, 6, 5], _tb42RC = [];
+for (let r = 0; r < 9; r++) for (let c = 0; c < _tb42L[r]; c++) _tb42RC.push(r + ',' + c);
+const _tb42Plateau = (A, B, fort) => { const b = {}; const f = fort || 'black', f2 = f === 'black' ? 'white' : 'black';
+  A.forEach(x => b[_tb42RC[x]] = f); B.forEach(x => b[_tb42RC[x]] = f2); return b; };
+const _tb42Place = (A, B, trait) => {   // position de Decouverte : 4 noires (fort), 2 blanches ; compteurs conformes
+  ctx.board = _tb42Plateau(A, B); ctx.CapturedByBlack.set(5); ctx.CapturedByWhite.set(3); ctx.GameOver.set(false);
+  ctx.CurrentTurn.set(trait);
+};
+ctx.AbaTB42.configurer({ chargeur: async nom => new Uint8Array(require('fs').readFileSync(require('path').join(_tb42Rep, nom))) });
+
+test('4v2 : carte des orbites chargee et verifiee (44 040 representants, comme le solveur)', async () => {
+  await ctx.AbaTB42.preparer();
+  assert.strictEqual(ctx.AbaTB42.nOrbites, 44040);
+});
+
+test('4v2 : valeurs identiques au solveur C sur des positions de reference (gains, pertes, nulles)', async () => {
+  // [cases fortes, cases faibles, trait (0 = fort), attendu (1 gain / 2 perte / 0 nulle du trait), profondeur]
+  const REF = [[[52, 38, 45, 30], [46, 59], 0, 1, 47], [[55, 28, 32, 9], [19, 24], 0, 1, 61], [[35, 45, 44, 41], [27, 19], 0, 1, 63], [[13, 26, 20, 14], [11, 33], 0, 1, 13], [[16, 9, 8, 42], [31, 47], 1, 2, 66], [[17, 53, 49, 1], [30, 44], 1, 2, 76], [[44, 25, 11, 4], [40, 7], 1, 2, 76], [[44, 7, 33, 13], [29, 12], 1, 2, 64], [[0, 12, 9, 44], [1, 2], 1, 0, 0], [[48, 60, 27, 58], [55, 49], 1, 0, 0]];
+  for (const [A, B, t, v, d] of REF) {
+    const b = _tb42Plateau(A, B), tour = t === 0 ? 'black' : 'white';
+    await ctx.AbaTB42.charger(ctx.AbaTB42.morceauDe(b, tour, 5, 3));
+    const r = ctx.AbaTB42.valeur(b, tour, 5, 3);
+    assert.strictEqual(r.wdl, v === 1 ? 'WIN' : v === 2 ? 'LOSS' : 'DRAW', JSON.stringify([A, B, t]));
+    assert.strictEqual(r.dtw, d);
+  }
+});
+
+test('4v2 : garde-fous -- position d editeur aux compteurs non conformes, ou pas un 4 contre 2', () => {
+  const b = _tb42Plateau([0, 4, 26, 60], [47, 54]);
+  assert.strictEqual(ctx.AbaTB42.valeur(b, 'black', 0, 0), null);
+  assert.strictEqual(ctx.AbaTB42.lire({ '0,0': 'black' }, null, null), null);
+});
+
+test('4v2 : le jeu rejoue lui-meme la victoire la plus longue -- 97 demi-coups, chaque coup choisi par la table', async () => {
+  _tb42Place([0, 4, 26, 60], [47, 54], 'black');
+  let couleur = 'black', n = 0;
+  for (;;) {
+    await ctx._tb42Charger(couleur);
+    const m = ctx._tb42MeilleurCoup(couleur);
+    assert.ok(m, 'coup au demi-coup ' + (n + 1));
+    ctx.applyMove(m, couleur); n++;
+    const blanches = Object.values(ctx.board).filter(v => v === 'white').length;
+    if (blanches <= 1) break;
+    assert.ok(n < 120, 'la partie aurait du finir');
+    couleur = couleur === 'black' ? 'white' : 'black';
+  }
+  assert.strictEqual(n, 97);
+});
+
+test('4v2 : verdict affiche -- consultation, puis "les Noirs gagnent en 97 demi-coups"', async () => {
+  _tb42Place([0, 4, 26, 60], [47, 54], 'black');
+  ctx.AbaTB42.oublier(); await ctx.AbaTB42.preparer();
+  assert.match(ctx._tb42Verdict(), /consultation/);
+  await ctx._tb42Charger('black');
+  assert.strictEqual(ctx._tb42Verdict(), 'Finale 4 contre 2 : les Noirs gagnent en 97 demi-coups');
+  ctx.CapturedByBlack.set(0); ctx.CapturedByWhite.set(0);           // compteurs d'editeur
+  assert.strictEqual(ctx._tb42Verdict(), null);
+});
+
+test('4v2 : l IA joue le coup parfait (hors niveau facile), et l IA habituelle si la table est indisponible', async () => {
+  _tb42Place([0, 4, 26, 60], [47, 54], 'black');
+  await ctx._tb42Charger('black');
+  const attendu = ctx._tb42MeilleurCoup('black');
+  let joue = null; const sauve = { a: ctx.aiColor, e: ctx.executeAIMove };
+  ctx.aiColor = () => 'black'; ctx.executeAIMove = m => { joue = m; };
+  ctx.aiDifficulty = 'medium'; ctx._tb42Indispo = false;
+  ctx.aiMove();
+  assert.ok(joue && JSON.stringify(joue.cells) === JSON.stringify(attendu.cells) && joue.dir.q === attendu.dir.q && joue.dir.r === attendu.dir.r);
+  ctx.aiColor = sauve.a; ctx.executeAIMove = sauve.e;
+});
+
+test('4v2 : adresse -> position -> adresse (tirage des positions du Trainer)', async () => {
+  await ctx.AbaTB42.preparer();
+  let seed = 5150; const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  for (let n = 0; n < 500; n++) {
+    const s = new Set(); while (s.size < 6) s.add(Math.floor(rnd() * 61));
+    const a = [...s], t = rnd() < 0.5 ? 0 : 1, ad = ctx.AbaTB42.adresse(a.slice(0, 4), a.slice(4), t);
+    const p = ctx.AbaTB42.positionDe(ad.morceau, ad.decalage);
+    assert.ok(p && p.trait === t);
+    assert.strictEqual(ctx.AbaTB42.adresse(p.A, p.B, p.trait).index, ad.index);
+  }
+});
+
+test('Trainer 4v2 : position tiree (gain en 9 a 25), coup optimal salue, defense parfaite', async () => {
+  ['drawPuzzleBoardInteractive', 'initPuzzleInteraction', 'showToast', 'animatePuzzleEjection', 'showPuzzleResult'].forEach(n => { ctx[n] = () => {}; });
+  for (let essai = 0; essai < 3; essai++) {
+    await ctx.loadTablebase42Puzzle();
+    assert.strictEqual(ctx.currentPuzzleIdx, -4);
+    const d0 = ctx._tb42PuzzleDtw;
+    assert.ok(d0 >= 9 && d0 <= 25 && (d0 & 1));
+    const vals = Object.values(ctx.puzzleBoard);
+    assert.strictEqual(vals.filter(v => v === 'black').length, 4); assert.strictEqual(vals.filter(v => v === 'white').length, 2);
+    assert.strictEqual(ctx.AbaTB42.valeur(ctx.puzzleBoard, 'black', 5, 3).dtw, d0);
+    const m = ctx._tb42MeilleurCoup('black', ctx.puzzleBoard, 5, 3);
+    const avant = JSON.parse(JSON.stringify(ctx.puzzleBoard));
+    ctx._tb42Avec(ctx.puzzleBoard, 5, 3, () => ctx.applyMove(m, 'black'));
+    await ctx.tb42SeqHandleMove(avant, { valid: true, ejected: false });
+    if (ctx.currentPuzzleIdx === -4) assert.strictEqual(ctx._tb42PuzzleDtw, d0 - 2);   // optimal, puis defense parfaite
+    else assert.strictEqual(ctx.currentPuzzleIdx, -3);                                // la defense a ejecte : 3 contre 2
+  }
+});
+
+test('Trainer 4v2 : un coup qui laisse echapper le gain est refuse, la position rendue', async () => {
+  // Position trouvee par le solveur (mode "perdant") : gain en 17, mais un coup noir
+  // laisse aux Blancs une ejection vers un 3 contre 2 nul.
+  const pb = _tb42Plateau([0, 1, 2, 6], [5, 11]);
+  ctx.puzzleBoard = pb; ctx.currentPuzzleIdx = -4; ctx._tb42PuzzleDtw = 17;
+  await ctx._tb42Charger('black', pb, 5, 3);
+  assert.strictEqual(ctx.AbaTB42.valeur(pb, 'black', 5, 3).dtw, 17);
+  const suites = ctx._tb42Avec(pb, 5, 3, () => ctx._tb42Suites('black'));
+  const mauvais = suites.find(s => { const v = ctx.AbaTB42.valeur(s.apres, 'white', 5, 3); return v && v.wdl !== 'LOSS'; });
+  assert.ok(mauvais, 'le coup perdant existe');
+  const avant = JSON.parse(JSON.stringify(pb)); ctx.puzzleBoard = mauvais.apres; ctx.puzzleMovesMade = 1;
+  await ctx.tb42SeqHandleMove(avant, { valid: true, ejected: false });
+  assert.deepStrictEqual(ctx.puzzleBoard, avant);
+  assert.strictEqual(ctx.puzzleMovesMade, 0);
+  assert.strictEqual(ctx.currentPuzzleIdx, -4);
+});

@@ -1324,6 +1324,19 @@ function aiMove() {
   const moves = getAllMovesForColor(ai);
   if (!moves.length) { CurrentTurn.set(human); updateStatus(); return; }
 
+  // ── Finale 4 contre 2 (mode Decouverte) : jeu PARFAIT tire de la table, sauf au
+  //    niveau facile. Morceaux absents : on les charge puis on relance aiMove (meme
+  //    patron que les poids NNUE) ; chargement impossible : IA habituelle. ──
+  if (aiDifficulty !== 'easy' && !_tb42Indispo && _tb42Applicable()) {
+    const parfait = _tb42MeilleurCoup(ai);
+    if (parfait) { executeAIMove(parfait); return; }
+    const genTb = _aiGen;
+    showAIThinking(true);
+    _tb42Charger(ai).then(function(){ showAIThinking(false); if (genTb === _aiGen && !GameOver.get()) aiMove(); })
+      .catch(function(){ _tb42Indispo = true; showAIThinking(false); if (genTb === _aiGen && !GameOver.get()) aiMove(); });
+    return;
+  }
+
   // ── Livre d'ouvertures STATISTIQUE (~15000 parties Migs + AbalOnline, 5 variantes, pondéré par taux de victoire) ──
   if (_bookNode && _bookNode.k) {
     const statMove = pickBookMove(_bookNode, moves);

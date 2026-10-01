@@ -134,7 +134,10 @@ position 3v2 atteinte. Son classement gain / perte / nulle reste juste ; ses
 profondeurs peuvent être sous-estimées. `generate-4v2.c` compte, lui, la
 profondeur de la position atteinte plus un.
 
-La table (322 Mo brute, 59 Mo compressée) n'est pas dans le dépôt.
+**Utilisée dans le jeu** (mode Découverte) : découpée en 689 morceaux de 9 à 81 Ko
+(`tablebase/4v2/`, 45 Mo en tout), chargés à la demande quand une partie atteint
+le 4 contre 2 — IA parfaite, verdict « les Noirs gagnent en N demi-coups », page
+Tables de finale et Trainer « Finale 4 contre 2 ». Voir `INTEGRATION.md`.
 
 ## Pour aller plus loin
 
