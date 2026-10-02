@@ -63,7 +63,7 @@ function _commentatorRefresh() {
   const p2lost = document.getElementById('commentator-p2-lost'); if (p2lost) p2lost.textContent = perdues[opp];
   const p1mv = document.getElementById('commentator-p1-moves'); if (p1mv) p1mv.textContent = _commentatorMoves[mine];
   const p2mv = document.getElementById('commentator-p2-moves'); if (p2mv) p2mv.textContent = _commentatorMoves[opp];
-  const fmt = function(t){ if (typeof _timeCtlBase !== 'undefined' && _timeCtlBase === 0) return '—'; if (typeof t !== 'number') return '—'; const m = Math.floor(t/60), s = Math.floor(t%60); return m + ':' + (s<10?'0':'') + s; };
+  const fmt = function(t){ if (typeof _timeCtlMode !== 'undefined' ? _timeCtlMode === 'libre' : (typeof _timeCtlBase !== 'undefined' && _timeCtlBase === 0)) return '—'; if (typeof t !== 'number') return '—'; const m = Math.floor(t/60), s = Math.floor(t%60); return m + ':' + (s<10?'0':'') + s; };
   const tMine = (typeof myTime !== 'undefined') ? myTime : undefined;
   const tOpp = (typeof oppTime !== 'undefined') ? oppTime : undefined;
   const p1t = document.getElementById('commentator-p1-time'); if (p1t) p1t.textContent = fmt(tMine);
@@ -207,9 +207,10 @@ function resetGame() {
   // Commentateur affichait tel quel avant sa propre verification. Comparaison
   // explicite pour que 0 reste 0. Signale par Olivier (capture d'ecran :
   // "Temps restant 10:00" affiche pour les deux joueurs en cadence Libre).
-  myTime = (_timeCtlBase > 0) ? _timeCtlBase : 0;
+  myTime = (_timeCtlBase > 0) ? _timeCtlBase : 0;     // Chrono : part de 0 et monte
   oppTime = (_timeCtlBase > 0) ? _timeCtlBase : 0;
-  if (!_timeCtlBase && typeof _clockPaintFree === 'function') { _clockPaintFree(); }
+  _delaiRestant = _timeCtlDelai; _debutCoupMs = Date.now(); _dureeDernierCoup = { black: null, white: null };
+  if (_timeCtlMode === 'libre' && typeof _clockPaintFree === 'function') { _clockPaintFree(); }
   if (typeof _clockPaint === 'function') _clockPaint(estMonTour());
   boardSnapshots = [];
   _bookNode = (typeof OPENING_TREES !== 'undefined' && typeof currentLayout !== 'undefined' && OPENING_TREES[currentLayout]) ? OPENING_TREES[currentLayout] : null;
@@ -281,8 +282,15 @@ function tickTimers() {
   if (GameOver.get()) return;
   if (timerPaused) return;   // timer en pause
   // Cadence libre : aucune horloge ne tourne, aucun temps ne s'affiche.
-  if (!_timeCtlBase || _clockExempt()) { _clockPaintFree(); return; }
+  if (_timeCtlMode === 'libre' || _clockExempt()) { _clockPaintFree(); return; }
   const _mine = monCamp();
+  // Chrono : le temps de chaque joueur monte, sans limite ni drapeau
+  if (_timeCtlMode === 'chrono') {
+    if (CurrentTurn.get() === _mine) myTime++; else oppTime++;
+    _clockPaint(CurrentTurn.get() === _mine); return;
+  }
+  // Delai : les premieres secondes de chaque coup ne sont pas decomptees
+  if (_timeCtlMode === 'delai' && _delaiRestant > 0) { _delaiRestant--; _clockPaint(CurrentTurn.get() === _mine); return; }
   if (CurrentTurn.get() === _mine) {
     myTime = Math.max(0, myTime-1);
     if (myTime === 30 || myTime === 10) playSfx('time_alert');   // 🔊 alerte temps
@@ -303,18 +311,48 @@ function tickTimers() {
    au temps. Exclusions : tournoi (sa propre pendule 10+5), puzzles, duels de
    bots, replay. */
 let _timeCtlBase=0, _timeCtlInc=0;   // 0 = pendule informative
+/* Modes de pendule (sur le modele de KAAH, demande d'Olivier). Code de cadence :
+     ''         Libre : aucune pendule (inchange)
+     'C'        Chrono : compte le temps de chaque joueur, sans limite
+     '300+3'    Bonus : 300 s, +3 s par coup -- les anciennes cadences, inchangees
+     'D300+5'   Delai : 300 s ; les 5 premieres secondes de chaque coup ne sont pas decomptees
+     suffixe 'e10' (Bonus ou Delai) : +10 s a chaque bille ejectee
+   _timeCtlBase / _timeCtlInc gardent leur sens (base, bonus par coup) pour le
+   code existant ; _timeCtlInc vaut 0 en mode Delai. */
+let _timeCtlMode = 'libre', _timeCtlDelai = 0, _timeCtlEj = 0, _delaiRestant = 0;
+let _debutCoupMs = Date.now(), _dureeDernierCoup = { black: null, white: null };
+function _lireCadence(v) {
+  const s = String(v || '').trim();
+  if (s === 'C') return { mode: 'chrono', base: 0, inc: 0, delai: 0, ej: 0 };
+  const m = s.match(/^(D)?(\d+)\+(\d+)(?:e(\d+))?$/);
+  if (!m || !(parseInt(m[2], 10) > 0)) return { mode: 'libre', base: 0, inc: 0, delai: 0, ej: 0 };
+  const base = parseInt(m[2], 10), x = parseInt(m[3], 10), ej = m[4] ? parseInt(m[4], 10) : 0;
+  return m[1] ? { mode: 'delai', base: base, inc: 0, delai: x, ej: ej } : { mode: 'bonus', base: base, inc: x, delai: 0, ej: ej };
+}
+function _appliquerCadence(v) {
+  const k = _lireCadence(v);
+  _timeCtlMode = k.mode; _timeCtlBase = k.base; _timeCtlInc = k.inc; _timeCtlDelai = k.delai; _timeCtlEj = k.ej;
+  _delaiRestant = k.delai;
+  return k;
+}
+function _decrireCadence(v) {
+  const k = _lireCadence(v), mn = function(s){ return (s % 60) ? (Math.floor(s / 60) + ' min ' + (s % 60) + ' s') : ((s / 60) + ' min'); };
+  if (k.mode === 'libre') return 'Pendule libre — pas de défaite au temps';
+  if (k.mode === 'chrono') return 'Chrono — le temps de chaque joueur est compté, sans limite';
+  return mn(k.base) + (k.mode === 'bonus' ? ' + ' + k.inc + ' s par coup' : ', délai de ' + k.delai + ' s par coup')
+    + (k.ej ? ', + ' + k.ej + ' s par éjection' : '');
+}
 (function(){
   try{
     const v=localStorage.getItem('abaTimeCtl')||'';
-    if(v){ const p=v.split('+'); _timeCtlBase=parseInt(p[0],10)||0; _timeCtlInc=parseInt(p[1],10)||0; }
+    if(v) _appliquerCadence(v);
     const sel=document.getElementById('time-ctl-select'); if(sel) sel.value=v;
   }catch(e){}
 })();
 function setTimeControl(v){
   try{ localStorage.setItem('abaTimeCtl', v||''); }catch(e){}
-  const p=(v||'').split('+'); _timeCtlBase=parseInt(p[0],10)||0; _timeCtlInc=parseInt(p[1],10)||0;
-  showToast(v ? ('⏱️ Cadence '+Math.round(_timeCtlBase/60)+' min + '+_timeCtlInc+' s — dès la prochaine partie')
-              : '⏱️ Pendule libre — pas de défaite au temps');
+  const k = _appliquerCadence(v);
+  showToast('⏱️ ' + _decrireCadence(v) + (k.mode === 'libre' ? '' : ' — dès la prochaine partie'));
 }
 /* Un seul endroit decide de l'affichage des horloges : les deux blocs de la
    colonne laterale et les deux barres autour du plateau. Tant qu'ils etaient
@@ -378,10 +416,13 @@ function _clockNames(){
   const mine = monCamp();
   const opp = mine === 'black' ? 'white' : 'black';
   const en1D = _currentBoardView() === '1d';
+  // duree du dernier coup de chaque joueur (mesuree en direct, voir _clockInc)
+  const duree = function(c){ const d = (typeof _dureeDernierCoup !== 'undefined') ? _dureeDernierCoup[c] : null;
+    return (d === null || d === undefined) ? '' : '<span style="opacity:.7;font-size:.85em;margin-left:8px" title="Durée de son dernier coup">⏱ ' + (d >= 60 ? Math.floor(d / 60) + ' min ' + (d % 60) + ' s' : d + ' s') + '</span>'; };
   const wt = document.getElementById('clock-top-who');
-  if (wt) wt.innerHTML = 'Joueur 2' + (en1D ? _letter('@') : _dot(_skinDotColor(opp)));
+  if (wt) wt.innerHTML = 'Joueur 2' + (en1D ? _letter('@') : _dot(_skinDotColor(opp))) + duree(opp);
   const wb = document.getElementById('clock-bottom-who');
-  if (wb) wb.innerHTML = 'Joueur 1' + (en1D ? _letter('O') : _dot(_skinDotColor(mine)));
+  if (wb) wb.innerHTML = 'Joueur 1' + (en1D ? _letter('O') : _dot(_skinDotColor(mine))) + duree(mine);
 }
 
 function _clockPaintFree(){
@@ -433,10 +474,23 @@ function _clockExempt(){
       || (typeof botDuelMode!=='undefined' && botDuelMode)
       || (typeof replayMode!=='undefined' && replayMode);
 }
+/* Appelee apres chaque coup JOUE EN DIRECT (humain ou IA) -- jamais pendant le
+   chargement d'une partie : c'est donc ici qu'on mesure la duree du coup. */
 function _clockInc(mover){
-  if(!_timeCtlInc || GameOver.get() || _clockExempt()) return;
-  if(mover===monCamp()){ myTime+=_timeCtlInc; const el=document.getElementById('timer-me'); if(el) el.textContent=formatTime(myTime); }
-  else { oppTime+=_timeCtlInc; const el=document.getElementById('timer-opponent'); if(el) el.textContent=formatTime(oppTime); }
+  if(GameOver.get() || _clockExempt()) return;
+  const maintenant = Date.now(), duree = Math.max(0, Math.round((maintenant - _debutCoupMs) / 1000));
+  _debutCoupMs = maintenant;
+  _dureeDernierCoup[mover] = duree;
+  const der = (typeof boardSnapshots !== 'undefined' && boardSnapshots.length) ? boardSnapshots[boardSnapshots.length - 1] : null;
+  if (der) der.duree = duree;            // temps de chaque coup, garde avec la partie
+  _delaiRestant = _timeCtlDelai;          // Delai : le joueur suivant a ses secondes offertes
+  let ajout = (_timeCtlMode === 'bonus') ? _timeCtlInc : 0;
+  if (_timeCtlEj && (_timeCtlMode === 'bonus' || _timeCtlMode === 'delai') && der && der.moveInfo && der.moveInfo.ejection) ajout += _timeCtlEj;
+  if (ajout) {
+    if(mover===monCamp()){ myTime+=ajout; const el=document.getElementById('timer-me'); if(el) el.textContent=formatTime(myTime); }
+    else { oppTime+=ajout; const el=document.getElementById('timer-opponent'); if(el) el.textContent=formatTime(oppTime); }
+  }
+  if (typeof _clockNames === 'function') _clockNames();
 }
 function _flagFall(loser){
   if(GameOver.get()) return;

@@ -351,6 +351,27 @@ function setupPickLayoutSelect(sel) {
   const opt = sel.options[sel.selectedIndex];
   setupRenderLayoutThumb(value, (opt && opt.getAttribute('title')) || (opt && opt.textContent.trim()));
 }
+/* Cadence personnalisee : construit le code ('300+5', 'D300+5', suffixe 'e10')
+   a partir du petit formulaire, et le choisit comme les boutons predefinis. */
+function _cadencePersoCode() {
+  const g = function(id, d){ const el = document.getElementById(id); const n = el ? parseInt(el.value, 10) : NaN; return isNaN(n) ? d : n; };
+  const mode = (document.getElementById('cad-mode') || {}).value || 'bonus';
+  const base = Math.max(1, Math.min(180, g('cad-base', 10))) * 60, x = Math.max(0, Math.min(120, g('cad-x', 5))), ej = Math.max(0, Math.min(300, g('cad-ej', 0)));
+  return (mode === 'delai' ? 'D' : '') + base + '+' + x + (ej ? 'e' + ej : '');
+}
+function _cadencePersoMaj() {
+  const mode = (document.getElementById('cad-mode') || {}).value || 'bonus';
+  const lab = document.getElementById('cad-x-label'); if (lab) lab.textContent = mode === 'delai' ? 'Délai par coup' : 'Bonus par coup';
+  const code = _cadencePersoCode(), res = document.getElementById('cad-resume');
+  if (res) res.textContent = _decrireCadence(code);
+  const b = document.getElementById('setup-time-perso');
+  if (b && b.classList.contains('active')) setupPick('time', code, b);
+}
+function _cadencePerso(btn) {
+  const box = document.getElementById('setup-time-perso-box'); if (box) box.style.display = 'block';
+  setupPick('time', _cadencePersoCode(), btn);
+  _cadencePersoMaj();
+}
 function setupPick(group, value, btn) {
   _setupCfg[group] = value;
   const box = btn.parentElement;

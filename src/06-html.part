@@ -866,6 +866,19 @@
         <button onclick="setupPick('time','300+3',this)" class="setup-opt">5 min + 3 s</button>
         <button onclick="setupPick('time','600+5',this)" class="setup-opt">10 min + 5 s</button>
         <button onclick="setupPick('time','1200+10',this)" class="setup-opt">20 min + 10 s</button>
+        <button onclick="setupPick('time','C',this)" class="setup-opt" title="Compte le temps de chaque joueur, sans limite">Chrono</button>
+        <button onclick="_cadencePerso(this)" class="setup-opt" id="setup-time-perso">Personnaliser…</button>
+      </div>
+      <div id="setup-time-perso-box" style="display:none;margin-top:10px;font-size:13px;line-height:2">
+        <label>Mode
+          <select id="cad-mode" onchange="_cadencePersoMaj()" style="margin-left:6px">
+            <option value="bonus">Bonus par coup</option>
+            <option value="delai">Délai par coup</option>
+          </select></label><br>
+        <label>Temps initial <input id="cad-base" type="number" min="1" max="180" value="10" style="width:56px" oninput="_cadencePersoMaj()"> min</label><br>
+        <label><span id="cad-x-label">Bonus par coup</span> <input id="cad-x" type="number" min="0" max="120" value="5" style="width:56px" oninput="_cadencePersoMaj()"> s</label><br>
+        <label>Bonus par éjection <input id="cad-ej" type="number" min="0" max="300" value="0" style="width:56px" oninput="_cadencePersoMaj()"> s</label>
+        <div id="cad-resume" style="color:var(--muted);font-size:12px"></div>
       </div>
     </div>
 
