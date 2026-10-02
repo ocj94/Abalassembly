@@ -399,12 +399,11 @@ let gameTimerBudget = 1200;        // budget par defaut : 20 minutes
    une (« 10 min + 5 s » -> 600 s) ; sinon 20 minutes par defaut.
    Demande d'Olivier. */
 function _gameTimerBudgetFromControl() {
+  // la cadence deja lue (tous modes, y compris 'D300+5') plutot qu'un decoupage maison du code
+  if (typeof _timeCtlBase !== 'undefined' && _timeCtlBase > 0) return _timeCtlBase;
   try {
     var sel = document.getElementById('time-ctl-select');
-    if (sel && sel.value) {
-      var base = parseInt(String(sel.value).split('+')[0], 10);
-      if (base > 0) return base;
-    }
+    if (sel && sel.value && typeof _lireCadence === 'function') { var k = _lireCadence(sel.value); if (k.base > 0) return k.base; }
   } catch(e){}
   return 1200;
 }

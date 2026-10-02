@@ -1520,3 +1520,94 @@ test('nulle : comptee dans la progression (partie jouee, nulle), ELO neutre', ()
   assert.strictEqual(joue, 'draw');
 });
 
+/* ─── 34. Pendules : Chrono, Bonus, Delai, bonus par ejection, duree de chaque coup ─── */
+function _pendule(code) {
+  ctx.GameMode.set('ai'); ctx.HumanColor.set('black'); ctx.GameOver.set(false); ctx.timerPaused = false;
+  ctx.replayMode = false; ctx.botDuelMode = false; ctx._tourneyMatch = null;
+  ['playSfx', 'showToast'].forEach(n => { ctx[n] = () => {}; });
+  const k = ctx._appliquerCadence(code);
+  ctx.myTime = k.base; ctx.oppTime = k.base; ctx.CurrentTurn.set('black');
+  return k;
+}
+
+test('pendules : lecture des codes -- les anciennes cadences inchangees, les nouveaux modes reconnus', () => {
+  const L = v => { const k = ctx._lireCadence(v); return [k.mode, k.base, k.inc, k.delai, k.ej]; };
+  assert.deepStrictEqual(L(''), ['libre', 0, 0, 0, 0]);
+  assert.deepStrictEqual(L('300+3'), ['bonus', 300, 3, 0, 0], 'ancienne cadence : meme sens');
+  assert.deepStrictEqual(L('1200+10'), ['bonus', 1200, 10, 0, 0]);
+  assert.deepStrictEqual(L('C'), ['chrono', 0, 0, 0, 0]);
+  assert.deepStrictEqual(L('D300+5'), ['delai', 300, 0, 5, 0]);
+  assert.deepStrictEqual(L('D300+5e10'), ['delai', 300, 0, 5, 10]);
+  assert.deepStrictEqual(L('600+5e15'), ['bonus', 600, 5, 0, 15]);
+  assert.deepStrictEqual(L('n importe quoi'), ['libre', 0, 0, 0, 0]);
+  assert.strictEqual(ctx._decrireCadence('D300+5e10'), '5 min, délai de 5 s par coup, + 10 s par éjection');
+});
+
+test('pendules : Bonus (comportement historique) -- decompte et +bonus apres le coup', () => {
+  _pendule('60+5');
+  for (let i = 0; i < 3; i++) ctx.tickTimers();
+  assert.strictEqual(ctx.myTime, 57);
+  ctx.boardSnapshots = [{ moveInfo: { ejection: false } }]; ctx._clockInc('black');
+  assert.strictEqual(ctx.myTime, 62);
+});
+
+test('pendules : Delai -- les secondes offertes ne sont pas decomptees, a chaque coup', () => {
+  _pendule('D60+3');
+  for (let i = 0; i < 3; i++) ctx.tickTimers();
+  assert.strictEqual(ctx.myTime, 60, 'les 3 premieres secondes sont offertes');
+  ctx.tickTimers(); ctx.tickTimers();
+  assert.strictEqual(ctx.myTime, 58, 'puis le temps est decompte');
+  ctx.boardSnapshots = [{ moveInfo: { ejection: false } }]; ctx._clockInc('black'); ctx.CurrentTurn.set('white');
+  assert.strictEqual(ctx.myTime, 58, 'le delai n ajoute pas de temps');
+  for (let i = 0; i < 4; i++) ctx.tickTimers();
+  assert.strictEqual(ctx.oppTime, 59, 'l adversaire a lui aussi ses 3 secondes offertes');
+});
+
+test('pendules : bonus par ejection, en Bonus comme en Delai', () => {
+  _pendule('D60+3e10');
+  ctx.boardSnapshots = [{ moveInfo: { ejection: true } }]; ctx._clockInc('black');
+  assert.strictEqual(ctx.myTime, 70);
+  _pendule('60+2e10');
+  ctx.boardSnapshots = [{ moveInfo: { ejection: true } }]; ctx._clockInc('white');
+  assert.strictEqual(ctx.oppTime, 72, 'bonus par coup + bonus par ejection');
+});
+
+test('pendules : Chrono -- le temps de chaque joueur monte, jamais de drapeau', () => {
+  _pendule('C'); let tombe = false; const sauve = ctx._flagFall; ctx._flagFall = () => { tombe = true; };
+  for (let i = 0; i < 4; i++) ctx.tickTimers();
+  ctx.CurrentTurn.set('white'); ctx.tickTimers(); ctx.tickTimers();
+  assert.deepStrictEqual([ctx.myTime, ctx.oppTime], [4, 2]); assert.ok(!tombe);
+  ctx._flagFall = sauve;
+});
+
+test('pendules : en Delai, le drapeau tombe quand le temps est epuise apres le delai', () => {
+  _pendule('D60+2'); ctx.myTime = 1; ctx._delaiRestant = 0;
+  let perdant = null; const sauve = ctx._flagFall; ctx._flagFall = c => { perdant = c; };
+  ctx.tickTimers();
+  assert.strictEqual(perdant, 'black'); ctx._flagFall = sauve;
+});
+
+test('pendules : la duree de chaque coup joue en direct est gardee et affichee', () => {
+  _pendule('300+3');
+  const els = {}; const origine = ctx.document.getElementById;
+  ctx.document.getElementById = id => (els[id] || (els[id] = { innerHTML: '', textContent: '', classList: { add(){}, remove(){}, toggle(){} }, style: {} }));
+  try {
+    ctx.boardSnapshots = [{ moveInfo: { ejection: false } }];
+    ctx._debutCoupMs = Date.now() - 12000; ctx._clockInc('black');
+    assert.strictEqual(ctx.boardSnapshots[0].duree, 12);
+    assert.strictEqual(ctx._dureeDernierCoup.black, 12);
+    assert.match(els['clock-bottom-who'].innerHTML, /⏱ 12 s/);
+  } finally { ctx.document.getElementById = origine; }
+});
+
+test('pendules : le formulaire « Personnaliser » construit le bon code', () => {
+  const els = { 'cad-mode': { value: 'delai' }, 'cad-base': { value: '10' }, 'cad-x': { value: '5' }, 'cad-ej': { value: '10' } };
+  const origine = ctx.document.getElementById;
+  ctx.document.getElementById = id => els[id] || null;
+  try {
+    assert.strictEqual(ctx._cadencePersoCode(), 'D600+5e10');
+    els['cad-mode'].value = 'bonus'; els['cad-ej'].value = '0';
+    assert.strictEqual(ctx._cadencePersoCode(), '600+5');
+  } finally { ctx.document.getElementById = origine; }
+});
+

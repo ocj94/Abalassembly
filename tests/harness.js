@@ -142,6 +142,13 @@ const PASSERELLE = `
   if (typeof botDuelMode !== 'undefined') relier('botDuelMode', function(){return botDuelMode;}, function(v){botDuelMode=v;});
   if (typeof currentLayout !== 'undefined') relier('currentLayout', function(){return currentLayout;}, function(v){currentLayout=v;});
   if (typeof kidsMode !== 'undefined') relier('kidsMode', function(){return kidsMode;}, function(v){kidsMode=v;});
+  if (typeof myTime !== 'undefined') relier('myTime', function(){return myTime;}, function(v){myTime=v;});
+  if (typeof oppTime !== 'undefined') relier('oppTime', function(){return oppTime;}, function(v){oppTime=v;});
+  if (typeof _delaiRestant !== 'undefined') relier('_delaiRestant', function(){return _delaiRestant;}, function(v){_delaiRestant=v;});
+  if (typeof _timeCtlMode !== 'undefined') relier('_timeCtlMode', function(){return _timeCtlMode;});
+  if (typeof _dureeDernierCoup !== 'undefined') relier('_dureeDernierCoup', function(){return _dureeDernierCoup;}, function(v){_dureeDernierCoup=v;});
+  if (typeof _debutCoupMs !== 'undefined') relier('_debutCoupMs', function(){return _debutCoupMs;}, function(v){_debutCoupMs=v;});
+  if (typeof timerPaused !== 'undefined') relier('timerPaused', function(){return timerPaused;}, function(v){timerPaused=v;});
   if (typeof undoStack !== 'undefined')        relier('undoStack', function(){return undoStack;}, function(v){undoStack=v;});
   if (typeof selected !== 'undefined')         relier('selected', function(){return selected;}, function(v){selected=v;});
   if (typeof LAYOUTS !== 'undefined')          relier('LAYOUTS', function(){return LAYOUTS;});
