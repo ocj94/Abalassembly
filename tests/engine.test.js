@@ -693,24 +693,24 @@ test('equipes : triees par membres, 8 au plus ; reseau coupe -> null sans except
 
 /* ─── 18. Stats du corpus : le tournoi PlayStrategy compte, toutes parties ─── */
 
-test('corpus : MIGS + AbalOnline + 93 parties du tournoi + 4 de reference = 4 576', async () => {
+test('corpus : MIGS + AbalOnline + 93 parties du tournoi + 5 de reference = 4 577', async () => {
   assert.ok(await ctx.ensureGameBanks());
   const s = await ctx.computeCorpusStats(() => {});
   assert.strictEqual(s.nMigs, 2589); assert.strictEqual(s.nAo, 1890);
   assert.strictEqual(s.nPs, 93); assert.strictEqual(s.nPsSansCoup, 3);
-  assert.strictEqual(s.totalGames, 4576);
+  assert.strictEqual(s.totalGames, 4577);
   // la duree ne compte que les parties jouees : pas de partie "a 0 coup"
-  assert.strictEqual(s.nLens, 2589 + 90 + 4);
+  assert.strictEqual(s.nLens, 2589 + 90 + 5);
   assert.ok(s.lenMin > 0);
   const bel = s.topVariants.find(v => v[0] === 'belgian');
-  assert.ok(bel && bel[1] === 95, 'Belgian Daisy : les 93 parties du tournoi + les 2 parties KAAH');
+  assert.ok(bel && bel[1] === 96, 'Belgian Daisy : les 93 parties du tournoi + les 3 parties KAAH');
 });
 
 test("corpus : les parties importees a la volee n'y entrent pas (meme corpus pour tous)", async () => {
   ctx.PS_GAMES.push(['vol00001', '2026-09-01', 'X', 'Y', 'X gagne', 'a1b2 i5h5']);
   const s = await ctx.computeCorpusStats(() => {});
   ctx.PS_GAMES.pop();
-  assert.strictEqual(s.totalGames, 4576);
+  assert.strictEqual(s.totalGames, 4577);
 });
 
 test('bibliotheque : une partie sans coup est annoncee, jamais chargee comme une partie jouee', () => {
@@ -767,7 +767,7 @@ test('bibliotheque : la partie Pyramide s ouvre et se rejoue jusqu au dernier co
   assert.strictEqual(ctx.CapturedByWhite.get(), 3);
 });
 
-test('bibliotheque : listee avec sa source, filtrable, et en-tete calcule (4 483 parties, 21 variantes)', async () => {
+test('bibliotheque : listee avec sa source, filtrable, et en-tete calcule (4 484 parties, 21 variantes)', async () => {
   assert.ok(await ctx.ensureGameBanks());
   const els = {}, opts = [{ value: '' }];
   const origine = ctx.document.getElementById, origineCreate = ctx.document.createElement;
@@ -782,7 +782,7 @@ test('bibliotheque : listee avec sa source, filtrable, et en-tete calcule (4 483
   assert.match(els['migs-list'].innerHTML, /onlineabalone\.wordpress\.com/, 'la source est indiquee');
   assert.doesNotMatch(els['migs-list'].innerHTML, /loadAOGame|loadMigsGame/, 'jamais presentee comme AbalOnline ou MIGS');
   assert.ok(opts.some(o => o.value === 'pyramide'));
-  assert.match(els['migs-entete'].textContent, /^4\u202f?483 parties · 21 variantes/);
+  assert.match(els['migs-entete'].textContent, /^4\u202f?484 parties · 21 variantes/);
 });
 
 /* ─── 21. Marguerite francaise : variante desequilibree ─── */
@@ -1609,5 +1609,20 @@ test('pendules : le formulaire « Personnaliser » construit le bon code', () =>
     els['cad-mode'].value = 'bonus'; els['cad-ej'].value = '0';
     assert.strictEqual(ctx._cadencePersoCode(), '600+5');
   } finally { ctx.document.getElementById = origine; }
+});
+
+/* ─── 35. Troisieme partie KAAH (02/10/2026) ─── */
+test('KAAH 02/10/2026 : se rejoue en entier (216 demi-coups), Blancs 6 a 5, position finale = code affiche par KAAH', () => {
+  ['drawBoard','updateStatus','showToast','rebuildMoveListLabels','loadSnapshot','closeMigsBrowser','resetGutterPositions','showPage'].forEach(n => { ctx[n] = () => {}; });
+  const i = ctx.PARTIES_REFERENCE.findIndex(g => /KAAH/.test(g[5]) && g[0] === '2026-10-02');
+  assert.ok(i >= 0);
+  ctx.loadRefGame(i);
+  assert.strictEqual(ctx.boardSnapshots.length, 216);
+  assert.strictEqual(ctx.CapturedByWhite.get(), 6); assert.strictEqual(ctx.CapturedByBlack.get(), 5);
+  const code = '6b5d2e3458f56_5b34c67d34567', attendu = [];
+  code.split('_').forEach((m, k) => { let r = null; for (const ch of m.replace(/^\d+/, '')) { if (/[a-i]/.test(ch)) r = ch; else attendu.push(r + ch + (k ? 'w' : 'b')); } });
+  const nous = [];
+  for (const [kk, v] of Object.entries(ctx.boardSnapshots[215].board)) if (v) { const [r, cc] = kk.split(',').map(Number); nous.push(String(ctx.coordToABAPRO(r, cc)) + (v === 'white' ? 'w' : 'b')); }
+  assert.deepStrictEqual(nous.sort(), attendu.sort());
 });
 
