@@ -1,8 +1,9 @@
 
 
 <!-- ═══════════════════════════════════════════════════════════
-     BANDE-ANNONCE D'OUVERTURE — le titre seul, ~3 secondes (billes
-     convergentes et sous-titre retires a la demande d'Olivier), pur CSS/JS, aucune
+     BANDE-ANNONCE D'OUVERTURE — ~4 secondes, a la demande d'Olivier : fond noir,
+     puis ABALASSEMBLY, puis « Le jeu strategique de reference » (billes
+     convergentes retirees). Pur CSS/JS, aucune
      dépendance ni fichier vidéo (cohérent avec le mono-fichier).
      Une fois par session (sessionStorage), toujours passable au
      clic/tap/Échap, raccourcie si l'utilisateur préfère moins
@@ -14,10 +15,10 @@
   background: radial-gradient(ellipse at center, var(--surface) 0%, var(--bg) 100%);
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
-  animation: introFadeOut .6s ease-in 2.4s forwards;
+  animation: introFadeOut .6s ease-in 3.4s forwards;
 }
 #intro-splash.intro-gone { display: none !important; }
-.intro-title { position: relative; text-align: center; opacity: 0; animation: introTitleIn .9s ease-out .15s forwards; }
+.intro-title { position: relative; text-align: center; opacity: 0; animation: introTitleIn .9s ease-out .5s forwards; }
 .intro-logo {
   font-family: 'Playfair Display', serif; font-size: clamp(32px, 7vw, 64px); font-weight: 700;
   letter-spacing: .04em; color: var(--white);
@@ -26,6 +27,11 @@
   text-shadow: 0 0 40px rgba(200,168,75,.25);
 }
 @keyframes introTitleIn   { from { opacity:0; transform: translateY(14px) scale(.96); } to { opacity:1; transform: translateY(0) scale(1); } }
+.intro-tagline {
+  margin-top: 10px; font-family: 'DM Sans', sans-serif; font-size: clamp(12px, 2vw, 15px);
+  letter-spacing: .12em; text-transform: uppercase; color: var(--muted); opacity: 0;
+  animation: introTaglineIn .8s ease-out 1.6s forwards;   /* apres le titre (0,5 -> 1,4 s) */
+}
 @keyframes introTaglineIn { from { opacity:0; } to { opacity:1; } }
 @keyframes introFadeOut   { to { opacity: 0; visibility: hidden; } }
 
@@ -39,13 +45,14 @@
 #intro-skip:hover { color: var(--gold-light); border-color: var(--gold); }
 
 @media (prefers-reduced-motion: reduce) {
-  .intro-title, #intro-skip { animation-duration: .01s !important; animation-delay: 0s !important; }
+  .intro-title, .intro-tagline, #intro-skip { animation-duration: .01s !important; animation-delay: 0s !important; }
   #intro-splash { animation-delay: 1.2s !important; }
 }
 </style>
 <div id="intro-splash" role="dialog" aria-label="Introduction Abalassembly">
   <div class="intro-title">
     <div class="intro-logo">ABALASSEMBLY</div>
+    <div class="intro-tagline">Le jeu stratégique de référence</div>
   </div>
   <button id="intro-skip" onclick="skipIntro()">Passer ›</button>
 </div>

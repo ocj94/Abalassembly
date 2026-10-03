@@ -32,6 +32,14 @@ const PARTIES_REFERENCE = [
   // position FINALE affiche par KAAH -- identique case par case. Blancs 6 a 3.
   ,['2026-10-01', 'KAI++ de KAAH (niveau 8, agressif v2)', 'ocj94', 'ocj94', 'belgian', 'KAAH, l\u2019application de Saab',
    '1.i9h8 a5b5 2.i8h7 a4b4 3.h7g6 i5h4 4.h8g7 b4c4 5.a1b1 g3g5f2 6.c1c3d1 b5c5 7.f5g5 i5h4 8.g6g5 c5d5 9.g5g4 i6h6 10.d1e2 b6c6 11.d2e2 f4f3 12.a2b2 f2f3 13.b3c3 c6d6 14.b1d3c1 d5e5 15.e2d2 f3f4 16.g7f7 d6d5 17.h5g4 f6e5 18.b2b1 d4e4 19.f3e3 e5e4 20.d2d3 h6g6 21.d3d4 e3d3 22.d5d4 d6d5 23.d4d3 h4h5 24.d3d2 c3c4d3 25.d2e3 f5e4 26.b1a1b2 g5f4 27.d1e2 h5g5 28.d2e2 e4f5 29.f2e1 f6f5 30.e1e2 f5f4 31.g3g4h4 f2f3 32.c1d2 f5g5 33.i5i6 e4f4 34.i6h6 f4g4 35.d2e3 d4d5e4 36.h6h7 e6e5 37.e1e2d1 e4e5d4 38.d1e1 h5g4 39.b2b3 d4d3 40.d1c1 e3d2 41.h7h8 c1d2 42.f4f5 e3e2']
+  // KAAH, 02/10/2026, partie amicale 2610021154. Noirs : KAI++ de KAAH, niveau 8,
+  // profil 'Normal', 60 s ('KAI++8_Nor_60s'). Blancs : Olivier. Trois sources
+  // independantes : Aba-Pro (216 demi-coups, une seule lecture), Nacre (216
+  // positions identiques), code de la position FINALE affiche par KAAH --
+  // identique case par case. Blancs 6 a 5. (L'en-tete KAAH '-0-3tr18' ne
+  // correspond pas a la fin de partie : en-tete fige en cours de jeu.)
+  ,['2026-10-02', 'KAI++ de KAAH (niveau 8, normal, 60 s)', 'ocj94', 'ocj94', 'belgian', 'KAAH, l\u2019application de Saab',
+   '1.i9h8 a5b5 2.i8h7 a4b4 3.a1b2 b5c5 4.h7g6 c6c5 5.c1c2d2 i5h4 6.d2d3 g3g5f2 7.h9g8 f2f4e2 8.g8g7 i6h5 9.f5g5 e2e4f3 10.g7g6 g3f3 11.f6g6 d6e6 12.g6h6 b4c4 13.i6h6 c5c4 14.h6h5 c2d2 15.g5h5 d2e3 16.h5g4 f5f4 17.h4i5h5 e5e6f5 18.h8g7 e2e3 19.f2e2 b6c6 20.e5d5e6 c6c5 21.e6d6e5 c5d6 22.b1b2 e3e4 23.e2e3 e4f4 24.h4h5 e5e4 25.f7g8 e4f5 26.d3e3 f5f4 27.f2e2 c3d4 28.e2e3 g3f3 29.a2b2 f4g5 30.b2c3 f6g6 31.b3c3 f3f4 32.i7h7 i6h6 33.f7e6 d6e7 34.e6d5 h6g6 35.d5c4 f6f5 36.h5h6 e7e6 37.a2b3 g4g5 38.g8g9f7 g3f3 39.d3e3 e6e5 40.e1e2d1 f5g6 41.i8h8 f4g5 42.d1d2 g5h6 43.f3f4 g3g4 44.b3c3 g7g6 45.c3d3 g3h4 46.f3f4 g6f6 47.h8g7 h7g6 48.f7f8e6 g6f6 49.b4c5 e6e5 50.e2f3 g4g5 51.c2c3 d4e4 52.d2d3 g5g6 53.g8f7 g7f6 54.g4g5 h6g6 55.f3g4 e3f4 56.h6h5 g6g5 57.g3f3 i7h6 58.f7e7 e6f6 59.b2b3 g6h7 60.b3c4 h4g3 61.d7e8 d4e5 62.d3d4 h6g5 63.h5h6 g7g6 64.h6h5 g6h6 65.d6e6 h7h6 66.f6e6 g6f6 67.d6e6 h6h5 68.e7e8d6 g5f4 69.e6f6 d2d3 70.f5g5 d3e4 71.f6g7 e4f5 72.c3d4 f6f5 73.f2e2 h4g4 74.e2d2 e3e4 75.c5c4 f3f4 76.d6d7e7 f4e3 77.c4d4 h5h6 78.e7e8f7 h7g6 79.c3d3 h6g6 80.f7e7 e6e5 81.e2d2 f6e5 82.c3c4 f4e4 83.h8g7 g6f5 84.b1c2b2 e4d4 85.a4b5 f3e3 86.e7f8e6 g3g4f3 87.b5c5 f4e3 88.d6c5 e3d2 89.c5b4 f5e5 90.a3b4 e5d5 91.d6e6 f3e3 92.b3b4 d5c5 93.a5a4 d2d3 94.g7f6 e3d3 95.f7f6 c1c2 96.e6e5 d3d2 97.g6f5 d2c2 98.f5e4 d5d4 99.b6c6 b5c5 100.e5f5 d5c4 101.d2e3 a2b3 102.c2d2 c3c4 103.c7d8 c5c6d6 104.d8e8 b1b2 105.a4b5 b4c5 106.c6b5 b2b3 107.a4b5 c4c5 108.g5f5 c5c6']
 ];
 /* AO_GAMES exclut deliberement 1 partie (sur les 1891 d'origine) :
    2022-09-16, mascotte vs Abadeus, variante "domination". Le premier
