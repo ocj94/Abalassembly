@@ -60,6 +60,44 @@ function exportFullHistoryAbaPro(){
   if (typeof showToast === 'function') showToast('📤 ' + blocks.length + ' partie' + (blocks.length>1?'s':'') + ' exportée' + (blocks.length>1?'s':'') + (skipped?(' (' + skipped + ' ignorée' + (skipped>1?'s':'') + ', illisible' + (skipped>1?'s':'') + ')'):''));
 }
 
+/* ── Fichiers recus : menu « Partager » d'Android (share_target, via sw.js) et
+   « Ouvrir avec » sur ordinateur (file_handlers, via launchQueue). Le contenu
+   remplit la fenetre « Importer un historique » ; il reste a verifier son pseudo
+   et a toucher « Importer » -- rien n'est importe sans cette confirmation. ── */
+function _ouvrirImportAvecTextes(elements) {
+  const utiles = (elements || []).filter(function(x){ return x && typeof x.texte === 'string' && x.texte.trim(); });
+  if (!utiles.length) { if (typeof showToast === 'function') showToast('Aucun contenu lisible dans le fichier reçu'); return false; }
+  if (typeof skipIntro === 'function') { try { skipIntro(); } catch (e) {} }
+  openBulkHistoryImportModal();
+  const ta = document.getElementById('bulk-history-text');
+  if (ta) ta.value = utiles.map(function(x){ return x.texte.trim(); }).join('\n\n');
+  const st = document.getElementById('bulk-history-status');
+  if (st) { st.textContent = 'Reçu : ' + utiles.map(function(x){ return x.nom; }).join(', ') + ' — vérifie ton pseudo, puis touche « Importer ».'; st.style.color = 'var(--gold)'; }
+  return true;
+}
+async function _recupererPartageEnAttente() {
+  try {
+    if (!/[?&]partage=/.test(location.search) || typeof caches === 'undefined') return false;
+    history.replaceState(null, '', location.pathname);       // pas de nouvel import au rechargement
+    const c = await caches.open('abalassembly-partage');
+    const r = await c.match('partage-en-attente');
+    if (!r) { if (typeof showToast === 'function') showToast('Fichier partagé introuvable — recommence le partage'); return false; }
+    await c.delete('partage-en-attente');
+    return _ouvrirImportAvecTextes(await r.json());
+  } catch (e) { return false; }
+}
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+  window.addEventListener('load', function(){ _recupererPartageEnAttente(); });
+  if ('launchQueue' in window && window.launchQueue && typeof window.launchQueue.setConsumer === 'function') {
+    window.launchQueue.setConsumer(async function(params){
+      if (!params || !params.files || !params.files.length) return;
+      const lus = [];
+      for (const h of params.files) { try { const f = await h.getFile(); lus.push({ nom: f.name, texte: await f.text() }); } catch (e) {} }
+      _ouvrirImportAvecTextes(lus);
+    });
+  }
+}
+
 function openBulkHistoryImportModal(){
   let modal = document.getElementById('bulk-history-modal');
   if (modal) modal.remove();

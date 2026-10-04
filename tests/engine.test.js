@@ -1626,3 +1626,78 @@ test('KAAH 02/10/2026 : se rejoue en entier (216 demi-coups), Blancs 6 a 5, posi
   assert.deepStrictEqual(nous.sort(), attendu.sort());
 });
 
+/* ─── 36. Fichiers partages vers Abalassembly (Android : « Partager » ; ordinateur : « Ouvrir avec ») ─── */
+test('manifeste : cible de partage (POST, fichiers .txt / .json) et gestion de fichiers, dans le perimetre de l app', () => {
+  const m = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'manifest.json'), 'utf8'));
+  const s = m.share_target;
+  assert.ok(s && s.method === 'POST' && s.enctype === 'multipart/form-data');
+  assert.strictEqual(s.action, 'partage');                 // relatif au manifeste : ./partage, dans le perimetre "."
+  const f = s.params.files[0];
+  assert.strictEqual(f.name, 'fichiers');
+  assert.ok(f.accept.includes('text/plain') && f.accept.includes('.txt'));
+  assert.ok(m.file_handlers && m.file_handlers[0].accept['text/plain'].includes('.txt'));
+});
+
+// sw.js execute dans un environnement simule (caches, fetch, evenements)
+function _swSimule(enLigne) {
+  const vm = require('vm'), fs = require('fs'), path = require('path');
+  const magasins = new Map(), cles = u => new URL(typeof u === 'string' ? u : u.url, 'https://ocj94.github.io/Abalassembly/sw.js').href;
+  const cache = nom => { if (!magasins.has(nom)) magasins.set(nom, new Map()); const m = magasins.get(nom);
+    return { add: async u => { m.set(cles(u), new Response('page')); }, put: async (u, r) => { m.set(cles(u), r); },
+             match: async u => (m.get(cles(u)) || undefined), delete: async u => m.delete(cles(u)) }; };
+  const ecouteurs = {}, appelsReseau = [];
+  const env = { self: null, caches: { open: async n => cache(n), keys: async () => [...magasins.keys()], delete: async n => magasins.delete(n),
+                                      match: async u => { for (const m of magasins.values()) { const r = m.get(cles(u)); if (r) return r; } } },
+    fetch: async req => { appelsReseau.push(req.url); if (!enLigne) throw new Error('hors ligne'); return new Response('frais : ' + req.url, { status: 200 }); },
+    URL, Response, Request, FormData, File, Blob, console, Promise, String, JSON, setTimeout };
+  env.self = { location: new URL('https://ocj94.github.io/Abalassembly/sw.js'), addEventListener: (t, f) => { ecouteurs[t] = f; }, skipWaiting() {}, clients: { claim: async () => {} } };
+  vm.createContext(env); vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'sw.js'), 'utf8'), env);
+  const lancer = async req => { let rep = null; ecouteurs.fetch({ request: req, respondWith: p => { rep = p; } }); return rep ? await rep : null; };
+  return { lancer, magasins, appelsReseau, cache };
+}
+
+test('sw.js : un fichier partage est mis de cote, puis la page s ouvre sur ./?partage=1', async () => {
+  const sw = _swSimule(true);
+  const fd = new FormData(); fd.append('fichiers', new File(['# 2026-10-02 · Belgian Daisy · Blanc gagne\n1.i9h8 a5b5'], 'partie-kaah.txt', { type: 'text/plain' }));
+  const rep = await sw.lancer(new Request('https://ocj94.github.io/Abalassembly/partage', { method: 'POST', body: fd }));
+  assert.strictEqual(rep.status, 303);
+  assert.strictEqual(rep.headers.get('location'), 'https://ocj94.github.io/Abalassembly/?partage=1');
+  const enAttente = await (await sw.cache('abalassembly-partage').match('partage-en-attente')).json();
+  assert.deepStrictEqual(enAttente.map(x => x.nom), ['partie-kaah.txt']);
+  assert.match(enAttente[0].texte, /Blanc gagne/);
+});
+
+test('sw.js : reseau d abord pour le site, repli sur le cache hors ligne, autres domaines jamais interceptes', async () => {
+  const sw = _swSimule(true);
+  const r1 = await sw.lancer(new Request('https://ocj94.github.io/Abalassembly/tablebase/4v2/s000.bin.gz'));
+  assert.match(await r1.text(), /^frais/);
+  await new Promise(r => setTimeout(r, 0));
+  const ps = await sw.lancer(new Request('https://playstrategy.org/api/stream/game/abc'));
+  assert.strictEqual(ps, null, 'les flux PlayStrategy ne sont pas interceptes');
+  // meme environnement, reseau coupe : le morceau deja vu vient du cache
+  const horsLigne = _swSimule(false); horsLigne.magasins.set('abalassembly-v3', sw.magasins.get('abalassembly-v3'));
+  const r2 = await horsLigne.lancer(new Request('https://ocj94.github.io/Abalassembly/tablebase/4v2/s000.bin.gz'));
+  assert.match(await r2.text(), /^frais/, 'servi depuis le cache');
+});
+
+test('page : le fichier partage remplit la fenetre « Importer un historique » (rien n est importe sans confirmation)', async () => {
+  const els = {}; const origine = ctx.document.getElementById;
+  ctx.document.getElementById = id => (els[id] || (els[id] = { value: '', textContent: '', style: {} }));
+  let ouverte = 0, importe = 0; const sO = ctx.openBulkHistoryImportModal, sI = ctx._doBulkHistoryImport;
+  ctx.openBulkHistoryImportModal = () => { ouverte++; }; ctx._doBulkHistoryImport = () => { importe++; };
+  ctx.skipIntro = () => {};
+  try {
+    assert.ok(ctx._ouvrirImportAvecTextes([{ nom: 'partie-kaah.txt', texte: '# 2026-10-02 · Belgian Daisy\n1.i9h8 a5b5' }]));
+    assert.strictEqual(ouverte, 1); assert.strictEqual(importe, 0, 'l utilisateur confirme lui-meme');
+    assert.match(els['bulk-history-text'].value, /^# 2026-10-02/);
+    assert.match(els['bulk-history-status'].textContent, /Reçu : partie-kaah\.txt/);
+    // reprise depuis le cache, a l'ouverture sur ./?partage=1
+    const stock = new Map([['partage-en-attente', new Response(JSON.stringify([{ nom: 'a.txt', texte: '# x\n1.i9h8' }]))]]);
+    ctx.caches = { open: async () => ({ match: async k => stock.get(k), delete: async k => stock.delete(k) }) };
+    ctx.location = { search: '?partage=1', pathname: '/Abalassembly/' }; let nettoye = null; ctx.history = { replaceState: (a, b, u) => { nettoye = u; } };
+    assert.ok(await ctx._recupererPartageEnAttente());
+    assert.strictEqual(nettoye, '/Abalassembly/'); assert.ok(!stock.has('partage-en-attente'), 'pris une seule fois');
+    assert.strictEqual(ouverte, 2);
+  } finally { ctx.document.getElementById = origine; ctx.openBulkHistoryImportModal = sO; ctx._doBulkHistoryImport = sI; }
+});
+
