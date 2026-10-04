@@ -325,32 +325,17 @@ function initPWA() {
        3. Gestionnaire 'activate' qui supprime tout cache d'un nom different
           du cache courant (nettoie l'ancien abalone-v1 residuel chez les
           visiteurs deja passes). */
-    const swCode = `
-const CACHE = 'abalone-v2';
-self.addEventListener('install', e => {
-  self.skipWaiting();
-  e.waitUntil(caches.open(CACHE).then(c => c.add('/')));
-});
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.filter(k => k !== CACHE).map(k => caches.delete(k))
-    )).then(() => self.clients.claim())
-  );
-});
-self.addEventListener('fetch', e => e.respondWith(
-  fetch(e.request).then(resp => {
-    const clone = resp.clone();
-    caches.open(CACHE).then(c => c.put(e.request, clone));
-    return resp;
-  }).catch(() => caches.match(e.request))
-));
-`;
-    const swBlob = new Blob([swCode], {type:'application/javascript'});
-    const swUrl = URL.createObjectURL(swBlob);
-    navigator.serviceWorker.register(swUrl).then(function() {
-      console.log('SW registered');
-    }).catch(function(e) { console.log('SW:', e); });
+    /* Octobre 2026 : le service worker est maintenant un VRAI fichier, sw.js. Ici, il
+       etait cree a partir d'un bloc de texte (adresse blob:), ce que les navigateurs
+       refusent : l'enregistrement echouait sans bruit depuis le debut -- aucun cache
+       hors-ligne reel, et aucune reception de fichiers partages. La strategie
+       decrite ci-dessus (reseau d'abord, nettoyage des anciens caches) est reprise
+       dans sw.js. Seulement sur http(s) : pas de service worker en file://. */
+    if (/^https?:$/.test(location.protocol)) {
+      navigator.serviceWorker.register('sw.js').then(function() {
+        console.log('SW registered');
+      }).catch(function(e) { console.log('SW:', e); });
+    }
   }
 
   // Install prompt
