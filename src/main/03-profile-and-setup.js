@@ -451,11 +451,38 @@ function setupPick(group, value, btn) {
      memes chiffres EXACTS que ceux que l'IA va vraiment utiliser (meme table
      AI_DIFFICULTY_CONFIG), pas une description vague inventee a part.
      Demande d'Olivier : des niveaux plus progressifs + voir ce qui change. */
-  if (group === 'diff') {
-    const info = document.getElementById('setup-diff-info');
-    const cfg = (typeof AI_DIFFICULTY_CONFIG !== 'undefined') ? AI_DIFFICULTY_CONFIG[value] : null;
-    if (info && cfg) info.textContent = 'Niveau ' + _niveauIA(value) + ' — ' + cfg.label;
+  if (group === 'diff') _setupReflexionDefaut(value);
+}
+
+/* Champ « Reflexion max » : rempli avec le temps habituel du niveau choisi (rien ne
+   change si on n'y touche pas), vide pour « sans limite ». Grise au niveau 1, qui
+   joue instantanement au hasard sans reflechir. */
+function _setupReflexionDefaut(niveau) {
+  const cfg = (typeof AI_DIFFICULTY_CONFIG !== 'undefined') ? AI_DIFFICULTY_CONFIG[niveau] : null;
+  const champ = document.getElementById('setup-reflexion');
+  if (cfg) _setupCfg.reflexion = (cfg.time >= 3600000) ? '' : cfg.time / 1000;
+  if (champ && cfg) { champ.value = _setupCfg.reflexion === '' ? '' : String(_setupCfg.reflexion); champ.disabled = !!cfg.hasard; }
+  _setupReflexionInfo();
+}
+function _setupReflexionMaj() {
+  const champ = document.getElementById('setup-reflexion');
+  const v = champ ? String(champ.value).trim().replace(',', '.') : '';
+  const n = parseFloat(v);
+  _setupCfg.reflexion = (v === '' || isNaN(n)) ? '' : Math.min(3600, Math.max(0.1, n));
+  _setupReflexionInfo();
+}
+function _setupReflexionInfo() {
+  const info = document.getElementById('setup-diff-info');
+  const niv = _setupCfg.diff, cfg = (typeof AI_DIFFICULTY_CONFIG !== 'undefined') ? AI_DIFFICULTY_CONFIG[niv] : null;
+  if (!info || !cfg) return;
+  let txt = 'Niveau ' + _niveauIA(niv) + ' — ' + cfg.label;
+  if (!cfg.hasard) {
+    const defaut = (cfg.time >= 3600000) ? '' : cfg.time / 1000;
+    if (_setupCfg.reflexion !== defaut) txt += _setupCfg.reflexion === ''
+      ? ' Réflexion réglée : sans limite, jusqu\u2019à la fin de son calcul.'
+      : ' Réflexion réglée : ' + String(_setupCfg.reflexion).replace('.', ',') + ' s au plus.';
   }
+  info.textContent = txt;
 }
 
 function setupToggle(key, on) { _setupCfg[key] = on; }
@@ -465,9 +492,8 @@ function openGameSetup() {
   showPage('setup');
   // Affiche l'indication du niveau actif (niveau 1 par defaut) des l'ouverture,
   // pas seulement apres un clic — meme table que la decision reelle de l'IA.
-  const info = document.getElementById('setup-diff-info');
-  const cfg = (typeof AI_DIFFICULTY_CONFIG !== 'undefined') ? AI_DIFFICULTY_CONFIG[_setupCfg.diff] : null;
-  if (info && cfg) info.textContent = 'Niveau ' + _niveauIA(_setupCfg.diff) + ' — ' + cfg.label;
+  if (_setupCfg.reflexion === undefined) _setupReflexionDefaut(_setupCfg.diff);
+  else _setupReflexionInfo();
   // Reflete le moteur reellement actif (choisi ici ou depuis Labo IA) plutot
   // que de toujours reafficher "Moteur actuel" par defaut -- sans ca, un
   // choix fait dans Labo IA etait silencieusement ecrase des qu'on lancait
@@ -547,6 +573,7 @@ function startConfiguredGame() {
   if (c.mode === 'ai') {
     step(function(){ if (typeof setAIStyle === 'function') setAIStyle(c.style); });
     step(function(){ if (typeof aiDifficulty !== 'undefined') aiDifficulty = c.diff; });
+    step(function(){ aiReflexionMax = (c.reflexion === undefined) ? null : c.reflexion; });
     step(function(){
       document.querySelectorAll('[id^="diff-"]').forEach(function(b){
         b.classList.toggle('active', b.id === 'diff-' + c.diff);

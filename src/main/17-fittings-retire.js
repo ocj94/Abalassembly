@@ -180,6 +180,11 @@ function addMoveToHistory(move, color, moveInfo) {
     label: move, color: color,
     moveInfo: moveInfo || null   // {cells, dir, type, ejection} pour re-notation
   });
+  // evaluation de l'IA : rattachee a SON coup ; tout autre coup l'abandonne (jamais sur le mauvais coup)
+  if (_mesuresCoupIA && _mesuresCoupIA.c === color) {
+    const m = _mesuresCoupIA; boardSnapshots[boardSnapshots.length - 1].ia = { e: m.e, p: m.p, t: m.t, ph: m.ph };
+  }
+  _mesuresCoupIA = null;
   if (_bookNode) bookDescend(moveInfo);   // suit l'ouverture jouée
   const replayBtn = document.getElementById('replay-btn');
   if (replayBtn && boardSnapshots.length > 1) replayBtn.style.display = 'block';
@@ -218,6 +223,110 @@ function scrollMoveListToEnd() {
 const MOVE_LIST_HEADER = '<div class="move-head"><span></span><span></span><span>Aba-Pro</span><span>Nacre</span></div>';
 
 // Ajoute une ligne de coup : numéro · pastille couleur · Aba-Pro (gauche) · Nacre (droite)
+/* ═══ POSITION ET EVALUATION, COUP PAR COUP ═══
+   Demande d'Olivier, sur le modele de KAAH :
+   - le CODE DE LA POSITION affichee, au format de KAAH/KAAWA ("0a12b123..._0a45...":
+     billes noires puis blanches, chaque moitie precedee du nombre de billes
+     EJECTEES de ce camp, cases triees et groupees par rangee) -- copiable, et
+     qui suit le coup affiche, en partie comme en rejeu ;
+   - l'EVALUATION de l'IA pour chacun de ses coups (phase, score du point de
+     vue de l'IA, profondeur atteinte, temps), sous le coup dans la liste, gardee
+     avec la partie dans l'historique et retrouvee en la revoyant.
+   La sequence prevue de KAAH n'existe pas ici : le moteur ne la renvoie pas. */
+let _mesuresCoupIA = null;   // mesures du dernier calcul de l'IA, en attente du coup qu'elle joue
+function _noterMesuresCoupIA(m, couleur) {
+  if (!m || typeof m.bestScore !== 'number' || !isFinite(m.bestScore)) return;
+  _mesuresCoupIA = { c: couleur, e: Math.round(m.bestScore), p: m.depth || 0, t: m.time || 0,
+                     ph: (typeof _phaseJeu === 'function') ? _phaseJeu(board, MoveCount.get()) : '' };
+}
+function _formatEvalIA(ia) {
+  if (!ia) return '';
+  const ph = { ouverture: 'Ouv.', milieu: 'Mil.', finale: 'Fin' }[ia.ph] || '';
+  const v = Math.abs(ia.e) >= 90000 ? (ia.e > 0 ? 'gain forcé' : 'perte forcée') : ((ia.e > 0 ? '+' : '') + ia.e);
+  const t = ia.t >= 1000 ? (ia.t / 1000).toFixed(1).replace('.', ',') + ' s' : Math.round(ia.t) + ' ms';
+  return (ph ? ph + ' ' : '') + v + ' · prof. ' + ia.p + ' · ' + t;
+}
+function codePosition(plateau, ejNoires, ejBlanches) {
+  const moitie = function(couleur, n){
+    const noms = Object.keys(plateau).filter(function(k){ return plateau[k] === couleur; })
+      .map(function(k){ const p = k.split(',').map(Number); return String(coordToABAPRO(p[0], p[1])); }).sort();
+    let t = String(n || 0), prec = '';
+    noms.forEach(function(nm){ if (nm[0] !== prec) { t += nm[0]; prec = nm[0]; } t += nm.slice(1); });
+    return t;
+  };
+  return moitie('black', ejNoires) + '_' + moitie('white', ejBlanches);
+}
+/* ── Permutations d'une position, comme dans KAAH (demande d'Olivier) ──
+   Les 12 symetries du plateau hexagonal, avec la NUMEROTATION DE KAAH, retrouvee
+   en comparant nos calculs aux permutations affichees par KAAH lui-meme :
+     0 a 5    : rotation de n sixiemes de tour ;
+     10 a 15  : miroir, puis rotation ;
+     100 et + : les memes, camps echanges (les deux moitiees du code inversees).
+   La forme canonique -- le plus petit des 12 codes -- est mise en evidence, comme
+   dans KAAH (c'est celle qu'il surligne). */
+function _symAxiale(n) {
+  const rot = function(a){ return { q: a.r + a.q, r: -a.q }; };   // un sixieme de tour, dans le sens de KAAH
+  const mir = function(a){ return { q: a.r, r: a.q }; };
+  return function(a){
+    let x = a, k = n % 10;
+    if (n >= 10) { x = mir(x); k = (3 - k + 6) % 6; for (let i = 0; i < k; i++) x = { q: -x.r, r: x.q + x.r }; return x; }
+    for (let i = 0; i < k; i++) x = rot(x);
+    return x;
+  };
+}
+function permutationsPosition(plateau, ejNoires, ejBlanches) {
+  const c0 = rcToAxial(4, 4), out = [];
+  [0, 1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15].forEach(function(n){
+    const f = _symAxiale(n), t = {};
+    for (const k in plateau) {
+      if (!plateau[k]) continue;
+      const p = k.split(',').map(Number), a = rcToAxial(p[0], p[1]);
+      const b = f({ q: a.q - c0.q, r: a.r - c0.r }), rc = axialToRc(b.q + c0.q, b.r + c0.r);
+      if (rc) t[rc.r + ',' + rc.c] = plateau[k];
+    }
+    out.push({ num: n, code: codePosition(t, ejNoires, ejBlanches) });
+  });
+  const canonique = out.map(function(x){ return x.code; }).sort()[0];
+  const echange = out.map(function(x){ const m = x.code.split('_'); return { num: x.num + 100, code: m[1] + '_' + m[0] }; });
+  return { permut: out, camp: echange, canonique: canonique };
+}
+function ouvrirPermutations() {
+  const code = codePosition(board, CapturedByWhite.get(), CapturedByBlack.get());
+  const P = permutationsPosition(board, CapturedByWhite.get(), CapturedByBlack.get());
+  let m = document.getElementById('permut-modal'); if (m) m.remove();
+  m = document.createElement('div'); m.id = 'permut-modal';
+  m.style.cssText = 'position:fixed;inset:0;z-index:3600;background:rgba(13,15,14,0.92);display:flex;align-items:center;justify-content:center;padding:16px';
+  const ligne = function(x){ const can = x.code === P.canonique;
+    return '<div onclick="_copierTexte(\'' + x.code + '\')" title="Toucher pour copier" style="cursor:pointer;margin-bottom:10px;font-family:\'DM Mono\',monospace;font-size:12px;word-break:break-all;color:' + (can ? 'var(--gold)' : 'var(--text)') + '">'
+      + x.num + ' : ' + x.code + (can ? ' ★' : '') + '</div>'; };
+  m.innerHTML = '<div style="max-width:620px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:20px;max-height:90vh;overflow-y:auto">'
+    + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:8px">Permutations</h3>'
+    + '<div style="font-size:12px;color:var(--muted)">Position</div><div style="font-family:\'DM Mono\',monospace;font-size:13px;word-break:break-all;margin-bottom:12px">' + code + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><div style="font-size:12px;color:var(--muted);margin-bottom:6px">Permut</div>' + P.permut.map(ligne).join('') + '</div>'
+    + '<div><div style="font-size:12px;color:var(--muted);margin-bottom:6px">Camp_Permut</div>' + P.camp.map(ligne).join('') + '</div></div>'
+    + '<div style="font-size:11px;color:var(--muted);margin:4px 0 12px">0 à 5 : rotations ; 10 à 15 : miroir puis rotation ; 100 et plus : camps échangés (numérotation de KAAH). ★ forme canonique : le plus petit des 12 codes. Touche un code pour le copier.</div>'
+    + '<button class="ctrl-btn" onclick="_copierTexte(document.getElementById(\'permut-modal\').dataset.tout)" style="width:auto;padding:6px 12px;margin-right:8px">Copier tout</button>'
+    + '<button class="ctrl-btn" onclick="document.getElementById(\'permut-modal\').remove()" style="width:auto;padding:6px 12px">Fermer</button></div>';
+  m.dataset.tout = 'Position : ' + code + '\n' + P.permut.concat(P.camp).map(function(x){ return x.num + ' : ' + x.code; }).join('\n');
+  document.body.appendChild(m);
+  return P;
+}
+function _copierTexte(t) {
+  const ok = function(){ if (typeof showToast === 'function') showToast('📋 Copié'); };
+  try { navigator.clipboard.writeText(t).then(ok, function(){ prompt('À copier :', t); }); } catch (e) { prompt('À copier :', t); }
+}
+
+function _majCodePosition() {
+  const el = document.getElementById('position-code-texte');
+  if (el && typeof board !== 'undefined') el.textContent = codePosition(board, CapturedByWhite.get(), CapturedByBlack.get());
+}
+function copierCodePosition() {
+  const el = document.getElementById('position-code-texte'), t = el ? el.textContent : '';
+  if (!t) return;
+  const ok = function(){ if (typeof showToast === 'function') showToast('📋 Position copiée'); };
+  try { navigator.clipboard.writeText(t).then(ok, function(){ prompt('Code de la position :', t); }); } catch (e) { prompt('Code de la position :', t); }
+}
+
 function appendMoveRow(list, moveInfo, fallbackLabel, color, plyNum) {
   const cur = list.querySelector('.move-item.current');
   if (cur) cur.classList.remove('current');
@@ -254,6 +363,8 @@ function appendMoveRow(list, moveInfo, fallbackLabel, color, plyNum) {
     + '<span class="move-dot" style="background:' + dot + '"></span>'
     + '<span class="move-aba">' + aba + ejx + '</span>'
     + '<span class="move-nacre">' + nac + ejx + '</span>';
+  const _snapEval = (typeof boardSnapshots !== 'undefined') ? boardSnapshots[plyNum - 1] : null;
+  if (_snapEval && _snapEval.ia) row.innerHTML += '<span class="move-eval" title="Évaluation de l\u2019IA : phase, score de son point de vue, profondeur atteinte, temps de réflexion" style="grid-column:3 / 5;font-size:11px;color:var(--muted);margin-top:-4px">' + _formatEvalIA(_snapEval.ia) + '</span>';
   list.appendChild(row);
 }
 

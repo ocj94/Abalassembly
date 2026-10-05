@@ -836,6 +836,12 @@
         <button onclick="setupPick('diff','9',this)" class="setup-opt">9</button>
         <button onclick="setupPick('diff','10',this)" class="setup-opt" style="color:#b89ef0">10</button>
       </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;flex-wrap:wrap">
+        <label for="setup-reflexion">Réflexion max (s)</label>
+        <input id="setup-reflexion" type="number" min="0.1" max="3600" step="0.1" inputmode="decimal" placeholder="sans limite"
+               style="width:90px;padding:4px 6px" oninput="_setupReflexionMaj()">
+        <span style="color:var(--muted);font-size:11px">vide = l'IA réfléchit jusqu'à trouver</span>
+      </div>
       <div id="setup-diff-info" style="font-size:11px;color:var(--muted);margin-top:6px"></div>
 
       <!-- Moteur (experimental) : meme _engineMode que Labo IA, choisi ici
@@ -1085,6 +1091,11 @@
           <div class="move-list" id="move-list">
             <div class="move-head"><span></span><span></span><span>Aba-Pro</span><span>Nacre</span></div>
           </div>
+        </div>
+        <div id="position-code" style="font-size:11px;color:var(--muted);margin:6px 0 10px;display:flex;gap:6px;align-items:center;flex-wrap:wrap" title="Code de la position affichée (format KAAH/KAAWA) : billes noires puis blanches, chacune précédée du nombre de billes éjectées">
+          <span>Position :</span><code id="position-code-texte" style="font-family:'DM Mono',monospace;color:var(--text);word-break:break-all"></code>
+          <button class="ctrl-btn" onclick="copierCodePosition()" style="width:auto;padding:2px 8px;font-size:11px">Copier</button>
+          <button class="ctrl-btn" onclick="ouvrirPermutations()" style="width:auto;padding:2px 8px;font-size:11px" title="Les 12 symétries de la position et l'échange des camps">Permutations</button>
         </div>
         <div class="game-controls">
           <button class="ctrl-btn" id="game-suggest-btn" onclick="gameShowBestMove()" style="width:100%;margin-bottom:8px;background:rgba(200,168,75,0.1);border-color:var(--gold-dim);color:var(--gold)">💡 Suggérer un coup</button>
@@ -4142,6 +4153,7 @@
   <div style="padding:0 60px 80px;max-width:680px">
     <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Des mesures sur l'Abalone lui-même, calculées à partir des parties réelles embarquées dans le site (MIGS + AbalOnline) — pas sur tes propres parties, qui sont dans <a href="#" onclick="showPage('stats');return false;" style="color:var(--gold)">Statistiques</a>. Chaque chiffre indique sa source.</div>
     <div id="corpus-stats-body"></div>
+    <div id="reflexion-stats-body"></div>
   </div>
 </div>
 

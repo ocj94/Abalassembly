@@ -693,24 +693,24 @@ test('equipes : triees par membres, 8 au plus ; reseau coupe -> null sans except
 
 /* ─── 18. Stats du corpus : le tournoi PlayStrategy compte, toutes parties ─── */
 
-test('corpus : MIGS + AbalOnline + 93 parties du tournoi + 5 de reference = 4 577', async () => {
+test('corpus : MIGS + AbalOnline + 93 parties du tournoi + 6 de reference = 4 578', async () => {
   assert.ok(await ctx.ensureGameBanks());
   const s = await ctx.computeCorpusStats(() => {});
   assert.strictEqual(s.nMigs, 2589); assert.strictEqual(s.nAo, 1890);
   assert.strictEqual(s.nPs, 93); assert.strictEqual(s.nPsSansCoup, 3);
-  assert.strictEqual(s.totalGames, 4577);
+  assert.strictEqual(s.totalGames, 4578);
   // la duree ne compte que les parties jouees : pas de partie "a 0 coup"
-  assert.strictEqual(s.nLens, 2589 + 90 + 5);
+  assert.strictEqual(s.nLens, 2589 + 90 + 6);
   assert.ok(s.lenMin > 0);
   const bel = s.topVariants.find(v => v[0] === 'belgian');
-  assert.ok(bel && bel[1] === 96, 'Belgian Daisy : les 93 parties du tournoi + les 3 parties KAAH');
+  assert.ok(bel && bel[1] === 97, 'Belgian Daisy : les 93 parties du tournoi + les 4 parties KAAH');
 });
 
 test("corpus : les parties importees a la volee n'y entrent pas (meme corpus pour tous)", async () => {
   ctx.PS_GAMES.push(['vol00001', '2026-09-01', 'X', 'Y', 'X gagne', 'a1b2 i5h5']);
   const s = await ctx.computeCorpusStats(() => {});
   ctx.PS_GAMES.pop();
-  assert.strictEqual(s.totalGames, 4577);
+  assert.strictEqual(s.totalGames, 4578);
 });
 
 test('bibliotheque : une partie sans coup est annoncee, jamais chargee comme une partie jouee', () => {
@@ -767,7 +767,7 @@ test('bibliotheque : la partie Pyramide s ouvre et se rejoue jusqu au dernier co
   assert.strictEqual(ctx.CapturedByWhite.get(), 3);
 });
 
-test('bibliotheque : listee avec sa source, filtrable, et en-tete calcule (4 484 parties, 21 variantes)', async () => {
+test('bibliotheque : listee avec sa source, filtrable, et en-tete calcule (4 485 parties, 21 variantes)', async () => {
   assert.ok(await ctx.ensureGameBanks());
   const els = {}, opts = [{ value: '' }];
   const origine = ctx.document.getElementById, origineCreate = ctx.document.createElement;
@@ -782,7 +782,7 @@ test('bibliotheque : listee avec sa source, filtrable, et en-tete calcule (4 484
   assert.match(els['migs-list'].innerHTML, /onlineabalone\.wordpress\.com/, 'la source est indiquee');
   assert.doesNotMatch(els['migs-list'].innerHTML, /loadAOGame|loadMigsGame/, 'jamais presentee comme AbalOnline ou MIGS');
   assert.ok(opts.some(o => o.value === 'pyramide'));
-  assert.match(els['migs-entete'].textContent, /^4\u202f?484 parties · 21 variantes/);
+  assert.match(els['migs-entete'].textContent, /^4\u202f?485 parties · 21 variantes/);
 });
 
 /* ─── 21. Marguerite francaise : variante desequilibree ─── */
@@ -1465,7 +1465,10 @@ test('nulle a distance : la proposition part chez l adversaire, qui repond', () 
 function _finPartie(opts) {
   const els = {}; const origine = ctx.document.getElementById;
   ctx.document.getElementById = id => (els[id] || (els[id] = { textContent: '', classList: { add(){}, remove(){} }, style: {} }));
-  ['showToast', 'soundWin', 'renderStyleCard', 'renderHeatmapCard', 'updateHeroStats', 'notifierSiAbsent', 'stopGameTimer', 'clearSavedGame', '_recordGameHistory'].forEach(n => { ctx[n] = () => {}; });
+  // fonctions remplacees le temps du test, puis RETABLIES (sinon les tests suivants
+  // heriteraient, par exemple, d'un historique qui n'enregistre plus rien)
+  const _noms = ['showToast', 'soundWin', 'renderStyleCard', 'renderHeatmapCard', 'updateHeroStats', 'notifierSiAbsent', 'stopGameTimer', 'clearSavedGame', '_recordGameHistory', 'winIntegrityOK'];
+  const _orig = {}; _noms.forEach(n => { _orig[n] = ctx[n]; ctx[n] = () => {}; });
   ctx.winIntegrityOK = () => true;
   let joue = null, badge = null;
   const sauveO = ctx.onGamePlayed, sauveB = ctx.awardBadge;
@@ -1474,7 +1477,7 @@ function _finPartie(opts) {
   ctx.MoveCount.set(40); ctx.GameOver.set(false);
   ctx.CapturedByBlack.set(opts.cN || 0); ctx.CapturedByWhite.set(opts.cB || 0);
   try { ctx.triggerWin(opts.gagnant, opts.raison); }
-  finally { ctx.document.getElementById = origine; ctx.onGamePlayed = sauveO; ctx.awardBadge = sauveB; ctx.kidsMode = false; }
+  finally { ctx.document.getElementById = origine; ctx.onGamePlayed = sauveO; ctx.awardBadge = sauveB; ctx.kidsMode = false; _noms.forEach(n => { ctx[n] = _orig[n]; }); }
   return { titre: els['win-title'].textContent, texte: els['win-sub'].textContent, victoire: joue, badge };
 }
 
@@ -1514,9 +1517,10 @@ test('fin de partie : mode Enfant et badge Blanchissage suivent aussi le camp re
 
 test('nulle : comptee dans la progression (partie jouee, nulle), ELO neutre', () => {
   ctx.initBoardState(); ctx.GameOver.set(false); ctx.MoveCount.set(30); ctx.GameMode.set('local');
-  ['showToast', 'drawBoard', 'renderStyleCard', 'renderHeatmapCard', 'updateHeroStats', 'notifierSiAbsent', '_recordGameHistory', 'clearSavedGame', 'stopGameTimer'].forEach(n => { ctx[n] = () => {}; });
+  const _noms = ['showToast', 'drawBoard', 'renderStyleCard', 'renderHeatmapCard', 'updateHeroStats', 'notifierSiAbsent', '_recordGameHistory', 'clearSavedGame', 'stopGameTimer'];
+  const _orig = {}; _noms.forEach(n => { _orig[n] = ctx[n]; ctx[n] = () => {}; });
   let joue = null; const sauve = ctx.onGamePlayed; ctx.onGamePlayed = r => { joue = r; };
-  try { ctx._declarerNulle('accord'); } finally { ctx.onGamePlayed = sauve; }
+  try { ctx._declarerNulle('accord'); } finally { ctx.onGamePlayed = sauve; _noms.forEach(n => { ctx[n] = _orig[n]; }); }
   assert.strictEqual(joue, 'draw');
 });
 
@@ -1699,5 +1703,242 @@ test('page : le fichier partage remplit la fenetre « Importer un historique » 
     assert.strictEqual(nettoye, '/Abalassembly/'); assert.ok(!stock.has('partage-en-attente'), 'pris une seule fois');
     assert.strictEqual(ouverte, 2);
   } finally { ctx.document.getElementById = origine; ctx.openBulkHistoryImportModal = sO; ctx._doBulkHistoryImport = sI; }
+});
+
+/* ─── 37. Reflexion max de l'IA, reglable (vide = sans limite) ─── */
+test('reflexion : le champ prend le temps habituel du niveau ; vide = sans limite ; grise au niveau 1', () => {
+  const els = {}; const origine = ctx.document.getElementById;
+  ctx.document.getElementById = id => (els[id] || (els[id] = { value: '', textContent: '', disabled: false, style: {} }));
+  try {
+    ctx._setupCfg.diff = '5'; ctx._setupReflexionDefaut('5');
+    assert.strictEqual(els['setup-reflexion'].value, '2.5'); assert.strictEqual(ctx._setupCfg.reflexion, 2.5);
+    assert.doesNotMatch(els['setup-diff-info'].textContent, /Réflexion réglée/, 'inchange par defaut');
+    els['setup-reflexion'].value = ''; ctx._setupReflexionMaj();
+    assert.strictEqual(ctx._setupCfg.reflexion, ''); assert.match(els['setup-diff-info'].textContent, /sans limite/);
+    els['setup-reflexion'].value = '7,5'; ctx._setupReflexionMaj();
+    assert.strictEqual(ctx._setupCfg.reflexion, 7.5); assert.match(els['setup-diff-info'].textContent, /7,5 s au plus/);
+    els['setup-reflexion'].value = '99999'; ctx._setupReflexionMaj(); assert.strictEqual(ctx._setupCfg.reflexion, 3600);
+    ctx._setupCfg.diff = '10'; ctx._setupReflexionDefaut('10'); assert.strictEqual(els['setup-reflexion'].value, '', 'niveau 10 : deja sans limite');
+    ctx._setupCfg.diff = '1'; ctx._setupReflexionDefaut('1'); assert.ok(els['setup-reflexion'].disabled, 'niveau 1 : coup immediat');
+  } finally { ctx.document.getElementById = origine; }
+});
+
+test('reflexion : l IA recoit le temps choisi -- par defaut celui du niveau, vide = sans limite, hors tournoi', () => {
+  // position sans livre d'ouvertures ni table de finale : 6 billes de chaque camp
+  ctx.currentLayout = 'standard'; ctx.board = {};
+  ['4,0','4,1','4,2','3,0','3,1','3,2'].forEach(k => ctx.board[k] = 'black');
+  ['4,6','4,7','4,8','5,5','5,6','5,7'].forEach(k => ctx.board[k] = 'white');
+  ctx.CapturedByBlack.set(8); ctx.CapturedByWhite.set(8); ctx.GameOver.set(false); ctx.GameMode.set('ai');
+  ctx.MoveCount.set(40); ctx.replayMode = false; ctx._tourneyMatch = null;
+  const sauve = { a: ctx.aiColor, r: ctx.requestAIMovePooled, s: ctx.showAIThinking };
+  let params = null; ctx.aiColor = () => 'white'; ctx.showAIThinking = () => {};
+  ctx.requestAIMovePooled = (p) => { params = p; return true; };
+  const temps = (reflexion, niveau) => { params = null; ctx.aiDifficulty = niveau || '5'; ctx.aiReflexionMax = reflexion; ctx.aiMove(); return params && params.time; };
+  try {
+    assert.strictEqual(temps(null), 2500, 'niveau 5, temps habituel');
+    assert.strictEqual(temps(''), 3600000, 'sans limite (plafond de securite 1 h)');
+    assert.strictEqual(temps(7.5), 7500, '7,5 s au plus');
+    assert.strictEqual(temps(0.5, '8'), 500, 'aussi aux niveaux eleves');
+    ctx._tourneyMatch = { cfg: { depth: 3, time: 1200 } };
+    assert.strictEqual(temps(30), 1200, 'les tournois gardent leurs propres reglages');
+  } finally { ctx._tourneyMatch = null; ctx.aiReflexionMax = null; ctx.aiDifficulty = '3'; ctx.aiColor = sauve.a; ctx.requestAIMovePooled = sauve.r; ctx.showAIThinking = sauve.s; }
+});
+
+test('reflexion : les robots adversaires gardent le temps de leur niveau', () => {
+  ctx.aiReflexionMax = 12; ctx.showToast = () => {};
+  ctx.setBotDifficulty('3', { parentElement: { querySelectorAll: () => [] }, classList: { add(){} } });
+  assert.strictEqual(ctx.aiReflexionMax, null);
+});
+
+/* ─── 38. Reflexion de l'IA : releve en partie et mesure sur le corpus ─── */
+test('reflexion (releve) : chaque coup de l IA contre toi est note ; jamais en tournoi ni a deux', () => {
+  ctx.localStorage.removeItem(ctx.STATS_REFLEXION_KEY);
+  ctx.initBoardState(); ctx.GameMode.set('ai'); ctx._tourneyMatch = null; ctx.aiDifficulty = '6'; ctx.MoveCount.set(30);
+  ctx._releverReflexion({ depth: 5, time: 3400, nodes: 170000 }, { time: 3500 });
+  const l = JSON.parse(ctx.localStorage.getItem(ctx.STATS_REFLEXION_KEY));
+  assert.strictEqual(l.length, 1);
+  assert.deepStrictEqual([l[0].n, l[0].b, l[0].t, l[0].p, l[0].k, l[0].ph], [6, 3500, 3400, 5, 170000, 'milieu']);
+  ctx._tourneyMatch = { cfg: {} }; ctx._releverReflexion({ depth: 3, time: 10 }, { time: 10 }); ctx._tourneyMatch = null;
+  ctx.GameMode.set('local'); ctx._releverReflexion({ depth: 3, time: 10 }, { time: 10 }); ctx.GameMode.set('ai');
+  assert.strictEqual(JSON.parse(ctx.localStorage.getItem(ctx.STATS_REFLEXION_KEY)).length, 1);
+});
+
+test('reflexion (releve) : resume par niveau -- medianes, profondeur max, positions par seconde', () => {
+  const r = ctx._statsReflexionResume([
+    { n: 5, t: 2000, p: 4, k: 100000 }, { n: 5, t: 2500, p: 5, k: 150000 }, { n: 5, t: 2400, p: 4, k: 120000 },
+    { n: 8, t: 10000, p: 7, k: 900000 }]);
+  assert.strictEqual(r.length, 2);
+  assert.deepStrictEqual([r[0].niveau, r[0].coups, r[0].tempsMed, r[0].profMed, r[0].profMax], [5, 3, 2400, 4, 5]);
+  assert.strictEqual(r[0].parSeconde, Math.round(370000 / 6900 * 1000));
+  assert.strictEqual(r[1].profMax, 7);
+});
+
+test('reflexion (mesure) : positions de vraies parties, 2 par phase, tirage reproductible', async () => {
+  await ctx.ensureGameBanks();
+  const a = ctx._positionsMesure(), b = ctx._positionsMesure();
+  for (const ph of ['ouverture', 'milieu', 'finale']) {
+    assert.strictEqual(a[ph].length, 2, ph);
+    a[ph].forEach(p => { assert.strictEqual(ctx._phaseJeu(p.board, p.ply), ph); const n = Object.values(p.board).filter(Boolean).length; assert.strictEqual(n, 28 - p.cB - p.cW); });
+  }
+  assert.deepStrictEqual(a.milieu.map(p => [p.partie, p.ply]), b.milieu.map(p => [p.partie, p.ply]), 'meme corpus, memes positions');
+});
+
+test('reflexion (mesure) : 5 temps x 6 positions, enregistree, tableau par phase', async () => {
+  const appels = [];
+  const res = await ctx.mesurerProfondeurCorpus({ chercher: async (p, ms) => { appels.push(ms); return { depth: ms >= 5000 ? 7 : ms >= 1000 ? 5 : 4, nodes: ms * 50, time: ms }; } });
+  assert.strictEqual(appels.length, 30);
+  assert.deepStrictEqual([...new Set(appels)], [500, 1000, 2500, 5000, 10000]);
+  assert.strictEqual(JSON.parse(ctx.localStorage.getItem(ctx.MESURE_CORPUS_KEY)).lignes.length, 30);
+  const html = ctx._tableauMesure(res);
+  assert.match(html, /<td>10 s<\/td><td>7<\/td><td>7<\/td><td>7<\/td>/);
+  assert.match(html, /<td>0,5 s<\/td><td>4<\/td>/);
+  assert.match(html, /6 positions de vraies parties/);
+});
+
+test('reflexion (releve) : branche dans aiMove -- les mesures du calcul sont notees au coup joue', () => {
+  ctx.localStorage.removeItem(ctx.STATS_REFLEXION_KEY);
+  ctx.currentLayout = 'standard'; ctx.board = {};
+  ['4,0','4,1','4,2','3,0','3,1','3,2'].forEach(k => ctx.board[k] = 'black');
+  ['4,6','4,7','4,8','5,5','5,6','5,7'].forEach(k => ctx.board[k] = 'white');
+  ctx.CapturedByBlack.set(8); ctx.CapturedByWhite.set(8); ctx.GameOver.set(false); ctx.GameMode.set('ai'); ctx.MoveCount.set(40);
+  ctx.replayMode = false; ctx._tourneyMatch = null; ctx.aiDifficulty = '4'; ctx.aiReflexionMax = null;
+  const sauve = { a: ctx.aiColor, r: ctx.requestAIMovePooled, s: ctx.showAIThinking, e: ctx.executeAIMove, u: ctx.updateAIMetrics };
+  ctx.aiColor = () => 'white'; ctx.showAIThinking = () => {}; ctx.executeAIMove = () => {}; ctx.updateAIMetrics = () => {};
+  ctx.requestAIMovePooled = (p, fin) => { fin({ cells: [], dir: {} }, { depth: 3, time: 1100, nodes: 42000 }); return true; };
+  try {
+    ctx.aiMove();
+    const l = JSON.parse(ctx.localStorage.getItem(ctx.STATS_REFLEXION_KEY) || '[]');
+    assert.strictEqual(l.length, 1); assert.deepStrictEqual([l[0].n, l[0].b, l[0].p], [4, 1200, 3]);
+  } finally { Object.assign(ctx, { aiColor: sauve.a, requestAIMovePooled: sauve.r, showAIThinking: sauve.s, executeAIMove: sauve.e, updateAIMetrics: sauve.u }); }
+});
+
+test('reflexion (mesure) : la partie a la priorite -- l IA attend la fin de la recherche de mesure, puis joue', async () => {
+  ctx.currentLayout = 'standard'; ctx.board = {};
+  ['4,0','4,1','4,2','3,0','3,1','3,2'].forEach(k => ctx.board[k] = 'black');
+  ['4,6','4,7','4,8','5,5','5,6','5,7'].forEach(k => ctx.board[k] = 'white');
+  ctx.CapturedByBlack.set(8); ctx.CapturedByWhite.set(8); ctx.GameOver.set(false); ctx.GameMode.set('ai'); ctx.MoveCount.set(40);
+  ctx.replayMode = false; ctx._tourneyMatch = null; ctx.aiDifficulty = '4';
+  const sauve = { a: ctx.aiColor, r: ctx.requestAIMovePooled, s: ctx.showAIThinking, t: ctx.showToast };
+  let lancees = 0, liberer; ctx.aiColor = () => 'white'; ctx.showAIThinking = () => {}; ctx.showToast = () => {};
+  ctx.requestAIMovePooled = () => { lancees++; return true; };
+  ctx._mesureRechercheActive = new Promise(r => { liberer = r; }); ctx._mesureEnCours = {};
+  try {
+    ctx.aiMove();
+    assert.strictEqual(lancees, 0, 'pas de calcul de partie pendant la recherche de mesure');
+    assert.strictEqual(ctx._mesureEnCours, null, 'la mesure s arrete');
+    ctx._mesureRechercheActive = null; liberer(); await new Promise(r => setTimeout(r, 0));
+    assert.strictEqual(lancees, 1, 'puis l IA calcule son coup');
+  } finally { Object.assign(ctx, { aiColor: sauve.a, requestAIMovePooled: sauve.r, showAIThinking: sauve.s, showToast: sauve.t }); }
+});
+
+/* ─── 39. Position (code KAAH) et evaluation de l'IA, coup par coup ─── */
+test('code de position : identique, au caractere pres, aux codes affiches par KAAH', () => {
+  ['drawBoard','updateStatus','showToast','rebuildMoveListLabels','loadSnapshot','closeMigsBrowser','resetGutterPositions','showPage'].forEach(n => { ctx[n] = () => {}; });
+  const b = {}; ctx.LAYOUTS.belgian.black.forEach(p => b[p[0] + ',' + p[1]] = 'black'); ctx.LAYOUTS.belgian.white.forEach(p => b[p[0] + ',' + p[1]] = 'white');
+  assert.strictEqual(ctx.codePosition(b, 0, 0), '0a12b123c23g78h789i89_0a45b456c56g45h456i56', 'depart Marguerite belge (fichier temoin de KAAH)');
+  let i = ctx.PARTIES_REFERENCE.findIndex(g => /KAAH/.test(g[5]) && g[0] === '2026-09-28'); ctx.loadRefGame(i);
+  let s = ctx.boardSnapshots[40];
+  assert.strictEqual(ctx.codePosition(s.board, s.capturedByWhite, s.capturedByBlack), '0c256d357e34f4g56h78i7_1c34d46e56f567h56i56', 'tour 21 du 28/09');
+  i = ctx.PARTIES_REFERENCE.findIndex(g => /KAAH/.test(g[5]) && g[0] === '2026-10-02'); ctx.loadRefGame(i);
+  s = ctx.boardSnapshots[215];
+  assert.strictEqual(ctx.codePosition(s.board, s.capturedByWhite, s.capturedByBlack), '6b5d2e3458f56_5b34c67d34567', 'fin de partie du 02/10');
+});
+
+test('evaluation : format proche de KAAH (phase, score, profondeur, temps), gain force lisible', () => {
+  assert.strictEqual(ctx._formatEvalIA({ e: 1090, p: 8, t: 19000, ph: 'milieu' }), 'Mil. +1090 · prof. 8 · 19,0 s');
+  assert.strictEqual(ctx._formatEvalIA({ e: -70, p: 7, t: 850, ph: 'finale' }), 'Fin -70 · prof. 7 · 850 ms');
+  assert.strictEqual(ctx._formatEvalIA({ e: 99996, p: 4, t: 120, ph: 'finale' }), 'Fin gain forcé · prof. 4 · 120 ms');
+});
+
+test('evaluation : rattachee au coup de l IA, jamais a un autre coup', () => {
+  const origine = ctx.document.getElementById; ctx.document.getElementById = () => null;   // pas de liste a l'ecran
+  try {
+    ctx.initBoardState(); ctx.boardSnapshots = []; ctx.MoveCount.set(30); ctx.GameMode.set('ai');
+    ctx._noterMesuresCoupIA({ bestScore: 1090.4, depth: 8, time: 19000 }, 'white');
+    ctx.addMoveToHistory('a1b1', 'white', { cells: [{ r: 8, c: 0 }], dir: { q: 1, r: 0 }, type: 'move' });
+    assert.strictEqual(JSON.stringify(ctx.boardSnapshots[0].ia), JSON.stringify({ e: 1090, p: 8, t: 19000, ph: 'milieu' }));
+    ctx._noterMesuresCoupIA({ bestScore: 50, depth: 6, time: 900 }, 'white');
+    ctx.addMoveToHistory('i5h5', 'black', { cells: [{ r: 0, c: 0 }], dir: { q: 0, r: 1 }, type: 'move' });   // coup humain : abandonnee
+    assert.strictEqual(ctx.boardSnapshots[1].ia, undefined);
+    ctx.addMoveToHistory('a2b2', 'white', { cells: [{ r: 8, c: 1 }], dir: { q: 1, r: 0 }, type: 'move' });
+    assert.strictEqual(ctx.boardSnapshots[2].ia, undefined, 'plus rien en attente');
+  } finally { ctx.document.getElementById = origine; }
+});
+
+test('evaluation : affichee sous le coup de l IA dans la liste des coups', () => {
+  const lignes = []; const liste = { querySelector: () => null, appendChild: r => lignes.push(r) };
+  const sauve = ctx.document.createElement; ctx.document.createElement = () => ({ dataset: {}, style: {}, classList: { remove(){} } });
+  try {
+    ctx.boardSnapshots = [{ ia: { e: 1090, p: 8, t: 19000, ph: 'milieu' } }, {}];
+    ctx.appendMoveRow(liste, null, 'd2b2', 'white', 1);
+    ctx.appendMoveRow(liste, null, 'a2a3', 'black', 2);
+    assert.match(lignes[0].innerHTML, /class="move-eval"[^>]*>Mil\. \+1090 · prof\. 8 · 19,0 s</);
+    assert.doesNotMatch(lignes[1].innerHTML, /move-eval/);
+  } finally { ctx.document.createElement = sauve; }
+});
+
+test('historique : les evaluations sont gardees avec la partie et retrouvees en la revoyant', () => {
+  ['drawBoard','updateStatus','showToast','rebuildMoveListLabels','loadSnapshot','closeMigsBrowser','resetGutterPositions','showPage'].forEach(n => { ctx[n] = () => {}; });
+  const i = ctx.PARTIES_REFERENCE.findIndex(g => /KAAH/.test(g[5]) && g[0] === '2026-10-01'); ctx.loadRefGame(i);
+  ctx.replayMode = false; ctx.GameMode.set('ai');
+  ctx.boardSnapshots[1].ia = { e: 35, p: 7, t: 30000, ph: 'ouverture' };
+  ctx.boardSnapshots[83].ia = { e: -99996, p: 2, t: 10, ph: 'finale' };
+  ctx.localStorage.removeItem(ctx.GAME_HISTORY_KEY);
+  ctx._recordGameHistory('white', null);
+  const e = ctx.getGameHistory()[0];
+  assert.strictEqual(JSON.stringify([e.evals[0], e.evals[1], e.evals[83]]), JSON.stringify([0, [35, 7, 30000, 'o'], [-99996, 2, 10, 'f']]));
+  ctx.boardSnapshots = [];
+  const _gid = ctx.document.getElementById; ctx.document.getElementById = id => (id === 'move-list' ? null : _gid(id));   // pas de liste a l'ecran
+  try { assert.ok(ctx._replayHistoryGame(e.code)); } finally { ctx.document.getElementById = _gid; }
+  assert.strictEqual(JSON.stringify(ctx.boardSnapshots[1].ia), JSON.stringify({ e: 35, p: 7, t: 30000, ph: 'ouverture' }));
+  assert.strictEqual(ctx._formatEvalIA(ctx.boardSnapshots[83].ia), 'Fin perte forcée · prof. 2 · 10 ms');
+  assert.strictEqual(ctx.boardSnapshots[2].ia, undefined);
+});
+
+/* ─── 40. Permutations d'une position (numerotation de KAAH) ─── */
+test('permutations : identiques, numero par numero, a celles affichees par KAAH', () => {
+  const KAAH = {
+    0: '2b23c23d7e468f56g56_3a2b46c4d345e35f8g7', 1: '2b45c56d4e34f456g8h8_3b6c34d567e56f9g5h7', 2: '2c3d3457e478f58h56_3c5d6e356f679g48i8',
+    3: '2c45d45e246f3g78h78_3c3d2e57f567g6h46i8', 4: '2b2c2d456e67f6g45h56_3b3c5d1e45f345g67h4', 5: '2b45d25e236f3567g7_3a2c26d134e457f4g5',
+    10: '2b23c23d5e67f567g4h5_3b1c45d234e45f2g7h6', 11: '2b45c56d2e246f56g67_3a4b13c4d456e57f3g5', 12: '2b23d47e478f4568g5_3a4c26d568e356f7g7',
+    13: '2b5c6d345e34f5g78h78_3b4c3d8e56f678g56h9', 14: '2c34d45e468f8g45h56_3c5d7e35f456g6h79i6',
+    100: '3a2b46c4d345e35f8g7_2b23c23d7e468f56g56', 101: '3b6c34d567e56f9g5h7_2b45c56d4e34f456g8h8', 110: '3b1c45d234e45f2g7h6_2b23c23d5e67f567g4h5' };
+  // relit le code 0 en plateau
+  const n2rc = {}; for (let r = 0; r < 9; r++) for (let c = 0; c < ctx.ROWS[r]; c++) n2rc[String(ctx.coordToABAPRO(r, c))] = r + ',' + c;
+  const b = {}; KAAH[0].split('_').forEach((m, i) => { let rg = null; for (const ch of m.replace(/^\d+/, '')) { if (/[a-i]/.test(ch)) rg = ch; else b[n2rc[rg + ch]] = i ? 'white' : 'black'; } });
+  const P = ctx.permutationsPosition(b, 2, 3);
+  const tous = {}; P.permut.concat(P.camp).forEach(x => { tous[x.num] = x.code; });
+  for (const [n, code] of Object.entries(KAAH)) assert.strictEqual(tous[n], code, 'permutation ' + n);
+  assert.strictEqual(P.canonique, KAAH[10], 'forme canonique = celle que KAAH surligne');
+  assert.strictEqual(P.permut.length, 12); assert.strictEqual(P.camp.length, 12);
+});
+
+test('permutations : la fenetre affiche les deux colonnes et copie tout', () => {
+  ctx.initBoardState(); ctx.CapturedByBlack.set(0); ctx.CapturedByWhite.set(0);
+  const ajoutes = []; const sB = ctx.document.body, sC = ctx.document.createElement, sG = ctx.document.getElementById;
+  ctx.document.getElementById = () => null;
+  ctx.document.createElement = () => ({ style: {}, dataset: {}, remove(){} });
+  ctx.document.body = { appendChild: el => ajoutes.push(el) };
+  try {
+    const P = ctx.ouvrirPermutations();
+    assert.strictEqual(ajoutes.length, 1);
+    assert.match(ajoutes[0].innerHTML, /Permut<\/div>[\s\S]*Camp_Permut/);
+    assert.match(ajoutes[0].dataset.tout, /^Position : /);
+    assert.strictEqual(ajoutes[0].dataset.tout.split('\n').length, 25, 'position + 24 codes');
+    assert.ok(ajoutes[0].innerHTML.includes(P.canonique + ' ★'));
+  } finally { ctx.document.body = sB; ctx.document.createElement = sC; ctx.document.getElementById = sG; }
+});
+
+/* ─── 41. Quatrieme partie KAAH (05/10/2026) ─── */
+test('KAAH 05/10/2026 : se rejoue en entier (66 demi-coups), Blancs 6 a 3, codes de depart et de fin = ceux de KAAH', () => {
+  ['drawBoard','updateStatus','showToast','rebuildMoveListLabels','loadSnapshot','closeMigsBrowser','resetGutterPositions','showPage'].forEach(n => { ctx[n] = () => {}; });
+  const i = ctx.PARTIES_REFERENCE.findIndex(g => /KAAH/.test(g[5]) && g[0] === '2026-10-05');
+  assert.ok(i >= 0);
+  ctx.loadRefGame(i);
+  assert.strictEqual(ctx.boardSnapshots.length, 66);
+  assert.strictEqual(ctx.CapturedByWhite.get(), 6); assert.strictEqual(ctx.CapturedByBlack.get(), 3);
+  assert.strictEqual(ctx.codePosition(ctx._replayStartBoard, 0, 0), '0a12b123c23g78h789i89_0a45b456c56g45h456i56');
+  const s = ctx.boardSnapshots[65];
+  assert.strictEqual(ctx.codePosition(s.board, s.capturedByWhite, s.capturedByBlack), '6a4c5d345e45f6_3f578g58h5789i89');
 });
 

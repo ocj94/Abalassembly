@@ -514,6 +514,7 @@ let botDifficulty = '1';
 function setBotDifficulty(level, btn) {
   botDifficulty = level;
   aiDifficulty = level;  // synchronise avec l'IA existante
+  aiReflexionMax = null; // les robots gardent le temps de leur niveau
   document.querySelectorAll('.bot-diff-btn').forEach(function(b){ b.classList.remove('active'); });
   if (btn) btn.classList.add('active');
   showToast('Niveau des bots : ' + (_niveauIA(level) || level));

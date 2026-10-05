@@ -3226,6 +3226,12 @@ document.addEventListener('keydown', function(e){
         <button onclick="setupPick('diff','9',this)" class="setup-opt">9</button>
         <button onclick="setupPick('diff','10',this)" class="setup-opt" style="color:#b89ef0">10</button>
       </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;flex-wrap:wrap">
+        <label for="setup-reflexion">Réflexion max (s)</label>
+        <input id="setup-reflexion" type="number" min="0.1" max="3600" step="0.1" inputmode="decimal" placeholder="sans limite"
+               style="width:90px;padding:4px 6px" oninput="_setupReflexionMaj()">
+        <span style="color:var(--muted);font-size:11px">vide = l'IA réfléchit jusqu'à trouver</span>
+      </div>
       <div id="setup-diff-info" style="font-size:11px;color:var(--muted);margin-top:6px"></div>
 
       <!-- Moteur (experimental) : meme _engineMode que Labo IA, choisi ici
@@ -3475,6 +3481,11 @@ document.addEventListener('keydown', function(e){
           <div class="move-list" id="move-list">
             <div class="move-head"><span></span><span></span><span>Aba-Pro</span><span>Nacre</span></div>
           </div>
+        </div>
+        <div id="position-code" style="font-size:11px;color:var(--muted);margin:6px 0 10px;display:flex;gap:6px;align-items:center;flex-wrap:wrap" title="Code de la position affichée (format KAAH/KAAWA) : billes noires puis blanches, chacune précédée du nombre de billes éjectées">
+          <span>Position :</span><code id="position-code-texte" style="font-family:'DM Mono',monospace;color:var(--text);word-break:break-all"></code>
+          <button class="ctrl-btn" onclick="copierCodePosition()" style="width:auto;padding:2px 8px;font-size:11px">Copier</button>
+          <button class="ctrl-btn" onclick="ouvrirPermutations()" style="width:auto;padding:2px 8px;font-size:11px" title="Les 12 symétries de la position et l'échange des camps">Permutations</button>
         </div>
         <div class="game-controls">
           <button class="ctrl-btn" id="game-suggest-btn" onclick="gameShowBestMove()" style="width:100%;margin-bottom:8px;background:rgba(200,168,75,0.1);border-color:var(--gold-dim);color:var(--gold)">💡 Suggérer un coup</button>
@@ -6532,6 +6543,7 @@ document.addEventListener('keydown', function(e){
   <div style="padding:0 60px 80px;max-width:680px">
     <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Des mesures sur l'Abalone lui-même, calculées à partir des parties réelles embarquées dans le site (MIGS + AbalOnline) — pas sur tes propres parties, qui sont dans <a href="#" onclick="showPage('stats');return false;" style="color:var(--gold)">Statistiques</a>. Chaque chiffre indique sa source.</div>
     <div id="corpus-stats-body"></div>
+    <div id="reflexion-stats-body"></div>
   </div>
 </div>
 
@@ -9231,11 +9243,38 @@ function setupPick(group, value, btn) {
      memes chiffres EXACTS que ceux que l'IA va vraiment utiliser (meme table
      AI_DIFFICULTY_CONFIG), pas une description vague inventee a part.
      Demande d'Olivier : des niveaux plus progressifs + voir ce qui change. */
-  if (group === 'diff') {
-    const info = document.getElementById('setup-diff-info');
-    const cfg = (typeof AI_DIFFICULTY_CONFIG !== 'undefined') ? AI_DIFFICULTY_CONFIG[value] : null;
-    if (info && cfg) info.textContent = 'Niveau ' + _niveauIA(value) + ' — ' + cfg.label;
+  if (group === 'diff') _setupReflexionDefaut(value);
+}
+
+/* Champ « Reflexion max » : rempli avec le temps habituel du niveau choisi (rien ne
+   change si on n'y touche pas), vide pour « sans limite ». Grise au niveau 1, qui
+   joue instantanement au hasard sans reflechir. */
+function _setupReflexionDefaut(niveau) {
+  const cfg = (typeof AI_DIFFICULTY_CONFIG !== 'undefined') ? AI_DIFFICULTY_CONFIG[niveau] : null;
+  const champ = document.getElementById('setup-reflexion');
+  if (cfg) _setupCfg.reflexion = (cfg.time >= 3600000) ? '' : cfg.time / 1000;
+  if (champ && cfg) { champ.value = _setupCfg.reflexion === '' ? '' : String(_setupCfg.reflexion); champ.disabled = !!cfg.hasard; }
+  _setupReflexionInfo();
+}
+function _setupReflexionMaj() {
+  const champ = document.getElementById('setup-reflexion');
+  const v = champ ? String(champ.value).trim().replace(',', '.') : '';
+  const n = parseFloat(v);
+  _setupCfg.reflexion = (v === '' || isNaN(n)) ? '' : Math.min(3600, Math.max(0.1, n));
+  _setupReflexionInfo();
+}
+function _setupReflexionInfo() {
+  const info = document.getElementById('setup-diff-info');
+  const niv = _setupCfg.diff, cfg = (typeof AI_DIFFICULTY_CONFIG !== 'undefined') ? AI_DIFFICULTY_CONFIG[niv] : null;
+  if (!info || !cfg) return;
+  let txt = 'Niveau ' + _niveauIA(niv) + ' — ' + cfg.label;
+  if (!cfg.hasard) {
+    const defaut = (cfg.time >= 3600000) ? '' : cfg.time / 1000;
+    if (_setupCfg.reflexion !== defaut) txt += _setupCfg.reflexion === ''
+      ? ' Réflexion réglée : sans limite, jusqu\u2019à la fin de son calcul.'
+      : ' Réflexion réglée : ' + String(_setupCfg.reflexion).replace('.', ',') + ' s au plus.';
   }
+  info.textContent = txt;
 }
 
 function setupToggle(key, on) { _setupCfg[key] = on; }
@@ -9245,9 +9284,8 @@ function openGameSetup() {
   showPage('setup');
   // Affiche l'indication du niveau actif (niveau 1 par defaut) des l'ouverture,
   // pas seulement apres un clic — meme table que la decision reelle de l'IA.
-  const info = document.getElementById('setup-diff-info');
-  const cfg = (typeof AI_DIFFICULTY_CONFIG !== 'undefined') ? AI_DIFFICULTY_CONFIG[_setupCfg.diff] : null;
-  if (info && cfg) info.textContent = 'Niveau ' + _niveauIA(_setupCfg.diff) + ' — ' + cfg.label;
+  if (_setupCfg.reflexion === undefined) _setupReflexionDefaut(_setupCfg.diff);
+  else _setupReflexionInfo();
   // Reflete le moteur reellement actif (choisi ici ou depuis Labo IA) plutot
   // que de toujours reafficher "Moteur actuel" par defaut -- sans ca, un
   // choix fait dans Labo IA etait silencieusement ecrase des qu'on lancait
@@ -9327,6 +9365,7 @@ function startConfiguredGame() {
   if (c.mode === 'ai') {
     step(function(){ if (typeof setAIStyle === 'function') setAIStyle(c.style); });
     step(function(){ if (typeof aiDifficulty !== 'undefined') aiDifficulty = c.diff; });
+    step(function(){ aiReflexionMax = (c.reflexion === undefined) ? null : c.reflexion; });
     step(function(){
       document.querySelectorAll('[id^="diff-"]').forEach(function(b){
         b.classList.toggle('active', b.id === 'diff-' + c.diff);
@@ -15074,6 +15113,7 @@ function updateStatus() {
   // finale exacte : verdict de la table 4 contre 2 (mode Decouverte), en partie comme en rejeu
   const verdict42 = (typeof _tb42Verdict === 'function') ? _tb42Verdict() : null;
   if (verdict42) txt += ' — ' + verdict42;
+  if (typeof _majCodePosition === 'function') _majCodePosition();   // code de la position affichee
   document.getElementById('game-status-text').textContent = txt;
   document.getElementById('board-msg').textContent = msg;
 }
@@ -16035,6 +16075,11 @@ function setLayout(name, btn) {
    h1: center distance | h2: cohesion | h3: push threats
 ═══════════════════════════════════════════ */
 let aiDifficulty = '3';
+/* Reflexion max de l'IA (demande d'Olivier, comme dans KAAH) : null = le temps du
+   niveau ; '' = sans limite (l'IA va jusqu'au bout de la profondeur de son
+   niveau) ; un nombre = ce nombre de secondes AU PLUS -- elle joue alors le
+   meilleur coup trouve. Reglee a l'ecran de configuration ; hors tournois. */
+let aiReflexionMax = null;
 /* Table UNIQUE profondeur/budget-temps par niveau — utilisée à la fois par la
    décision réelle de l'IA (plus bas dans aiMove) et par l'indication affichée
    sur l'écran de configuration (setup-diff-info). Une seule source de verité :
@@ -20118,6 +20163,13 @@ const PARTIES_REFERENCE = [
   // correspond pas a la fin de partie : en-tete fige en cours de jeu.)
   ,['2026-10-02', 'KAI++ de KAAH (niveau 8, normal, 60 s)', 'ocj94', 'ocj94', 'belgian', 'KAAH, l\u2019application de Saab',
    '1.i9h8 a5b5 2.i8h7 a4b4 3.a1b2 b5c5 4.h7g6 c6c5 5.c1c2d2 i5h4 6.d2d3 g3g5f2 7.h9g8 f2f4e2 8.g8g7 i6h5 9.f5g5 e2e4f3 10.g7g6 g3f3 11.f6g6 d6e6 12.g6h6 b4c4 13.i6h6 c5c4 14.h6h5 c2d2 15.g5h5 d2e3 16.h5g4 f5f4 17.h4i5h5 e5e6f5 18.h8g7 e2e3 19.f2e2 b6c6 20.e5d5e6 c6c5 21.e6d6e5 c5d6 22.b1b2 e3e4 23.e2e3 e4f4 24.h4h5 e5e4 25.f7g8 e4f5 26.d3e3 f5f4 27.f2e2 c3d4 28.e2e3 g3f3 29.a2b2 f4g5 30.b2c3 f6g6 31.b3c3 f3f4 32.i7h7 i6h6 33.f7e6 d6e7 34.e6d5 h6g6 35.d5c4 f6f5 36.h5h6 e7e6 37.a2b3 g4g5 38.g8g9f7 g3f3 39.d3e3 e6e5 40.e1e2d1 f5g6 41.i8h8 f4g5 42.d1d2 g5h6 43.f3f4 g3g4 44.b3c3 g7g6 45.c3d3 g3h4 46.f3f4 g6f6 47.h8g7 h7g6 48.f7f8e6 g6f6 49.b4c5 e6e5 50.e2f3 g4g5 51.c2c3 d4e4 52.d2d3 g5g6 53.g8f7 g7f6 54.g4g5 h6g6 55.f3g4 e3f4 56.h6h5 g6g5 57.g3f3 i7h6 58.f7e7 e6f6 59.b2b3 g6h7 60.b3c4 h4g3 61.d7e8 d4e5 62.d3d4 h6g5 63.h5h6 g7g6 64.h6h5 g6h6 65.d6e6 h7h6 66.f6e6 g6f6 67.d6e6 h6h5 68.e7e8d6 g5f4 69.e6f6 d2d3 70.f5g5 d3e4 71.f6g7 e4f5 72.c3d4 f6f5 73.f2e2 h4g4 74.e2d2 e3e4 75.c5c4 f3f4 76.d6d7e7 f4e3 77.c4d4 h5h6 78.e7e8f7 h7g6 79.c3d3 h6g6 80.f7e7 e6e5 81.e2d2 f6e5 82.c3c4 f4e4 83.h8g7 g6f5 84.b1c2b2 e4d4 85.a4b5 f3e3 86.e7f8e6 g3g4f3 87.b5c5 f4e3 88.d6c5 e3d2 89.c5b4 f5e5 90.a3b4 e5d5 91.d6e6 f3e3 92.b3b4 d5c5 93.a5a4 d2d3 94.g7f6 e3d3 95.f7f6 c1c2 96.e6e5 d3d2 97.g6f5 d2c2 98.f5e4 d5d4 99.b6c6 b5c5 100.e5f5 d5c4 101.d2e3 a2b3 102.c2d2 c3c4 103.c7d8 c5c6d6 104.d8e8 b1b2 105.a4b5 b4c5 106.c6b5 b2b3 107.a4b5 c4c5 108.g5f5 c5c6']
+  // KAAH, 05/10/2026, partie amicale 2610051911. Noirs : KAI++ de KAAH, niveau 8,
+  // profil 'agressif v4', 60 s ('KAI++8_Agr_60s_v4'). Blancs : Olivier. Trois
+  // sources independantes : Aba-Pro (66 demi-coups, une seule lecture), Nacre (66
+  // positions identiques), codes de depart et de fin affiches par KAAH --
+  // identiques au caractere pres au code calcule par Abalassembly. Blancs 6 a 3.
+  ,['2026-10-05', 'KAI++ de KAAH (niveau 8, agressif v4, 60 s)', 'ocj94', 'ocj94', 'belgian', 'KAAH, l\u2019application de Saab',
+   '1.a1b2 i5h5 2.a2b3 i6h6 3.b3c4 a5b6 4.b2c3 c5c7d6 5.b1c2 d6d8e6 6.c2c3 e6e8f6 7.i9h9 a4b5 8.e5d5 b6c6 9.d5c5 h6g6 10.d4c4 h5g5 11.c4b4 d6c6e7 12.i8i7 f5g6 13.h9h8 e5f5 14.a5a4 e6f7 15.g9h9 d7e8 16.i9h8 e8f8 17.f6g7 e5e4 18.i7h7 e4f5 19.f7g7 i7h6 20.g7h8 h4g4 21.h7g7 d7e7 22.h8g7 e7f7 23.h7h8 f7g8 24.f6e5 f4f5 25.b5c5 g4h5 26.a3b4 e4f5 27.b4c5 g6h7 28.d6e7e6 h7g7 29.e7e6 h6g6 30.e4d4 i8h7 31.i9i8 g6h7 32.e6e5 f6g7 33.c3d4 g7h8']
 ];
 /* AO_GAMES exclut deliberement 1 partie (sur les 1891 d'origine) :
    2022-09-16, mascotte vs Abadeus, variante "domination". Le premier
@@ -22821,6 +22873,16 @@ document.addEventListener('keydown', function(e){
 })();
 
 function aiMove() {
+  /* Une mesure de reflexion (page Stats du corpus) utilise les memes fils de calcul :
+     la partie a la priorite -- la mesure s'arrete, et l'IA attend la fin de la
+     recherche de mesure en cours (10 s au plus) pour ne jamais la croiser. */
+  if (typeof _mesureRechercheActive !== 'undefined' && _mesureRechercheActive) {
+    _mesureEnCours = null;
+    if (typeof showToast === 'function') showToast('Mesure de réflexion interrompue : ta partie a la priorité');
+    const g0 = _aiGen;
+    _mesureRechercheActive.then(function(){ if (g0 === _aiGen && !GameOver.get()) aiMove(); });
+    return;
+  }
   if (GameOver.get()) return;
   // Mode moteur experimental (NNUE) : les poids doivent etre prets AVANT de
   // lancer le calcul. Meme patron que ensureGameBanks() -- charge une fois
@@ -22869,6 +22931,7 @@ function aiMove() {
   // Profondeur et budget temps par difficulté — table partagée AI_DIFFICULTY_CONFIG
   const config = Object.assign({}, AI_DIFFICULTY_CONFIG[aiDifficulty] || AI_DIFFICULTY_CONFIG['3']);
   if (typeof _tourneyMatch!=='undefined' && _tourneyMatch && _tourneyMatch.cfg) { config.depth=_tourneyMatch.cfg.depth; config.time=_tourneyMatch.cfg.time; }
+  else if (aiReflexionMax !== null) config.time = (aiReflexionMax === '') ? 3600000 : Math.max(100, Math.round(aiReflexionMax * 1000));   // reflexion choisie (plafond de securite 1 h si sans limite)
 
   // Niveau 1 : décision immédiate (un peu d'aléatoire), pas besoin du worker
   if (_niveauIA() === 1 && !(typeof _tourneyMatch!=='undefined' && _tourneyMatch)) {
@@ -22900,7 +22963,7 @@ function aiMove() {
   const pooledStarted = (typeof requestAIMovePooled === 'function') && requestAIMovePooled(pooledParams, function(chosen, metrics) {
     showAIThinking(false);
     if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
-    if (metrics) updateAIMetrics(metrics);
+    if (metrics) { updateAIMetrics(metrics); _releverReflexion(metrics, config); _noterMesuresCoupIA(metrics, ai); }
     if (GameOver.get()) return;
     if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
     executeAIMove(chosen);
@@ -22918,7 +22981,7 @@ function aiMove() {
       showAIThinking(false);
       if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
       const chosen = e.data && e.data.move;
-      if (e.data) updateAIMetrics(e.data.metrics);
+      if (e.data) { updateAIMetrics(e.data.metrics); _releverReflexion(e.data.metrics, config); _noterMesuresCoupIA(e.data.metrics, ai); }
       if (GameOver.get()) return;
       if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
       executeAIMove(chosen);
@@ -22969,7 +23032,9 @@ function aiMove() {
 }
 
 // Affiche / masque l'indicateur "L'IA réfléchit…"
+let _iaReflechit = false;   // l'IA calcule un coup de partie (la mesure de reflexion ne demarre pas pendant ce temps)
 function showAIThinking(on) {
+  _iaReflechit = !!on;
   let el = document.getElementById('ai-thinking');
   if (on) {
     if (!el) {
@@ -23182,6 +23247,9 @@ function _recordGameHistory(winner, reason){
       whiteName: (typeof gcWhiteName !== 'undefined') ? gcWhiteName : '',
       code: code
     };
+    // evaluations de l'IA, coup par coup (0 = coup sans evaluation) : [score, profondeur, temps ms, phase]
+    const _ev = (typeof boardSnapshots !== 'undefined') ? boardSnapshots.map(function(s){ return s.ia ? [s.ia.e, s.ia.p, s.ia.t, (s.ia.ph || '').charAt(0)] : 0; }) : [];
+    if (_ev.some(function(x){ return x; })) entry.evals = _ev;
     let list = [];
     try { list = JSON.parse(localStorage.getItem(GAME_HISTORY_KEY) || '[]'); } catch(e){ list = []; }
     list.unshift(entry); // la plus recente en tete
@@ -23784,6 +23852,11 @@ function addMoveToHistory(move, color, moveInfo) {
     label: move, color: color,
     moveInfo: moveInfo || null   // {cells, dir, type, ejection} pour re-notation
   });
+  // evaluation de l'IA : rattachee a SON coup ; tout autre coup l'abandonne (jamais sur le mauvais coup)
+  if (_mesuresCoupIA && _mesuresCoupIA.c === color) {
+    const m = _mesuresCoupIA; boardSnapshots[boardSnapshots.length - 1].ia = { e: m.e, p: m.p, t: m.t, ph: m.ph };
+  }
+  _mesuresCoupIA = null;
   if (_bookNode) bookDescend(moveInfo);   // suit l'ouverture jouée
   const replayBtn = document.getElementById('replay-btn');
   if (replayBtn && boardSnapshots.length > 1) replayBtn.style.display = 'block';
@@ -23822,6 +23895,110 @@ function scrollMoveListToEnd() {
 const MOVE_LIST_HEADER = '<div class="move-head"><span></span><span></span><span>Aba-Pro</span><span>Nacre</span></div>';
 
 // Ajoute une ligne de coup : numéro · pastille couleur · Aba-Pro (gauche) · Nacre (droite)
+/* ═══ POSITION ET EVALUATION, COUP PAR COUP ═══
+   Demande d'Olivier, sur le modele de KAAH :
+   - le CODE DE LA POSITION affichee, au format de KAAH/KAAWA ("0a12b123..._0a45...":
+     billes noires puis blanches, chaque moitie precedee du nombre de billes
+     EJECTEES de ce camp, cases triees et groupees par rangee) -- copiable, et
+     qui suit le coup affiche, en partie comme en rejeu ;
+   - l'EVALUATION de l'IA pour chacun de ses coups (phase, score du point de
+     vue de l'IA, profondeur atteinte, temps), sous le coup dans la liste, gardee
+     avec la partie dans l'historique et retrouvee en la revoyant.
+   La sequence prevue de KAAH n'existe pas ici : le moteur ne la renvoie pas. */
+let _mesuresCoupIA = null;   // mesures du dernier calcul de l'IA, en attente du coup qu'elle joue
+function _noterMesuresCoupIA(m, couleur) {
+  if (!m || typeof m.bestScore !== 'number' || !isFinite(m.bestScore)) return;
+  _mesuresCoupIA = { c: couleur, e: Math.round(m.bestScore), p: m.depth || 0, t: m.time || 0,
+                     ph: (typeof _phaseJeu === 'function') ? _phaseJeu(board, MoveCount.get()) : '' };
+}
+function _formatEvalIA(ia) {
+  if (!ia) return '';
+  const ph = { ouverture: 'Ouv.', milieu: 'Mil.', finale: 'Fin' }[ia.ph] || '';
+  const v = Math.abs(ia.e) >= 90000 ? (ia.e > 0 ? 'gain forcé' : 'perte forcée') : ((ia.e > 0 ? '+' : '') + ia.e);
+  const t = ia.t >= 1000 ? (ia.t / 1000).toFixed(1).replace('.', ',') + ' s' : Math.round(ia.t) + ' ms';
+  return (ph ? ph + ' ' : '') + v + ' · prof. ' + ia.p + ' · ' + t;
+}
+function codePosition(plateau, ejNoires, ejBlanches) {
+  const moitie = function(couleur, n){
+    const noms = Object.keys(plateau).filter(function(k){ return plateau[k] === couleur; })
+      .map(function(k){ const p = k.split(',').map(Number); return String(coordToABAPRO(p[0], p[1])); }).sort();
+    let t = String(n || 0), prec = '';
+    noms.forEach(function(nm){ if (nm[0] !== prec) { t += nm[0]; prec = nm[0]; } t += nm.slice(1); });
+    return t;
+  };
+  return moitie('black', ejNoires) + '_' + moitie('white', ejBlanches);
+}
+/* ── Permutations d'une position, comme dans KAAH (demande d'Olivier) ──
+   Les 12 symetries du plateau hexagonal, avec la NUMEROTATION DE KAAH, retrouvee
+   en comparant nos calculs aux permutations affichees par KAAH lui-meme :
+     0 a 5    : rotation de n sixiemes de tour ;
+     10 a 15  : miroir, puis rotation ;
+     100 et + : les memes, camps echanges (les deux moitiees du code inversees).
+   La forme canonique -- le plus petit des 12 codes -- est mise en evidence, comme
+   dans KAAH (c'est celle qu'il surligne). */
+function _symAxiale(n) {
+  const rot = function(a){ return { q: a.r + a.q, r: -a.q }; };   // un sixieme de tour, dans le sens de KAAH
+  const mir = function(a){ return { q: a.r, r: a.q }; };
+  return function(a){
+    let x = a, k = n % 10;
+    if (n >= 10) { x = mir(x); k = (3 - k + 6) % 6; for (let i = 0; i < k; i++) x = { q: -x.r, r: x.q + x.r }; return x; }
+    for (let i = 0; i < k; i++) x = rot(x);
+    return x;
+  };
+}
+function permutationsPosition(plateau, ejNoires, ejBlanches) {
+  const c0 = rcToAxial(4, 4), out = [];
+  [0, 1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15].forEach(function(n){
+    const f = _symAxiale(n), t = {};
+    for (const k in plateau) {
+      if (!plateau[k]) continue;
+      const p = k.split(',').map(Number), a = rcToAxial(p[0], p[1]);
+      const b = f({ q: a.q - c0.q, r: a.r - c0.r }), rc = axialToRc(b.q + c0.q, b.r + c0.r);
+      if (rc) t[rc.r + ',' + rc.c] = plateau[k];
+    }
+    out.push({ num: n, code: codePosition(t, ejNoires, ejBlanches) });
+  });
+  const canonique = out.map(function(x){ return x.code; }).sort()[0];
+  const echange = out.map(function(x){ const m = x.code.split('_'); return { num: x.num + 100, code: m[1] + '_' + m[0] }; });
+  return { permut: out, camp: echange, canonique: canonique };
+}
+function ouvrirPermutations() {
+  const code = codePosition(board, CapturedByWhite.get(), CapturedByBlack.get());
+  const P = permutationsPosition(board, CapturedByWhite.get(), CapturedByBlack.get());
+  let m = document.getElementById('permut-modal'); if (m) m.remove();
+  m = document.createElement('div'); m.id = 'permut-modal';
+  m.style.cssText = 'position:fixed;inset:0;z-index:3600;background:rgba(13,15,14,0.92);display:flex;align-items:center;justify-content:center;padding:16px';
+  const ligne = function(x){ const can = x.code === P.canonique;
+    return '<div onclick="_copierTexte(\'' + x.code + '\')" title="Toucher pour copier" style="cursor:pointer;margin-bottom:10px;font-family:\'DM Mono\',monospace;font-size:12px;word-break:break-all;color:' + (can ? 'var(--gold)' : 'var(--text)') + '">'
+      + x.num + ' : ' + x.code + (can ? ' ★' : '') + '</div>'; };
+  m.innerHTML = '<div style="max-width:620px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:20px;max-height:90vh;overflow-y:auto">'
+    + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:8px">Permutations</h3>'
+    + '<div style="font-size:12px;color:var(--muted)">Position</div><div style="font-family:\'DM Mono\',monospace;font-size:13px;word-break:break-all;margin-bottom:12px">' + code + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><div style="font-size:12px;color:var(--muted);margin-bottom:6px">Permut</div>' + P.permut.map(ligne).join('') + '</div>'
+    + '<div><div style="font-size:12px;color:var(--muted);margin-bottom:6px">Camp_Permut</div>' + P.camp.map(ligne).join('') + '</div></div>'
+    + '<div style="font-size:11px;color:var(--muted);margin:4px 0 12px">0 à 5 : rotations ; 10 à 15 : miroir puis rotation ; 100 et plus : camps échangés (numérotation de KAAH). ★ forme canonique : le plus petit des 12 codes. Touche un code pour le copier.</div>'
+    + '<button class="ctrl-btn" onclick="_copierTexte(document.getElementById(\'permut-modal\').dataset.tout)" style="width:auto;padding:6px 12px;margin-right:8px">Copier tout</button>'
+    + '<button class="ctrl-btn" onclick="document.getElementById(\'permut-modal\').remove()" style="width:auto;padding:6px 12px">Fermer</button></div>';
+  m.dataset.tout = 'Position : ' + code + '\n' + P.permut.concat(P.camp).map(function(x){ return x.num + ' : ' + x.code; }).join('\n');
+  document.body.appendChild(m);
+  return P;
+}
+function _copierTexte(t) {
+  const ok = function(){ if (typeof showToast === 'function') showToast('📋 Copié'); };
+  try { navigator.clipboard.writeText(t).then(ok, function(){ prompt('À copier :', t); }); } catch (e) { prompt('À copier :', t); }
+}
+
+function _majCodePosition() {
+  const el = document.getElementById('position-code-texte');
+  if (el && typeof board !== 'undefined') el.textContent = codePosition(board, CapturedByWhite.get(), CapturedByBlack.get());
+}
+function copierCodePosition() {
+  const el = document.getElementById('position-code-texte'), t = el ? el.textContent : '';
+  if (!t) return;
+  const ok = function(){ if (typeof showToast === 'function') showToast('📋 Position copiée'); };
+  try { navigator.clipboard.writeText(t).then(ok, function(){ prompt('Code de la position :', t); }); } catch (e) { prompt('Code de la position :', t); }
+}
+
 function appendMoveRow(list, moveInfo, fallbackLabel, color, plyNum) {
   const cur = list.querySelector('.move-item.current');
   if (cur) cur.classList.remove('current');
@@ -23858,6 +24035,8 @@ function appendMoveRow(list, moveInfo, fallbackLabel, color, plyNum) {
     + '<span class="move-dot" style="background:' + dot + '"></span>'
     + '<span class="move-aba">' + aba + ejx + '</span>'
     + '<span class="move-nacre">' + nac + ejx + '</span>';
+  const _snapEval = (typeof boardSnapshots !== 'undefined') ? boardSnapshots[plyNum - 1] : null;
+  if (_snapEval && _snapEval.ia) row.innerHTML += '<span class="move-eval" title="Évaluation de l\u2019IA : phase, score de son point de vue, profondeur atteinte, temps de réflexion" style="grid-column:3 / 5;font-size:11px;color:var(--muted);margin-top:-4px">' + _formatEvalIA(_snapEval.ia) + '</span>';
   list.appendChild(row);
 }
 
@@ -28513,6 +28692,7 @@ let botDifficulty = '1';
 function setBotDifficulty(level, btn) {
   botDifficulty = level;
   aiDifficulty = level;  // synchronise avec l'IA existante
+  aiReflexionMax = null; // les robots gardent le temps de leur niveau
   document.querySelectorAll('.bot-diff-btn').forEach(function(b){ b.classList.remove('active'); });
   if (btn) btn.classList.add('active');
   showToast('Niveau des bots : ' + (_niveauIA(level) || level));
@@ -29109,6 +29289,7 @@ function loadSnapshot(idx) {
     document.querySelectorAll('.move-item').forEach(function(el){ el.classList.remove('current'); });
     const st0 = document.getElementById('game-status-text');
     if (st0) st0.textContent = 'Replay — position de depart (0/' + boardSnapshots.length + ')';
+    if (typeof _majCodePosition === 'function') _majCodePosition();
     return;
   }
   if (!boardSnapshots[idx]) return;
@@ -29124,6 +29305,7 @@ function loadSnapshot(idx) {
   });
   const statusEl = document.getElementById('game-status-text');
   if (statusEl) statusEl.textContent = 'Replay — Coup ' + (idx+1) + '/' + boardSnapshots.length + ': ' + snap.label;
+  if (typeof _majCodePosition === 'function') _majCodePosition();   // le code suit le coup affiche
 }
 
 /* ═══════════════════════════════════════════
@@ -34408,6 +34590,13 @@ async function _rtcUiAcceptAnswer(){
 function _replayHistoryGame(code){
   const result = gameCodeLoad(code);
   if (!result.ok) { if (typeof showToast === 'function') showToast('⚠️ Partie illisible : ' + result.reason); return false; }
+  // evaluations de l'IA gardees avec la partie : rattachees a leurs coups
+  try {
+    const e = (getGameHistory() || []).find(function(x){ return x.code === code; });
+    const PH = { o: 'ouverture', m: 'milieu', f: 'finale' };
+    if (e && e.evals) e.evals.forEach(function(v, i){ if (v && boardSnapshots[i]) boardSnapshots[i].ia = { e: v[0], p: v[1], t: v[2], ph: PH[v[3]] || '' }; });
+    if (e && e.evals && typeof rebuildMoveListLabels === 'function') rebuildMoveListLabels();
+  } catch (x) {}
   // Anciennement : fermait le modal d'historique (obsolete depuis que
   // l'historique est une page normale du site, plus un modal flottant).
   // Sentinelle deja prevue dans initGame() ("if (GameOver.get() === 'init') return;")
@@ -34767,7 +34956,149 @@ function renderArchiPage(){
   + '</div>';
 }
 
+/* ═══ REFLEXION DE L'IA : PROFONDEUR ATTEINTE SELON LE TEMPS ═══
+   Demande d'Olivier, en deux volets :
+   1. RELEVE EN PARTIE -- chaque coup de l'IA contre toi est note (niveau, temps
+      regle, temps reel, profondeur atteinte, positions examinees, phase) ;
+      statistiques cumulees par niveau. Les tournois (reglages a part) ne sont
+      pas comptes.
+   2. MESURE SUR LE CORPUS -- 6 positions tirees de vraies parties MIGS (2 en
+      ouverture, 2 en milieu, 2 en finale), l'IA reflechit 0,5 / 1 / 2,5 / 5 /
+      10 s sur chacune, sur CET appareil, style equilibre, par les memes fils de
+      calcul qu'en partie. Le tirage depend du contenu du corpus. */
+const STATS_REFLEXION_KEY = 'abaStatsReflexion', MESURE_CORPUS_KEY = 'abaMesureCorpus';
+const MESURE_BUDGETS_S = [0.5, 1, 2.5, 5, 10];
+function _phaseJeu(plateau, ply) {
+  let n = 0; for (const k in plateau) if (plateau[k]) n++;
+  return n <= 22 ? 'finale' : (ply < 20 ? 'ouverture' : 'milieu');   // 22 billes : 6 ejections au total
+}
+function _releverReflexion(m, config) {
+  if (!m || typeof m.depth !== 'number') return;
+  if ((typeof _tourneyMatch !== 'undefined' && _tourneyMatch) || (typeof GameMode !== 'undefined' && GameMode.get() !== 'ai')) return;
+  let l = []; try { l = JSON.parse(localStorage.getItem(STATS_REFLEXION_KEY) || '[]'); } catch (e) {}
+  l.push({ n: _niveauIA() || 0, b: config ? config.time : 0, t: m.time || 0, p: m.depth, k: m.nodes || 0,
+           ph: _phaseJeu(board, (typeof MoveCount !== 'undefined') ? MoveCount.get() : 0), d: Date.now() });
+  if (l.length > 3000) l = l.slice(-3000);
+  try { localStorage.setItem(STATS_REFLEXION_KEY, JSON.stringify(l)); } catch (e) {}
+}
+const _mediane = function(v){ if (!v.length) return 0; const s = v.slice().sort(function(a,b){ return a - b; }), i = s.length >> 1; return s.length % 2 ? s[i] : (s[i-1] + s[i]) / 2; };
+function _statsReflexionResume(l) {
+  const par = {};
+  (l || []).forEach(function(e){ (par[e.n] = par[e.n] || []).push(e); });
+  return Object.keys(par).map(Number).sort(function(a,b){ return a - b; }).map(function(n){
+    const v = par[n], t = v.map(function(e){ return e.t; }), p = v.map(function(e){ return e.p; });
+    const noeuds = v.reduce(function(a,e){ return a + e.k; }, 0), ms = v.reduce(function(a,e){ return a + e.t; }, 0);
+    return { niveau: n, coups: v.length, tempsMed: _mediane(t), profMed: _mediane(p), profMax: Math.max.apply(null, p), parSeconde: ms ? Math.round(noeuds / ms * 1000) : 0 };
+  });
+}
+/* Position d'une partie MIGS (Marguerite belge) apres `ply` demi-coups, rejouee hors
+   de la partie en cours (plateau et compteurs sauvegardes puis restaures). */
+function _positionMigs(i, ply) {
+  const g = (typeof MIGS_GAMES !== 'undefined') ? MIGS_GAMES[i] : null; if (!g) return null;
+  const jetons = String(g[5] || '').replace(/\d+\./g, ' ').trim().split(/\s+/).filter(Boolean);
+  if (jetons.length < ply) return null;
+  const sauve = { b: board, cb: CapturedByBlack.get(), cw: CapturedByWhite.get(), go: GameOver.get() };
+  try {
+    board = {}; LAYOUTS.belgian.black.forEach(function(p){ board[p[0] + ',' + p[1]] = 'black'; }); LAYOUTS.belgian.white.forEach(function(p){ board[p[0] + ',' + p[1]] = 'white'; });
+    CapturedByBlack.set(0); CapturedByWhite.set(0); GameOver.set(false);
+    let col = 'black';
+    for (let k = 0; k < ply; k++) {
+      const mv = resolveAbaProToken(jetons[k], col); if (!mv) return null;
+      const info = validateMove(mv.cells, mv.dir, col); if (!info || !info.valid) return null;
+      applyMove({ cells: mv.cells, dir: mv.dir, info: info }, col);
+      if (CapturedByBlack.get() >= 6 || CapturedByWhite.get() >= 6) return null;
+      col = col === 'black' ? 'white' : 'black';
+    }
+    return { board: JSON.parse(JSON.stringify(board)), cB: CapturedByBlack.get(), cW: CapturedByWhite.get(), couleur: col, partie: i, ply: ply, longueur: jetons.length };
+  } catch (e) { return null; }
+  finally { board = sauve.b; CapturedByBlack.set(sauve.cb); CapturedByWhite.set(sauve.cw); GameOver.set(sauve.go); }
+}
+// 2 positions par phase, tirage determine par le contenu du corpus
+function _positionsMesure() {
+  const N = (typeof MIGS_GAMES !== 'undefined') ? MIGS_GAMES.length : 0, out = { ouverture: [], milieu: [], finale: [] };
+  let graine = N * 2654435761 % 4294967296;
+  const hasard = function(){ graine = (graine * 1103515245 + 12345) % 2147483648; return graine / 2147483648; };
+  for (let essai = 0; essai < 400 && (out.ouverture.length < 2 || out.milieu.length < 2 || out.finale.length < 2); essai++) {
+    const i = Math.floor(hasard() * N), g = MIGS_GAMES[i]; if (!g) continue;
+    const L = String(g[5] || '').replace(/\d+\./g, ' ').trim().split(/\s+/).filter(Boolean).length;
+    if (out.ouverture.length < 2 && L > 30) { const p = _positionMigs(i, 12); if (p) { out.ouverture.push(p); continue; } }
+    if (out.milieu.length < 2 && L > 80) { const p = _positionMigs(i, Math.round(L * 0.45)); if (p && _phaseJeu(p.board, p.ply) === 'milieu') { out.milieu.push(p); continue; } }
+    if (out.finale.length < 2 && L > 60) { const p = _positionMigs(i, L - 4); if (p && _phaseJeu(p.board, p.ply) === 'finale') out.finale.push(p); }
+  }
+  return out;
+}
+// Une recherche limitee en temps, par les fils de calcul du jeu ; renvoie ses mesures
+function _rechercheMesuree(pos, ms) {
+  return new Promise(function(fin){
+    const params = { board: pos.board, capturedByWhite: pos.cW, capturedByBlack: pos.cB, color: pos.couleur, depth: 40, time: ms,
+                     weights: AI_WEIGHT_PRESETS.balanced, hist: [], engineMode: false };
+    if (typeof requestAIMovePooled === 'function' && requestAIMovePooled(params, function(mv, m){ fin(m || null); })) return;
+    const w = (typeof getAIWorker === 'function') ? getAIWorker() : null;
+    if (!w) { fin(null); return; }
+    const sur = function(e){ w.removeEventListener('message', sur); fin(e.data && e.data.metrics ? e.data.metrics : null); };
+    w.addEventListener('message', sur); w.postMessage(params);
+  });
+}
+let _mesureEnCours = null, _mesureRechercheActive = null;
+async function mesurerProfondeurCorpus(opts) {
+  opts = opts || {};
+  const chercher = opts.chercher || _rechercheMesuree, progres = opts.progres || function(){};
+  if (typeof ensureGameBanks === 'function') await ensureGameBanks();
+  const pos = _positionsMesure(), lignes = [];
+  const liste = [].concat(pos.ouverture.map(function(p){ return ['ouverture', p]; }), pos.milieu.map(function(p){ return ['milieu', p]; }), pos.finale.map(function(p){ return ['finale', p]; }));
+  const jeton = {}; _mesureEnCours = jeton;
+  let fait = 0; const total = liste.length * MESURE_BUDGETS_S.length;
+  for (const [phase, p] of liste) for (const s of MESURE_BUDGETS_S) {
+    if (_mesureEnCours !== jeton) return null;                  // annulee
+    progres(fait, total, phase, s);
+    _mesureRechercheActive = chercher(p, Math.round(s * 1000));
+    const m = await _mesureRechercheActive; _mesureRechercheActive = null;
+    if (m) lignes.push({ ph: phase, s: s, p: m.depth || 0, k: m.nodes || 0, t: m.time || 0 });
+    fait++;
+  }
+  _mesureEnCours = null;
+  const res = { date: Date.now(), corpus: (typeof MIGS_GAMES !== 'undefined') ? MIGS_GAMES.length : 0,
+                fils: (typeof detectAIWorkerCount === 'function') ? detectAIWorkerCount() : 1, positions: liste.length, lignes: lignes };
+  try { localStorage.setItem(MESURE_CORPUS_KEY, JSON.stringify(res)); } catch (e) {}
+  return res;
+}
+function _tableauMesure(res) {
+  if (!res || !res.lignes || !res.lignes.length) return '<div style="font-size:12px;color:var(--muted)">Pas encore de mesure sur cet appareil.</div>';
+  const cell = function(s, ph){ const v = res.lignes.filter(function(l){ return l.s === s && (!ph || l.ph === ph); }).map(function(l){ return l.p; }); return v.length ? String(_mediane(v)).replace('.', ',') : '—'; };
+  const vitesse = function(s){ const v = res.lignes.filter(function(l){ return l.s === s; }); const k = v.reduce(function(a,l){ return a + l.k; }, 0), t = v.reduce(function(a,l){ return a + l.t; }, 0); return t ? Math.round(k / t * 1000).toLocaleString('fr-FR') : '—'; };
+  let h = '<table style="width:100%;font-size:12px;border-collapse:collapse"><tr style="color:var(--muted);text-align:left"><th>Temps</th><th>Ouverture</th><th>Milieu</th><th>Finale</th><th>Positions/s</th></tr>';
+  MESURE_BUDGETS_S.forEach(function(s){ h += '<tr><td>' + String(s).replace('.', ',') + ' s</td><td>' + cell(s, 'ouverture') + '</td><td>' + cell(s, 'milieu') + '</td><td>' + cell(s, 'finale') + '</td><td>' + vitesse(s) + '</td></tr>'; });
+  return h + '</table><div style="font-size:11px;color:var(--muted);margin-top:6px">Profondeur médiane atteinte (demi-coups), sur ' + res.positions + ' positions de vraies parties ; mesuré le '
+    + new Date(res.date).toLocaleDateString('fr-FR') + ' sur cet appareil (' + res.fils + ' fil' + (res.fils > 1 ? 's' : '') + ' de calcul), corpus MIGS de ' + res.corpus.toLocaleString('fr-FR') + ' parties.</div>';
+}
+function renderReflexionStats() {
+  const host = document.getElementById('reflexion-stats-body'); if (!host) return;
+  let l = []; try { l = JSON.parse(localStorage.getItem(STATS_REFLEXION_KEY) || '[]'); } catch (e) {}
+  let mesure = null; try { mesure = JSON.parse(localStorage.getItem(MESURE_CORPUS_KEY) || 'null'); } catch (e) {}
+  const r = _statsReflexionResume(l), fmt = function(ms){ return ms >= 1000 ? (ms / 1000).toFixed(1).replace('.', ',') + ' s' : Math.round(ms) + ' ms'; };
+  let h = '<div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin:28px 0 10px">Réflexion de l\u2019IA : profondeur selon le temps</div>';
+  h += '<div style="font-size:12px;color:var(--white);margin:6px 0">Mesurée sur des positions du corpus</div>' + _tableauMesure(mesure);
+  h += '<div style="margin:8px 0 18px"><button class="ctrl-btn" id="mesure-btn" onclick="lancerMesureCorpus()" style="width:auto;padding:6px 12px;font-size:12px">' + (mesure ? 'Refaire la mesure' : 'Lancer la mesure') + ' (≈ 2 min)</button> <span id="mesure-progres" style="font-size:11px;color:var(--muted)"></span></div>';
+  h += '<div style="font-size:12px;color:var(--white);margin:6px 0">Relevée pendant tes parties contre l\u2019IA</div>';
+  if (!r.length) h += '<div style="font-size:12px;color:var(--muted)">Aucun coup relevé pour l\u2019instant : joue contre l\u2019IA, ses coups seront notés ici.</div>';
+  else {
+    h += '<table style="width:100%;font-size:12px;border-collapse:collapse"><tr style="color:var(--muted);text-align:left"><th>Niveau</th><th>Coups</th><th>Temps médian</th><th>Profondeur médiane (max)</th><th>Positions/s</th></tr>';
+    r.forEach(function(x){ h += '<tr><td>' + x.niveau + '</td><td>' + x.coups + '</td><td>' + fmt(x.tempsMed) + '</td><td>' + String(x.profMed).replace('.', ',') + ' (' + x.profMax + ')</td><td>' + x.parSeconde.toLocaleString('fr-FR') + '</td></tr>'; });
+    h += '</table><div style="font-size:11px;color:var(--muted);margin-top:6px">' + l.length + ' coups relevés (les 3 000 derniers sont gardés). <a href="#" onclick="if(confirm(\'Effacer les coups relevés ?\')){localStorage.removeItem(STATS_REFLEXION_KEY);renderReflexionStats();}return false;" style="color:var(--muted)">Effacer</a></div>';
+  }
+  host.innerHTML = h;
+}
+async function lancerMesureCorpus() {
+  const btn = document.getElementById('mesure-btn'), pr = document.getElementById('mesure-progres');
+  if (_mesureEnCours) { _mesureEnCours = null; if (pr) pr.textContent = 'Mesure annulée.'; if (btn) btn.textContent = 'Lancer la mesure (≈ 2 min)'; return; }
+  if (_iaReflechit) { if (pr) pr.textContent = 'L\u2019IA réfléchit dans ta partie : relance la mesure après son coup.'; return; }
+  if (btn) btn.textContent = 'Annuler la mesure';
+  const res = await mesurerProfondeurCorpus({ progres: function(f, t, ph, s){ if (pr) pr.textContent = 'Mesure ' + (f + 1) + '/' + t + ' — ' + ph + ', ' + String(s).replace('.', ',') + ' s…'; } });
+  if (res) renderReflexionStats();
+}
+
 async function renderCorpusStatsPage(){
+  if (typeof renderReflexionStats === 'function') renderReflexionStats();
   const host = document.getElementById('corpus-stats-body');
   if (!host) return;
   host.innerHTML = '<div style="font-size:13px;color:var(--muted)" id="corpus-progress">Calcul en cours (première fois seulement — mis en cache ensuite)…</div>';

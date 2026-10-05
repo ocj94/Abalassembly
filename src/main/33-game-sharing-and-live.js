@@ -543,6 +543,13 @@ async function _rtcUiAcceptAnswer(){
 function _replayHistoryGame(code){
   const result = gameCodeLoad(code);
   if (!result.ok) { if (typeof showToast === 'function') showToast('⚠️ Partie illisible : ' + result.reason); return false; }
+  // evaluations de l'IA gardees avec la partie : rattachees a leurs coups
+  try {
+    const e = (getGameHistory() || []).find(function(x){ return x.code === code; });
+    const PH = { o: 'ouverture', m: 'milieu', f: 'finale' };
+    if (e && e.evals) e.evals.forEach(function(v, i){ if (v && boardSnapshots[i]) boardSnapshots[i].ia = { e: v[0], p: v[1], t: v[2], ph: PH[v[3]] || '' }; });
+    if (e && e.evals && typeof rebuildMoveListLabels === 'function') rebuildMoveListLabels();
+  } catch (x) {}
   // Anciennement : fermait le modal d'historique (obsolete depuis que
   // l'historique est une page normale du site, plus un modal flottant).
   // Sentinelle deja prevue dans initGame() ("if (GameOver.get() === 'init') return;")

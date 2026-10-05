@@ -1424,6 +1424,16 @@ document.addEventListener('keydown', function(e){
 })();
 
 function aiMove() {
+  /* Une mesure de reflexion (page Stats du corpus) utilise les memes fils de calcul :
+     la partie a la priorite -- la mesure s'arrete, et l'IA attend la fin de la
+     recherche de mesure en cours (10 s au plus) pour ne jamais la croiser. */
+  if (typeof _mesureRechercheActive !== 'undefined' && _mesureRechercheActive) {
+    _mesureEnCours = null;
+    if (typeof showToast === 'function') showToast('Mesure de réflexion interrompue : ta partie a la priorité');
+    const g0 = _aiGen;
+    _mesureRechercheActive.then(function(){ if (g0 === _aiGen && !GameOver.get()) aiMove(); });
+    return;
+  }
   if (GameOver.get()) return;
   // Mode moteur experimental (NNUE) : les poids doivent etre prets AVANT de
   // lancer le calcul. Meme patron que ensureGameBanks() -- charge une fois
@@ -1472,6 +1482,7 @@ function aiMove() {
   // Profondeur et budget temps par difficulté — table partagée AI_DIFFICULTY_CONFIG
   const config = Object.assign({}, AI_DIFFICULTY_CONFIG[aiDifficulty] || AI_DIFFICULTY_CONFIG['3']);
   if (typeof _tourneyMatch!=='undefined' && _tourneyMatch && _tourneyMatch.cfg) { config.depth=_tourneyMatch.cfg.depth; config.time=_tourneyMatch.cfg.time; }
+  else if (aiReflexionMax !== null) config.time = (aiReflexionMax === '') ? 3600000 : Math.max(100, Math.round(aiReflexionMax * 1000));   // reflexion choisie (plafond de securite 1 h si sans limite)
 
   // Niveau 1 : décision immédiate (un peu d'aléatoire), pas besoin du worker
   if (_niveauIA() === 1 && !(typeof _tourneyMatch!=='undefined' && _tourneyMatch)) {
@@ -1503,7 +1514,7 @@ function aiMove() {
   const pooledStarted = (typeof requestAIMovePooled === 'function') && requestAIMovePooled(pooledParams, function(chosen, metrics) {
     showAIThinking(false);
     if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
-    if (metrics) updateAIMetrics(metrics);
+    if (metrics) { updateAIMetrics(metrics); _releverReflexion(metrics, config); _noterMesuresCoupIA(metrics, ai); }
     if (GameOver.get()) return;
     if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
     executeAIMove(chosen);
@@ -1521,7 +1532,7 @@ function aiMove() {
       showAIThinking(false);
       if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
       const chosen = e.data && e.data.move;
-      if (e.data) updateAIMetrics(e.data.metrics);
+      if (e.data) { updateAIMetrics(e.data.metrics); _releverReflexion(e.data.metrics, config); _noterMesuresCoupIA(e.data.metrics, ai); }
       if (GameOver.get()) return;
       if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
       executeAIMove(chosen);
@@ -1572,7 +1583,9 @@ function aiMove() {
 }
 
 // Affiche / masque l'indicateur "L'IA réfléchit…"
+let _iaReflechit = false;   // l'IA calcule un coup de partie (la mesure de reflexion ne demarre pas pendant ce temps)
 function showAIThinking(on) {
+  _iaReflechit = !!on;
   let el = document.getElementById('ai-thinking');
   if (on) {
     if (!el) {

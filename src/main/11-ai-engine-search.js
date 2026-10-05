@@ -31,6 +31,11 @@ function setLayout(name, btn) {
    h1: center distance | h2: cohesion | h3: push threats
 ═══════════════════════════════════════════ */
 let aiDifficulty = '3';
+/* Reflexion max de l'IA (demande d'Olivier, comme dans KAAH) : null = le temps du
+   niveau ; '' = sans limite (l'IA va jusqu'au bout de la profondeur de son
+   niveau) ; un nombre = ce nombre de secondes AU PLUS -- elle joue alors le
+   meilleur coup trouve. Reglee a l'ecran de configuration ; hors tournois. */
+let aiReflexionMax = null;
 /* Table UNIQUE profondeur/budget-temps par niveau — utilisée à la fois par la
    décision réelle de l'IA (plus bas dans aiMove) et par l'indication affichée
    sur l'écran de configuration (setup-diff-info). Une seule source de verité :

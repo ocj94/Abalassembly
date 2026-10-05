@@ -46,6 +46,9 @@ function _recordGameHistory(winner, reason){
       whiteName: (typeof gcWhiteName !== 'undefined') ? gcWhiteName : '',
       code: code
     };
+    // evaluations de l'IA, coup par coup (0 = coup sans evaluation) : [score, profondeur, temps ms, phase]
+    const _ev = (typeof boardSnapshots !== 'undefined') ? boardSnapshots.map(function(s){ return s.ia ? [s.ia.e, s.ia.p, s.ia.t, (s.ia.ph || '').charAt(0)] : 0; }) : [];
+    if (_ev.some(function(x){ return x; })) entry.evals = _ev;
     let list = [];
     try { list = JSON.parse(localStorage.getItem(GAME_HISTORY_KEY) || '[]'); } catch(e){ list = []; }
     list.unshift(entry); // la plus recente en tete
