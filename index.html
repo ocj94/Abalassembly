@@ -2303,9 +2303,12 @@ body.kids-mode #bnav-settings { display: none !important; }
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════
-     BANDE-ANNONCE D'OUVERTURE — ~4 secondes, a la demande d'Olivier : fond noir,
-     puis ABALASSEMBLY, puis « Le jeu strategique de reference » (billes
-     convergentes retirees). Pur CSS/JS, aucune
+     BANDE-ANNONCE D'OUVERTURE — ~5,5 secondes, a la demande d'Olivier : l'EMBLEME
+     (hexagone dore et bille, les proportions de l'icone : l'intro prolonge
+     l'ecran de demarrage d'Android sans rupture), l'hexagone tourne autour de
+     la bille en retrecissant, la bille retrecit avec lui, les deux
+     disparaissent ; puis ABALASSEMBLY, puis « Le jeu strategique de
+     reference ». Pur CSS/JS, aucune
      dépendance ni fichier vidéo (cohérent avec le mono-fichier).
      Une fois par session (sessionStorage), toujours passable au
      clic/tap/Échap, raccourcie si l'utilisateur préfère moins
@@ -2317,10 +2320,20 @@ body.kids-mode #bnav-settings { display: none !important; }
   background: radial-gradient(ellipse at center, var(--surface) 0%, var(--bg) 100%);
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
-  animation: introFadeOut .6s ease-in 3.4s forwards;
+  animation: introFadeOut .6s ease-in 4.9s forwards;
 }
 #intro-splash.intro-gone { display: none !important; }
-.intro-title { position: relative; text-align: center; opacity: 0; animation: introTitleIn .9s ease-out .5s forwards; }
+.intro-title { position: relative; text-align: center; opacity: 0; animation: introTitleIn .9s ease-out 1.75s forwards; }
+/* Emblème : meme taille a l'ecran que l'icone du demarrage d'Android (hexagone
+   ~58 % de la largeur), puis l'hexagone tourne d'un tour en retrecissant et la
+   bille retrecit avec lui, jusqu'a disparaitre (0,35 -> 1,65 s). */
+.intro-emblem { position: absolute; left: 50%; top: 50%; width: min(66vw, 340px); aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none; }
+.intro-emblem svg { width: 100%; height: 100%; overflow: visible; display: block; }
+.ie-hex, .ie-bille { transform-box: view-box; transform-origin: 100px 100px; }
+.ie-hex   { animation: ieHex 1.3s cubic-bezier(.55,0,.75,.45) .35s forwards; }
+.ie-bille { animation: ieBille 1.3s cubic-bezier(.55,0,.75,.45) .35s forwards; }
+@keyframes ieHex   { from { transform: rotate(0deg) scale(1); opacity: 1; } to { transform: rotate(360deg) scale(0); opacity: 0; } }
+@keyframes ieBille { from { transform: scale(1); opacity: 1; } to { transform: scale(0); opacity: 0; } }
 .intro-logo {
   font-family: 'Playfair Display', serif; font-size: clamp(32px, 7vw, 64px); font-weight: 700;
   letter-spacing: .04em; color: var(--white);
@@ -2332,7 +2345,7 @@ body.kids-mode #bnav-settings { display: none !important; }
 .intro-tagline {
   margin-top: 10px; font-family: 'DM Sans', sans-serif; font-size: clamp(12px, 2vw, 15px);
   letter-spacing: .12em; text-transform: uppercase; color: var(--muted); opacity: 0;
-  animation: introTaglineIn .8s ease-out 1.6s forwards;   /* apres le titre (0,5 -> 1,4 s) */
+  animation: introTaglineIn .8s ease-out 2.85s forwards;   /* apres le titre (1,75 -> 2,65 s) */
 }
 @keyframes introTaglineIn { from { opacity:0; } to { opacity:1; } }
 @keyframes introFadeOut   { to { opacity: 0; visibility: hidden; } }
@@ -2348,10 +2361,25 @@ body.kids-mode #bnav-settings { display: none !important; }
 
 @media (prefers-reduced-motion: reduce) {
   .intro-title, .intro-tagline, #intro-skip { animation-duration: .01s !important; animation-delay: 0s !important; }
+  .intro-emblem { display: none; }
   #intro-splash { animation-delay: 1.2s !important; }
 }
 </style>
 <div id="intro-splash" role="dialog" aria-label="Introduction Abalassembly">
+  <div class="intro-emblem" aria-hidden="true">
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="ie-or" cx="50%" cy="50%" r="50%">
+          <stop offset="0" stop-color="#e3c672"/><stop offset=".6" stop-color="#ab9452"/><stop offset="1" stop-color="#776335"/>
+        </radialGradient>
+        <radialGradient id="ie-reflet" cx="50%" cy="50%" r="50%">
+          <stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#fffbea"/><stop offset="1" stop-color="#fff8e1" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <g class="ie-hex"><polygon points="188,100 144,176.2 56,176.2 12,100 56,23.8 144,23.8" fill="none" stroke="#c8a84b" stroke-width="3" stroke-linejoin="miter"/></g>
+      <g class="ie-bille"><circle cx="100" cy="100" r="69" fill="url(#ie-or)"/><circle cx="78" cy="72" r="19" fill="url(#ie-reflet)"/></g>
+    </svg>
+  </div>
   <div class="intro-title">
     <div class="intro-logo">ABALASSEMBLY</div>
     <div class="intro-tagline">Le jeu stratégique de référence</div>
@@ -2372,7 +2400,7 @@ body.kids-mode #bnav-settings { display: none !important; }
   window._introTimer = setTimeout(function(){
     var el = document.getElementById('intro-splash');
     if (el) el.classList.add('intro-gone');
-  }, reduced ? 1300 : 4100);
+  }, reduced ? 1300 : 5600);
 })();
 function skipIntro(){
   if (window._introTimer != null) clearTimeout(window._introTimer);

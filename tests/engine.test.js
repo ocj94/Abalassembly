@@ -1942,3 +1942,21 @@ test('KAAH 05/10/2026 : se rejoue en entier (66 demi-coups), Blancs 6 a 3, codes
   assert.strictEqual(ctx.codePosition(s.board, s.capturedByWhite, s.capturedByBlack), '6a4c5d345e45f6_3f578g58h5789i89');
 });
 
+/* ─── 42. Intro : embleme, puis titre, puis sous-titre ─── */
+test('intro : l embleme disparait avant le titre, le titre avant le sous-titre, puis le fondu de sortie', () => {
+  const src = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
+  const html = src.slice(src.indexOf('<div id="intro-splash"'), src.indexOf('<button id="intro-skip"'));
+  assert.ok(html.indexOf('class="intro-emblem"') < html.indexOf('class="intro-title"'), 'embleme avant le titre');
+  assert.match(html, /<polygon points="188,100 144,176\.2 56,176\.2 12,100 56,23\.8 144,23\.8"/, 'hexagone a faces planes en haut et en bas');
+  const sec = re => { const m = src.match(re); assert.ok(m, String(re)); return parseFloat(m[1]); };
+  const finEmbleme = sec(/\.ie-hex\s*\{ animation: ieHex 1\.3s [^)]*\) ([\d.]+)s/) + 1.3;
+  const titre = sec(/\.intro-title \{[^}]*introTitleIn \.9s ease-out ([\d.]+)s/);
+  const sousTitre = sec(/animation: introTaglineIn \.8s ease-out ([\d.]+)s forwards;/);
+  const sortie = sec(/animation: introFadeOut \.6s ease-in ([\d.]+)s forwards;/);
+  const total = sec(/\}, reduced \? 1300 : (\d+)\);/) / 1000;
+  assert.ok(finEmbleme < titre && titre + 0.9 < sousTitre && sousTitre + 0.8 < sortie && sortie + 0.6 <= total,
+    [finEmbleme, titre, sousTitre, sortie, total].join(' < '));
+  assert.match(src, /@keyframes ieHex\s*\{ from \{ transform: rotate\(0deg\) scale\(1\)[^}]*\} to \{ transform: rotate\(360deg\) scale\(0\); opacity: 0; \} \}/, 'l hexagone tourne et disparait');
+  assert.match(src, /\.intro-emblem \{ display: none; \}/, 'mouvement reduit : pas d animation de l embleme');
+});
+
