@@ -149,6 +149,12 @@ const PASSERELLE = `
   if (typeof _dureeDernierCoup !== 'undefined') relier('_dureeDernierCoup', function(){return _dureeDernierCoup;}, function(v){_dureeDernierCoup=v;});
   if (typeof _debutCoupMs !== 'undefined') relier('_debutCoupMs', function(){return _debutCoupMs;}, function(v){_debutCoupMs=v;});
   if (typeof timerPaused !== 'undefined') relier('timerPaused', function(){return timerPaused;}, function(v){timerPaused=v;});
+  if (typeof aiReflexionMax !== 'undefined') relier('aiReflexionMax', function(){return aiReflexionMax;}, function(v){aiReflexionMax=v;});
+  if (typeof _tourneyMatch !== 'undefined') relier('_tourneyMatch', function(){return _tourneyMatch;}, function(v){_tourneyMatch=v;});
+  if (typeof STATS_REFLEXION_KEY !== 'undefined') relier('STATS_REFLEXION_KEY', function(){return STATS_REFLEXION_KEY;});
+  if (typeof MESURE_CORPUS_KEY !== 'undefined') relier('MESURE_CORPUS_KEY', function(){return MESURE_CORPUS_KEY;});
+  if (typeof _mesureRechercheActive !== 'undefined') relier('_mesureRechercheActive', function(){return _mesureRechercheActive;}, function(v){_mesureRechercheActive=v;});
+  if (typeof _mesureEnCours !== 'undefined') relier('_mesureEnCours', function(){return _mesureEnCours;}, function(v){_mesureEnCours=v;});
   if (typeof undoStack !== 'undefined')        relier('undoStack', function(){return undoStack;}, function(v){undoStack=v;});
   if (typeof selected !== 'undefined')         relier('selected', function(){return selected;}, function(v){selected=v;});
   if (typeof LAYOUTS !== 'undefined')          relier('LAYOUTS', function(){return LAYOUTS;});

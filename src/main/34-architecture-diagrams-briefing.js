@@ -104,7 +104,149 @@ function renderArchiPage(){
   + '</div>';
 }
 
+/* ═══ REFLEXION DE L'IA : PROFONDEUR ATTEINTE SELON LE TEMPS ═══
+   Demande d'Olivier, en deux volets :
+   1. RELEVE EN PARTIE -- chaque coup de l'IA contre toi est note (niveau, temps
+      regle, temps reel, profondeur atteinte, positions examinees, phase) ;
+      statistiques cumulees par niveau. Les tournois (reglages a part) ne sont
+      pas comptes.
+   2. MESURE SUR LE CORPUS -- 6 positions tirees de vraies parties MIGS (2 en
+      ouverture, 2 en milieu, 2 en finale), l'IA reflechit 0,5 / 1 / 2,5 / 5 /
+      10 s sur chacune, sur CET appareil, style equilibre, par les memes fils de
+      calcul qu'en partie. Le tirage depend du contenu du corpus. */
+const STATS_REFLEXION_KEY = 'abaStatsReflexion', MESURE_CORPUS_KEY = 'abaMesureCorpus';
+const MESURE_BUDGETS_S = [0.5, 1, 2.5, 5, 10];
+function _phaseJeu(plateau, ply) {
+  let n = 0; for (const k in plateau) if (plateau[k]) n++;
+  return n <= 22 ? 'finale' : (ply < 20 ? 'ouverture' : 'milieu');   // 22 billes : 6 ejections au total
+}
+function _releverReflexion(m, config) {
+  if (!m || typeof m.depth !== 'number') return;
+  if ((typeof _tourneyMatch !== 'undefined' && _tourneyMatch) || (typeof GameMode !== 'undefined' && GameMode.get() !== 'ai')) return;
+  let l = []; try { l = JSON.parse(localStorage.getItem(STATS_REFLEXION_KEY) || '[]'); } catch (e) {}
+  l.push({ n: _niveauIA() || 0, b: config ? config.time : 0, t: m.time || 0, p: m.depth, k: m.nodes || 0,
+           ph: _phaseJeu(board, (typeof MoveCount !== 'undefined') ? MoveCount.get() : 0), d: Date.now() });
+  if (l.length > 3000) l = l.slice(-3000);
+  try { localStorage.setItem(STATS_REFLEXION_KEY, JSON.stringify(l)); } catch (e) {}
+}
+const _mediane = function(v){ if (!v.length) return 0; const s = v.slice().sort(function(a,b){ return a - b; }), i = s.length >> 1; return s.length % 2 ? s[i] : (s[i-1] + s[i]) / 2; };
+function _statsReflexionResume(l) {
+  const par = {};
+  (l || []).forEach(function(e){ (par[e.n] = par[e.n] || []).push(e); });
+  return Object.keys(par).map(Number).sort(function(a,b){ return a - b; }).map(function(n){
+    const v = par[n], t = v.map(function(e){ return e.t; }), p = v.map(function(e){ return e.p; });
+    const noeuds = v.reduce(function(a,e){ return a + e.k; }, 0), ms = v.reduce(function(a,e){ return a + e.t; }, 0);
+    return { niveau: n, coups: v.length, tempsMed: _mediane(t), profMed: _mediane(p), profMax: Math.max.apply(null, p), parSeconde: ms ? Math.round(noeuds / ms * 1000) : 0 };
+  });
+}
+/* Position d'une partie MIGS (Marguerite belge) apres `ply` demi-coups, rejouee hors
+   de la partie en cours (plateau et compteurs sauvegardes puis restaures). */
+function _positionMigs(i, ply) {
+  const g = (typeof MIGS_GAMES !== 'undefined') ? MIGS_GAMES[i] : null; if (!g) return null;
+  const jetons = String(g[5] || '').replace(/\d+\./g, ' ').trim().split(/\s+/).filter(Boolean);
+  if (jetons.length < ply) return null;
+  const sauve = { b: board, cb: CapturedByBlack.get(), cw: CapturedByWhite.get(), go: GameOver.get() };
+  try {
+    board = {}; LAYOUTS.belgian.black.forEach(function(p){ board[p[0] + ',' + p[1]] = 'black'; }); LAYOUTS.belgian.white.forEach(function(p){ board[p[0] + ',' + p[1]] = 'white'; });
+    CapturedByBlack.set(0); CapturedByWhite.set(0); GameOver.set(false);
+    let col = 'black';
+    for (let k = 0; k < ply; k++) {
+      const mv = resolveAbaProToken(jetons[k], col); if (!mv) return null;
+      const info = validateMove(mv.cells, mv.dir, col); if (!info || !info.valid) return null;
+      applyMove({ cells: mv.cells, dir: mv.dir, info: info }, col);
+      if (CapturedByBlack.get() >= 6 || CapturedByWhite.get() >= 6) return null;
+      col = col === 'black' ? 'white' : 'black';
+    }
+    return { board: JSON.parse(JSON.stringify(board)), cB: CapturedByBlack.get(), cW: CapturedByWhite.get(), couleur: col, partie: i, ply: ply, longueur: jetons.length };
+  } catch (e) { return null; }
+  finally { board = sauve.b; CapturedByBlack.set(sauve.cb); CapturedByWhite.set(sauve.cw); GameOver.set(sauve.go); }
+}
+// 2 positions par phase, tirage determine par le contenu du corpus
+function _positionsMesure() {
+  const N = (typeof MIGS_GAMES !== 'undefined') ? MIGS_GAMES.length : 0, out = { ouverture: [], milieu: [], finale: [] };
+  let graine = N * 2654435761 % 4294967296;
+  const hasard = function(){ graine = (graine * 1103515245 + 12345) % 2147483648; return graine / 2147483648; };
+  for (let essai = 0; essai < 400 && (out.ouverture.length < 2 || out.milieu.length < 2 || out.finale.length < 2); essai++) {
+    const i = Math.floor(hasard() * N), g = MIGS_GAMES[i]; if (!g) continue;
+    const L = String(g[5] || '').replace(/\d+\./g, ' ').trim().split(/\s+/).filter(Boolean).length;
+    if (out.ouverture.length < 2 && L > 30) { const p = _positionMigs(i, 12); if (p) { out.ouverture.push(p); continue; } }
+    if (out.milieu.length < 2 && L > 80) { const p = _positionMigs(i, Math.round(L * 0.45)); if (p && _phaseJeu(p.board, p.ply) === 'milieu') { out.milieu.push(p); continue; } }
+    if (out.finale.length < 2 && L > 60) { const p = _positionMigs(i, L - 4); if (p && _phaseJeu(p.board, p.ply) === 'finale') out.finale.push(p); }
+  }
+  return out;
+}
+// Une recherche limitee en temps, par les fils de calcul du jeu ; renvoie ses mesures
+function _rechercheMesuree(pos, ms) {
+  return new Promise(function(fin){
+    const params = { board: pos.board, capturedByWhite: pos.cW, capturedByBlack: pos.cB, color: pos.couleur, depth: 40, time: ms,
+                     weights: AI_WEIGHT_PRESETS.balanced, hist: [], engineMode: false };
+    if (typeof requestAIMovePooled === 'function' && requestAIMovePooled(params, function(mv, m){ fin(m || null); })) return;
+    const w = (typeof getAIWorker === 'function') ? getAIWorker() : null;
+    if (!w) { fin(null); return; }
+    const sur = function(e){ w.removeEventListener('message', sur); fin(e.data && e.data.metrics ? e.data.metrics : null); };
+    w.addEventListener('message', sur); w.postMessage(params);
+  });
+}
+let _mesureEnCours = null, _mesureRechercheActive = null;
+async function mesurerProfondeurCorpus(opts) {
+  opts = opts || {};
+  const chercher = opts.chercher || _rechercheMesuree, progres = opts.progres || function(){};
+  if (typeof ensureGameBanks === 'function') await ensureGameBanks();
+  const pos = _positionsMesure(), lignes = [];
+  const liste = [].concat(pos.ouverture.map(function(p){ return ['ouverture', p]; }), pos.milieu.map(function(p){ return ['milieu', p]; }), pos.finale.map(function(p){ return ['finale', p]; }));
+  const jeton = {}; _mesureEnCours = jeton;
+  let fait = 0; const total = liste.length * MESURE_BUDGETS_S.length;
+  for (const [phase, p] of liste) for (const s of MESURE_BUDGETS_S) {
+    if (_mesureEnCours !== jeton) return null;                  // annulee
+    progres(fait, total, phase, s);
+    _mesureRechercheActive = chercher(p, Math.round(s * 1000));
+    const m = await _mesureRechercheActive; _mesureRechercheActive = null;
+    if (m) lignes.push({ ph: phase, s: s, p: m.depth || 0, k: m.nodes || 0, t: m.time || 0 });
+    fait++;
+  }
+  _mesureEnCours = null;
+  const res = { date: Date.now(), corpus: (typeof MIGS_GAMES !== 'undefined') ? MIGS_GAMES.length : 0,
+                fils: (typeof detectAIWorkerCount === 'function') ? detectAIWorkerCount() : 1, positions: liste.length, lignes: lignes };
+  try { localStorage.setItem(MESURE_CORPUS_KEY, JSON.stringify(res)); } catch (e) {}
+  return res;
+}
+function _tableauMesure(res) {
+  if (!res || !res.lignes || !res.lignes.length) return '<div style="font-size:12px;color:var(--muted)">Pas encore de mesure sur cet appareil.</div>';
+  const cell = function(s, ph){ const v = res.lignes.filter(function(l){ return l.s === s && (!ph || l.ph === ph); }).map(function(l){ return l.p; }); return v.length ? String(_mediane(v)).replace('.', ',') : '—'; };
+  const vitesse = function(s){ const v = res.lignes.filter(function(l){ return l.s === s; }); const k = v.reduce(function(a,l){ return a + l.k; }, 0), t = v.reduce(function(a,l){ return a + l.t; }, 0); return t ? Math.round(k / t * 1000).toLocaleString('fr-FR') : '—'; };
+  let h = '<table style="width:100%;font-size:12px;border-collapse:collapse"><tr style="color:var(--muted);text-align:left"><th>Temps</th><th>Ouverture</th><th>Milieu</th><th>Finale</th><th>Positions/s</th></tr>';
+  MESURE_BUDGETS_S.forEach(function(s){ h += '<tr><td>' + String(s).replace('.', ',') + ' s</td><td>' + cell(s, 'ouverture') + '</td><td>' + cell(s, 'milieu') + '</td><td>' + cell(s, 'finale') + '</td><td>' + vitesse(s) + '</td></tr>'; });
+  return h + '</table><div style="font-size:11px;color:var(--muted);margin-top:6px">Profondeur médiane atteinte (demi-coups), sur ' + res.positions + ' positions de vraies parties ; mesuré le '
+    + new Date(res.date).toLocaleDateString('fr-FR') + ' sur cet appareil (' + res.fils + ' fil' + (res.fils > 1 ? 's' : '') + ' de calcul), corpus MIGS de ' + res.corpus.toLocaleString('fr-FR') + ' parties.</div>';
+}
+function renderReflexionStats() {
+  const host = document.getElementById('reflexion-stats-body'); if (!host) return;
+  let l = []; try { l = JSON.parse(localStorage.getItem(STATS_REFLEXION_KEY) || '[]'); } catch (e) {}
+  let mesure = null; try { mesure = JSON.parse(localStorage.getItem(MESURE_CORPUS_KEY) || 'null'); } catch (e) {}
+  const r = _statsReflexionResume(l), fmt = function(ms){ return ms >= 1000 ? (ms / 1000).toFixed(1).replace('.', ',') + ' s' : Math.round(ms) + ' ms'; };
+  let h = '<div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin:28px 0 10px">Réflexion de l\u2019IA : profondeur selon le temps</div>';
+  h += '<div style="font-size:12px;color:var(--white);margin:6px 0">Mesurée sur des positions du corpus</div>' + _tableauMesure(mesure);
+  h += '<div style="margin:8px 0 18px"><button class="ctrl-btn" id="mesure-btn" onclick="lancerMesureCorpus()" style="width:auto;padding:6px 12px;font-size:12px">' + (mesure ? 'Refaire la mesure' : 'Lancer la mesure') + ' (≈ 2 min)</button> <span id="mesure-progres" style="font-size:11px;color:var(--muted)"></span></div>';
+  h += '<div style="font-size:12px;color:var(--white);margin:6px 0">Relevée pendant tes parties contre l\u2019IA</div>';
+  if (!r.length) h += '<div style="font-size:12px;color:var(--muted)">Aucun coup relevé pour l\u2019instant : joue contre l\u2019IA, ses coups seront notés ici.</div>';
+  else {
+    h += '<table style="width:100%;font-size:12px;border-collapse:collapse"><tr style="color:var(--muted);text-align:left"><th>Niveau</th><th>Coups</th><th>Temps médian</th><th>Profondeur médiane (max)</th><th>Positions/s</th></tr>';
+    r.forEach(function(x){ h += '<tr><td>' + x.niveau + '</td><td>' + x.coups + '</td><td>' + fmt(x.tempsMed) + '</td><td>' + String(x.profMed).replace('.', ',') + ' (' + x.profMax + ')</td><td>' + x.parSeconde.toLocaleString('fr-FR') + '</td></tr>'; });
+    h += '</table><div style="font-size:11px;color:var(--muted);margin-top:6px">' + l.length + ' coups relevés (les 3 000 derniers sont gardés). <a href="#" onclick="if(confirm(\'Effacer les coups relevés ?\')){localStorage.removeItem(STATS_REFLEXION_KEY);renderReflexionStats();}return false;" style="color:var(--muted)">Effacer</a></div>';
+  }
+  host.innerHTML = h;
+}
+async function lancerMesureCorpus() {
+  const btn = document.getElementById('mesure-btn'), pr = document.getElementById('mesure-progres');
+  if (_mesureEnCours) { _mesureEnCours = null; if (pr) pr.textContent = 'Mesure annulée.'; if (btn) btn.textContent = 'Lancer la mesure (≈ 2 min)'; return; }
+  if (_iaReflechit) { if (pr) pr.textContent = 'L\u2019IA réfléchit dans ta partie : relance la mesure après son coup.'; return; }
+  if (btn) btn.textContent = 'Annuler la mesure';
+  const res = await mesurerProfondeurCorpus({ progres: function(f, t, ph, s){ if (pr) pr.textContent = 'Mesure ' + (f + 1) + '/' + t + ' — ' + ph + ', ' + String(s).replace('.', ',') + ' s…'; } });
+  if (res) renderReflexionStats();
+}
+
 async function renderCorpusStatsPage(){
+  if (typeof renderReflexionStats === 'function') renderReflexionStats();
   const host = document.getElementById('corpus-stats-body');
   if (!host) return;
   host.innerHTML = '<div style="font-size:13px;color:var(--muted)" id="corpus-progress">Calcul en cours (première fois seulement — mis en cache ensuite)…</div>';

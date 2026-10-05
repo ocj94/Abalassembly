@@ -513,6 +513,7 @@ function loadSnapshot(idx) {
     document.querySelectorAll('.move-item').forEach(function(el){ el.classList.remove('current'); });
     const st0 = document.getElementById('game-status-text');
     if (st0) st0.textContent = 'Replay — position de depart (0/' + boardSnapshots.length + ')';
+    if (typeof _majCodePosition === 'function') _majCodePosition();
     return;
   }
   if (!boardSnapshots[idx]) return;
@@ -528,5 +529,6 @@ function loadSnapshot(idx) {
   });
   const statusEl = document.getElementById('game-status-text');
   if (statusEl) statusEl.textContent = 'Replay — Coup ' + (idx+1) + '/' + boardSnapshots.length + ': ' + snap.label;
+  if (typeof _majCodePosition === 'function') _majCodePosition();   // le code suit le coup affiche
 }
 

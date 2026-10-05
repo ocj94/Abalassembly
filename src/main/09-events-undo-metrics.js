@@ -680,6 +680,7 @@ function updateStatus() {
   // finale exacte : verdict de la table 4 contre 2 (mode Decouverte), en partie comme en rejeu
   const verdict42 = (typeof _tb42Verdict === 'function') ? _tb42Verdict() : null;
   if (verdict42) txt += ' — ' + verdict42;
+  if (typeof _majCodePosition === 'function') _majCodePosition();   // code de la position affichee
   document.getElementById('game-status-text').textContent = txt;
   document.getElementById('board-msg').textContent = msg;
 }
