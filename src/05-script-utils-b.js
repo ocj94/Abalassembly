@@ -12,7 +12,7 @@
   window._introTimer = setTimeout(function(){
     var el = document.getElementById('intro-splash');
     if (el) el.classList.add('intro-gone');
-  }, reduced ? 1300 : 4100);
+  }, reduced ? 1300 : 5600);
 })();
 function skipIntro(){
   if (window._introTimer != null) clearTimeout(window._introTimer);
