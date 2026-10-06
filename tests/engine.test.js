@@ -1949,7 +1949,8 @@ test('intro : l embleme disparait avant le titre, le titre avant le sous-titre, 
   assert.ok(html.indexOf('class="intro-emblem"') < html.indexOf('class="intro-title"'), 'embleme avant le titre');
   assert.match(html, /<polygon points="188,100 144,176\.2 56,176\.2 12,100 56,23\.8 144,23\.8"/, 'hexagone a faces planes en haut et en bas');
   const sec = re => { const m = src.match(re); assert.ok(m, String(re)); return parseFloat(m[1]); };
-  const finEmbleme = sec(/\.ie-hex\s*\{ animation: ieHex 1\.3s [^)]*\) ([\d.]+)s/) + 1.3;
+  const dureeEmbleme = sec(/\.ie-hex\s*\{ animation: ieHex ([\d.]+)s /), finEmbleme = sec(/\.ie-hex\s*\{ animation: ieHex [\d.]+s [^)]*\) ([\d.]+)s/) + dureeEmbleme;
+  assert.ok(dureeEmbleme >= 2.5, 'disparition allongee a la demande d Olivier');
   const titre = sec(/\.intro-title \{[^}]*introTitleIn \.9s ease-out ([\d.]+)s/);
   const sousTitre = sec(/animation: introTaglineIn \.8s ease-out ([\d.]+)s forwards;/);
   const sortie = sec(/animation: introFadeOut \.6s ease-in ([\d.]+)s forwards;/);
