@@ -822,6 +822,7 @@
         <button onclick="setupPick('style','defensive',this)" class="setup-opt">Défensif</button>
         <button onclick="setupPick('style','divide',this)" class="setup-opt">Division</button>
         <button onclick="setupPick('style','balanced',this)" class="setup-opt">Équilibré</button>
+        <button onclick="setupPick('style','kaah',this)" class="setup-opt" title="Les critères d'évaluation de KAAH (sumito, menace, fourchette, piège, compacité…) ajoutés au moteur — expérimental, en cours de test au Labo">KAAH (expérimental)</button>
       </div>
       <div class="setup-row-lbl" style="margin-top:14px">Niveau</div>
       <div style="display:flex;gap:5px;flex-wrap:wrap" id="setup-diff">
@@ -1096,6 +1097,10 @@
           <span>Position :</span><code id="position-code-texte" style="font-family:'DM Mono',monospace;color:var(--text);word-break:break-all"></code>
           <button class="ctrl-btn" onclick="copierCodePosition()" style="width:auto;padding:2px 8px;font-size:11px">Copier</button>
           <button class="ctrl-btn" onclick="ouvrirPermutations()" style="width:auto;padding:2px 8px;font-size:11px" title="Les 12 symétries de la position et l'échange des camps">Permutations</button>
+        </div>
+        <div id="reflexion-panneau" style="margin:0 0 12px">
+          <button class="ctrl-btn" onclick="basculerPanneauReflexion()" id="reflexion-panneau-btn" style="width:auto;padding:4px 10px;font-size:12px">▸ Réflexion de l’IA</button>
+          <div id="reflexion-panneau-corps" style="display:none;margin-top:6px"></div>
         </div>
         <div class="game-controls">
           <button class="ctrl-btn" id="game-suggest-btn" onclick="gameShowBestMove()" style="width:100%;margin-bottom:8px;background:rgba(200,168,75,0.1);border-color:var(--gold-dim);color:var(--gold)">💡 Suggérer un coup</button>
@@ -3128,7 +3133,19 @@
     </div>
     <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:20px">Les 10 Commandements</div>
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
-      ${["Vise le centre","Garde tes billes groupées","Évite les bords","Attaque sur 2 fronts","Anticipe les ripostes","Utilise le Sumito","Ne gaspille pas les coups","Connais les positions bloquées","Adapte-toi au style adverse","Joue et rejoue"].map(function(cmd,i){ return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">'+['I','II','III','IV','V','VI','VII','VIII','IX','X'][i]+'</div><div style="font-size:14px;color:var(--text);line-height:1.6">'+cmd+'</div></div>'; }).join('')}
+      <!-- Les 10 Commandements : HTML ecrit en dur. Avant, du code JavaScript (une interpolation de
+         gabarit avec map/join) etait place dans le HTML statique, hors de tout script : il ne s'executait jamais et
+         s'affichait tel quel sur la page de l'Academie. Signale par une analyse externe, verifie. -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">I</div><div style="font-size:14px;color:var(--text);line-height:1.6">Vise le centre</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">II</div><div style="font-size:14px;color:var(--text);line-height:1.6">Garde tes billes groupées</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">III</div><div style="font-size:14px;color:var(--text);line-height:1.6">Évite les bords</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">IV</div><div style="font-size:14px;color:var(--text);line-height:1.6">Attaque sur 2 fronts</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">V</div><div style="font-size:14px;color:var(--text);line-height:1.6">Anticipe les ripostes</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">VI</div><div style="font-size:14px;color:var(--text);line-height:1.6">Utilise le Sumito</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">VII</div><div style="font-size:14px;color:var(--text);line-height:1.6">Ne gaspille pas les coups</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">VIII</div><div style="font-size:14px;color:var(--text);line-height:1.6">Connais les positions bloquées</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">IX</div><div style="font-size:14px;color:var(--text);line-height:1.6">Adapte-toi au style adverse</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">X</div><div style="font-size:14px;color:var(--text);line-height:1.6">Joue et rejoue</div></div>
     </div>
     <div style="margin-top:32px;padding:18px 22px;background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.2);border-radius:8px;font-size:14px;color:var(--text);line-height:1.7">
       📚 Source complète : <a href="https://onlineabalone.wordpress.com/abalone-academy/un-peu-de-theorie/les-dix-commandements-du-joueur-debutant/" target="_blank" rel="noopener noreferrer" style="color:var(--gold)">Abalone Academy — Les 10 commandements</a>
@@ -3763,6 +3780,7 @@
       </div>
     </div>
     <div id="page-lab-host" style="padding:24px 60px 60px;max-width:900px"></div>
+    <div id="test-kaah-host" style="padding:0 60px 60px;max-width:900px"></div>
 
     <!-- Benchmark moteur — mesure reelle avant toute promesse de gain -->
     <div style="padding:0 60px 60px;max-width:680px">

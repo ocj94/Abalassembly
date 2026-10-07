@@ -155,6 +155,11 @@ const PASSERELLE = `
   if (typeof MESURE_CORPUS_KEY !== 'undefined') relier('MESURE_CORPUS_KEY', function(){return MESURE_CORPUS_KEY;});
   if (typeof _mesureRechercheActive !== 'undefined') relier('_mesureRechercheActive', function(){return _mesureRechercheActive;}, function(v){_mesureRechercheActive=v;});
   if (typeof _mesureEnCours !== 'undefined') relier('_mesureEnCours', function(){return _mesureEnCours;}, function(v){_mesureEnCours=v;});
+  if (typeof AI_WORKER_CODE !== 'undefined') relier('AI_WORKER_CODE', function(){return AI_WORKER_CODE;});
+  if (typeof AI_WEIGHT_PRESETS !== 'undefined') relier('AI_WEIGHT_PRESETS', function(){return AI_WEIGHT_PRESETS;});
+  if (typeof _labRunning !== 'undefined') relier('_labRunning', function(){return _labRunning;}, function(v){_labRunning=v;});
+  if (typeof _testKaahPlanifier !== 'undefined') relier('_testKaahPlanifier', function(){return _testKaahPlanifier;}, function(v){_testKaahPlanifier=v;});
+  if (typeof _testKaahEnCours !== 'undefined') relier('_testKaahEnCours', function(){return _testKaahEnCours;}, function(v){_testKaahEnCours=v;});
   if (typeof undoStack !== 'undefined')        relier('undoStack', function(){return undoStack;}, function(v){undoStack=v;});
   if (typeof selected !== 'undefined')         relier('selected', function(){return selected;}, function(v){selected=v;});
   if (typeof LAYOUTS !== 'undefined')          relier('LAYOUTS', function(){return LAYOUTS;});

@@ -183,6 +183,8 @@ function addMoveToHistory(move, color, moveInfo) {
   // evaluation de l'IA : rattachee a SON coup ; tout autre coup l'abandonne (jamais sur le mauvais coup)
   if (_mesuresCoupIA && _mesuresCoupIA.c === color) {
     const m = _mesuresCoupIA; boardSnapshots[boardSnapshots.length - 1].ia = { e: m.e, p: m.p, t: m.t, ph: m.ph };
+    if (m.detail) { boardSnapshots[boardSnapshots.length - 1].ia.detail = m.detail;   // en memoire seulement
+      if (typeof _majPanneauReflexion === 'function') setTimeout(_majPanneauReflexion, 0); }
   }
   _mesuresCoupIA = null;
   if (_bookNode) bookDescend(moveInfo);   // suit l'ouverture jouée
@@ -234,11 +236,157 @@ const MOVE_LIST_HEADER = '<div class="move-head"><span></span><span></span><span
      avec la partie dans l'historique et retrouvee en la revoyant.
    La sequence prevue de KAAH n'existe pas ici : le moteur ne la renvoie pas. */
 let _mesuresCoupIA = null;   // mesures du dernier calcul de l'IA, en attente du coup qu'elle joue
-function _noterMesuresCoupIA(m, couleur) {
+function _noterMesuresCoupIA(m, couleur, config) {
   if (!m || typeof m.bestScore !== 'number' || !isFinite(m.bestScore)) return;
   _mesuresCoupIA = { c: couleur, e: Math.round(m.bestScore), p: m.depth || 0, t: m.time || 0,
-                     ph: (typeof _phaseJeu === 'function') ? _phaseJeu(board, MoveCount.get()) : '' };
+                     ph: (typeof _phaseJeu === 'function') ? _phaseJeu(board, MoveCount.get()) : '',
+                     detail: _detailReflexion(m, couleur, config) };
 }
+/* Tableau « Reflexion IA », comme celui de KAAH : pour chaque profondeur TERMINEE par
+   tous les fils de calcul, les 10 meilleurs premiers coups (scores exacts : ce
+   moteur cherche chaque premier coup avec une fenetre complete, rien n'est elague
+   a la racine), leurs positions et temps, la suite prevue et l'ecart de chaque
+   critere d'evaluation entre la position et le bout de cette suite. Garde en
+   memoire pendant la partie (pas dans l'historique : trop volumineux). */
+function _detailReflexion(m, couleur, config) {
+  const fils = (m.parFil && m.parFil.length) ? m.parFil : [m];
+  if (!fils.every(function(f){ return f && f.rootsByDepth && f.depthInfo; })) return null;
+  const prof = [];
+  for (let d = 1; d <= 64; d++) {
+    if (!fils.every(function(f){ return Array.isArray(f.rootsByDepth[d]) && f.rootsByDepth[d].length && f.depthInfo[d]; })) continue;
+    let tous = []; fils.forEach(function(f){ tous = tous.concat(f.rootsByDepth[d]); });
+    tous.sort(function(a, b){ return b.score - a.score; });
+    prof.push({ d: d, total: tous.length,
+      noeuds: fils.reduce(function(a, f){ return a + f.depthInfo[d].nodes; }, 0),
+      ms: Math.max.apply(null, fils.map(function(f){ return f.depthInfo[d].ms; })),
+      fin: Math.max.apply(null, fils.map(function(f){ return f.depthInfo[d].fin; })),
+      lignes: tous.slice(0, 10).map(function(r){ return { cells: r.cells, dir: r.dir, s: r.score, k: r.k || 0, ms: r.ms || 0, t: r.t || 0, pv: r.pv || [], terms: r.terms || null }; }) });
+  }
+  if (!prof.length) return null;
+  return { racine: { board: JSON.parse(JSON.stringify(board)), cB: CapturedByBlack.get(), cW: CapturedByWhite.get() },
+           couleur: couleur, niveau: _niveauIA() || null, budget: config ? config.time : 0, date: Date.now(),
+           style: (typeof _aiMode !== 'undefined' && typeof AI_WEIGHT_PRESETS !== 'undefined' && AI_WEIGHT_PRESETS[_aiMode]) ? AI_WEIGHT_PRESETS[_aiMode].label : '',
+           pos: fils[0].posTerms || null, poids: fils[0].poids || null, prof: prof.reverse() };
+}
+/* Notations du tableau, calculees a l'ouverture seulement (une fois par coup) : chaque
+   suite est rejouee sur une COPIE de la position, globales sauvegardees puis restaurees. */
+function _notationsReflexion(det) {
+  if (det._notes) return;
+  const sauve = { b: board, cb: CapturedByBlack.get(), cw: CapturedByWhite.get(), go: GameOver.get() };
+  const trouver = function(x, col){ const k = moveKey(x); return getAllMovesForColor(col).find(function(m){ return moveKey(m) === k; }) || null; };
+  const jouer = function(m, col){ const info = validateMove(m.cells, m.dir, col); if (!info || !info.valid) return false; applyMove({ cells: m.cells, dir: m.dir, info: info }, col); return true; };
+  try {
+    det.prof.forEach(function(p){ p.lignes.forEach(function(l){
+      board = JSON.parse(JSON.stringify(det.racine.board)); CapturedByBlack.set(det.racine.cB); CapturedByWhite.set(det.racine.cW); GameOver.set(false);
+      const etapes = [{ board: JSON.parse(JSON.stringify(board)) }];
+      const m0 = trouver(l, det.couleur); l.n = m0 ? ((abaproOfficialLabels(m0) || [])[0] || '?') : '?'; l.suite = [];
+      if (m0 && jouer(m0, det.couleur)) {
+        etapes.push({ board: JSON.parse(JSON.stringify(board)), cells: m0.cells, dir: m0.dir });
+        for (const s of l.pv) {
+          const mv = trouver(s, s.c); if (!mv) break;
+          l.suite.push((abaproOfficialLabels(mv) || [])[0] || '?');
+          if (!jouer(mv, s.c)) break;
+          etapes.push({ board: JSON.parse(JSON.stringify(board)), cells: mv.cells, dir: mv.dir });
+        }
+      }
+      l.etapes = etapes;
+    }); });
+  } finally { board = sauve.b; CapturedByBlack.set(sauve.cb); CapturedByWhite.set(sauve.cw); GameOver.set(sauve.go); }
+  det._notes = true;
+}
+/* Colonnes du tableau : celles de KAAH dans son ordre, puis celles propres a Abalassembly.
+   Seuls les criteres que le style de la partie UTILISE (poids non nul) sont montres :
+   jamais une colonne de zeros qui laisserait croire qu'un critere compte. */
+const _CRITERES_IA = [['gain', 'Gain', null, 2000], ['scGain', 'sc. Gain', 'scGain'], ['perte', 'Perte', null, 2000], ['scPerte', 'sc. Perte', 'scPerte'],
+  ['centre', 'Centre', 'center'], ['cases', 'Cases', 'cases'], ['coh', 'Cohés.', 'cohesion'], ['compac', 'Compac.', 'compac'],
+  ['bordM', 'Bord m.', 'edge'], ['bordA', 'Bord a.', 'edge'], ['sumito', 'Sumito', 'sumito'], ['menace', 'Menace', 'menace'],
+  ['fourch', 'Fourch.', 'fourch'], ['piege', 'Piège', 'piege'],
+  ['mob', 'Mobilité', 'mob'], ['iso', 'Isolées', 'iso'], ['dng', 'En danger', 'dng'], ['chaine', 'Chaînes', 'chain'], ['fort', 'Forteresses', 'fortress']];
+function _criteresUtilises(poids) { return _CRITERES_IA.filter(function(k){ return k[3] || (poids && poids[k[2]]); }); }
+function _evalReflexionTexte(s) { return Math.abs(s) >= 90000 ? (s > 0 ? 'Gagne' : 'Perd') : ((s > 0 ? '+' : '') + Math.round(s)); }
+function _msTexte(ms) { return ms >= 1000 ? (ms / 1000).toFixed(1).replace('.', ',') + ' s' : Math.round(ms) + ' ms'; }
+function _tableReflexionHTML(idx, hote) {
+  const snap = (typeof boardSnapshots !== 'undefined') ? boardSnapshots[idx] : null;
+  const det = snap && snap.ia && snap.ia.detail; if (!det) return null;
+  _notationsReflexion(det);
+  const CR = _criteresUtilises(det.poids);
+  const v = function(x){ if (!x || Math.abs(x) < 0.05) return '·'; const r = Math.round(x * 10) / 10; return (r > 0 ? '+' : '') + String(r).replace('.', ','); };
+  const th = 'style="padding:3px 6px;text-align:right;white-space:nowrap;font-weight:400;color:var(--muted)"', td = 'style="padding:3px 6px;text-align:right;white-space:nowrap"';
+  let h = '<table style="border-collapse:collapse;font-size:12px;font-family:\'DM Mono\',monospace"><tr><th ' + th + '>#</th><th ' + th + '>1er coup</th><th ' + th + '>Éval.</th><th ' + th + '>Temps'
+    + (det.budget ? '<br>(' + (det.budget >= 3600000 ? '∞' : _msTexte(det.budget)) + ')' : '') + '</th><th ' + th + '>Sous lui</th><th ' + th + '>Positions</th>'
+    + CR.map(function(k){ const w = k[3] || det.poids[k[2]]; return '<th ' + th + '>' + k[1] + '<br>(' + String(w).replace('.', ',') + ')</th>'; }).join('') + '<th ' + th + ' style="text-align:left">Suite prévue</th></tr>';
+  if (det.pos) h += '<tr><td ' + td + '></td><td ' + td + ' colspan="5" style="text-align:left;color:var(--muted);font-style:italic">Position</td>' + CR.map(function(k){ return '<td ' + td + '>' + v(det.pos[k[0]]) + '</td>'; }).join('') + '<td></td></tr>';
+  det.prof.forEach(function(p, ip){
+    h += '<tr><td colspan="' + (7 + CR.length) + '" style="padding:10px 6px 4px;color:var(--gold);font-family:\'DM Sans\',sans-serif">Prof. ' + p.d + ' : ' + p.lignes.length + ' premiers coups sur ' + p.total + ', '
+      + p.noeuds.toLocaleString('fr-FR') + ' positions, ' + _msTexte(p.ms) + ' (finie à ' + _msTexte(p.fin) + ')</td></tr>';
+    p.lignes.forEach(function(l, i){
+      h += '<tr onclick="_plateauReflexion(' + idx + ',' + ip + ',' + i + ',\'' + hote + '\')" style="cursor:pointer;border-top:1px solid var(--border)"><td ' + td + '>' + (i + 1) + '</td><td ' + td + ' style="text-align:left;color:' + (i === 0 ? 'var(--gold)' : 'var(--white)') + '">' + l.n + '</td><td ' + td + '>'
+        + _evalReflexionTexte(l.s) + (l.terms && Math.abs(l.s) < 90000 && Math.abs(Object.keys(l.terms).reduce(function(a, k){ return a + l.terms[k]; }, 0) - l.s) >= 500 ? '*' : '') + '</td><td ' + td + '>' + (l.t ? _msTexte(l.t) : '') + '</td><td ' + td + '>' + _msTexte(l.ms) + '</td><td ' + td + '>'
+        + l.k.toLocaleString('fr-FR') + ' (' + (p.noeuds ? Math.round(100 * l.k / p.noeuds) : 0) + ' %)</td>'
+        + CR.map(function(k){ return '<td ' + td + '>' + (l.terms && det.pos ? v(l.terms[k[0]] - det.pos[k[0]]) : '') + '</td>'; }).join('')
+        + '<td ' + td + ' style="text-align:left">' + l.suite.join(' ') + '</td></tr>';
+    });
+  });
+  h += '</table>';
+  const entete = '<div style="font-size:12px;color:var(--muted);margin:4px 0 2px">' + (det.niveau ? 'Niveau ' + det.niveau + ' · ' : '') + (det.style ? 'style ' + det.style + ' · ' : '')
+    + new Date(det.date).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + '</div>'
+    + '<div style="font-size:11px;color:var(--muted);margin-bottom:10px">Temps : moment où le coup a été fini ; Sous lui : temps passé sur ce coup. Scores exacts : aucun élagage à la racine. Critères : écart entre la position et le bout de la suite prévue, du point de vue de l\u2019IA ; seuls ceux qu\u2019utilise ce style sont montrés. * : le score tient compte de prises au-delà de la suite. Touche un coup : sa suite sur un plateau.</div>';
+  return { det: det, html: entete + '<div id="' + hote + '"></div><div style="overflow-x:auto">' + h + '</div>' };
+}
+function ouvrirReflexionIA(idx) {
+  const T = _tableReflexionHTML(idx, 'reflexion-ia-plateau'); if (!T) return null;
+  let m = document.getElementById('reflexion-ia-modal'); if (m) m.remove();
+  m = document.createElement('div'); m.id = 'reflexion-ia-modal';
+  m.style.cssText = 'position:fixed;inset:0;z-index:3600;background:rgba(13,15,14,0.94);display:flex;align-items:center;justify-content:center;padding:12px';
+  m.innerHTML = '<div style="max-width:1100px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:18px;max-height:92vh;overflow:auto">'
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin:0">Réflexion de l\u2019IA</h3>'
+    + '<button class="ctrl-btn" onclick="document.getElementById(\'reflexion-ia-modal\').remove()" style="width:auto;padding:4px 12px">Fermer</button></div>'
+    + T.html + '</div>';
+  document.body.appendChild(m);
+  return m;
+}
+/* Petit plateau : la position au bout de la suite, chaque bille deplacee marquee du
+   numero du demi-coup (1 = le coup de l'IA, 2 = la reponse, ...). */
+function _plateauReflexion(idx, ip, i, idHote) {
+  const det = boardSnapshots[idx].ia.detail, l = det.prof[ip].lignes[i], hote = document.getElementById(idHote || 'reflexion-ia-plateau');
+  if (!hote || !l.etapes) return;
+  const fin = l.etapes[l.etapes.length - 1].board, num = {};
+  l.etapes.slice(1).forEach(function(e, k){ e.cells.forEach(function(cel){ const a = rcToAxial(cel.r, cel.c), rc = axialToRc(a.q + e.dir.q, a.r + e.dir.r); if (rc) num[rc.r + ',' + rc.c] = k + 1; }); });
+  let svg = '<svg viewBox="0 0 640 640" style="width:min(300px,80vw);height:auto;display:block;margin:0 auto 6px">';
+  for (let r = 0; r < 9; r++) for (let cc = 0; cc < ROWS[r]; cc++) {
+    const p = hexCoord(r, cc), v = fin[r + ',' + cc], k = r + ',' + cc;
+    svg += '<circle cx="' + p.x + '" cy="' + p.y + '" r="26" fill="' + (v === 'black' ? '#1b1b1b' : v === 'white' ? '#ece6d6' : 'rgba(255,255,255,0.06)') + '" stroke="' + (num[k] ? '#c8a84b' : 'rgba(255,255,255,0.12)') + '" stroke-width="' + (num[k] ? 4 : 1) + '"/>';
+    if (num[k]) svg += '<text x="' + p.x + '" y="' + (p.y + 9) + '" text-anchor="middle" font-size="26" font-weight="700" fill="' + (v === 'white' ? '#1b1b1b' : '#c8a84b') + '">' + num[k] + '</text>';
+  }
+  svg += '</svg>';
+  hote.innerHTML = svg + '<div style="text-align:center;font-size:12px;margin-bottom:10px"><b>' + l.n + '</b>' + (l.suite.length ? ' · suite : ' + l.suite.map(function(x, k){ return '<span style="color:var(--muted)">' + (k + 2) + '.</span> ' + x; }).join(' ') : '') + ' · ' + _evalReflexionTexte(l.s) + '</div>';
+  return hote;
+}
+
+/* Panneau « Reflexion de l'IA » dans la partie (comme celui de KAAH) : le tableau du
+   DERNIER coup de l'IA, mis a jour apres chacun ; ouvert ou ferme, au choix, et garde. */
+function _dernierCoupIAAvecDetail() {
+  if (typeof boardSnapshots === 'undefined') return -1;
+  for (let i = boardSnapshots.length - 1; i >= 0; i--) if (boardSnapshots[i] && boardSnapshots[i].ia && boardSnapshots[i].ia.detail) return i;
+  return -1;
+}
+function _majPanneauReflexion() {
+  const corps = document.getElementById('reflexion-panneau-corps'), btn = document.getElementById('reflexion-panneau-btn');
+  let ouvert = false; try { ouvert = localStorage.getItem('abaReflexionPanneau') === '1'; } catch (e) {}
+  if (btn) btn.textContent = (ouvert ? '▾' : '▸') + ' Réflexion de l\u2019IA';
+  if (!corps) return;
+  corps.style.display = ouvert ? 'block' : 'none';
+  if (!ouvert) return;
+  const idx = _dernierCoupIAAvecDetail();
+  if (idx < 0) { corps.innerHTML = '<div style="font-size:12px;color:var(--muted)">Le tableau apparaîtra après le prochain coup calculé par l\u2019IA.</div>'; return; }
+  const T = _tableReflexionHTML(idx, 'reflexion-panneau-plateau');
+  corps.innerHTML = '<div style="font-size:12px;color:var(--white);margin-bottom:2px">Coup ' + (idx + 1) + ' de l\u2019IA</div>' + T.html;
+}
+function basculerPanneauReflexion() {
+  try { localStorage.setItem('abaReflexionPanneau', localStorage.getItem('abaReflexionPanneau') === '1' ? '0' : '1'); } catch (e) {}
+  _majPanneauReflexion();
+}
+
 function _formatEvalIA(ia) {
   if (!ia) return '';
   const ph = { ouverture: 'Ouv.', milieu: 'Mil.', finale: 'Fin' }[ia.ph] || '';
@@ -364,7 +512,9 @@ function appendMoveRow(list, moveInfo, fallbackLabel, color, plyNum) {
     + '<span class="move-aba">' + aba + ejx + '</span>'
     + '<span class="move-nacre">' + nac + ejx + '</span>';
   const _snapEval = (typeof boardSnapshots !== 'undefined') ? boardSnapshots[plyNum - 1] : null;
-  if (_snapEval && _snapEval.ia) row.innerHTML += '<span class="move-eval" title="Évaluation de l\u2019IA : phase, score de son point de vue, profondeur atteinte, temps de réflexion" style="grid-column:3 / 5;font-size:11px;color:var(--muted);margin-top:-4px">' + _formatEvalIA(_snapEval.ia) + '</span>';
+  if (_snapEval && _snapEval.ia) row.innerHTML += '<span class="move-eval" title="' + (_snapEval.ia.detail ? 'Voir la réflexion de l\u2019IA pour ce coup' : 'Évaluation de l\u2019IA : phase, score de son point de vue, profondeur atteinte, temps de réflexion') + '"'
+    + (_snapEval.ia.detail ? ' onclick="event.stopPropagation();ouvrirReflexionIA(' + (plyNum - 1) + ')"' : '')
+    + ' style="grid-column:3 / 5;font-size:11px;color:var(--muted);margin-top:-4px' + (_snapEval.ia.detail ? ';text-decoration:underline dotted;cursor:pointer' : '') + '">' + _formatEvalIA(_snapEval.ia) + (_snapEval.ia.detail ? ' ›' : '') + '</span>';
   list.appendChild(row);
 }
 

@@ -3241,6 +3241,7 @@ document.addEventListener('keydown', function(e){
         <button onclick="setupPick('style','defensive',this)" class="setup-opt">Défensif</button>
         <button onclick="setupPick('style','divide',this)" class="setup-opt">Division</button>
         <button onclick="setupPick('style','balanced',this)" class="setup-opt">Équilibré</button>
+        <button onclick="setupPick('style','kaah',this)" class="setup-opt" title="Les critères d'évaluation de KAAH (sumito, menace, fourchette, piège, compacité…) ajoutés au moteur — expérimental, en cours de test au Labo">KAAH (expérimental)</button>
       </div>
       <div class="setup-row-lbl" style="margin-top:14px">Niveau</div>
       <div style="display:flex;gap:5px;flex-wrap:wrap" id="setup-diff">
@@ -3515,6 +3516,10 @@ document.addEventListener('keydown', function(e){
           <span>Position :</span><code id="position-code-texte" style="font-family:'DM Mono',monospace;color:var(--text);word-break:break-all"></code>
           <button class="ctrl-btn" onclick="copierCodePosition()" style="width:auto;padding:2px 8px;font-size:11px">Copier</button>
           <button class="ctrl-btn" onclick="ouvrirPermutations()" style="width:auto;padding:2px 8px;font-size:11px" title="Les 12 symétries de la position et l'échange des camps">Permutations</button>
+        </div>
+        <div id="reflexion-panneau" style="margin:0 0 12px">
+          <button class="ctrl-btn" onclick="basculerPanneauReflexion()" id="reflexion-panneau-btn" style="width:auto;padding:4px 10px;font-size:12px">▸ Réflexion de l’IA</button>
+          <div id="reflexion-panneau-corps" style="display:none;margin-top:6px"></div>
         </div>
         <div class="game-controls">
           <button class="ctrl-btn" id="game-suggest-btn" onclick="gameShowBestMove()" style="width:100%;margin-bottom:8px;background:rgba(200,168,75,0.1);border-color:var(--gold-dim);color:var(--gold)">💡 Suggérer un coup</button>
@@ -5547,7 +5552,19 @@ document.addEventListener('keydown', function(e){
     </div>
     <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:20px">Les 10 Commandements</div>
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
-      ${["Vise le centre","Garde tes billes groupées","Évite les bords","Attaque sur 2 fronts","Anticipe les ripostes","Utilise le Sumito","Ne gaspille pas les coups","Connais les positions bloquées","Adapte-toi au style adverse","Joue et rejoue"].map(function(cmd,i){ return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">'+['I','II','III','IV','V','VI','VII','VIII','IX','X'][i]+'</div><div style="font-size:14px;color:var(--text);line-height:1.6">'+cmd+'</div></div>'; }).join('')}
+      <!-- Les 10 Commandements : HTML ecrit en dur. Avant, du code JavaScript (une interpolation de
+         gabarit avec map/join) etait place dans le HTML statique, hors de tout script : il ne s'executait jamais et
+         s'affichait tel quel sur la page de l'Academie. Signale par une analyse externe, verifie. -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">I</div><div style="font-size:14px;color:var(--text);line-height:1.6">Vise le centre</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">II</div><div style="font-size:14px;color:var(--text);line-height:1.6">Garde tes billes groupées</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">III</div><div style="font-size:14px;color:var(--text);line-height:1.6">Évite les bords</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">IV</div><div style="font-size:14px;color:var(--text);line-height:1.6">Attaque sur 2 fronts</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">V</div><div style="font-size:14px;color:var(--text);line-height:1.6">Anticipe les ripostes</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">VI</div><div style="font-size:14px;color:var(--text);line-height:1.6">Utilise le Sumito</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">VII</div><div style="font-size:14px;color:var(--text);line-height:1.6">Ne gaspille pas les coups</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">VIII</div><div style="font-size:14px;color:var(--text);line-height:1.6">Connais les positions bloquées</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">IX</div><div style="font-size:14px;color:var(--text);line-height:1.6">Adapte-toi au style adverse</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">X</div><div style="font-size:14px;color:var(--text);line-height:1.6">Joue et rejoue</div></div>
     </div>
     <div style="margin-top:32px;padding:18px 22px;background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.2);border-radius:8px;font-size:14px;color:var(--text);line-height:1.7">
       📚 Source complète : <a href="https://onlineabalone.wordpress.com/abalone-academy/un-peu-de-theorie/les-dix-commandements-du-joueur-debutant/" target="_blank" rel="noopener noreferrer" style="color:var(--gold)">Abalone Academy — Les 10 commandements</a>
@@ -6182,6 +6199,7 @@ document.addEventListener('keydown', function(e){
       </div>
     </div>
     <div id="page-lab-host" style="padding:24px 60px 60px;max-width:900px"></div>
+    <div id="test-kaah-host" style="padding:0 60px 60px;max-width:900px"></div>
 
     <!-- Benchmark moteur — mesure reelle avant toute promesse de gain -->
     <div style="padding:0 60px 60px;max-width:680px">
@@ -7518,7 +7536,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.48';
+const APP_VERSION = 'v2.49';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -17990,6 +18008,54 @@ function undoMove(undo){
 }
 const EVAL_CENTER={q:0,r:0};
 function axHexDist(a,b){return(Math.abs(a.q-b.q)+Math.abs(a.q+a.r-b.q-b.r)+Math.abs(a.r-b.r))/2;}
+/* ── Criteres de KAAH (demande d'Olivier : « les integrer au moteur, tests au
+   Labo »). Reimplementes ici d'apres leurs DEFINITIONS (le code de KAAH, sans
+   licence, n'est pas recopie) :
+     scGain / scPerte : la k-ieme ejection vaut k-1 fois le poids de plus ;
+     cases  : une valeur par type de case, negative sur les 2 couronnes
+              exterieures (b : -5 ; a : -10, coin -12), fois le poids ;
+     compac : distance moyenne entre ses billes, comparee a l'adversaire ;
+     sumito : poussees possibles (2/1, 3/1, 3/2) ; menace : celles qui ejectent ;
+     fourch : chaque poussee au-dela de la premiere ;
+     piege  : billes des 2 couronnes exterieures sans aucun pas vers le centre.
+   Chacun compte pour soi, contre l'adversaire. Poids ABSENT = 0 = non calcule :
+   l'IA habituelle (poids sans ces cles) joue exactement comme avant, sans le
+   moindre surcout ; les duels du Labo remplacent EVAL_W en entier, donc un camp
+   sans ces cles ne les herite jamais de l'autre. */
+const _KC=(function(){const T={};for(let r=0;r<9;r++)for(let c=0;c<ROWS[r];c++){const a=rcToAxial(r,c);T[akey(r,c)]={a:a,ring:axHexDist(a,EVAL_CENTER)};}
+  const opp=AX_DIRS.map(d=>AX_DIRS.findIndex(e=>e.q===-d.q&&e.r===-d.r));
+  for(const k in T){const a=T[k].a;T[k].nb=AX_DIRS.map(d=>{const rc=axialToRc(a.q+d.q,a.r+d.r);return rc?akey(rc.r,rc.c):null;});
+    const q=a.q-EVAL_CENTER.q,r=a.r-EVAL_CENTER.r,coin=Math.min(Math.abs(q),Math.abs(r),Math.abs(q+r));
+    T[k].val=T[k].ring===3?-5:(T[k].ring===4?(coin===0?-12:-10):0);}
+  return {T:T,opp:opp};})();
+function _sumitosKaah(c){const o=c==='white'?'black':'white',T=_KC.T,OP=_KC.opp;let n=0,ej=0;
+  for(const k in board){if(board[k]!==c)continue;const nb=T[k].nb;
+    for(let d=0;d<6;d++){const t=nb[d];if(!t||board[t]!==o)continue;
+      let g=1,b=nb[OP[d]];while(g<3&&b&&board[b]===c){g++;b=T[b].nb[OP[d]];}if(g<2)continue;
+      let m=0,x=t;while(x&&board[x]===o&&m<3){m++;x=T[x].nb[d];}
+      if(m>=g)continue;if(x&&board[x])continue;n++;if(!x)ej++;}}
+  return {n:n,ej:ej};}
+function _peutAvancerKaah(k,d,c){const T=_KC.T,OP=_KC.opp,o=c==='white'?'black':'white';
+  let dev=0,x=T[k].nb[d];while(x&&board[x]===c&&dev<3){dev++;x=T[x].nb[d];}if(dev>=3)return false;
+  let der=0,y=T[k].nb[OP[d]];while(y&&board[y]===c&&der<2-dev){der++;y=T[y].nb[OP[d]];}
+  const grp=1+dev+der;if(!x)return false;if(!board[x])return true;if(board[x]!==o)return false;
+  let adv=0,z=x;while(z&&board[z]===o&&adv<4){adv++;z=T[z].nb[d];}if(grp<=adv)return false;return !z||!board[z];}
+function _bloqueesKaah(c){const T=_KC.T;let n=0;for(const k in board){if(board[k]!==c||T[k].ring<3)continue;const ring=T[k].ring,nb=T[k].nb;let libre=false;
+  for(let d=0;d<6&&!libre;d++){const v=nb[d];if(v&&T[v].ring<ring&&_peutAvancerKaah(k,d,c))libre=true;}if(!libre)n++;}return n;}
+function _compacKaah(c){const T=_KC.T,p=[];for(const k in board)if(board[k]===c)p.push(T[k].a);let s=0,n=0;
+  for(let i=0;i<p.length;i++)for(let j=i+1;j<p.length;j++){s+=axHexDist(p[i],p[j]);n++;}return n?s/n:0;}
+function _termesKaah(color){const W=EVAL_W,o=color==='white'?'black':'white',R={};
+  const myCap=color==='white'?capturedByWhite:capturedByBlack,thCap=color==='white'?capturedByBlack:capturedByWhite;
+  R.scGain=(W.scGain||0)*myCap*(myCap-1)/2;R.scPerte=-(W.scPerte||0)*thCap*(thCap-1)/2;
+  if(W.cases){let s=0;const T=_KC.T;for(const k in board){const v=board[k];if(!v)continue;s+=(v===color?1:-1)*T[k].val;}R.cases=W.cases*s;}else R.cases=0;
+  R.compac=W.compac?W.compac*(_compacKaah(o)-_compacKaah(color)):0;
+  if(W.sumito||W.menace||W.fourch){const a=_sumitosKaah(color),b=_sumitosKaah(o);
+    R.sumito=(W.sumito||0)*(a.n-b.n);R.menace=(W.menace||0)*(a.ej-b.ej);R.fourch=(W.fourch||0)*(Math.max(0,a.n-1)-Math.max(0,b.n-1));}
+  else{R.sumito=0;R.menace=0;R.fourch=0;}
+  R.piege=W.piege?W.piege*(_bloqueesKaah(o)-_bloqueesKaah(color)):0;
+  return R;}
+function _kaahActif(){const W=EVAL_W;return !!(W.scGain||W.scPerte||W.cases||W.compac||W.sumito||W.menace||W.fourch||W.piege);}
+function _kaahTotal(color){const R=_termesKaah(color);return R.scGain+R.scPerte+R.cases+R.compac+R.sumito+R.menace+R.fourch+R.piege;}
 function evaluateBoard(color){
   let myCount=0,enCount=0,myCenter=0,enCenter=0,myCoh=0,enCoh=0,myEdge=0,enEdge=0,myMob=0,enMob=0,myIso=0,enIso=0,myDng=0,enDng=0,myChain=0,enChain=0,myFort=0,enFort=0;
   for(const k in board){const v=board[k];if(!v)continue;
@@ -18009,7 +18075,53 @@ function evaluateBoard(color){
   return (myCount-enCount)*1000+(myCenter-enCenter)*EVAL_W.center+(myCoh-enCoh)*EVAL_W.cohesion+(enEdge-myEdge)*EVAL_W.edge
     +((color==='white'?(capturedByWhite-capturedByBlack):(capturedByBlack-capturedByWhite))*1000)
     +(myMob-enMob)*EVAL_W.mob+(enIso-myIso)*EVAL_W.iso+(enDng-myDng)*EVAL_W.dng
-    +(myChain-enChain)*EVAL_W.chain+(myFort-enFort)*EVAL_W.fortress;
+    +(myChain-enChain)*EVAL_W.chain+(myFort-enFort)*EVAL_W.fortress
+    +(_kaahActif()?_kaahTotal(color):0);
+}
+function evalDetail(color){
+  let myCount=0,enCount=0,myCenter=0,enCenter=0,myCoh=0,enCoh=0,myEdge=0,enEdge=0,myMob=0,enMob=0,myIso=0,enIso=0,myDng=0,enDng=0,myChain=0,enChain=0,myFort=0,enFort=0;
+  for(const k in board){const v=board[k];if(!v)continue;
+    const p=k.split(',');const ax=rcToAxial(+p[0],+p[1]);const dist=axHexDist(ax,EVAL_CENTER);const isEdge=dist>=4;
+    let allies=0,emptyN=0;for(const d of AX_DIRS){const n=axialToRc(ax.q+d.q,ax.r+d.r);if(!n)continue;const nv=board[akey(n.r,n.c)];if(nv===v)allies++;else if(!nv)emptyN++;}
+    const iso=allies===0;const dng=isEdge&&allies<=1;const fort=allies>=4;
+    let chainLinks=0;
+    for(const[fwd,bwd] of EVAL_AXES){
+      const bd=AX_DIRS[bwd];const bn=axialToRc(ax.q+bd.q,ax.r+bd.r);
+      if(bn&&board[akey(bn.r,bn.c)]===v)continue;   // pas la queue de la chaine sur cet axe
+      const fd=AX_DIRS[fwd];let aq=ax.q,ar=ax.r,len=1;
+      while(true){aq+=fd.q;ar+=fd.r;const nrc=axialToRc(aq,ar);if(!nrc)break;if(board[akey(nrc.r,nrc.c)]!==v)break;len++;}
+      if(len>=2)chainLinks+=(len-1);
+    }
+    if(v===color){myCount++;myCenter+=(4-dist);myCoh+=allies;if(isEdge)myEdge++;myMob+=emptyN;if(iso)myIso++;if(dng)myDng++;if(fort)myFort++;myChain+=chainLinks;}
+    else{enCount++;enCenter+=(4-dist);enCoh+=allies;if(isEdge)enEdge++;enMob+=emptyN;if(iso)enIso++;if(dng)enDng++;if(fort)enFort++;enChain+=chainLinks;}}
+  // Gain/Perte : ce moteur compte chaque ejection deux fois (ecart de billes + ecart de captures),
+  // soit 2000 ; base = l'ecart de billes au depart (0 a armees egales), pour que la somme reste exacte.
+  const myCap=color==='white'?capturedByWhite:capturedByBlack,thCap=color==='white'?capturedByBlack:capturedByWhite;
+  const matCap=(myCount-enCount)*1000+(myCap-thCap)*1000,K=_kaahActif()?_termesKaah(color):{scGain:0,scPerte:0,cases:0,compac:0,sumito:0,menace:0,fourch:0,piege:0};
+  return {gain:2000*myCap,perte:-2000*thCap,base:matCap-2000*(myCap-thCap),scGain:K.scGain,scPerte:K.scPerte,
+    centre:(myCenter-enCenter)*EVAL_W.center,cases:K.cases,coh:(myCoh-enCoh)*EVAL_W.cohesion,compac:K.compac,
+    bordM:-myEdge*EVAL_W.edge,bordA:enEdge*EVAL_W.edge,sumito:K.sumito,menace:K.menace,fourch:K.fourch,piege:K.piege,
+    mob:(myMob-enMob)*EVAL_W.mob,iso:(enIso-myIso)*EVAL_W.iso,dng:(enDng-myDng)*EVAL_W.dng,chaine:(myChain-enChain)*EVAL_W.chain,fort:(myFort-enFort)*EVAL_W.fortress};
+}
+/* Tableau « Reflexion IA » (demande d'Olivier, sur le modele de KAAH) : evalDetail
+   est une copie EXACTE de evaluateBoard ci-dessus, qui renvoie chaque critere
+   pondere au lieu du total (leur somme = evaluateBoard). La suite prevue suit les
+   meilleurs coups gardes dans la table de transposition ; la cle d'une position
+   ne contenant pas le camp au trait, chaque coup est verifie LEGAL pour le camp
+   attendu, sinon la suite s'arrete -- jamais de suite inventee. */
+function _pvEtTermes(cle,pov,plis){
+  const opp=c=>c==='white'?'black':'white';
+  const m0=getAllMovesForColor(pov).find(x=>moveKey(x)===cle);if(!m0)return null;
+  const us=[applyMove(m0,pov)],pv=[];let side=opp(pov);
+  for(let i=0;i<plis;i++){
+    if(capturedByWhite>=6||capturedByBlack>=6)break;
+    const tt=TT.get(hashBoard());if(!tt||!tt.move)break;
+    const mv=getAllMovesForColor(side).find(x=>moveKey(x)===tt.move);if(!mv)break;
+    pv.push({cells:mv.cells,dir:mv.dir,c:side});us.push(applyMove(mv,side));side=opp(side);
+  }
+  const terms=evalDetail(pov);
+  for(let i=us.length-1;i>=0;i--)undoMove(us[i]);
+  return {pv:pv,terms:terms};
 }
 function _rand32(){return(Math.random()*0xFFFFFFFF)>>>0;}
 const ZOBRIST={};for(let r=0;r<9;r++)for(let c=0;c<ROWS[r];c++)ZOBRIST[akey(r,c)]={black:_rand32(),white:_rand32()};
@@ -18290,6 +18402,7 @@ function _repCountMap(h){if(!h||!h.length)return null;const m=new Map();for(cons
 function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
   const start=Date.now();let bestMove=null,bestScore=-Infinity,reached=0,lastRoots=null,lastRootsDepth=0;
   const rootsByDepth={},ejCache={},opp=(pov==='black'?'white':'black');
+  const depthInfo={},posTerms=evalDetail(pov);   // tableau « Reflexion IA » : bilan par profondeur, criteres de la position
   killerMoves={};historyTable={};counterMove={};TT.clear();_nodes=0;_ttLk=0;_ttHit=0;
   const repCount=_repCountMap(hist);
   const split=(workerCount>1);   // partage des racines entre plusieurs workers (voir requestAIMovePooled)
@@ -18314,8 +18427,8 @@ function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
        N'affecte pas l'ordonnancement alpha-beta : orderMoves passe apres. */
     if(split){moves=moves.slice().sort(function(a,b){const ka=moveKey(a),kb=moveKey(b);return ka<kb?-1:(ka>kb?1:0);}).filter(function(m,idx){return idx%workerCount===workerIndex;});if(!moves.length)break;}
     moves=orderMoves(moves,d,null);
-    let lb=null,ls=-Infinity,alpha=-Infinity,roots=[],cut=false;
-    for(const m of moves){const mk=moveKey(m);const u=applyMove(m,pov);let s=search(d-1,-Infinity,Infinity,false,pov,mk);
+    let lb=null,ls=-Infinity,alpha=-Infinity,roots=[],cut=false;const _nd0=_nodes,_td0=Date.now();
+    for(const m of moves){const mk=moveKey(m);const _n0=_nodes,_t0=Date.now();const u=applyMove(m,pov);let s=search(d-1,-Infinity,Infinity,false,pov,mk);
       if(repCount){const rc=repCount.get(_repKeyOf(board));if(rc)s-=140*rc*rc;}
       /* Menace adverse IMMEDIATE apres ce coup : compte exact des ejections
          dont dispose l'adversaire au pli suivant. Un fait verifiable a 1 pli,
@@ -18331,7 +18444,7 @@ function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
         else{const og=getAllMovesForColor(opp);let ne=0;for(let i=0;i<og.length;i++)if(og[i].eject)ne++;ejCache[mk]=ne;}
       }
       undoMove(u);
-      roots.push({cells:m.cells,dir:m.dir,type:m.type,eject:m.eject,score:s,oppEject:ejCache[mk]});
+      roots.push({cells:m.cells,dir:m.dir,type:m.type,eject:m.eject,score:s,oppEject:ejCache[mk],key:mk,k:_nodes-_n0,ms:Date.now()-_t0,t:Date.now()-start});
       if(s>ls){ls=s;lb=m;}if(s>alpha)alpha=s;if(Date.now()-start>timeLimit){cut=true;break;}}
     // bestScore=ls (pas lastRoots[0].score) : correct meme si cette profondeur a
     // ete coupee par le minuteur avant d'explorer tous les coups — lastRoots ne
@@ -18341,7 +18454,11 @@ function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
     // le partage multi-worker (requestAIMovePooled) : le meme coup rapportait
     // deux scores differents (0 vs 38) selon qu'il venait d'une recherche coupee
     // ou complete — pas un bug de calcul, un bug de RAPPORT du score correct.
-    if(lb){bestMove=lb;bestScore=ls;reached=d;if(!cut){lastRoots=roots;lastRootsDepth=d;rootsByDepth[d]=roots;}}if(Date.now()-start>timeLimit)break;}
+    if(lb){bestMove=lb;bestScore=ls;reached=d;if(!cut){lastRoots=roots;lastRootsDepth=d;rootsByDepth[d]=roots;
+      // profondeur complete : bilan, puis suite prevue et criteres de ses 10 meilleurs coups
+      depthInfo[d]={nodes:_nodes-_nd0,ms:Date.now()-_td0,fin:Date.now()-start};
+      roots.slice().sort((a,b)=>b.score-a.score).slice(0,10).forEach(function(r){const x=_pvEtTermes(r.key,pov,d-1);if(x){r.pv=x.pv;r.terms=x.terms;}});}}
+    if(Date.now()-start>timeLimit)break;}
   const top=lastRoots?lastRoots.slice().sort((a,b)=>b.score-a.score).slice(0,5):null;
   /* rootsByDepth : liste COMPLETE des coups racine de ce worker, rangee par
      profondeur. Indispensable en multi-worker : chaque worker ne recoit que
@@ -18349,7 +18466,8 @@ function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
      local n'est PAS le top 5 de la position. requestAIMovePooled fusionne ces
      listes a la profondeur commune la plus grande -- melanger des scores
      obtenus a des profondeurs differentes ne voudrait rien dire. */
-  _metrics={nodes:_nodes,depth:reached,time:Date.now()-start,ttHit:_ttLk?Math.round(100*_ttHit/_ttLk):0,rootMoves:top,rootsByDepth:rootsByDepth,rootDepth:lastRootsDepth,bestScore:bestScore};
+  _metrics={nodes:_nodes,depth:reached,time:Date.now()-start,ttHit:_ttLk?Math.round(100*_ttHit/_ttLk):0,rootMoves:top,rootsByDepth:rootsByDepth,rootDepth:lastRootsDepth,bestScore:bestScore,
+    depthInfo:depthInfo,posTerms:posTerms,poids:Object.assign({},EVAL_W)};
   return bestMove;
 }
 function analyzePosition(pov,depth,played){
@@ -18835,6 +18953,8 @@ function requestAIMovePooled(params, onDone) {
           rootMoves: all.slice(0, 5), rootDepth: common, rootTotal: all.length
         });
       }
+      // tableau « Reflexion IA » : les mesures de CHAQUE fil (chacun n'examine qu'une part des premiers coups)
+      bestMetrics = Object.assign({}, bestMetrics, { parFil: results.filter(function(r){ return r && r.metrics; }).map(function(r){ return r.metrics; }) });
     }
     onDone(best, bestMetrics);
   }
@@ -19988,7 +20108,12 @@ const AI_WEIGHT_PRESETS = {
   balanced:  { center:6, cohesion:4, edge:8,  mob:2, iso:18, dng:14, chain:10, fortress:20, label:'équilibré' },
   defensive: { center:5, cohesion:8, edge:12, mob:2, iso:14, dng:10, chain:14, fortress:26, label:'défensif' },   // vs joueur agressif
   aggressive:{ center:8, cohesion:3, edge:6,  mob:2, iso:20, dng:22, chain:6,  fortress:12, label:'agressif' },   // vs joueur passif
-  divide:    { center:6, cohesion:3, edge:8,  mob:3, iso:30, dng:16, chain:8,  fortress:14, label:'division' }    // vs joueur qui s'expose
+  divide:    { center:6, cohesion:3, edge:8,  mob:3, iso:30, dng:16, chain:8,  fortress:14, label:'division' },   // vs joueur qui s'expose
+  // Les criteres de KAAH (poids de son profil « Normal ») AJOUTES aux poids equilibres. Experimental :
+  // jamais choisi par le profilage automatique, seulement a la demande, en attendant le verdict du Labo
+  // (test « Criteres de KAAH », page Labo).
+  kaah:      { center:6, cohesion:4, edge:8,  mob:2, iso:18, dng:14, chain:10, fortress:20,
+               scGain:200, scPerte:200, cases:1, compac:20, sumito:20, menace:120, fourch:60, piege:40, label:'KAAH (expérimental)' }
 };
 let aiAdaptive = true;     // profilage activé par défaut
 let _aiMode = 'balanced';
@@ -22439,6 +22564,81 @@ function closeLabReplay(){
   if(_labReplayTimer){ clearInterval(_labReplayTimer); _labReplayTimer=null; }
 }
 
+/* ═══ TEST AU LABO : LES CRITERES DE KAAH RENDENT-ILS L'IA PLUS FORTE ? ═══
+   Demande d'Olivier (« les integrer au moteur, tests au Labo »). Duels moteur contre
+   moteur (le meme duelGame que le Labo, un fil de calcul A PART pour ne jamais
+   interferer) : « IA actuelle + criteres de KAAH » contre « IA actuelle seule ».
+   Par cycles de 4 parties sur la MEME ouverture : chaque version joue Noirs puis
+   Blancs, et tient le role A puis B -- l'avantage d'ouverture et l'arbitrage des
+   parties trop longues (fait avec l'evaluation du camp A) s'annulent. Verdict SPRT
+   avec les seuils du Labo (H0 = +0 Elo, H1 = +35 Elo, alpha = beta = 5 %), ou
+   « indecis » apres 400 parties. Rien n'est adopte automatiquement. */
+const TEST_KAAH_KEY = 'abaTestKaah', TEST_KAAH_MAX = 400, TEST_KAAH_MIN = 16;
+const KAAH_POIDS = { scGain: 200, scPerte: 200, cases: 1, compac: 20, sumito: 20, menace: 120, fourch: 60, piege: 40 };
+let _testKaahWorker = null, _testKaahEnCours = false, _testKaahChien = null;
+let _testKaahPlanifier = function(f, ms){ return setTimeout(f, ms); };   // remplacable par les tests
+function _testKaahVide() { return { W: 0, D: 0, L: 0, n: 0, fini: null, log: [] }; }
+function _testKaahEtat() { try { return JSON.parse(localStorage.getItem(TEST_KAAH_KEY) || 'null') || _testKaahVide(); } catch (e) { return _testKaahVide(); } }
+function _testKaahSauver(s) { try { localStorage.setItem(TEST_KAAH_KEY, JSON.stringify(s)); } catch (e) {} }
+function _testKaahPoids() { const base = {}; LAB_CFG.keys.forEach(function(k){ base[k] = AI_WEIGHT_PRESETS.balanced[k]; }); return { base: base, kaah: Object.assign({}, base, KAAH_POIDS) }; }
+function _testKaahBornes() { return { haut: Math.log((1 - LAB_CFG.beta) / LAB_CFG.alpha), bas: Math.log(LAB_CFG.beta / (1 - LAB_CFG.alpha)) }; }
+function lancerTestKaah() {
+  if (_testKaahEnCours) { _testKaahEnCours = false; clearTimeout(_testKaahChien); renderTestKaah('En pause.'); return; }
+  if (typeof _labRunning !== 'undefined' && _labRunning) { if (typeof showToast === 'function') showToast('Le Labo tourne déjà : mets-le en pause d\u2019abord'); return; }
+  if (_testKaahEtat().fini) _testKaahSauver(_testKaahVide());
+  _testKaahEnCours = true; renderTestKaah(); _testKaahPartie();
+}
+function _testKaahPartie() {
+  if (!_testKaahEnCours) return;
+  const s = _testKaahEtat(), P = _testKaahPoids();
+  const k = s.n % 4, kaahEstA = (k < 2), couleurA = (k % 2 === 0) ? 'black' : 'white';
+  if (!_testKaahWorker) {
+    try { _testKaahWorker = new Worker(URL.createObjectURL(new Blob([AI_WORKER_CODE], { type: 'application/javascript' }))); }
+    catch (e) { _testKaahEnCours = false; renderTestKaah('Fil de calcul indisponible sur cet appareil.'); return; }
+  }
+  _testKaahWorker.onmessage = function(e) {
+    const d = e.data; if (!d || !d.duelGame) return;
+    clearTimeout(_testKaahChien);
+    if (d.error) { _testKaahEnCours = false; renderTestKaah('Erreur moteur : ' + d.error); return; }
+    const r = d.result || { winner: 'D' }, st = _testKaahEtat();
+    const issue = r.winner === 'D' ? 'D' : ((r.winner === 'A') === kaahEstA ? 'K' : 'B');
+    if (issue === 'K') st.W++; else if (issue === 'D') st.D++; else st.L++;
+    st.n++; st.log.unshift({ k: issue, why: r.why || '', plies: r.plies || 0 }); if (st.log.length > 10) st.log.length = 10;
+    const llr = _labLLR(st.W, st.D, st.L, LAB_CFG.elo0, LAB_CFG.elo1), B = _testKaahBornes();
+    /* Verdict seulement apres TEST_KAAH_MIN parties et en fin de cycle de 4 (chaque version a alors joue
+       autant de chaque couleur et de chaque role). Sans ce minimum, une serie de victoires au debut
+       annule la variance mesuree et le LLR s'emballe : verdict des la 2e partie (trouve par les tests). */
+    const bilan = st.n >= TEST_KAAH_MIN && st.n % 4 === 0;
+    if (bilan && llr >= B.haut) st.fini = 'plus fort'; else if (bilan && llr <= B.bas) st.fini = 'pas plus fort'; else if (st.n >= TEST_KAAH_MAX) st.fini = 'indécis';
+    _testKaahSauver(st); if (st.fini) _testKaahEnCours = false;
+    renderTestKaah();
+    if (_testKaahEnCours) _testKaahPlanifier(_testKaahPartie, 200);
+  };
+  _testKaahChien = _testKaahPlanifier(function(){ try { _testKaahWorker.terminate(); } catch (e) {} _testKaahWorker = null; if (_testKaahEnCours) _testKaahPlanifier(_testKaahPartie, 500); }, 180000);
+  _testKaahWorker.postMessage({ duelGame: true, wA: kaahEstA ? P.kaah : P.base, wB: kaahEstA ? P.base : P.kaah, colorA: couleurA,
+    seed: 10007 * Math.floor(s.n / 4) + 13, msPerMove: LAB_CFG.confMs, maxPlies: LAB_CFG.confPlies, drawWin: LAB_CFG.confDraw, id: Date.now() });
+}
+function renderTestKaah(msg) {
+  const hote = document.getElementById('test-kaah-host'); if (!hote) return;
+  const s = _testKaahEtat(), B = _testKaahBornes(), llr = _labLLR(s.W, s.D, s.L, LAB_CFG.elo0, LAB_CFG.elo1);
+  const verdict = s.fini === 'plus fort' ? '✅ Verdict : avec les critères de KAAH, l\u2019IA est plus forte.'
+    : s.fini === 'pas plus fort' ? '✗ Verdict : les critères de KAAH ne rendent pas l\u2019IA plus forte (dans ce régime de test).'
+    : s.fini === 'indécis' ? '❓ Indécis après ' + TEST_KAAH_MAX + ' parties : l\u2019écart, s\u2019il existe, est faible.' : '';
+  hote.innerHTML = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;margin-top:18px">'
+    + '<div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Test : les critères de KAAH</div>'
+    + '<div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px">« IA actuelle + critères de KAAH » (sumito, menace, fourchette, piège, compacité, cases, gain et perte selon le score) contre « IA actuelle seule ». '
+    + 'Parties par 4 sur la même ouverture, couleurs et rôles alternés ; ' + LAB_CFG.confMs + ' ms par coup, ' + LAB_CFG.confPlies + ' coups au plus — un régime de recherche courte : le verdict porte sur lui. '
+    + 'Rien n\u2019est adopté automatiquement.</div>'
+    + '<div style="font-size:14px;color:var(--text)">' + s.n + ' parties · avec KAAH : <b>' + s.W + '</b> victoires, ' + s.D + ' nulles, ' + s.L + ' défaites'
+    + (s.n ? ' · ' + Math.round(100 * (s.W + s.D / 2) / s.n) + ' %' : '') + (s.n >= 4 ? ' · ' + _labEloStr(s.W, s.D, s.L) : '') + '</div>'
+    + '<div style="font-size:11px;color:var(--muted);margin:4px 0">LLR ' + llr.toFixed(2) + ' (verdict à ≥ ' + B.haut.toFixed(2) + ' ou ≤ ' + B.bas.toFixed(2) + ', après ' + TEST_KAAH_MIN + ' parties au moins)</div>'
+    + (verdict ? '<div style="font-size:13px;color:var(--gold);margin:8px 0">' + verdict + '</div>' : '')
+    + (msg ? '<div style="font-size:12px;color:var(--muted);margin:6px 0">' + msg + '</div>' : '')
+    + '<button class="ctrl-btn" onclick="lancerTestKaah()" style="width:auto;padding:6px 14px;margin-top:6px">'
+    + (_testKaahEnCours ? '⏸ Pause' : (s.fini ? '↻ Recommencer le test' : (s.n ? '▶ Reprendre' : '▶ Lancer le test'))) + '</button>'
+    + (_testKaahEnCours ? ' <span style="font-size:11px;color:var(--muted)">partie ' + (s.n + 1) + ' en cours…</span>' : '')
+    + '</div>';
+}
 function renderLab(){
   const el=document.getElementById('lab-body'); if(!el) return;
   const st=labLoad();
@@ -22504,6 +22704,7 @@ function renderLab(){
   el.innerHTML=h;
   const bs=document.getElementById('lab-start'); if(bs) bs.textContent=_labRunning?'\u23f8 Pause':'\u25b6 D\u00e9marrer';
   if(document.getElementById('lab-adv') && document.getElementById('lab-adv').style.display!=='none') renderLabAdvanced();
+  if (typeof renderTestKaah === 'function') renderTestKaah();
 }
 // Reprise automatique si le Labo tournait a la derniere session
 try{ if(localStorage.getItem('abaLabAutoRun')==='1'){ setTimeout(function(){ if(!_labRunning){ startLab(); if(typeof showToast==='function') showToast('\ud83e\uddea Labo repris en arri\u00e8re-plan'); } }, 4000); } }catch(e){}
@@ -22992,7 +23193,7 @@ function aiMove() {
   const pooledStarted = (typeof requestAIMovePooled === 'function') && requestAIMovePooled(pooledParams, function(chosen, metrics) {
     showAIThinking(false);
     if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
-    if (metrics) { updateAIMetrics(metrics); _releverReflexion(metrics, config); _noterMesuresCoupIA(metrics, ai); }
+    if (metrics) { updateAIMetrics(metrics); _releverReflexion(metrics, config); _noterMesuresCoupIA(metrics, ai, config); }
     if (GameOver.get()) return;
     if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
     executeAIMove(chosen);
@@ -23010,7 +23211,7 @@ function aiMove() {
       showAIThinking(false);
       if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
       const chosen = e.data && e.data.move;
-      if (e.data) { updateAIMetrics(e.data.metrics); _releverReflexion(e.data.metrics, config); _noterMesuresCoupIA(e.data.metrics, ai); }
+      if (e.data) { updateAIMetrics(e.data.metrics); _releverReflexion(e.data.metrics, config); _noterMesuresCoupIA(e.data.metrics, ai, config); }
       if (GameOver.get()) return;
       if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
       executeAIMove(chosen);
@@ -23884,6 +24085,8 @@ function addMoveToHistory(move, color, moveInfo) {
   // evaluation de l'IA : rattachee a SON coup ; tout autre coup l'abandonne (jamais sur le mauvais coup)
   if (_mesuresCoupIA && _mesuresCoupIA.c === color) {
     const m = _mesuresCoupIA; boardSnapshots[boardSnapshots.length - 1].ia = { e: m.e, p: m.p, t: m.t, ph: m.ph };
+    if (m.detail) { boardSnapshots[boardSnapshots.length - 1].ia.detail = m.detail;   // en memoire seulement
+      if (typeof _majPanneauReflexion === 'function') setTimeout(_majPanneauReflexion, 0); }
   }
   _mesuresCoupIA = null;
   if (_bookNode) bookDescend(moveInfo);   // suit l'ouverture jouée
@@ -23935,11 +24138,157 @@ const MOVE_LIST_HEADER = '<div class="move-head"><span></span><span></span><span
      avec la partie dans l'historique et retrouvee en la revoyant.
    La sequence prevue de KAAH n'existe pas ici : le moteur ne la renvoie pas. */
 let _mesuresCoupIA = null;   // mesures du dernier calcul de l'IA, en attente du coup qu'elle joue
-function _noterMesuresCoupIA(m, couleur) {
+function _noterMesuresCoupIA(m, couleur, config) {
   if (!m || typeof m.bestScore !== 'number' || !isFinite(m.bestScore)) return;
   _mesuresCoupIA = { c: couleur, e: Math.round(m.bestScore), p: m.depth || 0, t: m.time || 0,
-                     ph: (typeof _phaseJeu === 'function') ? _phaseJeu(board, MoveCount.get()) : '' };
+                     ph: (typeof _phaseJeu === 'function') ? _phaseJeu(board, MoveCount.get()) : '',
+                     detail: _detailReflexion(m, couleur, config) };
 }
+/* Tableau « Reflexion IA », comme celui de KAAH : pour chaque profondeur TERMINEE par
+   tous les fils de calcul, les 10 meilleurs premiers coups (scores exacts : ce
+   moteur cherche chaque premier coup avec une fenetre complete, rien n'est elague
+   a la racine), leurs positions et temps, la suite prevue et l'ecart de chaque
+   critere d'evaluation entre la position et le bout de cette suite. Garde en
+   memoire pendant la partie (pas dans l'historique : trop volumineux). */
+function _detailReflexion(m, couleur, config) {
+  const fils = (m.parFil && m.parFil.length) ? m.parFil : [m];
+  if (!fils.every(function(f){ return f && f.rootsByDepth && f.depthInfo; })) return null;
+  const prof = [];
+  for (let d = 1; d <= 64; d++) {
+    if (!fils.every(function(f){ return Array.isArray(f.rootsByDepth[d]) && f.rootsByDepth[d].length && f.depthInfo[d]; })) continue;
+    let tous = []; fils.forEach(function(f){ tous = tous.concat(f.rootsByDepth[d]); });
+    tous.sort(function(a, b){ return b.score - a.score; });
+    prof.push({ d: d, total: tous.length,
+      noeuds: fils.reduce(function(a, f){ return a + f.depthInfo[d].nodes; }, 0),
+      ms: Math.max.apply(null, fils.map(function(f){ return f.depthInfo[d].ms; })),
+      fin: Math.max.apply(null, fils.map(function(f){ return f.depthInfo[d].fin; })),
+      lignes: tous.slice(0, 10).map(function(r){ return { cells: r.cells, dir: r.dir, s: r.score, k: r.k || 0, ms: r.ms || 0, t: r.t || 0, pv: r.pv || [], terms: r.terms || null }; }) });
+  }
+  if (!prof.length) return null;
+  return { racine: { board: JSON.parse(JSON.stringify(board)), cB: CapturedByBlack.get(), cW: CapturedByWhite.get() },
+           couleur: couleur, niveau: _niveauIA() || null, budget: config ? config.time : 0, date: Date.now(),
+           style: (typeof _aiMode !== 'undefined' && typeof AI_WEIGHT_PRESETS !== 'undefined' && AI_WEIGHT_PRESETS[_aiMode]) ? AI_WEIGHT_PRESETS[_aiMode].label : '',
+           pos: fils[0].posTerms || null, poids: fils[0].poids || null, prof: prof.reverse() };
+}
+/* Notations du tableau, calculees a l'ouverture seulement (une fois par coup) : chaque
+   suite est rejouee sur une COPIE de la position, globales sauvegardees puis restaurees. */
+function _notationsReflexion(det) {
+  if (det._notes) return;
+  const sauve = { b: board, cb: CapturedByBlack.get(), cw: CapturedByWhite.get(), go: GameOver.get() };
+  const trouver = function(x, col){ const k = moveKey(x); return getAllMovesForColor(col).find(function(m){ return moveKey(m) === k; }) || null; };
+  const jouer = function(m, col){ const info = validateMove(m.cells, m.dir, col); if (!info || !info.valid) return false; applyMove({ cells: m.cells, dir: m.dir, info: info }, col); return true; };
+  try {
+    det.prof.forEach(function(p){ p.lignes.forEach(function(l){
+      board = JSON.parse(JSON.stringify(det.racine.board)); CapturedByBlack.set(det.racine.cB); CapturedByWhite.set(det.racine.cW); GameOver.set(false);
+      const etapes = [{ board: JSON.parse(JSON.stringify(board)) }];
+      const m0 = trouver(l, det.couleur); l.n = m0 ? ((abaproOfficialLabels(m0) || [])[0] || '?') : '?'; l.suite = [];
+      if (m0 && jouer(m0, det.couleur)) {
+        etapes.push({ board: JSON.parse(JSON.stringify(board)), cells: m0.cells, dir: m0.dir });
+        for (const s of l.pv) {
+          const mv = trouver(s, s.c); if (!mv) break;
+          l.suite.push((abaproOfficialLabels(mv) || [])[0] || '?');
+          if (!jouer(mv, s.c)) break;
+          etapes.push({ board: JSON.parse(JSON.stringify(board)), cells: mv.cells, dir: mv.dir });
+        }
+      }
+      l.etapes = etapes;
+    }); });
+  } finally { board = sauve.b; CapturedByBlack.set(sauve.cb); CapturedByWhite.set(sauve.cw); GameOver.set(sauve.go); }
+  det._notes = true;
+}
+/* Colonnes du tableau : celles de KAAH dans son ordre, puis celles propres a Abalassembly.
+   Seuls les criteres que le style de la partie UTILISE (poids non nul) sont montres :
+   jamais une colonne de zeros qui laisserait croire qu'un critere compte. */
+const _CRITERES_IA = [['gain', 'Gain', null, 2000], ['scGain', 'sc. Gain', 'scGain'], ['perte', 'Perte', null, 2000], ['scPerte', 'sc. Perte', 'scPerte'],
+  ['centre', 'Centre', 'center'], ['cases', 'Cases', 'cases'], ['coh', 'Cohés.', 'cohesion'], ['compac', 'Compac.', 'compac'],
+  ['bordM', 'Bord m.', 'edge'], ['bordA', 'Bord a.', 'edge'], ['sumito', 'Sumito', 'sumito'], ['menace', 'Menace', 'menace'],
+  ['fourch', 'Fourch.', 'fourch'], ['piege', 'Piège', 'piege'],
+  ['mob', 'Mobilité', 'mob'], ['iso', 'Isolées', 'iso'], ['dng', 'En danger', 'dng'], ['chaine', 'Chaînes', 'chain'], ['fort', 'Forteresses', 'fortress']];
+function _criteresUtilises(poids) { return _CRITERES_IA.filter(function(k){ return k[3] || (poids && poids[k[2]]); }); }
+function _evalReflexionTexte(s) { return Math.abs(s) >= 90000 ? (s > 0 ? 'Gagne' : 'Perd') : ((s > 0 ? '+' : '') + Math.round(s)); }
+function _msTexte(ms) { return ms >= 1000 ? (ms / 1000).toFixed(1).replace('.', ',') + ' s' : Math.round(ms) + ' ms'; }
+function _tableReflexionHTML(idx, hote) {
+  const snap = (typeof boardSnapshots !== 'undefined') ? boardSnapshots[idx] : null;
+  const det = snap && snap.ia && snap.ia.detail; if (!det) return null;
+  _notationsReflexion(det);
+  const CR = _criteresUtilises(det.poids);
+  const v = function(x){ if (!x || Math.abs(x) < 0.05) return '·'; const r = Math.round(x * 10) / 10; return (r > 0 ? '+' : '') + String(r).replace('.', ','); };
+  const th = 'style="padding:3px 6px;text-align:right;white-space:nowrap;font-weight:400;color:var(--muted)"', td = 'style="padding:3px 6px;text-align:right;white-space:nowrap"';
+  let h = '<table style="border-collapse:collapse;font-size:12px;font-family:\'DM Mono\',monospace"><tr><th ' + th + '>#</th><th ' + th + '>1er coup</th><th ' + th + '>Éval.</th><th ' + th + '>Temps'
+    + (det.budget ? '<br>(' + (det.budget >= 3600000 ? '∞' : _msTexte(det.budget)) + ')' : '') + '</th><th ' + th + '>Sous lui</th><th ' + th + '>Positions</th>'
+    + CR.map(function(k){ const w = k[3] || det.poids[k[2]]; return '<th ' + th + '>' + k[1] + '<br>(' + String(w).replace('.', ',') + ')</th>'; }).join('') + '<th ' + th + ' style="text-align:left">Suite prévue</th></tr>';
+  if (det.pos) h += '<tr><td ' + td + '></td><td ' + td + ' colspan="5" style="text-align:left;color:var(--muted);font-style:italic">Position</td>' + CR.map(function(k){ return '<td ' + td + '>' + v(det.pos[k[0]]) + '</td>'; }).join('') + '<td></td></tr>';
+  det.prof.forEach(function(p, ip){
+    h += '<tr><td colspan="' + (7 + CR.length) + '" style="padding:10px 6px 4px;color:var(--gold);font-family:\'DM Sans\',sans-serif">Prof. ' + p.d + ' : ' + p.lignes.length + ' premiers coups sur ' + p.total + ', '
+      + p.noeuds.toLocaleString('fr-FR') + ' positions, ' + _msTexte(p.ms) + ' (finie à ' + _msTexte(p.fin) + ')</td></tr>';
+    p.lignes.forEach(function(l, i){
+      h += '<tr onclick="_plateauReflexion(' + idx + ',' + ip + ',' + i + ',\'' + hote + '\')" style="cursor:pointer;border-top:1px solid var(--border)"><td ' + td + '>' + (i + 1) + '</td><td ' + td + ' style="text-align:left;color:' + (i === 0 ? 'var(--gold)' : 'var(--white)') + '">' + l.n + '</td><td ' + td + '>'
+        + _evalReflexionTexte(l.s) + (l.terms && Math.abs(l.s) < 90000 && Math.abs(Object.keys(l.terms).reduce(function(a, k){ return a + l.terms[k]; }, 0) - l.s) >= 500 ? '*' : '') + '</td><td ' + td + '>' + (l.t ? _msTexte(l.t) : '') + '</td><td ' + td + '>' + _msTexte(l.ms) + '</td><td ' + td + '>'
+        + l.k.toLocaleString('fr-FR') + ' (' + (p.noeuds ? Math.round(100 * l.k / p.noeuds) : 0) + ' %)</td>'
+        + CR.map(function(k){ return '<td ' + td + '>' + (l.terms && det.pos ? v(l.terms[k[0]] - det.pos[k[0]]) : '') + '</td>'; }).join('')
+        + '<td ' + td + ' style="text-align:left">' + l.suite.join(' ') + '</td></tr>';
+    });
+  });
+  h += '</table>';
+  const entete = '<div style="font-size:12px;color:var(--muted);margin:4px 0 2px">' + (det.niveau ? 'Niveau ' + det.niveau + ' · ' : '') + (det.style ? 'style ' + det.style + ' · ' : '')
+    + new Date(det.date).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + '</div>'
+    + '<div style="font-size:11px;color:var(--muted);margin-bottom:10px">Temps : moment où le coup a été fini ; Sous lui : temps passé sur ce coup. Scores exacts : aucun élagage à la racine. Critères : écart entre la position et le bout de la suite prévue, du point de vue de l\u2019IA ; seuls ceux qu\u2019utilise ce style sont montrés. * : le score tient compte de prises au-delà de la suite. Touche un coup : sa suite sur un plateau.</div>';
+  return { det: det, html: entete + '<div id="' + hote + '"></div><div style="overflow-x:auto">' + h + '</div>' };
+}
+function ouvrirReflexionIA(idx) {
+  const T = _tableReflexionHTML(idx, 'reflexion-ia-plateau'); if (!T) return null;
+  let m = document.getElementById('reflexion-ia-modal'); if (m) m.remove();
+  m = document.createElement('div'); m.id = 'reflexion-ia-modal';
+  m.style.cssText = 'position:fixed;inset:0;z-index:3600;background:rgba(13,15,14,0.94);display:flex;align-items:center;justify-content:center;padding:12px';
+  m.innerHTML = '<div style="max-width:1100px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:18px;max-height:92vh;overflow:auto">'
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin:0">Réflexion de l\u2019IA</h3>'
+    + '<button class="ctrl-btn" onclick="document.getElementById(\'reflexion-ia-modal\').remove()" style="width:auto;padding:4px 12px">Fermer</button></div>'
+    + T.html + '</div>';
+  document.body.appendChild(m);
+  return m;
+}
+/* Petit plateau : la position au bout de la suite, chaque bille deplacee marquee du
+   numero du demi-coup (1 = le coup de l'IA, 2 = la reponse, ...). */
+function _plateauReflexion(idx, ip, i, idHote) {
+  const det = boardSnapshots[idx].ia.detail, l = det.prof[ip].lignes[i], hote = document.getElementById(idHote || 'reflexion-ia-plateau');
+  if (!hote || !l.etapes) return;
+  const fin = l.etapes[l.etapes.length - 1].board, num = {};
+  l.etapes.slice(1).forEach(function(e, k){ e.cells.forEach(function(cel){ const a = rcToAxial(cel.r, cel.c), rc = axialToRc(a.q + e.dir.q, a.r + e.dir.r); if (rc) num[rc.r + ',' + rc.c] = k + 1; }); });
+  let svg = '<svg viewBox="0 0 640 640" style="width:min(300px,80vw);height:auto;display:block;margin:0 auto 6px">';
+  for (let r = 0; r < 9; r++) for (let cc = 0; cc < ROWS[r]; cc++) {
+    const p = hexCoord(r, cc), v = fin[r + ',' + cc], k = r + ',' + cc;
+    svg += '<circle cx="' + p.x + '" cy="' + p.y + '" r="26" fill="' + (v === 'black' ? '#1b1b1b' : v === 'white' ? '#ece6d6' : 'rgba(255,255,255,0.06)') + '" stroke="' + (num[k] ? '#c8a84b' : 'rgba(255,255,255,0.12)') + '" stroke-width="' + (num[k] ? 4 : 1) + '"/>';
+    if (num[k]) svg += '<text x="' + p.x + '" y="' + (p.y + 9) + '" text-anchor="middle" font-size="26" font-weight="700" fill="' + (v === 'white' ? '#1b1b1b' : '#c8a84b') + '">' + num[k] + '</text>';
+  }
+  svg += '</svg>';
+  hote.innerHTML = svg + '<div style="text-align:center;font-size:12px;margin-bottom:10px"><b>' + l.n + '</b>' + (l.suite.length ? ' · suite : ' + l.suite.map(function(x, k){ return '<span style="color:var(--muted)">' + (k + 2) + '.</span> ' + x; }).join(' ') : '') + ' · ' + _evalReflexionTexte(l.s) + '</div>';
+  return hote;
+}
+
+/* Panneau « Reflexion de l'IA » dans la partie (comme celui de KAAH) : le tableau du
+   DERNIER coup de l'IA, mis a jour apres chacun ; ouvert ou ferme, au choix, et garde. */
+function _dernierCoupIAAvecDetail() {
+  if (typeof boardSnapshots === 'undefined') return -1;
+  for (let i = boardSnapshots.length - 1; i >= 0; i--) if (boardSnapshots[i] && boardSnapshots[i].ia && boardSnapshots[i].ia.detail) return i;
+  return -1;
+}
+function _majPanneauReflexion() {
+  const corps = document.getElementById('reflexion-panneau-corps'), btn = document.getElementById('reflexion-panneau-btn');
+  let ouvert = false; try { ouvert = localStorage.getItem('abaReflexionPanneau') === '1'; } catch (e) {}
+  if (btn) btn.textContent = (ouvert ? '▾' : '▸') + ' Réflexion de l\u2019IA';
+  if (!corps) return;
+  corps.style.display = ouvert ? 'block' : 'none';
+  if (!ouvert) return;
+  const idx = _dernierCoupIAAvecDetail();
+  if (idx < 0) { corps.innerHTML = '<div style="font-size:12px;color:var(--muted)">Le tableau apparaîtra après le prochain coup calculé par l\u2019IA.</div>'; return; }
+  const T = _tableReflexionHTML(idx, 'reflexion-panneau-plateau');
+  corps.innerHTML = '<div style="font-size:12px;color:var(--white);margin-bottom:2px">Coup ' + (idx + 1) + ' de l\u2019IA</div>' + T.html;
+}
+function basculerPanneauReflexion() {
+  try { localStorage.setItem('abaReflexionPanneau', localStorage.getItem('abaReflexionPanneau') === '1' ? '0' : '1'); } catch (e) {}
+  _majPanneauReflexion();
+}
+
 function _formatEvalIA(ia) {
   if (!ia) return '';
   const ph = { ouverture: 'Ouv.', milieu: 'Mil.', finale: 'Fin' }[ia.ph] || '';
@@ -24065,7 +24414,9 @@ function appendMoveRow(list, moveInfo, fallbackLabel, color, plyNum) {
     + '<span class="move-aba">' + aba + ejx + '</span>'
     + '<span class="move-nacre">' + nac + ejx + '</span>';
   const _snapEval = (typeof boardSnapshots !== 'undefined') ? boardSnapshots[plyNum - 1] : null;
-  if (_snapEval && _snapEval.ia) row.innerHTML += '<span class="move-eval" title="Évaluation de l\u2019IA : phase, score de son point de vue, profondeur atteinte, temps de réflexion" style="grid-column:3 / 5;font-size:11px;color:var(--muted);margin-top:-4px">' + _formatEvalIA(_snapEval.ia) + '</span>';
+  if (_snapEval && _snapEval.ia) row.innerHTML += '<span class="move-eval" title="' + (_snapEval.ia.detail ? 'Voir la réflexion de l\u2019IA pour ce coup' : 'Évaluation de l\u2019IA : phase, score de son point de vue, profondeur atteinte, temps de réflexion') + '"'
+    + (_snapEval.ia.detail ? ' onclick="event.stopPropagation();ouvrirReflexionIA(' + (plyNum - 1) + ')"' : '')
+    + ' style="grid-column:3 / 5;font-size:11px;color:var(--muted);margin-top:-4px' + (_snapEval.ia.detail ? ';text-decoration:underline dotted;cursor:pointer' : '') + '">' + _formatEvalIA(_snapEval.ia) + (_snapEval.ia.detail ? ' ›' : '') + '</span>';
   list.appendChild(row);
 }
 

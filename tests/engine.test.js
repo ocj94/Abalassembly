@@ -1961,3 +1961,193 @@ test('intro : l embleme disparait avant le titre, le titre avant le sous-titre, 
   assert.match(src, /\.intro-emblem \{ display: none; \}/, 'mouvement reduit : pas d animation de l embleme');
 });
 
+/* ─── 43. Tableau « Reflexion IA » (comme KAAH) et Academie ─── */
+function vm_eval(w, code) { require('vm').runInContext(code, w); }
+// le VRAI code du fil de calcul, execute a part comme dans le navigateur
+function _filDeCalcul(avecContexte) {
+  const vm = require('vm'); let recu = null;
+  const w = { console, Date, Math, JSON, Map, Set, Object, Array, Number, String, Infinity, isFinite, parseInt, Uint8Array, Int8Array, Float32Array, Int32Array, Uint32Array, DataView, ArrayBuffer,
+              navigator: { deviceMemory: 4 }, atob: s => Buffer.from(s, 'base64').toString('binary'), btoa: s => Buffer.from(s, 'binary').toString('base64') };
+  w.self = w; vm.createContext(w); vm.runInContext(ctx.AI_WORKER_CODE, w);
+  w.self.postMessage = m => { recu = m; };
+  const f = params => { recu = null; w.self.onmessage({ data: params }); return recu; };
+  return avecContexte ? { chercher: f, w } : f;
+}
+function _positionKaah05(ply) {
+  ['drawBoard','updateStatus','showToast','rebuildMoveListLabels','loadSnapshot','closeMigsBrowser','resetGutterPositions','showPage'].forEach(n => { ctx[n] = () => {}; });
+  ctx.loadRefGame(ctx.PARTIES_REFERENCE.findIndex(g => /KAAH/.test(g[5]) && g[0] === '2026-10-05'));
+  return ctx.boardSnapshots[ply - 1];
+}
+const _POIDS_DEFAUT = { center: 6, cohesion: 4, edge: 8, mob: 2, iso: 18, dng: 14, chain: 10, fortress: 20 };
+
+test('reflexion IA (moteur) : chiffres coherents -- positions additionnees, criteres = score, suites legales', () => {
+  const s = _positionKaah05(40), fil = _filDeCalcul(true), chercher = fil.chercher, w = fil.w;
+  const r = chercher({ board: s.board, capturedByWhite: s.capturedByWhite, capturedByBlack: s.capturedByBlack, color: 'black', depth: 2, time: 60000, weights: _POIDS_DEFAUT, hist: [] });
+  const m = r.metrics, somme = o => Object.values(o).reduce((a, b) => a + b, 0);
+  // les criteres affiches = EXACTEMENT l'evaluation du moteur, sur des positions reelles
+  [10, 40, 66].forEach(ply => { const p = _positionKaah05(ply); w.board = JSON.parse(JSON.stringify(p.board));
+    w.capturedByWhite = p.capturedByWhite; w.capturedByBlack = p.capturedByBlack;
+    vm_eval(w, 'board=' + JSON.stringify(p.board) + ';capturedByWhite=' + p.capturedByWhite + ';capturedByBlack=' + p.capturedByBlack + ';');
+    ['black', 'white'].forEach(col => assert.strictEqual(somme(w.evalDetail(col)), w.evaluateBoard(col), 'demi-coup ' + ply + ', ' + col)); });
+  assert.strictEqual(m.depth, 2);
+  assert.deepStrictEqual(Object.keys(m.depthInfo).sort(), ['1', '2']);
+  for (const d of [1, 2]) {
+    const racines = m.rootsByDepth[d];
+    assert.strictEqual(racines.reduce((a, x) => a + x.k, 0), m.depthInfo[d].nodes, 'prof. ' + d + ' : positions additionnees');
+    const top = racines.slice().sort((a, b) => b.score - a.score).slice(0, 10);
+    top.forEach(x => {
+      assert.ok(x.terms && Array.isArray(x.pv), 'suite et criteres pour les 10 meilleurs');
+      assert.strictEqual(x.pv.length, d - 1, 'suite complete');
+    });
+  }
+  assert.ok(m.posTerms && somme(m.posTerms) !== 0);
+  assert.strictEqual(JSON.stringify(m.poids), JSON.stringify(_POIDS_DEFAUT));
+});
+
+test('reflexion IA (page) : fusion de plusieurs fils de calcul, profondeurs communes, la plus profonde en tete', () => {
+  ctx.initBoardState(); ctx.aiDifficulty = '6';
+  const fil = (scores, extra) => ({ rootsByDepth: { 1: scores.map((s, i) => ({ cells: [{ r: 0, c: i }], dir: { q: 1, r: 0 }, score: s, k: 10, ms: 1 })), 2: scores.map((s, i) => ({ cells: [{ r: 0, c: i }], dir: { q: 1, r: 0 }, score: s - 5, k: 100, ms: 2 })), ...(extra || {}) },
+    depthInfo: { 1: { nodes: 10 * scores.length, ms: 3, fin: 3 }, 2: { nodes: 100 * scores.length, ms: 40, fin: 45 }, 3: { nodes: 1, ms: 1, fin: 99 } }, posTerms: { mat: 0 }, poids: _POIDS_DEFAUT });
+  const a = fil([50, 20, 10, 5, 1, 0]), b = fil([60, 30, -4, -9, -20, -30], { 3: [{ cells: [], dir: {}, score: 1, k: 1, ms: 1 }] });
+  const det = ctx._detailReflexion({ parFil: [a, b] }, 'black', { time: 60000 });
+  assert.strictEqual(JSON.stringify(det.prof.map(p => p.d)), '[2,1]', 'prof. 3 non terminee par tous les fils : ecartee');
+  const p2 = det.prof[0];
+  assert.strictEqual(p2.total, 12); assert.strictEqual(p2.lignes.length, 10); assert.strictEqual(p2.noeuds, 1200); assert.strictEqual(p2.fin, 45);
+  assert.strictEqual(JSON.stringify(p2.lignes.slice(0, 3).map(l => l.s)), '[55,45,25]', 'classes ensemble, tous fils confondus');
+  assert.strictEqual(det.budget, 60000); assert.strictEqual(det.niveau, 6);
+});
+
+test('reflexion IA (fenetre) : notations, suite prevue, criteres, petit plateau -- et partie intacte', () => {
+  const s = _positionKaah05(40), chercher = _filDeCalcul();
+  const r = chercher({ board: s.board, capturedByWhite: s.capturedByWhite, capturedByBlack: s.capturedByBlack, color: 'black', depth: 2, time: 60000, weights: _POIDS_DEFAUT, hist: [] });
+  ctx.board = JSON.parse(JSON.stringify(s.board)); ctx.CapturedByBlack.set(s.capturedByBlack); ctx.CapturedByWhite.set(s.capturedByWhite);
+  const det = ctx._detailReflexion(r.metrics, 'black', { time: 30000 });
+  const avant = JSON.stringify(ctx.board);
+  ctx.boardSnapshots = [{ ia: { e: 1, p: 2, t: 3, ph: 'milieu', detail: det } }];
+  const ajoutes = [], els = {}; const sB = ctx.document.body, sC = ctx.document.createElement, sG = ctx.document.getElementById;
+  ctx.document.createElement = () => ({ style: {}, dataset: {}, remove(){} });
+  ctx.document.body = { appendChild: el => { ajoutes.push(el); } };
+  ctx.document.getElementById = id => id === 'reflexion-ia-plateau' ? (els[id] = els[id] || { innerHTML: '' }) : null;
+  try {
+    ctx.ouvrirReflexionIA(0);
+    assert.strictEqual(JSON.stringify(ctx.board), avant, 'la position de la partie n est pas touchee');
+    const h = ajoutes[0].innerHTML;
+    assert.match(h, /Réflexion de l\u2019IA/); assert.match(h, /Prof\. 2 : 10 premiers coups sur \d+/); assert.match(h, /Prof\. 1 :/);
+    assert.ok(h.indexOf('Prof. 2') < h.indexOf('Prof. 1'), 'la plus profonde en tete');
+    assert.match(h, /Centre<br>\(6\)/); assert.match(h, /Temps<br>\(30,0 s\)/); assert.match(h, /Sous lui/);
+    assert.match(h, /prises au-delà de la suite/);
+    det.prof.forEach(p => p.lignes.forEach(l => { assert.notStrictEqual(l.n, '?'); assert.strictEqual(l.suite.length, p.d - 1, 'suite rejouee en entier : legale'); }));
+    ctx._plateauReflexion(0, 0, 0);
+    assert.match(els['reflexion-ia-plateau'].innerHTML, /<svg[\s\S]*>1<\/text>[\s\S]*>2<\/text>/, 'le coup de l IA (1) et la reponse (2) sur le plateau');
+  } finally { ctx.document.body = sB; ctx.document.createElement = sC; ctx.document.getElementById = sG; }
+});
+
+test('academie : plus aucun code JavaScript affiche dans la page (10 Commandements)', () => {
+  const src = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
+  const scripts = [...src.matchAll(/<script\b[^>]*>[\s\S]*?<\/script>/g)].map(m => [m.index, m.index + m[0].length]);
+  const commentaires = [...src.matchAll(/<!--[\s\S]*?-->/g)].map(m => [m.index, m.index + m[0].length]);
+  const dedans = (i, z) => z.some(([a, b]) => a <= i && i < b);
+  const egares = [...src.matchAll(/\$\{/g)].map(m => m.index).filter(i => !dedans(i, scripts) && !dedans(i, commentaires));
+  assert.strictEqual(egares.length, 0);
+  ['Vise le centre', 'Joue et rejoue'].forEach(t => assert.match(src, new RegExp('min-width:32px">[IVX]+</div><div style="font-size:14px;color:var\\(--text\\);line-height:1.6">' + t + '<')));
+});
+
+/* ─── 44. Criteres de KAAH dans le moteur, colonnes, panneau, test au Labo ─── */
+function _filKaah() {
+  const vm = require('vm');
+  const w = { console, Date, Math, JSON, Map, Set, Object, Array, Number, String, Infinity, isFinite, parseInt, Uint8Array, Int8Array, Float32Array, Int32Array, Uint32Array, DataView, ArrayBuffer,
+              navigator: { deviceMemory: 4 }, atob: s => Buffer.from(s, 'base64').toString('binary'), btoa: s => Buffer.from(s, 'binary').toString('base64') };
+  w.self = w; vm.createContext(w); vm.runInContext(ctx.AI_WORKER_CODE, w);
+  const n2k = {}; for (let r = 0; r < 9; r++) for (let c = 0; c < ctx.ROWS[r]; c++) n2k[String(ctx.coordToABAPRO(r, c))] = r + ',' + c;
+  const ev = code => vm.runInContext(code, w);
+  const poser = (noirs, blancs, cb, cw) => { const b = {}; noirs.forEach(n => b[n2k[n]] = 'black'); blancs.forEach(n => b[n2k[n]] = 'white');
+    ev('board=' + JSON.stringify(b) + ';capturedByBlack=' + (cb || 0) + ';capturedByWhite=' + (cw || 0) + ';'); };
+  return { w, ev, poser };
+}
+const _BASE = '{center:6,cohesion:4,edge:8,mob:2,iso:18,dng:14,chain:10,fortress:20}';
+
+test('criteres KAAH : avec les poids habituels, l evaluation est EXACTEMENT celle de l ancien moteur', () => {
+  // valeurs calculees par le moteur AVANT l'ajout des criteres, sur la partie KAAH du 05/10
+  const ref = { 10: [140, -140], 40: [1890, -1890], 66: [-6064, 6064] };
+  const F = _filKaah();
+  for (const ply of [10, 40, 66]) { const s = _positionKaah05(ply);
+    F.ev('board=' + JSON.stringify(s.board) + ';capturedByWhite=' + s.capturedByWhite + ';capturedByBlack=' + s.capturedByBlack + ';EVAL_W=' + _BASE + ';');
+    assert.strictEqual(F.w.evaluateBoard('black'), ref[ply][0], 'demi-coup ' + ply);
+    assert.strictEqual(F.w.evaluateBoard('white'), ref[ply][1], 'demi-coup ' + ply);
+    assert.strictEqual(F.ev('_kaahActif()'), false, 'criteres eteints : rien n est calcule'); }
+});
+
+test('criteres KAAH : sumito, menace, fourchette, piege (exemple de Saab), compacite -- selon leurs definitions', () => {
+  const F = _filKaah(), S = c => JSON.parse(JSON.stringify(F.ev('_sumitosKaah("' + c + '")')));
+  F.poser(['c5'], ['c3', 'c4']);              assert.deepStrictEqual(S('white'), { n: 1, ej: 0 }, 'poussee 2 contre 1');
+  F.poser(['a5'], ['a3', 'a4']);              assert.deepStrictEqual(S('white'), { n: 1, ej: 1 }, 'poussee qui ejecte');
+  F.poser(['c5', 'e5'], ['c3', 'c4', 'e3', 'e4']); assert.deepStrictEqual(S('white'), { n: 2, ej: 0 }, 'deux poussees : fourchette');
+  F.poser(['c5', 'c6'], ['c3', 'c4']);        assert.deepStrictEqual(S('white'), { n: 0, ej: 0 }, '2 contre 2 interdit');
+  F.poser(['c5'], ['c3', 'c4', 'c6']);        assert.deepStrictEqual(S('white'), { n: 0, ej: 0 }, 'cible calee par une bille derriere');
+  F.poser(['a3'], ['b3', 'b4', 'c4']);        assert.strictEqual(F.ev('_bloqueesKaah("black")'), 1, 'a3_b34c4 : a3 ne peut plus bouger (Saab)');
+  assert.strictEqual(F.ev('_bloqueesKaah("white")'), 0);
+  F.poser(['a3'], []);                         assert.strictEqual(F.ev('_bloqueesKaah("black")'), 0, 'a3 seule : libre');
+  F.poser(['e5', 'e6', 'd5'], ['a1', 'i9', 'e1']);
+  assert.strictEqual(F.ev('_compacKaah("black")'), 1); assert.ok(F.ev('_compacKaah("white")') > 6);
+});
+
+test('criteres KAAH : avec leurs poids, le detail additionne = l evaluation du moteur ; sc. Gain selon le score', () => {
+  const F = _filKaah();
+  F.ev('EVAL_W=' + _BASE.replace('}', ',scGain:200,scPerte:200,cases:1,compac:20,sumito:20,menace:120,fourch:60,piege:40}') + ';');
+  F.poser(['a3', 'c5', 'e5', 'd5'], ['b3', 'b4', 'c4', 'c3', 'e3', 'e4'], 1, 3);
+  const d = F.ev('evalDetail("white")'), somme = Object.values(d).reduce((a, b) => a + b, 0);
+  assert.ok(Math.abs(somme - F.w.evaluateBoard('white')) < 1e-9);
+  assert.strictEqual(d.scGain, 600, '3 ejections : 200 x (0+1+2)'); assert.strictEqual(d.piege, 40); assert.strictEqual(d.menace, 120);
+  assert.strictEqual(d.gain, 6000); assert.strictEqual(d.perte, -2000);
+  // duel du Labo : le camp sans ces cles ne les herite jamais de l'autre
+  F.ev('EVAL_W=' + _BASE + ';'); assert.strictEqual(F.ev('_kaahActif()'), false);
+});
+
+test('tableau : seules les colonnes des criteres utilises, dans l ordre de KAAH', () => {
+  const noms = p => ctx._criteresUtilises(p).map(k => k[1]).join(',');
+  assert.strictEqual(noms(ctx.AI_WEIGHT_PRESETS ? ctx.AI_WEIGHT_PRESETS.balanced : JSON.parse('{"center":6,"cohesion":4,"edge":8,"mob":2,"iso":18,"dng":14,"chain":10,"fortress":20}')),
+    'Gain,Perte,Centre,Cohés.,Bord m.,Bord a.,Mobilité,Isolées,En danger,Chaînes,Forteresses');
+  assert.strictEqual(noms({ center: 6, cohesion: 4, edge: 8, mob: 2, iso: 18, dng: 14, chain: 10, fortress: 20, scGain: 200, scPerte: 200, cases: 1, compac: 20, sumito: 20, menace: 120, fourch: 60, piege: 40 }),
+    'Gain,sc. Gain,Perte,sc. Perte,Centre,Cases,Cohés.,Compac.,Bord m.,Bord a.,Sumito,Menace,Fourch.,Piège,Mobilité,Isolées,En danger,Chaînes,Forteresses');
+});
+
+test('panneau de la partie : le tableau du dernier coup de l IA, ouvert ou ferme', () => {
+  const els = {}; const sG = ctx.document.getElementById;
+  ctx.document.getElementById = id => (els[id] = els[id] || { innerHTML: '', textContent: '', style: {} });
+  try {
+    ctx.boardSnapshots = [{}, { ia: { e: 1, p: 1, t: 1, ph: 'milieu', detail: { racine: { board: {}, cB: 0, cW: 0 }, couleur: 'black', date: Date.now(), poids: { center: 6, edge: 8 }, pos: { gain: 0, centre: 0 }, prof: [], _notes: true } } }];
+    ctx.localStorage.setItem('abaReflexionPanneau', '0'); ctx._majPanneauReflexion();
+    assert.strictEqual(els['reflexion-panneau-corps'].style.display, 'none'); assert.match(els['reflexion-panneau-btn'].textContent, /^▸/);
+    ctx.basculerPanneauReflexion();
+    assert.strictEqual(els['reflexion-panneau-corps'].style.display, 'block'); assert.match(els['reflexion-panneau-corps'].innerHTML, /Coup 2 de l\u2019IA/);
+  } finally { ctx.document.getElementById = sG; ctx.localStorage.setItem('abaReflexionPanneau', '0'); }
+});
+
+test('test au Labo : couleurs et roles alternes sur la meme ouverture, resultats attribues au bon camp, verdict SPRT', () => {
+  const envois = []; let fil = null;
+  const sW = ctx.Worker, sU = ctx.URL, sB = ctx.Blob;
+  ctx.Worker = function(){ fil = this; this.postMessage = m => envois.push(m); this.terminate = () => {}; };
+  ctx.URL = { createObjectURL: () => 'blob:x' }; ctx.Blob = function(){};
+  ctx.localStorage.removeItem('abaTestKaah'); ctx._labRunning = false;
+  const sR = ctx.renderTestKaah; ctx.renderTestKaah = () => {};
+  const sT = ctx._testKaahPlanifier; const attente = []; ctx._testKaahPlanifier = (f, ms) => { if (ms < 1000) attente.push(f); return 0; };
+  try {
+    ctx.lancerTestKaah();
+    // la version avec KAAH gagne toutes ses parties
+    for (let i = 0; i < 4; i++) {
+      const m = envois[i], kaahEstA = m.wA.sumito === 20;
+      fil.onmessage({ data: { duelGame: true, result: { winner: kaahEstA ? 'A' : 'B', plies: 50 } } });
+      attente.shift()();
+    }
+    assert.deepStrictEqual(envois.slice(0, 4).map(m => [m.wA.sumito === 20, m.colorA]), [[true, 'black'], [true, 'white'], [false, 'black'], [false, 'white']], 'roles et couleurs alternes');
+    assert.strictEqual(new Set(envois.slice(0, 4).map(m => m.seed)).size, 1, 'meme ouverture pour le cycle');
+    assert.ok(envois[0].wB.sumito === undefined, 'l IA actuelle seule n a aucun critere de KAAH');
+    let s = JSON.parse(ctx.localStorage.getItem('abaTestKaah'));
+    assert.deepStrictEqual([s.W, s.D, s.L, s.n], [4, 0, 0, 4], 'victoires attribuees a la version avec KAAH, quel que soit son role');
+    // jusqu'au verdict
+    while (!s.fini && envois.length < 200) { const m = envois[envois.length - 1]; fil.onmessage({ data: { duelGame: true, result: { winner: m.wA.sumito === 20 ? 'A' : 'B' } } }); if (attente.length) attente.shift()(); s = JSON.parse(ctx.localStorage.getItem('abaTestKaah')); }
+    assert.strictEqual(s.fini, 'plus fort');
+    assert.ok(s.n >= 16 && s.n % 4 === 0, 'verdict apres 16 parties au moins, en fin de cycle (' + s.n + ')');
+  } finally { ctx._testKaahEnCours = false; ctx.Worker = sW; ctx.URL = sU; ctx.Blob = sB; ctx.renderTestKaah = sR; ctx._testKaahPlanifier = sT; ctx.localStorage.removeItem('abaTestKaah'); }
+});
+

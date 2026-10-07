@@ -961,6 +961,81 @@ function closeLabReplay(){
   if(_labReplayTimer){ clearInterval(_labReplayTimer); _labReplayTimer=null; }
 }
 
+/* ═══ TEST AU LABO : LES CRITERES DE KAAH RENDENT-ILS L'IA PLUS FORTE ? ═══
+   Demande d'Olivier (« les integrer au moteur, tests au Labo »). Duels moteur contre
+   moteur (le meme duelGame que le Labo, un fil de calcul A PART pour ne jamais
+   interferer) : « IA actuelle + criteres de KAAH » contre « IA actuelle seule ».
+   Par cycles de 4 parties sur la MEME ouverture : chaque version joue Noirs puis
+   Blancs, et tient le role A puis B -- l'avantage d'ouverture et l'arbitrage des
+   parties trop longues (fait avec l'evaluation du camp A) s'annulent. Verdict SPRT
+   avec les seuils du Labo (H0 = +0 Elo, H1 = +35 Elo, alpha = beta = 5 %), ou
+   « indecis » apres 400 parties. Rien n'est adopte automatiquement. */
+const TEST_KAAH_KEY = 'abaTestKaah', TEST_KAAH_MAX = 400, TEST_KAAH_MIN = 16;
+const KAAH_POIDS = { scGain: 200, scPerte: 200, cases: 1, compac: 20, sumito: 20, menace: 120, fourch: 60, piege: 40 };
+let _testKaahWorker = null, _testKaahEnCours = false, _testKaahChien = null;
+let _testKaahPlanifier = function(f, ms){ return setTimeout(f, ms); };   // remplacable par les tests
+function _testKaahVide() { return { W: 0, D: 0, L: 0, n: 0, fini: null, log: [] }; }
+function _testKaahEtat() { try { return JSON.parse(localStorage.getItem(TEST_KAAH_KEY) || 'null') || _testKaahVide(); } catch (e) { return _testKaahVide(); } }
+function _testKaahSauver(s) { try { localStorage.setItem(TEST_KAAH_KEY, JSON.stringify(s)); } catch (e) {} }
+function _testKaahPoids() { const base = {}; LAB_CFG.keys.forEach(function(k){ base[k] = AI_WEIGHT_PRESETS.balanced[k]; }); return { base: base, kaah: Object.assign({}, base, KAAH_POIDS) }; }
+function _testKaahBornes() { return { haut: Math.log((1 - LAB_CFG.beta) / LAB_CFG.alpha), bas: Math.log(LAB_CFG.beta / (1 - LAB_CFG.alpha)) }; }
+function lancerTestKaah() {
+  if (_testKaahEnCours) { _testKaahEnCours = false; clearTimeout(_testKaahChien); renderTestKaah('En pause.'); return; }
+  if (typeof _labRunning !== 'undefined' && _labRunning) { if (typeof showToast === 'function') showToast('Le Labo tourne déjà : mets-le en pause d\u2019abord'); return; }
+  if (_testKaahEtat().fini) _testKaahSauver(_testKaahVide());
+  _testKaahEnCours = true; renderTestKaah(); _testKaahPartie();
+}
+function _testKaahPartie() {
+  if (!_testKaahEnCours) return;
+  const s = _testKaahEtat(), P = _testKaahPoids();
+  const k = s.n % 4, kaahEstA = (k < 2), couleurA = (k % 2 === 0) ? 'black' : 'white';
+  if (!_testKaahWorker) {
+    try { _testKaahWorker = new Worker(URL.createObjectURL(new Blob([AI_WORKER_CODE], { type: 'application/javascript' }))); }
+    catch (e) { _testKaahEnCours = false; renderTestKaah('Fil de calcul indisponible sur cet appareil.'); return; }
+  }
+  _testKaahWorker.onmessage = function(e) {
+    const d = e.data; if (!d || !d.duelGame) return;
+    clearTimeout(_testKaahChien);
+    if (d.error) { _testKaahEnCours = false; renderTestKaah('Erreur moteur : ' + d.error); return; }
+    const r = d.result || { winner: 'D' }, st = _testKaahEtat();
+    const issue = r.winner === 'D' ? 'D' : ((r.winner === 'A') === kaahEstA ? 'K' : 'B');
+    if (issue === 'K') st.W++; else if (issue === 'D') st.D++; else st.L++;
+    st.n++; st.log.unshift({ k: issue, why: r.why || '', plies: r.plies || 0 }); if (st.log.length > 10) st.log.length = 10;
+    const llr = _labLLR(st.W, st.D, st.L, LAB_CFG.elo0, LAB_CFG.elo1), B = _testKaahBornes();
+    /* Verdict seulement apres TEST_KAAH_MIN parties et en fin de cycle de 4 (chaque version a alors joue
+       autant de chaque couleur et de chaque role). Sans ce minimum, une serie de victoires au debut
+       annule la variance mesuree et le LLR s'emballe : verdict des la 2e partie (trouve par les tests). */
+    const bilan = st.n >= TEST_KAAH_MIN && st.n % 4 === 0;
+    if (bilan && llr >= B.haut) st.fini = 'plus fort'; else if (bilan && llr <= B.bas) st.fini = 'pas plus fort'; else if (st.n >= TEST_KAAH_MAX) st.fini = 'indécis';
+    _testKaahSauver(st); if (st.fini) _testKaahEnCours = false;
+    renderTestKaah();
+    if (_testKaahEnCours) _testKaahPlanifier(_testKaahPartie, 200);
+  };
+  _testKaahChien = _testKaahPlanifier(function(){ try { _testKaahWorker.terminate(); } catch (e) {} _testKaahWorker = null; if (_testKaahEnCours) _testKaahPlanifier(_testKaahPartie, 500); }, 180000);
+  _testKaahWorker.postMessage({ duelGame: true, wA: kaahEstA ? P.kaah : P.base, wB: kaahEstA ? P.base : P.kaah, colorA: couleurA,
+    seed: 10007 * Math.floor(s.n / 4) + 13, msPerMove: LAB_CFG.confMs, maxPlies: LAB_CFG.confPlies, drawWin: LAB_CFG.confDraw, id: Date.now() });
+}
+function renderTestKaah(msg) {
+  const hote = document.getElementById('test-kaah-host'); if (!hote) return;
+  const s = _testKaahEtat(), B = _testKaahBornes(), llr = _labLLR(s.W, s.D, s.L, LAB_CFG.elo0, LAB_CFG.elo1);
+  const verdict = s.fini === 'plus fort' ? '✅ Verdict : avec les critères de KAAH, l\u2019IA est plus forte.'
+    : s.fini === 'pas plus fort' ? '✗ Verdict : les critères de KAAH ne rendent pas l\u2019IA plus forte (dans ce régime de test).'
+    : s.fini === 'indécis' ? '❓ Indécis après ' + TEST_KAAH_MAX + ' parties : l\u2019écart, s\u2019il existe, est faible.' : '';
+  hote.innerHTML = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;margin-top:18px">'
+    + '<div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Test : les critères de KAAH</div>'
+    + '<div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px">« IA actuelle + critères de KAAH » (sumito, menace, fourchette, piège, compacité, cases, gain et perte selon le score) contre « IA actuelle seule ». '
+    + 'Parties par 4 sur la même ouverture, couleurs et rôles alternés ; ' + LAB_CFG.confMs + ' ms par coup, ' + LAB_CFG.confPlies + ' coups au plus — un régime de recherche courte : le verdict porte sur lui. '
+    + 'Rien n\u2019est adopté automatiquement.</div>'
+    + '<div style="font-size:14px;color:var(--text)">' + s.n + ' parties · avec KAAH : <b>' + s.W + '</b> victoires, ' + s.D + ' nulles, ' + s.L + ' défaites'
+    + (s.n ? ' · ' + Math.round(100 * (s.W + s.D / 2) / s.n) + ' %' : '') + (s.n >= 4 ? ' · ' + _labEloStr(s.W, s.D, s.L) : '') + '</div>'
+    + '<div style="font-size:11px;color:var(--muted);margin:4px 0">LLR ' + llr.toFixed(2) + ' (verdict à ≥ ' + B.haut.toFixed(2) + ' ou ≤ ' + B.bas.toFixed(2) + ', après ' + TEST_KAAH_MIN + ' parties au moins)</div>'
+    + (verdict ? '<div style="font-size:13px;color:var(--gold);margin:8px 0">' + verdict + '</div>' : '')
+    + (msg ? '<div style="font-size:12px;color:var(--muted);margin:6px 0">' + msg + '</div>' : '')
+    + '<button class="ctrl-btn" onclick="lancerTestKaah()" style="width:auto;padding:6px 14px;margin-top:6px">'
+    + (_testKaahEnCours ? '⏸ Pause' : (s.fini ? '↻ Recommencer le test' : (s.n ? '▶ Reprendre' : '▶ Lancer le test'))) + '</button>'
+    + (_testKaahEnCours ? ' <span style="font-size:11px;color:var(--muted)">partie ' + (s.n + 1) + ' en cours…</span>' : '')
+    + '</div>';
+}
 function renderLab(){
   const el=document.getElementById('lab-body'); if(!el) return;
   const st=labLoad();
@@ -1026,6 +1101,7 @@ function renderLab(){
   el.innerHTML=h;
   const bs=document.getElementById('lab-start'); if(bs) bs.textContent=_labRunning?'\u23f8 Pause':'\u25b6 D\u00e9marrer';
   if(document.getElementById('lab-adv') && document.getElementById('lab-adv').style.display!=='none') renderLabAdvanced();
+  if (typeof renderTestKaah === 'function') renderTestKaah();
 }
 // Reprise automatique si le Labo tournait a la derniere session
 try{ if(localStorage.getItem('abaLabAutoRun')==='1'){ setTimeout(function(){ if(!_labRunning){ startLab(); if(typeof showToast==='function') showToast('\ud83e\uddea Labo repris en arri\u00e8re-plan'); } }, 4000); } }catch(e){}
@@ -1514,7 +1590,7 @@ function aiMove() {
   const pooledStarted = (typeof requestAIMovePooled === 'function') && requestAIMovePooled(pooledParams, function(chosen, metrics) {
     showAIThinking(false);
     if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
-    if (metrics) { updateAIMetrics(metrics); _releverReflexion(metrics, config); _noterMesuresCoupIA(metrics, ai); }
+    if (metrics) { updateAIMetrics(metrics); _releverReflexion(metrics, config); _noterMesuresCoupIA(metrics, ai, config); }
     if (GameOver.get()) return;
     if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
     executeAIMove(chosen);
@@ -1532,7 +1608,7 @@ function aiMove() {
       showAIThinking(false);
       if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
       const chosen = e.data && e.data.move;
-      if (e.data) { updateAIMetrics(e.data.metrics); _releverReflexion(e.data.metrics, config); _noterMesuresCoupIA(e.data.metrics, ai); }
+      if (e.data) { updateAIMetrics(e.data.metrics); _releverReflexion(e.data.metrics, config); _noterMesuresCoupIA(e.data.metrics, ai, config); }
       if (GameOver.get()) return;
       if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
       executeAIMove(chosen);
