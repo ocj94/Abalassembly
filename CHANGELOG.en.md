@@ -9,6 +9,52 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.49]
+
+### Added
+- **4-vs-2 endgame table, solved and proven** (Discovery mode): with the move,
+  the strong side **always** wins, in at most 97 plies; the weak side escapes in
+  only 0.2% of cases. Every one of the 140,575,680 positions re-checked against
+  the exact equations. In game: perfect AI, "Black wins in N plies" verdict,
+  Endgame tables page, Trainer.
+- **AI reflection table**, as in KAAH: for each depth, the 10 best first moves
+  with evaluation, time, time under it, positions, each criterion's change and
+  the expected line (checked legal move by move), on a small board. In an
+  in-game panel and for every AI move.
+- **KAAH's evaluation criteria in the engine** (score gain/loss, cells,
+  compactness, sumito, threat, fork, trap), reimplemented from their
+  definitions, **off by default**; "KAAH (experimental)" style; Lab test (paired
+  duels, SPRT verdict, nothing adopted automatically).
+- **Adjustable max thinking time** per level (empty = no limit) and **thinking
+  statistics**: depth reached vs time, measured on corpus positions and
+  recorded during your games.
+- **Position code** (KAAH format), copyable; **evaluation** under each AI move,
+  kept in history; **permutations** (12 symmetries and swapped sides, KAAH
+  numbering, canonical form).
+- **Full clocks**: Chrono, Delay, ejection bonus, custom cadence, time per move.
+- **Draws**: a real draw offer (AI, same screen, remote) and threefold
+  repetition.
+- **AI levels numbered 1 to 10**, including 4 intermediate ones.
+- **Share a games file to Abalassembly** (Android: Share menu; desktop: Open
+  with): the import opens pre-filled.
+- **Corpus**: 4 KAAH games verified by three sources (4,578 games); the heat map
+  now learns from imported games.
+
+### Changed
+- **Intro**: the emblem (hexagon and marble) continues the launch screen, spins
+  and vanishes, then ABALASSEMBLY, then the tagline.
+- **Icon**: the current hexagon with the original marble, maskable variant.
+- **Last move**: chevrons on the moved marbles.
+- Dark colour scheme declared to the browser (colours altered on Samsung
+  Internet).
+
+### Fixed
+- **A win with White counted as a loss** (screen, Elo, XP, streak).
+- **The "Offer a draw" button did nothing.**
+- **The service worker had never worked** (created in a way browsers refuse):
+  replaced by a real `sw.js`, offline mode is real.
+- **Academy**: the 10 Commandments showed raw code.
+
 ## [v2.48]
 
 ### Added

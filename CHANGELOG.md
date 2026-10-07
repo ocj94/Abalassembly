@@ -9,6 +9,53 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.49]
+
+### Ajouté
+- **Table de finale 4 contre 2, résolue et prouvée** (mode Découverte) : avec
+  le trait, le camp fort gagne **toujours**, en 97 demi-coups au plus ; le camp
+  faible ne s'en sort que dans 0,2 % des cas. Chacune des 140 575 680 positions
+  recontrôlée contre les équations exactes. Dans le jeu : IA parfaite, verdict
+  « les Noirs gagnent en N demi-coups », page Tables de finale, Trainer.
+- **Réflexion de l'IA**, comme dans KAAH : pour chaque profondeur, les 10
+  meilleurs premiers coups avec évaluation, temps, « sous lui », positions,
+  écart de chaque critère et suite prévue (vérifiée légale coup par coup), sur
+  un petit plateau. Dans un panneau de la partie et pour chaque coup de l'IA.
+- **Les critères d'évaluation de KAAH dans le moteur** (sc. Gain, sc. Perte,
+  Cases, Compac., Sumito, Menace, Fourch., Piège), réimplémentés d'après leurs
+  définitions, **éteints par défaut** ; style « KAAH (expérimental) » ; test au
+  Labo (duels appariés, verdict SPRT, rien d'adopté automatiquement).
+- **Réflexion max réglable** par niveau (vide = sans limite) et
+  **statistiques de réflexion** : profondeur atteinte selon le temps, mesurée
+  sur des positions du corpus et relevée pendant tes parties.
+- **Code de la position** (format KAAH), copiable ; **évaluation** sous chaque
+  coup de l'IA, gardée dans l'historique ; **permutations** (12 symétries et
+  camps échangés, numérotation de KAAH, forme canonique).
+- **Pendules complètes** : Chrono, Délai, bonus par éjection, cadence
+  personnalisée, durée de chaque coup.
+- **Nulle** : vraie proposition (IA, même écran, à distance) et triple
+  répétition.
+- **Niveaux de l'IA numérotés de 1 à 10**, dont 4 intermédiaires.
+- **Partager un fichier de parties vers Abalassembly** (Android : menu
+  Partager ; ordinateur : Ouvrir avec) : l'import s'ouvre prérempli.
+- **Corpus** : 4 parties KAAH vérifiées par trois sources (4 578 parties) ; la
+  carte de chaleur se nourrit des parties importées.
+
+### Modifié
+- **Intro** : l'emblème (hexagone et bille) prolonge l'écran de démarrage,
+  tourne et disparaît, puis ABALASSEMBLY, puis le sous-titre.
+- **Icône** : l'hexagone actuel avec la bille d'origine, variante masquable.
+- **Dernier coup** : chevrons sur les billes déplacées.
+- Thème sombre déclaré au navigateur (couleurs altérées sur Samsung Internet).
+
+### Corrigé
+- **Une victoire avec les Blancs comptait comme une défaite** (écran, ELO, XP,
+  série).
+- **Le bouton « Proposer nulle » ne faisait rien.**
+- **Le service worker n'avait jamais fonctionné** (créé d'une façon que les
+  navigateurs refusent) : remplacé par un vrai `sw.js`, le hors-ligne est réel.
+- **Académie** : les 10 Commandements affichaient du code brut.
+
 ## [v2.48]
 
 ### Ajouté

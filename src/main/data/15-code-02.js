@@ -18,7 +18,12 @@ const AI_WEIGHT_PRESETS = {
   balanced:  { center:6, cohesion:4, edge:8,  mob:2, iso:18, dng:14, chain:10, fortress:20, label:'équilibré' },
   defensive: { center:5, cohesion:8, edge:12, mob:2, iso:14, dng:10, chain:14, fortress:26, label:'défensif' },   // vs joueur agressif
   aggressive:{ center:8, cohesion:3, edge:6,  mob:2, iso:20, dng:22, chain:6,  fortress:12, label:'agressif' },   // vs joueur passif
-  divide:    { center:6, cohesion:3, edge:8,  mob:3, iso:30, dng:16, chain:8,  fortress:14, label:'division' }    // vs joueur qui s'expose
+  divide:    { center:6, cohesion:3, edge:8,  mob:3, iso:30, dng:16, chain:8,  fortress:14, label:'division' },   // vs joueur qui s'expose
+  // Les criteres de KAAH (poids de son profil « Normal ») AJOUTES aux poids equilibres. Experimental :
+  // jamais choisi par le profilage automatique, seulement a la demande, en attendant le verdict du Labo
+  // (test « Criteres de KAAH », page Labo).
+  kaah:      { center:6, cohesion:4, edge:8,  mob:2, iso:18, dng:14, chain:10, fortress:20,
+               scGain:200, scPerte:200, cases:1, compac:20, sumito:20, menace:120, fourch:60, piege:40, label:'KAAH (expérimental)' }
 };
 let aiAdaptive = true;     // profilage activé par défaut
 let _aiMode = 'balanced';

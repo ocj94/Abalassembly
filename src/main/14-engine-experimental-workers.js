@@ -405,6 +405,8 @@ function requestAIMovePooled(params, onDone) {
           rootMoves: all.slice(0, 5), rootDepth: common, rootTotal: all.length
         });
       }
+      // tableau « Reflexion IA » : les mesures de CHAQUE fil (chacun n'examine qu'une part des premiers coups)
+      bestMetrics = Object.assign({}, bestMetrics, { parFil: results.filter(function(r){ return r && r.metrics; }).map(function(r){ return r.metrics; }) });
     }
     onDone(best, bestMetrics);
   }

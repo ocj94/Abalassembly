@@ -357,6 +357,54 @@ function undoMove(undo){
 }
 const EVAL_CENTER={q:0,r:0};
 function axHexDist(a,b){return(Math.abs(a.q-b.q)+Math.abs(a.q+a.r-b.q-b.r)+Math.abs(a.r-b.r))/2;}
+/* ── Criteres de KAAH (demande d'Olivier : « les integrer au moteur, tests au
+   Labo »). Reimplementes ici d'apres leurs DEFINITIONS (le code de KAAH, sans
+   licence, n'est pas recopie) :
+     scGain / scPerte : la k-ieme ejection vaut k-1 fois le poids de plus ;
+     cases  : une valeur par type de case, negative sur les 2 couronnes
+              exterieures (b : -5 ; a : -10, coin -12), fois le poids ;
+     compac : distance moyenne entre ses billes, comparee a l'adversaire ;
+     sumito : poussees possibles (2/1, 3/1, 3/2) ; menace : celles qui ejectent ;
+     fourch : chaque poussee au-dela de la premiere ;
+     piege  : billes des 2 couronnes exterieures sans aucun pas vers le centre.
+   Chacun compte pour soi, contre l'adversaire. Poids ABSENT = 0 = non calcule :
+   l'IA habituelle (poids sans ces cles) joue exactement comme avant, sans le
+   moindre surcout ; les duels du Labo remplacent EVAL_W en entier, donc un camp
+   sans ces cles ne les herite jamais de l'autre. */
+const _KC=(function(){const T={};for(let r=0;r<9;r++)for(let c=0;c<ROWS[r];c++){const a=rcToAxial(r,c);T[akey(r,c)]={a:a,ring:axHexDist(a,EVAL_CENTER)};}
+  const opp=AX_DIRS.map(d=>AX_DIRS.findIndex(e=>e.q===-d.q&&e.r===-d.r));
+  for(const k in T){const a=T[k].a;T[k].nb=AX_DIRS.map(d=>{const rc=axialToRc(a.q+d.q,a.r+d.r);return rc?akey(rc.r,rc.c):null;});
+    const q=a.q-EVAL_CENTER.q,r=a.r-EVAL_CENTER.r,coin=Math.min(Math.abs(q),Math.abs(r),Math.abs(q+r));
+    T[k].val=T[k].ring===3?-5:(T[k].ring===4?(coin===0?-12:-10):0);}
+  return {T:T,opp:opp};})();
+function _sumitosKaah(c){const o=c==='white'?'black':'white',T=_KC.T,OP=_KC.opp;let n=0,ej=0;
+  for(const k in board){if(board[k]!==c)continue;const nb=T[k].nb;
+    for(let d=0;d<6;d++){const t=nb[d];if(!t||board[t]!==o)continue;
+      let g=1,b=nb[OP[d]];while(g<3&&b&&board[b]===c){g++;b=T[b].nb[OP[d]];}if(g<2)continue;
+      let m=0,x=t;while(x&&board[x]===o&&m<3){m++;x=T[x].nb[d];}
+      if(m>=g)continue;if(x&&board[x])continue;n++;if(!x)ej++;}}
+  return {n:n,ej:ej};}
+function _peutAvancerKaah(k,d,c){const T=_KC.T,OP=_KC.opp,o=c==='white'?'black':'white';
+  let dev=0,x=T[k].nb[d];while(x&&board[x]===c&&dev<3){dev++;x=T[x].nb[d];}if(dev>=3)return false;
+  let der=0,y=T[k].nb[OP[d]];while(y&&board[y]===c&&der<2-dev){der++;y=T[y].nb[OP[d]];}
+  const grp=1+dev+der;if(!x)return false;if(!board[x])return true;if(board[x]!==o)return false;
+  let adv=0,z=x;while(z&&board[z]===o&&adv<4){adv++;z=T[z].nb[d];}if(grp<=adv)return false;return !z||!board[z];}
+function _bloqueesKaah(c){const T=_KC.T;let n=0;for(const k in board){if(board[k]!==c||T[k].ring<3)continue;const ring=T[k].ring,nb=T[k].nb;let libre=false;
+  for(let d=0;d<6&&!libre;d++){const v=nb[d];if(v&&T[v].ring<ring&&_peutAvancerKaah(k,d,c))libre=true;}if(!libre)n++;}return n;}
+function _compacKaah(c){const T=_KC.T,p=[];for(const k in board)if(board[k]===c)p.push(T[k].a);let s=0,n=0;
+  for(let i=0;i<p.length;i++)for(let j=i+1;j<p.length;j++){s+=axHexDist(p[i],p[j]);n++;}return n?s/n:0;}
+function _termesKaah(color){const W=EVAL_W,o=color==='white'?'black':'white',R={};
+  const myCap=color==='white'?capturedByWhite:capturedByBlack,thCap=color==='white'?capturedByBlack:capturedByWhite;
+  R.scGain=(W.scGain||0)*myCap*(myCap-1)/2;R.scPerte=-(W.scPerte||0)*thCap*(thCap-1)/2;
+  if(W.cases){let s=0;const T=_KC.T;for(const k in board){const v=board[k];if(!v)continue;s+=(v===color?1:-1)*T[k].val;}R.cases=W.cases*s;}else R.cases=0;
+  R.compac=W.compac?W.compac*(_compacKaah(o)-_compacKaah(color)):0;
+  if(W.sumito||W.menace||W.fourch){const a=_sumitosKaah(color),b=_sumitosKaah(o);
+    R.sumito=(W.sumito||0)*(a.n-b.n);R.menace=(W.menace||0)*(a.ej-b.ej);R.fourch=(W.fourch||0)*(Math.max(0,a.n-1)-Math.max(0,b.n-1));}
+  else{R.sumito=0;R.menace=0;R.fourch=0;}
+  R.piege=W.piege?W.piege*(_bloqueesKaah(o)-_bloqueesKaah(color)):0;
+  return R;}
+function _kaahActif(){const W=EVAL_W;return !!(W.scGain||W.scPerte||W.cases||W.compac||W.sumito||W.menace||W.fourch||W.piege);}
+function _kaahTotal(color){const R=_termesKaah(color);return R.scGain+R.scPerte+R.cases+R.compac+R.sumito+R.menace+R.fourch+R.piege;}
 function evaluateBoard(color){
   let myCount=0,enCount=0,myCenter=0,enCenter=0,myCoh=0,enCoh=0,myEdge=0,enEdge=0,myMob=0,enMob=0,myIso=0,enIso=0,myDng=0,enDng=0,myChain=0,enChain=0,myFort=0,enFort=0;
   for(const k in board){const v=board[k];if(!v)continue;
@@ -376,7 +424,53 @@ function evaluateBoard(color){
   return (myCount-enCount)*1000+(myCenter-enCenter)*EVAL_W.center+(myCoh-enCoh)*EVAL_W.cohesion+(enEdge-myEdge)*EVAL_W.edge
     +((color==='white'?(capturedByWhite-capturedByBlack):(capturedByBlack-capturedByWhite))*1000)
     +(myMob-enMob)*EVAL_W.mob+(enIso-myIso)*EVAL_W.iso+(enDng-myDng)*EVAL_W.dng
-    +(myChain-enChain)*EVAL_W.chain+(myFort-enFort)*EVAL_W.fortress;
+    +(myChain-enChain)*EVAL_W.chain+(myFort-enFort)*EVAL_W.fortress
+    +(_kaahActif()?_kaahTotal(color):0);
+}
+function evalDetail(color){
+  let myCount=0,enCount=0,myCenter=0,enCenter=0,myCoh=0,enCoh=0,myEdge=0,enEdge=0,myMob=0,enMob=0,myIso=0,enIso=0,myDng=0,enDng=0,myChain=0,enChain=0,myFort=0,enFort=0;
+  for(const k in board){const v=board[k];if(!v)continue;
+    const p=k.split(',');const ax=rcToAxial(+p[0],+p[1]);const dist=axHexDist(ax,EVAL_CENTER);const isEdge=dist>=4;
+    let allies=0,emptyN=0;for(const d of AX_DIRS){const n=axialToRc(ax.q+d.q,ax.r+d.r);if(!n)continue;const nv=board[akey(n.r,n.c)];if(nv===v)allies++;else if(!nv)emptyN++;}
+    const iso=allies===0;const dng=isEdge&&allies<=1;const fort=allies>=4;
+    let chainLinks=0;
+    for(const[fwd,bwd] of EVAL_AXES){
+      const bd=AX_DIRS[bwd];const bn=axialToRc(ax.q+bd.q,ax.r+bd.r);
+      if(bn&&board[akey(bn.r,bn.c)]===v)continue;   // pas la queue de la chaine sur cet axe
+      const fd=AX_DIRS[fwd];let aq=ax.q,ar=ax.r,len=1;
+      while(true){aq+=fd.q;ar+=fd.r;const nrc=axialToRc(aq,ar);if(!nrc)break;if(board[akey(nrc.r,nrc.c)]!==v)break;len++;}
+      if(len>=2)chainLinks+=(len-1);
+    }
+    if(v===color){myCount++;myCenter+=(4-dist);myCoh+=allies;if(isEdge)myEdge++;myMob+=emptyN;if(iso)myIso++;if(dng)myDng++;if(fort)myFort++;myChain+=chainLinks;}
+    else{enCount++;enCenter+=(4-dist);enCoh+=allies;if(isEdge)enEdge++;enMob+=emptyN;if(iso)enIso++;if(dng)enDng++;if(fort)enFort++;enChain+=chainLinks;}}
+  // Gain/Perte : ce moteur compte chaque ejection deux fois (ecart de billes + ecart de captures),
+  // soit 2000 ; base = l'ecart de billes au depart (0 a armees egales), pour que la somme reste exacte.
+  const myCap=color==='white'?capturedByWhite:capturedByBlack,thCap=color==='white'?capturedByBlack:capturedByWhite;
+  const matCap=(myCount-enCount)*1000+(myCap-thCap)*1000,K=_kaahActif()?_termesKaah(color):{scGain:0,scPerte:0,cases:0,compac:0,sumito:0,menace:0,fourch:0,piege:0};
+  return {gain:2000*myCap,perte:-2000*thCap,base:matCap-2000*(myCap-thCap),scGain:K.scGain,scPerte:K.scPerte,
+    centre:(myCenter-enCenter)*EVAL_W.center,cases:K.cases,coh:(myCoh-enCoh)*EVAL_W.cohesion,compac:K.compac,
+    bordM:-myEdge*EVAL_W.edge,bordA:enEdge*EVAL_W.edge,sumito:K.sumito,menace:K.menace,fourch:K.fourch,piege:K.piege,
+    mob:(myMob-enMob)*EVAL_W.mob,iso:(enIso-myIso)*EVAL_W.iso,dng:(enDng-myDng)*EVAL_W.dng,chaine:(myChain-enChain)*EVAL_W.chain,fort:(myFort-enFort)*EVAL_W.fortress};
+}
+/* Tableau « Reflexion IA » (demande d'Olivier, sur le modele de KAAH) : evalDetail
+   est une copie EXACTE de evaluateBoard ci-dessus, qui renvoie chaque critere
+   pondere au lieu du total (leur somme = evaluateBoard). La suite prevue suit les
+   meilleurs coups gardes dans la table de transposition ; la cle d'une position
+   ne contenant pas le camp au trait, chaque coup est verifie LEGAL pour le camp
+   attendu, sinon la suite s'arrete -- jamais de suite inventee. */
+function _pvEtTermes(cle,pov,plis){
+  const opp=c=>c==='white'?'black':'white';
+  const m0=getAllMovesForColor(pov).find(x=>moveKey(x)===cle);if(!m0)return null;
+  const us=[applyMove(m0,pov)],pv=[];let side=opp(pov);
+  for(let i=0;i<plis;i++){
+    if(capturedByWhite>=6||capturedByBlack>=6)break;
+    const tt=TT.get(hashBoard());if(!tt||!tt.move)break;
+    const mv=getAllMovesForColor(side).find(x=>moveKey(x)===tt.move);if(!mv)break;
+    pv.push({cells:mv.cells,dir:mv.dir,c:side});us.push(applyMove(mv,side));side=opp(side);
+  }
+  const terms=evalDetail(pov);
+  for(let i=us.length-1;i>=0;i--)undoMove(us[i]);
+  return {pv:pv,terms:terms};
 }
 function _rand32(){return(Math.random()*0xFFFFFFFF)>>>0;}
 const ZOBRIST={};for(let r=0;r<9;r++)for(let c=0;c<ROWS[r];c++)ZOBRIST[akey(r,c)]={black:_rand32(),white:_rand32()};
@@ -657,6 +751,7 @@ function _repCountMap(h){if(!h||!h.length)return null;const m=new Map();for(cons
 function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
   const start=Date.now();let bestMove=null,bestScore=-Infinity,reached=0,lastRoots=null,lastRootsDepth=0;
   const rootsByDepth={},ejCache={},opp=(pov==='black'?'white':'black');
+  const depthInfo={},posTerms=evalDetail(pov);   // tableau « Reflexion IA » : bilan par profondeur, criteres de la position
   killerMoves={};historyTable={};counterMove={};TT.clear();_nodes=0;_ttLk=0;_ttHit=0;
   const repCount=_repCountMap(hist);
   const split=(workerCount>1);   // partage des racines entre plusieurs workers (voir requestAIMovePooled)
@@ -681,8 +776,8 @@ function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
        N'affecte pas l'ordonnancement alpha-beta : orderMoves passe apres. */
     if(split){moves=moves.slice().sort(function(a,b){const ka=moveKey(a),kb=moveKey(b);return ka<kb?-1:(ka>kb?1:0);}).filter(function(m,idx){return idx%workerCount===workerIndex;});if(!moves.length)break;}
     moves=orderMoves(moves,d,null);
-    let lb=null,ls=-Infinity,alpha=-Infinity,roots=[],cut=false;
-    for(const m of moves){const mk=moveKey(m);const u=applyMove(m,pov);let s=search(d-1,-Infinity,Infinity,false,pov,mk);
+    let lb=null,ls=-Infinity,alpha=-Infinity,roots=[],cut=false;const _nd0=_nodes,_td0=Date.now();
+    for(const m of moves){const mk=moveKey(m);const _n0=_nodes,_t0=Date.now();const u=applyMove(m,pov);let s=search(d-1,-Infinity,Infinity,false,pov,mk);
       if(repCount){const rc=repCount.get(_repKeyOf(board));if(rc)s-=140*rc*rc;}
       /* Menace adverse IMMEDIATE apres ce coup : compte exact des ejections
          dont dispose l'adversaire au pli suivant. Un fait verifiable a 1 pli,
@@ -698,7 +793,7 @@ function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
         else{const og=getAllMovesForColor(opp);let ne=0;for(let i=0;i<og.length;i++)if(og[i].eject)ne++;ejCache[mk]=ne;}
       }
       undoMove(u);
-      roots.push({cells:m.cells,dir:m.dir,type:m.type,eject:m.eject,score:s,oppEject:ejCache[mk]});
+      roots.push({cells:m.cells,dir:m.dir,type:m.type,eject:m.eject,score:s,oppEject:ejCache[mk],key:mk,k:_nodes-_n0,ms:Date.now()-_t0,t:Date.now()-start});
       if(s>ls){ls=s;lb=m;}if(s>alpha)alpha=s;if(Date.now()-start>timeLimit){cut=true;break;}}
     // bestScore=ls (pas lastRoots[0].score) : correct meme si cette profondeur a
     // ete coupee par le minuteur avant d'explorer tous les coups — lastRoots ne
@@ -708,7 +803,11 @@ function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
     // le partage multi-worker (requestAIMovePooled) : le meme coup rapportait
     // deux scores differents (0 vs 38) selon qu'il venait d'une recherche coupee
     // ou complete — pas un bug de calcul, un bug de RAPPORT du score correct.
-    if(lb){bestMove=lb;bestScore=ls;reached=d;if(!cut){lastRoots=roots;lastRootsDepth=d;rootsByDepth[d]=roots;}}if(Date.now()-start>timeLimit)break;}
+    if(lb){bestMove=lb;bestScore=ls;reached=d;if(!cut){lastRoots=roots;lastRootsDepth=d;rootsByDepth[d]=roots;
+      // profondeur complete : bilan, puis suite prevue et criteres de ses 10 meilleurs coups
+      depthInfo[d]={nodes:_nodes-_nd0,ms:Date.now()-_td0,fin:Date.now()-start};
+      roots.slice().sort((a,b)=>b.score-a.score).slice(0,10).forEach(function(r){const x=_pvEtTermes(r.key,pov,d-1);if(x){r.pv=x.pv;r.terms=x.terms;}});}}
+    if(Date.now()-start>timeLimit)break;}
   const top=lastRoots?lastRoots.slice().sort((a,b)=>b.score-a.score).slice(0,5):null;
   /* rootsByDepth : liste COMPLETE des coups racine de ce worker, rangee par
      profondeur. Indispensable en multi-worker : chaque worker ne recoit que
@@ -716,7 +815,8 @@ function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
      local n'est PAS le top 5 de la position. requestAIMovePooled fusionne ces
      listes a la profondeur commune la plus grande -- melanger des scores
      obtenus a des profondeurs differentes ne voudrait rien dire. */
-  _metrics={nodes:_nodes,depth:reached,time:Date.now()-start,ttHit:_ttLk?Math.round(100*_ttHit/_ttLk):0,rootMoves:top,rootsByDepth:rootsByDepth,rootDepth:lastRootsDepth,bestScore:bestScore};
+  _metrics={nodes:_nodes,depth:reached,time:Date.now()-start,ttHit:_ttLk?Math.round(100*_ttHit/_ttLk):0,rootMoves:top,rootsByDepth:rootsByDepth,rootDepth:lastRootsDepth,bestScore:bestScore,
+    depthInfo:depthInfo,posTerms:posTerms,poids:Object.assign({},EVAL_W)};
   return bestMove;
 }
 function analyzePosition(pov,depth,played){
