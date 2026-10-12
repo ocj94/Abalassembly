@@ -9,6 +9,17 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.51]
+
+### Added
+- **⚔️ Brain Duel: speed exercises against a friend, live** (inspired by Brain
+  Wars). Brain Gym page → *Connect to a friend* (the same one-time code as live
+  play, no account, no game server) → *Start a duel*. 3 rounds drawn from 5
+  exercises; a shared seed gives both players the exact same position. Best
+  score wins each round, ties go to the faster player (each device times its
+  own answer, network delay does not count). Round table, rematch, local
+  win/loss record; refusal, busy opponent and lost connection handled. 3 tests.
+
 ## [v2.50]
 
 ### Added

@@ -6299,7 +6299,7 @@ document.addEventListener('keydown', function(e){
 <li><b>Problèmes</b> : des positions à résoudre, tirées de vraies parties.</li>
 <li><b>Ouvertures</b> : les débuts de partie, avec leurs taux de gain réels.</li>
 <li><b>Analyse</b> et <b>Mes statistiques</b> : ta progression, ton classement, ton style.</li>
-<li><b>Gym Cerveau</b> : des exercices courts de vision du jeu.</li>
+<li><b>Gym Cerveau</b> : des exercices courts de vision du jeu. <b>⚔️ Duel Cerveau</b> : relie-toi à un ami (<i>Se connecter à un ami</i>, même code que pour jouer en direct), puis <i>Lancer un duel</i> — 3 manches de vitesse, la même position pour vous deux ; le meilleur score gagne la manche, à égalité le plus rapide.</li>
 <li><b>Formation Formateurs</b> : pour animer des ateliers.</li>
 </ul>
 </div></details>
@@ -6722,6 +6722,7 @@ document.addEventListener('keydown', function(e){
     <div id="gym-weakness-banner" style="display:none;padding:12px 16px;background:rgba(90,180,140,0.08);border:1px solid rgba(90,180,140,0.25);border-radius:8px;font-size:12px;color:var(--text);margin-top:10px;max-width:640px"></div>
   </div>
 
+  <div id="duel-cerveau" style="margin:0 60px 20px;max-width:1200px;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:16px 20px"></div>
   <div class="gym-layout" style="padding:0 60px 80px;display:grid;grid-template-columns:1fr 360px;gap:24px;max-width:1200px">
     <div id="gym-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;align-content:start"></div>
 
@@ -7509,7 +7510,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.50';
+const APP_VERSION = 'v2.51';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -30440,6 +30441,7 @@ function gymFinish(exerciseId, scorePct, meta){
     replayBtn.style.display = 'block';
     replayBtn.onclick = function(){ startGymExercise(exerciseId); };
   }
+  if (typeof _duelSurFin === 'function') _duelSurFin(exerciseId, scorePct);   // Duel Cerveau : la reponse part a l'adversaire
 }
 
 let _gymLevel = 2;
@@ -31163,6 +31165,177 @@ function gymStartMat(level){
   setTimeout(function(){ if (!answered){ answered = true; gymFinish('mat', 0, 'temps écoulé'); } }, timerMs);
 }
 
+/* ═══════════════════════════════════════════
+   DUEL CERVEAU — exercices de vitesse contre un autre joueur, en direct
+   (demande d'Olivier, sur le modele de Brain Wars). Deux appareils relies par la
+   connexion « En direct » (un code echange une fois, aucun compte, aucun serveur
+   de jeu) ; 3 manches tirees parmi 5 exercices courts. Chaque manche : le
+   meilleur score gagne, a score egal le plus rapide. Chacun mesure SON temps
+   (du debut de l'exercice a sa reponse) : le delai du reseau ne compte pas.
+   Equite : une graine commune remplace le hasard pendant la generation de
+   l'exercice -- les deux joueurs voient exactement la meme position.
+═══════════════════════════════════════════ */
+const DUEL_EXERCICES = ['acuity', 'reflex', 'mat', 'memory', 'anticipation'];
+const DUEL_MANCHES = 3, DUEL_LIMITE_MS = 30000, DUEL_PAUSE_MS = 2500, DUEL_DECOMPTE_MS = 3000;
+let _duel = null;
+let _duelPlanifier = function(f, ms){ return setTimeout(f, ms); };   // remplacable par les tests
+function _duelAlea(graine){   // mulberry32 : meme graine -> meme suite, sur tous les appareils
+  let a = graine >>> 0;
+  return function(){ a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+// lance un exercice avec le hasard remplace par la graine (generation synchrone)
+function _duelLancerExercice(id, graine){
+  const vrai = Math.random; Math.random = _duelAlea(graine);
+  try { startGymExercise(id); } finally { Math.random = vrai; }
+}
+function _duelEnvoyer(type, donnees){
+  if (typeof _rtcChannel === 'undefined' || !_rtcChannel || _rtcChannel.readyState !== 'open') return false;
+  _rtcChannel.send('DUEL:' + type + ':' + JSON.stringify(donnees || {}));
+  return true;
+}
+function _duelConnecte(){ return typeof _rtcChannel !== 'undefined' && !!_rtcChannel && _rtcChannel.readyState === 'open'; }
+function _duelNom(){ return (typeof currentUser !== 'undefined' && currentUser && currentUser.username) ? String(currentUser.username).slice(0, 24) : 'Adversaire'; }
+// vainqueur d'une manche : 'moi', 'lui' ou 'nul'
+function _duelVainqueurManche(a, b){
+  if (a.s !== b.s) return a.s > b.s ? 'moi' : 'lui';
+  if (a.s === 0) return 'nul';
+  if (a.ms !== b.ms) return a.ms < b.ms ? 'moi' : 'lui';
+  return 'nul';
+}
+function _duelBilan(d){
+  let v = 0, p = 0, sm = 0, sl = 0, tm = 0, tl = 0;
+  for (let m = 0; m < DUEL_MANCHES; m++) {
+    const a = d.moi[m], b = d.lui[m]; if (!a || !b) continue;
+    const w = _duelVainqueurManche(a, b); if (w === 'moi') v++; else if (w === 'lui') p++;
+    sm += a.s; sl += b.s; tm += a.ms; tl += b.ms;
+  }
+  const issue = v !== p ? (v > p ? 'gagne' : 'perdu') : (sm !== sl ? (sm > sl ? 'gagne' : 'perdu') : (tm !== tl ? (tm < tl ? 'gagne' : 'perdu') : 'nul'));
+  return { v: v, p: p, sm: sm, sl: sl, tm: tm, tl: tl, issue: issue };
+}
+// lancer un duel (celui qui defie tire la graine et les exercices)
+function lancerDuelCerveau(){
+  if (!_duelConnecte()) { if (typeof showToast === 'function') showToast('Connecte-toi d’abord à un ami (« Se connecter »)'); return false; }
+  if (_duel && _duel.etat !== 'fini') { if (typeof showToast === 'function') showToast('Un duel est déjà en cours'); return false; }
+  const graine = (Math.random() * 4294967296) >>> 0, r = _duelAlea(graine ^ 0x9E3779B9), pool = DUEL_EXERCICES.slice(), ex = [];
+  for (let i = 0; i < DUEL_MANCHES; i++) ex.push(pool.splice(Math.floor(r() * pool.length), 1)[0]);
+  _duel = { role: 'defi', graine: graine, ex: ex, lvl: (typeof _gymLevel !== 'undefined' ? _gymLevel : 2), manche: -1, moi: [], lui: [], etat: 'attente', adv: '' };
+  _duelEnvoyer('defi', { graine: graine, ex: ex, lvl: _duel.lvl, nom: _duelNom() });
+  renderDuelCerveau('Défi envoyé : en attente de la réponse de ton adversaire…');
+  return true;
+}
+function accepterDuelCerveau(ok){
+  if (!_duel || _duel.etat !== 'invite') return;
+  if (!ok) { _duelEnvoyer('refus', {}); _duel = null; renderDuelCerveau('Défi refusé.'); return; }
+  _duelEnvoyer('ok', { nom: _duelNom() });
+  _duelDemarrer();
+}
+function _duelDemarrer(){
+  _duel.etat = 'jeu'; _duel.manche = -1;
+  if (typeof showPage === 'function') showPage('gym');
+  _duelMancheSuivante();
+}
+function _duelMancheSuivante(){
+  const d = _duel; if (!d || d.etat !== 'jeu') return;
+  d.manche++;
+  if (d.manche >= DUEL_MANCHES) { _duelTerminer(); return; }
+  const m = d.manche, id = d.ex[m], z = (typeof GYM_ZONES !== 'undefined') ? GYM_ZONES.find(function(x){ return x.id === id; }) : null;
+  renderDuelCerveau('Manche ' + (m + 1) + '/' + DUEL_MANCHES + ' : ' + (z ? z.icon + ' ' + z.name : id) + ' — prêt…');
+  _duelPlanifier(function(){
+    if (!_duel || _duel !== d || d.etat !== 'jeu' || d.manche !== m) return;
+    const sauveNiveau = (typeof _gymLevel !== 'undefined') ? _gymLevel : 2;
+    if (typeof _gymLevel !== 'undefined') _gymLevel = d.lvl;
+    d.t0 = Date.now(); d.encours = m;
+    try { _duelLancerExercice(id, (d.graine + 7919 * (m + 1)) >>> 0); } finally { if (typeof _gymLevel !== 'undefined') _gymLevel = sauveNiveau; }
+    renderDuelCerveau('Manche ' + (m + 1) + '/' + DUEL_MANCHES + ' : ' + (z ? z.icon + ' ' + z.name : id) + ' — à toi !');
+    const plateau = document.getElementById('gym-exercise-board'); if (plateau && plateau.scrollIntoView) plateau.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    _duelPlanifier(function(){ if (_duel === d && d.encours === m && !d.moi[m]) { if (typeof gymFinish === 'function') gymFinish(id, 0, 'temps écoulé'); } }, DUEL_LIMITE_MS);
+  }, DUEL_DECOMPTE_MS);
+}
+// appelee par gymFinish : la reponse du joueur pour la manche en cours (une seule fois)
+function _duelSurFin(exerciseId, scorePct){
+  const d = _duel; if (!d || d.etat !== 'jeu' || d.encours === undefined || d.encours === null) return false;
+  const m = d.encours; if (d.moi[m] || d.ex[m] !== exerciseId) return false;
+  d.moi[m] = { s: Math.round(Math.max(0, Math.min(100, scorePct))), ms: Math.max(0, Date.now() - (d.t0 || Date.now())) };
+  d.encours = null;
+  const rp = document.getElementById('gym-exercise-replay'); if (rp) rp.style.display = 'none';
+  _duelEnvoyer('res', { m: m, s: d.moi[m].s, ms: d.moi[m].ms });
+  _duelVerifierManche(m);
+  return true;
+}
+function _duelVerifierManche(m){
+  const d = _duel; if (!d || !d.moi[m]) return;
+  if (!d.lui[m]) { renderDuelCerveau('Réponse envoyée — en attente de ton adversaire…'); return; }
+  const w = _duelVainqueurManche(d.moi[m], d.lui[m]);
+  renderDuelCerveau(w === 'moi' ? '✅ Manche gagnée !' : (w === 'lui' ? '❌ Manche perdue' : '🤝 Manche nulle'));
+  if (d.manche === m) _duelPlanifier(function(){ if (_duel === d && d.manche === m) _duelMancheSuivante(); }, DUEL_PAUSE_MS);
+}
+function _duelTerminer(){
+  const d = _duel; if (!d) return;
+  d.etat = 'fini'; const b = _duelBilan(d);
+  try {
+    const st = JSON.parse(localStorage.getItem('abaDuelsCerveau') || '{"g":0,"p":0,"n":0}');
+    if (b.issue === 'gagne') st.g++; else if (b.issue === 'perdu') st.p++; else st.n++;
+    localStorage.setItem('abaDuelsCerveau', JSON.stringify(st));
+  } catch (e) {}
+  renderDuelCerveau(b.issue === 'gagne' ? '🏆 Duel gagné !' : (b.issue === 'perdu' ? 'Duel perdu — revanche ?' : '🤝 Duel nul'));
+  return b;
+}
+// messages « DUEL:… » recus par la connexion en direct
+function _duelMessage(data){
+  const i = data.indexOf(':', 5), type = data.slice(5, i); let x = {};
+  try { x = JSON.parse(data.slice(i + 1)) || {}; } catch (e) { return; }
+  if (type === 'defi') {
+    if (_duel && _duel.etat !== 'fini') { _duelEnvoyer('occupe', {}); return; }
+    const ex = Array.isArray(x.ex) ? x.ex.filter(function(e){ return DUEL_EXERCICES.indexOf(e) >= 0; }) : [];
+    if (ex.length !== DUEL_MANCHES || typeof x.graine !== 'number') return;
+    _duel = { role: 'invite', graine: x.graine >>> 0, ex: ex, lvl: Math.min(4, Math.max(1, x.lvl | 0 || 2)), manche: -1, moi: [], lui: [], etat: 'invite', adv: String(x.nom || 'Adversaire').slice(0, 24) };
+    if (typeof showPage === 'function') showPage('gym');
+    renderDuelCerveau();
+    if (typeof showToast === 'function') showToast('⚔️ ' + _duel.adv + ' te défie au Duel Cerveau !');
+  } else if (type === 'ok' && _duel && _duel.etat === 'attente') {
+    _duel.adv = String(x.nom || 'Adversaire').slice(0, 24); _duelDemarrer();
+  } else if ((type === 'refus' || type === 'occupe') && _duel && _duel.etat === 'attente') {
+    _duel = null; renderDuelCerveau(type === 'refus' ? 'Défi refusé par ton adversaire.' : 'Ton adversaire est déjà en duel.');
+  } else if (type === 'res' && _duel && _duel.etat === 'jeu') {
+    const m = x.m | 0; if (m < 0 || m >= DUEL_MANCHES || _duel.lui[m]) return;
+    _duel.lui[m] = { s: Math.round(Math.max(0, Math.min(100, +x.s || 0))), ms: Math.max(0, +x.ms || 0) };
+    _duelVerifierManche(m);
+  }
+}
+function _duelSurDeconnexion(){
+  if (_duel && _duel.etat !== 'fini') { _duel = null; renderDuelCerveau('🔴 Connexion perdue : duel interrompu.'); }
+}
+function renderDuelCerveau(msg){
+  const h = document.getElementById('duel-cerveau'); if (!h) return;
+  const d = _duel, co = _duelConnecte();
+  let st = { g: 0, p: 0, n: 0 }; try { st = JSON.parse(localStorage.getItem('abaDuelsCerveau') || '{"g":0,"p":0,"n":0}'); } catch (e) {}
+  let html = '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">'
+    + '<div><div style="font-size:15px;font-weight:700;color:var(--white)">⚔️ Duel Cerveau</div>'
+    + '<div style="font-size:12px;color:var(--muted)">Exercices de vitesse contre un ami, en direct : 3 manches, mêmes positions pour les deux, le meilleur score puis le plus rapide gagne.</div></div>'
+    + '<div style="font-size:12px;color:var(--muted)">' + (st.g + st.p + st.n ? st.g + ' victoire' + (st.g > 1 ? 's' : '') + ' · ' + st.p + ' défaite' + (st.p > 1 ? 's' : '') + (st.n ? ' · ' + st.n + ' nul' + (st.n > 1 ? 's' : '') : '') : '') + '</div></div>';
+  html += '<div style="font-size:12px;margin:8px 0;color:' + (co ? 'var(--accent-green-light)' : 'var(--muted)') + '">' + (co ? '🟢 Connecté' + (typeof _rtcOpponentName !== 'undefined' && _rtcOpponentName ? ' à ' + _rtcOpponentName : '') : '⚪ Pas connecté — un code à échanger une fois avec ton ami, sans compte') + '</div>';
+  if (d && d.etat === 'invite') {
+    html += '<div style="margin:6px 0;color:var(--gold);font-weight:600">' + d.adv + ' te défie !</div>'
+      + '<button class="ctrl-btn" onclick="accepterDuelCerveau(true)" style="width:auto;padding:6px 14px;margin-right:6px">Accepter</button>'
+      + '<button class="ctrl-btn" onclick="accepterDuelCerveau(false)" style="width:auto;padding:6px 14px">Refuser</button>';
+  } else if (!d || d.etat === 'fini') {
+    html += '<button class="ctrl-btn" onclick="openRtcPanel()" style="width:auto;padding:6px 14px;margin-right:6px">' + (co ? 'Connexion' : 'Se connecter à un ami') + '</button>'
+      + '<button class="ctrl-btn" onclick="lancerDuelCerveau()" style="width:auto;padding:6px 14px' + (co ? ';background:var(--gold);color:var(--bg)' : ';opacity:.5') + '">' + (d ? 'Revanche' : 'Lancer un duel') + '</button>';
+  }
+  if (d && (d.etat === 'jeu' || d.etat === 'fini')) {
+    const zone = function(id){ const z = (typeof GYM_ZONES !== 'undefined') ? GYM_ZONES.find(function(x){ return x.id === id; }) : null; return z ? z.icon + ' ' + z.name : id; };
+    html += '<table style="width:100%;font-size:12px;margin-top:10px;border-collapse:collapse"><tr style="color:var(--muted);text-align:left"><th>Manche</th><th>Toi</th><th>' + (d.adv || 'Adversaire') + '</th></tr>';
+    for (let m = 0; m < DUEL_MANCHES; m++) {
+      const a = d.moi[m], b = d.lui[m], w = (a && b) ? _duelVainqueurManche(a, b) : '';
+      const f = function(r, gagne){ return r ? '<span style="' + (gagne ? 'color:var(--gold);font-weight:700' : '') + '">' + r.s + ' pts · ' + (r.ms / 1000).toFixed(1).replace('.', ',') + ' s</span>' : (m <= d.manche ? '…' : ''); };
+      html += '<tr><td>' + (m + 1) + '. ' + zone(d.ex[m]) + '</td><td>' + f(a, w === 'moi') + '</td><td>' + f(b, w === 'lui') + '</td></tr>';
+    }
+    html += '</table>';
+  }
+  if (msg) html += '<div style="margin-top:8px;font-size:13px;color:var(--gold);font-weight:600">' + msg + '</div>';
+  h.innerHTML = html;
+}
+
 const GYM_STARTERS = {
   memory: gymStartMemory,
   acuity: gymStartAcuity,
@@ -31463,6 +31636,7 @@ function startGymExercise(id){
 function renderGymCerveau(){
   const grid = document.getElementById('gym-grid');
   if (!grid) return;
+  if (typeof renderDuelCerveau === 'function' && !(_duel && _duel.etat === 'jeu')) renderDuelCerveau();
   const progress = _loadGymProgress();
   grid.innerHTML = GYM_ZONES.map(function(z){
     const stat = progress[z.id];
@@ -34484,6 +34658,7 @@ function _rtcSetupChannelHandlers(ch){
   ch.onopen = function(){
     _rtcUpdateStatus('🟢 Connecté' + (_rtcOpponentName ? (' à ' + _rtcOpponentName) : '') + ' — coups en temps réel');
     if (typeof showToast === 'function') showToast('🟢 Connexion en direct établie');
+    if (typeof renderDuelCerveau === 'function') renderDuelCerveau();
   };
   ch.onclose = function(){ _rtcOnDisconnect(); };
   ch.onerror = function(){ _rtcOnDisconnect(); };
@@ -34528,6 +34703,7 @@ function _rtcOnDisconnect(){
 }
 function rtcClose(){
   if (_rtcChannel) { try { _rtcChannel.close(); } catch(e){} _rtcChannel = null; }
+  if (typeof _duelSurDeconnexion === 'function') _duelSurDeconnexion();
   if (_rtcPeer) { try { _rtcPeer.close(); } catch(e){} _rtcPeer = null; }
   _rtcRole = null;
 }
@@ -34592,6 +34768,7 @@ function rtcSendMove(cells, dir){
    silencieusement plutot que d'accepter une position corrompue. */
 function _rtcHandleMessage(data){
   if (typeof data === 'string' && data.indexOf('NULLE:') === 0) { _rtcMessageNulle(data); return; }
+  if (typeof data === 'string' && data.indexOf('DUEL:') === 0) { if (typeof _duelMessage === 'function') _duelMessage(data); return; }
   const decoded = rtcDecodeMove(data);
   if (!decoded) return;
   const color = CurrentTurn.get();
