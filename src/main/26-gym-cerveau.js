@@ -1071,24 +1071,54 @@ function renderDuelBarres(){
   const el = document.getElementById('duel-barres'); if (!el) return;
   const d = _duel;
   if (!d || (d.etat !== 'jeu' && d.etat !== 'fini')) { el.style.display = 'none'; el.innerHTML = ''; return; }
-  const total = 100 * DUEL_MANCHES;
-  const points = function(t){ return t.reduce(function(s, r){ return s + (r ? r.s : 0); }, 0); };
-  const manches = function(qui){ let n = 0; for (let m = 0; m < DUEL_MANCHES; m++) { const a = d.moi[m], b = d.lui[m]; if (a && b && _duelVainqueurManche(a, b) === qui) n++; } return n; };
-  const m = d.manche, adversaireEnAvance = d.etat === 'jeu' && m >= 0 && m < DUEL_MANCHES && d.lui[m] && !d.moi[m];
-  const ligne = function(nom, coul, pts, gagnees, note){
-    const pct = Math.round(100 * pts / total);
-    return '<div style="display:flex;align-items:center;gap:8px;margin:4px 0">'
-      + '<span style="width:60px;font-size:12px;font-weight:700;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + nom + '</span>'
-      + '<div style="flex:1;position:relative;height:16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden">'
-      + '<div class="duel-barre" style="height:100%;width:' + pct + '%;background:' + coul + ';border-radius:8px;transition:width .6s ease"></div>'
-      + (note ? '<span style="position:absolute;right:6px;top:0;line-height:16px;font-size:10px;color:#ff7a6b;font-weight:800;text-shadow:0 0 3px #000;animation:duelPression 0.8s ease-in-out infinite alternate">' + note + '</span>' : '')
-      + '</div>'
-      + '<span style="min-width:70px;text-align:right;font-size:12px;color:var(--muted)">' + pts + ' pts' + (gagnees ? ' ' + '★'.repeat(gagnees) : '') + '</span>'
-      + '</div>';
+  const p = _duelPoussee(d), cm = d.coulMoi || _duelCouleur(), ca = d.coulAdv || '#8a8a90';
+  const etoiles = function(n){ return n ? ' <span style="color:var(--gold)">' + '★'.repeat(n) + '</span>' : ''; };
+  const bille = function(coul){
+    return '<span style="display:inline-block;width:22px;height:22px;margin:0 -2px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #fff 0%, ' + coul + ' 38%, ' + coul + ' 62%, #000 130%);box-shadow:0 1px 4px rgba(0,0,0,.6), inset 0 -2px 3px rgba(0,0,0,.35)"></span>';
   };
+  let billes = '';
+  for (let k = 0; k < p.billesMoi; k++) billes += bille(cm);
+  for (let k = 0; k < p.billesAdv; k++) billes += bille(ca);
+  const repondu = '<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#3aa64a;color:#fff;font-size:11px;font-weight:900;margin-left:4px;animation:duelPression .8s ease-in-out infinite alternate" title="a déjà répondu">✓</span>';
   el.style.display = 'block';
-  el.innerHTML = ligne('Toi', d.coulMoi || _duelCouleur(), points(d.moi), manches('moi'), '')
-    + ligne(d.adv || 'Adversaire', d.coulAdv || '#8a8a90', points(d.lui), manches('lui'), adversaireEnAvance ? '⚡ a déjà répondu !' : '');
+  // on redessine a l'ancienne position puis on glisse vers la nouvelle : la poussee se voit
+  const avant = (typeof el._pct === 'number') ? el._pct : p.pct; el._pct = p.pct;
+  el.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:12px;font-weight:700;color:var(--white)">'
+    +   '<span style="display:flex;align-items:center;gap:6px;min-width:0"><span style="width:10px;height:10px;border-radius:50%;background:' + cm + '"></span>Toi' + etoiles(p.manchesMoi) + '<span style="font-size:16px;font-weight:900;margin-left:4px">' + p.ptsMoi + '</span>' + (p.moiEnAvance ? repondu : '') + '</span>'
+    +   '<span style="font-size:11px;color:var(--muted);font-weight:600">' + (d.etat === 'jeu' && d.manche >= 0 && d.manche < DUEL_MANCHES ? 'Manche ' + (d.manche + 1) + '/' + DUEL_MANCHES : 'Fin') + '</span>'
+    +   '<span style="display:flex;align-items:center;gap:6px;min-width:0;justify-content:flex-end">' + (p.advEnAvance ? repondu : '') + '<span style="font-size:16px;font-weight:900;margin-right:4px">' + p.ptsAdv + '</span>' + etoiles(p.manchesAdv) + '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90px">' + (d.adv || 'Adversaire') + '</span><span style="width:10px;height:10px;border-radius:50%;background:' + ca + '"></span></span>'
+    + '</div>'
+    // la barre face a face : ma couleur pousse depuis la gauche, la sienne depuis la droite
+    + '<div style="position:relative;height:26px;border-radius:13px;overflow:visible;background:' + ca + ';box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)">'
+    +   '<div class="duel-camp" style="position:absolute;left:0;top:0;bottom:0;width:' + avant + '%;background:' + cm + ';border-radius:13px 0 0 13px;transition:width .7s cubic-bezier(.3,1.4,.5,1)"></div>'
+    // les billes du sumito, a la ligne de front
+    +   '<div class="duel-front" style="position:absolute;top:50%;left:' + avant + '%;transform:translate(' + (-18 * p.billesMoi) + 'px,-50%);display:flex;align-items:center;white-space:nowrap;transition:left .7s cubic-bezier(.3,1.4,.5,1)">' + billes + '</div>'
+    + '</div>';
+  if (avant !== p.pct) setTimeout(function(){
+    const camp = el.querySelector('.duel-camp'), front = el.querySelector('.duel-front');
+    if (camp) camp.style.width = p.pct + '%'; if (front) front.style.left = p.pct + '%';
+  }, 40);
+}
+// le rapport de force : part de la barre, et combien de billes poussent de chaque cote
+// (1 contre 1 a egalite ; 2 contre 1 puis 3 contre 1 pour celui qui mene, comme un sumito)
+function _duelPoussee(d){
+  const pts = function(t){ return t.reduce(function(s, r){ return s + (r ? r.s : 0); }, 0); };
+  const ptsMoi = pts(d.moi), ptsAdv = pts(d.lui), tot = ptsMoi + ptsAdv;
+  const part = tot ? ptsMoi / tot : 0.5, ecart = Math.abs(part - 0.5);
+  const force = ecart < 0.08 ? 1 : (ecart < 0.25 ? 2 : 3);
+  const meneMoi = part > 0.5;
+  const manches = function(qui){ let n = 0; for (let m = 0; m < DUEL_MANCHES; m++) { const a = d.moi[m], b = d.lui[m]; if (a && b && _duelVainqueurManche(a, b) === qui) n++; } return n; };
+  const m = d.manche, enJeu = d.etat === 'jeu' && m >= 0 && m < DUEL_MANCHES;
+  return {
+    ptsMoi: ptsMoi, ptsAdv: ptsAdv,
+    pct: Math.round(Math.max(16, Math.min(84, 100 * part))),   // la ligne de front reste visible aux extremites
+    billesMoi: force === 1 ? 1 : (meneMoi ? force : 1),
+    billesAdv: force === 1 ? 1 : (meneMoi ? 1 : force),
+    manchesMoi: manches('moi'), manchesAdv: manches('lui'),
+    moiEnAvance: !!(enJeu && d.moi[m] && !d.lui[m]),
+    advEnAvance: !!(enJeu && d.lui[m] && !d.moi[m])
+  };
 }
 
 const GYM_STARTERS = {

@@ -9,6 +9,16 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.53]
+
+### Changed
+- **Brain Duel: a single face-to-face bar, like a sumito** (Brain Wars /
+  TikTok match style). Your theme colour pushes from the left, your opponent's
+  from the right; the front line follows the points ratio and slides with a
+  bounce on every answer. **Marbles at the front**: 1 vs 1 when even, then
+  2 vs 1 and 3 vs 1 for whoever leads. Scores, ★ per round won and a green ✓
+  "already answered" badge on each side. 1 test rewritten.
+
 ## [v2.52]
 
 ### Added
