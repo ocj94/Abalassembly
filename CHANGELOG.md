@@ -9,6 +9,20 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.51]
+
+### Ajouté
+- **⚔️ Duel Cerveau : des exercices de vitesse contre un ami, en direct**
+  (sur le modèle de Brain Wars). Page Gym Cerveau → *Se connecter à un ami*
+  (même code à échanger une fois que pour jouer en direct, sans compte ni
+  serveur de jeu) → *Lancer un duel*. 3 manches tirées parmi 5 exercices
+  (Acuité, Réflexe, Mat, Mémoire, Anticipation), au niveau de celui qui défie.
+  Une graine commune remplace le hasard : les deux joueurs voient exactement
+  la même position. Chaque manche : le meilleur score gagne, à égalité le plus
+  rapide ; chacun mesure son propre temps, le délai du réseau ne compte pas.
+  Tableau des manches, revanche, bilan victoires/défaites sur l'appareil ;
+  défi refusé, adversaire occupé et connexion perdue sont gérés. 3 tests.
+
 ## [v2.50]
 
 ### Ajouté

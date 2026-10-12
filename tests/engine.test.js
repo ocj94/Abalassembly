@@ -2229,3 +2229,77 @@ test('securite : le score ne compte que ce qui existe (100 points sur 3 lignes, 
   } finally { ctx.document.getElementById = sG; ctx.currentUser = sU; ctx._testEncryptionWorks = sT; }
 });
 
+
+/* ─── 48. Duel Cerveau : exercices de vitesse contre un ami, en direct ─── */
+function _duelBac(fn){
+  const els = {}, sG = ctx.document.getElementById, sT = ctx.setTimeout, sP = ctx._duelPlanifier, sC = ctx._rtcChannel, sD = ctx._duel;
+  ctx.document.getElementById = id => (els[id] = els[id] || sG.call(ctx.document, id) || { textContent: '', innerHTML: '', style: {} });
+  const sPg = ctx.showPage, sTo = ctx.showToast; ctx.showPage = () => {}; ctx.showToast = () => {};
+  ctx.setTimeout = () => 0;                                   // pas de vrais minuteurs pendant le test
+  const file = [], envoyes = [];
+  ctx._duelPlanifier = (f, ms) => { if (ms < ctx.DUEL_LIMITE_MS) file.push(f); return 0; };   // le minuteur de 30 s ne part pas
+  ctx._rtcChannel = { readyState: 'open', send: s => envoyes.push(s), close: () => {} };
+  ctx._duel = null; ctx.localStorage.removeItem('abaDuelsCerveau');
+  const vider = () => { while (file.length) file.shift()(); };
+  try { return fn({ els, envoyes, vider }); }
+  finally { ctx.document.getElementById = sG; ctx.showPage = sPg; ctx.showToast = sTo; ctx.setTimeout = sT; ctx._duelPlanifier = sP; ctx._rtcChannel = sC; ctx._duel = sD; }
+}
+
+test('duel cerveau : la graine commune donne exactement le meme exercice aux deux joueurs', () => _duelBac(({ els }) => {
+  const a = ctx._duelAlea(42), b = ctx._duelAlea(42);
+  for (let i = 0; i < 5; i++) assert.strictEqual(a(), b());
+  ctx.DUEL_EXERCICES.forEach(id => {
+    ctx._duelLancerExercice(id, 123456); const p1 = els['gym-exercise-board'].innerHTML;
+    ctx._duelLancerExercice(id, 123456); const p2 = els['gym-exercise-board'].innerHTML;
+    assert.ok(p1.length > 100, id + ' : plateau dessine'); assert.strictEqual(p1, p2, id + ' : meme graine, meme position');
+  });
+  const r = Math.random; ctx._duelLancerExercice('acuity', 1); assert.strictEqual(Math.random, r, 'le vrai hasard est rendu');
+}));
+
+test('duel cerveau : defi, acceptation, 3 manches, score puis vitesse, bilan enregistre', () => _duelBac(({ els, envoyes, vider }) => {
+  ctx._rtcHandleMessage('DUEL:defi:' + JSON.stringify({ graine: 99, ex: ['acuity', 'reflex', 'mat'], lvl: 3, nom: 'Laurent' }));
+  assert.strictEqual(ctx._duel.etat, 'invite'); assert.match(els['duel-cerveau'].innerHTML, /Laurent te défie/);
+  ctx.accepterDuelCerveau(true);
+  assert.match(envoyes.pop(), /^DUEL:ok:/);
+  vider();                                                   // decompte -> manche 1 lancee
+  assert.strictEqual(ctx._duel.encours, 0); assert.strictEqual(ctx._gymLevel !== undefined, true);
+  // manche 1 : 100 pour moi, 0 pour lui
+  ctx.gymFinish('acuity', 100, 'trouvée');
+  const res = JSON.parse(envoyes.pop().slice('DUEL:res:'.length)); assert.strictEqual(res.m, 0); assert.strictEqual(res.s, 100);
+  ctx.gymFinish('acuity', 0, 'temps écoulé');                // l'ancien minuteur ne recompte pas la manche
+  assert.strictEqual(ctx._duel.moi[0].s, 100);
+  ctx._rtcHandleMessage('DUEL:res:' + JSON.stringify({ m: 0, s: 0, ms: 900 }));
+  assert.match(els['duel-cerveau'].innerHTML, /Manche gagnée/);
+  vider();
+  // manche 2 : egalite de score, il est plus rapide
+  ctx.gymFinish('reflex', 100, 'ok'); ctx._duel.moi[1].ms = 2500;
+  ctx._rtcHandleMessage('DUEL:res:' + JSON.stringify({ m: 1, s: 100, ms: 1200 }));
+  assert.match(els['duel-cerveau'].innerHTML, /Manche perdue/);
+  vider();
+  // manche 3 : son resultat arrive AVANT ma reponse
+  ctx._rtcHandleMessage('DUEL:res:' + JSON.stringify({ m: 2, s: 0, ms: 30000 }));
+  ctx.gymFinish('mat', 100, 'ok');
+  vider();
+  assert.strictEqual(ctx._duel.etat, 'fini');
+  assert.match(els['duel-cerveau'].innerHTML, /Duel gagné/); assert.match(els['duel-cerveau'].innerHTML, /Revanche/);
+  assert.strictEqual(JSON.parse(ctx.localStorage.getItem('abaDuelsCerveau')).g, 1);
+}));
+
+test('duel cerveau : celui qui defie tire 3 exercices distincts ; refus, occupation et deconnexion geres', () => _duelBac(({ els, envoyes }) => {
+  assert.strictEqual(ctx.lancerDuelCerveau(), true);
+  const d = JSON.parse(envoyes.pop().slice('DUEL:defi:'.length));
+  assert.strictEqual(d.ex.length, 3); assert.strictEqual(new Set(d.ex).size, 3);
+  d.ex.forEach(e => assert.ok(ctx.DUEL_EXERCICES.includes(e)));
+  assert.strictEqual(ctx.lancerDuelCerveau(), false, 'pas deux duels a la fois');
+  ctx._rtcHandleMessage('DUEL:defi:' + JSON.stringify(d));   // defi croise pendant l'attente
+  assert.match(envoyes.pop(), /^DUEL:occupe:/);
+  ctx._rtcHandleMessage('DUEL:refus:{}');
+  assert.strictEqual(ctx._duel, null); assert.match(els['duel-cerveau'].innerHTML, /Défi refusé/);
+  ctx.lancerDuelCerveau(); ctx._rtcHandleMessage('DUEL:ok:{"nom":"Saab"}');
+  assert.strictEqual(ctx._duel.etat, 'jeu'); assert.strictEqual(ctx._duel.adv, 'Saab');
+  ctx._duelSurDeconnexion();
+  assert.strictEqual(ctx._duel, null); assert.match(els['duel-cerveau'].innerHTML, /Connexion perdue/);
+  ctx._rtcChannel = null; assert.strictEqual(ctx.lancerDuelCerveau(), false, 'sans connexion, pas de duel');
+  ctx._rtcHandleMessage('DUEL:defi:{"graine":1,"ex":["acuity","acuity","pirate"]}');
+  assert.strictEqual(ctx._duel, null, 'defi mal forme ignore');
+}));

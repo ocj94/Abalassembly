@@ -3909,7 +3909,7 @@
 <li><b>Problèmes</b> : des positions à résoudre, tirées de vraies parties.</li>
 <li><b>Ouvertures</b> : les débuts de partie, avec leurs taux de gain réels.</li>
 <li><b>Analyse</b> et <b>Mes statistiques</b> : ta progression, ton classement, ton style.</li>
-<li><b>Gym Cerveau</b> : des exercices courts de vision du jeu.</li>
+<li><b>Gym Cerveau</b> : des exercices courts de vision du jeu. <b>⚔️ Duel Cerveau</b> : relie-toi à un ami (<i>Se connecter à un ami</i>, même code que pour jouer en direct), puis <i>Lancer un duel</i> — 3 manches de vitesse, la même position pour vous deux ; le meilleur score gagne la manche, à égalité le plus rapide.</li>
 <li><b>Formation Formateurs</b> : pour animer des ateliers.</li>
 </ul>
 </div></details>
@@ -4332,6 +4332,7 @@
     <div id="gym-weakness-banner" style="display:none;padding:12px 16px;background:rgba(90,180,140,0.08);border:1px solid rgba(90,180,140,0.25);border-radius:8px;font-size:12px;color:var(--text);margin-top:10px;max-width:640px"></div>
   </div>
 
+  <div id="duel-cerveau" style="margin:0 60px 20px;max-width:1200px;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:16px 20px"></div>
   <div class="gym-layout" style="padding:0 60px 80px;display:grid;grid-template-columns:1fr 360px;gap:24px;max-width:1200px">
     <div id="gym-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;align-content:start"></div>
 

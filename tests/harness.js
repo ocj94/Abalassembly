@@ -139,6 +139,11 @@ const PASSERELLE = `
   if (typeof _rtcChannel !== 'undefined') relier('_rtcChannel', function(){return _rtcChannel;}, function(v){_rtcChannel=v;});
   if (typeof _nulleRefuseeAuCoup !== 'undefined') relier('_nulleRefuseeAuCoup', function(){return _nulleRefuseeAuCoup;}, function(v){_nulleRefuseeAuCoup=v;});
   if (typeof variantMode !== 'undefined') relier('variantMode', function(){return variantMode;}, function(v){variantMode=v;});
+  if (typeof _duel !== 'undefined') relier('_duel', function(){return _duel;}, function(v){_duel=v;});
+  if (typeof _duelPlanifier !== 'undefined') relier('_duelPlanifier', function(){return _duelPlanifier;}, function(v){_duelPlanifier=v;});
+  if (typeof _gymLevel !== 'undefined') relier('_gymLevel', function(){return _gymLevel;}, function(v){_gymLevel=v;});
+  if (typeof DUEL_EXERCICES !== 'undefined') relier('DUEL_EXERCICES', function(){return DUEL_EXERCICES;});
+  if (typeof DUEL_LIMITE_MS !== 'undefined') relier('DUEL_LIMITE_MS', function(){return DUEL_LIMITE_MS;});
   if (typeof botDuelMode !== 'undefined') relier('botDuelMode', function(){return botDuelMode;}, function(v){botDuelMode=v;});
   if (typeof currentLayout !== 'undefined') relier('currentLayout', function(){return currentLayout;}, function(v){currentLayout=v;});
   if (typeof kidsMode !== 'undefined') relier('kidsMode', function(){return kidsMode;}, function(v){kidsMode=v;});

@@ -283,6 +283,7 @@ function startGymExercise(id){
 function renderGymCerveau(){
   const grid = document.getElementById('gym-grid');
   if (!grid) return;
+  if (typeof renderDuelCerveau === 'function' && !(_duel && _duel.etat === 'jeu')) renderDuelCerveau();
   const progress = _loadGymProgress();
   grid.innerHTML = GYM_ZONES.map(function(z){
     const stat = progress[z.id];

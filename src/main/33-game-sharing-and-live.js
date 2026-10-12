@@ -306,6 +306,7 @@ function _rtcSetupChannelHandlers(ch){
   ch.onopen = function(){
     _rtcUpdateStatus('🟢 Connecté' + (_rtcOpponentName ? (' à ' + _rtcOpponentName) : '') + ' — coups en temps réel');
     if (typeof showToast === 'function') showToast('🟢 Connexion en direct établie');
+    if (typeof renderDuelCerveau === 'function') renderDuelCerveau();
   };
   ch.onclose = function(){ _rtcOnDisconnect(); };
   ch.onerror = function(){ _rtcOnDisconnect(); };
@@ -350,6 +351,7 @@ function _rtcOnDisconnect(){
 }
 function rtcClose(){
   if (_rtcChannel) { try { _rtcChannel.close(); } catch(e){} _rtcChannel = null; }
+  if (typeof _duelSurDeconnexion === 'function') _duelSurDeconnexion();
   if (_rtcPeer) { try { _rtcPeer.close(); } catch(e){} _rtcPeer = null; }
   _rtcRole = null;
 }
@@ -414,6 +416,7 @@ function rtcSendMove(cells, dir){
    silencieusement plutot que d'accepter une position corrompue. */
 function _rtcHandleMessage(data){
   if (typeof data === 'string' && data.indexOf('NULLE:') === 0) { _rtcMessageNulle(data); return; }
+  if (typeof data === 'string' && data.indexOf('DUEL:') === 0) { if (typeof _duelMessage === 'function') _duelMessage(data); return; }
   const decoded = rtcDecodeMove(data);
   if (!decoded) return;
   const color = CurrentTurn.get();
