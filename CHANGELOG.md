@@ -9,6 +9,17 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.52]
+
+### Ajouté
+- **Duel Cerveau : barres de progression des deux joueurs**, juste au-dessus
+  de l'exercice, chacune **de la couleur du thème de plateau de son joueur**
+  (la couleur part avec le défi et l'acceptation). Elles montent dès qu'une
+  réponse arrive : si ton adversaire a répondu avant toi, sa barre grimpe et
+  « ⚡ a déjà répondu ! » clignote dans la sienne, pour la pression. Points
+  cumulés et ★ par manche gagnée. Couleur reçue vérifiée (format #rrggbb
+  seulement). 1 test.
+
 ## [v2.51]
 
 ### Ajouté

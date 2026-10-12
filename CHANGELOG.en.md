@@ -9,6 +9,15 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.52]
+
+### Added
+- **Brain Duel: progress bars for both players**, right above the exercise,
+  each **in its player's board-theme colour** (sent with the challenge and the
+  acceptance). They rise as soon as an answer arrives: if your opponent answered
+  first, their bar jumps and "⚡ already answered!" blinks inside it. Cumulative
+  points and ★ per round won. Received colour validated (#rrggbb only). 1 test.
+
 ## [v2.51]
 
 ### Added
