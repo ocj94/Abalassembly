@@ -6299,7 +6299,7 @@ document.addEventListener('keydown', function(e){
 <li><b>Problèmes</b> : des positions à résoudre, tirées de vraies parties.</li>
 <li><b>Ouvertures</b> : les débuts de partie, avec leurs taux de gain réels.</li>
 <li><b>Analyse</b> et <b>Mes statistiques</b> : ta progression, ton classement, ton style.</li>
-<li><b>Gym Cerveau</b> : des exercices courts de vision du jeu. <b>⚔️ Duel Cerveau</b> : relie-toi à un ami (<i>Se connecter à un ami</i>, même code que pour jouer en direct), puis <i>Lancer un duel</i> — 3 manches de vitesse, la même position pour vous deux ; le meilleur score gagne la manche, à égalité le plus rapide.</li>
+<li><b>Gym Cerveau</b> : des exercices courts de vision du jeu. <b>⚔️ Duel Cerveau</b> : relie-toi à un ami (<i>Se connecter à un ami</i>, même code que pour jouer en direct), puis <i>Lancer un duel</i> — 3 manches de vitesse, la même position pour vous deux ; le meilleur score gagne la manche, à égalité le plus rapide. Deux barres, aux couleurs du thème de chacun, montrent où vous en êtes ; « ⚡ a déjà répondu ! » veut dire que ton adversaire a fini avant toi.</li>
 <li><b>Formation Formateurs</b> : pour animer des ateliers.</li>
 </ul>
 </div></details>
@@ -6737,6 +6737,8 @@ document.addEventListener('keydown', function(e){
         <button type="button" class="gym-level-btn" data-level="3" onclick="gymSetLevel(3)" style="flex:1;font-size:11px;padding:6px 0;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:6px;cursor:pointer">Difficile</button>
         <button type="button" class="gym-level-btn" data-level="4" onclick="gymSetLevel(4)" style="flex:1;font-size:11px;padding:6px 0;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:6px;cursor:pointer">Expert</button>
       </div>
+      <style>@keyframes duelPression { from { opacity: .45; } to { opacity: 1; } }</style>
+      <div id="duel-barres" style="display:none;margin-bottom:12px;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:10px"></div>
       <div id="gym-exercise-board" style="min-height:180px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px">Choisis une zone ci-dessus pour commencer.</div>
       <div id="gym-exercise-hint" style="font-size:12px;color:var(--muted);margin-top:12px;min-height:16px"></div>
       <button id="gym-exercise-submit" class="btn" style="display:none;margin-top:12px;width:100%">Valider</button>
@@ -7510,7 +7512,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.51';
+const APP_VERSION = 'v2.52';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -31194,6 +31196,12 @@ function _duelEnvoyer(type, donnees){
   return true;
 }
 function _duelConnecte(){ return typeof _rtcChannel !== 'undefined' && !!_rtcChannel && _rtcChannel.readyState === 'open'; }
+// couleur du theme de plateau choisi par le joueur (envoyee a l'adversaire pour sa barre)
+function _duelCouleur(){
+  try { const t = resolveThemeColors(boardTheme.theme, boardTheme.night); if (t && t.surf && t.surf[0]) return t.surf[0]; } catch (e) {}
+  return '#c9a24a';
+}
+function _duelCouleurSure(x, defaut){ return (typeof x === 'string' && /^#[0-9a-f]{3,8}$/i.test(x)) ? x : defaut; }
 function _duelNom(){ return (typeof currentUser !== 'undefined' && currentUser && currentUser.username) ? String(currentUser.username).slice(0, 24) : 'Adversaire'; }
 // vainqueur d'une manche : 'moi', 'lui' ou 'nul'
 function _duelVainqueurManche(a, b){
@@ -31219,14 +31227,16 @@ function lancerDuelCerveau(){
   const graine = (Math.random() * 4294967296) >>> 0, r = _duelAlea(graine ^ 0x9E3779B9), pool = DUEL_EXERCICES.slice(), ex = [];
   for (let i = 0; i < DUEL_MANCHES; i++) ex.push(pool.splice(Math.floor(r() * pool.length), 1)[0]);
   _duel = { role: 'defi', graine: graine, ex: ex, lvl: (typeof _gymLevel !== 'undefined' ? _gymLevel : 2), manche: -1, moi: [], lui: [], etat: 'attente', adv: '' };
-  _duelEnvoyer('defi', { graine: graine, ex: ex, lvl: _duel.lvl, nom: _duelNom() });
+  _duel.coulMoi = _duelCouleur();
+  _duelEnvoyer('defi', { graine: graine, ex: ex, lvl: _duel.lvl, nom: _duelNom(), coul: _duel.coulMoi });
   renderDuelCerveau('Défi envoyé : en attente de la réponse de ton adversaire…');
   return true;
 }
 function accepterDuelCerveau(ok){
   if (!_duel || _duel.etat !== 'invite') return;
   if (!ok) { _duelEnvoyer('refus', {}); _duel = null; renderDuelCerveau('Défi refusé.'); return; }
-  _duelEnvoyer('ok', { nom: _duelNom() });
+  _duel.coulMoi = _duelCouleur();
+  _duelEnvoyer('ok', { nom: _duelNom(), coul: _duel.coulMoi });
   _duelDemarrer();
 }
 function _duelDemarrer(){
@@ -31263,7 +31273,8 @@ function _duelSurFin(exerciseId, scorePct){
   return true;
 }
 function _duelVerifierManche(m){
-  const d = _duel; if (!d || !d.moi[m]) return;
+  const d = _duel; if (!d) return;
+  if (!d.moi[m]) { renderDuelBarres(); return; }   // il a repondu avant moi : sa barre monte tout de suite
   if (!d.lui[m]) { renderDuelCerveau('Réponse envoyée — en attente de ton adversaire…'); return; }
   const w = _duelVainqueurManche(d.moi[m], d.lui[m]);
   renderDuelCerveau(w === 'moi' ? '✅ Manche gagnée !' : (w === 'lui' ? '❌ Manche perdue' : '🤝 Manche nulle'));
@@ -31288,12 +31299,12 @@ function _duelMessage(data){
     if (_duel && _duel.etat !== 'fini') { _duelEnvoyer('occupe', {}); return; }
     const ex = Array.isArray(x.ex) ? x.ex.filter(function(e){ return DUEL_EXERCICES.indexOf(e) >= 0; }) : [];
     if (ex.length !== DUEL_MANCHES || typeof x.graine !== 'number') return;
-    _duel = { role: 'invite', graine: x.graine >>> 0, ex: ex, lvl: Math.min(4, Math.max(1, x.lvl | 0 || 2)), manche: -1, moi: [], lui: [], etat: 'invite', adv: String(x.nom || 'Adversaire').slice(0, 24) };
+    _duel = { role: 'invite', graine: x.graine >>> 0, ex: ex, lvl: Math.min(4, Math.max(1, x.lvl | 0 || 2)), manche: -1, moi: [], lui: [], etat: 'invite', adv: String(x.nom || 'Adversaire').slice(0, 24), coulAdv: _duelCouleurSure(x.coul, '#8a8a90') };
     if (typeof showPage === 'function') showPage('gym');
     renderDuelCerveau();
     if (typeof showToast === 'function') showToast('⚔️ ' + _duel.adv + ' te défie au Duel Cerveau !');
   } else if (type === 'ok' && _duel && _duel.etat === 'attente') {
-    _duel.adv = String(x.nom || 'Adversaire').slice(0, 24); _duelDemarrer();
+    _duel.adv = String(x.nom || 'Adversaire').slice(0, 24); _duel.coulAdv = _duelCouleurSure(x.coul, '#8a8a90'); _duelDemarrer();
   } else if ((type === 'refus' || type === 'occupe') && _duel && _duel.etat === 'attente') {
     _duel = null; renderDuelCerveau(type === 'refus' ? 'Défi refusé par ton adversaire.' : 'Ton adversaire est déjà en duel.');
   } else if (type === 'res' && _duel && _duel.etat === 'jeu') {
@@ -31334,6 +31345,32 @@ function renderDuelCerveau(msg){
   }
   if (msg) html += '<div style="margin-top:8px;font-size:13px;color:var(--gold);font-weight:600">' + msg + '</div>';
   h.innerHTML = html;
+  renderDuelBarres();
+}
+// barres de progression des deux joueurs, juste au-dessus du plateau de l'exercice,
+// chacune de la couleur du theme de son joueur : elles montent des que la reponse arrive
+function renderDuelBarres(){
+  const el = document.getElementById('duel-barres'); if (!el) return;
+  const d = _duel;
+  if (!d || (d.etat !== 'jeu' && d.etat !== 'fini')) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  const total = 100 * DUEL_MANCHES;
+  const points = function(t){ return t.reduce(function(s, r){ return s + (r ? r.s : 0); }, 0); };
+  const manches = function(qui){ let n = 0; for (let m = 0; m < DUEL_MANCHES; m++) { const a = d.moi[m], b = d.lui[m]; if (a && b && _duelVainqueurManche(a, b) === qui) n++; } return n; };
+  const m = d.manche, adversaireEnAvance = d.etat === 'jeu' && m >= 0 && m < DUEL_MANCHES && d.lui[m] && !d.moi[m];
+  const ligne = function(nom, coul, pts, gagnees, note){
+    const pct = Math.round(100 * pts / total);
+    return '<div style="display:flex;align-items:center;gap:8px;margin:4px 0">'
+      + '<span style="width:60px;font-size:12px;font-weight:700;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + nom + '</span>'
+      + '<div style="flex:1;position:relative;height:16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden">'
+      + '<div class="duel-barre" style="height:100%;width:' + pct + '%;background:' + coul + ';border-radius:8px;transition:width .6s ease"></div>'
+      + (note ? '<span style="position:absolute;right:6px;top:0;line-height:16px;font-size:10px;color:#ff7a6b;font-weight:800;text-shadow:0 0 3px #000;animation:duelPression 0.8s ease-in-out infinite alternate">' + note + '</span>' : '')
+      + '</div>'
+      + '<span style="min-width:70px;text-align:right;font-size:12px;color:var(--muted)">' + pts + ' pts' + (gagnees ? ' ' + '★'.repeat(gagnees) : '') + '</span>'
+      + '</div>';
+  };
+  el.style.display = 'block';
+  el.innerHTML = ligne('Toi', d.coulMoi || _duelCouleur(), points(d.moi), manches('moi'), '')
+    + ligne(d.adv || 'Adversaire', d.coulAdv || '#8a8a90', points(d.lui), manches('lui'), adversaireEnAvance ? '⚡ a déjà répondu !' : '');
 }
 
 const GYM_STARTERS = {

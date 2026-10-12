@@ -3909,7 +3909,7 @@
 <li><b>Problèmes</b> : des positions à résoudre, tirées de vraies parties.</li>
 <li><b>Ouvertures</b> : les débuts de partie, avec leurs taux de gain réels.</li>
 <li><b>Analyse</b> et <b>Mes statistiques</b> : ta progression, ton classement, ton style.</li>
-<li><b>Gym Cerveau</b> : des exercices courts de vision du jeu. <b>⚔️ Duel Cerveau</b> : relie-toi à un ami (<i>Se connecter à un ami</i>, même code que pour jouer en direct), puis <i>Lancer un duel</i> — 3 manches de vitesse, la même position pour vous deux ; le meilleur score gagne la manche, à égalité le plus rapide.</li>
+<li><b>Gym Cerveau</b> : des exercices courts de vision du jeu. <b>⚔️ Duel Cerveau</b> : relie-toi à un ami (<i>Se connecter à un ami</i>, même code que pour jouer en direct), puis <i>Lancer un duel</i> — 3 manches de vitesse, la même position pour vous deux ; le meilleur score gagne la manche, à égalité le plus rapide. Deux barres, aux couleurs du thème de chacun, montrent où vous en êtes ; « ⚡ a déjà répondu ! » veut dire que ton adversaire a fini avant toi.</li>
 <li><b>Formation Formateurs</b> : pour animer des ateliers.</li>
 </ul>
 </div></details>
@@ -4347,6 +4347,8 @@
         <button type="button" class="gym-level-btn" data-level="3" onclick="gymSetLevel(3)" style="flex:1;font-size:11px;padding:6px 0;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:6px;cursor:pointer">Difficile</button>
         <button type="button" class="gym-level-btn" data-level="4" onclick="gymSetLevel(4)" style="flex:1;font-size:11px;padding:6px 0;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:6px;cursor:pointer">Expert</button>
       </div>
+      <style>@keyframes duelPression { from { opacity: .45; } to { opacity: 1; } }</style>
+      <div id="duel-barres" style="display:none;margin-bottom:12px;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:10px"></div>
       <div id="gym-exercise-board" style="min-height:180px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px">Choisis une zone ci-dessus pour commencer.</div>
       <div id="gym-exercise-hint" style="font-size:12px;color:var(--muted);margin-top:12px;min-height:16px"></div>
       <button id="gym-exercise-submit" class="btn" style="display:none;margin-top:12px;width:100%">Valider</button>
