@@ -9,6 +9,17 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.53]
+
+### Modifié
+- **Duel Cerveau : une seule barre, face à face, comme un sumito** (à la
+  Brain Wars / match TikTok). Ta couleur de thème pousse depuis la gauche,
+  celle de l'adversaire depuis la droite ; la ligne de front suit le rapport
+  des points et glisse avec un rebond à chaque réponse. **Au front, des
+  billes** de chaque couleur : 1 contre 1 à égalité, 2 contre 1 puis 3 contre
+  1 pour celui qui mène. Scores, ★ des manches gagnées et pastille verte ✓
+  « a déjà répondu » au-dessus, de chaque côté. 1 test réécrit.
+
 ## [v2.52]
 
 ### Ajouté

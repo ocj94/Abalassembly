@@ -2304,23 +2304,27 @@ test('duel cerveau : celui qui defie tire 3 exercices distincts ; refus, occupat
   assert.strictEqual(ctx._duel, null, 'defi mal forme ignore');
 }));
 
-test('duel cerveau : barres de progression aux couleurs du theme de chacun, et « a déjà répondu » pour la pression', () => _duelBac(({ els, envoyes, vider }) => {
+test('duel cerveau : barre face a face aux couleurs du theme de chacun, billes du sumito au front, « a déjà répondu »', () => _duelBac(({ els, envoyes, vider }) => {
   ctx._rtcHandleMessage('DUEL:defi:' + JSON.stringify({ graine: 5, ex: ['acuity', 'reflex', 'mat'], lvl: 2, nom: 'Saab', coul: '#5a8aa8' }));
   ctx.accepterDuelCerveau(true);
   const ok = JSON.parse(envoyes.pop().slice('DUEL:ok:'.length));
   assert.match(ok.coul, /^#[0-9a-f]{3,8}$/i, 'ma couleur de theme part avec l’acceptation');
   vider();
-  const b = () => els['duel-barres'];
+  const b = () => els['duel-barres'], P = () => ctx._duelPoussee(ctx._duel);
   assert.strictEqual(b().style.display, 'block');
-  assert.match(b().innerHTML, /background:#5a8aa8/, 'barre de l’adversaire a la couleur de SON theme');
-  assert.match(b().innerHTML, new RegExp('background:' + ok.coul), 'ma barre a la couleur de mon theme');
-  assert.match(b().innerHTML, /width:0%/);
+  assert.match(b().innerHTML, /background:#5a8aa8/, 'son camp a la couleur de SON theme');
+  assert.match(b().innerHTML, new RegExp('background:' + ok.coul), 'mon camp a la couleur de mon theme');
+  assert.deepStrictEqual([P().pct, P().billesMoi, P().billesAdv], [50, 1, 1], '0 a 0 : front au milieu, 1 bille contre 1');
   ctx._rtcHandleMessage('DUEL:res:' + JSON.stringify({ m: 0, s: 100, ms: 800 }));
-  assert.match(b().innerHTML, /a déjà répondu/, 'il a repondu avant moi : pression');
-  assert.match(b().innerHTML, /width:33%/);
-  ctx.gymFinish('acuity', 100, 'ok');
+  assert.match(b().innerHTML, /title="a déjà répondu"/, 'il a repondu avant moi : pression');
+  assert.ok(P().advEnAvance && !P().moiEnAvance);
+  assert.deepStrictEqual([P().pct, P().billesMoi, P().billesAdv], [16, 1, 3], 'il mene largement : 3 billes contre 1, front pres de mon bord');
+  ctx.gymFinish('acuity', 60, 'ok');
   assert.doesNotMatch(b().innerHTML, /a déjà répondu/);
-  ctx._rtcHandleMessage('DUEL:defi:' + JSON.stringify({ graine: 5, ex: ['acuity', 'reflex', 'mat'], coul: 'red;x:url(y)' }));   // ignore (occupe)
+  assert.deepStrictEqual([P().pct, P().billesMoi, P().billesAdv], [38, 1, 2], '60 contre 100 : 2 billes contre 1');
+  vider(); ctx.gymFinish('reflex', 100, 'ok'); ctx._rtcHandleMessage('DUEL:res:' + JSON.stringify({ m: 1, s: 0, ms: 900 }));
+  assert.deepStrictEqual([P().pct, P().billesMoi, P().billesAdv], [62, 2, 1], '160 contre 100 : je pousse a 2 contre 1');
+  assert.ok(P().pct >= 16 && P().pct <= 84);
   ctx._duel = null; ctx._rtcHandleMessage('DUEL:defi:' + JSON.stringify({ graine: 5, ex: ['acuity', 'reflex', 'mat'], coul: 'red;background:url(x)' }));
   assert.strictEqual(ctx._duel.coulAdv, '#8a8a90', 'couleur non conforme remplacee');
 }));
