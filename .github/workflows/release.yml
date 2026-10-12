@@ -1,0 +1,50 @@
+name: Releases
+
+# Crée automatiquement la release GitHub de chaque version publiée.
+# Source de vérité : les sections « ## [vX.YY] » de CHANGELOG.md.
+# Pour chaque version récente qui n'a pas encore de release, on retrouve le
+# commit qui a posé APP_VERSION = 'vX.YY', on pose l'étiquette dessus et on
+# publie la release avec le texte du journal. Une release déjà existante n'est
+# jamais modifiée : relancer ce flux ne change rien.
+
+on:
+  push:
+    branches: [main]
+    paths: ['CHANGELOG.md', '.github/workflows/release.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  releases:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # nécessaire pour créer étiquettes et releases
+    steps:
+      - name: Récupérer le dépôt (historique complet)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+        with:
+          fetch-depth: 0
+
+      - name: Créer les releases manquantes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # les 5 versions les plus récentes du journal
+          for v in $(grep -oE '^## \[v[0-9]+\.[0-9]+\]' CHANGELOG.md | head -5 | grep -oE 'v[0-9]+\.[0-9]+'); do
+            if gh release view "$v" >/dev/null 2>&1; then echo "$v : release déjà publiée"; continue; fi
+            sha=$(git log --format=%H --reverse -S"APP_VERSION = '$v'" -- src/main/00-bootstrap-engagement.js | head -1)
+            if [ -z "$sha" ]; then echo "$v : commit introuvable, ignoré"; continue; fi
+            sujet=$(git log -1 --format=%s "$sha" | sed -E 's/^v[0-9.]+ *: *//')
+            # texte de la section du journal, jusqu'à la version suivante
+            awk -v v="$v" '
+              $0 ~ "^## \\[" v "\\]" {on=1; next}
+              on && /^## \[/ {exit}
+              on {print}
+            ' CHANGELOG.md > notes.md
+            printf '\n---\n🇫🇷 [Journal complet](https://github.com/%s/blob/main/CHANGELOG.md) · 🇬🇧 [English changelog](https://github.com/%s/blob/main/CHANGELOG.en.md) · 🎮 [Jouer](https://ocj94.github.io/Abalassembly/)\n' "$GITHUB_REPOSITORY" "$GITHUB_REPOSITORY" >> notes.md
+            gh release create "$v" --target "$sha" --title "$v — $sujet" --notes-file notes.md
+            echo "$v : release créée sur $sha"
+          done
