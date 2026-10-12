@@ -693,24 +693,24 @@ test('equipes : triees par membres, 8 au plus ; reseau coupe -> null sans except
 
 /* ─── 18. Stats du corpus : le tournoi PlayStrategy compte, toutes parties ─── */
 
-test('corpus : MIGS + AbalOnline + 93 parties du tournoi + 6 de reference = 4 578', async () => {
+test('corpus : MIGS + AbalOnline + 93 parties du tournoi + 7 de reference = 4 579', async () => {
   assert.ok(await ctx.ensureGameBanks());
   const s = await ctx.computeCorpusStats(() => {});
   assert.strictEqual(s.nMigs, 2589); assert.strictEqual(s.nAo, 1890);
   assert.strictEqual(s.nPs, 93); assert.strictEqual(s.nPsSansCoup, 3);
-  assert.strictEqual(s.totalGames, 4578);
+  assert.strictEqual(s.totalGames, 4579);
   // la duree ne compte que les parties jouees : pas de partie "a 0 coup"
-  assert.strictEqual(s.nLens, 2589 + 90 + 6);
+  assert.strictEqual(s.nLens, 2589 + 90 + 7);
   assert.ok(s.lenMin > 0);
   const bel = s.topVariants.find(v => v[0] === 'belgian');
-  assert.ok(bel && bel[1] === 97, 'Belgian Daisy : les 93 parties du tournoi + les 4 parties KAAH');
+  assert.ok(bel && bel[1] === 98, 'Belgian Daisy : les 93 parties du tournoi + les 5 parties KAAH');
 });
 
 test("corpus : les parties importees a la volee n'y entrent pas (meme corpus pour tous)", async () => {
   ctx.PS_GAMES.push(['vol00001', '2026-09-01', 'X', 'Y', 'X gagne', 'a1b2 i5h5']);
   const s = await ctx.computeCorpusStats(() => {});
   ctx.PS_GAMES.pop();
-  assert.strictEqual(s.totalGames, 4578);
+  assert.strictEqual(s.totalGames, 4579);
 });
 
 test('bibliotheque : une partie sans coup est annoncee, jamais chargee comme une partie jouee', () => {
@@ -767,7 +767,7 @@ test('bibliotheque : la partie Pyramide s ouvre et se rejoue jusqu au dernier co
   assert.strictEqual(ctx.CapturedByWhite.get(), 3);
 });
 
-test('bibliotheque : listee avec sa source, filtrable, et en-tete calcule (4 485 parties, 21 variantes)', async () => {
+test('bibliotheque : listee avec sa source, filtrable, et en-tete calcule (4 486 parties, 21 variantes)', async () => {
   assert.ok(await ctx.ensureGameBanks());
   const els = {}, opts = [{ value: '' }];
   const origine = ctx.document.getElementById, origineCreate = ctx.document.createElement;
@@ -782,7 +782,7 @@ test('bibliotheque : listee avec sa source, filtrable, et en-tete calcule (4 485
   assert.match(els['migs-list'].innerHTML, /onlineabalone\.wordpress\.com/, 'la source est indiquee');
   assert.doesNotMatch(els['migs-list'].innerHTML, /loadAOGame|loadMigsGame/, 'jamais presentee comme AbalOnline ou MIGS');
   assert.ok(opts.some(o => o.value === 'pyramide'));
-  assert.match(els['migs-entete'].textContent, /^4\u202f?485 parties · 21 variantes/);
+  assert.match(els['migs-entete'].textContent, /^4\u202f?486 parties · 21 variantes/);
 });
 
 /* ─── 21. Marguerite francaise : variante desequilibree ─── */
@@ -2149,5 +2149,83 @@ test('test au Labo : couleurs et roles alternes sur la meme ouverture, resultats
     assert.strictEqual(s.fini, 'plus fort');
     assert.ok(s.n >= 16 && s.n % 4 === 0, 'verdict apres 16 parties au moins, en fin de cycle (' + s.n + ')');
   } finally { ctx._testKaahEnCours = false; ctx.Worker = sW; ctx.URL = sU; ctx.Blob = sB; ctx.renderTestKaah = sR; ctx._testKaahPlanifier = sT; ctx.localStorage.removeItem('abaTestKaah'); }
+});
+
+/* ─── 45. Cinquieme partie KAAH (08/10/2026) ─── */
+test('KAAH 08/10/2026 : se rejoue en entier (172 demi-coups), Blancs 6 a 2, codes apres le 1er coup et en fin = ceux de KAAH', () => {
+  ['drawBoard','updateStatus','showToast','rebuildMoveListLabels','loadSnapshot','closeMigsBrowser','resetGutterPositions','showPage'].forEach(n => { ctx[n] = () => {}; });
+  const i = ctx.PARTIES_REFERENCE.findIndex(g => /KAAH/.test(g[5]) && g[0] === '2026-10-08');
+  assert.ok(i >= 0);
+  ctx.loadRefGame(i);
+  assert.strictEqual(ctx.boardSnapshots.length, 172);
+  assert.strictEqual(ctx.CapturedByWhite.get(), 6); assert.strictEqual(ctx.CapturedByBlack.get(), 2);
+  const code = s => ctx.codePosition(s.board, s.capturedByWhite, s.capturedByBlack);
+  assert.strictEqual(code(ctx.boardSnapshots[0]), '0a2b123c23d4g78h789i89_0a45b456c56g45h456i56');
+  assert.strictEqual(code(ctx.boardSnapshots[171]), '6a5b3c67d678h7_2a1b24c125d345e467');
+});
+
+/* ─── 46. Page Aide : comment utiliser le site ─── */
+test('aide : chaque libelle cite existe vraiment ailleurs dans le site (aucun bouton invente)', () => {
+  const src = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
+  const i = src.indexOf('<div class="page" id="page-aide">'), j = src.indexOf('<div class="page" id="page-mentions">');
+  assert.ok(i > 0 && j > i);
+  const hors = src.slice(0, i) + src.slice(j), aide = src.slice(i, j);
+  const cites = ['Configurer avant de jouer', 'Disposition de départ', 'Qui commence ?', 'Réflexion max (s)', 'Personnaliser…', 'Commencer la partie',
+    '↩️ Annuler le dernier coup', '💡 Suggérer un coup', '🧠 Pourquoi ce coup ?', '🤝 Proposer nulle', 'Abandonner', '🔄 Inverser', 'Permutations',
+    '▸ Réflexion de l’IA', '🔍 Analyser la partie', '⚠️ Revoir mes erreurs', '▶ Rejouer la partie', '⟨ Précédent', 'Suivant ⟩', '📤 Partager',
+    '📋 Exporter la partie', '📤 Exporter tout', 'Créer une partie', 'Rejoindre', 'Partie par code', '📦 Exporter mes données (JSON)',
+    '📥 Importer mes données (JSON)', 'Mode Enfant', 'Règles du jeu', 'Abalone Academy', 'Problèmes', 'Ouvertures', 'Mes statistiques', 'Gym Cerveau',
+    'Formation Formateurs', 'Bibliothèque de parties', 'Stats du corpus', 'Tables de finale', 'Labo IA', 'Détection photo / plateau', 'Observer',
+    'Tournoi', 'Variantes', 'Éditeur', 'Historique', 'Paramètres', 'Belgian Daisy', 'Découverte', 'Même appareil', 'En direct'];
+  const absents = cites.filter(s => aide.indexOf(s) < 0 && aide.indexOf(s.replace(/^\S+ /, '')) < 0);
+  assert.deepStrictEqual(absents, [], 'libelles annonces mais absents de l aide (liste du test a revoir)');
+  const inventes = cites.filter(s => hors.indexOf(s) < 0);
+  assert.deepStrictEqual(inventes, [], 'libelles cites par l aide mais introuvables dans le site');
+  assert.strictEqual((aide.match(/<details class="aide-rub"/g) || []).length, 11);
+});
+
+test('aide : accessible par le menu et par le menu Aide du haut', () => {
+  const src = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
+  assert.match(src, /id="sid-aide" onclick="sidebarNav\('aide',this\)"/);
+  assert.match(src, /onclick="toggleHelpMenu\(\); showPage\('aide'\)"><span>📖<\/span> Comment utiliser le site/);
+});
+
+test('aide : recherche sans accents, ouvre les rubriques trouvees, signale l absence de resultat', () => {
+  const rubs = [{ textContent: 'Pendant la partie : 🤝 Proposer nulle', style: {}, open: false },
+                { textContent: 'Installer l application, jouer hors ligne', style: {}, open: false },
+                { textContent: 'La réflexion de l IA', style: {}, open: false }];
+  const vide = { style: {} }; const sQ = ctx.document.querySelectorAll, sG = ctx.document.getElementById;
+  ctx.document.querySelectorAll = () => rubs; ctx.document.getElementById = id => id === 'aide-vide' ? vide : null;
+  try {
+    assert.strictEqual(ctx.filtrerAide('HORS LIGNE'), 1);
+    assert.deepStrictEqual(rubs.map(r => r.style.display), ['none', '', 'none']); assert.ok(rubs[1].open);
+    assert.strictEqual(ctx.filtrerAide('reflexion'), 1, 'sans accent, trouve « réflexion »');
+    assert.strictEqual(ctx.filtrerAide('zzzz'), 0); assert.strictEqual(vide.style.display, 'block');
+    assert.strictEqual(ctx.filtrerAide(''), 3); assert.strictEqual(vide.style.display, 'none');
+  } finally { ctx.document.querySelectorAll = sQ; ctx.document.getElementById = sG; }
+});
+
+/* ─── 47. Plus de fausse double authentification ─── */
+test('securite : aucune double authentification simulee (interrupteurs, fenetre, code, YubiKey) ; explication honnete', () => {
+  const src = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
+  ['toggle2FAMethod', 'verify2FACode', 'launch2FA', 'simulateYubiKey', 'drawFakeQR', '_fakeOTP', 'id="modal-2fa"', 'success-2fa-method',
+   'Simuler la détection', 'Email OTP', 'YubiKey FIDO2'].forEach(s => assert.strictEqual(src.indexOf(s), -1, 'encore present : ' + s));
+  assert.match(src, /id="stab-twofa">Sécurité<\/button>/);
+  assert.match(src, /Pas de double authentification, et pourquoi/);
+  assert.match(src, /Compte enregistré sur cet appareil/);
+});
+
+test('securite : le score ne compte que ce qui existe (100 points sur 3 lignes, plus rien pour une « double authentification »)', async () => {
+  const els = {}; const sG = ctx.document.getElementById;
+  ctx.document.getElementById = id => (els[id] = els[id] || { textContent: '', innerHTML: '', style: {} });
+  const sU = ctx.currentUser, sT = ctx._testEncryptionWorks;
+  try {
+    ctx._testEncryptionWorks = async () => true;
+    ctx.currentUser = { passwordHash: 'x', _token: null, twofa: ['email', 'yubikey'] };   // ancienne sauvegarde avec « 2FA »
+    await ctx.computeSecurityScore();
+    assert.doesNotMatch(els['sec-score-items'].innerHTML, /authentification|YubiKey/);
+    assert.strictEqual((els['sec-score-items'].innerHTML.match(/<span>(✅|⬜)<\/span>/g) || []).length, 3);
+    assert.match(els['sec-score-val'].textContent, /^67\/100/, 'mot de passe (34) + chiffrement (33) ; les anciens interrupteurs ne rapportent plus rien');
+  } finally { ctx.document.getElementById = sG; ctx.currentUser = sU; ctx._testEncryptionWorks = sT; }
 });
 

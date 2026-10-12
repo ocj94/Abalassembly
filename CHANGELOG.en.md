@@ -9,6 +9,27 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.50]
+
+### Added
+- **A Help section explaining how to use the site**: ☰ menu → Progress →
+  **❓ Help**, or the top "Help" menu → "📖 How to use the site". 11 sections
+  (playing, during and after a game, AI reflection, history and backup, two
+  players, progress, explore, install and offline, notations, settings),
+  accent-insensitive search, works offline. Every quoted label comes from the
+  site itself; a test checks that the 50 buttons and menus it mentions really
+  exist.
+- **Corpus**: 5th KAAH game, verified by three sources (2026-10-08, White wins
+  6-2); 4,579 games.
+
+### Fixed
+- **The "two-factor authentication" was fake**: in Settings, its four methods
+  (email, SMS, app, YubiKey) only changed a label, yet added 40 points to the
+  security score; the sign-in window showed an "enabled" padlock. With no
+  server, no code could ever be sent or checked. All removed: the tab is now
+  "Security" and explains why there is no two-factor authentication; the score
+  only counts what really exists.
+
 ## [v2.49]
 
 ### Added

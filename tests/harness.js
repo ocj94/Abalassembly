@@ -160,6 +160,7 @@ const PASSERELLE = `
   if (typeof _labRunning !== 'undefined') relier('_labRunning', function(){return _labRunning;}, function(v){_labRunning=v;});
   if (typeof _testKaahPlanifier !== 'undefined') relier('_testKaahPlanifier', function(){return _testKaahPlanifier;}, function(v){_testKaahPlanifier=v;});
   if (typeof _testKaahEnCours !== 'undefined') relier('_testKaahEnCours', function(){return _testKaahEnCours;}, function(v){_testKaahEnCours=v;});
+  if (typeof currentUser !== 'undefined') relier('currentUser', function(){return currentUser;}, function(v){currentUser=v;});
   if (typeof undoStack !== 'undefined')        relier('undoStack', function(){return undoStack;}, function(v){undoStack=v;});
   if (typeof selected !== 'undefined')         relier('selected', function(){return selected;}, function(v){selected=v;});
   if (typeof LAYOUTS !== 'undefined')          relier('LAYOUTS', function(){return LAYOUTS;});

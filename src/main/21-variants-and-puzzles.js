@@ -610,7 +610,6 @@ function endStorm() {
 }
 
 /* hook into puzzle solve to update storm score */
-const _origVerify = typeof verify2FACode !== 'undefined' ? verify2FACode : null;
 function stormPuzzleSolved() {
   if (stormActive) { stormScore++; updateStormUI(); }
 }

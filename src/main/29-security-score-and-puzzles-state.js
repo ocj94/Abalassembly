@@ -23,11 +23,11 @@ async function computeSecurityScore() {
   const u = currentUser;
   const encryptionOk = await _testEncryptionWorks();
   const items = [
-    { label:'Mot de passe hashé PBKDF2', ok: u && !!u.passwordHash, points:20 },
-    { label:'Token de session HMAC', ok: u && !!u._token && SEC.validateToken(u._token), points:20 },
-    { label:'localStorage chiffré AES-GCM' + (encryptionOk ? '' : ' — indisponible sur ce navigateur'), ok: encryptionOk, points:20 },
-    { label:'Double authentification active', ok: u && u.twofa && u.twofa.length > 0, points:25 },
-    { label:'YubiKey / FIDO2 configuré', ok: u && u.twofa && u.twofa.includes('yubikey'), points:15 },
+    // Seulement ce qui existe vraiment. Les deux lignes « double authentification » et
+    // « YubiKey » (40 points) comptaient des interrupteurs qui ne protegeaient rien : retirees.
+    { label:'Mot de passe hashé PBKDF2', ok: u && !!u.passwordHash, points:34 },
+    { label:'Token de session HMAC', ok: u && !!u._token && SEC.validateToken(u._token), points:33 },
+    { label:'localStorage chiffré AES-GCM' + (encryptionOk ? '' : ' — indisponible sur ce navigateur'), ok: encryptionOk, points:33 },
   ];
 
   const score = items.reduce(function(sum, i){ return sum + (i.ok ? i.points : 0); }, 0);

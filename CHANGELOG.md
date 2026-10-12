@@ -9,6 +9,28 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.50]
+
+### Ajouté
+- **Une section Aide qui explique comment utiliser le site** : menu ☰ →
+  Progresser → **❓ Aide**, ou menu « Aide » du haut → « 📖 Comment utiliser
+  le site ». 11 rubriques (jouer, pendant et après la partie, réflexion de l'IA,
+  historique et sauvegarde, jouer à deux, progresser, explorer, installer et
+  hors ligne, notations, réglages), recherche sans accents, hors ligne. Chaque
+  libellé cité est repris du site ; un test vérifie que les 50 boutons et menus
+  mentionnés existent vraiment.
+- **Corpus** : 5e partie KAAH vérifiée par trois sources (08/10/2026, Blancs
+  6 à 2) ; 4 579 parties.
+
+### Corrigé
+- **La « double authentification » était factice** : dans les Paramètres, ses
+  quatre méthodes (e-mail, SMS, application, YubiKey) ne faisaient que changer
+  une étiquette, et rapportaient pourtant 40 points au score de sécurité ; la
+  fenêtre de connexion affichait un cadenas « activée ». Sans serveur, aucun
+  code ne pouvait être envoyé ni vérifié. Tout est retiré : l'onglet s'appelle
+  désormais « Sécurité » et explique pourquoi il n'y a pas de double
+  authentification ; le score ne compte plus que ce qui existe vraiment.
+
 ## [v2.49]
 
 ### Ajouté
