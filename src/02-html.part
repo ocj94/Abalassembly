@@ -1781,31 +1781,7 @@ body.a11y-oneaction .ctrl-btn:not(.primary):not(:hover):not(:focus) { opacity: 0
   .settings-tab { width: auto; border-left: none; border-bottom: 2px solid transparent; padding: 7px 12px; }
   .settings-tab.active { border-left: none; border-bottom-color: var(--gold); }
 }
-/* ─── 2FA & AUTH STYLES ─── */
-.tfa-method-card {
-  border: 2px solid var(--border); border-radius: 10px;
-  padding: 16px 12px; text-align: center; cursor: pointer;
-  transition: all 0.2s; background: var(--surface2);
-}
-.tfa-method-card:hover { border-color: var(--gold-dim); background: rgba(200,168,75,0.05); }
-.tfa-method-card.selected {
-  border-color: var(--gold); background: rgba(200,168,75,0.08);
-  box-shadow: 0 0 0 1px rgba(200,168,75,0.3);
-}
-.tfa-icon { font-size: 28px; margin-bottom: 8px; }
-.tfa-label { font-size: 14px; font-weight: 600; color: var(--white); margin-bottom: 4px; }
-.tfa-sublabel { font-size: 11px; color: var(--muted); line-height: 1.4; }
-
-.otp-digit {
-  width: 46px; height: 52px; text-align: center;
-  font-size: 22px; font-weight: 700; font-family: 'DM Mono', monospace;
-  background: var(--surface2); border: 2px solid var(--border);
-  border-radius: 8px; color: var(--white); outline: none;
-  transition: border-color 0.2s; caret-color: var(--gold);
-}
-.otp-digit:focus { border-color: var(--gold); }
-.otp-digit.filled { border-color: var(--gold-dim); color: var(--gold); }
-
+/* ─── STYLES D'AUTHENTIFICATION ─── */
 .social-btn {
   display: flex; align-items: center; justify-content: center; gap: 8px;
   padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 500;
@@ -1820,11 +1796,6 @@ body.a11y-oneaction .ctrl-btn:not(.primary):not(:hover):not(:focus) { opacity: 0
   text-decoration: none; display: inline;
 }
 .link-btn:hover { color: var(--gold); }
-
-@keyframes yubiPulse {
-  0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(200,168,75,0.4); }
-  50% { transform: scale(1.08); opacity: 0.85; box-shadow: 0 0 0 12px rgba(200,168,75,0); }
-}
 
 /* ─── GAME TABS ─── */
 .game-tab {

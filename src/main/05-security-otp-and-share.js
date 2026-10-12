@@ -1,137 +1,7 @@
-/* ═══════════════════════════════════════════
-   MODULE OTP — saisie des chiffres de code (2FA classique + TOTP)
-   Fusionne 4 fonctions quasi identiques (otpInput/otpInput2, otpBack/otpBack2)
-   en une seule implementation parametree par suffixe d'id DOM. Aucun etat
-   partage avec le reste du site -- uniquement du DOM local et un appel
-   externe (verify2FACode) -- premier module IIFE du fichier : choisi
-   precisement parce qu'il ne touche pas a currentUser/selected2FA/_fakeOTP,
-   qui eux ont des racines profondes ailleurs (54 references de currentUser
-   dans tout le fichier -- verifie avant de choisir ce perimetre).
-   Les noms de fonctions globales (otpInput, otpBack, etc.) sont conserves
-   a l'identique en fines coquilles, pour que les attributs onkeyup= déjà
-   presents dans le HTML continuent de fonctionner sans aucune modification.
-═══════════════════════════════════════════ */
-const OtpDigitInput = (function(){
-  function makeHandlers(suffix, autoSubmit){
-    function input(el, idx){
-      el.value = el.value.replace(/\D/g,'');
-      el.classList.toggle('filled', el.value !== '');
-      if (el.value && idx < 6) {
-        const next = document.getElementById('2fa-digit-'+(idx+1)+suffix);
-        if (next) next.focus();
-      }
-      if (autoSubmit && idx === 6) checkFilled(suffix);
-    }
-    function back(e, idx){
-      if (e.key === 'Backspace' && !e.target.value && idx > 1) {
-        const prev = document.getElementById('2fa-digit-'+(idx-1)+suffix);
-        if (prev) prev.focus();
-      }
-    }
-    return { input: input, back: back };
-  }
-  function checkFilled(suffix){
-    const code = [1,2,3,4,5,6].map(function(i){
-      const el = document.getElementById('2fa-digit-'+i+suffix);
-      return el ? el.value : '';
-    }).join('');
-    if (code.length === 6 && typeof verify2FACode === 'function') verify2FACode();
-  }
-  const classic = makeHandlers('', true);
-  const totp = makeHandlers('b', false);
-  return {
-    input: classic.input, back: classic.back,
-    input2: totp.input, back2: totp.back,
-    checkFilled: checkFilled
-  };
-})();
-function otpInput(el, idx) { OtpDigitInput.input(el, idx); }
-function otpBack(e, idx) { OtpDigitInput.back(e, idx); }
-function checkOTPFilled() { OtpDigitInput.checkFilled(''); }
-
-function verify2FACode() {
-  const code = [1,2,3,4,5,6].map(i => document.getElementById('2fa-digit-'+i).value).join('');
-  if (code.length < 6) { showToast('⚠️ Entrez les 6 chiffres du code'); return; }
-  // Simulate: any 6-digit code works in demo
-  clearInterval(resendCountdown);
-  closeModal('2fa');
-  loginSuccess();
-}
-
-/* TOTP */
-function otpInput2(el, idx) { OtpDigitInput.input2(el, idx); }
-function otpBack2(e, idx) { OtpDigitInput.back2(e, idx); }
-function verifyTOTP() {
-  const code = [1,2,3,4,5,6].map(i => document.getElementById('2fa-digit-'+i+'b').value).join('');
-  if (code.length < 6) { showToast('⚠️ Entrez le code à 6 chiffres de votre application'); return; }
-  closeModal('2fa');
-  loginSuccess();
-}
-
-/* YubiKey */
-function simulateYubiKey() {
-  const pulse = document.getElementById('yubikey-pulse');
-  pulse.innerHTML = '<div style="font-size:28px;color:var(--accent-green-light)">✅ Clé détectée !</div>';
-  setTimeout(() => { closeModal('2fa'); loginSuccess(); }, 900);
-}
-
-/* Resend timer */
-function startResendTimer(secs) {
-  const btn   = document.getElementById('resend-btn');
-  const timer = document.getElementById('resend-timer');
-  btn.style.opacity = '0.4'; btn.style.pointerEvents = 'none';
-  let s = secs;
-  timer.textContent = `Nouveau code dans ${s}s`;
-  clearInterval(resendCountdown);
-  resendCountdown = setInterval(() => {
-    s--;
-    timer.textContent = s > 0 ? `Nouveau code dans ${s}s` : '';
-    if (s <= 0) {
-      clearInterval(resendCountdown);
-      btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
-    }
-  }, 1000);
-}
-function resendCode() {
-  _fakeOTP = String(Math.floor(100000 + Math.random() * 900000));
-  showToast(selected2FA === 'sms' ? '📱 Nouveau SMS envoyé !' : '📧 Nouvel email envoyé !');
-  startResendTimer(60);
-}
-
-/* Fake QR code (checkerboard pattern) */
-function drawFakeQR() {
-  const c = document.getElementById('qr-canvas');
-  if (!c) return;
-  const ctx = c.getContext('2d');
-  ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,140,140);
-  ctx.fillStyle = '#000000';
-  const seed = 0xABBCA1;
-  const cells = 21; const cell = Math.floor(140/cells);
-  for (let r=0; r<cells; r++) for (let col=0; col<cells; col++) {
-    const v = ((seed ^ (r*31+col*17)) % 3);
-    // fixed finder patterns
-    const inFinder = (r<7&&col<7)||(r<7&&col>=cells-7)||(r>=cells-7&&col<7);
-    if (inFinder) {
-      const inInner=(r>=1&&r<=5&&col>=1&&col<=5)||(r>=1&&r<=5&&col>=cells-6&&col<=cells-2)||(r>=cells-6&&r<=cells-2&&col>=1&&col<=5);
-      const inCore =(r>=2&&r<=4&&col>=2&&col<=4)||(r>=2&&r<=4&&col>=cells-5&&col<=cells-3)||(r>=cells-5&&r<=cells-3&&col>=2&&col<=4);
-      ctx.fillStyle = inCore ? '#000' : inInner ? '#fff' : '#000';
-    } else { ctx.fillStyle = v===0 ? '#000' : '#fff'; }
-    ctx.fillRect(col*cell, r*cell, cell, cell);
-  }
-  // Logo center
-  ctx.fillStyle='#ffffff'; ctx.fillRect(54,54,32,32);
-  ctx.fillStyle='#c8a84b'; ctx.font='bold 20px serif'; ctx.textAlign='center';
-  ctx.fillText('⬡',70,75);
 }
 
 /* Login success */
 async function loginSuccess() {
-  const methodLabels = {
-    email: 'Email (OTP 6 chiffres)',
-    sms: 'SMS (OTP 6 chiffres)',
-    totp: 'Authenticator (TOTP)',
-    yubikey: 'YubiKey FIDO2',
-  };
 
   // Match preset accounts
   const PRESETS = {
@@ -152,7 +22,6 @@ async function loginSuccess() {
         // Synchronise la progression depuis le serveur (source de vérité si en ligne)
         try { const rp = await api.fetchProgress(); if (rp) { saveProgress(rp); if (typeof refreshProgressUI==='function') refreshProgressUI(); } } catch(e) {}
         document.getElementById('success-username').textContent = currentUser.username;
-        document.getElementById('success-2fa-method').textContent = (methodLabels[selected2FA]||'') + ' active';
         openModal('login-success'); return; }
     } catch(e) {}
   }
@@ -173,7 +42,6 @@ async function loginSuccess() {
   updateNavAuth();
 
   document.getElementById('success-username').textContent = currentUser.username;
-  document.getElementById('success-2fa-method').textContent = (methodLabels[selected2FA]||'') + ' active';
   openModal('login-success');
 }
 
@@ -548,24 +416,6 @@ async function savePassword() {
       const el = document.getElementById(id); if(el) el.value='';
     });
   }
-}
-
-function toggle2FAMethod(method) {
-  const btn=document.getElementById('2fa-btn-'+method);
-  const status=document.getElementById('2fa-status-'+method);
-  if (!btn||!status) return;
-  const isActive = btn.textContent.trim()==='Desactiver';
-  btn.textContent = isActive ? 'Activer' : 'Desactiver';
-  btn.style.color = isActive ? 'var(--text)' : 'var(--accent-green-light)';
-  status.textContent = isActive ? 'Inactif' : 'Actif';
-  status.style.color = isActive ? 'var(--muted)' : 'var(--accent-green-light)';
-  if (currentUser) {
-    if (!currentUser.twofa) currentUser.twofa=[];
-    if (isActive) currentUser.twofa=currentUser.twofa.filter(m=>m!==method);
-    else if (!currentUser.twofa.includes(method)) currentUser.twofa.push(method);
-    saveSession(currentUser);
-  }
-  showToast(isActive ? method+' desactive' : method+' active !');
 }
 
 /* showSettingsTab — voir version complète ci-dessous */

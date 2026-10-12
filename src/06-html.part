@@ -32,6 +32,7 @@
         <span class="help-label">Aide</span>
       </button>
       <div class="help-menu" id="help-menu">
+        <button class="help-option" onclick="toggleHelpMenu(); showPage('aide')"><span>📖</span> Comment utiliser le site</button>
         <button class="help-option" onclick="openHelp('question')"><span>💬</span> Poser une question</button>
         <button class="help-option" onclick="openReferralModal()"><span>📨</span> Inviter un ami (+XP)</button>
         <button class="help-option" onclick="openHelp('suggestion')"><span>💡</span> Faire une suggestion</button>
@@ -89,6 +90,9 @@
     </button>
 
     <div class="sidebar-group-label">📖 Progresser</div>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-aide" onclick="sidebarNav('aide',this)">
+      <span class="s-icon">❓</span><span class="s-label">Aide</span>
+    </button>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-learn" onclick="sidebarNav('learn',this)">
       <span class="s-icon">📖</span><span class="s-label" data-i18n="nav.rules">Règles du jeu</span>
     </button>
@@ -2571,7 +2575,7 @@
     <div style="display:flex;flex-direction:column;gap:4px">
       <button onclick="showSettingsTab('general')" class="settings-tab active" id="stab-general">Profil general</button>
       <button onclick="showSettingsTab('security')" class="settings-tab" id="stab-security">Mot de passe</button>
-      <button onclick="showSettingsTab('twofa')" class="settings-tab" id="stab-twofa">Double auth.</button>
+      <button onclick="showSettingsTab('twofa')" class="settings-tab" id="stab-twofa">Sécurité</button>
       <button onclick="showSettingsTab('notifs')" class="settings-tab" id="stab-notifs">Notifications</button>
       <button onclick="showSettingsTab('permissions')" class="settings-tab" id="stab-permissions">🔒 Autorisations</button>
       <button onclick="showSettingsTab('accessibility')" class="settings-tab" id="stab-accessibility">👁 Accessibilité</button>
@@ -2626,29 +2630,16 @@
       </div>
       <!-- SECURITY STATUS PANEL -->
       <div id="spanel-twofa" class="settings-panel">
-        <div style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:16px">Double authentification</div>
-        <p style="color:var(--muted);font-size:14px;margin-bottom:20px;line-height:1.7">Activez une ou plusieurs méthodes pour sécuriser votre compte.</p>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <div style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--surface);border:1px solid var(--border);border-radius:10px">
-            <span style="font-size:22px">📧</span><div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--white)">Email OTP</div><div style="font-size:12px;color:var(--muted)">Code à 6 chiffres par email</div></div>
-            <div id="2fa-status-email" style="font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(107,117,112,0.15);color:var(--muted);border:1px solid var(--border)">Inactif</div>
-            <button id="2fa-btn-email" onclick="toggle2FAMethod('email')" style="padding:7px 14px;background:none;border:1px solid var(--border);color:var(--text);border-radius:7px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif">Activer</button>
-          </div>
-          <div style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--surface);border:1px solid var(--border);border-radius:10px">
-            <span style="font-size:22px">📱</span><div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--white)">SMS</div><div style="font-size:12px;color:var(--muted)">Code par texto</div></div>
-            <div id="2fa-status-sms" style="font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(107,117,112,0.15);color:var(--muted);border:1px solid var(--border)">Inactif</div>
-            <button id="2fa-btn-sms" onclick="toggle2FAMethod('sms')" style="padding:7px 14px;background:none;border:1px solid var(--border);color:var(--text);border-radius:7px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif">Activer</button>
-          </div>
-          <div style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--surface);border:1px solid var(--border);border-radius:10px">
-            <span style="font-size:22px">🔑</span><div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--white)">Authenticator (TOTP)</div><div style="font-size:12px;color:var(--muted)">Google Auth, Authy, 1Password</div></div>
-            <div id="2fa-status-totp" style="font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(107,117,112,0.15);color:var(--muted);border:1px solid var(--border)">Inactif</div>
-            <button id="2fa-btn-totp" onclick="toggle2FAMethod('totp')" style="padding:7px 14px;background:none;border:1px solid var(--border);color:var(--text);border-radius:7px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif">Activer</button>
-          </div>
-          <div style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--surface);border:1px solid var(--border);border-radius:10px">
-            <span style="font-size:22px">🗝</span><div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--white)">YubiKey FIDO2</div><div style="font-size:12px;color:var(--muted)">Clé de sécurité physique — protection maximale</div></div>
-            <div id="2fa-status-yubikey" style="font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(107,117,112,0.15);color:var(--muted);border:1px solid var(--border)">Inactif</div>
-            <button id="2fa-btn-yubikey" onclick="toggle2FAMethod('yubikey')" style="padding:7px 14px;background:none;border:1px solid var(--border);color:var(--text);border-radius:7px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif">Activer</button>
-          </div>
+        <div style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:16px">Sécurité</div>
+        <!-- Ici, il y avait quatre « methodes de double authentification » (e-mail, SMS,
+             application, YubiKey) dont les boutons ne faisaient que changer une etiquette, et
+             qui ajoutaient des points au score de securite : aucune protection reelle, sans
+             serveur pour envoyer ou verifier un code. Retire et explique (octobre 2026). -->
+        <div style="padding:16px 18px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:14px;line-height:1.7;color:var(--text)">
+          <div style="font-weight:600;color:var(--white);margin-bottom:6px">Pas de double authentification, et pourquoi</div>
+          Abalassembly n'a pas de serveur : ton compte, tes parties et tes réglages restent <b>sur cet appareil</b>, rien n'est envoyé ailleurs.
+          Une double authentification (code par e-mail ou SMS, application, clé de sécurité) demande un serveur pour envoyer et vérifier les codes : elle n'aurait ici rien à protéger, et le site n'en propose donc pas.
+          <div style="margin-top:8px;color:var(--muted);font-size:13px">Pour protéger tes données : verrouille ton appareil, et sauvegarde-les de temps en temps (ici même, dans les Paramètres : <b>📦 Exporter mes données (JSON)</b>).</div>
         </div>
 
         <!-- Security score -->
@@ -3845,6 +3836,131 @@
 </div>
 
 <!-- PAGE: MUSEUM -->
+<!-- ═══ AIDE : comment utiliser le site (demande d'Olivier). Libelles verifies dans le code
+     (menu, configuration, boutons). Hors ligne, avec une recherche qui ignore les accents. ═══ -->
+<div class="page" id="page-aide">
+  <div style="padding:24px 20px 60px;max-width:820px;margin:0 auto">
+    <h1 style="font-family:'Playfair Display',serif;color:var(--white);margin-bottom:6px">Aide</h1>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:14px">Comment utiliser Abalassembly. Touche une rubrique pour l'ouvrir, ou cherche un mot.</p>
+    <input id="aide-recherche" type="search" placeholder="Rechercher (ex. importer, nulle, hors ligne…)" oninput="filtrerAide(this.value)"
+           style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;margin-bottom:12px">
+    <div id="aide-vide" style="display:none;color:var(--muted);font-size:13px;margin:8px 0">Aucune rubrique ne contient ce mot.</div>
+    <div id="aide-rubriques">
+<details class="aide-rub" open><summary>🎮 Jouer une partie</summary><div class="aide-corps">
+<p>Menu ☰ → <b>Jouer</b>. L'écran <b>Configurer avant de jouer</b> réunit tous les réglages :</p>
+<ul>
+<li><b>Disposition de départ</b> : <i>Standard</i>, <i>Belgian Daisy</i> (la Marguerite belge des tournois)… et <i>Découverte</i>, 7 billes par camp, idéale pour débuter.</li>
+<li><b>Adversaire</b> : <i>Contre l'IA</i>, ou à deux, sur le <i>Même appareil</i> ou <i>En direct</i> (voir « Jouer à deux »).</li>
+<li><b>Qui commence ?</b> Les Noirs jouent en premier : <i>Moi</i> te donne les Noirs, <i>Adversaire</i> les Blancs, <i>Aléatoire</i> tire au sort.</li>
+<li><b>Niveau</b> de 1 à 10, et <b>Style de l'IA</b> (Auto, Agressif, Défensif, Division, Équilibré, KAAH expérimental).</li>
+<li><b>Réflexion max (s)</b> : le temps de réflexion de l'IA. Rempli avec le temps habituel du niveau ; vide, elle réfléchit jusqu'à trouver.</li>
+<li><b>Cadence</b> : Libre, 3 cadences toutes prêtes, <i>Chrono</i>, ou <i>Personnaliser…</i> (bonus ou délai par coup, bonus par éjection).</li>
+<li><b>Aides</b> : coups possibles mis en évidence, coordonnées a1…i9.</li>
+</ul>
+<p>Puis <b>Commencer la partie</b>. Pour jouer : <b>touche 1 à 3 de tes billes alignées</b> pour les sélectionner, puis <b>la case vers laquelle les pousser</b>. Le premier qui éjecte 6 billes adverses gagne.</p>
+<button class="ctrl-btn aide-aller" onclick="showPage('setup')">Configurer une partie →</button></div></details>
+<details class="aide-rub"><summary>🧭 Pendant la partie</summary><div class="aide-corps">
+<ul>
+<li><b>↩️ Annuler le dernier coup</b>, <b>💡 Suggérer un coup</b>, <b>🧠 Pourquoi ce coup ?</b> (l'explication du dernier coup de l'IA).</li>
+<li><b>🤝 Proposer nulle</b> et <b>Abandonner</b>. Une position répétée trois fois est nulle d'office.</li>
+<li><b>1D / 2D / 3D</b> : trois vues du plateau, toutes jouables. <b>🔄 Inverser</b> tourne le plateau.</li>
+<li>Le dernier coup est marqué par des <b>chevrons</b> sur les billes déplacées.</li>
+<li>Sous la liste des coups : le <b>code de la position</b> (format KAAH), avec <b>Copier</b> et <b>Permutations</b> (ses 12 symétries et l'échange des camps).</li>
+<li>Sous chaque coup de l'IA, son <b>évaluation</b> (« Mil. +1090 · prof. 8 · 19,0 s ») ; touche-la pour voir toute sa réflexion.</li>
+</ul>
+</div></details>
+<details class="aide-rub"><summary>🧠 La réflexion de l’IA</summary><div class="aide-corps">
+<p>Le panneau <b>▸ Réflexion de l’IA</b>, sous la liste des coups, montre pourquoi l'IA a joué son dernier coup. Pour chaque profondeur, ses 10 meilleurs premiers coups, avec :</p>
+<ul>
+<li><b>Éval.</b> : le score du coup, de son point de vue ;</li>
+<li><b>Temps</b> : quand il a été fini ; <b>Sous lui</b> : le temps passé dessus ; <b>Positions</b> : combien elle en a examiné ;</li>
+<li>l'écart de chaque <b>critère</b> (gain, centre, cohésion, bords…) et la <b>Suite prévue</b>. Touche une ligne : la suite s'affiche sur un petit plateau.</li>
+</ul>
+<p>Un <b>*</b> signale un score qui compte des éjections calculées au-delà de la suite affichée.</p>
+</div></details>
+<details class="aide-rub"><summary>🏁 Après la partie</summary><div class="aide-corps">
+<ul>
+<li>L'écran de fin montre le résultat, ton <b>style</b> et ta <b>carte de chaleur</b> : les cases où tu joues le plus.</li>
+<li><b>🔍 Analyser la partie</b> et <b>⚠️ Revoir mes erreurs</b> : les coups clés et ceux qui ont coûté cher.</li>
+<li><b>▶ Rejouer la partie</b>, avec <b>⟨ Précédent</b> et <b>Suivant ⟩</b>.</li>
+<li><b>📤 Partager</b> ou <b>📋 Exporter la partie</b> : en notation, ou en code à envoyer.</li>
+</ul>
+<p>Chaque partie terminée s'enregistre toute seule dans ton <b>Historique</b>.</p>
+</div></details>
+<details class="aide-rub"><summary>🕓 Historique, sauvegarde et import</summary><div class="aide-corps">
+<ul>
+<li>Menu → <b>Historique</b> : toutes tes parties, à revoir coup par coup.</li>
+<li><b>📤 Exporter tout</b> : une sauvegarde de ton historique en fichier. Fais-en une de temps en temps : tes données restent sur ton appareil.</li>
+<li><b>📥 Importer</b> : remet un historique sauvegardé, ou ajoute des parties jouées ailleurs (KAAH, Aba-Pro…). Choisis le fichier ou colle le texte, puis indique <b>ton pseudo dans ces parties</b> : c'est lui qui dit quelles parties sont les tiennes. Une partie déjà présente n'est jamais ajoutée deux fois.</li>
+<li><b>Sur Android</b>, avec l'application installée : appui long sur un fichier de parties → <b>Partager</b> → <b>Abalassembly</b>. L'import s'ouvre déjà rempli.</li>
+<li><b>Changer de téléphone</b> : sur l'ancien, Paramètres → <b>📦 Exporter mes données (JSON)</b> (tout) ou Historique → <b>📤 Exporter tout</b> (les parties) ; sur le nouveau, l'import correspondant.</li>
+</ul>
+<button class="ctrl-btn aide-aller" onclick="showPage('historique')">Ouvrir l’Historique →</button></div></details>
+<details class="aide-rub"><summary>👥 Jouer à deux</summary><div class="aide-corps">
+<ul>
+<li><b>Même appareil</b> : vous jouez chacun votre tour sur le même écran.</li>
+<li><b>En direct 🧪</b> : chacun sur son appareil, sans compte. L'un touche <b>Créer une partie</b>, l'autre <b>Rejoindre</b> ; un seul code s'échange au début, puis les coups passent tout seuls.</li>
+<li><b>Partie par code</b> (écran de jeu) : pour jouer à distance en différé, en s'envoyant un code.</li>
+</ul>
+</div></details>
+<details class="aide-rub"><summary>📖 Progresser</summary><div class="aide-corps">
+<ul>
+<li><b>Règles du jeu</b> et <b>Abalone Academy</b> : les règles, puis les principes de stratégie.</li>
+<li><b>Problèmes</b> : des positions à résoudre, tirées de vraies parties.</li>
+<li><b>Ouvertures</b> : les débuts de partie, avec leurs taux de gain réels.</li>
+<li><b>Analyse</b> et <b>Mes statistiques</b> : ta progression, ton classement, ton style.</li>
+<li><b>Gym Cerveau</b> : des exercices courts de vision du jeu.</li>
+<li><b>Formation Formateurs</b> : pour animer des ateliers.</li>
+</ul>
+</div></details>
+<details class="aide-rub"><summary>🧪 Explorer</summary><div class="aide-corps">
+<ul>
+<li><b>Bibliothèque de parties</b> : des milliers de vraies parties (MIGS, AbalOnline, tournois, KAAH), à rejouer et filtrer.</li>
+<li><b>Stats du corpus</b> : les chiffres de ces parties, et la <b>profondeur de l'IA selon le temps de réflexion</b>, mesurée sur ton appareil et relevée pendant tes parties.</li>
+<li><b>Tables de finale</b> : les finales résolues exactement (2 contre 2, 3 contre 2, 4 contre 2), avec un entraînement.</li>
+<li><b>Labo IA</b> : l'IA s'améliore en jouant contre elle-même, et le test des critères de KAAH.</li>
+<li><b>Détection photo / plateau</b> : photographie un vrai plateau pour le reproduire.</li>
+<li><b>Observer</b> : suivre une partie PlayStrategy en direct. <b>Tournoi</b> : un tournoi contre des IA.</li>
+<li><b>Variantes</b> et <b>Éditeur</b> : d'autres règles et dispositions, ou ta propre position.</li>
+</ul>
+</div></details>
+<details class="aide-rub"><summary>📲 Installer l’application, jouer hors ligne</summary><div class="aide-corps">
+<ul>
+<li><b>Android (Chrome)</b> : menu ⋮ → <b>Installer l'application</b>.</li>
+<li><b>iPhone (Safari)</b> : bouton Partager → <b>Sur l'écran d'accueil</b>.</li>
+<li>Après une première visite, le site fonctionne <b>hors ligne</b> : jeu, IA, problèmes, bibliothèque. Seuls le jeu en direct et PlayStrategy demandent une connexion.</li>
+<li>Tout est enregistré <b>sur ton appareil</b>, rien sur un serveur : pense à sauvegarder (Paramètres → <b>📦 Exporter mes données</b>).</li>
+</ul>
+</div></details>
+<details class="aide-rub"><summary>🔤 Notations et codes</summary><div class="aide-corps">
+<ul>
+<li><b>Aba-Pro</b> : la bille de <i>queue</i> du groupe, puis la case voisine dans la direction de la poussée (« a1b2 ») ; un déplacement latéral s'écrit sur 6 caractères (« c2c4d3 » : c2-c3-c4 vont en d3-d4-d5).</li>
+<li><b>Nacre</b>, la notation de KAAH et KAAWA : la queue avant le coup, puis la tête après le coup (« a1d4 ») — l'écart donne la longueur du groupe. La liste des coups montre les deux notations.</li>
+<li><b>Code de position</b> (format KAAH) : billes noires puis blanches, chaque moitié précédée du nombre de billes éjectées de ce camp (« 0a12b123…_0a45… »).</li>
+<li>Les cases vont de <b>a1 à i9</b> : la lettre est la rangée (a en bas, i en haut), le chiffre la colonne.</li>
+</ul>
+</div></details>
+<details class="aide-rub"><summary>⚙️ Réglages et questions</summary><div class="aide-corps">
+<ul>
+<li>Menu → <b>Paramètres</b> : ton profil, l'accessibilité, les notifications, et les autorisations — dont le <b>Mode Enfant</b> (plateau aux couleurs vives, sans chat ni liens externes), la caméra et le micro.</li>
+<li>Toujours dans les Paramètres : <b>📦 Exporter mes données (JSON)</b> et <b>📥 Importer mes données (JSON)</b>, la sauvegarde <b>complète</b> de tes données.</li>
+<li>Menu <b>❓ Aide</b> en haut de l'écran : poser une question, faire une suggestion, signaler un bug. Ces messages s'ouvrent sur GitHub, qui demande un compte (gratuit).</li>
+</ul>
+<button class="ctrl-btn aide-aller" onclick="showPage('settings')">Ouvrir les Paramètres →</button></div></details>
+    </div>
+  </div>
+</div>
+<style>
+.aide-rub { background:var(--surface); border:1px solid var(--border); border-radius:10px; margin-bottom:10px; }
+.aide-rub summary { cursor:pointer; padding:14px 16px; font-size:15px; font-weight:600; color:var(--white); list-style:none; }
+.aide-rub summary::-webkit-details-marker { display:none; }
+.aide-rub summary::after { content:'▸'; float:right; color:var(--muted); }
+.aide-rub[open] summary::after { content:'▾'; }
+.aide-corps { padding:0 16px 14px; font-size:14px; line-height:1.65; color:var(--text); }
+.aide-corps ul { padding-left:20px; margin:6px 0; }
+.aide-corps li { margin-bottom:5px; }
+.aide-aller { width:auto; padding:6px 12px; font-size:13px; margin-top:6px; }
+</style>
 <div class="page" id="page-mentions">
   <div class="page-header">
     <button onclick="showPage('home')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;margin-bottom:16px;display:block">&#8592; Retour</button>
@@ -4876,120 +4992,6 @@
 </div>
 
 <!-- ══════════════════════════════════════════
-     MODAL — DOUBLE AUTHENTIFICATION (étape 2)
-══════════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-2fa">
-  <div class="modal" style="width:460px">
-    <button class="modal-close" onclick="closeModal('2fa')">×</button>
-
-    <!-- Progress bar -->
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px">
-      <div style="width:24px;height:24px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#0d0f0e;flex-shrink:0">✓</div>
-      <div style="flex:1;height:2px;background:var(--gold)"></div>
-      <div style="width:24px;height:24px;border-radius:50%;background:rgba(200,168,75,0.3);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0">2</div>
-      <div style="flex:1;height:2px;background:var(--border)"></div>
-      <div style="width:24px;height:24px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0">3</div>
-    </div>
-
-    <h3>Vérification en 2 étapes</h3>
-    <p id="2fa-desc">Choisissez votre méthode de double authentification.</p>
-
-    <!-- Method selector -->
-    <div id="2fa-method-select">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
-        <div class="tfa-method-card" id="tfa-email" onclick="select2FAMethod('email')">
-          <div class="tfa-icon">📧</div>
-          <div class="tfa-label">Email</div>
-          <div class="tfa-sublabel">Code à 6 chiffres par email</div>
-        </div>
-        <div class="tfa-method-card" id="tfa-sms" onclick="select2FAMethod('sms')">
-          <div class="tfa-icon">📱</div>
-          <div class="tfa-label">SMS</div>
-          <div class="tfa-sublabel">Code par texto sur votre mobile</div>
-        </div>
-        <div class="tfa-method-card" id="tfa-totp" onclick="select2FAMethod('totp')">
-          <div class="tfa-icon">🔑</div>
-          <div class="tfa-label">Authenticator</div>
-          <div class="tfa-sublabel">Google Auth, Authy, 1Password…</div>
-        </div>
-        <div class="tfa-method-card" id="tfa-yubikey" onclick="select2FAMethod('yubikey')">
-          <div class="tfa-icon">🗝</div>
-          <div class="tfa-label">YubiKey</div>
-          <div class="tfa-sublabel">Clé de sécurité physique FIDO2</div>
-        </div>
-      </div>
-      <button class="modal-submit" id="2fa-continue-btn" onclick="launch2FA()" disabled style="opacity:0.5">Continuer avec cette méthode</button>
-    </div>
-
-    <!-- Code input (email / sms / totp) -->
-    <div id="2fa-code-input" style="display:none">
-      <div id="2fa-send-status" style="padding:12px 16px;background:rgba(74,148,99,0.1);border:1px solid rgba(74,148,99,0.25);border-radius:8px;font-size:13px;color:var(--accent-green-light);margin-bottom:20px;display:flex;align-items:center;gap:8px">
-        <span>✅</span><span id="2fa-send-msg"></span>
-      </div>
-      <div class="form-group">
-        <label class="form-label" id="2fa-code-label">Code de vérification</label>
-        <div style="display:flex;gap:8px">
-          <input id="2fa-digit-1" class="otp-digit" type="text" maxlength="1" oninput="otpInput(this,1)" onkeydown="otpBack(event,1)">
-          <input id="2fa-digit-2" class="otp-digit" type="text" maxlength="1" oninput="otpInput(this,2)" onkeydown="otpBack(event,2)">
-          <input id="2fa-digit-3" class="otp-digit" type="text" maxlength="1" oninput="otpInput(this,3)" onkeydown="otpBack(event,3)">
-          <input id="2fa-digit-4" class="otp-digit" type="text" maxlength="1" oninput="otpInput(this,4)" onkeydown="otpBack(event,4)">
-          <input id="2fa-digit-5" class="otp-digit" type="text" maxlength="1" oninput="otpInput(this,5)" onkeydown="otpBack(event,5)">
-          <input id="2fa-digit-6" class="otp-digit" type="text" maxlength="1" oninput="otpInput(this,6)" onkeydown="otpBack(event,6)">
-        </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin:-4px 0 18px">
-        <button id="resend-btn" class="link-btn" onclick="resendCode()">🔄 Renvoyer le code</button>
-        <span id="resend-timer" style="font-size:12px;color:var(--muted)"></span>
-      </div>
-      <button class="modal-submit" onclick="verify2FACode()">Vérifier →</button>
-      <div style="text-align:center;margin-top:14px">
-        <a class="link-btn" onclick="show2FAMethodSelect()">← Changer de méthode</a>
-      </div>
-    </div>
-
-    <!-- YubiKey prompt -->
-    <div id="2fa-yubikey-prompt" style="display:none;text-align:center">
-      <div style="width:80px;height:80px;border-radius:50%;background:rgba(200,168,75,0.1);border:2px solid rgba(200,168,75,0.3);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 20px">🗝</div>
-      <div style="font-size:16px;font-weight:600;color:var(--white);margin-bottom:8px">Insérez votre YubiKey</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px">Branchez votre clé de sécurité USB et appuyez sur son bouton doré pour vous authentifier via FIDO2/WebAuthn.</div>
-      <div class="yubikey-pulse" id="yubikey-pulse">
-        <div style="width:60px;height:60px;border-radius:50%;border:3px solid var(--gold);animation:yubiPulse 1.5s ease-in-out infinite;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto">🔑</div>
-      </div>
-      <button class="modal-submit" style="margin-top:20px" onclick="simulateYubiKey()">Simuler la détection (démo)</button>
-      <div style="text-align:center;margin-top:12px">
-        <a class="link-btn" onclick="show2FAMethodSelect()">← Changer de méthode</a>
-      </div>
-    </div>
-
-    <!-- TOTP QR -->
-    <div id="2fa-totp-setup" style="display:none;text-align:center">
-      <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Scannez ce QR code avec votre application authenticator (Google Authenticator, Authy, 1Password…)</div>
-      <div id="qr-placeholder" style="width:160px;height:160px;margin:0 auto 16px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:10px">
-        <canvas id="qr-canvas" width="140" height="140"></canvas>
-      </div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Clé secrète (saisie manuelle)</div>
-      <div style="font-family:'DM Mono',monospace;font-size:13px;color:var(--gold);background:var(--surface2);padding:8px 14px;border-radius:6px;letter-spacing:2px;margin-bottom:20px;display:inline-block" id="totp-secret">ABLO KXYZ 3M7A BQNR</div>
-      <div class="form-group" style="text-align:left">
-        <label class="form-label">Entrez le code généré par l'app</label>
-        <div style="display:flex;gap:8px">
-          <input id="2fa-digit-1b" class="otp-digit" type="text" maxlength="1" oninput="otpInput2(this,1)" onkeydown="otpBack2(event,1)">
-          <input id="2fa-digit-2b" class="otp-digit" type="text" maxlength="1" oninput="otpInput2(this,2)" onkeydown="otpBack2(event,2)">
-          <input id="2fa-digit-3b" class="otp-digit" type="text" maxlength="1" oninput="otpInput2(this,3)" onkeydown="otpBack2(event,3)">
-          <input id="2fa-digit-4b" class="otp-digit" type="text" maxlength="1" oninput="otpInput2(this,4)" onkeydown="otpBack2(event,4)">
-          <input id="2fa-digit-5b" class="otp-digit" type="text" maxlength="1" oninput="otpInput2(this,5)" onkeydown="otpBack2(event,5)">
-          <input id="2fa-digit-6b" class="otp-digit" type="text" maxlength="1" oninput="otpInput2(this,6)" onkeydown="otpBack2(event,6)">
-        </div>
-      </div>
-      <button class="modal-submit" onclick="verifyTOTP()">Activer l'authentificator →</button>
-      <div style="text-align:center;margin-top:12px">
-        <a class="link-btn" onclick="show2FAMethodSelect()">← Changer de méthode</a>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════
      MODAL — SUCCÈS CONNEXION (étape 3)
 ══════════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-login-success">
@@ -4998,7 +5000,7 @@
     <h3 style="margin-bottom:8px">Connexion réussie !</h3>
     <p style="margin-bottom:6px">Bienvenue sur Abalone, <strong style="color:var(--gold)" id="success-username">joueur</strong> !</p>
     <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;background:rgba(74,148,99,0.08);border:1px solid rgba(74,148,99,0.2);border-radius:8px;margin:16px 0;font-size:13px;color:var(--accent-green-light)">
-      <span>🔒</span> <span id="success-2fa-method">Double authentification activée</span>
+      <span>📱</span> <span>Compte enregistré sur cet appareil</span>
     </div>
     <button class="modal-submit" onclick="closeModal('login-success');showPage('profile')">Accéder à mon profil →</button>
   </div>

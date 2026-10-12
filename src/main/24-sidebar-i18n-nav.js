@@ -359,6 +359,20 @@ document.addEventListener('click', function(e){
 });
 
 /* ─── Menu d'aide ─── */
+
+/* Aide : recherche dans les rubriques, accents ignores ; ouvre celles qui contiennent le mot. */
+function _sansAccents(s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+function filtrerAide(q) {
+  const m = _sansAccents(q).trim(), rubs = document.querySelectorAll('#aide-rubriques .aide-rub');
+  let n = 0;
+  rubs.forEach(function(r){
+    const ok = !m || _sansAccents(r.textContent).indexOf(m) >= 0;
+    r.style.display = ok ? '' : 'none'; if (ok) n++;
+    if (m) r.open = ok;
+  });
+  const vide = document.getElementById('aide-vide'); if (vide) vide.style.display = n ? 'none' : 'block';
+  return n;
+}
 function toggleHelpMenu(ev) {
   if (ev) ev.stopPropagation();
   const menu = document.getElementById('help-menu');

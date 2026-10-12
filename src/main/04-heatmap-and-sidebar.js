@@ -988,14 +988,7 @@ function submitLogin() {
   if (!email || !pw) { shakeModal('modal-login'); showToast('⚠️ Veuillez remplir tous les champs'); return; }
   _loginEmail = email;
   closeModal('login');
-  // Reset 2FA modal state
-  show2FAMethodSelect();
-  selected2FA = null;
-  document.querySelectorAll('.tfa-method-card').forEach(c => c.classList.remove('selected'));
-  const btn = document.getElementById('2fa-continue-btn');
-  if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
-  document.getElementById('2fa-desc').textContent = 'Choisissez votre méthode de double authentification pour sécuriser votre connexion.';
-  loginSuccess(); // 2FA simule retire : profil local, aucune verification reelle
+  loginSuccess(); // profil local, aucune double authentification (pas de serveur)
 }
 
 /* ────────────────────────────────────────────
@@ -1015,90 +1008,4 @@ function submitSignup() {
   if (!terms) { showToast('⚠️ Veuillez accepter les conditions d\'utilisation'); return; }
   _loginEmail = email;
   closeModal('signup');
-  // After signup, also ask for 2FA setup
-  show2FAMethodSelect();
-  selected2FA = null;
-  document.querySelectorAll('.tfa-method-card').forEach(c => c.classList.remove('selected'));
-  const btn = document.getElementById('2fa-continue-btn');
-  if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
-  document.getElementById('2fa-desc').textContent = 'Sécurisez votre nouveau compte en activant la double authentification.';
-  loginSuccess(); // 2FA simule retire : profil local, aucune verification reelle
-}
-
-/* ────────────────────────────────────────────
-   2FA ENGINE
-──────────────────────────────────────────── */
-let selected2FA = null;
-let resendCountdown = null;
-let _fakeOTP = ''; // simulated code
-
-function select2FAMethod(method) {
-  selected2FA = method;
-  document.querySelectorAll('.tfa-method-card').forEach(c => c.classList.remove('selected'));
-  document.getElementById('tfa-' + method).classList.add('selected');
-  const btn = document.getElementById('2fa-continue-btn');
-  btn.disabled = false; btn.style.opacity = '1';
-}
-
-function show2FAMethodSelect() {
-  document.getElementById('2fa-method-select').style.display = 'block';
-  document.getElementById('2fa-code-input').style.display = 'none';
-  document.getElementById('2fa-yubikey-prompt').style.display = 'none';
-  document.getElementById('2fa-totp-setup').style.display = 'none';
-}
-
-function launch2FA() {
-  if (!selected2FA) return;
-  document.getElementById('2fa-method-select').style.display = 'none';
-
-  if (selected2FA === 'yubikey') {
-    document.getElementById('2fa-yubikey-prompt').style.display = 'block';
-    return;
-  }
-
-  if (selected2FA === 'totp') {
-    document.getElementById('2fa-totp-setup').style.display = 'block';
-    // Génère une clé TOTP aléatoire (base32) propre à ce compte
-    var b32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-    var rnd = crypto.getRandomValues(new Uint8Array(16));
-    var key = '';
-    for (var i=0;i<16;i++) { key += b32[rnd[i] % 32]; if ((i+1)%4===0 && i<15) key += ' '; }
-    var secEl = document.getElementById('totp-secret');
-    if (secEl) secEl.textContent = key;
-    drawFakeQR();
-    return;
-  }
-
-  // email or sms — show code input
-  _fakeOTP = String(Math.floor(100000 + Math.random() * 900000));
-  /* Aucun email ni SMS n'est reellement envoye (pas de backend — voir le
-     commentaire "2FA simule retire" plus haut). Le code etait jusqu'ici
-     visible UNIQUEMENT dans la console (console.log 'dev only'), ce qui le
-     rendait a la fois trompeur (ca ressemble a de la vraie 2FA) ET
-     inutilisable pour quiconque n'ouvre pas les outils de developpement.
-     Affiche desormais directement dans le message a l'ecran, etiquete
-     "demo" sans ambiguite — signale par Olivier. */
-  const msgs = {
-    email: `Code envoyé à ${maskEmail(_loginEmail)} (démo — aucun email réel n'est envoyé : code ${_fakeOTP})`,
-    sms: `Code envoyé par SMS sur votre numéro enregistré (démo — aucun SMS réel n'est envoyé : code ${_fakeOTP})`,
-  };
-  document.getElementById('2fa-send-msg').textContent = msgs[selected2FA];
-  document.getElementById('2fa-code-label').textContent = selected2FA === 'email' ? 'Code reçu par email' : 'Code reçu par SMS';
-  [1,2,3,4,5,6].forEach(i => {
-    const el = document.getElementById('2fa-digit-'+i);
-    el.value = ''; el.classList.remove('filled');
-  });
-  document.getElementById('2fa-code-input').style.display = 'block';
-  setTimeout(() => document.getElementById('2fa-digit-1').focus(), 100);
-  startResendTimer(60);
-  if (selected2FA === 'email') showToast(`📧 Code envoyé — vérifiez vos emails`);
-  if (selected2FA === 'sms') showToast(`📱 Code SMS envoyé !`);
-}
-
-function maskEmail(email) {
-  if (!email.includes('@')) return email;
-  const [user, domain] = email.split('@');
-  return user[0] + '***' + user[user.length-1] + '@' + domain;
-}
-
-/* OTP digit inputs */
+  loginSuccess(); // profil local, aucune double authentification (pas de serveur)
