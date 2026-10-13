@@ -16,13 +16,13 @@
   <div class="nav-right-group" style="margin-left:auto; display:flex; align-items:center; gap:12px">
 
     <!-- language selector -->
-    <div class="lang-select" id="lang-select" style="display:none"><!-- masque : traduction partielle (menus seulement), a reactiver quand i18n couvrira le jeu -->
+    <div class="lang-select" id="lang-select"><!-- FR / EN traduits par le site ; les autres langues passent par la traduction du navigateur -->
       <button class="lang-btn" onclick="toggleLangMenu(event)" aria-label="Changer de langue" title="Langue">
         <span class="lang-flag" id="lang-flag">🇫🇷</span>
         <span class="lang-code" id="lang-code">FR</span>
         <span class="lang-caret">▾</span>
       </button>
-      <div class="lang-menu" id="lang-menu"></div>
+      <div class="lang-menu" id="lang-menu" translate="no"></div>
     </div>
 
     <!-- help menu -->
@@ -235,11 +235,12 @@
         <button class="btn-xl gold" onclick="playGame()">🎮 Jouer maintenant</button>
         <button class="btn-xl outline" onclick="showPage('learn')">📖 Apprendre les règles</button>
       </div>
+      <p class="hero-libre">Gratuit pour toujours. Sans pub, sans compte obligatoire, sans mesure d’audience. Code ouvert (GPL).</p>
       <!-- Avant : « 48K joueurs actifs · 2.3M parties · 79K sur BGA · 127 pays », non dates, sans
            source precise, et lisibles comme les chiffres de CE site. Remplaces par des chiffres que
            le code permet de verifier (un test les compare au corpus et a la liste des puzzles). -->
-      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Abalassembly en chiffres — tous vérifiables</div>
       <div class="hero-stats">
+        <div class="hero-stats-titre">Abalassembly en chiffres — tous vérifiables</div>
         <div class="stat-item">
           <div class="stat-num" id="hero-nb-parties">4 579</div>
           <div class="stat-label">Vraies parties rejouables</div>
@@ -249,7 +250,7 @@
           <div class="stat-label">Puzzles tirés de vraies parties</div>
         </div>
         <div class="stat-item">
-          <div class="stat-num">100 %</div>
+          <div class="stat-num">100&nbsp;%</div>
           <div class="stat-label">Hors ligne</div>
         </div>
         <div class="stat-item">
@@ -942,13 +943,13 @@
       <div class="timer-block active" id="timer-me">10:00</div>
       <div class="timer-label">Votre temps</div>
       <div class="player-card" style="margin-top:8px">
-        <div class="player-avatar" style="background:radial-gradient(circle at 35% 35%,#3a7a56,#1c3d2a);color:var(--gold);font-family:'Playfair Display',serif">O</div>
+        <div class="player-avatar" id="me-avatar-lg" style="background:radial-gradient(circle at 35% 35%,#3a7a56,#1c3d2a);color:var(--gold);font-family:'Playfair Display',serif">V</div>
         <div class="player-info">
-          <div class="player-name-lg">Vous (Olivier)</div>
+          <div class="player-name-lg" id="me-name-lg">Vous</div>
           <div class="player-rating-lg" title="Aucune partie n'est encore conservee : le classement sera calcule quand l'historique existera">Non classé</div>
         </div>
       </div>
-      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px">Vos billes: Noires ●</div>
+      <div id="me-billes-lg" style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px">Vos billes: Noires ●</div>
     </div>
 
     <!-- Center board -->
@@ -1278,6 +1279,7 @@
         <div class="sidebar-link" onclick="showLearnSection('push',this)">La poussée (Sumito)</div>
         <div class="sidebar-link" onclick="showLearnSection('eject',this)">Éjection de billes</div>
       </div>
+      <div class="en-only" style="font-size:12px;color:var(--muted);line-height:1.5;margin:0 0 14px;padding:8px 10px;border:1px dashed var(--border);border-radius:8px">The chapters below are still in French. Tip: set the language to Français, then let your browser translate the page (right-click → Translate).</div>
       <div class="sidebar-section">
         <div class="sidebar-title">Variantes de jeu</div>
         <div class="sidebar-link" onclick="showLearnSection('multiplayer',this)">👥 Règles à 3 et 4 joueurs</div>
@@ -1341,15 +1343,15 @@
           </div>
         </div>
         <div class="tip-box">
-          <strong>💡 Le saviez-vous ?</strong> Abalone a été vendu à plus de 5 millions d'exemplaires dans le monde et est disponible dans plus de 30 pays. Il a remporté plusieurs prix dont le Prix du Jouet Éducatif.
+          <strong>💡 Le saviez-vous ?</strong> Abalone s'est vendu à plus de 4,5 millions d'exemplaires et se vendait en 2011 dans plus de trente pays. L'année de sa sortie, en 1990, il a reçu l'un des premiers prix Mensa Select.
         </div>
       </div>
 
       <div class="learn-section" id="learn-setup">
         <div class="section-label">Mise en place</div>
         <h2>Disposition initiale</h2>
-        <p>Les 14 billes noires occupent les deux premières rangées côté noir, et les 14 billes blanches occupent les deux premières rangées côté blanc. La rangée centrale intermédiaire reste vide.</p>
-        <p>La disposition standard (dite "Belgique" ou classique) place les billes en blocs compacts. D'autres configurations de départ existent pour varier les ouvertures : le Daisy, le Marguerite, ou l'Alien.</p>
+        <p>Les 14 billes noires occupent les deux rangées les plus proches du joueur noir (5 et 6 billes) et les 3 cases centrales de la troisième ; les blanches font de même en face. Les trois rangées du milieu restent vides.</p>
+        <p>La disposition standard (dite classique) place les billes en blocs compacts. D'autres dispositions de départ existent pour varier les ouvertures : la Marguerite belge, la Marguerite allemande ou l'Alien.</p>
         <div class="tip-box">
           <strong>⚡ Disposition classique :</strong> Noir commence toujours en premier dans la configuration standard. Le joueur avec les billes noires effectue le premier mouvement.
         </div>
@@ -1400,7 +1402,7 @@
       <div class="learn-section" id="learn-push">
         <div class="section-label">Règles</div>
         <h2>La poussée — Sumito</h2>
-        <p>Le <strong style="color:var(--gold)">Sumito</strong> est la règle centrale d'Abalone : un groupe de billes peut en pousser un groupe adverse plus petit.</p>
+        <p><span data-i18n="learn.le">Le</span> <strong style="color:var(--gold)">Sumito</strong> est la règle centrale d'Abalone : un groupe de billes peut en pousser un groupe adverse plus petit.</p>
         <div class="move-types">
           <div class="move-type">
             <div class="move-icon">3→1</div>
@@ -3509,7 +3511,7 @@
       <div id="puzzle-hint" style="display:none;margin-top:12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:13px;color:var(--text)"></div>
       <div id="puzzle-solution" style="display:none;margin-top:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px">
         <div style="font-size:12px;font-weight:600;color:var(--gold);margin-bottom:6px">Solution :</div>
-        <div id="puzzle-solution-text" style="font-size:13px;color:var(--text);font-family:'DM Mono',monospace;line-height:1.8"></div>
+        <div id="puzzle-solution-text" style="font-size:13px;color:var(--text);font-family:'DM Mono',monospace;line-height:1.8;white-space:pre-line"></div>
       </div>
     </div>
 
@@ -3852,10 +3854,11 @@
   <div style="padding:24px 20px 60px;max-width:820px;margin:0 auto">
     <h1 style="font-family:'Playfair Display',serif;color:var(--white);margin-bottom:6px">Aide</h1>
     <p style="color:var(--muted);font-size:14px;margin-bottom:14px">Comment utiliser Abalassembly. Touche une rubrique pour l'ouvrir, ou cherche un mot.</p>
+    <p class="en-only" style="color:var(--muted);font-size:13px;margin:-6px 0 14px">The game, the rules, the puzzles and this help are in English. Some deeper pages (AI Lab, game library, Academy, Brain Gym exercises…) are still in French. Tip: set the language to Français, then let your browser translate the page (right-click → Translate).</p>
     <input id="aide-recherche" type="search" placeholder="Rechercher (ex. importer, nulle, hors ligne…)" oninput="filtrerAide(this.value)"
            style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;margin-bottom:12px">
     <div id="aide-vide" style="display:none;color:var(--muted);font-size:13px;margin:8px 0">Aucune rubrique ne contient ce mot.</div>
-    <div id="aide-rubriques">
+    <div id="aide-rubriques" class="fr-only">
 <details class="aide-rub" open><summary>🎮 Jouer une partie</summary><div class="aide-corps">
 <p>Menu ☰ → <b>Jouer</b>. L'écran <b>Configurer avant de jouer</b> réunit tous les réglages :</p>
 <ul>
@@ -3957,6 +3960,109 @@
 <li>Menu <b>❓ Aide</b> en haut de l'écran : poser une question, faire une suggestion, signaler un bug. Ces messages s'ouvrent sur GitHub, qui demande un compte (gratuit).</li>
 </ul>
 <button class="ctrl-btn aide-aller" onclick="showPage('settings')">Ouvrir les Paramètres →</button></div></details>
+    </div>
+    <div id="aide-rubriques-en" class="en-only">
+<details class="aide-rub" open><summary>🎮 Playing a game</summary><div class="aide-corps">
+<p>Menu ☰ → <b>Play</b>. The <b>Set up your game</b> screen gathers every setting:</p>
+<ul>
+<li><b>Starting layout</b>: <i>Standard</i>, <i>Belgian Daisy</i> (the tournament layout)… and <i>Discovery</i>, 7 marbles per side, ideal for beginners.</li>
+<li><b>Opponent</b>: <i>Against the AI</i>, or two players, on the <i>Same device</i> or <i>Live</i> (see “Playing a friend”).</li>
+<li><b>Who starts?</b> Black moves first: <i>Me</i> gives you Black, <i>Opponent</i> gives you White, <i>Random</i> draws lots.</li>
+<li><b>Level</b> from 1 to 10, and <b>AI style</b> (Auto, Aggressive, Defensive, Divide, Balanced, KAAH experimental).</li>
+<li><b>Max thinking time (s)</b>: how long the AI may think. Filled in with the level’s usual time; left empty, the AI thinks until it finds a move.</li>
+<li><b>Time control</b>: Untimed, 3 ready-made controls, <i>Clock</i>, or <i>Customize…</i> (increment or delay per move, bonus per ejection).</li>
+<li><b>Aids</b>: possible moves highlighted, a1…i9 coordinates.</li>
+</ul>
+<p>Then <b>Start the game</b>. To play: <b>tap 1 to 3 of your aligned marbles</b> to select them, then <b>the cell you want to move them to</b>. The first player to eject 6 opposing marbles wins.</p>
+<button class="ctrl-btn aide-aller" onclick="showPage('setup')">Set up a game →</button></div></details>
+<details class="aide-rub"><summary>🧭 During the game</summary><div class="aide-corps">
+<ul>
+<li><b>↩️ Undo last move</b>, <b>💡 Suggest a move</b>, <b>🧠 Why this move?</b> (the explanation of the AI’s last move).</li>
+<li><b>🤝 Offer a draw</b> and <b>Resign</b>. A position repeated three times is a draw automatically.</li>
+<li><b>1D / 2D / 3D</b>: three views of the board, all playable. <b>🔄 Flip</b> turns the board around.</li>
+<li>The last move is marked with <b>chevrons</b> on the marbles that moved.</li>
+<li>Below the move list: the <b>position code</b> (KAAH format), with <b>Copy</b> and <b>Permutations</b> (its 12 symmetries and the colour swap).</li>
+<li>Under each AI move, its <b>evaluation</b> (“Mid. +1090 · depth 8 · 19.0 s”); tap it to see its whole reasoning.</li>
+</ul>
+</div></details>
+<details class="aide-rub"><summary>🧠 The AI’s reasoning</summary><div class="aide-corps">
+<p>The <b>▸ AI reasoning</b> panel, below the move list, shows why the AI played its last move. For each depth, its 10 best first moves, with:</p>
+<ul>
+<li><b>Eval.</b>: the move’s score, from the AI’s point of view;</li>
+<li><b>Time</b>: when it was finished; <b>Under it</b>: the time spent on it; <b>Positions</b>: how many positions it examined;</li>
+<li>the difference on each <b>criterion</b> (gain, center, cohesion, edges…) and the <b>Expected line</b>. Tap a row: the line plays out on a small board.</li>
+</ul>
+<p>A <b>*</b> marks a score that counts ejections computed beyond the line shown.</p>
+</div></details>
+<details class="aide-rub"><summary>🏁 After the game</summary><div class="aide-corps">
+<ul>
+<li>The end screen shows the result, your <b>style</b> and your <b>heat map</b>: the cells where you play most.</li>
+<li><b>🔍 Analyze the game</b> and <b>⚠️ Review my mistakes</b>: the key moves, and the ones that cost you.</li>
+<li><b>▶ Replay the game</b>, with <b>⟨ Previous</b> and <b>Next ⟩</b>.</li>
+<li><b>📤 Share</b> or <b>📋 Export the game</b>: in notation, or as a code to send.</li>
+</ul>
+<p>Every finished game is saved automatically in your <b>History</b>.</p>
+</div></details>
+<details class="aide-rub"><summary>🕓 History, backup and import</summary><div class="aide-corps">
+<ul>
+<li>Menu → <b>History</b>: all your games, to review move by move.</li>
+<li><b>📤 Export all (Aba-Pro)</b>: a backup of your history as a file. Make one now and then: your data stays on your device.</li>
+<li><b>📥 Import</b>: restores a saved history, or adds games played elsewhere (KAAH, Aba-Pro…). Pick the file or paste the text, then give <b>your nickname in those games</b>: it tells which games are yours. A game that is already there is never added twice.</li>
+<li><b>On Android</b>, with the app installed: long-press a game file → <b>Share</b> → <b>Abalassembly</b>. The import opens already filled in.</li>
+<li><b>Changing phones</b>: on the old one, Settings → <b>📦 Export my data (JSON)</b> (everything) or History → <b>📤 Export all (Aba-Pro)</b> (the games); on the new one, the matching import.</li>
+</ul>
+<button class="ctrl-btn aide-aller" onclick="showPage('historique')">Open History →</button></div></details>
+<details class="aide-rub"><summary>👥 Playing a friend</summary><div class="aide-corps">
+<ul>
+<li><b>Same device</b>: you take turns on the same screen.</li>
+<li><b>Live 🧪</b>: each on your own device, no account. One taps <b>Create a game</b>, the other <b>Join</b>; a single code is exchanged at the start, then the moves flow by themselves.</li>
+<li><b>Game by code</b> (game screen): to play remotely at your own pace, by sending each other a code.</li>
+</ul>
+</div></details>
+<details class="aide-rub"><summary>📖 Improving</summary><div class="aide-corps">
+<ul>
+<li><b>Game rules</b> and <b>Abalone Academy</b>: the rules, then strategy principles.</li>
+<li><b>Puzzles</b>: positions to solve, taken from real games.</li>
+<li><b>Openings</b>: how games begin, with their real win rates.</li>
+<li><b>Analysis</b> and <b>My statistics</b>: your progress, your rating, your style.</li>
+<li><b>Brain Gym</b>: short board-vision exercises. <b>⚔️ Brain Duel</b>: link up with a friend (<i>Connect to a friend</i>, the same code as for live play), then <i>Start a duel</i> — 3 speed rounds, the same position for both of you; the best score wins the round, the fastest breaks a tie. A face-to-face bar, in each player’s theme colours, shows who is pushing whom: at the front, 1 marble against 1 when level, up to 3 against 1 for the leader; the green ✓ dot means the other player has already answered.</li>
+<li><b>Trainer course</b>: for running workshops.</li>
+</ul>
+</div></details>
+<details class="aide-rub"><summary>🧪 Explore</summary><div class="aide-corps">
+<ul>
+<li><b>Game library</b>: thousands of real games (MIGS, AbalOnline, tournaments, KAAH) to replay and filter.</li>
+<li><b>Corpus stats</b>: the numbers behind these games, and the <b>AI’s depth by thinking time</b>, measured on your device and recorded during your games.</li>
+<li><b>Endgame tables</b>: endgames solved exactly (2 vs 2, 3 vs 2, 4 vs 2), with training.</li>
+<li><b>AI Lab</b>: the AI improves by playing against itself, several games at a time. Each change to its weights (KAAH’s criteria included) is played in pairs of openings and adopted only after a statistical verdict; the “measured real gain” then compares the champion with the original weights. At the bottom of the page: the test of KAAH’s criteria.</li>
+<li><b>Photo / board detection</b>: photograph a real board to reproduce it.</li>
+<li><b>Watch</b>: follow a PlayStrategy game live. <b>Tournament</b>: a tournament against AIs.</li>
+<li><b>Variants</b> and <b>Editor</b>: other rules and layouts, or your own position.</li>
+</ul>
+</div></details>
+<details class="aide-rub"><summary>📲 Install the app, play offline</summary><div class="aide-corps">
+<ul>
+<li><b>Android (Chrome)</b>: menu ⋮ → <b>Install app</b>.</li>
+<li><b>iPhone (Safari)</b>: Share button → <b>Add to Home Screen</b>.</li>
+<li>After a first visit, the site works <b>offline</b>: game, AI, puzzles, library. Only live play and PlayStrategy need a connection.</li>
+<li>Everything is stored <b>on your device</b>, nothing on a server: remember to back up (Settings → <b>📦 Export my data (JSON)</b>).</li>
+</ul>
+</div></details>
+<details class="aide-rub"><summary>🔤 Notation and codes</summary><div class="aide-corps">
+<ul>
+<li><b>Aba-Pro</b>: the group’s <i>tail</i> marble, then the neighbouring cell in the direction of the push (“a1b2”); a side-step is written with 6 characters (“c2c4d3”: c2-c3-c4 move to d3-d4-d5).</li>
+<li><b>Nacre</b>, the notation of KAAH and KAAWA: the tail before the move, then the head after the move (“a1d4”) — the distance gives the length of the group. The move list shows both notations.</li>
+<li><b>Position code</b> (KAAH format): black marbles then white ones, each half preceded by the number of that side’s marbles already ejected (“0a12b123…_0a45…”).</li>
+<li>Cells run from <b>a1 to i9</b>: the letter is the row (a at the bottom, i at the top), the number the column.</li>
+</ul>
+</div></details>
+<details class="aide-rub"><summary>⚙️ Settings and questions</summary><div class="aide-corps">
+<ul>
+<li>Menu → <b>Settings</b>: your profile, accessibility, notifications and permissions — including <b>Kids mode</b> (bright board, no chat or external links), camera and microphone.</li>
+<li>Also in Settings: <b>📦 Export my data (JSON)</b> and <b>📥 Import my data (JSON)</b>, the <b>full</b> backup of your data.</li>
+<li>The <b>❓ Help</b> menu at the top of the screen: ask a question, make a suggestion, report a bug. These messages open on GitHub, which needs a (free) account.</li>
+</ul>
+<button class="ctrl-btn aide-aller" onclick="showPage('settings')">Open Settings →</button></div></details>
     </div>
   </div>
 </div>
@@ -5101,10 +5207,10 @@
 <div id="translate-hint-overlay" style="display:none;position:fixed;inset:0;z-index:3500;background:rgba(13,15,14,0.92);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px">
   <div style="max-width:440px;background:var(--surface);border:1px solid var(--gold-dim);border-radius:16px;padding:28px;text-align:center">
     <div style="font-size:48px;margin-bottom:8px"><span id="translate-hint-flag">🌐</span></div>
-    <h3 style="font-family:'Playfair Display',serif;color:var(--white);font-size:22px;margin-bottom:6px">Traduire en <span id="translate-hint-lang" style="color:var(--gold)">English</span></h3>
+    <h3 style="font-family:'Playfair Display',serif;color:var(--white);font-size:22px;margin-bottom:6px">Translate into <span id="translate-hint-lang" style="color:var(--gold)">English</span></h3>
     <p style="font-size:14px;color:var(--text);line-height:1.6;margin-bottom:8px" id="translate-hint-text"></p>
-    <p style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:20px">Votre navigateur traduira instantanément toute la page dans la langue choisie. C'est gratuit et complet. 🚀</p>
-    <button onclick="closeTranslateHint()" style="padding:11px 28px;background:var(--gold);border:none;border-radius:8px;color:#0d0f0e;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">J'ai compris</button>
+    <p style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:20px">The site is written in French; your browser can translate the whole page into the chosen language, instantly and for free. English and French are built in: pick them in the language menu.</p>
+    <button onclick="closeTranslateHint()" style="padding:11px 28px;background:var(--gold);border:none;border-radius:8px;color:#0d0f0e;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Got it</button>
   </div>
 </div>
 

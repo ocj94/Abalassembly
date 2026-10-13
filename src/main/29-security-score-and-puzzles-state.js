@@ -555,7 +555,7 @@ function findEjectingMoveOn(brd) {
   for (const cells of groups) {
     for (const dir of AX_DIRS) {
       const info = validateMove(cells, dir, 'black');
-      if (info.valid && info.type === 'push' && info.ejection) { found = { cells, dir, push: info.push }; break; }
+      if (info.valid && info.type === 'push' && info.ejection) { found = { cells, dir, push: info.push, oppStart: info.oppStart }; break; }
     }
     if (found) break;
   }

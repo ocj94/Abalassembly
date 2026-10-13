@@ -2172,7 +2172,10 @@ test('aide : chaque libelle cite existe vraiment ailleurs dans le site (aucun bo
   assert.deepStrictEqual(absents, [], 'libelles annonces mais absents de l aide (liste du test a revoir)');
   const inventes = cites.filter(s => hors.indexOf(s) < 0);
   assert.deepStrictEqual(inventes, [], 'libelles cites par l aide mais introuvables dans le site');
-  assert.strictEqual((aide.match(/<details class="aide-rub"/g) || []).length, 11);
+  // 11 rubriques en francais, et les memes 11 en anglais (v2.56)
+  const fr = aide.slice(aide.indexOf('id="aide-rubriques"'), aide.indexOf('id="aide-rubriques-en"')), en = aide.slice(aide.indexOf('id="aide-rubriques-en"'));
+  assert.strictEqual((fr.match(/<details class="aide-rub"/g) || []).length, 11);
+  assert.strictEqual((en.match(/<details class="aide-rub"/g) || []).length, 11);
 });
 
 test('aide : accessible par le menu et par le menu Aide du haut', () => {
@@ -2632,4 +2635,215 @@ test('honnetete : classement sans donnees -> etat vide honnete, et plus aucun ch
     const p = { name: 'X', elo: 1500, w: 10, l: 5, d: 1, games: 16 };
     assert.strictEqual(JSON.stringify(ctx.lbVariant(p, 'blitz', 'week')), JSON.stringify(p), 'un filtre ne fabrique plus de chiffres');
   } finally { ctx.document.getElementById = sG; }
+});
+
+/* ─── 51. Version anglaise (v2.56) ─── */
+const _faux = (tag, attrs, enfants) => {
+  const el = { nodeType: 1, tagName: tag.toUpperCase(), _a: Object.assign({}, attrs || {}), childNodes: [], parentNode: null,
+    get firstChild() { return this.childNodes[0] || null; },
+    getAttribute(n) { return n in this._a ? this._a[n] : null; }, setAttribute(n, v) { this._a[n] = String(v); }, hasAttribute(n) { return n in this._a; },
+    closest(sel) { assert.strictEqual(sel, '[translate="no"]'); for (let e = this; e && e.nodeType === 1; e = e.parentNode) if (e._a.translate === 'no') return e; return null; } };
+  (enfants || []).forEach(c => { c.parentNode = el; el.childNodes.push(c); });
+  return el;
+};
+const _texte = v => ({ nodeType: 3, nodeValue: v, parentNode: null });
+// parcours en ordre du document, sous-arbre saute quand le filtre le rejette (2), comme un vrai TreeWalker
+const _marcheur = (racine, quoi, filtre) => {
+  const l = [];
+  (function f(n) { n.childNodes.forEach(c => { if (c.nodeType === 1) { if (filtre && filtre.acceptNode(c) === 2) return; l.push(c); f(c); } else l.push(c); }); })(racine);
+  let i = 0; return { nextNode: () => (i < l.length ? l[i++] : null) };
+};
+
+test('anglais : dictionnaire et motifs -- textes exacts, espaces conserves, nombres et noms repris, inconnu = rien', () => {
+  assert.strictEqual(ctx._i18nEN('  Abandonner\n  '), '  Resign\n  ');
+  assert.strictEqual(ctx._i18nEN('Commencer   la\npartie'), 'Start the game', 'espaces interieurs normalises');
+  assert.strictEqual(ctx._i18nEN('À votre tour — Coup 14'), 'Your turn — Move 14');
+  assert.strictEqual(ctx._i18nEN('À votre tour — Coup 40 — gain en 9'), 'Your turn — Move 40 — gain en 9', 'seul le debut connu est traduit');
+  assert.strictEqual(ctx._i18nEN('Joueur Blanc : sélectionnez vos billes'), 'White player: select your marbles');
+  assert.strictEqual(ctx._i18nEN('Case E5, bille noire, sélectionnée'), 'Cell E5, black marble, selected');
+  assert.strictEqual(ctx._i18nEN('⛔ Poussée bloquée'), '⛔ Push blocked');
+  assert.strictEqual(ctx._i18nEN('⛔ Poussée bloquée — réessaie'), '⛔ Push blocked — try again');
+  assert.strictEqual(ctx._i18nEN('⛔ Raison inconnue'), null, 'motif sans traduction du reste : rien');
+  assert.strictEqual(ctx._i18nEN('🛡️ Puzzle 64/138 · ⭐⭐ — Blancs jouent et parent la menace !'), '🛡️ Puzzle 64/138 · ⭐⭐ — White to play and stop the threat!');
+  assert.strictEqual(ctx._i18nEN('+20 XP · Puzzle résolu'), '+20 XP · Puzzle solved');
+  assert.strictEqual(ctx._i18nEN('Bille éjectée — résolu en 1 coup !'), 'Marble ejected — solved in 1 move!');
+  assert.strictEqual(ctx._i18nEN('Variante communautaire reelle, 76 parties enregistrees sur AbalOnline -- seulement 12 billes par camp'),
+    'Real community variant, 76 games recorded on AbalOnline — only 12 marbles per side');
+  assert.strictEqual(ctx._i18nEN('Un texte que personne n a traduit'), null);
+  assert.strictEqual(ctx._i18nEN('   '), null);
+  // chaque motif a son mot-cle (essaye avant l'expression reguliere : la page compte des milliers de textes sans motif)
+  ctx.I18N_EN_MOTIFS.forEach(m => assert.ok(typeof m[2] === 'string' ? m[2].length > 0 : Array.isArray(m[2]) && m[2].length > 0, 'motif sans mot-cle : ' + m[0]));
+  assert.strictEqual(ctx._i18nEN('· TRAIT :'), '· TO MOVE:');
+  assert.strictEqual(ctx._i18nEN('Prof. 8 : 10 premiers coups sur 44, 1 234 positions, 3,2 s (finie à 4,1 s)'), 'Depth 8: 10 first moves out of 44, 1 234 positions, 3,2 s (done at 4,1 s)');
+});
+
+test('anglais : chaque cle du dictionnaire existe vraiment dans le site (aucune traduction morte)', () => {
+  const src = _SRC();
+  const debut = src.indexOf('const I18N_EN = {'), fin = src.indexOf('function _i18nCle(');
+  assert.ok(debut > 0 && fin > debut);
+  const norm = x => x.replace(/\\u2019/g, '’').replace(/\\u2014/g, '—').replace(/\\u00e9/g, 'é').replace(/\\'/g, "'").replace(/&nbsp;/g, ' ')
+    .replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/&#10;/g, ' ').replace(/\s+/g, ' ');
+  const hors = norm(src.slice(0, debut) + src.slice(fin));
+  // textes composes par le code (morceaux concatenes) : verifies piece par piece
+  const composes = { '▾ Réflexion de l’IA': [' Réflexion de l’IA', "'▾'"], '▸ Réflexion de l’IA': [' Réflexion de l’IA', "'▸'"], 'jours': ["jour'+(progress.streak>1?'s':'')"],
+    'Les Noirs gagnent !': ["'Les ' + nomCamp(winner) + ' gagnent !'", "'Noirs'"], 'Les Blancs gagnent !': ["' gagnent !'", "'Blancs'"],
+    'Les Noirs ont éjecté 6 billes adverses.': ["' ont éjecté 6 billes adverses.'"], 'Les Blancs ont éjecté 6 billes adverses.': ["' ont éjecté 6 billes adverses.'"],
+    'Les Noirs ont abandonné.': ["' ont abandonné.'"], 'Les Blancs ont abandonné.': ["' ont abandonné.'"],
+    '🧠 Mémoire': ["name: 'Mémoire'", "icon: '🧠'"], '👁️ Acuité': ["name: 'Acuité'"], '⚡ Réflexe': ["name: 'Réflexe'"], '🧩 Flexibilité': ["name: 'Flexibilité'"],
+    '⚖️ Certitude': ["name: 'Certitude'"], '📖 Répertoire': ["name: 'Répertoire'"], '🎚️ Jugement': ["name: 'Jugement'"], '🎯 Mat au bord': ["name: 'Mat au bord'"] };
+  const morts = Object.keys(ctx.I18N_EN).filter(k => {
+    if (composes[k]) return composes[k].some(m => hors.indexOf(norm(m)) < 0);
+    return hors.indexOf(k) < 0;
+  });
+  assert.deepStrictEqual(morts, [], 'cles introuvables dans le site (texte change ou faute de frappe)');
+  assert.ok(Object.keys(ctx.I18N_EN).length > 500, 'dictionnaire suffisant : ' + Object.keys(ctx.I18N_EN).length);
+  Object.keys(ctx.I18N_EN).forEach(k => assert.strictEqual(k, ctx._i18nCle(k), 'cle non normalisee : ' + k));
+});
+
+test('anglais : la page se traduit et se remet en francais ; zones de saisie, options-valeurs et translate="no" intactes', () => {
+  const bouton = _faux('button', { title: 'Abandonner' }, [_texte('  Abandonner  ')]);
+  const statut = _faux('span', {}, [_texte('À votre tour — Coup 14')]);
+  const saisie = _faux('textarea', {}, [_texte('Abandonner')]);
+  const opt1 = _faux('option', {}, [_texte('Variantes')]), opt2 = _faux('option', { value: 'v' }, [_texte('Variantes')]);
+  const protege = _faux('div', { translate: 'no' }, [_faux('b', {}, [_texte('Abandonner')])]);
+  const inconnu = _faux('p', {}, [_texte('Texte inconnu')]);
+  const caseP = _faux('div', { 'aria-label': 'Case E5, bille noire' }, []);
+  const racine = _faux('div', {}, [bouton, statut, saisie, _faux('select', {}, [opt1, opt2]), protege, inconnu, caseP]);
+  const sW = ctx.document.createTreeWalker; ctx.document.createTreeWalker = _marcheur;
+  try {
+    ctx._i18nSousArbre(racine, true);
+    assert.strictEqual(bouton.childNodes[0].nodeValue, '  Resign  '); assert.strictEqual(bouton.getAttribute('title'), 'Resign');
+    assert.strictEqual(statut.childNodes[0].nodeValue, 'Your turn — Move 14');
+    assert.strictEqual(saisie.childNodes[0].nodeValue, 'Abandonner', 'contenu d une zone de saisie');
+    assert.strictEqual(opt1.childNodes[0].nodeValue, 'Variantes', 'option sans valeur : son texte EST sa valeur');
+    assert.strictEqual(opt2.childNodes[0].nodeValue, 'Variants');
+    assert.strictEqual(protege.childNodes[0].childNodes[0].nodeValue, 'Abandonner', 'translate="no"');
+    assert.strictEqual(inconnu.childNodes[0].nodeValue, 'Texte inconnu');
+    assert.strictEqual(caseP.getAttribute('aria-label'), 'Cell E5, black marble');
+    ctx._i18nSousArbre(racine, true);   // deux fois de suite : rien ne bouge
+    assert.strictEqual(statut.childNodes[0].nodeValue, 'Your turn — Move 14');
+    statut.childNodes[0].nodeValue = 'Réécrit par le site';   // le site a change le texte entre-temps
+    ctx._i18nSousArbre(racine, false);
+    assert.strictEqual(bouton.childNodes[0].nodeValue, '  Abandonner  '); assert.strictEqual(bouton.getAttribute('title'), 'Abandonner');
+    assert.strictEqual(opt2.childNodes[0].nodeValue, 'Variantes'); assert.strictEqual(caseP.getAttribute('aria-label'), 'Case E5, bille noire');
+    assert.strictEqual(statut.childNodes[0].nodeValue, 'Réécrit par le site', 'un texte reecrit par le site n est pas ecrase');
+  } finally { ctx.document.createTreeWalker = sW; }
+});
+
+test('anglais : choisie par ?lang=en ou par le menu, jamais imposee ; titre, langue de la page, evaluations', () => {
+  const loc = ctx.location.search, avant = ctx.localStorage.getItem('abalone_lang'), doc = ctx.document.documentElement;
+  const remettre = () => { ctx.currentLang._lu = false; ctx.currentLang._param = undefined; };
+  try {
+    ctx.localStorage.removeItem('abalone_lang'); remettre();
+    assert.strictEqual(ctx.currentLang(), 'FR', 'sans parametre ni choix : francais');
+    ctx.location.search = '?x=1&lang=en'; remettre();
+    assert.strictEqual(ctx.currentLang(), 'EN'); assert.strictEqual(ctx.localStorage.getItem('abalone_lang'), 'EN', 'retenu');
+    ctx.localStorage.setItem('abalone_lang', 'FR');
+    assert.strictEqual(ctx.currentLang(), 'FR', 'un choix fait ensuite dans le menu l emporte');
+    ctx.localStorage.setItem('abalone_lang', 'EN');
+    assert.strictEqual(ctx._tr('oui', 'yes'), 'yes');
+    assert.strictEqual(ctx._formatEvalIA({ e: 1090, p: 8, t: 19000, ph: 'milieu' }), 'Mid. +1090 · depth 8 · 19.0 s');
+    assert.strictEqual(ctx._formatEvalIA({ e: 99996, p: 4, t: 120, ph: 'finale' }), 'End forced win · depth 4 · 120 ms');
+    assert.strictEqual(ctx.directionName({ q: 1, r: 0 }), 'the right (east)');
+    ctx.document.title = 'Abalassembly — Jouer'; ctx.I18N_TITRE.FR = null;
+    ctx._i18nAppliquerTout('EN');
+    assert.strictEqual(doc.lang, 'en'); assert.strictEqual(ctx.document.title, ctx.I18N_TITRE.EN);
+    ctx._i18nAppliquerTout('FR');
+    assert.strictEqual(doc.lang, 'fr'); assert.strictEqual(ctx.document.title, 'Abalassembly — Jouer');
+    ctx.localStorage.setItem('abalone_lang', 'FR');
+    assert.strictEqual(ctx._tr('oui', 'yes'), 'oui');
+    assert.strictEqual(ctx._formatEvalIA({ e: 1090, p: 8, t: 19000, ph: 'milieu' }), 'Mil. +1090 · prof. 8 · 19,0 s', 'le francais ne change pas');
+  } finally {
+    ctx.location.search = loc; remettre();
+    if (avant === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avant);
+  }
+});
+
+test('anglais : l aide anglaise cite les libelles traduits du site ; menu de langue visible ; message « gratuit pour toujours »', () => {
+  const src = _SRC();
+  const en = src.slice(src.indexOf('id="aide-rubriques-en"'), src.indexOf('<div class="page" id="page-mentions">'));
+  const valeurs = Object.values(ctx.I18N_EN).concat(Object.values(ctx.TRANSLATIONS.EN));
+  const existe = l => valeurs.some(v => v === l || v.endsWith(' ' + l) || v.startsWith(l + ' '));
+  const cites = ['Play', 'Set up your game', 'Starting layout', 'Opponent', 'Who starts?', 'Level', 'AI style', 'Max thinking time (s)', 'Time control', 'Aids',
+    'Start the game', 'Customize…', 'Clock', 'Against the AI', 'Same device', 'Discovery', '↩️ Undo last move', '💡 Suggest a move', '🧠 Why this move?', '🤝 Offer a draw',
+    'Resign', '🔄 Flip', 'Copy', 'Permutations', '▸ AI reasoning', 'Eval.', 'Time', 'Under it', 'Expected line', '🔍 Analyze the game', '⚠️ Review my mistakes',
+    '▶ Replay the game', '⟨ Previous', 'Next ⟩', '📤 Share', '📋 Export the game', 'History', '📤 Export all (Aba-Pro)', '📥 Import', '📦 Export my data (JSON)',
+    '📥 Import my data (JSON)', 'Create a game', 'Join', 'Game by code', 'Game rules', 'Puzzles', 'Openings', 'Analysis', 'My statistics', 'Brain Gym',
+    '⚔️ Brain Duel', 'Connect to a friend', 'Start a duel', 'Trainer course', 'Game library', 'Corpus stats', 'Endgame tables', 'AI Lab',
+    'Photo / board detection', 'Watch', 'Tournament', 'Variants', 'Editor', 'Settings', 'Kids mode'];
+  const absents = cites.filter(l => en.indexOf(l) < 0);
+  assert.deepStrictEqual(absents, [], 'libelles annonces mais absents de l aide anglaise');
+  const inventes = cites.filter(l => !existe(l));
+  assert.deepStrictEqual(inventes, [], 'libelles de l aide anglaise qui ne sont pas ceux du site traduit');
+  assert.match(src, /<div class="lang-select" id="lang-select"><!--/, 'menu de langue visible');
+  assert.match(src, /<p class="hero-libre">Gratuit pour toujours\. Sans pub, sans compte obligatoire, sans mesure d’audience\. Code ouvert \(GPL\)\.<\/p>/);
+  assert.strictEqual(ctx._i18nEN('Gratuit pour toujours. Sans pub, sans compte obligatoire, sans mesure d’audience. Code ouvert (GPL).'), 'Free forever. No ads, no account needed, no analytics. Open source (GPL).');
+  assert.match(src, /html\[lang="en"\] \.fr-only \{ display: none !important; \}/);
+  assert.match(src, /<span data-i18n="learn\.le">Le<\/span> <strong/); assert.strictEqual(ctx.TRANSLATIONS.EN['learn.le'], 'The');
+});
+
+test('regles : chiffres verifiables (4,5 millions, Mensa Select 1990) et mise en place exacte (5 + 6 + 3 billes)', () => {
+  const src = _SRC();
+  assert.strictEqual(src.indexOf('plus de 5 millions'), -1); assert.strictEqual(src.indexOf('Prix du Jouet Éducatif'), -1);
+  assert.ok(src.indexOf('plus de 4,5 millions d\'exemplaires') > 0 && src.indexOf('premiers prix Mensa Select') > 0);
+  assert.strictEqual(src.indexOf('dite "Belgique"'), -1, 'la disposition standard n est pas la « Belgique »');
+  assert.ok(src.indexOf('(5 et 6 billes) et les 3 cases centrales de la troisième') > 0);
+  // la disposition standard du moteur : 5 + 6 + 3 billes par camp, rangees du milieu vides
+  const L = ctx.LAYOUTS.standard || ctx.LAYOUTS.classic;
+  if (L && L.black) {
+    const parRangee = {}; L.black.forEach(p => { parRangee[p[0]] = (parRangee[p[0]] || 0) + 1; });
+    assert.deepStrictEqual(Object.values(parRangee).sort((a, b) => a - b), [3, 5, 6]);
+  }
+});
+
+test('problemes : chaque bille sur le plateau, une ejection existe, la solution nomme la bille vraiment ejectee', () => {
+  const els = {}, sG = ctx.document.getElementById, b0 = ctx.board, cb = ctx.CapturedByBlack.get(), cw = ctx.CapturedByWhite.get(), idx0 = ctx.currentPuzzleIdx;
+  const resolus = ctx.puzzlesData.map(p => p.solved), titres = ctx.localStorage.getItem('abaSolvedPuzzleTitles');
+  ctx.document.getElementById = id => (els[id] = els[id] || { style: {}, innerHTML: '', textContent: '' });
+  const coup = ctx.showToast; ctx.showToast = () => {};
+  try {
+    ctx.puzzlesData.forEach((p, i) => {
+      p.black.concat(p.white).forEach(([r, c]) => assert.ok(r >= 0 && r < 9 && c >= 0 && c < ctx.ROWS[r], 'puzzle ' + (i + 1) + ' : bille hors du plateau ' + r + ',' + c));
+      const b = {}; p.black.forEach(([r, c]) => b[r + ',' + c] = 'black'); p.white.forEach(([r, c]) => b[r + ',' + c] = 'white');
+      const sol = ctx.findEjectingMoveOn(b);
+      assert.ok(sol, 'puzzle ' + (i + 1) + ' : aucune ejection possible');
+      // le coup joue pour de vrai : quelle blanche disparait ?
+      ctx.board = Object.assign({}, b);
+      const info = ctx.validateMove(sol.cells, sol.dir, 'black');
+      ctx.applyMove({ cells: sol.cells, dir: sol.dir, info: info }, 'black');
+      const restantes = Object.keys(ctx.board).filter(k => ctx.board[k] === 'white').length;
+      assert.strictEqual(restantes, p.white.length - 1, 'puzzle ' + (i + 1) + ' : une seule blanche en moins');
+      // la blanche ejectee : celle dont la case d origine n a plus de blanche ET qui n a pas ete simplement poussee d un cran
+      const avant = new Set(p.white.map(([r, c]) => r + ',' + c)), apres = new Set(Object.keys(ctx.board).filter(k => ctx.board[k] === 'white'));
+      const disparues = [...avant].filter(k => !apres.has(k)), arrivees = [...apres].filter(k => !avant.has(k));
+      assert.ok(disparues.length >= 1 && disparues.length - arrivees.length === 1);
+      ctx.currentPuzzleIdx = i; ctx.showPuzzleSolution();
+      const m = /La bille blanche \(([a-i]\d)\) est éjectée/.exec(els['puzzle-solution-text'].textContent);
+      assert.ok(m, 'puzzle ' + (i + 1) + ' : solution sans bille nommee');
+      // la bille nommee etait la plus avancee de la file poussee : une blanche d origine qui a disparu, en bord de plateau
+      const nommee = p.white.find(([r, c]) => ctx.coordToABAPRO(r, c) === m[1]);
+      assert.ok(nommee, 'puzzle ' + (i + 1) + ' : la bille nommee (' + m[1] + ') n est pas une blanche du puzzle');
+      const ax = ctx.rcToAxial(nommee[0], nommee[1]);
+      assert.strictEqual(ctx.axialToRc(ax.q + sol.dir.q, ax.r + sol.dir.r), null, 'puzzle ' + (i + 1) + ' : ' + m[1] + ' n est pas au bord dans le sens de la poussee');
+      ctx.board = b0; ctx.CapturedByBlack.set(cb); ctx.CapturedByWhite.set(cw);
+    });
+  } finally {
+    ctx.document.getElementById = sG; ctx.showToast = coup; ctx.board = b0; ctx.CapturedByBlack.set(cb); ctx.CapturedByWhite.set(cw); ctx.currentPuzzleIdx = idx0;
+    ctx.puzzlesData.forEach((p, i) => { p.solved = resolus[i]; });
+    if (titres === null) ctx.localStorage.removeItem('abaSolvedPuzzleTitles'); else ctx.localStorage.setItem('abaSolvedPuzzleTitles', titres);
+  }
+});
+
+test('honnetete : la carte du joueur ne montre plus « Olivier » a tout le monde ; la couleur annoncee est celle tenue', () => {
+  assert.strictEqual(_SRC().indexOf('>Vous (Olivier)<'), -1);
+  const els = {}, sG = ctx.document.getElementById, u = ctx.currentUser, c = ctx.HumanColor.get();
+  ctx.document.getElementById = id => (els[id] = els[id] || { style: {}, textContent: '' });
+  try {
+    ctx.currentUser = null; ctx.HumanColor.set('white'); ctx._majCarteJoueur();
+    assert.strictEqual(els['me-name-lg'].textContent, 'Vous'); assert.strictEqual(els['me-billes-lg'].textContent, 'Vos billes: Blanches ○');
+    ctx.currentUser = { username: 'Alex' }; ctx.HumanColor.set('black'); ctx._majCarteJoueur();
+    assert.strictEqual(els['me-name-lg'].textContent, 'Vous (Alex)'); assert.strictEqual(els['me-avatar-lg'].textContent, 'A');
+    assert.strictEqual(els['me-billes-lg'].textContent, 'Vos billes: Noires ●');
+    assert.strictEqual(ctx._i18nEN('Vous (Alex)'), 'You (Alex)'); assert.strictEqual(ctx._i18nEN('Vos billes: Blanches ○'), 'Your marbles: White ○');
+  } finally { ctx.document.getElementById = sG; ctx.currentUser = u; ctx.HumanColor.set(c); }
 });

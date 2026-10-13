@@ -9,6 +9,38 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.56]
+
+### Added — the site in English
+- **Language**: the language menu is back at the top of the screen. English is
+  translated by the site itself (over 700 strings): header, menus, home, game
+  setup, the game and its end screens, the core rules, the tutorial, the help
+  (11 topics rewritten), puzzles (the 18 in the series and the 138 from real
+  games), live play, the Brain Duel and the Brain Gym home. More technical pages
+  (AI Lab, game library, Academy, strategy chapters…) are still in French and
+  say so. Other languages still rely on the browser's translation.
+- **Direct link**: `?lang=en` (or `?lang=fr`) opens the site in that language and
+  remembers it. Without a link or a choice the site stays in French; a banner,
+  in English, offers English to non-French browsers.
+- **No flicker**: in English the page shows up in English straight away. On a
+  simulated mid-range phone, French used to stay visible for up to 1.7 s.
+- **Home**: "Free forever. No ads, no account needed, no analytics. Open
+  source (GPL)."
+
+### Fixed
+- **Puzzles**: two of the 18 puzzles had a marble off the board; the solution
+  sometimes named the wrong ejected marble; statements used internal
+  coordinates ("3,7") instead of board notation (f9). A test now checks every
+  puzzle.
+- **Rules**: "sold over 5 million copies… Educational Toy Award" replaced by
+  sourced facts (over 4.5 million copies, more than thirty countries as of
+  2011, one of the first Mensa Select awards in 1990); the standard layout is
+  not "the Belgian" and has 5 + 6 + 3 marbles per side.
+- **Game**: the player card showed "You (Olivier)" to everyone, and "Your
+  marbles: Black" even when playing White.
+- **Level**: a new player saw "-50 / 102 XP"; level 1 now starts at 0.
+- **Menus**: the language and Help menus no longer overflow a phone screen.
+
 ## [v2.55]
 
 ### Fixed — nothing made up on the site

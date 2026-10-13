@@ -186,6 +186,13 @@ const PASSERELLE = `
   if (typeof _testKaahPlanifier !== 'undefined') relier('_testKaahPlanifier', function(){return _testKaahPlanifier;}, function(v){_testKaahPlanifier=v;});
   if (typeof _testKaahEnCours !== 'undefined') relier('_testKaahEnCours', function(){return _testKaahEnCours;}, function(v){_testKaahEnCours=v;});
   if (typeof currentUser !== 'undefined') relier('currentUser', function(){return currentUser;}, function(v){currentUser=v;});
+  // version anglaise (v2.56)
+  if (typeof I18N_EN !== 'undefined') relier('I18N_EN', function(){return I18N_EN;});
+  if (typeof I18N_EN_MOTIFS !== 'undefined') relier('I18N_EN_MOTIFS', function(){return I18N_EN_MOTIFS;});
+  if (typeof TRANSLATIONS !== 'undefined') relier('TRANSLATIONS', function(){return TRANSLATIONS;});
+  if (typeof I18N_TITRE !== 'undefined') relier('I18N_TITRE', function(){return I18N_TITRE;});
+  if (typeof _i18nObs !== 'undefined') relier('_i18nObs', function(){return _i18nObs;});
+  if (typeof puzzlesData !== 'undefined') relier('puzzlesData', function(){return puzzlesData;});
   if (typeof undoStack !== 'undefined')        relier('undoStack', function(){return undoStack;}, function(v){undoStack=v;});
   if (typeof selected !== 'undefined')         relier('selected', function(){return selected;}, function(v){selected=v;});
   if (typeof LAYOUTS !== 'undefined')          relier('LAYOUTS', function(){return LAYOUTS;});

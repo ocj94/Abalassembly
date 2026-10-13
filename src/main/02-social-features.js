@@ -501,7 +501,7 @@ function renderEngageBar() {
   const winRate = progress.gamesPlayed ? Math.round(progress.gamesWon/progress.gamesPlayed*100) : 0;
 
   // 5 derniers jours pour la mini-frise de streak
-  const days = ['D','L','M','M','J','V','S'];
+  const days = currentLang() === 'EN' ? ['S','M','T','W','T','F','S'] : ['D','L','M','M','J','V','S'];
   let streakDots = '';
   for (let i=4; i>=0; i--) {
     const d = new Date(); d.setDate(d.getDate()-i);

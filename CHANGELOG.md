@@ -9,6 +9,44 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.56]
+
+### Ajouté — le site en anglais
+- **Langue** : le menu de langue est de retour en haut de l'écran. L'anglais est
+  traduit par le site lui-même (plus de 700 textes) : en-tête, menus, accueil,
+  configuration, partie, fins de partie, règles essentielles, tutoriel, aide
+  (11 rubriques réécrites), problèmes (les 18 de la série et les 138 de vraies
+  parties), partie en direct, Duel et Gym Cerveau (accueil des exercices).
+  Les pages plus techniques (Labo IA, bibliothèque, Academy, chapitres de
+  stratégie…) restent en français et le disent. Les autres langues passent,
+  comme avant, par la traduction du navigateur.
+- **Lien direct** : `?lang=en` (ou `?lang=fr`) ouvre le site dans cette langue
+  et s'en souvient. Sans lien ni choix, le site reste en français ; un bandeau,
+  en anglais, propose l'anglais aux navigateurs étrangers.
+- **Pas de clignotement** : en anglais, la page s'affiche directement en
+  anglais. Mesuré sur un téléphone moyen simulé : le français restait visible
+  jusqu'à 1,7 s avant ; plus du tout maintenant.
+- **Accueil** : « Gratuit pour toujours. Sans pub, sans compte obligatoire,
+  sans mesure d'audience. Code ouvert (GPL). »
+
+### Corrigé
+- **Problèmes** : deux des 18 problèmes plaçaient une bille hors du plateau
+  (« Sumito 3v2 bas », « Riposte au sumito ») ; la solution nommait parfois la
+  mauvaise bille éjectée (la dernière blanche de la liste, pas celle poussée
+  dehors) ; les énoncés utilisaient des coordonnées internes (« en 3,7 ») au
+  lieu de la notation du plateau (f9). Un test vérifie désormais chaque problème.
+- **Règles** : « vendu à plus de 5 millions d'exemplaires… Prix du Jouet
+  Éducatif » remplacé par des faits sourcés (plus de 4,5 millions
+  d'exemplaires, plus de trente pays en 2011, l'un des premiers prix Mensa
+  Select en 1990) ; la disposition standard n'est pas « dite Belgique » et
+  compte 5 + 6 + 3 billes par camp.
+- **Partie** : la carte du joueur affichait « Vous (Olivier) » pour tout le
+  monde et « Vos billes : Noires » même avec les Blancs.
+- **Niveau** : un nouveau joueur voyait « -50 / 102 XP » ; le niveau 1
+  commence maintenant à 0.
+- **Menus** : le menu de langue et le menu Aide ne débordent plus de l'écran
+  du téléphone.
+
 ## [v2.55]
 
 ### Corrigé — rien d'inventé sur le site
