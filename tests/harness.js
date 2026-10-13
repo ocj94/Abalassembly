@@ -163,6 +163,23 @@ const PASSERELLE = `
   if (typeof AI_WORKER_CODE !== 'undefined') relier('AI_WORKER_CODE', function(){return AI_WORKER_CODE;});
   if (typeof AI_WEIGHT_PRESETS !== 'undefined') relier('AI_WEIGHT_PRESETS', function(){return AI_WEIGHT_PRESETS;});
   if (typeof _labRunning !== 'undefined') relier('_labRunning', function(){return _labRunning;}, function(v){_labRunning=v;});
+  // Labo v4 : reglages, fils de calcul, ordonnanceur (remplacables par les tests)
+  if (typeof LAB_CFG !== 'undefined') relier('LAB_CFG', function(){return LAB_CFG;}, function(v){LAB_CFG=v;});
+  if (typeof LAB_CFG_DEFAULT !== 'undefined') relier('LAB_CFG_DEFAULT', function(){return LAB_CFG_DEFAULT;});
+  if (typeof LAB_ORIGINE !== 'undefined') relier('LAB_ORIGINE', function(){return LAB_ORIGINE;});
+  if (typeof LAB_KAAH_REF !== 'undefined') relier('LAB_KAAH_REF', function(){return LAB_KAAH_REF;});
+  if (typeof LAB_CLES_BASE !== 'undefined') relier('LAB_CLES_BASE', function(){return LAB_CLES_BASE;});
+  if (typeof LAB_CLES_KAAH !== 'undefined') relier('LAB_CLES_KAAH', function(){return LAB_CLES_KAAH;});
+  if (typeof LAB_RECIPES !== 'undefined') relier('LAB_RECIPES', function(){return LAB_RECIPES;});
+  if (typeof SPSA_KEYS !== 'undefined') relier('SPSA_KEYS', function(){return SPSA_KEYS;});
+  if (typeof KAAH_POIDS !== 'undefined') relier('KAAH_POIDS', function(){return KAAH_POIDS;});
+  if (typeof _labFils !== 'undefined') relier('_labFils', function(){return _labFils;}, function(v){_labFils=v;});
+  if (typeof _labPlanifier !== 'undefined') relier('_labPlanifier', function(){return _labPlanifier;}, function(v){_labPlanifier=v;});
+  if (typeof _labCreerFil !== 'undefined') relier('_labCreerFil', function(){return _labCreerFil;}, function(v){_labCreerFil=v;});
+  if (typeof _labEnVol !== 'undefined') relier('_labEnVol', function(){return _labEnVol;}, function(v){_labEnVol=v;});
+  if (typeof _spsaVol !== 'undefined') relier('_spsaVol', function(){return _spsaVol;}, function(v){_spsaVol=v;});
+  if (typeof _labPingOk !== 'undefined') relier('_labPingOk', function(){return _labPingOk;}, function(v){_labPingOk=v;});
+  if (typeof _testKaahEnVol !== 'undefined') relier('_testKaahEnVol', function(){return _testKaahEnVol;}, function(v){_testKaahEnVol=v;});
   if (typeof _testKaahPlanifier !== 'undefined') relier('_testKaahPlanifier', function(){return _testKaahPlanifier;}, function(v){_testKaahPlanifier=v;});
   if (typeof _testKaahEnCours !== 'undefined') relier('_testKaahEnCours', function(){return _testKaahEnCours;}, function(v){_testKaahEnCours=v;});
   if (typeof currentUser !== 'undefined') relier('currentUser', function(){return currentUser;}, function(v){currentUser=v;});

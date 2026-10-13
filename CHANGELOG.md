@@ -9,6 +9,67 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.54]
+
+### Modifié
+- **Labo : des verdicts fiables.** Chaque ouverture tirée au sort est jouée
+  **deux fois, couleurs inversées**, et le verdict compte des **paires**
+  (0, ½, 1, 1½ ou 2 points) : l'avantage qu'une ouverture donne à une couleur
+  s'annule dans la paire. Le SPRT devient « pentanomial », la méthode de
+  Fishtest (le banc d'essai de Stockfish), avec un a priori de Jeffreys
+  (½ paire fictive par case). Avant, le verdict comptait les parties une par
+  une, tombait sur 8 victoires de suite (variance mesurée nulle) et s'arrêtait
+  à 60 parties. En simulation, au taux de nulles mesuré en confirmation
+  (≈ 30 %) : avant, 96 % des tests d'un mutant sans effet finissaient
+  « indécis », et un mutant nettement meilleur (+70 Elo) n'était adopté que
+  14 fois sur 100. Maintenant : +70 Elo adopté plus de 99 fois sur 100 (en
+  ≈ 140 parties), +35 Elo 68 fois sur 100, un mutant sans effet adopté à tort
+  ≈ 4 fois sur 100 (seuil choisi : 5 %).
+- **Labo : les parties trop longues sont arbitrées par consensus** — la
+  victoire n'est donnée que si les deux évaluations sont d'accord. Avant,
+  seule celle du mutant tranchait : il arbitrait ses propres parties. Sur
+  40 vraies parties mesurées avec de petites mutations, les deux règles
+  donnaient le même résultat ; l'écart peut venir des grosses valeurs, comme
+  celles des critères de KAAH, que le Labo règle désormais.
+- **Labo, SPSA : vérifié avant adoption.** Avant, les poids de l'IA
+  changeaient toutes les 2 parties sans aucune vérification. Maintenant θ est
+  confronté au champion (SPRT par paires) toutes les 50 itérations, et l'IA ne
+  l'utilise qu'après adoption.
+- **Labo : gain réel mesuré** après chaque adoption — le champion contre les
+  poids d'origine, 25 paires, avec sa marge à 95 %, et une courbe. Il remplace
+  l'« Élo cumulé », qui additionnait les estimations les plus chanceuses
+  (gardé une fois pour mémoire), et un bouton « Mesurer maintenant ».
+- **Labo : pas de confirmation inutile** — si aucun mutant n'atteint 50 % au
+  tri, on passe directement à la génération suivante au lieu de lancer un test
+  de plusieurs heures.
+
+### Ajouté
+- **Labo plus rapide : plusieurs parties en même temps**, une par fil de
+  calcul (la moitié des cœurs, 4 au plus, réglable de 1 à 8) — il reste de la
+  place pour jouer pendant. Débit affiché (parties par heure). Une partie
+  bloquée remplace son fil et se rejoue ; trois de suite mettent en pause.
+- **Le Labo règle aussi les critères de KAAH** (sumito, menace, fourchette,
+  piège, compacité, cases, gain et perte selon le score) : des mutants les
+  allument à la valeur de KAAH puis les ajustent, SPSA les règle avec les
+  autres poids. Case « Régler aussi les critères de KAAH » dans les réglages.
+  Un critère adopté est utilisé par l'IA et apparaît dans le tableau
+  « Réflexion de l'IA ».
+- **Test des critères de KAAH** : mêmes paires, même verdict, plusieurs
+  parties à la fois.
+
+### Corrigé
+- **« ▶ revoir » une partie du Labo montrait une autre partie** : le rejeu
+  tirait l'ouverture une deuxième fois puis rejouait les coups enregistrés,
+  ouverture comprise (position fausse dès le 7e coup, captures différentes).
+  Il rejoue maintenant depuis la position de départ.
+- Une partie dont aucune des 10 ouvertures tirées n'était équilibrée partait
+  d'une ouverture non enregistrée.
+- Les réglages « Ouverture : demi-coups » et « fenêtre d'équilibre »
+  s'affichaient mais n'étaient jamais transmis au moteur (6 et 600 en dur).
+- Décocher « Utiliser les poids adoptés » ou réinitialiser le Labo laissait
+  en place d'éventuels critères de KAAH adoptés.
+- Les réglages avancés ne se redessinent plus pendant qu'on y tape une valeur.
+
 ## [v2.53]
 
 ### Modifié

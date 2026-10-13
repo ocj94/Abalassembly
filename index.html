@@ -6151,13 +6151,13 @@ document.addEventListener('keydown', function(e){
     <div class="page-header" style="padding:40px 60px 0">
       <div class="section-label">Moteur</div>
       <h2>Labo d'auto-amélioration récursive</h2>
-      <p style="color:var(--muted);font-size:14px;max-width:680px">Duels réels moteur contre moteur, dans un worker dédié — tu peux continuer à jouer pendant.</p>
+      <p style="color:var(--muted);font-size:14px;max-width:680px">Duels réels moteur contre moteur, plusieurs à la fois sur des fils de calcul dédiés — tu peux continuer à jouer pendant. Chaque ouverture est jouée deux fois, couleurs inversées, et rien n'est adopté sans verdict statistique.</p>
       <button class="tech-toggle-btn btn" style="margin-top:10px;font-size:12px;padding:6px 12px" onclick="toggleTechMode()">🔬 Voir le détail technique</button>
       <div class="tech-detail" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-top:16px;max-width:680px">
         <h3 style="margin:0 0 10px;color:var(--white);font-size:16px">Deux méthodes, deux logiques</h3>
-        <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">SPSA</strong> (Simultaneous Perturbation Stochastic Approximation) : perturbe les 8 poids d'évaluation à la fois (θ+ et θ−), joue un duel entre les deux, met à jour tous les poids dans le sens du gagnant. Trouve les interactions entre poids qu'une exploration coup par coup manquerait.</p>
-        <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">SPRT</strong> (Sequential Probability Ratio Test, méthodologie façon Fishtest/Stockfish) : teste un seul changement à la fois contre le champion actuel, jusqu'à franchir une borne statistique — pas un nombre de parties fixé à l'avance.</p>
-        <p style="margin:0;font-size:13px;color:var(--muted);line-height:1.7">Les 8 poids (centre, cohésion, bord, mobilité, isolement, danger, alignements, forteresse) sont partagés entre les deux méthodes et avec le moteur de jeu réel — un changement validé par le Labo s'applique directement à l'IA que tu affrontes.</p>
+        <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">SPSA</strong> (Simultaneous Perturbation Stochastic Approximation) : perturbe tous les poids d'évaluation à la fois (θ+ et θ−), joue une paire de parties entre les deux, met à jour tous les poids dans le sens du gagnant. Trouve les interactions entre poids qu'une exploration coup par coup manquerait. Son résultat est vérifié par un SPRT contre le champion avant que l'IA ne l'utilise.</p>
+        <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">SPRT</strong> (Sequential Probability Ratio Test, méthodologie façon Fishtest/Stockfish) : teste un seul changement à la fois contre le champion actuel, jusqu'à franchir une borne statistique — pas un nombre de parties fixé à l'avance. Le verdict compte des <em>paires</em> (la même ouverture, couleurs inversées : 0, ½, 1, 1½ ou 2 points), comme Fishtest, avec un a priori qui empêche de conclure sur une courte série chanceuse. Après chaque adoption, le gain réel est mesuré contre les poids d'origine.</p>
+        <p style="margin:0;font-size:13px;color:var(--muted);line-height:1.7">Les 8 poids (centre, cohésion, bord, mobilité, isolement, danger, alignements, forteresse) et les 8 critères de KAAH (sumito, menace, fourchette, piège, compacité, cases, gain et perte selon le score) sont partagés entre les deux méthodes et avec le moteur de jeu réel — un changement validé par le Labo s'applique directement à l'IA que tu affrontes. Les parties trop longues sont arbitrées par consensus : la victoire n'est donnée que si les deux évaluations sont d'accord.</p>
       </div>
     </div>
     <div id="page-lab-host" style="padding:24px 60px 60px;max-width:900px"></div>
@@ -6308,7 +6308,7 @@ document.addEventListener('keydown', function(e){
 <li><b>Bibliothèque de parties</b> : des milliers de vraies parties (MIGS, AbalOnline, tournois, KAAH), à rejouer et filtrer.</li>
 <li><b>Stats du corpus</b> : les chiffres de ces parties, et la <b>profondeur de l'IA selon le temps de réflexion</b>, mesurée sur ton appareil et relevée pendant tes parties.</li>
 <li><b>Tables de finale</b> : les finales résolues exactement (2 contre 2, 3 contre 2, 4 contre 2), avec un entraînement.</li>
-<li><b>Labo IA</b> : l'IA s'améliore en jouant contre elle-même, et le test des critères de KAAH.</li>
+<li><b>Labo IA</b> : l'IA s'améliore en jouant contre elle-même, plusieurs parties à la fois. Chaque changement de ses poids (y compris les critères de KAAH) est joué par paires d'ouvertures et n'est adopté qu'après un verdict statistique ; le « gain réel mesuré » compare ensuite le champion aux poids d'origine. En bas de page : le test des critères de KAAH.</li>
 <li><b>Détection photo / plateau</b> : photographie un vrai plateau pour le reproduire.</li>
 <li><b>Observer</b> : suivre une partie PlayStrategy en direct. <b>Tournoi</b> : un tournoi contre des IA.</li>
 <li><b>Variantes</b> et <b>Éditeur</b> : d'autres règles et dispositions, ou ta propre position.</li>
@@ -7512,7 +7512,7 @@ document.addEventListener('keydown', function(e){
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.53';
+const APP_VERSION = 'v2.54';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -18224,42 +18224,57 @@ function _duelSetup(){board={};capturedByBlack=0;capturedByWhite=0;
  var parts='0a1a2a3a4a5b1b2b3b4b5b6c3c4c5,0g5g6g7h4h5h6h7h8h9i5i6i7i8i9'.split(',');
  for(var i=0;i<2;i++){var cells=parts[i].slice(1).match(/[a-i][1-9]/g)||[];for(var j=0;j<cells.length;j++){var x=_dA2rc(cells[j]);board[x.r+','+x.c]=(i?'white':'black');}}}
 function _snapCompact(){ var b={}; for(var k in board){ b[k]=(board[k]==='black'?'b':'w'); } return {b:b,cb:capturedByBlack,cw:capturedByWhite}; }
-function replayFromMoves(colorA, seed, moves){
+/* Rejeu d'une partie du Labo. Les coups enregistres CONTIENNENT l'ouverture tiree au
+   sort (ajoutee pour le book du Labo) : on rejoue donc tout depuis la position de
+   depart. Avant, le rejeu tirait l'ouverture une 2e fois PUIS rejouait les coups
+   enregistres, ouverture comprise : position fausse des le 7e coup, coups illegaux
+   sautes en silence, captures differentes de la vraie partie (trouve en comparant la
+   position finale du rejeu a celle de la partie). Les entrees plus anciennes, sans
+   l'ouverture, se rejouent encore comme avant (repli si un coup est illegal). */
+function _rejouerCoups(moves, seed, avecTirage){
   var col='black', i, m, frames=[];
   _duelSetup();
-  var rnd=_mb32(seed||1);
-  for(i=0;i<6;i++){ var ms=getAllMovesForColor(col).filter(function(x){return !x.eject;}); if(!ms.length)break;
-    m=ms[Math.floor(rnd()*ms.length)]; applyMove(m,col); col=(col==='black'?'white':'black'); }
+  if(avecTirage){ var rnd=_mb32(seed||1);
+    for(i=0;i<6;i++){ var ms=getAllMovesForColor(col).filter(function(x){return !x.eject;}); if(!ms.length)break;
+      m=ms[Math.floor(rnd()*ms.length)]; applyMove(m,col); col=(col==='black'?'white':'black'); } }
   frames.push(_snapCompact());
   for(i=0;i<moves.length;i++){
     var mv=moves[i];
     var info=validateMove(mv.cells, mv.dir, mv.col);   // reconstruit le coup complet (avec .info push/ejection)
-    if(info && info.valid){ applyMove({cells:mv.cells, dir:mv.dir, info:info, type:info.type, eject:info.ejection}, mv.col); }
+    if(!info || !info.valid) return null;
+    applyMove({cells:mv.cells, dir:mv.dir, info:info, type:info.type, eject:info.ejection}, mv.col);
     frames.push(_snapCompact());
   }
+  return frames;
+}
+function replayFromMoves(colorA, seed, moves){
+  var frames=_rejouerCoups(moves, seed, false) || _rejouerCoups(moves, seed, true);
+  if(!frames) throw new Error('partie impossible a rejouer');
   return {frames:frames};
 }
 var _recMoves=null;
-function playDuelGame(wA,wB,colorA,seed,msPerMove,maxPlies,drawWin){
-  msPerMove=msPerMove||400; maxPlies=maxPlies||60; drawWin=(typeof drawWin==='number')?drawWin:400;
-  var hist=[], col='black', plies=0, i, m, t, balanced=false;
+function playDuelGame(wA,wB,colorA,seed,msPerMove,maxPlies,drawWin,ouverture,equilibre){
+  msPerMove=msPerMove||400; maxPlies=(typeof maxPlies==='number' && maxPlies>=0)?maxPlies:60; drawWin=(typeof drawWin==='number')?drawWin:400;
+  // reglages du Labo « Ouverture : demi-coups » et « fenetre d'equilibre » : affiches depuis
+  // longtemps, mais jamais transmis au moteur (6 et 600 etaient ecrits en dur) -- branches
+  var nOuv=(typeof ouverture==='number' && ouverture>=0) ? Math.min(20, ouverture|0) : 6;
+  var fen=(typeof equilibre==='number' && equilibre>0) ? equilibre : 600;
+  var hist=[], col='black', plies=0, i, m, t, balanced=false, openingMoves=[];
   // Ouverture equilibree : re-tire la graine tant que la position de depart est deja gagnee/perdue
   for(t=0;t<10;t++){
     _duelSetup(); hist=[]; col='black'; plies=0;
     var rnd=_mb32((seed||1)+t*1000003);
-    var openingMoves=[];   // coups d'ouverture ALEATOIRES de CETTE tentative — commis a _recMoves
-                            // seulement si elle reussit (balanced=true), sinon jetes avec le reste
-    for(i=0;i<6;i++){ var ms=getAllMovesForColor(col).filter(function(x){return !x.eject;}); if(!ms.length)break;
+    openingMoves=[];       // coups d'ouverture ALEATOIRES de CETTE tentative (la derniere est gardee)
+    for(i=0;i<nOuv;i++){ var ms=getAllMovesForColor(col).filter(function(x){return !x.eject;}); if(!ms.length)break;
       m=ms[Math.floor(rnd()*ms.length)];
       openingMoves.push({cells:m.cells.map(function(x){return{r:x.r,c:x.c};}),dir:{q:m.dir.q,r:m.dir.r},col:col});
       applyMove(m,col); hist.push(_repKeyOf(board)); col=(col==='black'?'white':'black'); plies++; }
-    EVAL_W=wB; var e0=evaluateBoard('black');
-    if(e0>-600 && e0<600){
-      balanced=true;
-      if(_recMoves){ for(var oi=0;oi<openingMoves.length;oi++) _recMoves.push(openingMoves[oi]); }
-      break;
-    }
+    EVAL_W=wA; var e0a=evaluateBoard('black'); EVAL_W=wB; var e0=evaluateBoard('black');
+    if(e0>-fen && e0<fen && e0a>-fen && e0a<fen){ balanced=true; break; }
   }
+  // l'ouverture jouee est enregistree meme si aucune des 10 tentatives n'etait equilibree :
+  // avant, la partie partait alors d'une ouverture absente de l'enregistrement (rejeu faux)
+  if(_recMoves){ for(var oi=0;oi<openingMoves.length;oi++) _recMoves.push(openingMoves[oi]); }
   for(i=0;i<maxPlies;i++){
     EVAL_W = (col===colorA)? wA : wB;
     m=searchBestMove(col,2,msPerMove||400,hist.slice(-60));
@@ -18274,9 +18289,14 @@ function playDuelGame(wA,wB,colorA,seed,msPerMove,maxPlies,drawWin){
   }
   var d2=capturedByBlack-capturedByWhite;
   if(d2!==0){ var w2=(d2>0?'black':'white'); return {winner:(w2===colorA?'A':'B'),plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjCap'}; }
-  EVAL_W=wA; var ev=evaluateBoard(colorA);
-  if(ev>drawWin) return {winner:'A',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjEval'};
-  if(ev<-drawWin) return {winner:'B',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjEval'};
+  /* Arbitrage par CONSENSUS (comme les bancs d'essai des moteurs d'echecs) : chaque camp
+     evalue la position avec SES poids, du point de vue de A ; la victoire n'est donnee que
+     s'ils sont d'accord. Avant, seule l'evaluation de A tranchait : dans le Labo, A est le
+     mutant -- il arbitrait ses propres parties, et des poids qui gonflent sa propre
+     evaluation lui donnaient des victoires. */
+  EVAL_W=wA; var evA=evaluateBoard(colorA); EVAL_W=wB; var evB=evaluateBoard(colorA);
+  if(evA>drawWin && evB>drawWin) return {winner:'A',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjEval'};
+  if(evA<-drawWin && evB<-drawWin) return {winner:'B',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjEval'};
   return {winner:'D',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'draw'};
 }
 /* ═══════════════════════════════════════════
@@ -18376,7 +18396,7 @@ self.onmessage=function(e){
     catch(err){ self.postMessage({replayGame:true,id:d.id,error:String(err&&err.message||err)}); }
     return; }
   if(d.duelGame){
-    try{ _recMoves=[]; var r=playDuelGame(d.wA,d.wB,d.colorA,d.seed,d.msPerMove,d.maxPlies,d.drawWin); var mv=_recMoves; _recMoves=null; self.postMessage({duelGame:true,id:d.id,result:r,moves:mv}); }
+    try{ _recMoves=[]; var r=playDuelGame(d.wA,d.wB,d.colorA,d.seed,d.msPerMove,d.maxPlies,d.drawWin,d.ouverture,d.equilibre); var mv=_recMoves; _recMoves=null; self.postMessage({duelGame:true,id:d.id,result:r,moves:mv}); }
     catch(err){ _recMoves=null; self.postMessage({duelGame:true,id:d.id,error:String(err&&err.message||err)}); }
     return; }
   board=d.board;capturedByWhite=d.capturedByWhite;capturedByBlack=d.capturedByBlack;
@@ -21418,84 +21438,161 @@ function puzzleQuit(){
 }
 
 // ── 🧪 LABO D'AUTO-AMÉLIORATION RÉCURSIVE ──
-// De VRAIS duels moteur contre moteur (worker dédié), protocole à seuil :
-// screening (3 mutants x 6 parties) -> confirmation (24 parties, adoption si >= 56,25 %).
-// Le champion adopté remplace les poids par défaut de l'IA (préset "équilibré").
-let _labWorker=null,_labWorkerURL=null,_labRunning=false,_labBusy=false,_labWatchdog=null,_labRetries=0,_labPingOk=false,_labHB=null,_labGameT0=0; let _labLastDuel=null; let _labReplayWorker=null;
+// De VRAIS duels moteur contre moteur, dans des fils de calcul dedies (plusieurs a la fois).
+// v4 (demande d'Olivier : « ameliorer le Labo » -- verdicts fiables, plus rapide, criteres de KAAH) :
+//  - PAIRES d'ouvertures : chaque ouverture tiree au sort est jouee deux fois, couleurs
+//    inversees, et le verdict compte des PAIRES (0, ½, 1, 1½ ou 2 points) -- l'avantage
+//    qu'une ouverture donne a une couleur s'annule dans la paire ;
+//  - verdict SPRT « pentanomial » (la methode de Fishtest, le banc d'essai de Stockfish),
+//    avec un a priori de Jeffreys (½ paire fictive par case) : l'ancien verdict par partie
+//    tombait sur 8 victoires de suite (variance mesuree nulle), et s'arretait a 60 parties --
+//    beaucoup trop peu pour trancher : 97 % des tests finissaient « indecis » (simulation) ;
+//  - les parties trop longues sont arbitrees par CONSENSUS des deux evaluations (cote moteur) ;
+//  - SPSA ne touche plus aux poids de l'IA a chaque iteration : son resultat est VERIFIE par
+//    un SPRT contre le champion avant toute adoption ;
+//  - gain REEL mesure apres chaque adoption (le champion contre les poids d'origine), a la
+//    place de l'ancien « Elo cumule » qui additionnait les estimations les plus chanceuses ;
+//  - plusieurs parties en parallele (la moitie des coeurs, 4 au plus ; reglable) ;
+//  - les 8 criteres de KAAH sont reglables par le Labo (mutants et SPSA).
+let _labRunning=false,_labPingOk=false,_labHB=null,_labRetries=0; let _labLastDuel=null; let _labReplayWorker=null;
+const LAB_CLES_BASE=['center','cohesion','edge','mob','iso','dng','chain','fortress'];
+const LAB_CLES_KAAH=['scGain','scPerte','cases','compac','sumito','menace','fourch','piege'];
+const LAB_ORIGINE={center:6,cohesion:4,edge:8,mob:2,iso:18,dng:14,chain:10,fortress:20,scGain:0,scPerte:0,cases:0,compac:0,sumito:0,menace:0,fourch:0,piege:0};
+// valeurs de KAAH (son profil « Normal ») : la valeur d'un critere quand le Labo l'allume
+const LAB_KAAH_REF={scGain:200,scPerte:200,cases:1,compac:20,sumito:20,menace:120,fourch:60,piege:40};
+const LAB_NOMS={center:'centre',cohesion:'cohésion',edge:'bord',mob:'mobilité',iso:'isolement',dng:'danger',chain:'alignements',fortress:'forteresse',
+  scGain:'sc. Gain',scPerte:'sc. Perte',cases:'cases',compac:'compacité',sumito:'sumito',menace:'menace',fourch:'fourchette',piege:'piège'};
+// poids complets (16 cles) : une cle absente ou invalide prend la valeur d'origine (0 pour KAAH)
+function _labComplet(w){
+  const o={};
+  LAB_CLES_BASE.concat(LAB_CLES_KAAH).forEach(function(k){ const v=w?w[k]:undefined; o[k]=(typeof v==='number' && isFinite(v) && v>=0) ? v : LAB_ORIGINE[k]; });
+  return o;
+}
+function _labPoidsOrigineIA(){ if(typeof AI_WEIGHT_PRESETS!=='undefined') Object.assign(AI_WEIGHT_PRESETS.balanced, LAB_ORIGINE); }
 function applyLabChampion(){
   try{
     if(localStorage.getItem('abaLabUse')==='0') return false;
     const c=JSON.parse(localStorage.getItem('abaLabChampion')||'null');
-    if(c && typeof AI_WEIGHT_PRESETS!=='undefined'){ Object.assign(AI_WEIGHT_PRESETS.balanced, c); return true; }
+    if(c && typeof AI_WEIGHT_PRESETS!=='undefined'){ Object.assign(AI_WEIGHT_PRESETS.balanced, _labComplet(c)); return true; }
   }catch(e){}
   return false;
 }
 applyLabChampion();
-// GSPRT (approximation a variance estimee, cf. fastchess/cutechess) : H0 = +0 Elo, H1 = +35 Elo
 const LAB_CFG_DEFAULT={
   screenMs:350, screenPlies:60, screenDraw:400, screenTarget:6,
-  confMs:600, confPlies:80, confDraw:300, confCap:60, confMin:8,
+  confMs:600, confPlies:80, confDraw:300, confCapPaires:250, confMinPaires:6,
   elo0:0, elo1:35, alpha:0.05, beta:0.05,
+  bilanPaires:25, threads:0, kaah:1,
   openingPlies:6, balanceWindow:600, maxGen:20, adaptive:1,
-  mode:'sprt',                 // 'sprt' (test A/B à seuil) ou 'spsa' (optimisation continue)
-  spsaA:60, spsaC:1.2, spsaAlpha:0.602, spsaGamma:0.101, spsaPairs:1, spsaIters:200,
-  keys:['center','cohesion','edge','mob','iso','dng','chain','fortress']
+  mode:'sprt',                 // 'sprt' (test A/B a seuil) ou 'spsa' (optimisation continue, verifiee avant adoption)
+  spsaA:60, spsaC:1.2, spsaAlpha:0.602, spsaGamma:0.101, spsaPairs:1, spsaIters:200, spsaVerif:50
 };
 let LAB_CFG=Object.assign({}, LAB_CFG_DEFAULT);
-function labCfgLoad(){ try{ const s=JSON.parse(localStorage.getItem('abaLabCfg')||'null'); if(s) LAB_CFG=Object.assign({}, LAB_CFG_DEFAULT, s); }catch(e){} return LAB_CFG; }
+function labCfgLoad(){
+  try{ const s=JSON.parse(localStorage.getItem('abaLabCfg')||'null'); if(s) LAB_CFG=Object.assign({}, LAB_CFG_DEFAULT, s); }catch(e){}
+  // anciens reglages : cap et minimum etaient en PARTIES (60 et 8) -- remplaces par des paires
+  delete LAB_CFG.confCap; delete LAB_CFG.confMin; delete LAB_CFG.keys;
+  return LAB_CFG;
+}
 function labCfgSave(){ try{ localStorage.setItem('abaLabCfg', JSON.stringify(LAB_CFG)); }catch(e){} }
 labCfgLoad();
-// Bornes SPRT dérivées de alpha/beta (Wald) : A=log((1-b)/a) borne haute, B=log(b/(1-a)) borne basse
+function _labCles(){ return LAB_CFG.kaah ? LAB_CLES_BASE.concat(LAB_CLES_KAAH) : LAB_CLES_BASE.slice(); }
+// Bornes SPRT derivees de alpha/beta (Wald) : A=log((1-b)/a) borne haute, B=log(b/(1-a)) borne basse
 function _labBounds(){ const a=LAB_CFG.alpha||0.05, b=LAB_CFG.beta||0.05; return { up:Math.log((1-b)/a), lo:Math.log(b/(1-a)) }; }
-function _labLLR(Wn,Dn,Ln,elo0,elo1){
-  var N=Wn+Dn+Ln; if(N<2) return 0;
-  var s=(Wn+0.5*Dn)/N, m2=(Wn+0.25*Dn)/N, v=m2-s*s;
-  if(v<1e-6) v=1e-6;
-  var s0=1/(1+Math.pow(10,-elo0/400)), s1=1/(1+Math.pow(10,-elo1/400));
-  return (s1-s0)*(2*s-s0-s1)*N/(2*v);
+
+// ── Statistiques par PAIRES (« pentanomial ») ──
+// c[i] = nombre de paires ou A a marque i/2 point(s) : 0, ½, 1, 1½ ou 2.
+const LAB_A_PRIORI=0.5;   // a priori de Jeffreys : ½ paire fictive dans chacune des 5 cases
+function _labPentaVide(){ return [0,0,0,0,0]; }
+function _labPentaN(c){ return c ? (c[0]+c[1]+c[2]+c[3]+c[4]) : 0; }
+function _labPoints(c){ return c ? (0.5*c[1]+c[2]+1.5*c[3]+2*c[4]) : 0; }   // points de A sur ses paires
+function _labPentaMoments(c, apriori){
+  const k=[0,0.25,0.5,0.75,1]; let N=0,m=0,m2=0;
+  for(let i=0;i<5;i++){ const n=((c&&c[i])||0)+apriori; N+=n; m+=n*k[i]; m2+=n*k[i]*k[i]; }
+  if(N<=0) return { m:0.5, v:0.0625 };
+  m/=N; m2/=N; return { m:m, v:Math.max(1e-9, m2-m*m) };
 }
-function _labEloVal(Wn,Dn,Ln){
-  var N=Wn+Dn+Ln; if(N<1) return 0;
-  var p=Math.min(0.99,Math.max(0.01,(Wn+0.5*Dn)/N));
-  return -400*Math.log(1/p-1)/Math.LN10;
+function _labScoreLogistique(elo){ return 1/(1+Math.pow(10,-elo/400)); }
+// GSPRT (approximation de Van den Bergh, celle de Fishtest) sur les moyennes de paires
+function _labLLRp(c, elo0, elo1){
+  const n=_labPentaN(c); if(n<1) return 0;
+  const M=_labPentaMoments(c, LAB_A_PRIORI), s0=_labScoreLogistique(elo0), s1=_labScoreLogistique(elo1);
+  return (s1-s0)*(2*M.m-s0-s1)*n/(2*M.v);
 }
-function _labEloStr(Wn,Dn,Ln){
-  var N=Wn+Dn+Ln; if(N<4) return '';
-  var p=Math.min(0.99,Math.max(0.01,(Wn+0.5*Dn)/N));
-  var elo=-400*Math.log(1/p-1)/Math.LN10;
-  var m2=(Wn+0.25*Dn)/N, v=Math.max(1e-6,m2-p*p);
-  var ci=1.96*400/(Math.LN10*p*(1-p))*Math.sqrt(v/N);
-  return (elo>=0?'+':'')+Math.round(elo)+' Elo \u00b1 '+Math.round(ci);
+// Elo de A et marge a 95 % : moyenne observee, variance regularisee (jamais une marge nulle)
+function _labEloP(c){
+  const n=_labPentaN(c); if(n<1) return null;
+  const brut=_labPentaMoments(c, 0), reg=_labPentaMoments(c, LAB_A_PRIORI);
+  const s=Math.min(0.99, Math.max(0.01, brut.m));
+  const elo=-400*Math.log(1/s-1)/Math.LN10;
+  const ci=1.96*Math.sqrt(reg.v/n)*400/(Math.LN10*s*(1-s));
+  return { elo:elo, ci:ci, n:n };
 }
-function _labStatus(msg,isErr){
-  var el=document.getElementById('lab-live');
-  if(el){ el.innerHTML=msg; el.style.color=isErr?'#e66':'var(--muted)'; }
+function _labEloStrP(c){ const e=_labEloP(c); if(!e || e.n<2) return ''; return (e.elo>=0?'+':'')+Math.round(e.elo)+' Elo ± '+Math.round(e.ci); }
+function _labScoreA(r){ return r && r.winner==='A' ? 1 : (r && r.winner==='D' ? 0.5 : 0); }
+// enregistre le resultat d'UNE partie de la paire p (g = 0 : A a les Noirs, 1 : les Blancs) ;
+// renvoie true quand la paire est complete
+function _labPaireAjouter(job, p, g, s){
+  job.half=job.half||{}; job.fait=job.fait||{}; job.penta=job.penta||_labPentaVide();
+  if(job.fait[p]) return false;
+  const h=job.half[p]||[null,null]; if(h[g]!==null) return false;
+  h[g]=s; job.half[p]=h;
+  if(h[0]!==null && h[1]!==null){ job.penta[Math.round((h[0]+h[1])*2)]++; job.fait[p]=1; delete job.half[p]; return true; }
+  return false;
 }
-function _labHBstart(){
-  _labGameT0=Date.now(); clearInterval(_labHB);
-  _labHB=setInterval(function(){
-    var s=Math.round((Date.now()-_labGameT0)/1000);
-    _labStatus('\ud83c\udfae Partie en cours \u2014 '+s+' s (\u224820-45 s la partie)');
-  },1000);
+// prochaine partie a lancer d'un travail par paires : ni jouee, ni en cours
+function _labPartieSuivante(job, maxPaires, prefixe, vol){
+  for(let p=0;p<maxPaires;p++){
+    if(job.fait && job.fait[p]) continue;
+    const h=(job.half && job.half[p]) || [null,null];
+    for(let g=0;g<2;g++){
+      if(h[g]!==null) continue;
+      const cle=prefixe+'|'+p+'|'+g;
+      if(vol[cle]) continue;
+      return { p:p, g:g, cle:cle };
+    }
+  }
+  return null;
 }
-function _labHBstop(){ clearInterval(_labHB); _labHB=null; }
-function getLabWorker(){
-  if(_labWorker) return _labWorker;
-  try{
-    const blob=new Blob([AI_WORKER_CODE],{type:'application/javascript'});
-    _labWorkerURL=URL.createObjectURL(blob);
-    _labWorker=new Worker(_labWorkerURL);
-    _labWorker.onmessage=_labOnMsg;
-    _labWorker.onerror=function(ev){ pauseLab(); _labHBstop(); _labStatus('\u274c Erreur worker : '+((ev&&ev.message)||'inconnue'),true); };
-    return _labWorker;
-  }catch(e){ return null; }
+
+// ── Les fils de calcul : plusieurs parties a la fois ──
+let _labFils=[];
+let _labPlanifier=function(f, ms){ return setTimeout(f, ms); };   // remplacable par les tests
+let _labCreerFil=function(){ const url=URL.createObjectURL(new Blob([AI_WORKER_CODE],{type:'application/javascript'})); return { w:new Worker(url), url:url }; };
+// la moitie des coeurs (4 au plus) : il en reste pour jouer pendant que le Labo tourne
+function _labNbFils(){
+  const n=LAB_CFG.threads|0; if(n>0) return Math.min(8, n);
+  const c=(typeof navigator!=='undefined' && navigator.hardwareConcurrency) ? navigator.hardwareConcurrency : 2;
+  return Math.max(1, Math.min(4, Math.floor(c/2)));
 }
-function _labKillWorker(){
-  try{ if(_labWorker) _labWorker.terminate(); }catch(e){}
-  try{ if(_labWorkerURL) URL.revokeObjectURL(_labWorkerURL); }catch(e){}
-  _labWorker=null;_labWorkerURL=null;_labBusy=false;
+function _labFilTuer(f){ clearTimeout(f.chien); try{ f.w.onmessage=null; f.w.terminate(); }catch(e){} try{ if(f.url) URL.revokeObjectURL(f.url); }catch(e){} f.tache=null; }
+function _labFilsAssurer(n){
+  while(_labFils.length<n){ let f=null; try{ f=_labCreerFil(); }catch(e){ f=null; } if(!f || !f.w) break; f.tache=null; f.chien=null; _labFils.push(f); }
+  for(let i=_labFils.length-1; i>=0 && _labFils.length>n; i--){ if(!_labFils[i].tache){ _labFilTuer(_labFils[i]); _labFils.splice(i,1); } }
+  return _labFils.length;
 }
-const LAB_RECIPES=[
+function _labFilsArreter(){ _labFils.forEach(_labFilTuer); _labFils=[]; }
+function _labFilsEnCours(){ return _labFils.filter(function(f){ return f.tache; }).length; }
+function _labFilLancer(f, t, surFin){
+  f.tache=t; t.t0=Date.now();
+  f.w.onmessage=function(e){ const d=e.data; if(!d || !d.duelGame || f.tache!==t) return; clearTimeout(f.chien); f.tache=null; surFin(t, d); };
+  f.w.onerror=function(ev){ if(f.tache!==t) return; clearTimeout(f.chien); f.tache=null; surFin(t, { duelGame:true, error:(ev && ev.message) || 'fil de calcul en erreur' }); };
+  const delai=Math.max(120000, Math.round(3*t.plies*t.ms)+30000);
+  f.chien=_labPlanifier(function(){
+    if(f.tache!==t) return;
+    // partie anormalement longue : ce fil est remplace par un neuf, la partie sera relancee
+    const i=_labFils.indexOf(f); _labFilTuer(f);
+    if(i>=0){ let n=null; try{ n=_labCreerFil(); }catch(e){} if(n && n.w){ n.tache=null; n.chien=null; _labFils[i]=n; } else _labFils.splice(i,1); }
+    surFin(t, { duelGame:true, timeout:true });
+  }, delai);
+  f.w.postMessage({ duelGame:true, wA:t.wA, wB:t.wB, colorA:t.colorA, seed:t.seed, msPerMove:t.ms, maxPlies:t.plies, drawWin:t.draw,
+    ouverture:LAB_CFG.openingPlies, equilibre:LAB_CFG.balanceWindow, id:Date.now() });
+}
+
+// ── Mutants (mode SPRT) ──
+// recettes sur les 8 poids historiques, et sur les criteres de KAAH (allumer un critere
+// a la valeur de KAAH, puis l'augmenter ou le baisser) -- les deux listes alternent
+const LAB_RECETTES_BASE=[
   ['cohesion', function(v){return v+1;}], ['edge', function(v){return Math.max(2,Math.round(v*0.75));}],
   ['mob', function(v){return v*2;}],      ['iso', function(v){return Math.max(4,Math.round(v*0.8));}],
   ['dng', function(v){return Math.round(v*1.3);}], ['center', function(v){return v+2;}],
@@ -21504,213 +21601,374 @@ const LAB_RECIPES=[
   ['chain', function(v){return v+2;}],    ['chain', function(v){return Math.round(v*1.3);}],
   ['fortress', function(v){return v+4;}], ['fortress', function(v){return Math.max(4,Math.round(v*0.75));}]
 ];
+function _labRecetteKaah(k, f){ return [k, function(v){ return v ? Math.round(v*f*10)/10 : (f>1 ? LAB_KAAH_REF[k] : -1); }]; }
+const LAB_RECETTES_KAAH=[
+  _labRecetteKaah('sumito',1.5), _labRecetteKaah('menace',1.5), _labRecetteKaah('piege',1.5), _labRecetteKaah('fourch',1.5),
+  _labRecetteKaah('compac',1.5), _labRecetteKaah('scGain',1.5), _labRecetteKaah('cases',1.5), _labRecetteKaah('scPerte',1.5),
+  _labRecetteKaah('menace',0.6), _labRecetteKaah('sumito',0.6), _labRecetteKaah('fourch',0.6), _labRecetteKaah('piege',0.6)
+];
+const LAB_RECIPES=(function(){ const o=[]; for(let i=0;i<Math.max(LAB_RECETTES_BASE.length, LAB_RECETTES_KAAH.length);i++){ if(LAB_RECETTES_BASE[i]) o.push(LAB_RECETTES_BASE[i]); if(LAB_RECETTES_KAAH[i]) o.push(LAB_RECETTES_KAAH[i]); } return o; })();
 function _labMkMutant(ch, key, nv){
-  if(nv===ch[key] || nv<0) return null;
-  const w={center:ch.center,cohesion:ch.cohesion,edge:ch.edge,mob:ch.mob,iso:ch.iso,dng:ch.dng,chain:ch.chain,fortress:ch.fortress};
-  w[key]=nv;
-  return {name:key+' '+ch[key]+'\u2192'+nv, w:w, key:key, done:0, target:LAB_CFG.screenTarget, score:0, W:0, D:0, L:0, stop:false};
+  if(typeof nv!=='number' || !isFinite(nv) || nv<0 || nv===ch[key]) return null;
+  const w=_labComplet(ch); w[key]=nv;
+  return { name:(LAB_NOMS[key]||key)+' '+ch[key]+'→'+nv, w:w, key:key, penta:_labPentaVide(), half:{}, fait:{}, stop:false };
 }
-function labMutants(ch, gen){
-  const out=[]; const seen={};
-  // 1) Recherche adaptative : si le dernier axe gagnant est connu, on pousse plus loin
-  //    dans la MÊME direction (pas ×2), + son voisin opposé pour borner l'optimum.
-  const st=(function(){ try{ return JSON.parse(localStorage.getItem('abaLabState')||'null'); }catch(e){ return null; } })();
-  const lg = (LAB_CFG.adaptive!==0 && st && st.lastGood) ? st.lastGood : null;
-  if(lg && ch[lg]!==undefined){
-    const cur=ch[lg];
-    const step=Math.max(1, Math.round(Math.abs(cur)*0.5)) || 1;
+function labMutants(ch, gen, lastGood){
+  ch=_labComplet(ch);
+  const cles=_labCles(), out=[], seen={};
+  // 1) recherche adaptative : le dernier axe gagnant est pousse plus loin dans la MEME
+  //    direction, plus son voisin oppose pour borner l'optimum
+  const lg=(LAB_CFG.adaptive!==0 && lastGood && cles.indexOf(lastGood)>=0) ? lastGood : null;
+  if(lg){
+    const cur=ch[lg], step=Math.max(lg==='cases'?0.5:1, Math.round(Math.abs(cur)*0.5));
     [cur+step*2, cur+step, Math.max(0,cur-step)].forEach(function(nv){
       const m=_labMkMutant(ch, lg, nv);
       if(m && !seen[lg+':'+nv]){ seen[lg+':'+nv]=1; out.push(m); }
     });
   }
-  // 2) Complète avec la liste de recettes tournante jusqu'à 3 candidats
-  const base=((gen-2)*3)%LAB_RECIPES.length;
-  for(let k=0; k<LAB_RECIPES.length && out.length<3; k++){
-    const rec=LAB_RECIPES[(base+k)%LAB_RECIPES.length];
-    const key=rec[0], nv=rec[1](ch[key]);
+  // 2) complete avec la liste tournante de recettes jusqu'a 3 candidats
+  const rec=LAB_RECIPES.filter(function(r){ return cles.indexOf(r[0])>=0; });
+  const base=(((gen-2)*3)%rec.length+rec.length)%rec.length;
+  for(let k=0; k<rec.length && out.length<3; k++){
+    const r=rec[(base+k)%rec.length], key=r[0], nv=r[1](ch[key]);
     if(seen[key+':'+nv]) continue;
     const m=_labMkMutant(ch, key, nv);
     if(m){ seen[key+':'+nv]=1; out.push(m); }
   }
   return out.slice(0,3);
 }
+
+// ── SPSA : optimisation de tous les poids a la fois (methode des regleurs de moteurs d'echecs) ──
+const SPSA_MIN={center:0,cohesion:0,edge:0,mob:0,iso:0,dng:0,chain:0,fortress:0,scGain:0,scPerte:0,cases:0,compac:0,sumito:0,menace:0,fourch:0,piege:0};
+const SPSA_MAX={center:40,cohesion:40,edge:40,mob:20,iso:60,dng:60,chain:40,fortress:60,scGain:400,scPerte:400,cases:5,compac:60,sumito:60,menace:300,fourch:150,piege:120};
+const SPSA_KEYS=LAB_CLES_BASE.concat(LAB_CLES_KAAH);
+function _spsaClamp(w){ const o=_labComplet(w); SPSA_KEYS.forEach(function(k){ o[k]=Math.max(SPSA_MIN[k], Math.min(SPSA_MAX[k], Math.round(o[k]*100)/100)); }); return o; }
 function _spsaInit(theta){
-  return { iter:0, theta:Object.assign({},theta), best:Object.assign({},theta),
-           thetaHist:[{iter:0, theta:Object.assign({},theta)}], k:0,
-           pending:null, wins:0, draws:0, losses:0 };
+  const t=_labComplet(theta);
+  // critere de KAAH eteint : depart a la moitie de la valeur de KAAH, sinon θ− reste colle a 0
+  if(LAB_CFG.kaah) LAB_CLES_KAAH.forEach(function(k){ if(!t[k]) t[k]=LAB_KAAH_REF[k]/2; });
+  return { iter:0, k:0, lance:0, theta:t, thetaHist:[{iter:0, theta:Object.assign({},t)}], wins:0, draws:0, losses:0, prochVerif:LAB_CFG.spsaVerif||50 };
 }
+// perturbation ±δ (Rademacher), a l'echelle de la plage de chaque poids
+function _spsaPerturb(sp){
+  const ck=LAB_CFG.spsaC/Math.pow(sp.k+1, LAB_CFG.spsaGamma);
+  const delta={}, plus=Object.assign({}, sp.theta), minus=Object.assign({}, sp.theta);
+  _labCles().forEach(function(key){
+    const d=(Math.random()<0.5? -1: 1), ech=(SPSA_MAX[key]-SPSA_MIN[key])/60;
+    delta[key]=d; plus[key]=sp.theta[key]+ck*d*ech; minus[key]=sp.theta[key]-ck*d*ech;
+  });
+  return { ck:ck, delta:delta, plus:_spsaClamp(plus), minus:_spsaClamp(minus) };
+}
+// θ ← θ + a_k · score · Δ · plage/60   (score ∈ [−1, +1] = avantage de θ+)
+function _spsaUpdate(sp, pert, score){
+  const ak=LAB_CFG.spsaA/Math.pow(sp.k+1+10, LAB_CFG.spsaAlpha);
+  const nt=Object.assign({}, sp.theta);
+  Object.keys(pert.delta).forEach(function(key){ nt[key]=sp.theta[key]+ak*score*pert.delta[key]*(SPSA_MAX[key]-SPSA_MIN[key])/60; });
+  sp.theta=_spsaClamp(nt);
+  sp.k++; sp.iter++;
+  sp.thetaHist.push({iter:sp.iter, theta:Object.assign({}, sp.theta)});
+  if(sp.thetaHist.length>400) sp.thetaHist.splice(0, sp.thetaHist.length-400);
+}
+
+// ── Etat persistant (v4) ──
+function _labPhasePrincipale(){ return LAB_CFG.mode==='spsa' ? 'spsa' : 'screen'; }
 function _labDefaultState(){
-  const champ={center:6,cohesion:4,edge:8,mob:2,iso:18,dng:14,chain:10,fortress:20};
-  return { v:3, gen:2, champion:champ, phase:'screen', cands:labMutants(champ,2), confirm:null, totalGames:0,
-    eloCurve:[{gen:1,elo:0}], cumElo:0, gameLog:[], lastGood:null, spsa:_spsaInit(champ),
-    history:[{gen:1,type:'banc externe',name:'iso26/dng20/center9/cohesion6 test\u00e9s \u2014 finaliste cohesion 6 : 17,5/32 (54,7 %) < seuil',score:null,games:60}] };
+  const champ=_labComplet(LAB_ORIGINE);
+  return { v:4, gen:2, epoch:1, champion:champ, championGen:1, phase:_labPhasePrincipale(), cands:labMutants(champ,2,null), candsGen:2,
+    confirm:null, bilan:null, totalGames:0, gameLog:[], lastGood:null, spsa:_spsaInit(champ), mesures:[],
+    history:[{gen:1,type:'banc externe',name:'iso26/dng20/center9/cohesion6 testés — finaliste cohesion 6 : 17,5/32 (54,7 %) < seuil',score:null,games:60}] };
+}
+// etat v1 a v3 : on garde le champion, l'historique et les compteurs ; le test en cours repart
+// sur les nouvelles regles (ses parties comptaient une par une, pas par paires)
+function _labMigrer(s){
+  const st=_labDefaultState();
+  st.gen=s.gen||2; st.champion=_labComplet(s.champion); st.totalGames=s.totalGames||0;
+  st.gameLog=(s.gameLog||[]).slice(0,12); st.lastGood=s.lastGood||null;
+  st.history=(s.history||[]).slice(0,60);
+  if(typeof s.cumElo==='number') st.ancienCumul=Math.round(s.cumElo);
+  if(s.spsa && s.spsa.theta){
+    st.spsa=_spsaInit(st.champion); st.spsa.theta=_spsaClamp(s.spsa.theta);
+    st.spsa.iter=s.spsa.iter||0; st.spsa.k=s.spsa.k||0; st.spsa.lance=st.spsa.iter;
+    st.spsa.thetaHist=(s.spsa.thetaHist||[]).slice(-400).map(function(h){ return { iter:h.iter, theta:_labComplet(h.theta) }; });
+    st.spsa.wins=s.spsa.wins||0; st.spsa.draws=s.spsa.draws||0; st.spsa.losses=s.spsa.losses||0;
+    st.spsa.prochVerif=st.spsa.iter+(LAB_CFG.spsaVerif||50);
+  }
+  st.history.unshift({gen:st.gen, type:'⚙ v4', name:'paires d’ouvertures, verdict par paires, arbitrage par consensus, SPSA vérifié, critères de KAAH, plusieurs parties à la fois', score:null, games:0});
+  st.cands=labMutants(st.champion, st.gen, st.lastGood); st.candsGen=st.gen;
+  st.phase=(s.phase==='done') ? 'done' : _labPhasePrincipale();
+  labSave(st); return st;
 }
 function labLoad(){
   try{
     const s=JSON.parse(localStorage.getItem('abaLabState')||'null');
-    if(s&&s.champion&&s.phase){
-      if(s.v===3){ if(!s.spsa) s.spsa=_spsaInit(s.champion); return s; }
-      if(s.v===2){ s.v=3; s.eloCurve=s.eloCurve||[{gen:1,elo:0}]; s.cumElo=s.cumElo||0; s.gameLog=s.gameLog||[]; s.lastGood=s.lastGood||null; return s; }
-      const st=_labDefaultState();
-      st.gen=s.gen||2; st.champion=s.champion; st.totalGames=s.totalGames||0;
-      st.history=(s.history||[]);
-      st.history.unshift({gen:st.gen, type:'\u2699 v2', name:'SPRT + ouvertures \u00e9quilibr\u00e9es + confirmation 600 ms', score:null, games:0});
-      st.cands=labMutants(st.champion, st.gen);
-      labSave(st); return st;
-    }
+    if(s && s.champion && s.phase){ if(s.v===4) return s; return _labMigrer(s); }
   }catch(e){}
   return _labDefaultState();
 }
 function labSave(st){ try{ localStorage.setItem('abaLabState', JSON.stringify(st)); }catch(e){} }
+function _labStatus(msg,isErr){
+  var el=document.getElementById('lab-live');
+  if(el){ el.innerHTML=msg; el.style.color=isErr?'#e66':'var(--muted)'; }
+}
+let _labDebits=[];   // instants de fin des dernieres parties (debit affiche)
+function _labMajStatut(){
+  if(!_labRunning || !_labPingOk) return;
+  const enCours=_labFils.filter(function(f){ return f.tache; });
+  const ancienne=enCours.length ? Math.round(Math.max.apply(null, enCours.map(function(f){ return Date.now()-f.tache.t0; }))/1000) : 0;
+  let debit='';
+  if(_labDebits.length>=3){ const h=(_labDebits[_labDebits.length-1]-_labDebits[0])/3600000; if(h>0) debit=' · ≈ '+Math.round((_labDebits.length-1)/h)+' parties/heure'; }
+  _labStatus('🎮 '+enCours.length+' partie'+(enCours.length>1?'s':'')+' en cours sur '+_labFils.length+' fil'+(_labFils.length>1?'s':'')+' de calcul'
+    +(ancienne?' (la plus ancienne : '+ancienne+' s)':'')+debit);
+}
+function _labHBstart(){ clearInterval(_labHB); _labHB=setInterval(_labMajStatut, 1000); }
+function _labHBstop(){ clearInterval(_labHB); _labHB=null; }
+let _labEnVol={};   // parties lancees, pas encore revenues (en memoire : perdues au rechargement, donc relancees)
+let _spsaVol=[];    // iterations SPSA en cours (en memoire)
+
 function startLab(){
-  const w=getLabWorker();
-  if(!w){ renderLab(); _labStatus('\u274c Worker refus\u00e9 par ce navigateur/lecteur \u2014 ouvre le fichier dans Chrome ou Firefox, ou via le site en ligne',true); showToast('\u26a0\ufe0f Worker indisponible \u2014 Labo impossible ici'); return; }
-  _labRunning=true; try{localStorage.setItem('abaLabAutoRun','1');}catch(e){}
-  renderLab(); _labStatus('\u23f3 Test du worker\u2026');
+  if(typeof _testKaahEnCours!=='undefined' && _testKaahEnCours){ showToast('Le test des critères de KAAH tourne : mets-le en pause d’abord'); return; }
+  const n=_labFilsAssurer(_labNbFils());
+  if(!n){ renderLab(); _labStatus('❌ Fil de calcul refusé par ce navigateur/lecteur — ouvre le site dans Chrome ou Firefox, ou via le site en ligne',true); showToast('⚠️ Fil de calcul indisponible — Labo impossible ici'); return; }
+  _labRunning=true; _labRetries=0; _labEnVol={}; _spsaVol=[]; try{localStorage.setItem('abaLabAutoRun','1');}catch(e){}
+  renderLab(); _labStatus('⏳ Test des fils de calcul…');
   _labPingOk=false;
-  try{ w.postMessage({ping:1}); }
-  catch(err){ pauseLab(); _labStatus('\u274c postMessage a \u00e9chou\u00e9 : '+err.message,true); return; }
-  setTimeout(function(){
+  const f=_labFils[0];
+  f.w.onmessage=function(e){ if(e.data && e.data.pong && !_labPingOk){ _labPingOk=true; if(_labRunning){ _labStatus('✅ '+_labFils.length+' fil'+(_labFils.length>1?'s':'')+' de calcul prêt'+(_labFils.length>1?'s':'')+' — lancement des parties…'); _labHBstart(); _labPomper(); } } };
+  try{ f.w.postMessage({ping:1}); }
+  catch(err){ pauseLab(); _labStatus('❌ postMessage a échoué : '+err.message,true); return; }
+  _labPlanifier(function(){
     if(_labRunning && !_labPingOk){
       pauseLab();
-      _labStatus('\u274c Le worker ne r\u00e9pond pas : ce navigateur ou ce lecteur de fichier le bloque. Ouvre abalone-48.html dans Chrome/Firefox, ou h\u00e9berge-le (GitHub Pages).',true);
-      showToast('\u274c Worker muet \u2014 d\u00e9tail dans le panneau Labo');
+      _labStatus('❌ Le fil de calcul ne répond pas : ce navigateur ou ce lecteur de fichier le bloque. Ouvre le site dans Chrome/Firefox, ou en ligne (GitHub Pages).',true);
+      showToast('❌ Fil de calcul muet — détail dans le panneau Labo');
     }
   },4000);
 }
-function pauseLab(){ _labRunning=false; _labHBstop(); try{localStorage.setItem('abaLabAutoRun','0');}catch(e){} renderLab(); _labStatus('\u23f8 En pause'); }
+// la pause arrete les fils tout de suite (les parties en cours seront rejouees a la reprise)
+function pauseLab(){ _labRunning=false; _labHBstop(); _labFilsArreter(); _labEnVol={}; _spsaVol=[]; try{localStorage.setItem('abaLabAutoRun','0');}catch(e){} renderLab(); _labStatus('⏸ En pause'); }
 function resetLab(){
-  if(!confirm('R\u00e9initialiser le Labo ? (champion, historique et progression effac\u00e9s ; les poids par d\u00e9faut reviennent)')) return;
-  pauseLab(); _labKillWorker();
+  if(!confirm('Réinitialiser le Labo ? (champion, historique et progression effacés ; les poids par défaut reviennent)')) return;
+  pauseLab();
   localStorage.removeItem('abaLabState'); localStorage.removeItem('abaLabChampion'); localStorage.removeItem('abaLabAutoRun');
-  if(typeof AI_WEIGHT_PRESETS!=='undefined') Object.assign(AI_WEIGHT_PRESETS.balanced,{center:6,cohesion:4,edge:8,mob:2,iso:18,dng:14,chain:10,fortress:20});
-  renderLab(); showToast('Labo r\u00e9initialis\u00e9');
+  _labPoidsOrigineIA();
+  renderLab(); showToast('Labo réinitialisé');
 }
 function labToggleUse(el){
   localStorage.setItem('abaLabUse', el.checked?'1':'0');
-  if(el.checked){ applyLabChampion(); showToast('Poids du Labo appliqu\u00e9s \u00e0 l\u2019IA'); }
-  else { if(typeof AI_WEIGHT_PRESETS!=='undefined') Object.assign(AI_WEIGHT_PRESETS.balanced,{center:6,cohesion:4,edge:8,mob:2,iso:18,dng:14,chain:10,fortress:20}); showToast('Poids par d\u00e9faut restaur\u00e9s'); }
-}
-function _labCurrentJob(st){
-  if(st.phase==='screen'){
-    const c=st.cands.find(function(x){return x.done<x.target && !x.stop;});
-    if(c) return {kind:'screen', job:c, idx:st.cands.indexOf(c)};
-    return null;
-  }
-  if(st.phase==='confirm' && st.confirm && st.confirm.done<st.confirm.target) return {kind:'confirm', job:st.confirm, idx:0};
-  return null;
-}
-// ══ MODE SPSA : optimisation stochastique multi-dimensions (méthode des tuners d'échecs) ══
-const SPSA_KEYS=['center','cohesion','edge','mob','iso','dng','chain','fortress'];
-const SPSA_MIN={center:0,cohesion:0,edge:0,mob:0,iso:0,dng:0,chain:0,fortress:0};
-const SPSA_MAX={center:40,cohesion:40,edge:40,mob:20,iso:60,dng:60,chain:40,fortress:60};
-function _spsaClamp(w){ const o={}; SPSA_KEYS.forEach(function(k){ o[k]=Math.max(SPSA_MIN[k],Math.min(SPSA_MAX[k], Math.round(w[k]*10)/10)); }); return o; }
-// Génère la perturbation ±δ (Rademacher) et les deux points θ+ / θ- à tester
-function _spsaPerturb(sp){
-  const k=sp.k;
-  const ck = LAB_CFG.spsaC / Math.pow(k+1, LAB_CFG.spsaGamma);   // pas de perturbation décroissant
-  const delta={}, plus={}, minus={};
-  SPSA_KEYS.forEach(function(key){
-    const d = (Math.random()<0.5? -1: 1);                        // ±1 aléatoire
-    delta[key]=d;
-    plus[key] = sp.theta[key] + ck*d;
-    minus[key]= sp.theta[key] - ck*d;
-  });
-  return { ck:ck, delta:delta, plus:_spsaClamp(plus), minus:_spsaClamp(minus) };
-}
-// Applique le gradient estimé : θ ← θ + a_k * (score) * Δ   (score ∈ [-1,+1] = avantage de θ+)
-function _spsaUpdate(sp, pert, score){
-  const ak = LAB_CFG.spsaA / Math.pow(sp.k + 1 + 10, LAB_CFG.spsaAlpha); // pas d'apprentissage décroissant
-  const nt=Object.assign({}, sp.theta);
-  SPSA_KEYS.forEach(function(key){
-    // Mise à jour SPSA canonique : θ += ak · score · Δ, mise à l'échelle par la plage
-    // du poids (span/60) pour que chaque dimension avance à vitesse comparable.
-    const span=(SPSA_MAX[key]-SPSA_MIN[key])/60;
-    nt[key] = sp.theta[key] + ak * score * pert.delta[key] * span;
-  });
-  sp.theta=_spsaClamp(nt);
-  sp.k++; sp.iter++;
-  sp.thetaHist.push({iter:sp.iter, theta:Object.assign({},sp.theta)});
-  if(sp.thetaHist.length>400) sp.thetaHist.splice(0, sp.thetaHist.length-400);
-}
-// Un pas SPSA = jouer spsaPairs paires (θ+ vs θ-), couleurs échangées, puis update.
-function _spsaStep(st){
-  const w=getLabWorker(); if(!w){ pauseLab(); return; }
-  const sp=st.spsa;
-  if(sp.iter>=LAB_CFG.spsaIters){ st.phase='done'; labSave(st); _labRunning=false; renderLab();
-    _labStatus('\u2705 SPSA terminé ('+sp.iter+' itérations)'); return; }
-  if(!sp.pending){
-    const pert=_spsaPerturb(sp);
-    sp.pending={ pert:pert, gamesLeft:LAB_CFG.spsaPairs*2, plusScore:0, gi:0 };
-    labSave(st);
-  }
-  const p=sp.pending;
-  const colorPlus = (p.gi%2===0)?'black':'white';   // θ+ joue Noir, puis Blanc (équité)
-  const seed = sp.iter*100003 + p.gi*7;
-  _labBusy=true;
-  _labWatchdog=setTimeout(function(){
-    _labKillWorker(); _labHBstop(); _labStatus('\u267b Partie trop longue \u2014 red\u00e9marrage\u2026'); _labRetries++;
-    if(_labRetries>=3){ pauseLab(); showToast('\u26a0\ufe0f SPSA en pause : partie trop longue'); }
-    else if(_labRunning) setTimeout(labStep,500);
-  },120000);
-  _labLastDuel={ wA:p.pert.plus, wB:p.pert.minus, colorA:colorPlus, seed:seed,
-                 ms:LAB_CFG.confMs, maxPlies:LAB_CFG.confPlies, drawWin:LAB_CFG.confDraw, name:'SPSA θ+ vs θ-' };
-  w.postMessage({duelGame:true, wA:p.pert.plus, wB:p.pert.minus, colorA:colorPlus, seed:seed,
-                 msPerMove:LAB_CFG.confMs, maxPlies:LAB_CFG.confPlies, drawWin:LAB_CFG.confDraw, id:Date.now(), spsa:1});
-  _labHBstart();
-}
-// Traite le résultat d'une partie SPSA
-function _spsaOnResult(st, r){
-  const sp=st.spsa, p=sp.pending; if(!p) return;
-  // winner 'A' = θ+ gagne (+1), 'B' = θ- gagne (0 pour θ+), 'D' = 0.5
-  const plusPts = r.winner==='A'?1:(r.winner==='D'?0.5:0);
-  p.plusScore += plusPts; p.gi++; p.gamesLeft--;
-  if(plusPts===1) sp.wins++; else if(plusPts===0.5) sp.draws++; else sp.losses++;
-  st.totalGames++;
-  if(p.gamesLeft<=0){
-    // score net de θ+ centré sur 0 : (points/parties - 0.5)*2  ∈ [-1,+1]
-    const nGames=LAB_CFG.spsaPairs*2;
-    const score=((p.plusScore/nGames)-0.5)*2;
-    _spsaUpdate(sp, p.pert, score);
-    // point de courbe : "force" approx = itération (on trace la norme du déplacement cumulé)
-    st.eloCurve=st.eloCurve||[]; 
-    st.spsa.pending=null;
-    // journal data
-    _labDataPush({ t:Date.now(), gen:'spsa', phase:'spsa-iter'+sp.iter, mutant:'SPSA', mutKey:'',
-      winner:(score>0?'A':(score<0?'B':'D')), why:'spsa', plies:'', cb:'', cw:'',
-      colorA:'', seed:'', wA:sp.theta, wB:null });
-    // applique θ courant à l'IA si l'utilisateur a activé "utiliser les poids"
-    st.champion=Object.assign({},sp.theta);
-    try{ localStorage.setItem('abaLabChampion', JSON.stringify(sp.theta)); }catch(e){}
-    applyLabChampion();
-  }
-  labSave(st);
+  if(el.checked){ applyLabChampion(); showToast('Poids du Labo appliqués à l’IA'); }
+  else { _labPoidsOrigineIA(); showToast('Poids par défaut restaurés'); }
 }
 
-function labStep(){
-  if(!_labRunning || _labBusy) return;
-  const st=labLoad();
-  if(LAB_CFG.mode==='spsa'){ _spsaStep(st); return; }
-  let cur=_labCurrentJob(st);
-  if(!cur){ _labTransition(st); labSave(st); renderLab();
-    cur=_labCurrentJob(st);
-    if(!cur || st.phase==='done'){ if(st.phase==='done'){ _labRunning=false; renderLab(); } else if(_labRunning) setTimeout(labStep,300); return; }
+// ── Ordonnanceur ──
+function _labRegime(phase){ return phase==='screen' ? {ms:LAB_CFG.screenMs, plies:LAB_CFG.screenPlies, draw:LAB_CFG.screenDraw} : {ms:LAB_CFG.confMs, plies:LAB_CFG.confPlies, draw:LAB_CFG.confDraw}; }
+function _labPairesTri(){ return Math.max(1, Math.ceil((LAB_CFG.screenTarget||6)/2)); }
+function _labTache(st, job, idx, nx, wA, wB, seed, R, nom){
+  return { cle:nx.cle, epoch:st.epoch, job:job, idx:idx, p:nx.p, g:nx.g, wA:wA, wB:wB, colorA:(nx.g===0?'black':'white'),
+    seed:seed, ms:R.ms, plies:R.plies, draw:R.draw, nom:nom };
+}
+function _labVolPour(prefixe){ let n=0; for(const k in _labEnVol){ if(k.indexOf(prefixe+'|')===0) n++; } return n; }
+function _labDemi(job){ let n=0; for(const p in (job.half||{})){ const h=job.half[p]; if(h[0]!==null) n++; if(h[1]!==null) n++; } return n; }
+function _labTacheSuivante(st){
+  const ph=st.phase;
+  if(ph==='screen'){
+    if(!st.cands || !st.cands.length) return null;
+    // les mutants jouent les MEMES ouvertures (comparaison plus juste) ; celui qui a le moins
+    // de parties lancees passe d'abord
+    const P=_labPairesTri(), R=_labRegime('screen'); let best=null, bestN=Infinity;
+    st.cands.forEach(function(c, i){
+      if(c.stop || _labPentaN(c.penta)>=P) return;
+      const pre='e'+st.epoch+'|c'+i, nx=_labPartieSuivante(c, P, pre, _labEnVol); if(!nx) return;
+      const n=2*_labPentaN(c.penta)+_labDemi(c)+_labVolPour(pre);
+      if(n<bestN){ bestN=n; best={ c:c, i:i, nx:nx }; }
+    });
+    if(!best) return null;
+    return _labTache(st, 'cand', best.i, best.nx, best.c.w, st.champion, st.gen*100000+1000+best.nx.p, R, best.c.name);
   }
-  const w=getLabWorker(); if(!w){ pauseLab(); return; }
-  const cfg = st.phase==='confirm' ? {ms:LAB_CFG.confMs,maxPlies:LAB_CFG.confPlies,drawWin:LAB_CFG.confDraw} : {ms:LAB_CFG.screenMs,maxPlies:LAB_CFG.screenPlies,drawWin:LAB_CFG.screenDraw};
-  const seedBase = st.phase==='confirm' ? (st.gen*100000+77000) : (st.gen*100000+cur.idx*1000);
-  const seed = seedBase + Math.floor(cur.job.done/2);
-  const colorA = (cur.job.done%2===0)?'black':'white';
-  _labBusy=true;
-  _labWatchdog=setTimeout(function(){
-    _labKillWorker(); _labHBstop(); _labStatus('\u267b Partie trop longue \u2014 red\u00e9marrage du worker\u2026'); _labRetries++;
-    if(_labRetries>=3){ pauseLab(); showToast('\u26a0\ufe0f Labo en pause : partie trop longue (3 \u00e9checs)'); }
-    else if(_labRunning) setTimeout(labStep,500);
-  }, 120000);
-  _labLastDuel={ wA:cur.job.w, wB:st.champion, colorA:colorA, seed:seed, ms:cfg.ms, maxPlies:cfg.maxPlies, drawWin:cfg.drawWin, name:cur.job.name };
-  w.postMessage({duelGame:true, wA:cur.job.w, wB:st.champion, colorA:colorA, seed:seed, msPerMove:cfg.ms, maxPlies:cfg.maxPlies, drawWin:cfg.drawWin, id:Date.now()});
-  _labHBstart();
+  if(ph==='confirm' && st.confirm){
+    const nx=_labPartieSuivante(st.confirm, LAB_CFG.confCapPaires, 'e'+st.epoch+'|cf', _labEnVol); if(!nx) return null;
+    return _labTache(st, 'confirm', 0, nx, st.confirm.w, st.champion, st.gen*100000+77000+nx.p, _labRegime('confirm'), st.confirm.name);
+  }
+  if(ph==='bilan' && st.bilan){
+    const nx=_labPartieSuivante(st.bilan, st.bilan.pairs, 'e'+st.epoch+'|bl', _labEnVol); if(!nx) return null;
+    return _labTache(st, 'bilan', 0, nx, st.bilan.wA, LAB_ORIGINE, st.gen*100000+55000+nx.p, _labRegime('confirm'), st.bilan.name);
+  }
+  if(ph==='spsa') return _spsaTacheSuivante(st);
+  return null;
+}
+function _spsaTache(st, it, g){
+  const R=_labRegime('confirm');
+  return { cle:'e'+st.epoch+'|s'+it.id+'|'+g, epoch:st.epoch, job:'spsa', idx:it.id, p:Math.floor(g/2), g:g%2, wA:it.pert.plus, wB:it.pert.minus,
+    colorA:(g%2===0?'black':'white'), seed:5000000+it.id*101+Math.floor(g/2), ms:R.ms, plies:R.plies, draw:R.draw, nom:'SPSA θ+ contre θ−' };
+}
+// SPSA asynchrone (comme les regleurs distribues) : chaque iteration part du θ du moment,
+// et sa mise a jour s'applique des que ses parties sont revenues
+function _spsaTacheSuivante(st){
+  const sp=st.spsa, n=2*Math.max(1, LAB_CFG.spsaPairs|0);
+  for(const it of _spsaVol){ if(it.epoch===st.epoch && it.aLancer.length){ return _spsaTache(st, it, it.aLancer.shift()); } }
+  const plafond=Math.min(LAB_CFG.spsaIters, sp.prochVerif||LAB_CFG.spsaIters);
+  const enCours=_spsaVol.filter(function(it){ return it.epoch===st.epoch; }).length;
+  if(sp.iter+enCours>=plafond) return null;
+  const it={ id:sp.lance++, epoch:st.epoch, pert:_spsaPerturb(sp), aLancer:[], faits:0, plus:0, n:n };
+  for(let g=0; g<n; g++) it.aLancer.push(g);
+  _spsaVol.push(it);
+  return _spsaTache(st, it, it.aLancer.shift());
+}
+function _labNouvellePhase(st, phase){
+  st.phase=phase; st.epoch=(st.epoch||1)+1;
+  _spsaVol=_spsaVol.filter(function(it){ return it.epoch===st.epoch; });
+}
+function _labRetourPrincipal(st){
+  if(LAB_CFG.mode==='spsa'){
+    const sp=st.spsa; if(sp.iter>=LAB_CFG.spsaIters){ _labNouvellePhase(st,'done'); return; }
+    if(!(sp.prochVerif>sp.iter)) sp.prochVerif=sp.iter+(LAB_CFG.spsaVerif||50);
+    _labNouvellePhase(st,'spsa'); return;
+  }
+  if(st.gen>LAB_CFG.maxGen){ _labNouvellePhase(st,'done'); return; }
+  if(!st.cands || st.candsGen!==st.gen){ st.cands=labMutants(st.champion, st.gen, st.lastGood); st.candsGen=st.gen; }
+  _labNouvellePhase(st,'screen');
+}
+function _labFinTri(st){
+  const ratio=function(c){ const n=_labPentaN(c.penta); return n ? _labPoints(c.penta)/(2*n) : 0; };
+  const tries=st.cands.slice().sort(function(a,b){ return ratio(b)-ratio(a); }), best=tries[0];
+  if(!best || ratio(best)<0.5){
+    // aucun mutant a 50 % au tri : inutile de lancer une confirmation de plusieurs heures
+    st.history.unshift({gen:st.gen, type:'✗ tri', name:'aucun mutant à 50 % ('+st.cands.map(function(c){ return c.name+' : '+Math.round(100*ratio(c))+' %'; }).join(', ')+')', score:null,
+      games:st.cands.reduce(function(s,c){ return s+2*_labPentaN(c.penta); },0)});
+    st.gen++; _labRetourPrincipal(st); return;
+  }
+  _labNouvellePhase(st,'confirm');
+  st.confirm={ name:best.name, w:best.w, key:best.key||null, penta:_labPentaVide(), half:{}, fait:{}, llr:0, source:'sprt' };
+}
+function _labAdopt(st, cf){
+  st.champion=_labComplet(cf.w); st.championGen=st.gen;
+  try{ localStorage.setItem('abaLabChampion', JSON.stringify(st.champion)); }catch(e){}
+  applyLabChampion();
+  st.history.unshift({gen:st.gen, type:'✅ adopté (SPRT)', name:cf.name, score:_labPoints(cf.penta), games:2*_labPentaN(cf.penta), elo:_labEloStrP(cf.penta)});
+  st.lastGood=cf.key||null;
+  if(typeof showToast==='function') showToast('🧪 Nouveau champion : '+cf.name+' · '+_labEloStrP(cf.penta));
+  st.gen++; st.confirm=null;
+  if((LAB_CFG.bilanPaires|0)>0){
+    _labNouvellePhase(st,'bilan');
+    st.bilan={ name:'Bilan : champion G'+st.championGen+' contre les poids d’origine', wA:st.champion, gen:st.championGen, penta:_labPentaVide(), half:{}, fait:{}, pairs:LAB_CFG.bilanPaires|0 };
+  } else _labRetourPrincipal(st);
+}
+function _labReject(st, cf, undecided){
+  st.history.unshift({gen:st.gen, type:(undecided?'❓ indécis (plafond '+LAB_CFG.confCapPaires+' paires)':'✗ rejeté (SPRT)'), name:cf.name, score:_labPoints(cf.penta), games:2*_labPentaN(cf.penta), elo:_labEloStrP(cf.penta)});
+  st.gen++; st.confirm=null; _labRetourPrincipal(st);
+}
+function _labFinBilan(st){
+  const b=st.bilan, e=_labEloP(b.penta);
+  st.mesures=st.mesures||[];
+  if(e) st.mesures.push({ gen:b.gen, elo:Math.round(e.elo), ci:Math.round(e.ci), paires:e.n, t:Date.now() });
+  if(st.mesures.length>50) st.mesures.splice(0, st.mesures.length-50);
+  st.history.unshift({gen:b.gen, type:'📏 bilan', name:'contre les poids d’origine : '+_labEloStrP(b.penta), score:_labPoints(b.penta), games:2*_labPentaN(b.penta)});
+  st.bilan=null; _labRetourPrincipal(st);
+}
+function _spsaVerifier(st){
+  const sp=st.spsa;
+  _labNouvellePhase(st,'confirm');
+  st.confirm={ name:'SPSA θ après '+sp.iter+' itérations', w:_labComplet(sp.theta), key:null, penta:_labPentaVide(), half:{}, fait:{}, llr:0, source:'spsa' };
+}
+// verifie si la phase en cours est tranchee (apres chaque resultat, et quand plus rien ne bouge)
+function _labVerifierPhase(st){
+  const ph=st.phase;
+  if(ph==='screen' && st.cands){
+    const P=_labPairesTri();
+    // futilite : un mutant qui ne peut plus atteindre 50 % meme en gagnant tout s'arrete
+    st.cands.forEach(function(c){ const n=_labPentaN(c.penta); if(!c.stop && n<P && _labPoints(c.penta)+2*(P-n)<P) c.stop=true; });
+    if(st.cands.every(function(c){ return c.stop || _labPentaN(c.penta)>=P; })) _labFinTri(st);
+  } else if(ph==='confirm' && st.confirm){
+    const cf=st.confirm, n=_labPentaN(cf.penta), B=_labBounds();
+    cf.llr=_labLLRp(cf.penta, LAB_CFG.elo0, LAB_CFG.elo1);
+    if(n>=LAB_CFG.confMinPaires && cf.llr>=B.up) _labAdopt(st, cf);
+    else if(n>=LAB_CFG.confMinPaires && cf.llr<=B.lo) _labReject(st, cf, false);
+    else if(n>=LAB_CFG.confCapPaires) _labReject(st, cf, true);
+  } else if(ph==='bilan' && st.bilan){
+    if(_labPentaN(st.bilan.penta)>=st.bilan.pairs) _labFinBilan(st);
+  } else if(ph==='spsa'){
+    const sp=st.spsa, enCours=_spsaVol.some(function(it){ return it.epoch===st.epoch; });
+    if(!enCours && sp.iter>=Math.min(LAB_CFG.spsaIters, sp.prochVerif||LAB_CFG.spsaIters)) _spsaVerifier(st);
+  }
+}
+function _labPomper(){
+  if(!_labRunning || !_labPingOk) return;
+  _labFilsAssurer(_labNbFils());
+  const st=labLoad();
+  if(st.phase==='done'){ _labRunning=false; _labHBstop(); _labFilsArreter(); try{localStorage.setItem('abaLabAutoRun','0');}catch(e){} renderLab(); _labStatus('✅ Terminé'); return; }
+  let lance=0, change=false;
+  for(let i=0;i<_labFils.length;i++){
+    const f=_labFils[i]; if(f.tache) continue;
+    const t=_labTacheSuivante(st); if(!t) break;
+    if(t.job==='spsa') change=true;
+    _labEnVol[t.cle]=1; _labLastDuel=t; _labFilLancer(f, t, _labFinPartie); lance++;
+  }
+  if(change) labSave(st);
+  if(!lance && !_labFilsEnCours()){
+    // plus rien a lancer ni en cours : la phase est tranchee, on passe a la suivante
+    const avant=st.phase+'|'+st.epoch; _labVerifierPhase(st);
+    if(st.phase+'|'+st.epoch!==avant){ labSave(st); renderLab(); _labPlanifier(_labPomper, 50); }
+  }
+}
+function labStep(){ _labPomper(); }   // ancien nom, garde pour les appels existants
+function _labFinPartie(t, d){
+  delete _labEnVol[t.cle];
+  if(!_labRunning) return;
+  if(d.timeout){
+    _labRetries++;
+    if(_labRetries>=3){ pauseLab(); if(typeof showToast==='function') showToast('⚠️ Labo en pause : parties trop longues (3 fois de suite)'); return; }
+    // partie SPSA abandonnee : elle retourne dans la file de son iteration (sinon l'iteration ne finirait jamais)
+    if(t.job==='spsa'){ const it=_spsaVol.find(function(x){ return x.id===t.idx && x.epoch===t.epoch; }); if(it) it.aLancer.unshift(2*t.p+t.g); }
+    _labPlanifier(_labPomper, 300); return;
+  }
+  if(d.error){ pauseLab(); _labStatus('❌ Erreur moteur : '+d.error,true); if(typeof showToast==='function') showToast('❌ Labo arrêté : erreur moteur'); return; }
+  _labRetries=0; _labDebits.push(Date.now()); if(_labDebits.length>40) _labDebits.shift();
+  const st=labLoad();
+  if(t.epoch!==st.epoch){ _labPlanifier(_labPomper, 50); return; }   // la phase est deja tranchee : resultat ignore
+  const r=d.result||{winner:'D'}, s=_labScoreA(r);
+  st.totalGames++;
+  _labJournal(st, t, r, d.moves);
+  if(t.job==='spsa') _spsaResultat(st, t, s);
+  else {
+    const job=t.job==='cand' ? st.cands[t.idx] : (t.job==='confirm' ? st.confirm : st.bilan);
+    if(job) _labPaireAjouter(job, t.p, t.g, s);
+  }
+  _labVerifierPhase(st);
+  labSave(st); renderLab();
+  _labPlanifier(_labPomper, 50);
+}
+function _spsaResultat(st, t, s){
+  const it=_spsaVol.find(function(x){ return x.id===t.idx && x.epoch===t.epoch; }); if(!it) return;
+  const sp=st.spsa; it.faits++; it.plus+=s;
+  if(s===1) sp.wins++; else if(s===0.5) sp.draws++; else sp.losses++;
+  if(it.faits<it.n) return;
+  _spsaVol.splice(_spsaVol.indexOf(it), 1);
+  _spsaUpdate(sp, it.pert, (it.plus/it.n-0.5)*2);   // le θ de l'IA ne change PAS : il sera verifie d'abord
+}
+// journal data : les poids nuls ne sont pas stockes (l'export les remet a 0) -- 2000 lignes de 16 poids
+// pesaient sinon pres d'1 Mo dans le stockage du navigateur
+function _labSansZeros(w){ const o={}; if(w) for(const k in w){ if(typeof w[k]==='number' && w[k]!==0) o[k]=w[k]; } return o; }
+function _labJournal(st, t, r, moves){
+  const qui = t.job==='spsa' ? (r.winner==='A'?'θ+':(r.winner==='D'?'nulle':'θ−'))
+    : (t.job==='bilan' ? (r.winner==='A'?'champion':(r.winner==='D'?'nulle':'origine'))
+    : (r.winner==='A'?'mutant':(r.winner==='D'?'nulle':'champion')));
+  st.gameLog=st.gameLog||[];
+  st.gameLog.unshift({ phase:t.job, name:t.nom, w:qui, res:r.winner, why:r.why||'?', plies:r.plies||0, seed:t.seed, colorA:t.colorA, moves:(moves && moves.length<=200) ? moves : null });
+  if(st.gameLog.length>12) st.gameLog.length=12;
+  if(moves && moves.length) _labMineBook(moves);
+  _labDataPush({ t:Date.now(), gen:st.gen, phase:t.job, mutant:t.nom, mutKey:(t.job==='cand' && st.cands && st.cands[t.idx] && st.cands[t.idx].key) || '',
+    winner:r.winner, why:r.why||'?', plies:r.plies||0, cb:r.cb!=null?r.cb:'', cw:r.cw!=null?r.cw:'', colorA:t.colorA, seed:t.seed, paire:t.p, wA:_labSansZeros(t.wA), wB:_labSansZeros(t.wB) });
+}
+// mesure du gain reel a la demande : le champion contre les poids d'origine
+function labMesurerGain(){
+  const st=labLoad();
+  if(st.phase==='confirm' || st.phase==='bilan'){ showToast('Attends la fin du test en cours'); return; }
+  const ch=_labComplet(st.champion);
+  if(SPSA_KEYS.every(function(k){ return ch[k]===LAB_ORIGINE[k]; })){ showToast('Le champion est encore celui d’origine : rien à mesurer'); return; }
+  _labNouvellePhase(st,'bilan');
+  st.bilan={ name:'Bilan : champion G'+(st.championGen||st.gen)+' contre les poids d’origine', wA:ch, gen:st.championGen||st.gen, penta:_labPentaVide(), half:{}, fait:{}, pairs:Math.max(5, LAB_CFG.bilanPaires|0||25) };
+  labSave(st); renderLab();
+  showToast(_labRunning ? '📏 Mesure lancée' : '📏 Mesure programmée : démarre le Labo');
+  if(_labRunning) _labPlanifier(_labPomper, 50);
 }
 // Book issu du Labo — couche SEPAREE du OPENING_BOOK historique (mine des
 // vraies parties AO/MIGS), jamais melangee a lui. Consultee uniquement en
@@ -21761,89 +22019,6 @@ function _labMineBook(moves) {
     board = savedBoard; CapturedByBlack.set(savedCB); CapturedByWhite.set(savedCW);
   }
 }
-function _labOnMsg(e){
-  const d=e.data; if(!d) return;
-  if(d.pong){ _labPingOk=true; if(_labRunning){ _labStatus('\u2705 Worker OK \u2014 lancement de la 1\u02b3\u1d49 partie\u2026'); labStep(); } return; }
-  if(!d.duelGame) return;
-  clearTimeout(_labWatchdog); _labWatchdog=null; _labBusy=false; _labRetries=0; _labHBstop();
-  if(d.error){ pauseLab(); _labStatus('\u274c Erreur moteur : '+d.error,true); showToast('\u274c Labo arr\u00eat\u00e9 : erreur moteur'); return; }
-  const st=labLoad();
-  if(LAB_CFG.mode==='spsa'){
-    _spsaOnResult(st, d.result||{winner:'D'});
-    st.gameLog=st.gameLog||[]; const rr=d.result||{winner:'D'};
-    st.gameLog.unshift({ phase:'spsa', name:'SPSA θ+ vs θ-', w:(rr.winner==='A'?'θ+':(rr.winner==='D'?'nulle':'θ-')), why:rr.why||'?', plies:rr.plies||0, moves:(d.moves&&d.moves.length<=90)?d.moves:null, seed:_labLastDuel?_labLastDuel.seed:null, colorA:_labLastDuel?_labLastDuel.colorA:'black' });
-    if(d.moves && d.moves.length) _labMineBook(d.moves);
-    if(st.gameLog.length>12) st.gameLog.length=12;
-    labSave(st); renderLab();
-    if(_labRunning) setTimeout(labStep,300);
-    return;
-  }
-  const cur=_labCurrentJob(st);
-  if(cur){
-    const r=d.result||{winner:'D'};
-    cur.job.done++; st.totalGames++;
-    if(r.winner==='A'){cur.job.score+=1; cur.job.W=(cur.job.W||0)+1;}
-    else if(r.winner==='D'){cur.job.score+=0.5; cur.job.D=(cur.job.D||0)+1;}
-    else {cur.job.L=(cur.job.L||0)+1;}
-    st.gameLog=st.gameLog||[];
-    st.gameLog.unshift({ phase:st.phase, name:cur.job.name,
-      w:(r.winner==='A'?'mutant':(r.winner==='D'?'nulle':'champion')),
-      why:r.why||'?', plies:r.plies||0,
-      seed: _labLastDuel ? _labLastDuel.seed : null,
-      colorA: _labLastDuel ? _labLastDuel.colorA : 'black',
-      moves: (d.moves && d.moves.length<=90) ? d.moves : null });
-    if(d.moves && d.moves.length) _labMineBook(d.moves);
-    if(st.gameLog.length>12) st.gameLog.length=12;
-    // Journal data complet (pour analyse/export) — une ligne structurée par partie
-    _labDataPush({
-      t: Date.now(), gen: st.gen, phase: st.phase, mutant: cur.job.name,
-      mutKey: cur.job.key||'', winner: r.winner, why: r.why||'?', plies: r.plies||0,
-      cb: r.cb!=null?r.cb:'', cw: r.cw!=null?r.cw:'',
-      colorA: _labLastDuel?_labLastDuel.colorA:'', seed: _labLastDuel?_labLastDuel.seed:'',
-      wA: _labLastDuel?_labLastDuel.wA:null, wB: _labLastDuel?_labLastDuel.wB:null
-    });
-    _labTransition(st); labSave(st);
-  }
-  renderLab();
-  if(_labRunning) setTimeout(labStep, 300);
-}
-function _labTransition(st){
-  if(st.phase==='screen'){
-    st.cands.forEach(function(c){
-      if(!c.stop && c.done<c.target && (c.score + (c.target-c.done)) <= c.target/2) c.stop=true;
-    });
-    if(st.cands.every(function(c){return c.done>=c.target || c.stop;})){
-      st.cands.sort(function(a,b){return (b.score/(b.done||1))-(a.score/(a.done||1));});
-      const best=st.cands[0];
-      st.confirm={name:best.name, w:best.w, done:0, target:LAB_CFG.confCap, score:0, W:0, D:0, L:0, llr:0};
-      st.phase='confirm';
-    }
-  } else if(st.phase==='confirm' && st.confirm){
-    const cf=st.confirm; const B=_labBounds();
-    cf.llr=_labLLR(cf.W||0,cf.D||0,cf.L||0,LAB_CFG.elo0,LAB_CFG.elo1);
-    if(cf.done>=LAB_CFG.confMin && cf.llr>=B.up){ _labAdopt(st, cf); }
-    else if(cf.done>=LAB_CFG.confMin && cf.llr<=B.lo){ _labReject(st, cf, false); }
-    else if(cf.done>=cf.target){ _labReject(st, cf, true); }
-  }
-  if(st.gen>LAB_CFG.maxGen && st.phase!=='done'){ st.phase='done'; }
-}
-function _labAdopt(st, cf){
-  st.champion=cf.w;
-  try{ localStorage.setItem('abaLabChampion', JSON.stringify(cf.w)); }catch(e){}
-  applyLabChampion();
-  st.history.unshift({gen:st.gen, type:'\u2705 adopt\u00e9 (SPRT)', name:cf.name, score:cf.score, games:cf.done, elo:_labEloStr(cf.W||0,cf.D||0,cf.L||0)});
-  const gain=_labEloVal(cf.W||0,cf.D||0,cf.L||0);
-  st.cumElo=(st.cumElo||0)+Math.max(0,gain);
-  st.eloCurve=st.eloCurve||[{gen:1,elo:0}];
-  st.eloCurve.push({gen:st.gen, elo:Math.round(st.cumElo)});
-  st.lastGood=cf.key||null;  // mémorise l'axe muté pour l'intensifier
-  showToast('\ud83e\uddea Nouveau champion : '+cf.name+' \u00b7 '+_labEloStr(cf.W||0,cf.D||0,cf.L||0)+' (cumul +'+Math.round(st.cumElo)+')');
-  st.gen++; st.cands=labMutants(st.champion, st.gen); st.confirm=null; st.phase='screen';
-}
-function _labReject(st, cf, undecided){
-  st.history.unshift({gen:st.gen, type:(undecided?'\u2753 ind\u00e9cis (cap 60)':'\u2717 rejet\u00e9 (SPRT)'), name:cf.name, score:cf.score, games:cf.done, elo:_labEloStr(cf.W||0,cf.D||0,cf.L||0)});
-  st.gen++; st.cands=labMutants(st.champion, st.gen); st.confirm=null; st.phase='screen';
-}
 /* Le Labo s'ouvre desormais comme une page a part entiere, pas comme une
    fenetre : sur telephone, une boite de 520 px plafonnee a 84vh rendait les
    tableaux illisibles. Le contenu est deplace une seule fois du modal vers la
@@ -21878,18 +22053,21 @@ function closeLabModal(){
   if (typeof showPage === 'function') showPage('home');
 }
 // ══ Outils avancés du Labo (programmeurs) ══
+// les champs absents (criteres de KAAH masques) gardent la valeur du champion
 function _labWeightsFromInputs(){
-  const w={};
-  LAB_CFG_DEFAULT.keys.forEach(function(k){
+  const w=_labComplet(labLoad().champion);
+  SPSA_KEYS.forEach(function(k){
     const el=document.getElementById('lw-'+k);
-    w[k]= el ? Math.max(0, parseFloat(el.value)||0) : 0;
+    if(el) w[k]=Math.max(0, parseFloat(el.value)||0);
   });
   return w;
 }
 function labApplyChampion(){
   const w=_labWeightsFromInputs();
-  const st=labLoad(); st.champion=w;
-  st.cands=labMutants(w, st.gen); st.confirm=null; st.phase='screen';
+  const st=labLoad(); st.champion=w; st.championGen=st.gen;
+  st.cands=labMutants(w, st.gen, st.lastGood); st.candsGen=st.gen; st.confirm=null; st.bilan=null;
+  if(LAB_CFG.mode==='spsa') st.spsa=_spsaInit(w);
+  _labNouvellePhase(st, _labPhasePrincipale());
   labSave(st);
   try{ localStorage.setItem('abaLabChampion', JSON.stringify(w)); }catch(e){}
   applyLabChampion();
@@ -21899,22 +22077,25 @@ function labApplyChampion(){
 function labAddCustomMutant(){
   const w=_labWeightsFromInputs();
   const st=labLoad();
-  const ch=st.champion;
-  const diff=LAB_CFG_DEFAULT.keys.filter(function(k){return w[k]!==ch[k];}).map(function(k){return k+' '+ch[k]+'\u2192'+w[k];});
+  const ch=_labComplet(st.champion);
+  const diff=SPSA_KEYS.filter(function(k){return w[k]!==ch[k];}).map(function(k){return (LAB_NOMS[k]||k)+' '+ch[k]+'\u2192'+w[k];});
   if(!diff.length){ showToast('Aucune différence avec le champion'); return; }
-  if(st.phase!=='screen'){ showToast('Ajout possible seulement en phase screening'); return; }
-  st.cands.push({name:'\ud83d\udd27 '+diff.join(', '), w:w, done:0, target:LAB_CFG.screenTarget, score:0, W:0, D:0, L:0, stop:false});
+  if(st.phase!=='screen'){ showToast('Ajout possible seulement pendant le tri des mutants (mode SPRT)'); return; }
+  st.cands.push({name:'\ud83d\udd27 '+diff.join(', '), w:w, key:null, penta:_labPentaVide(), half:{}, fait:{}, stop:false});
   labSave(st);
-  showToast('\u2795 Mutant personnalisé ajouté au screening');
+  showToast('\u2795 Mutant personnalisé ajouté au tri');
   renderLab();
 }
 function labResetWeightsInputs(){
-  const st=labLoad();
-  LAB_CFG_DEFAULT.keys.forEach(function(k){ const el=document.getElementById('lw-'+k); if(el) el.value=st.champion[k]; });
+  const ch=_labComplet(labLoad().champion);
+  SPSA_KEYS.forEach(function(k){ const el=document.getElementById('lw-'+k); if(el) el.value=ch[k]; });
 }
 function labCfgSet(key, val){
   const num=parseFloat(val);
-  if(!isNaN(num)){ LAB_CFG[key]=num; labCfgSave(); }
+  if(isNaN(num)) return;
+  LAB_CFG[key]=num; labCfgSave();
+  if(key==='kaah' && typeof showToast==='function') showToast(num ? 'Critères de KAAH réglés par le Labo à partir de la prochaine génération' : 'Le Labo ne règle plus les critères de KAAH (prochaine génération)');
+  if(key==='threads'){ if(_labRunning) _labPlanifier(_labPomper, 50); renderLab(); }
 }
 function labCfgReset(){
   LAB_CFG=Object.assign({}, LAB_CFG_DEFAULT); labCfgSave();
@@ -21947,16 +22128,16 @@ function labExportCSV(){
   const log=_labDataLoad();
   if(!log.length){ showToast('Aucune partie \u00e0 exporter \u2014 lance le Labo'); return; }
   const keys=SPSA_KEYS;
-  const head=['iso_time','gen','phase','mutant','mut_key','winner','why','plies','cap_black','cap_white','colorA','seed']
+  const head=['iso_time','gen','phase','mutant','mut_key','winner','why','plies','cap_black','cap_white','colorA','seed','pair']
     .concat(keys.map(function(k){return 'A_'+k;})).concat(keys.map(function(k){return 'B_'+k;}));
   const rows=[head.join(',')];
   log.forEach(function(r){
     const line=[
       new Date(r.t).toISOString(), r.gen, r.phase, '"'+String(r.mutant).replace(/"/g,'""')+'"', r.mutKey,
-      r.winner, r.why, r.plies, r.cb, r.cw, r.colorA, r.seed
+      r.winner, r.why, r.plies, r.cb, r.cw, r.colorA, r.seed, (r.paire!=null?r.paire:'')
     ];
-    keys.forEach(function(k){ line.push(r.wA?r.wA[k]:''); });
-    keys.forEach(function(k){ line.push(r.wB?r.wB[k]:''); });
+    keys.forEach(function(k){ line.push(r.wA?(r.wA[k]!=null?r.wA[k]:0):''); });
+    keys.forEach(function(k){ line.push(r.wB?(r.wB[k]!=null?r.wB[k]:0):''); });
     rows.push(line.join(','));
   });
   _dl('abalab-parties-'+new Date().toISOString().slice(0,10)+'.csv', rows.join('\n'), 'text/csv');
@@ -22037,13 +22218,20 @@ function _labNum(id,key,val,step,min,max){
 }
 function labSetMode(m){
   LAB_CFG.mode=m; labCfgSave();
-  if(m==='spsa'){ const st=labLoad(); if(!st.spsa) { st.spsa=_spsaInit(st.champion); labSave(st); } }
-  showToast(m==='spsa'?'Mode SPSA activé (optimisation continue)':'Mode SPRT activé (test A/B)');
+  const st=labLoad();
+  if(!st.spsa || !st.spsa.theta) st.spsa=_spsaInit(st.champion);
+  // un test en cours (confirmation, bilan) va a son terme ; sinon on passe tout de suite au nouveau mode
+  if(st.phase==='screen' || st.phase==='spsa'){ _labRetourPrincipal(st); }
+  labSave(st);
+  showToast(m==='spsa'?'Mode SPSA activé (optimisation continue, vérifiée avant adoption)':'Mode SPRT activé (test A/B)');
   renderLab();
+  if(_labRunning) _labPlanifier(_labPomper, 50);
 }
 function labSpsaReset(){
   if(!confirm('Réinitialiser SPSA ? (θ revient au champion actuel, trajectoire effacée)')) return;
-  const st=labLoad(); st.spsa=_spsaInit(st.champion); labSave(st);
+  const st=labLoad(); st.spsa=_spsaInit(st.champion);
+  if(st.phase==='spsa') _labNouvellePhase(st,'spsa');
+  labSave(st);
   showToast('SPSA réinitialisé'); renderLab();
 }
 function renderLabAdvanced(){
@@ -22058,29 +22246,30 @@ function renderLabAdvanced(){
     +'<button class="ctrl-btn" onclick="labSetMode(\'spsa\')" style="flex:1;padding:5px;font-size:11px;'+(c.mode==='spsa'?'border-color:var(--gold);color:var(--gold)':'')+'">SPSA (continu)</button></div>';
   h+='<div style="font-size:10px;color:var(--muted);margin-bottom:8px">'
     +(c.mode==='spsa'
-      ? 'SPSA : perturbe les '+SPSA_KEYS.length+' poids simultan\u00e9ment, joue \u03b8+ vs \u03b8-, pousse tous les poids vers l\'am\u00e9lioration. Trouve les interactions entre poids.'
-      : 'SPRT : teste une mutation \u00e0 la fois avec arr\u00eat s\u00e9quentiel. Verdict binaire adopt\u00e9/rejet\u00e9.')+'</div>';
+      ? 'SPSA : perturbe les '+_labCles().length+' poids simultan\u00e9ment, joue \u03b8+ contre \u03b8\u2212, pousse tous les poids vers l\'am\u00e9lioration. Trouve les interactions entre poids. Toutes les '+c.spsaVerif+' it\u00e9rations, \u03b8 est v\u00e9rifi\u00e9 contre le champion (SPRT par paires) : l\u2019IA ne l\u2019utilise qu\u2019apr\u00e8s adoption.'
+      : 'SPRT : teste une mutation \u00e0 la fois, par paires d\u2019ouvertures, avec arr\u00eat s\u00e9quentiel. Verdict adopt\u00e9 / rejet\u00e9 / ind\u00e9cis.')+'</div>';
 
   // Bloc état SPSA (si mode actif)
   if(c.mode==='spsa' && st.spsa){
     const sp=st.spsa;
     h+='<div style="background:var(--surface);border-radius:8px;padding:8px;margin-bottom:8px">';
-    h+='<div style="font-size:12px;font-weight:700">\ud83e\uddec It\u00e9ration '+sp.iter+' / '+c.spsaIters+'</div>';
-    h+='<div style="font-size:11px;color:var(--muted);margin:4px 0">\u03b8 courant : <code>c'+sp.theta.center.toFixed(1)+' coh'+sp.theta.cohesion.toFixed(1)+' e'+sp.theta.edge.toFixed(1)+' m'+sp.theta.mob.toFixed(1)+' iso'+sp.theta.iso.toFixed(1)+' dng'+sp.theta.dng.toFixed(1)+' cha'+sp.theta.chain.toFixed(1)+' for'+sp.theta.fortress.toFixed(1)+'</code></div>';
+    h+='<div style="font-size:12px;font-weight:700">\ud83e\uddec It\u00e9ration '+sp.iter+' / '+c.spsaIters+' \u00b7 prochaine v\u00e9rification : '+Math.min(c.spsaIters, sp.prochVerif||c.spsaIters)+'</div>';
+    h+='<div style="font-size:11px;color:var(--muted);margin:4px 0">\u03b8 courant : <code>'+_labPoidsTexte(sp.theta)+'</code></div>';
     // mini-graphe : évolution d'un poids représentatif (cohesion) au fil des itérations
     const H=sp.thetaHist||[];
     if(H.length>=2){
       const W=260,HH=44,pad=4;
-      SPSA_KEYS.forEach(function(key,ki){
-        const cols=['#d4af37','#4a9463','#c0653b','#5b8bd4','#a069c0','#c94f6d','#4fb8a8','#e0955f'];
+      const clesT=_labCles();
+      clesT.forEach(function(key,ki){
+        const cols=['#d4af37','#4a9463','#c0653b','#5b8bd4','#a069c0','#c94f6d','#4fb8a8','#e0955f','#b8b04a','#7a8fd4','#d47a9b','#5fb86a','#c9a06b','#8ad4c9','#d4c25b','#9b7ad4'];
         const vals=H.map(function(p){return p.theta[key];});
         const mn=Math.min.apply(null,vals), mx=Math.max.apply(null,vals), sp2=Math.max(0.1,mx-mn);
         const pts=H.map(function(p,i){ const x=pad+i/(H.length-1)*(W-2*pad); const y=HH-pad-((p.theta[key]-mn)/sp2)*(HH-2*pad); return x.toFixed(1)+','+y.toFixed(1); }).join(' ');
         if(ki===0) h+='<svg viewBox="0 0 '+W+' '+HH+'" style="width:100%;height:44px;background:var(--surface2,#12161c);border-radius:6px">';
         h+='<polyline points="'+pts+'" fill="none" stroke="'+cols[ki]+'" stroke-width="1.2" opacity="0.85"/>';
-        if(ki===SPSA_KEYS.length-1) h+='</svg>';
+        if(ki===clesT.length-1) h+='</svg>';
       });
-      h+='<div style="font-size:9px;color:var(--muted)">trajectoire des '+SPSA_KEYS.length+' poids (normalis\u00e9e) \u00b7 W/D/L \u03b8+ : '+sp.wins+'/'+sp.draws+'/'+sp.losses+'</div>';
+      h+='<div style="font-size:9px;color:var(--muted)">trajectoire des '+clesT.length+' poids (normalis\u00e9e) \u00b7 W/D/L \u03b8+ : '+sp.wins+'/'+sp.draws+'/'+sp.losses+'</div>';
     }
     h+='<button class="ctrl-btn" onclick="labSpsaReset()" style="width:auto;padding:3px 10px;font-size:11px;margin-top:4px">\u21ba R\u00e9init SPSA</button>';
     h+='</div>';
@@ -22089,8 +22278,9 @@ function renderLabAdvanced(){
   // 1. Édition des poids du champion
   h+='<div style="font-size:12px;font-weight:700;margin-bottom:6px">\ud83c\udff3\ufe0f Poids du champion</div>';
   h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">';
-  LAB_CFG_DEFAULT.keys.forEach(function(k){
-    h+='<label style="font-size:11px;color:var(--muted)">'+k+'<input type="number" id="lw-'+k+'" value="'+st.champion[k]+'" step="0.5" min="0" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:2px 6px;margin-top:2px"></label>';
+  const chAv=_labComplet(st.champion);
+  _labCles().forEach(function(k){
+    h+='<label style="font-size:11px;color:var(--muted)">'+(LAB_NOMS[k]||k)+' <span style="opacity:.6">'+k+'</span><input type="number" id="lw-'+k+'" value="'+chAv[k]+'" step="'+(k==='cases'?0.1:0.5)+'" min="0" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:2px 6px;margin-top:2px"></label>';
   });
   h+='</div>';
   h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">';
@@ -22102,15 +22292,17 @@ function renderLabAdvanced(){
   // 2. Paramètres SPRT / duels
   h+='<div style="font-size:12px;font-weight:700;margin:12px 0 6px">\u2699 Protocole & duels</div>';
   h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 16px">';
-  h+=_labNum('Screening : parties/mutant','screenTarget',c.screenTarget,1,2,40);
-  h+=_labNum('Screening : ms/coup','screenMs',c.screenMs,50,100,5000);
-  h+=_labNum('Screening : demi-coups max','screenPlies',c.screenPlies,5,20,200);
-  h+=_labNum('Screening : seuil nulle','screenDraw',c.screenDraw,50,50,3000);
+  h+=_labNum('Fils de calcul (0 = auto : '+(function(){ const s=c.threads; c.threads=0; const n=_labNbFils(); c.threads=s; return n; })()+')','threads',c.threads,1,0,8);
+  h+=_labNum('Tri : parties/mutant (par paires)','screenTarget',c.screenTarget,2,2,40);
+  h+=_labNum('Tri : ms/coup','screenMs',c.screenMs,50,100,5000);
+  h+=_labNum('Tri : demi-coups max','screenPlies',c.screenPlies,5,20,200);
+  h+=_labNum('Tri : seuil nulle','screenDraw',c.screenDraw,50,50,3000);
   h+=_labNum('Confirmation : ms/coup','confMs',c.confMs,50,100,10000);
   h+=_labNum('Confirmation : demi-coups max','confPlies',c.confPlies,5,20,200);
   h+=_labNum('Confirmation : seuil nulle','confDraw',c.confDraw,50,50,3000);
-  h+=_labNum('Confirmation : cap parties','confCap',c.confCap,2,8,400);
-  h+=_labNum('Confirmation : min avant verdict','confMin',c.confMin,2,2,100);
+  h+=_labNum('Confirmation : paires max','confCapPaires',c.confCapPaires,10,10,2000);
+  h+=_labNum('Confirmation : paires min avant verdict','confMinPaires',c.confMinPaires,1,1,100);
+  h+=_labNum('Bilan : paires (0 = jamais)','bilanPaires',c.bilanPaires,5,0,500);
   h+=_labNum('SPRT : Elo H0','elo0',c.elo0,1,-50,50);
   h+=_labNum('SPRT : Elo H1','elo1',c.elo1,1,1,200);
   h+=_labNum('SPRT : alpha','alpha',c.alpha,0.01,0.001,0.2);
@@ -22119,6 +22311,7 @@ function renderLabAdvanced(){
   h+=_labNum('Ouverture : fenêtre équilibre','balanceWindow',c.balanceWindow,50,100,3000);
   h+=_labNum('Générations max','maxGen',c.maxGen,1,1,500);
   h+='<label style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;margin:3px 0"><span style="color:var(--muted)">Recherche adaptative</span><input type="checkbox" '+((c.adaptive!==0)?'checked':'')+' onchange="labCfgSet(\'adaptive\', this.checked?1:0)"></label>';
+  h+='<label style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;margin:3px 0"><span style="color:var(--muted)">R\u00e9gler aussi les crit\u00e8res de KAAH</span><input type="checkbox" '+(c.kaah?'checked':'')+' onchange="labCfgSet(\'kaah\', this.checked?1:0);renderLabAdvanced()"></label>';
   if(c.mode==='spsa'){
     h+='<div style="grid-column:1/3;font-size:11px;font-weight:700;margin-top:6px;color:var(--gold)">Hyperparamètres SPSA</div>';
     h+=_labNum('SPSA : a (pas apprentissage)','spsaA',c.spsaA,5,1,500);
@@ -22127,6 +22320,7 @@ function renderLabAdvanced(){
     h+=_labNum('SPSA : gamma','spsaGamma',c.spsaGamma,0.01,0.01,1);
     h+=_labNum('SPSA : paires/itération','spsaPairs',c.spsaPairs,1,1,10);
     h+=_labNum('SPSA : itérations max','spsaIters',c.spsaIters,10,10,5000);
+    h+=_labNum('SPSA : vérifier toutes les … itérations','spsaVerif',c.spsaVerif,10,5,1000);
   }
   h+='</div>';
   const B=_labBounds();
@@ -22140,7 +22334,7 @@ function renderLabAdvanced(){
   h+='<input type="file" id="lab-import-file" accept="application/json,.json" style="display:none" onchange="labImportFile(this)">';
   h+='</div>';
 
-  h+='<div style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.5">\ud83d\udca1 Astuce : baisse <code>SPRT alpha/beta</code> pour des verdicts plus stricts (plus de parties), monte <code>Elo H1</code> pour ne retenir que de grosses améliorations. Édite les poids puis \u00ab Tester comme mutant \u00bb pour lancer ta propre hypothèse dans le screening en cours.</div>';
+  h+='<div style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.5">\ud83d\udca1 Astuce : baisse <code>SPRT alpha/beta</code> pour des verdicts plus stricts (plus de parties), monte <code>Elo H1</code> pour ne retenir que de grosses améliorations (beaucoup moins de parties). Édite les poids puis \u00ab Tester comme mutant \u00bb pour lancer ta propre hypothèse dans le tri en cours. Les parties trop longues sont arbitrées par consensus : la victoire n\u2019est donnée que si les deux évaluations sont d\u2019accord.</div>';
 
   // ── 4. Données & statistiques (pour analystes / data) ──
   const S=_labStats();
@@ -22204,7 +22398,7 @@ function labReplay(logIdx){
       };
     }
     _labReplayWorker.postMessage({replayGame:true, colorA:g.colorA, seed:g.seed, moves:g.moves,
-      result:{winner:(g.w==='mutant'?'A':(g.w==='nulle'?'D':'B')),plies:g.plies,why:g.why}, id:Date.now()});
+      result:{winner:(g.res||(g.w==='mutant'?'A':(g.w==='nulle'?'D':'B'))),plies:g.plies,why:g.why}, id:Date.now()});
   }catch(e){ if(info) info.textContent='❌ Replay indisponible sur ce navigateur'; }
 }
 let _labReplayMeta=null;
@@ -22216,7 +22410,7 @@ function _labReplayRender(){
   const total=_labReplayFrames.length-1;
   const meta=_labReplayMeta||{};
   const res=meta.result||{};
-  const winLabel = res.winner==='A'?'🟢 mutant':(res.winner==='D'?'⚪ nulle':'🔴 champion');
+  const winLabel = (res.winner==='A'?'🟢 ':(res.winner==='D'?'⚪ ':'🔴 '))+(meta.w||(res.winner==='A'?'mutant':(res.winner==='D'?'nulle':'champion')));
   if(info) info.textContent='Coup '+_labReplayPos+'/'+total+' · '+(meta.name||'')+' · capt ⚫'+f.cb+' ⚪'+f.cw+(_labReplayPos===total?(' · '+winLabel):'');
 }
 function _labDrawFrame(cv, frame){
@@ -22307,144 +22501,178 @@ function closeLabReplay(){
 
 /* ═══ TEST AU LABO : LES CRITERES DE KAAH RENDENT-ILS L'IA PLUS FORTE ? ═══
    Demande d'Olivier (« les integrer au moteur, tests au Labo »). Duels moteur contre
-   moteur (le meme duelGame que le Labo, un fil de calcul A PART pour ne jamais
-   interferer) : « IA actuelle + criteres de KAAH » contre « IA actuelle seule ».
-   Par cycles de 4 parties sur la MEME ouverture : chaque version joue Noirs puis
-   Blancs, et tient le role A puis B -- l'avantage d'ouverture et l'arbitrage des
-   parties trop longues (fait avec l'evaluation du camp A) s'annulent. Verdict SPRT
-   avec les seuils du Labo (H0 = +0 Elo, H1 = +35 Elo, alpha = beta = 5 %), ou
-   « indecis » apres 400 parties. Rien n'est adopte automatiquement. */
-const TEST_KAAH_KEY = 'abaTestKaah', TEST_KAAH_MAX = 400, TEST_KAAH_MIN = 16;
+   moteur (le meme duelGame que le Labo, sur ses fils de calcul -- jamais en meme temps
+   que lui) : « IA actuelle + criteres de KAAH » contre « IA actuelle seule ».
+   v4 : par PAIRES sur la meme ouverture (la version avec KAAH joue Noirs puis Blancs),
+   plusieurs parties a la fois, verdict SPRT par paires avec les seuils du Labo
+   (H0 = +0 Elo, H1 = +35 Elo, alpha = beta = 5 %) apres 8 paires au moins, ou « indecis »
+   apres 200 paires. Plus besoin d'alterner les roles A et B : l'arbitrage des parties trop
+   longues se fait desormais par consensus des deux evaluations. Rien n'est adopte
+   automatiquement. */
+const TEST_KAAH_KEY = 'abaTestKaah', TEST_KAAH_MAX_PAIRES = 200, TEST_KAAH_MIN_PAIRES = 8;
 const KAAH_POIDS = { scGain: 200, scPerte: 200, cases: 1, compac: 20, sumito: 20, menace: 120, fourch: 60, piege: 40 };
-let _testKaahWorker = null, _testKaahEnCours = false, _testKaahChien = null;
+let _testKaahEnCours = false, _testKaahEnVol = {};
 let _testKaahPlanifier = function(f, ms){ return setTimeout(f, ms); };   // remplacable par les tests
-function _testKaahVide() { return { W: 0, D: 0, L: 0, n: 0, fini: null, log: [] }; }
-function _testKaahEtat() { try { return JSON.parse(localStorage.getItem(TEST_KAAH_KEY) || 'null') || _testKaahVide(); } catch (e) { return _testKaahVide(); } }
+function _testKaahVide() { return { v: 2, penta: _labPentaVide(), half: {}, fait: {}, W: 0, D: 0, L: 0, n: 0, fini: null, log: [] }; }
+// l'ancien format (cycles de 4 parties, roles alternes) ne se convertit pas en paires : le test repart
+function _testKaahEtat() { try { const s = JSON.parse(localStorage.getItem(TEST_KAAH_KEY) || 'null'); if (s && s.v === 2) return s; } catch (e) {} return _testKaahVide(); }
 function _testKaahSauver(s) { try { localStorage.setItem(TEST_KAAH_KEY, JSON.stringify(s)); } catch (e) {} }
-function _testKaahPoids() { const base = {}; LAB_CFG.keys.forEach(function(k){ base[k] = AI_WEIGHT_PRESETS.balanced[k]; }); return { base: base, kaah: Object.assign({}, base, KAAH_POIDS) }; }
-function _testKaahBornes() { return { haut: Math.log((1 - LAB_CFG.beta) / LAB_CFG.alpha), bas: Math.log(LAB_CFG.beta / (1 - LAB_CFG.alpha)) }; }
+// « IA actuelle » = ses poids complets (y compris des criteres de KAAH deja regles par le Labo)
+function _testKaahPoids() { const base = _labComplet(AI_WEIGHT_PRESETS.balanced); return { base: base, kaah: Object.assign({}, base, KAAH_POIDS) }; }
+function _testKaahBornes() { const B = _labBounds(); return { haut: B.up, bas: B.lo }; }
+function _testKaahArreter() { _testKaahEnCours = false; _labFilsArreter(); _testKaahEnVol = {}; }
 function lancerTestKaah() {
-  if (_testKaahEnCours) { _testKaahEnCours = false; clearTimeout(_testKaahChien); renderTestKaah('En pause.'); return; }
-  if (typeof _labRunning !== 'undefined' && _labRunning) { if (typeof showToast === 'function') showToast('Le Labo tourne déjà : mets-le en pause d\u2019abord'); return; }
+  if (_testKaahEnCours) { _testKaahArreter(); renderTestKaah('En pause.'); return; }
+  if (typeof _labRunning !== 'undefined' && _labRunning) { if (typeof showToast === 'function') showToast('Le Labo tourne déjà : mets-le en pause d’abord'); return; }
   if (_testKaahEtat().fini) _testKaahSauver(_testKaahVide());
-  _testKaahEnCours = true; renderTestKaah(); _testKaahPartie();
+  if (!_labFilsAssurer(_labNbFils())) { renderTestKaah('Fil de calcul indisponible sur cet appareil.'); return; }
+  _testKaahEnCours = true; _testKaahEnVol = {}; renderTestKaah(); _testKaahPomper();
 }
-function _testKaahPartie() {
+function _testKaahPomper() {
   if (!_testKaahEnCours) return;
   const s = _testKaahEtat(), P = _testKaahPoids();
-  const k = s.n % 4, kaahEstA = (k < 2), couleurA = (k % 2 === 0) ? 'black' : 'white';
-  if (!_testKaahWorker) {
-    try { _testKaahWorker = new Worker(URL.createObjectURL(new Blob([AI_WORKER_CODE], { type: 'application/javascript' }))); }
-    catch (e) { _testKaahEnCours = false; renderTestKaah('Fil de calcul indisponible sur cet appareil.'); return; }
+  for (let i = 0; i < _labFils.length; i++) {
+    const f = _labFils[i]; if (f.tache) continue;
+    const nx = _labPartieSuivante(s, TEST_KAAH_MAX_PAIRES, 'k', _testKaahEnVol); if (!nx) break;
+    _testKaahEnVol[nx.cle] = 1;
+    _labFilLancer(f, { cle: nx.cle, job: 'kaah', p: nx.p, g: nx.g, wA: P.kaah, wB: P.base, colorA: nx.g === 0 ? 'black' : 'white',
+      seed: 10007 * nx.p + 13, ms: LAB_CFG.confMs, plies: LAB_CFG.confPlies, draw: LAB_CFG.confDraw }, _testKaahFin);
   }
-  _testKaahWorker.onmessage = function(e) {
-    const d = e.data; if (!d || !d.duelGame) return;
-    clearTimeout(_testKaahChien);
-    if (d.error) { _testKaahEnCours = false; renderTestKaah('Erreur moteur : ' + d.error); return; }
-    const r = d.result || { winner: 'D' }, st = _testKaahEtat();
-    const issue = r.winner === 'D' ? 'D' : ((r.winner === 'A') === kaahEstA ? 'K' : 'B');
-    if (issue === 'K') st.W++; else if (issue === 'D') st.D++; else st.L++;
-    st.n++; st.log.unshift({ k: issue, why: r.why || '', plies: r.plies || 0 }); if (st.log.length > 10) st.log.length = 10;
-    const llr = _labLLR(st.W, st.D, st.L, LAB_CFG.elo0, LAB_CFG.elo1), B = _testKaahBornes();
-    /* Verdict seulement apres TEST_KAAH_MIN parties et en fin de cycle de 4 (chaque version a alors joue
-       autant de chaque couleur et de chaque role). Sans ce minimum, une serie de victoires au debut
-       annule la variance mesuree et le LLR s'emballe : verdict des la 2e partie (trouve par les tests). */
-    const bilan = st.n >= TEST_KAAH_MIN && st.n % 4 === 0;
-    if (bilan && llr >= B.haut) st.fini = 'plus fort'; else if (bilan && llr <= B.bas) st.fini = 'pas plus fort'; else if (st.n >= TEST_KAAH_MAX) st.fini = 'indécis';
-    _testKaahSauver(st); if (st.fini) _testKaahEnCours = false;
-    renderTestKaah();
-    if (_testKaahEnCours) _testKaahPlanifier(_testKaahPartie, 200);
-  };
-  _testKaahChien = _testKaahPlanifier(function(){ try { _testKaahWorker.terminate(); } catch (e) {} _testKaahWorker = null; if (_testKaahEnCours) _testKaahPlanifier(_testKaahPartie, 500); }, 180000);
-  _testKaahWorker.postMessage({ duelGame: true, wA: kaahEstA ? P.kaah : P.base, wB: kaahEstA ? P.base : P.kaah, colorA: couleurA,
-    seed: 10007 * Math.floor(s.n / 4) + 13, msPerMove: LAB_CFG.confMs, maxPlies: LAB_CFG.confPlies, drawWin: LAB_CFG.confDraw, id: Date.now() });
+  renderTestKaah();
+}
+function _testKaahFin(t, d) {
+  delete _testKaahEnVol[t.cle];
+  if (!_testKaahEnCours) return;
+  if (d.timeout) { _testKaahPlanifier(_testKaahPomper, 500); return; }
+  if (d.error) { _testKaahArreter(); renderTestKaah('Erreur moteur : ' + d.error); return; }
+  const r = d.result || { winner: 'D' }, st = _testKaahEtat(), sc = _labScoreA(r);
+  if (st.fini) return;
+  if (sc === 1) st.W++; else if (sc === 0.5) st.D++; else st.L++;
+  st.n++; st.log.unshift({ k: sc === 1 ? 'K' : (sc === 0.5 ? 'D' : 'B'), why: r.why || '', plies: r.plies || 0 }); if (st.log.length > 10) st.log.length = 10;
+  if (_labPaireAjouter(st, t.p, t.g, sc)) {
+    const n = _labPentaN(st.penta), llr = _labLLRp(st.penta, LAB_CFG.elo0, LAB_CFG.elo1), B = _testKaahBornes();
+    if (n >= TEST_KAAH_MIN_PAIRES && llr >= B.haut) st.fini = 'plus fort';
+    else if (n >= TEST_KAAH_MIN_PAIRES && llr <= B.bas) st.fini = 'pas plus fort';
+    else if (n >= TEST_KAAH_MAX_PAIRES) st.fini = 'indécis';
+  }
+  _testKaahSauver(st);
+  if (st.fini) _testKaahArreter();
+  renderTestKaah();
+  if (_testKaahEnCours) _testKaahPlanifier(_testKaahPomper, 50);
 }
 function renderTestKaah(msg) {
   const hote = document.getElementById('test-kaah-host'); if (!hote) return;
-  const s = _testKaahEtat(), B = _testKaahBornes(), llr = _labLLR(s.W, s.D, s.L, LAB_CFG.elo0, LAB_CFG.elo1);
-  const verdict = s.fini === 'plus fort' ? '✅ Verdict : avec les critères de KAAH, l\u2019IA est plus forte.'
-    : s.fini === 'pas plus fort' ? '✗ Verdict : les critères de KAAH ne rendent pas l\u2019IA plus forte (dans ce régime de test).'
-    : s.fini === 'indécis' ? '❓ Indécis après ' + TEST_KAAH_MAX + ' parties : l\u2019écart, s\u2019il existe, est faible.' : '';
+  const s = _testKaahEtat(), B = _testKaahBornes(), llr = _labLLRp(s.penta, LAB_CFG.elo0, LAB_CFG.elo1), n = _labPentaN(s.penta), enCours = _labFilsEnCours();
+  const verdict = s.fini === 'plus fort' ? '✅ Verdict : avec les critères de KAAH, l’IA est plus forte.'
+    : s.fini === 'pas plus fort' ? '✗ Verdict : les critères de KAAH ne rendent pas l’IA plus forte (dans ce régime de test).'
+    : s.fini === 'indécis' ? '❓ Indécis après ' + TEST_KAAH_MAX_PAIRES + ' paires : l’écart, s’il existe, est faible.' : '';
   hote.innerHTML = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;margin-top:18px">'
     + '<div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Test : les critères de KAAH</div>'
     + '<div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px">« IA actuelle + critères de KAAH » (sumito, menace, fourchette, piège, compacité, cases, gain et perte selon le score) contre « IA actuelle seule ». '
-    + 'Parties par 4 sur la même ouverture, couleurs et rôles alternés ; ' + LAB_CFG.confMs + ' ms par coup, ' + LAB_CFG.confPlies + ' coups au plus — un régime de recherche courte : le verdict porte sur lui. '
-    + 'Rien n\u2019est adopté automatiquement.</div>'
-    + '<div style="font-size:14px;color:var(--text)">' + s.n + ' parties · avec KAAH : <b>' + s.W + '</b> victoires, ' + s.D + ' nulles, ' + s.L + ' défaites'
-    + (s.n ? ' · ' + Math.round(100 * (s.W + s.D / 2) / s.n) + ' %' : '') + (s.n >= 4 ? ' · ' + _labEloStr(s.W, s.D, s.L) : '') + '</div>'
-    + '<div style="font-size:11px;color:var(--muted);margin:4px 0">LLR ' + llr.toFixed(2) + ' (verdict à ≥ ' + B.haut.toFixed(2) + ' ou ≤ ' + B.bas.toFixed(2) + ', après ' + TEST_KAAH_MIN + ' parties au moins)</div>'
+    + 'Chaque ouverture est jouée deux fois, couleurs inversées, et le verdict compte les paires ; plusieurs parties à la fois ; ' + LAB_CFG.confMs + ' ms par coup, ' + LAB_CFG.confPlies + ' coups au plus — un régime de recherche courte : le verdict porte sur lui. '
+    + 'Rien n’est adopté automatiquement. Pour <b>régler</b> ces critères plutôt que les tester en bloc, le Labo ci-dessus les essaie un par un (case « critères de KAAH » des réglages avancés).</div>'
+    + '<div style="font-size:14px;color:var(--text)">' + s.n + ' parties (' + n + ' paires complètes) · avec KAAH : <b>' + s.W + '</b> victoires, ' + s.D + ' nulles, ' + s.L + ' défaites'
+    + (s.n ? ' · ' + Math.round(100 * (s.W + s.D / 2) / s.n) + ' %' : '') + (n >= 2 ? ' · ' + _labEloStrP(s.penta) : '') + '</div>'
+    + '<div style="font-size:11px;color:var(--muted);margin:4px 0">LLR ' + llr.toFixed(2) + ' (verdict à ≥ ' + B.haut.toFixed(2) + ' ou ≤ ' + B.bas.toFixed(2) + ', après ' + TEST_KAAH_MIN_PAIRES + ' paires au moins)</div>'
     + (verdict ? '<div style="font-size:13px;color:var(--gold);margin:8px 0">' + verdict + '</div>' : '')
     + (msg ? '<div style="font-size:12px;color:var(--muted);margin:6px 0">' + msg + '</div>' : '')
     + '<button class="ctrl-btn" onclick="lancerTestKaah()" style="width:auto;padding:6px 14px;margin-top:6px">'
     + (_testKaahEnCours ? '⏸ Pause' : (s.fini ? '↻ Recommencer le test' : (s.n ? '▶ Reprendre' : '▶ Lancer le test'))) + '</button>'
-    + (_testKaahEnCours ? ' <span style="font-size:11px;color:var(--muted)">partie ' + (s.n + 1) + ' en cours…</span>' : '')
+    + (_testKaahEnCours ? ' <span style="font-size:11px;color:var(--muted)">' + enCours + ' partie' + (enCours > 1 ? 's' : '') + ' en cours sur ' + _labFils.length + ' fil' + (_labFils.length > 1 ? 's' : '') + ' de calcul…</span>' : '')
     + '</div>';
+}
+function _labPoidsTexte(w){
+  const ch=_labComplet(w);
+  return LAB_CLES_BASE.map(function(k){ return k+' '+(Math.round(ch[k]*10)/10); }).join(' · ')
+    + LAB_CLES_KAAH.filter(function(k){ return ch[k]; }).map(function(k){ return ' · '+k+' '+(Math.round(ch[k]*10)/10); }).join('');
+}
+// courbe du gain reel mesure (champion contre les poids d'origine), avec la marge a 95 %
+function _labCourbeMesures(M){
+  const W=280, H=80, pad=8;
+  const hauts=M.map(function(m){ return m.elo+m.ci; }), bas=M.map(function(m){ return m.elo-m.ci; });
+  const mx=Math.max(20, Math.max.apply(null,hauts)), mn=Math.min(-20, Math.min.apply(null,bas)), sp=mx-mn;
+  const x=function(i){ return M.length<2 ? W/2 : pad+i/(M.length-1)*(W-2*pad); }, y=function(v){ return H-pad-(v-mn)/sp*(H-2*pad); };
+  let s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:80px;background:var(--surface);border-radius:8px;margin-top:4px">';
+  s+='<line x1="'+pad+'" x2="'+(W-pad)+'" y1="'+y(0).toFixed(1)+'" y2="'+y(0).toFixed(1)+'" stroke="var(--muted)" stroke-dasharray="3,3" stroke-width="1"/>';
+  M.forEach(function(m,i){ s+='<line x1="'+x(i).toFixed(1)+'" x2="'+x(i).toFixed(1)+'" y1="'+y(m.elo+m.ci).toFixed(1)+'" y2="'+y(m.elo-m.ci).toFixed(1)+'" stroke="var(--gold)" stroke-width="1.5" opacity="0.55"/>'; });
+  if(M.length>=2) s+='<polyline points="'+M.map(function(m,i){ return x(i).toFixed(1)+','+y(m.elo).toFixed(1); }).join(' ')+'" fill="none" stroke="var(--gold)" stroke-width="2"/>';
+  M.forEach(function(m,i){ s+='<circle cx="'+x(i).toFixed(1)+'" cy="'+y(m.elo).toFixed(1)+'" r="3" fill="var(--gold)"/>'; });
+  return s+'</svg>';
 }
 function renderLab(){
   const el=document.getElementById('lab-body'); if(!el) return;
   const st=labLoad();
   const useOn = localStorage.getItem('abaLabUse')!=='0';
-  const ch=st.champion;
+  const ch=_labComplet(st.champion), B=_labBounds();
+  const phaseNom={screen:'Tri des mutants', confirm:'Confirmation (SPRT)', bilan:'Bilan contre les poids d’origine', spsa:'SPSA', done:'Terminé'}[st.phase]||st.phase;
   let h='';
   h+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">';
-  h+='<span style="font-weight:700">'+(_labRunning?'\ud83d\udd04 En cours':'\u23f8 En pause')+' \u00b7 G\u00e9n\u00e9ration '+st.gen+' \u00b7 '+(st.phase==='screen'?'Screening':(st.phase==='confirm'?'Confirmation (SPRT)':'Termin\u00e9'))+'</span>';
-  h+='<span style="font-size:11px;color:var(--muted)">'+st.totalGames+' parties \u00b7 \u00e9cran ~20 s \u00b7 confirm. ~40 s/partie</span></div>';
+  h+='<span style="font-weight:700">'+(_labRunning?'🔄 En cours':'⏸ En pause')+' · Génération '+st.gen+' · '+phaseNom+'</span>';
+  h+='<span style="font-size:11px;color:var(--muted)">'+st.totalGames+' parties · '+_labNbFils()+' fil'+(_labNbFils()>1?'s':'')+' de calcul'+((LAB_CFG.threads|0)>0?'':' (auto)')+'</span></div>';
   h+='<div id="lab-live" style="font-size:11px;margin-top:6px;color:var(--muted)"></div>';
-  h+='<div style="margin:8px 0;font-size:12px">Champion actuel : <code>center '+ch.center+' \u00b7 cohesion '+ch.cohesion+' \u00b7 edge '+ch.edge+' \u00b7 mob '+ch.mob+' \u00b7 iso '+ch.iso+' \u00b7 dng '+ch.dng+' \u00b7 chain '+ch.chain+' \u00b7 fortress '+ch.fortress+'</code></div>';
-  function bar(name,score,done,target){
-    const pct=target?Math.round(100*done/target):0;
-    const wr=done?Math.round(100*score/done):0;
-    return '<div style="margin:6px 0"><div style="display:flex;justify-content:space-between;font-size:12px"><span>'+name+'</span><span>'+score+'/'+done+' ('+(done?wr:0)+'%)</span></div>'
-      +'<div style="height:6px;background:var(--surface);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--gold)"></div></div></div>';
+  h+='<div style="margin:8px 0;font-size:12px">Champion actuel : <code>'+_labPoidsTexte(ch)+'</code></div>';
+  function bar(name, pts, n, target, note){
+    const pct=target?Math.round(100*n/target):0, wr=n?Math.round(100*pts/(2*n)):0;
+    return '<div style="margin:6px 0"><div style="display:flex;justify-content:space-between;gap:8px;font-size:12px"><span>'+name+(note||'')+'</span><span style="white-space:nowrap">'+(n?wr+' % · ':'')+n+'/'+target+' paires</span></div>'
+      +'<div style="height:6px;background:var(--surface);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+Math.min(100,pct)+'%;background:var(--gold)"></div></div></div>';
   }
-  if(st.phase==='screen'){ st.cands.forEach(function(c){ h+=bar(c.name+(c.stop?' \u00b7 \u23f9 stopp\u00e9 (futilit\u00e9)':''),c.score,c.done,c.target); }); }
-  else if(st.phase==='confirm' && st.confirm){
-    const cf=st.confirm;
-    h+=bar('\ud83c\udfc6 Finaliste : '+cf.name, cf.score, cf.done, cf.target);
-    const llr=cf.llr||0;
-    const lpct=Math.round(100*Math.min(1,Math.max(0,(llr+2.944)/5.888)));
-    h+='<div style="display:flex;justify-content:space-between;font-size:11px;margin-top:4px"><span>\u2717 rejet</span><span>LLR '+llr.toFixed(2)+' / \u00b12,94</span><span>adoption \u2713</span></div>';
+  if(st.phase==='screen' && st.cands){
+    const P=_labPairesTri();
+    h+='<div style="font-size:11px;color:var(--muted)">Chaque mutant joue '+P+' paires (les mêmes ouvertures pour tous) ; le meilleur, s’il atteint 50 %, passe en confirmation.</div>';
+    st.cands.forEach(function(c){ h+=bar(c.name, _labPoints(c.penta), _labPentaN(c.penta), P, c.stop?' · ⏹ arrêté (ne peut plus atteindre 50 %)':''); });
+  } else if(st.phase==='confirm' && st.confirm){
+    const cf=st.confirm, n=_labPentaN(cf.penta), llr=_labLLRp(cf.penta, LAB_CFG.elo0, LAB_CFG.elo1);
+    h+=bar('🏆 Finaliste : '+cf.name, _labPoints(cf.penta), n, LAB_CFG.confCapPaires);
+    const lpct=Math.round(100*Math.min(1,Math.max(0,(llr-B.lo)/(B.up-B.lo))));
+    h+='<div style="display:flex;justify-content:space-between;font-size:11px;margin-top:4px"><span>✗ rejet ('+B.lo.toFixed(2)+')</span><span>LLR '+llr.toFixed(2)+'</span><span>adoption ('+B.up.toFixed(2)+') ✓</span></div>';
     h+='<div style="height:6px;background:linear-gradient(90deg,#a33,#555,#3a3);border-radius:3px;position:relative"><div style="position:absolute;left:'+lpct+'%;top:-3px;width:2px;height:12px;background:#fff"></div></div>';
-    const es=_labEloStr(cf.W||0,cf.D||0,cf.L||0);
-    h+='<div style="font-size:11px;color:var(--muted);margin-top:4px">'+(es?('Estimation : '+es+' \u00b7 '):'')+'arr\u00eat automatique d\u00e8s que la statistique tranche \u00b7 cap 60 parties</div>';
+    const es=_labEloStrP(cf.penta);
+    h+='<div style="font-size:11px;color:var(--muted);margin-top:4px">'+(es?('Estimation : '+es+' · '):'')+'paires : '+cf.penta.join(' / ')+' (0 à 2 points) · verdict dès que la statistique tranche, après '+LAB_CFG.confMinPaires+' paires au moins · « indécis » après '+LAB_CFG.confCapPaires+'</div>';
+  } else if(st.phase==='bilan' && st.bilan){
+    const b=st.bilan, n=_labPentaN(b.penta);
+    h+=bar('📏 '+b.name, _labPoints(b.penta), n, b.pairs);
+    const es=_labEloStrP(b.penta); if(es) h+='<div style="font-size:11px;color:var(--muted)">Pour l’instant : '+es+'</div>';
+  } else if(st.phase==='spsa' && st.spsa){
+    const sp=st.spsa;
+    h+='<div style="font-size:12px;margin:6px 0">🧬 SPSA : itération '+sp.iter+' / '+LAB_CFG.spsaIters+' · vérification contre le champion à l’itération '+Math.min(LAB_CFG.spsaIters, sp.prochVerif||LAB_CFG.spsaIters)+'</div>';
+    h+='<div style="font-size:11px;color:var(--muted)">θ en cours (pas encore utilisé par l’IA) : <code>'+_labPoidsTexte(sp.theta)+'</code></div>';
   }
-  // ── Courbe d'\u00e9volution de l'\u00c9lo cumul\u00e9 (SVG) ──
-  const curve=(st.eloCurve||[]).filter(function(p){return p;});
-  if(curve.length>=2){
-    const W=280,H=64,pad=6;
-    const maxE=Math.max(10, Math.max.apply(null,curve.map(function(p){return p.elo;})));
-    const minG=curve[0].gen, maxG=curve[curve.length-1].gen, spanG=Math.max(1,maxG-minG);
-    const pts=curve.map(function(p){
-      const x=pad+(p.gen-minG)/spanG*(W-2*pad);
-      const y=H-pad-(p.elo/maxE)*(H-2*pad);
-      return x.toFixed(1)+','+y.toFixed(1);
-    }).join(' ');
-    h+='<div style="margin-top:10px;font-size:12px;font-weight:700">\ud83d\udcc8 \u00c9lo cumul\u00e9 : +'+Math.round(st.cumElo||0)+'</div>';
-    h+='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:64px;background:var(--surface);border-radius:8px;margin-top:4px">'
-      +'<polyline points="'+pts+'" fill="none" stroke="var(--gold)" stroke-width="2"/>'
-      +curve.map(function(p){const x=pad+(p.gen-minG)/spanG*(W-2*pad);const y=H-pad-(p.elo/maxE)*(H-2*pad);return '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="2.5" fill="var(--gold)"/>';}).join('')
-      +'</svg>';
+  // ── Gain reel mesure ──
+  const M=(st.mesures||[]).filter(function(m){ return m && typeof m.elo==='number'; });
+  h+='<div style="margin-top:10px;font-size:12px;font-weight:700">📈 Gain réel mesuré (champion contre les poids d’origine)</div>';
+  if(M.length){
+    const d=M[M.length-1];
+    h+='<div style="font-size:12px;margin-top:2px">'+(d.elo>=0?'+':'')+d.elo+' Elo ± '+d.ci+' <span style="color:var(--muted);font-size:11px">(champion G'+d.gen+', '+d.paires+' paires, marge à 95 %)</span></div>';
+    h+=_labCourbeMesures(M.slice(-20));
+  } else {
+    h+='<div style="font-size:11px;color:var(--muted)">Pas encore mesuré : se mesure après chaque adoption ('+(LAB_CFG.bilanPaires|0)+' paires).'
+      +(typeof st.ancienCumul==='number'?' L’ancien « Élo cumulé » (+'+st.ancienCumul+') additionnait les estimations les plus chanceuses : il est remplacé par cette mesure.':'')+'</div>';
   }
-  // ── Journal des derni\u00e8res parties ──
+  h+='<button class="ctrl-btn" onclick="labMesurerGain()" style="width:auto;padding:3px 10px;font-size:11px;margin-top:4px">📏 Mesurer maintenant</button>';
+  // ── Journal des dernieres parties ──
   if(st.gameLog && st.gameLog.length){
-    h+='<div style="margin-top:10px;font-size:12px;font-weight:700">\ud83c\udf2e Derni\u00e8res parties</div>';
+    h+='<div style="margin-top:10px;font-size:12px;font-weight:700">🌮 Dernières parties</div>';
     st.gameLog.slice(0,6).forEach(function(g,gi){
-      const icon = g.w==='mutant' ? '\ud83d\udfe2' : (g.w==='nulle' ? '\u26aa' : '\ud83d\udd34');
-      const whyLabel = {'6capt':'6 captures','adj3':'\u00e9cart 3','adjCap':'captures','adjEval':'\u00e9val','time':'temps','noMove':'bloqu\u00e9','draw':'nulle'}[g.why]||g.why;
-      const btn = g.moves ? '<button onclick="labReplay('+gi+')" style="background:none;border:1px solid var(--gold);color:var(--gold);border-radius:5px;font-size:10px;padding:0 6px;cursor:pointer;margin-left:6px">\u25b6 revoir</button>' : '';
-      h+='<div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--muted);margin:3px 0"><span>'+icon+' '+g.name+' \u00b7 '+g.w+' ('+whyLabel+', '+g.plies+' coups)</span>'+btn+'</div>';
+      const res=g.res || (g.w==='mutant'||g.w==='θ+' ? 'A' : (g.w==='nulle' ? 'D' : 'B'));
+      const icon = res==='A' ? '🟢' : (res==='D' ? '⚪' : '🔴');
+      const whyLabel = {'6capt':'6 captures','adj3':'écart 3','adjCap':'captures','adjEval':'éval (les deux d’accord)','time':'temps','noMove':'bloqué','draw':'nulle'}[g.why]||g.why;
+      const btn = g.moves ? '<button onclick="labReplay('+gi+')" style="background:none;border:1px solid var(--gold);color:var(--gold);border-radius:5px;font-size:10px;padding:0 6px;cursor:pointer;margin-left:6px;white-space:nowrap;flex-shrink:0">▶ revoir</button>' : '';
+      h+='<div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--muted);margin:3px 0"><span>'+icon+' '+g.name+' · '+g.w+' ('+whyLabel+', '+g.plies+' coups)</span>'+btn+'</div>';
     });
   }
   if(st.history.length){
     h+='<div style="margin-top:10px;font-size:12px;font-weight:700">Historique</div>';
     st.history.slice(0,8).forEach(function(x){
-      h+='<div style="font-size:11px;color:var(--muted);margin:2px 0">G'+x.gen+' \u00b7 '+x.type+' \u00b7 '+x.name+(x.score!==null&&x.score!==undefined?' \u00b7 '+x.score+'/'+x.games:'')+(x.elo?' \u00b7 '+x.elo:'')+'</div>';
+      h+='<div style="font-size:11px;color:var(--muted);margin:2px 0">G'+x.gen+' · '+x.type+' · '+x.name+(x.score!==null&&x.score!==undefined?' · '+x.score+'/'+x.games:'')+(x.elo?' · '+x.elo:'')+'</div>';
     });
   }
-  h+='<label style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px"><input type="checkbox" '+(useOn?'checked':'')+' onchange="labToggleUse(this)"> Utiliser les poids adopt\u00e9s pour l\u2019IA</label>';
+  h+='<label style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px"><input type="checkbox" '+(useOn?'checked':'')+' onchange="labToggleUse(this)"> Utiliser les poids adoptés pour l’IA</label>';
   el.innerHTML=h;
-  const bs=document.getElementById('lab-start'); if(bs) bs.textContent=_labRunning?'\u23f8 Pause':'\u25b6 D\u00e9marrer';
-  if(document.getElementById('lab-adv') && document.getElementById('lab-adv').style.display!=='none') renderLabAdvanced();
+  if(_labRunning) _labMajStatut();
+  const bs=document.getElementById('lab-start'); if(bs) bs.textContent=_labRunning?'⏸ Pause':'▶ Démarrer';
+  // pas de nouveau rendu des reglages pendant qu'on y tape une valeur (une partie se termine toutes les quelques secondes)
+  const adv=document.getElementById('lab-adv');
+  if(adv && adv.style.display!=='none' && !(adv.contains && document.activeElement && adv.contains(document.activeElement))) renderLabAdvanced();
   if (typeof renderTestKaah === 'function') renderTestKaah();
 }
 // Reprise automatique si le Labo tournait a la derniere session
@@ -38013,7 +38241,7 @@ window.refresh3DIfActive = function() {
       <span style="font-weight:800;color:var(--gold)">🧪 Labo d'auto-amélioration récursive</span>
       <button class="ctrl-btn" onclick="closeLabModal()" style="width:auto;padding:2px 10px">✕</button>
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Duels réels moteur contre moteur (worker dédié — tu peux jouer pendant). v2 : arrêt séquentiel SPRT, ouvertures équilibrées, confirmation à 600 ms/coup, estimation Elo ± marge. Reprend tout seul au chargement si laissé démarré.</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Duels réels moteur contre moteur (plusieurs fils de calcul — tu peux jouer pendant). v4 : paires d'ouvertures, verdict SPRT par paires, arbitrage par consensus, SPSA vérifié avant adoption, gain réel mesuré, critères de KAAH réglables. Reprend tout seul au chargement si laissé démarré.</div>
     <div style="display:flex;gap:8px;margin-bottom:8px">
       <button id="lab-start" class="ctrl-btn" onclick="_labRunning?pauseLab():startLab()" style="width:auto;padding:6px 14px">▶ Démarrer</button>
       <button class="ctrl-btn" onclick="resetLab()" style="width:auto;padding:6px 14px">🔄 Réinitialiser</button>

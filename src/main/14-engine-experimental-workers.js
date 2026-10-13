@@ -95,7 +95,7 @@ self.onmessage=function(e){
     catch(err){ self.postMessage({replayGame:true,id:d.id,error:String(err&&err.message||err)}); }
     return; }
   if(d.duelGame){
-    try{ _recMoves=[]; var r=playDuelGame(d.wA,d.wB,d.colorA,d.seed,d.msPerMove,d.maxPlies,d.drawWin); var mv=_recMoves; _recMoves=null; self.postMessage({duelGame:true,id:d.id,result:r,moves:mv}); }
+    try{ _recMoves=[]; var r=playDuelGame(d.wA,d.wB,d.colorA,d.seed,d.msPerMove,d.maxPlies,d.drawWin,d.ouverture,d.equilibre); var mv=_recMoves; _recMoves=null; self.postMessage({duelGame:true,id:d.id,result:r,moves:mv}); }
     catch(err){ _recMoves=null; self.postMessage({duelGame:true,id:d.id,error:String(err&&err.message||err)}); }
     return; }
   board=d.board;capturedByWhite=d.capturedByWhite;capturedByBlack=d.capturedByBlack;

@@ -3761,13 +3761,13 @@
     <div class="page-header" style="padding:40px 60px 0">
       <div class="section-label">Moteur</div>
       <h2>Labo d'auto-amélioration récursive</h2>
-      <p style="color:var(--muted);font-size:14px;max-width:680px">Duels réels moteur contre moteur, dans un worker dédié — tu peux continuer à jouer pendant.</p>
+      <p style="color:var(--muted);font-size:14px;max-width:680px">Duels réels moteur contre moteur, plusieurs à la fois sur des fils de calcul dédiés — tu peux continuer à jouer pendant. Chaque ouverture est jouée deux fois, couleurs inversées, et rien n'est adopté sans verdict statistique.</p>
       <button class="tech-toggle-btn btn" style="margin-top:10px;font-size:12px;padding:6px 12px" onclick="toggleTechMode()">🔬 Voir le détail technique</button>
       <div class="tech-detail" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-top:16px;max-width:680px">
         <h3 style="margin:0 0 10px;color:var(--white);font-size:16px">Deux méthodes, deux logiques</h3>
-        <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">SPSA</strong> (Simultaneous Perturbation Stochastic Approximation) : perturbe les 8 poids d'évaluation à la fois (θ+ et θ−), joue un duel entre les deux, met à jour tous les poids dans le sens du gagnant. Trouve les interactions entre poids qu'une exploration coup par coup manquerait.</p>
-        <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">SPRT</strong> (Sequential Probability Ratio Test, méthodologie façon Fishtest/Stockfish) : teste un seul changement à la fois contre le champion actuel, jusqu'à franchir une borne statistique — pas un nombre de parties fixé à l'avance.</p>
-        <p style="margin:0;font-size:13px;color:var(--muted);line-height:1.7">Les 8 poids (centre, cohésion, bord, mobilité, isolement, danger, alignements, forteresse) sont partagés entre les deux méthodes et avec le moteur de jeu réel — un changement validé par le Labo s'applique directement à l'IA que tu affrontes.</p>
+        <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">SPSA</strong> (Simultaneous Perturbation Stochastic Approximation) : perturbe tous les poids d'évaluation à la fois (θ+ et θ−), joue une paire de parties entre les deux, met à jour tous les poids dans le sens du gagnant. Trouve les interactions entre poids qu'une exploration coup par coup manquerait. Son résultat est vérifié par un SPRT contre le champion avant que l'IA ne l'utilise.</p>
+        <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">SPRT</strong> (Sequential Probability Ratio Test, méthodologie façon Fishtest/Stockfish) : teste un seul changement à la fois contre le champion actuel, jusqu'à franchir une borne statistique — pas un nombre de parties fixé à l'avance. Le verdict compte des <em>paires</em> (la même ouverture, couleurs inversées : 0, ½, 1, 1½ ou 2 points), comme Fishtest, avec un a priori qui empêche de conclure sur une courte série chanceuse. Après chaque adoption, le gain réel est mesuré contre les poids d'origine.</p>
+        <p style="margin:0;font-size:13px;color:var(--muted);line-height:1.7">Les 8 poids (centre, cohésion, bord, mobilité, isolement, danger, alignements, forteresse) et les 8 critères de KAAH (sumito, menace, fourchette, piège, compacité, cases, gain et perte selon le score) sont partagés entre les deux méthodes et avec le moteur de jeu réel — un changement validé par le Labo s'applique directement à l'IA que tu affrontes. Les parties trop longues sont arbitrées par consensus : la victoire n'est donnée que si les deux évaluations sont d'accord.</p>
       </div>
     </div>
     <div id="page-lab-host" style="padding:24px 60px 60px;max-width:900px"></div>
@@ -3918,7 +3918,7 @@
 <li><b>Bibliothèque de parties</b> : des milliers de vraies parties (MIGS, AbalOnline, tournois, KAAH), à rejouer et filtrer.</li>
 <li><b>Stats du corpus</b> : les chiffres de ces parties, et la <b>profondeur de l'IA selon le temps de réflexion</b>, mesurée sur ton appareil et relevée pendant tes parties.</li>
 <li><b>Tables de finale</b> : les finales résolues exactement (2 contre 2, 3 contre 2, 4 contre 2), avec un entraînement.</li>
-<li><b>Labo IA</b> : l'IA s'améliore en jouant contre elle-même, et le test des critères de KAAH.</li>
+<li><b>Labo IA</b> : l'IA s'améliore en jouant contre elle-même, plusieurs parties à la fois. Chaque changement de ses poids (y compris les critères de KAAH) est joué par paires d'ouvertures et n'est adopté qu'après un verdict statistique ; le « gain réel mesuré » compare ensuite le champion aux poids d'origine. En bas de page : le test des critères de KAAH.</li>
 <li><b>Détection photo / plateau</b> : photographie un vrai plateau pour le reproduire.</li>
 <li><b>Observer</b> : suivre une partie PlayStrategy en direct. <b>Tournoi</b> : un tournoi contre des IA.</li>
 <li><b>Variantes</b> et <b>Éditeur</b> : d'autres règles et dispositions, ou ta propre position.</li>
