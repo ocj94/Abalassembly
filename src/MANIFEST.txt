@@ -4,6 +4,7 @@
 03-script-utils-a.js
 04-html.part
 05-script-utils-b.js
+05b-script-i18n-en.js
 06-html.part
 main/00-bootstrap-engagement.js
 main/01-backend-api-layer.js

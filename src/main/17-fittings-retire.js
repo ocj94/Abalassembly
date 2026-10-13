@@ -389,10 +389,11 @@ function basculerPanneauReflexion() {
 
 function _formatEvalIA(ia) {
   if (!ia) return '';
-  const ph = { ouverture: 'Ouv.', milieu: 'Mil.', finale: 'Fin' }[ia.ph] || '';
-  const v = Math.abs(ia.e) >= 90000 ? (ia.e > 0 ? 'gain forcé' : 'perte forcée') : ((ia.e > 0 ? '+' : '') + ia.e);
-  const t = ia.t >= 1000 ? (ia.t / 1000).toFixed(1).replace('.', ',') + ' s' : Math.round(ia.t) + ' ms';
-  return (ph ? ph + ' ' : '') + v + ' · prof. ' + ia.p + ' · ' + t;
+  const en = currentLang() === 'EN';
+  const ph = (en ? { ouverture: 'Open.', milieu: 'Mid.', finale: 'End' } : { ouverture: 'Ouv.', milieu: 'Mil.', finale: 'Fin' })[ia.ph] || '';
+  const v = Math.abs(ia.e) >= 90000 ? (ia.e > 0 ? _tr('gain forcé', 'forced win') : _tr('perte forcée', 'forced loss')) : ((ia.e > 0 ? '+' : '') + ia.e);
+  const t = ia.t >= 1000 ? (ia.t / 1000).toFixed(1).replace('.', en ? '.' : ',') + ' s' : Math.round(ia.t) + ' ms';
+  return (ph ? ph + ' ' : '') + v + (en ? ' · depth ' : ' · prof. ') + ia.p + ' · ' + t;
 }
 function codePosition(plateau, ejNoires, ejBlanches) {
   const moitie = function(couleur, n){

@@ -113,8 +113,9 @@ function levelFromXp(xp) {
 }
 function xpProgressInLevel(xp) {
   const lvl = levelFromXp(xp);
-  const cur = xpForLevel(lvl), next = xpForLevel(lvl+1);
-  return { lvl, cur: xp-cur, need: next-cur, pct: Math.min(100, Math.round((xp-cur)/(next-cur)*100)) };
+  // le niveau 1 commence a 0 XP (avant : a xpForLevel(1) = 50 -- un nouveau joueur voyait « -50 / 102 XP »)
+  const cur = lvl <= 1 ? 0 : xpForLevel(lvl), next = xpForLevel(lvl+1);
+  return { lvl, cur: xp-cur, need: next-cur, pct: Math.max(0, Math.min(100, Math.round((xp-cur)/(next-cur)*100))) };
 }
 
 /* ─── Catalogue de badges ─── */

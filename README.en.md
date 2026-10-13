@@ -10,9 +10,11 @@
 
 **Play, learn and improve at the Abalone strategy game** — entirely in a single HTML file, no server, no dependencies, works offline.
 
-### 🎮 [Play now → ocj94.github.io/Abalassembly](https://ocj94.github.io/Abalassembly/)
+### 🎮 [Play now → ocj94.github.io/Abalassembly](https://ocj94.github.io/Abalassembly/?lang=en)
 
 Or: open `index.html` in a browser — everything is in there.
+
+The site speaks **English and French** (language menu at the top right, or `?lang=en` / `?lang=fr` in the address). The game, rules, tutorial, puzzles and help are in English; a few deeper pages (AI Lab, game library, Academy) are still in French.
 
 ## Contents
 

@@ -14,6 +14,8 @@
 
 Ou : ouvrez `index.html` dans un navigateur, tout est là.
 
+Le site parle **français et anglais** (menu de langue en haut à droite, ou `?lang=en` / `?lang=fr` dans l'adresse). En anglais : le jeu, les règles, le tutoriel, les problèmes et l'aide ; quelques pages plus techniques (Labo IA, bibliothèque, Academy) restent en français.
+
 ## Sommaire
 
 - [Règles en bref](#règles-en-bref)

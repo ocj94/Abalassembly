@@ -157,15 +157,12 @@ function updateExpandBtn(expanded) {
 /* ═══════════════════════════════════════════
    SÉLECTEUR DE LANGUE
 ═══════════════════════════════════════════ */
-function currentLang() {
-  try { return localStorage.getItem('abalone_lang') || 'FR'; } catch(e) { return 'FR'; }
-}
+// currentLang() est dans le petit bloc <script> lu avant le reste de la page (05b-script-i18n-en.js).
 // Seule langue RTL du sélecteur pour l'instant. Centralisé ici pour que tout
 // le reste (CSS via [dir="rtl"], JS via cette fonction) parte d'une source unique.
 function isRTL() { return currentLang() === 'HE'; }
 
-// Restaure la langue choisie au chargement (dictionnaire nav persistant)
-if (currentLang() !== 'FR') { try { applyTranslations(); } catch(e){} }
+// La langue choisie est appliquee des que le dictionnaire est charge (fin de la section i18n, plus bas).
 
 function renderLangMenu() {
   const menu = document.getElementById('lang-menu');
@@ -202,10 +199,10 @@ const TRANSLATIONS = {
     'nav.puzzles': 'Puzzles',
     'nav.editor': 'Editor',
     'nav.analysis': 'Analysis',
-    'nav.rules': 'Game Rules',
+    'nav.rules': 'Game rules',
     'nav.academy': 'Abalone Academy',
     'nav.variants': 'Variants',
-    'nav.github': 'GitHub Insights',
+    'nav.github': 'GitHub insights',
     'nav.leaderboard': 'Leaderboard',
     'nav.observe': 'Watch',
     'nav.community': 'Community',
@@ -213,14 +210,15 @@ const TRANSLATIONS = {
     'nav.trombi': 'Members',
     'nav.museum': 'Museum',
     'nav.pioneers': 'Pioneers',
-    'nav.camera': 'AI Detection',
-    'nav.stats': 'My Statistics',
+    'nav.camera': 'Photo / board detection',
+    'nav.stats': 'My statistics',
     'nav.compare': 'Compare',
     'nav.friends': 'Friends',
     'nav.profile': 'Profile',
     'nav.settings': 'Settings',
     'header.login': 'Sign in',
     'header.signup': 'Sign up',
+    'learn.le': 'The',
   },
   HE: {
     'nav.home': 'בית',
@@ -250,28 +248,33 @@ const TRANSLATIONS = {
   },
 };
 
+// Version anglaise (dictionnaire, motifs, observateur) : dans 05b-script-i18n-en.js, execute avant ce script.
+
 // Applique la traduction à tous les éléments [data-i18n] selon la langue courante.
 // La langue FR utilise le texte original déjà présent dans le HTML.
 function applyTranslations() {
   const lang = currentLang();
+  _i18nObserver(false);   // pendant qu'on remet les textes, l'observateur ne doit pas les retraduire
   document.documentElement.dir = isRTL() ? 'rtl' : 'ltr';
   const dict = TRANSLATIONS[lang];
   // Éléments texte simple
+  // Une langue sans traduction pour une cle (allemand, espagnol... traduits par le navigateur) remet le
+  // francais d'origine : sinon un libelle reste dans la langue precedente (« Home » apres l'anglais).
   document.querySelectorAll('[data-i18n]').forEach(function(el) {
     const key = el.getAttribute('data-i18n');
-    if (lang === 'FR') {
+    if (lang === 'FR' || !dict || dict[key] === undefined) {
       if (el.hasAttribute('data-i18n-fr')) el.textContent = el.getAttribute('data-i18n-fr');
       return;
     }
     if (dict && dict[key] !== undefined) {
-      if (!el.hasAttribute('data-i18n-fr')) el.setAttribute('data-i18n-fr', el.textContent);
+      if (!el.hasAttribute('data-i18n-fr')) el.setAttribute('data-i18n-fr', _i18nTexteOrigine(el));   // le francais, meme deja traduit
       el.textContent = dict[key];
     }
   });
   // Éléments avec HTML interne (balises <br>, <span>, etc.)
   document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
     const key = el.getAttribute('data-i18n-html');
-    if (lang === 'FR') {
+    if (lang === 'FR' || !dict || dict[key] === undefined) {
       if (el.hasAttribute('data-i18n-fr-html')) el.innerHTML = el.getAttribute('data-i18n-fr-html');
       return;
     }
@@ -283,16 +286,20 @@ function applyTranslations() {
   // Attributs placeholder
   document.querySelectorAll('[data-i18n-ph]').forEach(function(el) {
     const key = el.getAttribute('data-i18n-ph');
-    if (lang === 'FR') {
+    if (lang === 'FR' || !dict || dict[key] === undefined) {
       if (el.hasAttribute('data-i18n-fr-ph')) el.setAttribute('placeholder', el.getAttribute('data-i18n-fr-ph'));
       return;
     }
     if (dict && dict[key] !== undefined) {
-      if (!el.hasAttribute('data-i18n-fr-ph')) el.setAttribute('data-i18n-fr-ph', el.getAttribute('placeholder') || '');
+      if (!el.hasAttribute('data-i18n-fr-ph')) el.setAttribute('data-i18n-fr-ph', (el.__i18nFr_placeholder !== undefined ? el.__i18nFr_placeholder : el.getAttribute('placeholder')) || '');
       el.setAttribute('placeholder', dict[key]);
     }
   });
+  _i18nAppliquerTout(lang);   // version anglaise : dictionnaire, motifs et observateur
 }
+// Langue choisie appliquee aussi ici (libelles data-i18n, hebreu compris) ; l'anglais, lui, est deja
+// en place depuis le bloc anticipe (05b-script-i18n-en.js).
+if (currentLang() !== 'FR') { try { applyTranslations(); } catch (e) {} }
 
 function setLanguage(code) {
   try { localStorage.setItem('abalone_lang', code); } catch(e) {}
@@ -308,9 +315,12 @@ function setLanguage(code) {
   // seulement du CSS, donc un simple [dir="rtl"] ne suffit pas à le faire basculer
   // — sans cet appel, passer HE↔LTR ne bascule le bon côté qu'après un resize.
   if (typeof applySidebarState === 'function') applySidebarState();
-  // Le français est la langue native du site → pas de traduction nécessaire
-  if (code === 'FR') {
-    if (typeof showToast === 'function') showToast(sel.flag + ' Français');
+  // Le français est la langue native du site, l'anglais est traduit par le site lui-même
+  if (typeof renderEngageBar === 'function') renderEngageBar();   // initiales des jours de la serie
+  if (typeof _majCarteJoueur === 'function') _majCarteJoueur();
+  if (typeof filtrerAide === 'function') { const q = document.getElementById('aide-recherche'); filtrerAide(q ? q.value : ''); }
+  if (code === 'FR' || code === 'EN') {
+    if (typeof showToast === 'function') showToast(sel.flag + ' ' + sel.name);
     return;
   }
   // Pour les autres langues, on s'appuie sur la traduction intégrée du navigateur
@@ -318,21 +328,23 @@ function setLanguage(code) {
   showBrowserTranslateHint(sel);
 }
 
-// Affiche une aide expliquant comment activer la traduction du navigateur
+// Affiche une aide expliquant comment activer la traduction du navigateur.
+// Langues autres que le francais et l'anglais : la page reste en francais et le navigateur la traduit.
+// Consignes en anglais : quelqu'un qui demande l'allemand ou le japonais lit plus souvent l'anglais que le francais.
 function showBrowserTranslateHint(lang) {
   // détecte le navigateur pour donner la bonne instruction
   const ua = navigator.userAgent;
   let instruction;
   if (/Edg\//.test(ua)) {
-    instruction = 'Cliquez sur l\'icône de traduction 🌐 dans la barre d\'adresse, ou faites un clic droit → « Traduire ».';
+    instruction = 'Click the translate icon 🌐 in the address bar, or right-click → “Translate”.';
   } else if (/Chrome\//.test(ua) && !/Edg\//.test(ua)) {
-    instruction = 'Faites un clic droit n\'importe où sur la page → « Traduire en ' + lang.name + ' », ou cliquez sur l\'icône 🌐 dans la barre d\'adresse.';
+    instruction = 'Right-click anywhere on the page → “Translate to ' + lang.name + '”, or click the 🌐 icon in the address bar.';
   } else if (/Firefox\//.test(ua)) {
-    instruction = 'Firefox propose la traduction via l\'icône de traduction dans la barre d\'adresse (ou installez l\'extension officielle de traduction).';
+    instruction = 'Firefox translates pages through the translate icon in the address bar.';
   } else if (/Safari\//.test(ua)) {
-    instruction = 'Cliquez sur l\'icône de traduction 🅰 dans la barre d\'adresse Safari → « Traduire en ' + lang.name + ' ».';
+    instruction = 'Click the translate icon 🅰 in Safari’s address bar → “Translate to ' + lang.name + '”.';
   } else {
-    instruction = 'Utilisez la fonction « Traduire la page » de votre navigateur (souvent via un clic droit ou une icône dans la barre d\'adresse).';
+    instruction = 'Use your browser’s “Translate page” feature (usually a right-click, or an icon in the address bar).';
   }
 
   const overlay = document.getElementById('translate-hint-overlay');
@@ -363,7 +375,7 @@ document.addEventListener('click', function(e){
 /* Aide : recherche dans les rubriques, accents ignores ; ouvre celles qui contiennent le mot. */
 function _sansAccents(s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
 function filtrerAide(q) {
-  const m = _sansAccents(q).trim(), rubs = document.querySelectorAll('#aide-rubriques .aide-rub');
+  const m = _sansAccents(q).trim(), rubs = document.querySelectorAll((currentLang() === 'EN' ? '#aide-rubriques-en' : '#aide-rubriques') + ' .aide-rub');
   let n = 0;
   rubs.forEach(function(r){
     const ok = !m || _sansAccents(r.textContent).indexOf(m) >= 0;
@@ -409,7 +421,10 @@ function maybeShowLangBanner() {
   const action = document.getElementById('lang-banner-action');
   if (!banner) return;
   flag.textContent = navLang.flag;
-  text.textContent = 'Consulter Abalassembly en ' + navLang.name + ' ?';
+  // le message s'adresse a quelqu'un qui ne lit peut-etre pas la langue affichee : en francais pour un
+  // navigateur francais, en anglais pour tous les autres
+  text.textContent = nav === 'FR' ? 'Consulter Abalassembly en français ?' : 'View Abalassembly in ' + navLang.name + '?';
+  action.textContent = nav === 'FR' ? 'Changer' : 'Switch';
   action.onclick = function(){ setLanguage(nav); dismissLangBanner(); };
   banner.style.display = 'flex';
 }

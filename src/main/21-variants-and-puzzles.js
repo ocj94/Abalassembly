@@ -302,7 +302,7 @@ const puzzlesData = [
   { title:'Première éjection', diff:'easy', label:'🟢 Difficulté Facile', source:'Initiation',
     statement:'<strong>PREMIÈRE ÉJECTION</strong><br><br>Les Noirs ont le trait. Une bille blanche est au bord droit, deux billes noires sont alignées derrière. Poussez-la hors du plateau !<br><br><em>(Sélectionnez vos 2 billes noires, puis cliquez vers la droite.)</em>',
     hint:'Sélectionnez les deux billes noires alignées, puis poussez vers la bille blanche au bord.',
-    solution:'Sélectionnez les 2 billes noires (4,6 et 4,7), poussez vers la droite → la blanche est éjectée. ✅',
+    solution:'Sélectionnez les 2 billes noires (e7 et e8), poussez vers la droite → la blanche est éjectée. ✅',
     black:[[4,6],[4,7]], white:[[4,8]], solved:false },
   { title:'Poussée à gauche', diff:'easy', label:'🟢 Difficulté Facile', source:'Initiation',
     statement:'<strong>POUSSÉE À GAUCHE</strong><br><br>Les Noirs ont le trait. Éjectez la bille blanche par le bord gauche avec une poussée 2 contre 1.<br><br><em>(Même principe, dans l\'autre sens.)</em>',
@@ -312,17 +312,17 @@ const puzzlesData = [
   { title:'Triple poussée', diff:'easy', label:'🟢 Difficulté Facile', source:'Initiation',
     statement:'<strong>TRIPLE POUSSÉE</strong><br><br>Les Noirs ont le trait. Trois billes noires alignées peuvent éjecter la bille blanche au bord. Trouvez la poussée.<br><br><em>(Sumito 3 contre 1.)</em>',
     hint:'Sélectionnez les trois billes noires alignées et poussez vers la bille blanche.',
-    solution:'Sélectionnez les 3 billes noires (3,4 / 3,5 / 3,6), poussez vers la droite → éjection. ✅',
+    solution:'Sélectionnez les 3 billes noires (f6 / f7 / f8), poussez vers la droite → éjection. ✅',
     black:[[3,4],[3,5],[3,6]], white:[[3,7]], solved:false },
   { title:'Sumito 3 contre 2', diff:'medium', label:'🟡 Difficulté Moyenne', source:'Intermédiaire',
     statement:'<strong>SUMITO 3 CONTRE 2</strong><br><br>Les Noirs ont le trait. Trois billes noires peuvent pousser deux billes blanches — et en éjecter une par le bord. Réalisez le sumito 3v2.<br><br><em>(Trois contre deux : autorisé !)</em>',
     hint:'Trois billes noires alignées contre deux blanches : la poussée est possible et éjecte la bille du bord.',
-    solution:'Sélectionnez les 3 billes noires (4,4 / 4,5 / 4,6), poussez vers la droite → la blanche du bord sort. ✅',
+    solution:'Sélectionnez les 3 billes noires (e5 / e6 / e7), poussez vers la droite → la blanche du bord sort. ✅',
     black:[[4,4],[4,5],[4,6]], white:[[4,7],[4,8]], solved:false },
   { title:'Poussée vers le haut', diff:'medium', label:'🟡 Difficulté Moyenne', source:'Intermédiaire',
     statement:'<strong>POUSSÉE VERS LE HAUT</strong><br><br>Les Noirs ont le trait. Cette fois la poussée se fait vers le haut du plateau. Éjectez la bille blanche du bord supérieur avec un sumito 3v2.<br><br><em>(La direction change, le principe reste.)</em>',
     hint:'Alignez votre regard vers le haut : trois billes noires poussent deux blanches vers le bord supérieur.',
-    solution:'Sélectionnez les 3 billes noires (2,2 / 3,2 / 4,2), poussez vers le haut → éjection. ✅',
+    solution:'Sélectionnez les 3 billes noires (g5 / f4 / e3), poussez vers le haut → éjection. ✅',
     black:[[2,2],[3,2],[4,2]], white:[[1,2],[0,2]], solved:false },
   { title:'Bord droit', diff:'easy', label:'🟢 Difficulté Facile', source:'Initiation',
     statement:'<strong>BORD DROIT</strong><br><br>Les Noirs ont le trait. Éjectez la bille blanche par le bord droit, en haut du plateau.<br><br><em>(Poussée 2 contre 1.)</em>',
@@ -363,31 +363,31 @@ const puzzlesData = [
     statement:'<strong>SUMITO 3 CONTRE 2 — BAS</strong><br><br>Les Noirs ont le trait. Une colonne de trois billes noires pousse deux blanches vers le bas et en éjecte une.',
     hint:'Trois billes noires en colonne poussent les deux blanches vers le bord inférieur.',
     solution:'Sélectionnez les 3 billes noires, poussez vers le bas → éjection. ✅',
-    black:[[4,5],[5,5],[6,5]], white:[[7,5],[8,5]], solved:false },
+    black:[[4,4],[5,4],[6,4]], white:[[7,4],[8,4]], solved:false },
   { title:'Poussée diagonale', diff:'medium', label:'🟡 Difficulté Moyenne', source:'Intermédiaire',
     statement:'<strong>POUSSÉE DIAGONALE</strong><br><br>Les Noirs ont le trait. Cette fois la ligne de poussée est diagonale. Trois billes noires éjectent une blanche du bord.<br><br><em>(Pensez en diagonale !)</em>',
     hint:'Les billes noires sont alignées en diagonale — poussez le long de cet axe.',
     solution:'Sélectionnez les 3 billes noires en diagonale, poussez → éjection. ✅',
     black:[[2,5],[3,6],[4,7]], white:[[5,7],[6,6]], solved:false },
   { title:'Riposte à droite', diff:'medium', label:'🟡 Difficulté Moyenne', source:'Défense & Riposte', whiteFirst:true,
-    statement:'<strong>RIPOSTE À DROITE</strong><br><br>⚪ Les Blancs viennent d\'avancer une bille jusqu\'au bord droit (en 3,7) pour menacer ta position.<br><br>⚫ À toi de jouer ! Punis cette avancée trop audacieuse : éjecte la bille blanche exposée.',
+    statement:'<strong>RIPOSTE À DROITE</strong><br><br>⚪ Les Blancs viennent d\'avancer une bille jusqu\'au bord droit (en f9) pour menacer ta position.<br><br>⚫ À toi de jouer ! Punis cette avancée trop audacieuse : éjecte la bille blanche exposée.',
     hint:'La bille blanche avancée est isolée au bord. Tes deux billes noires alignées peuvent la pousser dehors.',
-    solution:'Sélectionne tes 2 billes noires (3,5 et 3,6) et pousse vers la droite → la blanche tombe. ✅',
+    solution:'Sélectionne tes 2 billes noires (f7 et f8) et pousse vers la droite → la blanche tombe. ✅',
     black:[[3,5],[3,6]], white:[[3,7],[5,5]], solved:false },
   { title:'Riposte au sumito', diff:'medium', label:'🟡 Difficulté Moyenne', source:'Défense & Riposte', whiteFirst:true,
     statement:'<strong>RIPOSTE AU SUMITO</strong><br><br>⚪ Les Blancs ont engagé deux billes vers le bord supérieur, pensant te dominer.<br><br>⚫ Retourne la situation ! Avec trois billes, tu peux pousser les deux blanches et en éjecter une.',
     hint:'Trois contre deux : ta supériorité numérique te permet de pousser et d\'éjecter la bille du bord.',
-    solution:'Sélectionne tes 3 billes noires (2,3 / 2,4 / 2,5) et pousse vers la droite → éjection. ✅',
-    black:[[2,3],[2,4],[2,5]], white:[[2,6],[2,7]], solved:false },
+    solution:'Sélectionne tes 3 billes noires (g5 / g6 / g7) et pousse vers la droite → éjection. ✅',
+    black:[[2,2],[2,3],[2,4]], white:[[2,5],[2,6]], solved:false },
   { title:'Riposte vers le bas', diff:'hard', label:'🔴 Difficulté Difficile', source:'Défense & Riposte', whiteFirst:true,
-    statement:'<strong>RIPOSTE VERS LE BAS</strong><br><br>⚪ Une bille blanche s\'est aventurée tout en bas du plateau (en 8,2).<br><br>⚫ Saisis l\'occasion : aligne trois billes et éjecte-la par le bord inférieur.',
+    statement:'<strong>RIPOSTE VERS LE BAS</strong><br><br>⚪ Une bille blanche s\'est aventurée tout en bas du plateau (en a3).<br><br>⚫ Saisis l\'occasion : aligne trois billes et éjecte-la par le bord inférieur.',
     hint:'Ta colonne de trois billes noires peut pousser la blanche hors du bord du bas.',
-    solution:'Sélectionne tes 3 billes noires (5,2 / 6,2 / 7,2) et pousse vers le bas → éjection. ✅',
+    solution:'Sélectionne tes 3 billes noires (d3 / c3 / b3) et pousse vers le bas → éjection. ✅',
     black:[[5,2],[6,2],[7,2]], white:[[8,2],[3,3]], solved:false },
   { title:'Riposte au coin', diff:'hard', label:'🔴 Difficulté Difficile', source:'Défense & Riposte', whiteFirst:true,
-    statement:'<strong>RIPOSTE AU COIN</strong><br><br>⚪ Les Blancs ont poussé une bille jusqu\'au coin supérieur (en 0,3) — une position très exposée.<br><br>⚫ Profites-en pour l\'éjecter d\'une poussée verticale.',
+    statement:'<strong>RIPOSTE AU COIN</strong><br><br>⚪ Les Blancs ont poussé une bille jusqu\'au coin supérieur (en i8) — une position très exposée.<br><br>⚫ Profites-en pour l\'éjecter d\'une poussée verticale.',
     hint:'La bille blanche au coin n\'a aucune échappatoire. Pousse-la vers le haut.',
-    solution:'Sélectionne tes 2 billes noires (2,3 et 1,3) et pousse vers le haut → éjection. ✅',
+    solution:'Sélectionne tes 2 billes noires (g6 et h7) et pousse vers le haut → éjection. ✅',
     black:[[2,3],[1,3]], white:[[0,3],[5,5]], solved:false },
 ];
 
@@ -499,7 +499,14 @@ function showPuzzleSolution() {
     if (sol) {
       const selCoords = sol.cells.map(function(c){ return coordToABAPRO(c.r, c.c); }).join(' + ');
       const dirName = directionName(sol.dir);
-      solText = '1. Sélectionne ' + selCoords + '\n2. Pousse vers ' + dirName + '\n→ La bille blanche (' + targetWhite[targetWhite.length-1] + ') est éjectée ✅';
+      // la bille ejectee est la derniere de la file poussee : oppStart + (push - 1) pas dans la direction
+      let ejectee = targetWhite[targetWhite.length-1];
+      if (sol.oppStart && sol.push) {
+        const e = axialToRc(sol.oppStart.q + (sol.push - 1) * sol.dir.q, sol.oppStart.r + (sol.push - 1) * sol.dir.r);   // oppStart est deja en axial
+        if (e) ejectee = coordToABAPRO(e.r, e.c);
+      }
+      solText = _tr('1. Sélectionne ', '1. Select ') + selCoords + _tr('\n2. Pousse vers ', '\n2. Push toward ') + dirName
+        + _tr('\n→ La bille blanche (', '\n→ The white marble (') + ejectee + _tr(') est éjectée ✅', ') is ejected ✅');
     } else {
       solText = pz.solution || 'Cherche la poussée gagnante.';
     }
@@ -518,13 +525,13 @@ function showPuzzleSolution() {
 
 // Nom lisible d'une direction axiale (pour les solutions)
 function directionName(dir) {
-  if (dir.q===1 && dir.r===0) return 'la droite (Est)';
-  if (dir.q===-1 && dir.r===0) return 'la gauche (Ouest)';
-  if (dir.q===0 && dir.r===-1) return 'le haut-droite (Nord-Est)';
-  if (dir.q===0 && dir.r===1) return 'le bas-gauche (Sud-Ouest)';
-  if (dir.q===1 && dir.r===-1) return 'le haut (Nord)';
-  if (dir.q===-1 && dir.r===1) return 'le bas (Sud)';
-  return 'la direction indiquée';
+  if (dir.q===1 && dir.r===0) return _tr('la droite (Est)', 'the right (east)');
+  if (dir.q===-1 && dir.r===0) return _tr('la gauche (Ouest)', 'the left (west)');
+  if (dir.q===0 && dir.r===-1) return _tr('le haut-droite (Nord-Est)', 'the upper right (north-east)');
+  if (dir.q===0 && dir.r===1) return _tr('le bas-gauche (Sud-Ouest)', 'the lower left (south-west)');
+  if (dir.q===1 && dir.r===-1) return _tr('le haut (Nord)', 'the top (north)');
+  if (dir.q===-1 && dir.r===1) return _tr('le bas (Sud)', 'the bottom (south)');
+  return _tr('la direction indiquée', 'the direction shown');
 }
 
 function nextPuzzle() {

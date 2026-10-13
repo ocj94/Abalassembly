@@ -337,10 +337,10 @@ function _appliquerCadence(v) {
 }
 function _decrireCadence(v) {
   const k = _lireCadence(v), mn = function(s){ return (s % 60) ? (Math.floor(s / 60) + ' min ' + (s % 60) + ' s') : ((s / 60) + ' min'); };
-  if (k.mode === 'libre') return 'Pendule libre — pas de défaite au temps';
-  if (k.mode === 'chrono') return 'Chrono — le temps de chaque joueur est compté, sans limite';
-  return mn(k.base) + (k.mode === 'bonus' ? ' + ' + k.inc + ' s par coup' : ', délai de ' + k.delai + ' s par coup')
-    + (k.ej ? ', + ' + k.ej + ' s par éjection' : '');
+  if (k.mode === 'libre') return _tr('Pendule libre — pas de défaite au temps', 'Untimed — no loss on time');
+  if (k.mode === 'chrono') return _tr('Chrono — le temps de chaque joueur est compté, sans limite', 'Clock — each player’s time is counted, with no limit');
+  return mn(k.base) + (k.mode === 'bonus' ? _tr(' + ' + k.inc + ' s par coup', ' + ' + k.inc + ' s per move') : _tr(', délai de ' + k.delai + ' s par coup', ', ' + k.delai + ' s delay per move'))
+    + (k.ej ? _tr(', + ' + k.ej + ' s par éjection', ', + ' + k.ej + ' s per ejection') : '');
 }
 (function(){
   try{
@@ -352,7 +352,7 @@ function _decrireCadence(v) {
 function setTimeControl(v){
   try{ localStorage.setItem('abaTimeCtl', v||''); }catch(e){}
   const k = _appliquerCadence(v);
-  showToast('⏱️ ' + _decrireCadence(v) + (k.mode === 'libre' ? '' : ' — dès la prochaine partie'));
+  showToast('⏱️ ' + _decrireCadence(v) + (k.mode === 'libre' ? '' : _tr(' — dès la prochaine partie', ' — from the next game')));
 }
 /* Un seul endroit decide de l'affichage des horloges : les deux blocs de la
    colonne laterale et les deux barres autour du plateau. Tant qu'ils etaient
@@ -683,6 +683,17 @@ function updateStatus() {
   if (typeof _majCodePosition === 'function') _majCodePosition();   // code de la position affichee
   document.getElementById('game-status-text').textContent = txt;
   document.getElementById('board-msg').textContent = msg;
+  _majCarteJoueur();
+}
+/* Carte du joueur (panneau de gauche, ordinateur) : avant, « Vous (Olivier) » et « Vos billes: Noires »
+   etaient ecrits en dur -- le prenom du createur du site pour tout le monde, et les Noires meme quand on
+   joue les Blancs. Maintenant : le pseudo s'il y en a un, et la couleur des billes reellement tenues. */
+function _majCarteJoueur() {
+  const n = document.getElementById('me-name-lg'), b = document.getElementById('me-billes-lg'), a = document.getElementById('me-avatar-lg');
+  const nom = (typeof currentUser !== 'undefined' && currentUser && currentUser.username) ? String(currentUser.username).slice(0, 24) : '';
+  if (n) n.textContent = nom ? 'Vous (' + nom + ')' : 'Vous';
+  if (a) a.textContent = nom ? nom.charAt(0).toUpperCase() : _tr('V', 'Y');
+  if (b) b.textContent = (typeof HumanColor !== 'undefined' && HumanColor.get() === 'white') ? 'Vos billes: Blanches ○' : 'Vos billes: Noires ●';
 }
 
 // Directions: [dr_topleft, dr_topright, dr_right, dr_bottomright, dr_bottomleft, dr_left]
