@@ -235,23 +235,26 @@
         <button class="btn-xl gold" onclick="playGame()">🎮 Jouer maintenant</button>
         <button class="btn-xl outline" onclick="showPage('learn')">📖 Apprendre les règles</button>
       </div>
-      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Abalone dans le monde — chiffres communauté (source : BGA)</div>
+      <!-- Avant : « 48K joueurs actifs · 2.3M parties · 79K sur BGA · 127 pays », non dates, sans
+           source precise, et lisibles comme les chiffres de CE site. Remplaces par des chiffres que
+           le code permet de verifier (un test les compare au corpus et a la liste des puzzles). -->
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Abalassembly en chiffres — tous vérifiables</div>
       <div class="hero-stats">
         <div class="stat-item">
-          <div class="stat-num">48K</div>
-          <div class="stat-label">Joueurs actifs</div>
+          <div class="stat-num" id="hero-nb-parties">4 579</div>
+          <div class="stat-label">Vraies parties rejouables</div>
         </div>
         <div class="stat-item">
-          <div class="stat-num">2.3M</div>
-          <div class="stat-label">Parties jouées</div>
+          <div class="stat-num" id="hero-nb-puzzles">138</div>
+          <div class="stat-label">Puzzles tirés de vraies parties</div>
         </div>
         <div class="stat-item">
-          <div class="stat-num">79K</div>
-          <div class="stat-label">Sur BGA</div>
+          <div class="stat-num">100 %</div>
+          <div class="stat-label">Hors ligne</div>
         </div>
         <div class="stat-item">
-          <div class="stat-num">127</div>
-          <div class="stat-label">Pays</div>
+          <div class="stat-num">0</div>
+          <div class="stat-label">Compte, pub ou mesure d'audience</div>
         </div>
       </div>
 
@@ -1166,9 +1169,9 @@
       <!-- TAB: CHAT -->
       <div id="gpanel-chat" class="game-tab-panel" style="display:none;flex-direction:column;height:calc(100% - 44px)">
         <div id="chat-messages" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;direction:rtl">
-          <div style="direction:ltr" class="chat-msg bot"><span class="chat-author">🤖 KosmicBot</span><span class="chat-text">Bonne chance ! ⚫</span></div>
-          <div style="direction:ltr" class="chat-msg me"><span class="chat-author">Vous</span><span class="chat-text">Merci, à toi aussi !</span></div>
-          <div style="direction:ltr" class="chat-msg bot"><span class="chat-author">⚫ Bot Noir</span><span class="chat-text">Astuce : tape <b>/bot</b> + un thème (règles, histoire, champions…) et je te réponds. 😊</span></div>
+          <!-- Le chat s'ouvrait sur une conversation ecrite d'avance, dont un « Vous : Merci, a toi
+               aussi ! » que le joueur n'avait jamais tape. Il s'ouvre maintenant sur l'aide seule. -->
+          <div style="direction:ltr" class="chat-msg bot"><span class="chat-author">🤖 Aide</span><span class="chat-text">Tape <b>/bot</b> + un thème (règles, histoire, champions…) : je réponds depuis la base de connaissances, hors ligne.</span></div>
         </div>
         <div style="padding:10px;border-top:1px solid var(--border);display:flex;gap:8px">
           <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px" id="chat-quick">
@@ -1959,17 +1962,24 @@
 </div>
 <div class="page" id="page-leaderboard">
   <div class="page-header">
-    <div class="section-label">Classement mondial</div>
-    <h2>Les Grands Maîtres<br>de l'Abalone</h2>
-    <p style="margin-top:12px;font-size:13px;color:var(--muted)">
-      Source communautaire :
-      <a href="https://onlineabalone.wordpress.com/" target="_blank" rel="noopener"
-         style="color:var(--gold);text-decoration:none;font-weight:600">
-        📝 onlineabalone.wordpress.com
-      </a>
+    <div class="section-label">Classement</div>
+    <h2>Pas encore de classement<br>entre joueurs</h2>
+    <p style="margin-top:12px;font-size:13px;color:var(--muted);max-width:640px;line-height:1.7">
+      Un classement honnête demande des parties vérifiées entre comptes ; le site n'a ni comptes ni serveur.
+      Il n'affiche donc ni noms ni ELO inventés.
     </p>
   </div>
-  <div class="leaderboard-wrap">
+  <div id="lb-vide" class="leaderboard-wrap" style="display:none">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;max-width:640px">
+      <div style="font-size:14px;font-weight:700;color:var(--white);margin-bottom:10px">🏁 En attendant</div>
+      <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;color:var(--muted)">
+        <div>⚔️ <b style="color:var(--text)">Joue contre un ami, en direct</b> — un code à échanger, sans compte. <button class="ctrl-btn" onclick="openRtcPanel()" style="width:auto;padding:4px 12px;margin-left:6px">Se connecter</button></div>
+        <div>🏆 <b style="color:var(--text)">Le tournoi mensuel</b> contre l'IA, avec palmarès. <button class="ctrl-btn" onclick="showPage('tournament')" style="width:auto;padding:4px 12px;margin-left:6px">Voir</button></div>
+        <div>📊 <b style="color:var(--text)">Tes statistiques</b> sur cet appareil. <button class="ctrl-btn" onclick="showPage('stats')" style="width:auto;padding:4px 12px;margin-left:6px">Voir</button></div>
+      </div>
+    </div>
+  </div>
+  <div id="lb-donnees" class="leaderboard-wrap">
     <div class="lb-filters" style="margin-bottom:10px">
       <span style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;align-self:center;margin-right:4px">Mode :</span>
       <button class="filter-btn lb-mode active" data-mode="all" onclick="setLbMode('all',this)">Tous</button>
@@ -3073,15 +3083,15 @@
           <div style="font-size:13px;font-weight:600;color:var(--white);margin-bottom:12px">Articles recents publies</div>
           <div style="display:flex;flex-direction:column;gap:8px" id="writer-articles">
             <div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;display:flex;justify-content:space-between;align-items:center">
-              <div><div style="font-size:13px;color:var(--text)">Les configurations bloquees</div><div style="font-size:11px;color:var(--muted)">Abalone Academy - il y a 3 jours</div></div>
+              <div><div style="font-size:13px;color:var(--text)">Les configurations bloquees</div><div style="font-size:11px;color:var(--muted)">Abalone Academy</div></div>
               <a href="https://onlineabalone.wordpress.com/abalone-academy/un-peu-de-theorie/les-configurations-bloquees/" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold);text-decoration:none">Voir</a>
             </div>
             <div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;display:flex;justify-content:space-between;align-items:center">
-              <div><div style="font-size:13px;color:var(--text)">Probleme du mois - Mai 2025</div><div style="font-size:11px;color:var(--muted)">Problemes abaloniens - il y a 1 semaine</div></div>
+              <div><div style="font-size:13px;color:var(--text)">Probleme du mois - Mai 2025</div><div style="font-size:11px;color:var(--muted)">Problemes abaloniens</div></div>
               <a href="https://onlineabalone.wordpress.com/abalone-academy/problemes-abaloniens/problemes-mensuels/" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold);text-decoration:none">Voir</a>
             </div>
             <div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;display:flex;justify-content:space-between;align-items:center">
-              <div><div style="font-size:13px;color:var(--text)">Variantes pour 5 et 6 joueurs</div><div style="font-size:11px;color:var(--muted)">Variantes - il y a 2 semaines</div></div>
+              <div><div style="font-size:13px;color:var(--text)">Variantes pour 5 et 6 joueurs</div><div style="font-size:11px;color:var(--muted)">Variantes</div></div>
               <a href="https://onlineabalone.wordpress.com/les-variantes/abalone-multi-joueurs/" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold);text-decoration:none">Voir</a>
             </div>
           </div>
@@ -3567,10 +3577,10 @@
         </div>
       </div>
       <div id="gchat-messages" style="height:280px;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px">
-        <div class="gchat-msg"><div style="display:flex;align-items:baseline;gap:8px"><span style="font-weight:700;color:#7eccd8;font-size:13px">Vincent_F</span><span style="font-size:10px;color:var(--muted)">🇫🇷 FR</span><span style="font-size:10px;color:var(--muted)">14:32</span></div><div style="font-size:13px;color:var(--text);margin-top:2px">Quelqu'un pour une partie classée ce soir ?</div></div>
-        <div class="gchat-msg"><div style="display:flex;align-items:baseline;gap:8px"><span style="font-weight:700;color:#e0a85c;font-size:13px">KosmicKnight</span><span style="font-size:10px;color:var(--muted)">🇬🇧 EN</span><span style="font-size:10px;color:var(--muted)">14:33</span></div><div style="font-size:13px;color:var(--text);margin-top:2px">Je suis partant ! <span style="font-size:11px;color:var(--gold);font-style:italic">(traduit de l'anglais : "I'm in!")</span></div></div>
-        <div class="gchat-msg"><div style="display:flex;align-items:baseline;gap:8px"><span style="font-weight:700;color:#b89ef0;font-size:13px">SaaBalone</span><span style="font-size:10px;color:var(--muted)">🇪🇸 ES</span><span style="font-size:10px;color:var(--muted)">14:35</span></div><div style="font-size:13px;color:var(--text);margin-top:2px">Belle partie hier soir, GG ! <span style="font-size:11px;color:var(--gold);font-style:italic">(traduit de l'espagnol)</span></div></div>
-        <div class="gchat-msg"><div style="display:flex;align-items:baseline;gap:8px"><span style="font-weight:700;color:#7eccd8;font-size:13px">AbaloneMaster</span><span style="font-size:10px;color:var(--muted)">🇩🇪 DE</span><span style="font-size:10px;color:var(--muted)">14:38</span></div><div style="font-size:13px;color:var(--text);margin-top:2px">Quelqu'un a vu le dernier tournoi MSO ? <span style="font-size:11px;color:var(--gold);font-style:italic">(traduit de l'allemand)</span></div></div>
+        <div class="gchat-msg"><div style="display:flex;align-items:baseline;gap:8px"><span style="font-weight:700;color:#7eccd8;font-size:13px">Joueur A (exemple)</span><span style="font-size:10px;color:var(--muted)">🇫🇷 FR</span><span style="font-size:10px;color:var(--muted)">14:32</span></div><div style="font-size:13px;color:var(--text);margin-top:2px">Quelqu'un pour une partie classée ce soir ?</div></div>
+        <div class="gchat-msg"><div style="display:flex;align-items:baseline;gap:8px"><span style="font-weight:700;color:#e0a85c;font-size:13px">Joueur B (exemple)</span><span style="font-size:10px;color:var(--muted)">🇬🇧 EN</span><span style="font-size:10px;color:var(--muted)">14:33</span></div><div style="font-size:13px;color:var(--text);margin-top:2px">Je suis partant ! <span style="font-size:11px;color:var(--gold);font-style:italic">(traduit de l'anglais : "I'm in!")</span></div></div>
+        <div class="gchat-msg"><div style="display:flex;align-items:baseline;gap:8px"><span style="font-weight:700;color:#b89ef0;font-size:13px">Joueur C (exemple)</span><span style="font-size:10px;color:var(--muted)">🇪🇸 ES</span><span style="font-size:10px;color:var(--muted)">14:35</span></div><div style="font-size:13px;color:var(--text);margin-top:2px">Belle partie hier soir, GG ! <span style="font-size:11px;color:var(--gold);font-style:italic">(traduit de l'espagnol)</span></div></div>
+        <div class="gchat-msg"><div style="display:flex;align-items:baseline;gap:8px"><span style="font-weight:700;color:#7eccd8;font-size:13px">Joueur D (exemple)</span><span style="font-size:10px;color:var(--muted)">🇩🇪 DE</span><span style="font-size:10px;color:var(--muted)">14:38</span></div><div style="font-size:13px;color:var(--text);margin-top:2px">Quelqu'un a vu le dernier tournoi MSO ? <span style="font-size:11px;color:var(--gold);font-style:italic">(traduit de l'allemand)</span></div></div>
       </div>
       <div style="padding:12px 20px;border-top:1px solid var(--border)">
         <div style="display:flex;gap:8px">
@@ -3715,7 +3725,7 @@
     <div class="page-header" style="padding:40px 60px 0">
       <div class="section-label">Statistiques réelles</div>
       <h2>Ouvertures</h2>
-      <p style="color:var(--muted);font-size:14px;max-width:680px">Ce que 16 819 parties de tournoi ont réellement donné, coup par coup. Aucune évaluation de moteur ici : uniquement des résultats observés.</p>
+      <p style="color:var(--muted);font-size:14px;max-width:680px">Ce que 2 126 parties de tournoi en Marguerite belge ont réellement donné, coup par coup. Aucune évaluation de moteur ici : uniquement des résultats observés. Une position y est reconnue aux seules billes du camp au trait (c'est ainsi que la source, une statistique agrégée, les compte) : plus loin dans l'arbre, des positions où l'adversaire est placé autrement sont regroupées, et leurs totaux peuvent dépasser 2 126.</p>
     </div>
     <div style="padding:24px 60px 60px;max-width:920px">
 
@@ -3746,7 +3756,7 @@
       <button class="tech-toggle-btn btn" style="margin-top:20px;font-size:12px;padding:6px 12px" onclick="toggleTechMode()">🔬 Voir le détail technique</button>
       <div class="tech-detail" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-top:16px">
         <h3 style="margin:0 0 12px;color:var(--white);font-size:17px">Deux répertoires distincts, à ne pas confondre</h3>
-        <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">Cette page (AbaOpening)</strong> : arbre embarqué de 90 positions, 16 819 parties de tournoi réelles en Marguerite belge uniquement — pure statistique d'observation, jamais consulté par le moteur IA.</p>
+        <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">Cette page (AbaOpening)</strong> : arbre embarqué de 90 positions, issu de 2 126 parties de tournoi réelles en Marguerite belge uniquement (16 819 passages au total sur ces 90 positions : une même partie en traverse plusieurs) — pure statistique d'observation, jamais consultée par le moteur IA.</p>
         <p style="margin:0;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">Le book du moteur (OPENING_BOOK)</strong> : ce que l'IA consulte réellement en partie. Miné depuis les vraies parties pour les trois variantes (Standard : 398 parties AbalOnline, Belgian : 2589 parties MIGS, German : 117 parties AbalOnline), remplaçant d'anciens books codés à la main. Un troisième niveau existe en repli, jamais prioritaire sur les deux premiers : les propres parties auto-jouées du Labo d'auto-amélioration, consultées seulement quand ni le book réel ni le book codé en dur n'ont de réponse pour la position.</p>
       </div>
 
@@ -4532,28 +4542,30 @@
       </div>
     </div>
 
-    <!-- Actualités Abalone -->
-    <div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:14px">Actualités Abalone</div>
+    <!-- Actualites : les trois cartes affichaient des titres et des dates inventes (« MSO 2026 —
+         Resultats Ronde 1 : SumitoPro et MarbleKing en tete · Il y a 1 semaine »), attribues au
+         blog Abalone Online. Remplacees par des liens vers les vraies sources, sans contenu fabrique. -->
+    <div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:14px">Où suivre l'actualité</div>
     <div style="display:flex;flex-direction:column;gap:12px">
       <div class="news-card" onclick="window.open('https://onlineabalone.wordpress.com/','_blank','noopener,noreferrer')">
         <div class="news-img">📰</div>
         <div class="news-body">
-          <div class="news-title">Nouvelle variante testée par la communauté : Abalone Pilier multi-joueurs</div>
-          <div class="news-meta">onlineabalone.wordpress.com · Il y a 2 jours</div>
+          <div class="news-title">Le blog Abalone Online : actualités, variantes, problèmes du mois</div>
+          <div class="news-meta">onlineabalone.wordpress.com · lien externe</div>
         </div>
       </div>
       <div class="news-card" onclick="window.open('https://onlineabalone.wordpress.com/abalone-academy/','_blank','noopener,noreferrer')">
         <div class="news-img">🎓</div>
         <div class="news-body">
-          <div class="news-title">Abalone Academy : Nouveau problème du mois — Juin 2026</div>
-          <div class="news-meta">Abalone Academy · Il y a 4 jours</div>
+          <div class="news-title">Abalone Academy : cours et problèmes</div>
+          <div class="news-meta">onlineabalone.wordpress.com · lien externe</div>
         </div>
       </div>
-      <div class="news-card" onclick="window.open('https://onlineabalone.wordpress.com/abalone-en-live/','_blank','noopener,noreferrer')">
-        <div class="news-img">🌍</div>
+      <div class="news-card" onclick="window.open('https://github.com/ocj94/Abalassembly/releases','_blank','noopener,noreferrer')">
+        <div class="news-img">🆕</div>
         <div class="news-body">
-          <div class="news-title">MSO 2026 — Résultats Ronde 1 : SumitoPro et MarbleKing en tête</div>
-          <div class="news-meta">onlineabalone.wordpress.com · Il y a 1 semaine</div>
+          <div class="news-title">Les nouveautés d'Abalassembly : chaque version, datée</div>
+          <div class="news-meta">github.com · journal des versions</div>
         </div>
       </div>
     </div>

@@ -3,18 +3,18 @@
 ═══════════════════════════════════════════ */
 const friendsData = {
   online: [
-    { name:'FightClub', handle:'FightClub', color:'#4a1c5a', elo:1950, status:'En partie vs Gramgroum', online:true },
-    { name:'Vincent F', handle:'Vincent_F', color:'#1c3d5a', elo:2189, status:'En ligne — inactif', online:true },
-    { name:'Chriscool', handle:'Chriscool', color:'#3a2a4a', elo:1680, status:'Dans les menus', online:true },
+    { name:'Sumito (démo)', handle:'demo_sumito', color:'#4a1c5a', elo:1950, status:'En partie vs Hexagone (démo)', online:true },
+    { name:'Daisy (démo)', handle:'demo_daisy', color:'#1c3d5a', elo:2189, status:'En ligne — inactif', online:true },
+    { name:'Pyramide (démo)', handle:'demo_pyramide', color:'#3a2a4a', elo:1680, status:'Dans les menus', online:true },
   ],
   offline: [
-    { name:'Gramgroum', handle:'Gramgroum', color:'#5a3a1c', elo:1780, status:'Vu il y a 2h', online:false },
-    { name:'Claudie', handle:'Claudie_ABA', color:'#1c4a4a', elo:1520, status:'Vu hier', online:false },
-    { name:'Gerard Ngan', handle:'GerardN', color:'#3d4a1c', elo:1340, status:'Vu il y a 3 jours', online:false },
+    { name:'Hexagone (démo)', handle:'demo_hexagone', color:'#5a3a1c', elo:1780, status:'Vu il y a 2h', online:false },
+    { name:'Marguerite (démo)', handle:'demo_marguerite', color:'#1c4a4a', elo:1520, status:'Vu hier', online:false },
+    { name:'Cohésion (démo)', handle:'demo_cohesion', color:'#3d4a1c', elo:1340, status:'Vu il y a 3 jours', online:false },
   ],
   suggestions: [
-    { name:'MarbleKing_FR', handle:'MarbleKing', color:'#3a2a2a', elo:2289, reason:'ELO proche du votre' },
-    { name:'BoulePower', handle:'BoulePower', color:'#2a3a35', elo:1420, reason:'Meme pays (France)' },
+    { name:'Poussée (démo)', handle:'demo_poussee', color:'#3a2a2a', elo:2289, reason:'ELO proche du votre' },
+    { name:'Centre (démo)', handle:'demo_centre', color:'#2a3a35', elo:1420, reason:'Meme pays (France)' },
   ]
 };
 

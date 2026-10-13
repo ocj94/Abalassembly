@@ -92,12 +92,12 @@ What it hides: **chat**, the **AI Lab**, **settings**, and **external links**. I
 - Real-game recorder: photograph the board after each move, moves are reconstructed automatically by the engine, verified, then saved with players, date and variant — and replayable in the library
 
 **Library**
-- 4,480 real games embedded (AbalOnline + MIGS), replayable move by move
+- 4,579 real games embedded (MIGS, AbalOnline, tournaments and reference games), replayable move by move
 - Opening book mined from these games
 - **2,589 of these games republished** in [APGN](APGN.en.md) under [`games/`](games/) — the ones from the MiGs server, which closed on May 30, 2017, and for which no other known public source exists
 
 **Lab**
-- Engine self-improvement: SPRT duels (Fishtest/Stockfish-style methodology) and continuous SPSA tuning across 8 evaluation weights (center, cohesion, edge, mobility, isolation, danger, alignments, fortress), with Elo tracking and CSV/JSON exports
+- Engine self-improvement: duels played in opening pairs (colours swapped), pentanomial SPRT verdicts like Fishtest/Stockfish, consensus adjudication of long games, several games at once; continuous SPSA tuning verified by SPRT before adoption; 16 evaluation weights (center, cohesion, edge, mobility, isolation, danger, alignments, fortress, plus KAAH's 8 criteria); real gain measured against the original weights; CSV/JSON exports
 - **Real impact, not just a dashboard**: when the Lab statistically proves a new weight set beats the current champion, it's adopted automatically and live-rewrites the AI's "balanced" style — the one used by default until a human opponent's play profile (aggressive/passive) is detected. In other words: the AI you're playing against can genuinely improve from one session to the next.
 - Reversible and local: a "Use Lab weights" switch (on by default, can be turned off); everything lives in the browser's `localStorage` — each copy of the game learns for its own player, nothing is shared across devices **as long as the backend stays dormant** (see below: a *distributed* variant of the Lab, where several players feed the same SPRT test, already exists server-side)
 - Replay Lab games on a wooden board with the real marble skins
@@ -116,7 +116,7 @@ What it hides: **chat**, the **AI Lab**, **settings**, and **external links**. I
 |---|---|
 | **A single HTML file** | Trivial distribution: one file is the whole site. Works over `file://`, on GitHub Pages, from a USB stick. |
 | **Zero dependencies** | Nothing to install, nothing to break, nothing third-party to audit. (Only the 3D view loads Three.js, on demand.) |
-| **Compressed data banks** | The 4,480 games, the opening book and the sounds are embedded as deflate + base64, decompressed natively on load (`DecompressionStream`). File size ≈ 7.1 MB (grew with the addition of historical fingerprints, endgame tables and the position graph). On an older browser, the game still works — only the library, book and sounds are missing. |
+| **Compressed data banks** | The 4,579 games, the opening book and the sounds are embedded as deflate + base64, decompressed natively on load (`DecompressionStream`). File size ≈ 7.1 MB (grew with the addition of historical fingerprints, endgame tables and the position graph). On an older browser, the game still works — only the library, book and sounds are missing. |
 | **Offline-first** | No network request required. Progress, settings and solved puzzles live in `localStorage`. |
 | **AI in a Worker** | Search runs on a separate thread; the interface stays smooth while it thinks. |
 | **Adaptive multi-worker search** | On a multi-core device, search is split across several Workers (root moves partitioned, each with its own transposition table — no shared memory, since GitHub Pages doesn't set the headers `SharedArrayBuffer` needs). Adapts via `navigator.hardwareConcurrency`: up to 4 workers on a multi-core PC, a single one (same behavior as before) on a constrained phone. |

@@ -5,7 +5,7 @@ async function loginSuccess() {
 
   // Match preset accounts
   const PRESETS = {
-    'fightclub': { username:'FightClub (Frederic Garnier)', email:'fightclub@abalone.com', role:'writer', color:'#4a1c5a', bio:'Fondateur du blog Abalone Online (2013). Theoricien, encyclopediste, redacteur principal. Contact: +33 6 61 88 69 85', country:'FR', elo:1950, games:312, wins:198, streak:7, joinDate:'Decembre 2013', eloMax:2105 },
+    'fightclub': { username:'FightClub (Frederic Garnier)', email:'', role:'writer', color:'#4a1c5a', bio:'Fondateur du blog Abalone Online (2013). Theoricien, encyclopediste, redacteur principal.', country:'FR', elo:1950, games:312, wins:198, streak:7, joinDate:'Decembre 2013', eloMax:2105 },
     'olivier':   { username:'ocj94', email:'', role:'player', color:'#2d5a3d', bio:'Joueur passionné et promoteur de la communauté abalonienne mondiale.', country:'FR', elo:null, games:0, wins:0, streak:0, joinDate:'', eloMax:null },
   };
 
@@ -648,18 +648,10 @@ function playerRegion(p) {
   return COUNTRY_REGION[flag] || 'other';
 }
 
-// Variation déterministe de l'ELO selon le mode/période (données simulées)
-function lbVariant(p, mode, period) {
-  let elo = p.elo, w = p.w, l = p.l, d = p.d;
-  const seed = (p.name.charCodeAt(0) + p.name.length) % 7;
-  if (mode === 'blitz')   { elo -= 40 + seed*8; }
-  else if (mode === 'ai') { elo += 15 + seed*5; }
-  else if (mode === 'classic') { elo += 5; }
-  if (period === 'month') { w = Math.round(w*0.18)+seed; l = Math.round(l*0.18); d = Math.round(d*0.15); }
-  else if (period === 'week') { w = Math.round(w*0.05)+1; l = Math.round(l*0.05); d = Math.round(d*0.04); }
-  const games = w + l + d;
-  return Object.assign({}, p, { elo, w, l, d, games: games || p.games });
-}
+/* Les filtres Blitz / vs IA / ce mois / cette semaine FABRIQUAIENT des chiffres a partir des
+   donnees de base (« variation deterministe… donnees simulees ») : un ELO blitz inventé, des
+   victoires du mois inventees. Supprime : un filtre ne montrera que ce que les donnees contiennent. */
+function lbVariant(p) { return Object.assign({}, p); }
 
 function getFilteredLeaderboard() {
   let rows = lbData.slice();
@@ -696,6 +688,11 @@ function setLbPeriod(period, btn) {
 
 function renderLeaderboard() {
   const tbody = document.getElementById('lb-body');
+  // aucune donnee reelle : l'etat vide honnete, pas un tableau vide avec des filtres inutiles
+  const vide = document.getElementById('lb-vide'), donnees = document.getElementById('lb-donnees');
+  if (vide) vide.style.display = lbData.length ? 'none' : 'block';
+  if (donnees) donnees.style.display = lbData.length ? '' : 'none';
+  if (!lbData.length) return;
   const rows = getFilteredLeaderboard();
   if (!rows.length) {
     tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--muted)">Aucun joueur pour ce filtre.</td></tr>';
