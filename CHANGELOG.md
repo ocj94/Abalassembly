@@ -9,6 +9,39 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.55]
+
+### Corrigé — rien d'inventé sur le site
+- **Accueil** : les chiffres « 48K joueurs actifs · 2.3M parties · 79K sur BGA ·
+  127 pays », non datés, sans source précise et lisibles comme ceux du site,
+  sont remplacés par des chiffres vérifiables : 4 579 vraies parties, 138
+  puzzles tirés de vraies parties, 100 % hors ligne, 0 compte, pub ou mesure
+  d'audience. Un test les compare au corpus et à la liste des puzzles.
+- **Ouvertures** : la page annonçait « 16 819 parties de tournoi ». C'est un
+  cumul sur les 90 positions de l'arbre (une partie en traverse plusieurs) :
+  l'arbre vient de **2 126 parties** de Marguerite belge. La page le dit, et
+  explique que les positions y sont regroupées par les billes du camp au trait.
+- **Démonstrations Amis, Comparer et chat général** : elles utilisaient de
+  vrais pseudos de la communauté (dont celui d'un joueur du corpus) avec un
+  ELO, des parties et des « vu il y a 2 h » inventés, ou leur prêtaient des
+  messages. Noms désormais clairement fictifs, « (démo) » / « (exemple) ».
+- **Numéro de téléphone retiré** : le code contenait le numéro personnel d'un
+  membre de la communauté dans la fiche d'un compte prédéfini, avec une
+  adresse e-mail inventée. Les deux sont retirés.
+- **Chat de partie** : il s'ouvrait sur une conversation écrite d'avance, dont
+  un « Vous : Merci, à toi aussi ! » jamais tapé. Il s'ouvre sur l'aide /bot.
+- **Actualités** : trois titres et dates inventés (« MSO 2026 — Résultats
+  Ronde 1 : SumitoPro et MarbleKing en tête · il y a 1 semaine ») attribués au
+  blog Abalone Online, remplacés par des liens vers les vraies sources et vers
+  le journal des versions. Les dates figées « il y a 3 jours » de l'espace
+  rédacteur sont retirées.
+- **Classement** : plus de tableau vide avec des filtres Blitz / régions /
+  semaine — qui, avec des données, auraient fabriqué un ELO blitz et des
+  victoires du mois. La page dit honnêtement qu'il n'y a pas encore de
+  classement entre joueurs, et propose le jeu en direct, le tournoi, les stats.
+- README : 4 579 parties, et la description du Labo v4.
+- 5 tests.
+
 ## [v2.54]
 
 ### Modifié

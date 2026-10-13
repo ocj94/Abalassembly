@@ -2574,3 +2574,62 @@ test('labo SPSA : une partie abandonnee (trop longue) est rejouee, l iteration s
   const ligne = JSON.parse(ctx.localStorage.getItem('abaLabDataLog'))[0];
   assert.ok(ligne.wA.center > 0 && !('piege' in ligne.wB && ligne.wB.piege === 0));
 }));
+
+/* ─── 50. Honnetete : rien d'invente sur le site ─── */
+const _SRC = () => require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
+test('honnetete : les chiffres de l accueil sont ceux du code (parties, puzzles), plus les chiffres BGA non dates', async () => {
+  const src = _SRC();
+  const nb = id => { const m = src.match(new RegExp('id="' + id + '">([^<]+)<')); return m ? parseInt(m[1].replace(/\s/g, ''), 10) : null; };
+  assert.strictEqual(nb('hero-nb-puzzles'), ctx.PUZZLES.length, 'puzzles annonces = puzzles du jeu');
+  assert.ok(ctx.PUZZLES.every(p => / vs /.test(p.src || '')), 'chaque puzzle vient d une vraie partie');
+  assert.ok(await ctx.ensureGameBanks());
+  const s = await ctx.computeCorpusStats(() => {});
+  assert.strictEqual(nb('hero-nb-parties'), s.totalGames, 'parties annoncees = corpus reel');
+  ['>48K<', '>2.3M<', '>127<', 'chiffres communauté (source : BGA)'].forEach(x => assert.strictEqual(src.indexOf(x), -1, 'encore present : ' + x));
+});
+
+test('honnetete : la page Ouvertures annonce le vrai nombre de parties (2 126 a la racine, pas 16 819)', () => {
+  const LAY = { black: [[8,0],[8,1],[7,0],[7,1],[7,2],[6,1],[6,2],[0,3],[0,4],[1,3],[1,4],[1,5],[2,4],[2,5]],
+                white: [[8,3],[8,4],[7,3],[7,4],[7,5],[6,4],[6,5],[0,0],[0,1],[1,0],[1,1],[1,2],[2,1],[2,2]] };
+  const b = {}; LAY.black.forEach(p => b[p[0] + ',' + p[1]] = 'black'); LAY.white.forEach(p => b[p[0] + ',' + p[1]] = 'white');
+  const r = ctx.AbaOpening.probe(b, 'black');
+  const racine = r.moves.reduce((s, m) => s + m.games, 0);
+  assert.strictEqual(racine, 2126);
+  const src = _SRC();
+  assert.ok(src.indexOf('Ce que 2 126 parties de tournoi') > 0);
+  assert.strictEqual(src.indexOf('16 819 parties de tournoi'), -1);
+  assert.strictEqual(src.indexOf('dans les 16819 parties'), -1);
+});
+
+test('honnetete : aucun numero de telephone ; demonstrations sous des noms clairement fictifs (plus de vrais joueurs)', () => {
+  const src = _SRC();
+  assert.doesNotMatch(src, /\+33\s?[1-9](\s?\d{2}){4}/, 'numero de telephone');
+  assert.doesNotMatch(src, /\b0[67](\s?\d{2}){4}\b/, 'numero de portable');
+  const reels = ['Gramgroum', 'Vincent_F', 'Vincent F', 'SaaBalone', 'Chriscool', 'Claudie_ABA', 'GerardN', 'Gerard Ngan', 'MarbleKing_FR', 'BoulePower', 'KosmicKnight', 'AbaloneMaster'];
+  const amis = JSON.stringify(ctx.friendsData), profils = JSON.stringify(Object.keys(ctx.compareProfiles));
+  reels.forEach(n => { assert.strictEqual(amis.indexOf(n), -1, 'page Amis : ' + n); assert.strictEqual(profils.indexOf(n), -1, 'page Comparer : ' + n); });
+  ['online', 'offline', 'suggestions'].forEach(k => ctx.friendsData[k].forEach(f => assert.match(f.name, /\(démo\)$/)));
+  const chatGeneral = src.slice(src.indexOf('id="gchat-messages"'), src.indexOf('id="gchat-input"'));
+  reels.forEach(n => assert.strictEqual(chatGeneral.indexOf('>' + n + '<'), -1, 'chat general : ' + n));
+  assert.ok(src.indexOf('FightClub, handle') < 0 && src.indexOf("status:'En partie vs Gramgroum'") < 0);
+});
+
+test('honnetete : le chat ne fait plus parler le joueur ; plus d actualites ni de dates inventees', () => {
+  const src = _SRC();
+  const chat = src.slice(src.indexOf('id="chat-messages"'), src.indexOf('id="chat-quick"'));
+  assert.strictEqual(chat.indexOf('chat-msg me'), -1, 'aucun message « Vous » ecrit d avance');
+  assert.strictEqual(chat.indexOf('Merci, à toi aussi'), -1);
+  assert.strictEqual(src.indexOf('MSO 2026 — Résultats Ronde 1'), -1);
+  assert.doesNotMatch(src.replace(/<!--[\s\S]*?-->/g, ''), /[Ii]l y a (\d+ (jours?|semaines?)|1 semaine)</, 'date relative figee dans le HTML');
+});
+
+test('honnetete : classement sans donnees -> etat vide honnete, et plus aucun chiffre simule par filtre', () => {
+  const els = {}, sG = ctx.document.getElementById;
+  ctx.document.getElementById = id => (els[id] = els[id] || { style: {}, innerHTML: '' });
+  try {
+    ctx.renderLeaderboard();
+    assert.strictEqual(els['lb-vide'].style.display, 'block'); assert.strictEqual(els['lb-donnees'].style.display, 'none');
+    const p = { name: 'X', elo: 1500, w: 10, l: 5, d: 1, games: 16 };
+    assert.strictEqual(JSON.stringify(ctx.lbVariant(p, 'blitz', 'week')), JSON.stringify(p), 'un filtre ne fabrique plus de chiffres');
+  } finally { ctx.document.getElementById = sG; }
+});

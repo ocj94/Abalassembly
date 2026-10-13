@@ -92,12 +92,12 @@ Ce qu'il masque : le **chat**, le **Labo IA**, les **paramètres** et les **lien
 - Enregistreur de parties réelles : photographiez le plateau après chaque coup, les coups sont reconstitués automatiquement par le moteur, vérifiés, puis sauvegardés avec joueurs, date et variante — et rejouables dans la bibliothèque
 
 **Bibliothèque**
-- 4 480 parties réelles embarquées (AbalOnline + MIGS), rejouables coup par coup
+- 4 579 parties réelles embarquées (MIGS, AbalOnline, tournois et parties de référence), rejouables coup par coup
 - Book d'ouvertures miné depuis ces parties
 - **2 589 de ces parties republiées** en [APGN](APGN.fr.md) dans [`games/`](games/) — celles du serveur MiGs, fermé le 30 mai 2017, dont il n'existe aucune autre source publique connue
 
 **Labo**
-- Auto-amélioration du moteur : duels SPRT (méthodologie façon Fishtest/Stockfish) et réglage continu SPSA sur 8 poids d'évaluation (centre, cohésion, bord, mobilité, isolement, danger, alignements, forteresse), suivi Elo, exports CSV/JSON
+- Auto-amélioration du moteur : duels joués par paires d'ouvertures (couleurs inversées), verdict SPRT « pentanomial » comme Fishtest/Stockfish, arbitrage des parties longues par consensus, plusieurs parties à la fois ; réglage continu SPSA vérifié par SPRT avant adoption ; 16 poids d'évaluation (centre, cohésion, bord, mobilité, isolement, danger, alignements, forteresse, et les 8 critères de KAAH) ; gain réel mesuré contre les poids d'origine ; exports CSV/JSON
 - **Impact réel, pas un simple tableau de bord** : quand le Labo prouve statistiquement qu'un nouveau jeu de poids bat le champion actuel, il est adopté automatiquement et réécrit en direct le style « équilibré » de l'IA — celui utilisé par défaut tant qu'aucun profil de jeu (agressif/passif) n'est détecté chez l'adversaire humain. Autrement dit : l'IA que vous affrontez peut réellement progresser d'une session à l'autre.
 - Réversible et local : interrupteur « Utiliser les poids du Labo » (actif par défaut, désactivable) ; tout vit dans le `localStorage` du navigateur — chaque exemplaire du jeu apprend pour son propre joueur, rien n'est partagé entre appareils **tant que le backend reste dormant** (voir plus bas : une variante *distribuée* du Labo, où plusieurs joueurs alimentent le même test SPRT, existe déjà côté serveur)
 - Replay des parties du Labo sur plateau bois avec les vrais skins de billes
@@ -116,7 +116,7 @@ Ce qu'il masque : le **chat**, le **Labo IA**, les **paramètres** et les **lien
 |---|---|
 | **Un seul fichier HTML** | Distribution triviale : un fichier = tout le site. Fonctionne en `file://`, sur GitHub Pages, sur clé USB. |
 | **Zéro dépendance** | Rien à installer, rien qui casse, rien à auditer chez un tiers. (Seule la vue 3D charge Three.js, à la demande.) |
-| **Banques compressées** | Les 4 480 parties, le book et les sons sont embarqués en deflate + base64, décompressés nativement au chargement (`DecompressionStream`). Fichier ≈ 7,1 Mo (a grossi avec l'ajout des empreintes historiques, tablebases et graphe de positions). Sur un navigateur ancien, le jeu fonctionne — seules bibliothèque, book et sons sont absents. |
+| **Banques compressées** | Les 4 579 parties, le book et les sons sont embarqués en deflate + base64, décompressés nativement au chargement (`DecompressionStream`). Fichier ≈ 7,1 Mo (a grossi avec l'ajout des empreintes historiques, tablebases et graphe de positions). Sur un navigateur ancien, le jeu fonctionne — seules bibliothèque, book et sons sont absents. |
 | **Hors-ligne d'abord** | Aucune requête réseau nécessaire. Progression, réglages et puzzles résolus vivent dans le `localStorage`. |
 | **IA dans un Worker** | La recherche tourne dans un thread séparé ; l'interface reste fluide pendant la réflexion. |
 | **Recherche multi-worker adaptative** | Sur un appareil à plusieurs cœurs, la recherche se partage entre plusieurs Workers (partage des coups racine, chacun sa propre table de transposition — pas de mémoire partagée, GitHub Pages ne pose pas les en-têtes nécessaires à `SharedArrayBuffer`). S'adapte via `navigator.hardwareConcurrency` : jusqu'à 4 workers sur un PC multi-cœurs, 1 seul (comportement identique à avant) sur un téléphone contraint. |

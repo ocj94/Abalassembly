@@ -90,15 +90,15 @@ function setStatsPeriod(days, btn) {
    il portait auparavant un ELO de 1766 et 247 parties, presentes comme des
    faits. */
 const compareProfiles = {
-  'SumitoPro':    { color:'#2a3a32', elo:2341, games:502, wins:412, streak:31, puzzles:1200 },
-  'MarbleKing_FR':{ color:'#3a2a2a', elo:2289, games:478, wins:389, streak:18, puzzles:980 },
-  'FightClub':    { color:'#4a1c5a', elo:1950, games:312, wins:198, streak:7,  puzzles:450 },
-  'Gramgroum':    { color:'#5a3a1c', elo:1780, games:245, wins:155, streak:5,  puzzles:320 },
+  'Bord (démo)':    { color:'#2a3a32', elo:2341, games:502, wins:412, streak:31, puzzles:1200 },
+  'Poussée (démo)':{ color:'#3a2a2a', elo:2289, games:478, wins:389, streak:18, puzzles:980 },
+  'Sumito (démo)':    { color:'#4a1c5a', elo:1950, games:312, wins:198, streak:7,  puzzles:450 },
+  'Hexagone (démo)':    { color:'#5a3a1c', elo:1780, games:245, wins:155, streak:5,  puzzles:320 },
   /* Compte de demonstration : les compteurs sont a zero tant qu'aucune partie
      n'est conservee. Les valeurs precedentes — 1766 d'ELO, 247 parties, 133
      victoires — etaient inventees et affichees comme des faits. */
   'Olivier_CJ':   { color:'#2d5a3d', elo:null, games:0, wins:0, streak:0, puzzles:0 },
-  'Vincent_F':    { color:'#1c3d5a', elo:2189, games:430, wins:340, streak:12, puzzles:750 },
+  'Daisy (démo)':    { color:'#1c3d5a', elo:2189, games:430, wins:340, streak:12, puzzles:750 },
 };
 
 function searchComparePlayer() {

@@ -9,6 +9,27 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.55]
+
+### Fixed — nothing made up on the site
+- **Home**: undated, unsourced "48K active players · 2.3M games · 79K on BGA ·
+  127 countries" replaced by verifiable figures (4,579 real games, 138
+  puzzles from real games, 100 % offline, 0 account/ads/analytics), checked by
+  a test against the corpus and the puzzle list.
+- **Openings**: the page claimed "16,819 tournament games" — a cumulative count
+  over the tree's 90 positions; the tree comes from **2,126 games**.
+- **Friends, Compare and general-chat demos** used real community handles with
+  invented ratings, games and activity, or put words in their mouths: now
+  clearly fictional "(demo)" / "(example)" names.
+- **Phone number removed**: a community member's personal number (and an
+  invented e-mail) sat in a preset account's profile.
+- **Game chat** opened with a pre-written "You: Thanks, you too!" never typed.
+- **News**: three invented headlines and dates attributed to the Abalone Online
+  blog replaced by links to the real sources and the release log.
+- **Leaderboard**: no more empty table with filters that would have fabricated
+  blitz ratings and monthly wins; an honest empty state instead.
+- README: 4,579 games and the Lab v4 description. 5 tests.
+
 ## [v2.54]
 
 ### Changed

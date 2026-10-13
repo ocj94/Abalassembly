@@ -179,6 +179,9 @@ const PASSERELLE = `
   if (typeof _labEnVol !== 'undefined') relier('_labEnVol', function(){return _labEnVol;}, function(v){_labEnVol=v;});
   if (typeof _spsaVol !== 'undefined') relier('_spsaVol', function(){return _spsaVol;}, function(v){_spsaVol=v;});
   if (typeof _labPingOk !== 'undefined') relier('_labPingOk', function(){return _labPingOk;}, function(v){_labPingOk=v;});
+  if (typeof PUZZLES !== 'undefined') relier('PUZZLES', function(){return PUZZLES;});
+  if (typeof friendsData !== 'undefined') relier('friendsData', function(){return friendsData;});
+  if (typeof compareProfiles !== 'undefined') relier('compareProfiles', function(){return compareProfiles;});
   if (typeof _testKaahEnVol !== 'undefined') relier('_testKaahEnVol', function(){return _testKaahEnVol;}, function(v){_testKaahEnVol=v;});
   if (typeof _testKaahPlanifier !== 'undefined') relier('_testKaahPlanifier', function(){return _testKaahPlanifier;}, function(v){_testKaahPlanifier=v;});
   if (typeof _testKaahEnCours !== 'undefined') relier('_testKaahEnCours', function(){return _testKaahEnCours;}, function(v){_testKaahEnCours=v;});
