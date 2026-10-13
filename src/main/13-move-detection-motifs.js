@@ -840,42 +840,57 @@ function _duelSetup(){board={};capturedByBlack=0;capturedByWhite=0;
  var parts='0a1a2a3a4a5b1b2b3b4b5b6c3c4c5,0g5g6g7h4h5h6h7h8h9i5i6i7i8i9'.split(',');
  for(var i=0;i<2;i++){var cells=parts[i].slice(1).match(/[a-i][1-9]/g)||[];for(var j=0;j<cells.length;j++){var x=_dA2rc(cells[j]);board[x.r+','+x.c]=(i?'white':'black');}}}
 function _snapCompact(){ var b={}; for(var k in board){ b[k]=(board[k]==='black'?'b':'w'); } return {b:b,cb:capturedByBlack,cw:capturedByWhite}; }
-function replayFromMoves(colorA, seed, moves){
+/* Rejeu d'une partie du Labo. Les coups enregistres CONTIENNENT l'ouverture tiree au
+   sort (ajoutee pour le book du Labo) : on rejoue donc tout depuis la position de
+   depart. Avant, le rejeu tirait l'ouverture une 2e fois PUIS rejouait les coups
+   enregistres, ouverture comprise : position fausse des le 7e coup, coups illegaux
+   sautes en silence, captures differentes de la vraie partie (trouve en comparant la
+   position finale du rejeu a celle de la partie). Les entrees plus anciennes, sans
+   l'ouverture, se rejouent encore comme avant (repli si un coup est illegal). */
+function _rejouerCoups(moves, seed, avecTirage){
   var col='black', i, m, frames=[];
   _duelSetup();
-  var rnd=_mb32(seed||1);
-  for(i=0;i<6;i++){ var ms=getAllMovesForColor(col).filter(function(x){return !x.eject;}); if(!ms.length)break;
-    m=ms[Math.floor(rnd()*ms.length)]; applyMove(m,col); col=(col==='black'?'white':'black'); }
+  if(avecTirage){ var rnd=_mb32(seed||1);
+    for(i=0;i<6;i++){ var ms=getAllMovesForColor(col).filter(function(x){return !x.eject;}); if(!ms.length)break;
+      m=ms[Math.floor(rnd()*ms.length)]; applyMove(m,col); col=(col==='black'?'white':'black'); } }
   frames.push(_snapCompact());
   for(i=0;i<moves.length;i++){
     var mv=moves[i];
     var info=validateMove(mv.cells, mv.dir, mv.col);   // reconstruit le coup complet (avec .info push/ejection)
-    if(info && info.valid){ applyMove({cells:mv.cells, dir:mv.dir, info:info, type:info.type, eject:info.ejection}, mv.col); }
+    if(!info || !info.valid) return null;
+    applyMove({cells:mv.cells, dir:mv.dir, info:info, type:info.type, eject:info.ejection}, mv.col);
     frames.push(_snapCompact());
   }
+  return frames;
+}
+function replayFromMoves(colorA, seed, moves){
+  var frames=_rejouerCoups(moves, seed, false) || _rejouerCoups(moves, seed, true);
+  if(!frames) throw new Error('partie impossible a rejouer');
   return {frames:frames};
 }
 var _recMoves=null;
-function playDuelGame(wA,wB,colorA,seed,msPerMove,maxPlies,drawWin){
-  msPerMove=msPerMove||400; maxPlies=maxPlies||60; drawWin=(typeof drawWin==='number')?drawWin:400;
-  var hist=[], col='black', plies=0, i, m, t, balanced=false;
+function playDuelGame(wA,wB,colorA,seed,msPerMove,maxPlies,drawWin,ouverture,equilibre){
+  msPerMove=msPerMove||400; maxPlies=(typeof maxPlies==='number' && maxPlies>=0)?maxPlies:60; drawWin=(typeof drawWin==='number')?drawWin:400;
+  // reglages du Labo « Ouverture : demi-coups » et « fenetre d'equilibre » : affiches depuis
+  // longtemps, mais jamais transmis au moteur (6 et 600 etaient ecrits en dur) -- branches
+  var nOuv=(typeof ouverture==='number' && ouverture>=0) ? Math.min(20, ouverture|0) : 6;
+  var fen=(typeof equilibre==='number' && equilibre>0) ? equilibre : 600;
+  var hist=[], col='black', plies=0, i, m, t, balanced=false, openingMoves=[];
   // Ouverture equilibree : re-tire la graine tant que la position de depart est deja gagnee/perdue
   for(t=0;t<10;t++){
     _duelSetup(); hist=[]; col='black'; plies=0;
     var rnd=_mb32((seed||1)+t*1000003);
-    var openingMoves=[];   // coups d'ouverture ALEATOIRES de CETTE tentative — commis a _recMoves
-                            // seulement si elle reussit (balanced=true), sinon jetes avec le reste
-    for(i=0;i<6;i++){ var ms=getAllMovesForColor(col).filter(function(x){return !x.eject;}); if(!ms.length)break;
+    openingMoves=[];       // coups d'ouverture ALEATOIRES de CETTE tentative (la derniere est gardee)
+    for(i=0;i<nOuv;i++){ var ms=getAllMovesForColor(col).filter(function(x){return !x.eject;}); if(!ms.length)break;
       m=ms[Math.floor(rnd()*ms.length)];
       openingMoves.push({cells:m.cells.map(function(x){return{r:x.r,c:x.c};}),dir:{q:m.dir.q,r:m.dir.r},col:col});
       applyMove(m,col); hist.push(_repKeyOf(board)); col=(col==='black'?'white':'black'); plies++; }
-    EVAL_W=wB; var e0=evaluateBoard('black');
-    if(e0>-600 && e0<600){
-      balanced=true;
-      if(_recMoves){ for(var oi=0;oi<openingMoves.length;oi++) _recMoves.push(openingMoves[oi]); }
-      break;
-    }
+    EVAL_W=wA; var e0a=evaluateBoard('black'); EVAL_W=wB; var e0=evaluateBoard('black');
+    if(e0>-fen && e0<fen && e0a>-fen && e0a<fen){ balanced=true; break; }
   }
+  // l'ouverture jouee est enregistree meme si aucune des 10 tentatives n'etait equilibree :
+  // avant, la partie partait alors d'une ouverture absente de l'enregistrement (rejeu faux)
+  if(_recMoves){ for(var oi=0;oi<openingMoves.length;oi++) _recMoves.push(openingMoves[oi]); }
   for(i=0;i<maxPlies;i++){
     EVAL_W = (col===colorA)? wA : wB;
     m=searchBestMove(col,2,msPerMove||400,hist.slice(-60));
@@ -890,8 +905,13 @@ function playDuelGame(wA,wB,colorA,seed,msPerMove,maxPlies,drawWin){
   }
   var d2=capturedByBlack-capturedByWhite;
   if(d2!==0){ var w2=(d2>0?'black':'white'); return {winner:(w2===colorA?'A':'B'),plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjCap'}; }
-  EVAL_W=wA; var ev=evaluateBoard(colorA);
-  if(ev>drawWin) return {winner:'A',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjEval'};
-  if(ev<-drawWin) return {winner:'B',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjEval'};
+  /* Arbitrage par CONSENSUS (comme les bancs d'essai des moteurs d'echecs) : chaque camp
+     evalue la position avec SES poids, du point de vue de A ; la victoire n'est donnee que
+     s'ils sont d'accord. Avant, seule l'evaluation de A tranchait : dans le Labo, A est le
+     mutant -- il arbitrait ses propres parties, et des poids qui gonflent sa propre
+     evaluation lui donnaient des victoires. */
+  EVAL_W=wA; var evA=evaluateBoard(colorA); EVAL_W=wB; var evB=evaluateBoard(colorA);
+  if(evA>drawWin && evB>drawWin) return {winner:'A',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjEval'};
+  if(evA<-drawWin && evB<-drawWin) return {winner:'B',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjEval'};
   return {winner:'D',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'draw'};
 }

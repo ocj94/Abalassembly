@@ -2123,33 +2123,24 @@ test('panneau de la partie : le tableau du dernier coup de l IA, ouvert ou ferme
   } finally { ctx.document.getElementById = sG; ctx.localStorage.setItem('abaReflexionPanneau', '0'); }
 });
 
-test('test au Labo : couleurs et roles alternes sur la meme ouverture, resultats attribues au bon camp, verdict SPRT', () => {
-  const envois = []; let fil = null;
-  const sW = ctx.Worker, sU = ctx.URL, sB = ctx.Blob;
-  ctx.Worker = function(){ fil = this; this.postMessage = m => envois.push(m); this.terminate = () => {}; };
-  ctx.URL = { createObjectURL: () => 'blob:x' }; ctx.Blob = function(){};
-  ctx.localStorage.removeItem('abaTestKaah'); ctx._labRunning = false;
-  const sR = ctx.renderTestKaah; ctx.renderTestKaah = () => {};
-  const sT = ctx._testKaahPlanifier; const attente = []; ctx._testKaahPlanifier = (f, ms) => { if (ms < 1000) attente.push(f); return 0; };
-  try {
-    ctx.lancerTestKaah();
-    // la version avec KAAH gagne toutes ses parties
-    for (let i = 0; i < 4; i++) {
-      const m = envois[i], kaahEstA = m.wA.sumito === 20;
-      fil.onmessage({ data: { duelGame: true, result: { winner: kaahEstA ? 'A' : 'B', plies: 50 } } });
-      attente.shift()();
-    }
-    assert.deepStrictEqual(envois.slice(0, 4).map(m => [m.wA.sumito === 20, m.colorA]), [[true, 'black'], [true, 'white'], [false, 'black'], [false, 'white']], 'roles et couleurs alternes');
-    assert.strictEqual(new Set(envois.slice(0, 4).map(m => m.seed)).size, 1, 'meme ouverture pour le cycle');
-    assert.ok(envois[0].wB.sumito === undefined, 'l IA actuelle seule n a aucun critere de KAAH');
-    let s = JSON.parse(ctx.localStorage.getItem('abaTestKaah'));
-    assert.deepStrictEqual([s.W, s.D, s.L, s.n], [4, 0, 0, 4], 'victoires attribuees a la version avec KAAH, quel que soit son role');
-    // jusqu'au verdict
-    while (!s.fini && envois.length < 200) { const m = envois[envois.length - 1]; fil.onmessage({ data: { duelGame: true, result: { winner: m.wA.sumito === 20 ? 'A' : 'B' } } }); if (attente.length) attente.shift()(); s = JSON.parse(ctx.localStorage.getItem('abaTestKaah')); }
-    assert.strictEqual(s.fini, 'plus fort');
-    assert.ok(s.n >= 16 && s.n % 4 === 0, 'verdict apres 16 parties au moins, en fin de cycle (' + s.n + ')');
-  } finally { ctx._testKaahEnCours = false; ctx.Worker = sW; ctx.URL = sU; ctx.Blob = sB; ctx.renderTestKaah = sR; ctx._testKaahPlanifier = sT; ctx.localStorage.removeItem('abaTestKaah'); }
-});
+test('test au Labo : paires sur la meme ouverture (KAAH joue Noirs puis Blancs), plusieurs a la fois, resultats au bon camp, verdict par paires', () => _laboBac(({ fils, envois, vider, repondre }) => {
+  ctx.LAB_CFG.threads = 2;
+  ctx.lancerTestKaah();
+  assert.strictEqual(fils.length, 2, 'deux fils de calcul');
+  assert.strictEqual(envois.length, 2, 'deux parties lancees en meme temps');
+  const [m0, m1] = envois.map(e => e.m);
+  assert.strictEqual(m0.seed, m1.seed, 'meme ouverture pour la paire');
+  assert.deepStrictEqual([m0.colorA, m1.colorA], ['black', 'white'], 'la version avec KAAH joue Noirs puis Blancs');
+  assert.ok(m0.wA.sumito === 20 && m1.wA.sumito === 20, 'la version avec KAAH est toujours A');
+  assert.strictEqual(m0.wB.sumito, 0, 'l IA actuelle seule : critere de KAAH a 0');
+  // la version avec KAAH gagne tout : verdict apres 8 paires au moins
+  let s, garde = 0;
+  do { repondre(envois.find(e => !e.fini), 'A'); vider(); s = JSON.parse(ctx.localStorage.getItem('abaTestKaah')); } while (!s.fini && ++garde < 400);
+  assert.strictEqual(s.fini, 'plus fort');
+  assert.ok(ctx._labPentaN(s.penta) >= 8, 'verdict apres 8 paires au moins (' + ctx._labPentaN(s.penta) + ')');
+  assert.strictEqual(s.W, s.n, 'victoires attribuees a la version avec KAAH');
+  assert.strictEqual(ctx._testKaahEnCours, false); assert.strictEqual(ctx._labFils.length, 0, 'fils arretes a la fin');
+}));
 
 /* ─── 45. Cinquieme partie KAAH (08/10/2026) ─── */
 test('KAAH 08/10/2026 : se rejoue en entier (172 demi-coups), Blancs 6 a 2, codes apres le 1er coup et en fin = ceux de KAAH', () => {
@@ -2327,4 +2318,259 @@ test('duel cerveau : barre face a face aux couleurs du theme de chacun, billes d
   assert.ok(P().pct >= 16 && P().pct <= 84);
   ctx._duel = null; ctx._rtcHandleMessage('DUEL:defi:' + JSON.stringify({ graine: 5, ex: ['acuity', 'reflex', 'mat'], coul: 'red;background:url(x)' }));
   assert.strictEqual(ctx._duel.coulAdv, '#8a8a90', 'couleur non conforme remplacee');
+}));
+
+/* ─── 49. Labo v4 : paires, verdict fiable, fils paralleles, criteres de KAAH ─── */
+// Bac a sable du Labo : faux fils de calcul (chaque partie attend qu'on lui reponde),
+// minuteurs courts executes a la demande, minuteurs longs (chien de garde) gardes a part.
+function _laboBac(fn){
+  const els = {}, sG = ctx.document.getElementById, sTo = ctx.showToast, sCf = ctx.confirm;
+  ctx.document.getElementById = id => (els[id] = els[id] || sG.call(ctx.document, id) || { textContent: '', innerHTML: '', style: {} });
+  ctx.showToast = () => {}; ctx.confirm = () => true;
+  const sCreer = ctx._labCreerFil, sPlan = ctx._labPlanifier, sTk = ctx._testKaahPlanifier, sCfg = Object.assign({}, ctx.LAB_CFG), sBal = Object.assign({}, ctx.AI_WEIGHT_PRESETS.balanced);
+  const fils = [], envois = [], file = [], longs = [];
+  ctx._labCreerFil = () => { const w = { postMessage: m => { if (!m.ping) envois.push({ w, m, fini: false }); }, terminate: () => { w.mort = true; } }; fils.push(w); return { w }; };
+  ctx._labPlanifier = (f, ms) => { (ms < 1000 ? file : longs).push(f); return 0; };
+  ctx._testKaahPlanifier = (f, ms) => { if (ms < 1000) file.push(f); return 0; };
+  ['abaLabState', 'abaLabChampion', 'abaLabCfg', 'abaLabAutoRun', 'abaLabUse', 'abaTestKaah', 'abaLabDataLog', 'abaLabBookLearned'].forEach(k => ctx.localStorage.removeItem(k));
+  ctx.LAB_CFG = Object.assign({}, ctx.LAB_CFG_DEFAULT);
+  ctx._labRunning = false; ctx._labPingOk = false; ctx._labFils = []; ctx._labEnVol = {}; ctx._spsaVol = []; ctx._testKaahEnCours = false; ctx._testKaahEnVol = {};
+  const vider = () => { let n = 0; while (file.length && n++ < 10000) file.shift()(); };
+  // repond a une partie en attente : r = 'A' (A gagne), 'B' ou 'D', ou un objet resultat complet
+  const repondre = (e, r) => { e.fini = true; e.w.onmessage({ data: { duelGame: true, result: typeof r === 'string' ? { winner: r, why: r === 'D' ? 'draw' : '6capt', plies: 40 } : r, moves: [] } }); };
+  const attente = () => envois.filter(e => !e.fini && !e.w.mort);
+  const demarrer = () => { ctx.startLab(); longs.length = 0; fils[0].onmessage({ data: { pong: 1 } }); vider(); };   // (le minuteur de 4 s du test des fils est ecarte)
+  try { return fn({ els, fils, envois, file, longs, vider, repondre, attente, demarrer }); }
+  finally {
+    try { ctx._testKaahEnCours = false; ctx._labRunning = false; ctx._labFils = []; ctx._labEnVol = {}; ctx._spsaVol = []; } catch (e) {}
+    ctx.document.getElementById = sG; ctx.showToast = sTo; ctx.confirm = sCf;
+    ctx._labCreerFil = sCreer; ctx._labPlanifier = sPlan; ctx._testKaahPlanifier = sTk; ctx.LAB_CFG = sCfg;
+    Object.keys(ctx.AI_WEIGHT_PRESETS.balanced).forEach(k => { delete ctx.AI_WEIGHT_PRESETS.balanced[k]; }); Object.assign(ctx.AI_WEIGHT_PRESETS.balanced, sBal);
+    ['abaLabState', 'abaLabChampion', 'abaLabCfg', 'abaLabAutoRun', 'abaLabUse', 'abaTestKaah', 'abaLabDataLog', 'abaLabBookLearned'].forEach(k => ctx.localStorage.removeItem(k));
+  }
+}
+
+test('labo : verdict par paires -- pas de conclusion sur une courte serie chanceuse, marge jamais nulle', () => {
+  const B = ctx._labBounds();
+  assert.ok(ctx._labLLRp([0, 0, 0, 0, 8], 0, 35) < B.up, '8 paires gagnees 2-0 (16 victoires) ne suffisent pas');
+  assert.ok(ctx._labLLRp([0, 0, 0, 0, 11], 0, 35) >= B.up, '11 paires gagnees 2-0 suffisent');
+  assert.ok(ctx._labLLRp([3, 10, 25, 10, 3], 0, 35) < 0, 'egalite parfaite : le LLR penche vers le rejet');
+  assert.ok(ctx._labLLRp([3, 10, 25, 10, 3], 0, 35) > B.lo, '... sans conclure apres 51 paires');
+  const e = ctx._labEloP([0, 0, 0, 0, 5]);
+  assert.ok(e.ci > 50, 'marge non nulle meme sur des paires toutes gagnees (' + Math.round(e.ci) + ')');
+  assert.match(ctx._labEloStrP([3, 10, 25, 10, 3]), /^\+0 Elo ± \d+$/);
+  assert.strictEqual(ctx._labPoints([1, 2, 3, 4, 5]), 0 + 1 + 3 + 6 + 10);
+  // une paire : les deux parties de la meme ouverture
+  const job = { penta: ctx._labPentaVide(), half: {}, fait: {} };
+  assert.strictEqual(ctx._labPaireAjouter(job, 0, 1, 1), false);
+  assert.strictEqual(ctx._labPaireAjouter(job, 0, 1, 0), false, 'un doublon ne compte pas');
+  assert.strictEqual(ctx._labPaireAjouter(job, 0, 0, 0.5), true);
+  assert.strictEqual(JSON.stringify(job.penta), '[0,0,0,1,0]', 'nulle + victoire = 1½ point');
+});
+
+test('labo : plusieurs parties a la fois ; tri par paires sur les memes ouvertures pour tous les mutants', () => _laboBac(({ fils, envois, attente, demarrer }) => {
+  ctx.LAB_CFG.threads = 3;
+  demarrer();
+  assert.strictEqual(fils.length, 3, 'trois fils de calcul');
+  const a = attente(); assert.strictEqual(a.length, 3, 'trois parties en cours');
+  const st = ctx.labLoad();
+  assert.strictEqual(JSON.stringify(a.map(e => e.m.wA)), JSON.stringify(st.cands.map(c => c.w)), 'un mutant par fil');
+  assert.strictEqual(new Set(a.map(e => e.m.seed)).size, 1, 'les mutants jouent la meme ouverture');
+  assert.ok(a.every(e => e.m.colorA === 'black' && JSON.stringify(e.m.wB) === JSON.stringify(st.champion)), 'mutant = A, Noirs ; champion = B');
+  assert.ok(a.every(e => e.m.msPerMove === 350 && e.m.maxPlies === 60 && e.m.ouverture === 6 && e.m.equilibre === 600), 'regime du tri, reglages d ouverture transmis');
+  assert.strictEqual(ctx._labNbFils(), 3);
+  ctx.LAB_CFG.threads = 0; const sN = ctx.navigator.hardwareConcurrency;
+  ctx.navigator.hardwareConcurrency = 8; assert.strictEqual(ctx._labNbFils(), 4, 'auto : la moitie des coeurs, 4 au plus');
+  ctx.navigator.hardwareConcurrency = 2; assert.strictEqual(ctx._labNbFils(), 1);
+  ctx.navigator.hardwareConcurrency = sN;
+}));
+
+test('labo : tri -> confirmation (nouvelles ouvertures) -> adoption -> bilan contre les poids d origine -> generation suivante', () => _laboBac(({ envois, attente, vider, repondre, demarrer }) => {
+  ctx.LAB_CFG.threads = 2;
+  demarrer();
+  const st0 = ctx.labLoad(), gagnant = st0.cands[1].name;
+  // tri : le 2e mutant gagne tout, les autres perdent tout
+  let garde = 0;
+  while (ctx.labLoad().phase === 'screen' && garde++ < 100) { const e = attente()[0]; repondre(e, e.m.wA === undefined ? 'B' : (JSON.stringify(e.m.wA) === JSON.stringify(st0.cands[1].w) ? 'A' : 'B')); vider(); }
+  let st = ctx.labLoad();
+  assert.strictEqual(st.phase, 'confirm'); assert.strictEqual(st.confirm.name, gagnant);
+  assert.strictEqual(st0.cands.filter((c, i) => i !== 1).length, 2);
+  const triSeeds = new Set(envois.filter(e => e.m.maxPlies === 60).map(e => e.m.seed));
+  const enAttente = attente().filter(e => e.m.msPerMove === 600);
+  assert.ok(enAttente.length >= 1 && enAttente.every(e => !triSeeds.has(e.m.seed) && e.m.maxPlies === 80), 'confirmation : regime long, ouvertures neuves');
+  // confirmation : le finaliste gagne tout -> adoption apres 11 paires (pas avant)
+  const avant = JSON.stringify(ctx.AI_WEIGHT_PRESETS.balanced);
+  garde = 0;
+  while (ctx.labLoad().phase === 'confirm' && garde++ < 200) {
+    const n = ctx._labPentaN(ctx.labLoad().confirm.penta);
+    assert.ok(n < 11, 'pas de verdict avant 11 paires');
+    repondre(attente()[0], 'A'); vider();
+  }
+  st = ctx.labLoad();
+  assert.strictEqual(st.phase, 'bilan', 'apres adoption : mesure du gain reel');
+  assert.match(st.history[0].type, /adopt/); assert.strictEqual(st.history[0].name, gagnant);
+  assert.deepStrictEqual(st.champion, st0.cands[1].w);
+  assert.notStrictEqual(JSON.stringify(ctx.AI_WEIGHT_PRESETS.balanced), avant, 'l IA utilise le nouveau champion');
+  ctx.SPSA_KEYS.forEach(k => assert.strictEqual(ctx.AI_WEIGHT_PRESETS.balanced[k], st.champion[k]));
+  // les parties de la confirmation encore en cours reviennent : ignorees
+  const bilanAvant = JSON.stringify(st.bilan.penta);
+  attente().filter(e => e.m.msPerMove === 600 && JSON.stringify(e.m.wB) !== JSON.stringify(ctx.LAB_ORIGINE)).forEach(e => repondre(e, 'A')); vider();
+  assert.strictEqual(JSON.stringify(ctx.labLoad().bilan.penta), bilanAvant, 'resultat d une phase deja tranchee ignore');
+  // bilan : champion contre les poids d'origine, 25 paires
+  assert.ok(attente().every(e => JSON.stringify(e.m.wB) === JSON.stringify(ctx.LAB_ORIGINE)));
+  garde = 0; let k = 0;
+  while (ctx.labLoad().phase === 'bilan' && garde++ < 200) { repondre(attente()[0], (k++ % 3) ? 'A' : 'B'); vider(); }
+  st = ctx.labLoad();
+  assert.strictEqual(st.phase, 'screen'); assert.strictEqual(st.gen, st0.gen + 1);
+  assert.strictEqual(st.mesures.length, 1); assert.strictEqual(st.mesures[0].paires, 25);
+  assert.ok(st.mesures[0].elo > 0 && st.mesures[0].ci > 0, 'gain reel mesure, avec sa marge');
+  assert.match(st.history[0].type, /bilan/);
+}));
+
+test('labo : un mutant qui ne gagne pas est rejete ; aucun mutant a 50 % au tri -> pas de confirmation', () => _laboBac(({ attente, vider, repondre, demarrer }) => {
+  ctx.LAB_CFG.threads = 4;
+  demarrer();
+  const gen0 = ctx.labLoad().gen; let garde = 0;
+  while (ctx.labLoad().gen === gen0 && garde++ < 200) { repondre(attente()[0], 'B'); vider(); }
+  const st = ctx.labLoad();
+  assert.strictEqual(st.phase, 'screen'); assert.match(st.history[0].type, /tri/);
+  assert.match(st.history[0].name, /aucun mutant à 50 %/);
+  assert.ok(st.cands.length && st.candsGen === gen0 + 1, 'nouveaux mutants');
+  // futilite : apres 2 paires perdues 0-2 sur 3, le mutant est arrete
+  const job = { penta: [2, 0, 0, 0, 0], half: {}, fait: {}, stop: false };
+  const s2 = ctx.labLoad(); s2.cands = [job]; ctx._labVerifierPhase(s2);
+  assert.strictEqual(job.stop, true);
+}));
+
+test('labo SPSA : les poids de l IA ne changent pas pendant les iterations ; theta verifie par SPRT avant adoption', () => _laboBac(({ attente, vider, repondre, demarrer }) => {
+  ctx.LAB_CFG.mode = 'spsa'; ctx.LAB_CFG.spsaVerif = 3; ctx.LAB_CFG.threads = 2;
+  const ia0 = JSON.stringify(ctx.AI_WEIGHT_PRESETS.balanced);
+  demarrer();
+  let st = ctx.labLoad(); assert.strictEqual(st.phase, 'spsa');
+  assert.strictEqual(st.spsa.theta.sumito, ctx.LAB_KAAH_REF.sumito / 2, 'critere de KAAH : depart a la moitie de la valeur de KAAH');
+  const a = attente(); assert.strictEqual(a.length, 2);
+  assert.strictEqual(a[0].m.seed, a[1].m.seed, 'iteration = une paire (meme ouverture)');
+  assert.deepStrictEqual([a[0].m.colorA, a[1].m.colorA], ['black', 'white']);
+  const champ0 = JSON.stringify(st.champion);
+  let garde = 0;
+  while (ctx.labLoad().phase === 'spsa' && garde++ < 100) {
+    repondre(attente()[0], 'A'); vider();
+    assert.strictEqual(JSON.stringify(ctx.AI_WEIGHT_PRESETS.balanced), ia0, 'l IA garde ses poids pendant SPSA');
+    assert.strictEqual(ctx.localStorage.getItem('abaLabChampion'), null);
+  }
+  st = ctx.labLoad();
+  assert.strictEqual(st.phase, 'confirm'); assert.strictEqual(st.confirm.source, 'spsa');
+  assert.match(st.confirm.name, /3 itérations/); assert.strictEqual(st.spsa.iter, 3);
+  assert.strictEqual(JSON.stringify(st.champion), champ0);
+  assert.deepStrictEqual(st.confirm.w, ctx._labComplet(st.spsa.theta));
+  // theta perd la verification : rejete, SPSA reprend
+  garde = 0;
+  while (ctx.labLoad().phase === 'confirm' && garde++ < 300) { repondre(attente()[0], 'B'); vider(); }
+  st = ctx.labLoad();
+  assert.strictEqual(st.phase, 'spsa'); assert.match(st.history[0].type, /rejet/);
+  assert.strictEqual(st.spsa.prochVerif, 6); assert.strictEqual(JSON.stringify(st.champion), champ0);
+  assert.strictEqual(JSON.stringify(ctx.AI_WEIGHT_PRESETS.balanced), ia0);
+}));
+
+test('labo : criteres de KAAH dans les mutants (16 poids), case pour les exclure, retour aux poids d origine sans KAAH', () => _laboBac(() => {
+  const ch = ctx._labComplet(ctx.LAB_ORIGINE);
+  const tous = []; for (let g = 2; g < 12; g++) ctx.labMutants(ch, g, null).forEach(m => tous.push(m));
+  assert.ok(tous.some(m => ctx.LAB_CLES_KAAH.indexOf(m.key) >= 0), 'des mutants allument des criteres de KAAH');
+  const sum = tous.find(m => m.key === 'sumito'); assert.strictEqual(sum.w.sumito, 20); assert.match(sum.name, /^sumito 0→20$/);
+  assert.ok(tous.every(m => Object.keys(m.w).length === 16), 'poids complets (16 cles)');
+  ctx.LAB_CFG.kaah = 0;
+  const sans = []; for (let g = 2; g < 12; g++) ctx.labMutants(ch, g, null).forEach(m => sans.push(m));
+  assert.ok(sans.length && sans.every(m => ctx.LAB_CLES_KAAH.indexOf(m.key) < 0), 'case decochee : plus de mutant KAAH');
+  ctx.LAB_CFG.kaah = 1;
+  // champion avec sumito adopte, puis « ne pas utiliser les poids du Labo » : sumito revient a 0
+  ctx.localStorage.setItem('abaLabChampion', JSON.stringify(Object.assign({}, ch, { sumito: 20 })));
+  ctx.applyLabChampion(); assert.strictEqual(ctx.AI_WEIGHT_PRESETS.balanced.sumito, 20);
+  ctx.labToggleUse({ checked: false }); assert.strictEqual(ctx.AI_WEIGHT_PRESETS.balanced.sumito, 0, 'critere de KAAH remis a 0');
+  assert.strictEqual(ctx.AI_WEIGHT_PRESETS.balanced.label, 'équilibré');
+  ctx.labToggleUse({ checked: true }); assert.strictEqual(ctx.AI_WEIGHT_PRESETS.balanced.sumito, 20);
+  ctx.resetLab(); assert.strictEqual(ctx.AI_WEIGHT_PRESETS.balanced.sumito, 0);
+  // poids incomplets ou invalides : completes
+  const c2 = ctx._labComplet({ center: 7, mob: -3, sumito: 'x' });
+  assert.deepStrictEqual([c2.center, c2.mob, c2.sumito, c2.piege], [7, 2, 0, 0]);
+}));
+
+test('labo : un etat de l ancien Labo (v3) est repris -- champion, historique, SPSA ; plus l ancien Elo cumule', () => _laboBac(() => {
+  ctx.localStorage.setItem('abaLabState', JSON.stringify({ v: 3, gen: 7, champion: { center: 6, cohesion: 6, edge: 8, mob: 2, iso: 18, dng: 14, chain: 10, fortress: 20 },
+    phase: 'confirm', cands: [{ name: 'x', done: 3, target: 6, score: 2, W: 2, D: 0, L: 1 }], confirm: { name: 'edge 8→10', done: 12, target: 60, score: 9, W: 9, D: 0, L: 3, llr: 1.2 },
+    totalGames: 321, eloCurve: [{ gen: 1, elo: 0 }, { gen: 5, elo: 88 }], cumElo: 88, gameLog: [], lastGood: 'cohesion',
+    history: [{ gen: 5, type: '✅ adopté (SPRT)', name: 'cohesion 4→6', score: 7, games: 8, elo: '+240 Elo ± 0' }],
+    spsa: { iter: 12, k: 12, theta: { center: 6.5, cohesion: 5, edge: 8, mob: 2, iso: 18, dng: 14, chain: 10, fortress: 20 }, thetaHist: [], wins: 5, draws: 1, losses: 6 } }));
+  const st = ctx.labLoad();
+  assert.strictEqual(st.v, 4); assert.strictEqual(st.gen, 7); assert.strictEqual(st.totalGames, 321);
+  assert.strictEqual(st.champion.cohesion, 6); assert.strictEqual(st.champion.sumito, 0);
+  assert.strictEqual(st.phase, 'screen', 'le test en cours repart sur les nouvelles regles');
+  assert.ok(st.cands.every(c => Array.isArray(c.penta)));
+  assert.strictEqual(st.ancienCumul, 88);
+  assert.match(st.history[0].type, /v4/); assert.strictEqual(st.history[1].name, 'cohesion 4→6');
+  assert.strictEqual(st.spsa.iter, 12); assert.strictEqual(st.spsa.theta.center, 6.5);
+  assert.strictEqual(JSON.parse(ctx.localStorage.getItem('abaLabState')).v, 4, 'migration enregistree');
+}));
+
+test('labo : partie trop longue -> fil remplace, partie relancee ; 3 fois de suite -> pause', () => _laboBac(({ fils, longs, attente, demarrer, vider }) => {
+  ctx.LAB_CFG.threads = 1;
+  demarrer();
+  const e0 = attente()[0]; assert.ok(e0);
+  assert.strictEqual(longs.length, 1, 'chien de garde arme');
+  longs.shift()(); vider();
+  assert.strictEqual(e0.w.mort, true, 'le fil bloque est arrete');
+  assert.strictEqual(fils.length, 2, 'un fil neuf le remplace');
+  const e1 = attente()[0];
+  assert.strictEqual(e1.m.seed, e0.m.seed); assert.deepStrictEqual(e1.m.wA, e0.m.wA); assert.strictEqual(e1.m.colorA, e0.m.colorA);
+  longs.shift()(); vider(); longs.shift()(); vider();
+  assert.strictEqual(ctx._labRunning, false, 'en pause apres 3 parties trop longues');
+}));
+
+test('labo, cote moteur : arbitrage par CONSENSUS des deux evaluations (avant : celle du mutant seul)', () => {
+  const { w, ev } = _filKaah();
+  // position : Noirs au centre, Blancs au bord, autant de billes ; aucune ouverture, aucune partie : arbitrage direct
+  ev(`_duelSetup=function(){ board={'4,4':'black','4,3':'black','4,5':'black','0,0':'white','0,4':'white','8,0':'white'}; capturedByBlack=0; capturedByWhite=0; };`);
+  const zero = { center: 0, cohesion: 0, edge: 0, mob: 0, iso: 0, dng: 0, chain: 0, fortress: 0 };
+  const gonfle = Object.assign({}, zero, { center: 400 }), neutre = zero;
+  const r1 = w.playDuelGame(gonfle, neutre, 'black', 1, 30, 0, 300, 0, 1e9);
+  assert.strictEqual(r1.winner, 'D', 'A se voit gagnant, B non : nulle (avant : victoire de A)');
+  const r2 = w.playDuelGame(gonfle, gonfle, 'black', 1, 30, 0, 300, 0, 1e9);
+  assert.deepStrictEqual([r2.winner, r2.why], ['A', 'adjEval'], 'les deux d accord : victoire');
+  const r3 = w.playDuelGame(gonfle, gonfle, 'white', 1, 30, 0, 300, 0, 1e9);
+  assert.strictEqual(r3.winner, 'B', 'A a les Blancs : les deux evaluations donnent les Noirs (B) gagnants');
+});
+
+test('labo, cote moteur : le rejeu (« revoir ») redonne exactement la partie jouee, ouverture comprise', () => {
+  const { w, ev } = _filKaah();
+  let msg = null; w.postMessage = m => { msg = m; };
+  const base = { center: 6, cohesion: 4, edge: 8, mob: 2, iso: 18, dng: 14, chain: 10, fortress: 20 };
+  w.self.onmessage({ data: { duelGame: true, wA: Object.assign({}, base, { mob: 4 }), wB: base, colorA: 'black', seed: 4242, msPerMove: 25, maxPlies: 14, drawWin: 300, ouverture: 4, equilibre: 600, id: 1 } });
+  const r = msg.result, coups = msg.moves;
+  assert.strictEqual(coups.length, r.plies, 'coups enregistres = ouverture (4) + partie');
+  assert.ok(r.plies <= 18);
+  const fin = ev('JSON.stringify(Object.keys(board).sort().map(function(k){ return k + board[k]; }))');
+  w.self.onmessage({ data: { replayGame: true, colorA: 'black', seed: 4242, moves: coups, id: 2 } });
+  const frames = msg.frames, der = frames[frames.length - 1];
+  assert.strictEqual(frames.length, coups.length + 1, 'une position par coup, plus la position de depart');
+  assert.strictEqual(Object.keys(frames[0].b).length, 28, 'la 1re image est la position de depart (14 contre 14)');
+  assert.strictEqual(JSON.stringify(Object.keys(der.b).sort().map(k => k + (der.b[k] === 'b' ? 'black' : 'white'))), fin, 'position finale identique a la partie');
+  assert.deepStrictEqual([der.cb, der.cw], [r.cb, r.cw]);
+});
+
+test('labo SPSA : une partie abandonnee (trop longue) est rejouee, l iteration se termine', () => _laboBac(({ fils, longs, attente, vider, repondre, demarrer }) => {
+  ctx.LAB_CFG.mode = 'spsa'; ctx.LAB_CFG.spsaVerif = 2; ctx.LAB_CFG.threads = 2;
+  demarrer();
+  const [a, b] = attente(); assert.ok(a && b);
+  repondre(b, 'A'); vider();                       // la partie en Blancs revient
+  // la partie en Noirs ne revient jamais : chien de garde
+  const chien = longs.shift(); chien(); vider();
+  const relance = attente().find(e => e.m.seed === a.m.seed && e.m.colorA === 'black');
+  assert.ok(relance, 'la partie abandonnee est relancee (meme ouverture, meme couleur)');
+  repondre(relance, 'A'); vider();
+  assert.strictEqual(ctx.labLoad().spsa.iter >= 1, true, 'l iteration se termine');
+  let garde = 0;
+  while (ctx.labLoad().phase === 'spsa' && garde++ < 50) { const e = attente()[0]; if (!e) break; repondre(e, 'B'); vider(); }
+  assert.strictEqual(ctx.labLoad().phase, 'confirm', 'verification atteinte : rien n est reste bloque');
+  // le journal ne stocke pas les poids nuls
+  const ligne = JSON.parse(ctx.localStorage.getItem('abaLabDataLog'))[0];
+  assert.ok(ligne.wA.center > 0 && !('piege' in ligne.wB && ligne.wB.piege === 0));
 }));

@@ -9,6 +9,44 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.54]
+
+### Changed
+- **Lab: reliable verdicts.** Each random opening is played **twice, colours
+  swapped**, and the verdict counts **pairs** (0, ½, 1, 1½ or 2 points). The
+  SPRT is now pentanomial (Fishtest's method) with a Jeffreys prior. Before,
+  it counted single games, fired on 8 straight wins (zero measured variance)
+  and stopped at 60 games. In simulation at the measured draw rate (≈ 30 %):
+  before, 96 % of no-effect tests ended "undecided" and a +70 Elo mutant was
+  adopted only 14 times in 100; now +70 Elo is adopted over 99 times in 100
+  (≈ 140 games), +35 Elo 68 times, a no-effect mutant wrongly ≈ 4 times.
+- **Lab: over-long games are adjudicated by consensus** — a win is given only
+  if both evaluations agree (before, the mutant's own evaluation decided).
+- **Lab, SPSA: verified before adoption** (SPRT against the champion every 50
+  iterations); the AI's weights no longer change every 2 games.
+- **Lab: real gain measured** after each adoption — champion vs original
+  weights, 25 pairs, with a 95 % margin and a chart — replacing the inflated
+  "cumulative Elo". "Measure now" button.
+- **Lab: no pointless confirmation** when no mutant reaches 50 % in screening.
+
+### Added
+- **Faster Lab: several games at once**, one per worker (half the cores, up
+  to 4, configurable 1–8); games per hour shown; a stuck game gets a fresh
+  worker and is replayed.
+- **The Lab also tunes KAAH's criteria** (mutants and SPSA); "Tune KAAH's
+  criteria too" checkbox. An adopted criterion is used by the AI.
+- **KAAH criteria test**: same pairs, same verdict, parallel games.
+
+### Fixed
+- **"▶ replay" showed a different game** (the opening was drawn twice);
+  replays now start from the initial position.
+- A game whose 10 opening draws were all unbalanced started from an
+  unrecorded opening.
+- "Opening plies" and "balance window" settings were never sent to the engine.
+- Unchecking "use adopted weights" or resetting the Lab left adopted KAAH
+  criteria in place.
+- Advanced settings no longer redraw while you type.
+
 ## [v2.53]
 
 ### Changed
