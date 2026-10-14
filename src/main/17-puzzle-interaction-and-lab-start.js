@@ -7,9 +7,30 @@ function openPuzzles(){
   if(isNaN(idx)||idx<0||idx>=PUZZLES.length) idx=0;
   startPuzzle(idx);
 }
+/* Ouvre un puzzle sur le plateau de la partie depuis une autre page (defi du jour, probleme du
+   mois). Avant (v2.57), showPage('game') demarrait d'abord une partie neuve : la partie en cours
+   sauvegardee etait effacee (ou la fenetre « Reprendre ? » s'ouvrait par-dessus le puzzle), la
+   pluie de billes tombait, et une minute plus tard « Partie annulée — aucun coup joué » renvoyait
+   a l'accueil en plein puzzle. Le drapeau dit a la page de jeu de ne rien demarrer. */
+var _puzzleOuverture = false;
+function ouvrirPuzzleSurPlateau(idx){
+  _puzzleOuverture = true;
+  try { showPage('game'); } finally { _puzzleOuverture = false; }
+  startPuzzle(idx);
+}
+/* Ferme le mode puzzle sans toucher au plateau (nouvelle partie, partie reprise, tournoi) :
+   sinon chaque coup de la partie suivante etait compare a la solution du puzzle, et annule. */
+function _puzzleFermer(){
+  if(typeof _defiQuitter==='function') _defiQuitter();
+  if(!_puzzleActive) return;
+  _puzzleActive=null;
+  const bar=document.getElementById('puzzle-bar'); if(bar) bar.style.display='none';
+}
 function startPuzzle(idx){
   const p=PUZZLES[idx]; if(!p) return;
   if(typeof botDuelMode!=='undefined' && botDuelMode && typeof stopBotDuel==='function') stopBotDuel();
+  if(typeof _defiQuitter==='function') _defiQuitter();   // un autre puzzle : le defi en cours garde son temps
+  if(typeof disarmInactivityCancel==='function') disarmInactivityCancel();   // un puzzle n'est pas une partie a annuler
   // Pose la position
   board={}; p.bm.forEach(function(k){board[k]='black';}); p.wm.forEach(function(k){board[k]='white';});
   CapturedByBlack.set(p.cb); CapturedByWhite.set(p.cw);
@@ -32,17 +53,20 @@ function checkPuzzleMove(){
   if(!snap || !snap.moveInfo){ return; }
   const played=_pzSig(snap.moveInfo.cells, snap.moveInfo.dir);
   const isDef=!!(PUZZLES[pa.idx]&&PUZZLES[pa.idx].def);
+  const nDefi=(typeof _defiEnCours!=='undefined' && _defiEnCours && _defiEnCours.idx===pa.idx) ? _defiEnCours.n : 0;
   if(played===pa.sig || (pa.alts&&pa.alts.indexOf(played)!==-1)){
     _puzzleActive=null;
     const solved=parseInt(localStorage.getItem('abaPuzzleSolved')||'0',10)+1;
     localStorage.setItem('abaPuzzleSolved', String(solved));
     if (typeof checkMonthlyCompletion === 'function') checkMonthlyCompletion(pa.idx);
-    if (typeof checkDailyCompletion === 'function') checkDailyCompletion(pa.idx);
+    if (typeof _defiSurPuzzle === 'function') _defiSurPuzzle(pa.idx, 'v');
     const t=document.getElementById('pz-title');
-    if(t) t.textContent='✅ Bravo ! Puzzle réussi ('+solved+' résolus) — ⏭ pour le suivant';
+    if(t) t.textContent = nDefi ? _tr('✅ Défi du jour #'+nDefi+' trouvé !', '✅ Daily puzzle #'+nDefi+' solved!')
+                                : '✅ Bravo ! Puzzle réussi ('+solved+' résolus) — ⏭ pour le suivant';
     showToast(isDef?'🛡️ Menace parée !':'✅ Coup gagnant trouvé !');
   } else {
     pa.tries++;
+    if (typeof _defiSurPuzzle === 'function') _defiSurPuzzle(pa.idx, 'x');
     doUndo();
     showToast(pa.tries>=2 ? '❌ Raté — pense à 💡 Indice ou ✅ Solution'
       : (isDef?'❌ La menace demeure, réessaie':'❌ Pas le meilleur coup, réessaie'));
@@ -51,12 +75,14 @@ function checkPuzzleMove(){
 function puzzleHint(){
   const pa=_puzzleActive; if(!pa){ showToast('Puzzle déjà résolu — ⏭ Suivant'); return; }
   const p=PUZZLES[pa.idx];
+  if (typeof _defiSurPuzzle === 'function') _defiSurPuzzle(pa.idx, 'i');
   if(p.def){ showToast('💡 Menace adverse : '+p.thr+' — ta parade part de '+p.lab.slice(0,2)); return; }
   showToast('💡 Le coup part de '+p.lab.slice(0,2)+' (source : '+p.src.split('·')[0].trim()+')');
 }
 function puzzleSolution(){
   const pa=_puzzleActive; if(!pa){ showToast('Puzzle déjà résolu — ⏭ Suivant'); return; }
   const p=PUZZLES[pa.idx];
+  if (typeof _defiSurPuzzle === 'function') _defiSurPuzzle(pa.idx, 's');
   selected = p.sol.cells.map(function(x){ return {r:x.r,c:x.c}; });
   drawBoard();
   showToast('✅ Solution : '+p.lab+' — joue-la !');
@@ -67,8 +93,7 @@ function puzzleNext(){
   startPuzzle(idx);
 }
 function puzzleQuit(){
-  _puzzleActive=null;
-  const bar=document.getElementById('puzzle-bar'); if(bar) bar.style.display='none';
+  _puzzleFermer();
   if(typeof resetGame==='function') resetGame();
   showToast('Puzzles fermés');
 }
@@ -1315,24 +1340,14 @@ function renderLab(){
 try{ if(localStorage.getItem('abaLabAutoRun')==='1'){ setTimeout(function(){ if(!_labRunning){ startLab(); if(typeof showToast==='function') showToast('\ud83e\uddea Labo repris en arri\u00e8re-plan'); } }, 4000); } }catch(e){}
 
 // ── Crédibilité : vraies stats, vrai défi du jour, bannières honnêtes ──
-function _dailyPuzzleIdx(){ try{ return Math.floor(Date.now()/86400000)%puzzlesData.length; }catch(e){ return 0; } }
-function openDailyPuzzleInline(){
-  try{
-    const N=puzzlesData.length, idx=_dailyPuzzleIdx();
-    loadPuzzle(idx);
-    showToast('\ud83d\udd25 D\u00e9fi du jour \u2014 \u00ab '+puzzlesData[idx].title+' \u00bb ('+(idx+1)+'/'+N+')');
-  }catch(e){}
-}
-function openDailyPuzzle(){
-  showPage('puzzles');
-  setTimeout(function(){
-    document.querySelectorAll('.puzzle-mode-btn').forEach(function(b){b.classList.remove('active');});
-    openDailyPuzzleInline();
-  },60);
-}
+/* Le « défi du jour » d'ici (un des 18 problèmes de la série, selon la date UTC) est remplacé
+   par le Défi du jour #N (36-defi-du-jour-et-cartes.js) : un seul défi, le même pour tous. */
+function openDailyPuzzle(){ if (typeof ouvrirDefi === 'function') ouvrirDefi(); }
 function updateHeroDaily(){
   const el=document.getElementById('hero-daily');
-  if(el && typeof puzzlesData!=='undefined'){ el.textContent='\ud83d\udd25 D\u00e9fi du jour \u2014 Puzzle '+(_dailyPuzzleIdx()+1)+'/'+puzzlesData.length; }
+  if(!el || typeof defiNumero!=='function') return;
+  const n=defiNumero(), e=defiEtat(n);
+  el.textContent='🔥 '+_tr('Défi du jour','Daily puzzle')+' #'+n+(e&&e.f==='v' ? ' ✅' : e&&e.f==='s' ? ' ⬛' : '');
 }
 function updateHeroStats(){
   const el=document.getElementById('hero-stats'); if(!el) return;
@@ -1342,22 +1357,9 @@ function updateHeroStats(){
   el.textContent = (g+p>0) ? ('\u26ab '+g+' parties termin\u00e9es \u00b7 \ud83e\udde9 '+p+' puzzles r\u00e9solus \u2014 sur cet appareil')
                            : '100 % hors-ligne \u00b7 aucun compte requis';
 }
-function _injectHonestyBanners(){
-  const txt={
-    'modal-login':'\ud83d\udd12 <b>Profil 100 % local</b> \u2014 stock\u00e9 uniquement sur cet appareil (localStorage). Aucun serveur, aucun envoi. N\u2019utilise pas un mot de passe sensible.',
-    'modal-signup':'\ud83d\udd12 <b>Profil 100 % local</b> \u2014 stock\u00e9 uniquement sur cet appareil (localStorage). Aucun serveur, aucun envoi. N\u2019utilise pas un mot de passe sensible.'
-  };
-  Object.keys(txt).forEach(function(id){
-    const m=document.getElementById(id); if(!m || m.querySelector('.honesty-note')) return;
-    const box=m.querySelector('.modal-box')||m.firstElementChild||m;
-    const b=document.createElement('div');
-    b.className='honesty-note';
-    b.style.cssText='font-size:11px;line-height:1.5;color:var(--muted);background:rgba(255,255,255,0.05);border:1px solid var(--border,#333);border-radius:8px;padding:8px 10px;margin:8px 0';
-    b.innerHTML=txt[id];
-    box.insertBefore(b, box.children[1]||null);
-  });
-}
-window.addEventListener('load', function(){ updateHeroDaily(); updateHeroStats(); _injectHonestyBanners(); });
+/* _injectHonestyBanners() ajoutait une note « Profil 100 % local » en haut des fenetres de
+   connexion : elle est maintenant ecrite dans ces fenetres (v2.57), avec le reste des explications. */
+window.addEventListener('load', function(){ updateHeroDaily(); updateHeroStats(); });
 
 // ── 🏆 TOURNOI MENSUEL RÉEL : élimination directe vs bots, pendule 10+5, prix décernés ──
 let _tourneyMatch=null;

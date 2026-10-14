@@ -9,6 +9,67 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.57]
+
+### Ajouté — le Défi du jour #N
+- **Un puzzle par jour, le même pour tout le monde** : chaque jour a son numéro
+  (#1 = 15 octobre 2026) et un puzzle tiré de vraies parties, sans compte ni
+  serveur. Il se joue sur le plateau de la partie ; l'accueil, la page Problèmes
+  et le badge du haut y mènent, et un lien `?defi=12` ouvre le défi n° 12.
+- **Un résultat à partager sans rien dévoiler** : une grille (🟥 mauvais coup,
+  🟨 indice, 🟩 trouvé, ⬛ solution affichée), le temps passé devant le puzzle,
+  la série de jours et le lien. Sur téléphone, le partage du téléphone ; ailleurs,
+  le presse-papier. Un compte à rebours annonce le prochain défi.
+- **Des images à partager** : en fin de partie (nouveau bouton 🖼️ Image : le
+  résultat, le score et le plateau final) et pour le défi du jour (la grille,
+  jamais la position).
+- Il remplace trois « défis du jour » qui coexistaient, dont un faux : un numéro
+  de puzzle inventé, « relevé » d'un clic contre 50 XP sans rien jouer.
+
+### Corrigé — ce qui ne marchait pas
+- **Paramètres** : seul « Profil général » s'affichait ; les autres onglets
+  (Accessibilité, Autorisations, Notifications, Sécurité, Mot de passe)
+  tournaient en boucle jusqu'à l'erreur. Des balises mal fermées faisaient aussi
+  déborder des morceaux de page (les filtres des Variantes apparaissaient dans le
+  Musée, l'Espace rédacteur sous les Paramètres).
+- **Problème du mois** : « Jouer » posait le puzzle sur le plateau de la partie
+  en restant sur la page Problèmes, sans plateau. Il s'ouvre maintenant sur le
+  plateau, sans effacer la partie sauvegardée, sans pluie de billes, et sans le
+  « Partie annulée — aucun coup joué » qui renvoyait à l'accueil après une
+  minute de réflexion.
+- **Puzzles** : après un puzzle, une nouvelle partie restait en mode puzzle :
+  chaque coup était comparé à la solution, puis annulé.
+- **Partager** : le message disait toujours « Je viens de gagner », même après
+  une défaite. Il suit maintenant la vraie fin de partie (victoire, défaite,
+  nulle, partie à deux) avec le score, l'adversaire et le nombre de coups. Les
+  boutons Discord, YouTube et Twitch, vers des pages qui n'existent pas, sont
+  retirés.
+- **Profils** : n'importe quel mot de passe ouvrait n'importe quel profil ; il
+  est maintenant vérifié (empreinte PBKDF2, gardée dans le navigateur). Retirés :
+  les boutons Google et Discord qui n'affichaient qu'une bulle, « Email de
+  réinitialisation envoyé » (aucun e-mail ne part), « visible par les autres
+  joueurs », et le compte « fightclub » qui connectait, sans mot de passe, sous
+  le nom d'une vraie personne avec des statistiques inventées — ainsi que
+  l'« Espace rédacteur » qu'il ouvrait, dont les articles « publiés » ne
+  quittaient pas le navigateur. Les fenêtres disent ce qu'est un profil : local,
+  sur cet appareil ; l'e-mail devient facultatif.
+- **Page Profil** : sans profil, on voyait sous « Connexion requise » une
+  « Série de 18 jours », une courbe ELO « 1388 → 1489 » dessinée à la main et
+  les parties d'abal.online d'ocj94 — montrées aussi à chaque profil comme les
+  siennes. Rang mondial sans classement, succès débloqués d'office, compteurs
+  jamais mis à jour : tout vient maintenant de la progression de l'appareil
+  (parties, série, ELO, dernières parties).
+- **Parrainage** : « 100 XP par ami » ne pouvait pas marcher sans serveur. L'ami
+  invité garde son bonus de bienvenue ; la fenêtre dit pourquoi il n'y en a pas
+  pour vous.
+- **Bas de page** : « 🔥 18 » et « ⚡ 14 928 », restes d'une ancienne barre de
+  téléphone, s'affichaient en bas de chaque page.
+
+### Tests
+- 9 nouveaux tests : onglets des Paramètres, balises de chaque page, profil,
+  message de partage, mots de passe des profils, parrainage, et le défi du jour
+  (un numéro par jour, tirage, puzzles figés, grille et texte sans la solution).
+
 ## [v2.56]
 
 ### Ajouté — le site en anglais

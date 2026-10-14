@@ -87,7 +87,7 @@ What it hides: **chat**, the **AI Lab**, **settings**, and **external links**. I
 - **Post-game analysis**: replays the positions actually reached with the AI's evaluation, and points out where the game turned and on which move the first marble was lost
 - **Understanding engine** (Analysis page): for any position, a breakdown of spatial control, support weakness, sumito potential, immediate threats, tactical depth, and 2-move mobility — a short summary by default, the numbers behind Technical mode. A targeted search ("threat in N moves") is available on request, never automatic
 - **Positional fingerprint** (same page): a 12-dimension vector per position, invariant under left-right mirroring. Capture a position as a reference, then compare any later position to it (distance shown, per-dimension detail in Technical mode). No historical position database yet — comparison on demand, between explicitly chosen positions
-- **Puzzle of the day**, deterministic from the date and identical for everyone, with a streak counter
+- **Daily puzzle #N**: one numbered puzzle per day, the same for everyone, no account or server needed; a Wordle-style result to share (🟥🟨🟩, without spoiling the solution) and an image; a day-streak counter. Direct link: `?defi=12`
 
 **Real board**
 - Physical board detection from a photo (AI Detection page)

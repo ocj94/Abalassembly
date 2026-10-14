@@ -9,6 +9,61 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.57]
+
+### Added — Daily puzzle #N
+- **One puzzle a day, the same for everyone**: each day has its number
+  (#1 = 15 October 2026) and a puzzle taken from real games, with no account and
+  no server. It is played on the game board; the home page, the Puzzles page and
+  the badge at the top lead to it, and a `?defi=12` link opens puzzle #12.
+- **A result you can share without spoiling anything**: a grid (🟥 wrong move,
+  🟨 hint, 🟩 solved, ⬛ solution shown), the time spent on the puzzle, the day
+  streak and the link. On phones, the phone's share sheet; elsewhere, the
+  clipboard. A countdown announces the next puzzle.
+- **Images to share**: at the end of a game (new 🖼️ Image button: result, score
+  and final board) and for the daily puzzle (the grid, never the position).
+- It replaces three "daily challenges" that existed side by side, one of them
+  fake: an invented puzzle number, "taken on" with one click for 50 XP without
+  playing anything.
+
+### Fixed — what did not work
+- **Settings**: only "General profile" showed; the other tabs (Accessibility,
+  Permissions, Notifications, Security, Password) looped until they crashed.
+  Badly closed tags also made parts of pages spill over (the Variants filters
+  appeared in the Museum, the writer area under the Settings).
+- **Puzzle of the month**: "Play" set the puzzle up on the game board while
+  staying on the Puzzles page, with no board. It now opens on the board, without
+  erasing the saved game, without the marble rain, and without the "Game
+  cancelled — no move played" that sent you home after a minute of thinking.
+- **Puzzles**: after a puzzle, a new game stayed in puzzle mode: every move was
+  compared with the solution, then undone.
+- **Share**: the message always said "I just won", even after a loss. It now
+  follows the real end of the game (win, loss, draw, two-player game) with the
+  score, the opponent and the number of moves. The Discord, YouTube and Twitch
+  buttons, pointing to pages that do not exist, are gone.
+- **Profiles**: any password opened any profile; it is now checked (PBKDF2
+  fingerprint, kept in the browser). Removed: the Google and Discord buttons that
+  only showed a tooltip, "Reset e-mail sent" (no e-mail is ever sent), "visible
+  to other players", and the "fightclub" account that logged in, without a
+  password, under a real person's name with invented statistics — along with
+  the "writer area" it opened, whose "published" articles never left the
+  browser. The windows say what a profile is: local, on this device; the e-mail
+  is now optional.
+- **Profile page**: without a profile, below "Sign-in required", you saw a
+  "18-day streak", a hand-drawn "1388 → 1489" ELO curve and ocj94's abal.online
+  games — also shown on every profile as its own. A world rank without any
+  ranking, achievements unlocked for free, counters never updated: everything now
+  comes from the device's progress (games, streak, ELO, latest games).
+- **Referrals**: "100 XP per friend" could not work without a server. The invited
+  friend keeps the welcome bonus; the window explains why there is none for you.
+- **Page bottom**: "🔥 18" and "⚡ 14 928", leftovers of an old phone bar, showed
+  at the bottom of every page.
+
+### Tests
+- 9 new tests: Settings tabs, the tags of every page, profile, share message,
+  profile passwords, referrals, and the daily puzzle (one number per day, draw,
+  frozen puzzles, grid and text without the solution).
+
 ## [v2.56]
 
 ### Added — the site in English

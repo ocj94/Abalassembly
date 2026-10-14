@@ -89,8 +89,8 @@ function renderWeeklyCard() {
    DÉFI DU JOUR — PARTIE (distinct du puzzle du jour)
    Même principe que le défi hebdomadaire mais à échelle quotidienne, et
    centré sur les PARTIES (victoires, parties jouées, éjections) plutôt que
-   sur un puzzle précis — le défi puzzle du jour (dailyChallenge) reste
-   inchangé, celui-ci s'y ajoute sans le remplacer.
+   sur un puzzle précis — le Défi du jour #N (un puzzle, le même pour tous)
+   reste à part, celui-ci s'y ajoute sans le remplacer.
 ═══════════════════════════════════════════ */
 const DAILY_GAME_CHALLENGES = [
   { id:'win1',    icon:'🏆', title:'Victoire du jour',  desc:'Gagne 1 partie aujourd\'hui',    goal:1, metric:'wins',      reward:40 },
@@ -198,9 +198,13 @@ function onPuzzleSolved() {
 }
 
 /* ═══════════════════════════════════════════
-   PARRAINAGE — invite des amis, gagne des récompenses
+   PARRAINAGE — inviter un ami
+   Avant (v2.57) : « Gagnez 100 XP par ami qui rejoint Abalassembly avec votre lien ».
+   Sans serveur, rien ne peut dire au parrain que son lien a ete ouvert sur un autre appareil :
+   le credit n'arrivait que si l'ami ouvrait le lien... sur l'appareil du parrain (« simulation
+   sans backend »). Reste ce qui marche vraiment : l'ami recoit un bonus de bienvenue.
 ═══════════════════════════════════════════ */
-const REFERRAL_REWARD = 100;  // XP par parrainage réussi
+const REFERRAL_WELCOME = 50;  // XP de bienvenue pour l'ami invite
 
 function getReferralCode() {
   if (!progress.referralCode) {
@@ -213,10 +217,10 @@ function getReferralCode() {
 }
 
 function referralLink() {
-  return SHARE_URL + '?ref=' + encodeURIComponent(getReferralCode());
+  return SHARE_URL + '?ref=' + encodeURIComponent(getReferralCode()) + (currentLang() === 'EN' ? '&lang=en' : '');
 }
 
-// Au chargement : détecte un code de parrainage dans l'URL
+// Au chargement : un code d'invitation dans l'adresse donne le bonus de bienvenue (une fois)
 function checkIncomingReferral() {
   try {
     const params = new URLSearchParams(window.location.search);
@@ -224,38 +228,12 @@ function checkIncomingReferral() {
     if (ref && !progress.referredBy && ref !== progress.referralCode) {
       progress.referredBy = ref;
       saveProgress(progress);
-      // bonus de bienvenue pour le filleul
-      addXp(50, 'Bienvenue ! Parrainé par un ami');
-      // On mémorise localement le crédit du parrain (simulation sans backend)
-      try {
-        const pending = JSON.parse(localStorage.getItem('abalone_referral_credits') || '{}');
-        pending[ref] = (pending[ref] || 0) + 1;
-        localStorage.setItem('abalone_referral_credits', JSON.stringify(pending));
-      } catch(e) {}
-    }
-    // Crédite le parrain de ses parrainages en attente (même appareil/démo)
-    creditPendingReferrals();
-  } catch(e) {}
-}
-
-function creditPendingReferrals() {
-  try {
-    const code = progress.referralCode;
-    if (!code) return;
-    const pending = JSON.parse(localStorage.getItem('abalone_referral_credits') || '{}');
-    if (pending[code] && pending[code] > progress.referrals) {
-      const gained = pending[code] - progress.referrals;
-      progress.referrals = pending[code];
-      saveProgress(progress);
-      addXp(REFERRAL_REWARD * gained, gained + ' parrainage' + (gained>1?'s':'') + ' réussi' + (gained>1?'s':'') + ' !');
-      if (progress.referrals >= 3 && typeof awardBadge === 'function') awardBadge('referral3');
+      addXp(REFERRAL_WELCOME, _tr('Bienvenue ! Invité par un ami', 'Welcome! Invited by a friend'));
     }
   } catch(e) {}
 }
 
 function openReferralModal() {
-  const code = getReferralCode();
-  const link = referralLink();
   let modal = document.getElementById('referral-modal');
   if (!modal) {
     modal = document.createElement('div');
@@ -265,19 +243,13 @@ function openReferralModal() {
   }
   modal.innerHTML =
     '<div class="share-modal-box">' +
-      '<div class="share-modal-title">🎁 Parrainez vos amis</div>' +
-      '<div class="share-modal-text">Gagnez <strong style="color:var(--gold)">' + REFERRAL_REWARD + ' XP</strong> par ami qui rejoint Abalassembly avec votre lien. Votre filleul reçoit aussi un bonus de bienvenue !</div>' +
-      '<div style="background:var(--surface2);border-radius:10px;padding:14px;margin-bottom:14px;text-align:center">' +
-        '<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Votre code</div>' +
-        '<div style="font-family:\'DM Mono\',monospace;font-size:22px;font-weight:700;color:var(--gold);letter-spacing:2px">' + code + '</div>' +
-      '</div>' +
-      '<div style="display:flex;justify-content:space-around;margin-bottom:16px">' +
-        '<div style="text-align:center"><div style="font-size:24px;font-weight:800;color:var(--text)">' + (progress.referrals||0) + '</div><div style="font-size:11px;color:var(--muted)">parrainages</div></div>' +
-        '<div style="text-align:center"><div style="font-size:24px;font-weight:800;color:var(--gold)">' + ((progress.referrals||0)*REFERRAL_REWARD) + '</div><div style="font-size:11px;color:var(--muted)">XP gagnés</div></div>' +
-      '</div>' +
-      '<button class="share-copy" onclick="copyReferralLink()">🔗 Copier mon lien d\'invitation</button>' +
-      '<button class="share-copy" style="background:#5865f2;color:#fff" onclick="shareInvite()">📨 Partager</button>' +
-      '<button class="share-close" onclick="closeReferralModal()">Fermer</button>' +
+      '<div class="share-modal-title">📨 ' + _tr('Inviter un ami', 'Invite a friend') + '</div>' +
+      '<div class="share-modal-text">' + _tr(
+        'En ouvrant votre lien, votre ami reçoit <strong style="color:var(--gold)">+' + REFERRAL_WELCOME + ' XP</strong> de bienvenue.<br><span style="font-size:12px;color:var(--muted)">Le site n’a pas de serveur : il ne peut pas savoir qui a ouvert votre lien, donc pas de récompense pour vous… à part un adversaire de plus !</span>',
+        'When your friend opens your link, they get <strong style="color:var(--gold)">+' + REFERRAL_WELCOME + ' XP</strong> as a welcome.<br><span style="font-size:12px;color:var(--muted)">The site has no server: it cannot know who opened your link, so there is no reward for you… apart from one more opponent!</span>') + '</div>' +
+      '<button class="share-copy" onclick="copyReferralLink()">🔗 ' + _tr('Copier mon lien d’invitation', 'Copy my invitation link') + '</button>' +
+      '<button class="share-copy" style="background:#5865f2;color:#fff" onclick="shareInvite()">📨 ' + _tr('Partager', 'Share') + '</button>' +
+      '<button class="share-close" onclick="closeReferralModal()">' + _tr('Fermer', 'Close') + '</button>' +
     '</div>';
   modal.classList.add('show');
 }
@@ -288,12 +260,7 @@ function closeReferralModal() {
 }
 
 function copyReferralLink() {
-  const link = referralLink();
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(link).then(function(){ showToast('🔗 Lien de parrainage copié !'); });
-  } else {
-    showToast('Copiez : ' + link);
-  }
+  _copierTexte(referralLink(), _tr('🔗 Lien d’invitation copié !', '🔗 Invitation link copied!'));
 }
 
 /* ═══════════════════════════════════════════
@@ -497,7 +464,6 @@ function renderEngageBar() {
   const host = document.getElementById('engage-bar');
   if (!host) return;
   const xpp = xpProgressInLevel(progress.xp);
-  const dc = dailyChallenge();
   const winRate = progress.gamesPlayed ? Math.round(progress.gamesWon/progress.gamesPlayed*100) : 0;
 
   // 5 derniers jours pour la mini-frise de streak
@@ -552,8 +518,8 @@ function renderEngageBar() {
         '<div style="font-size:13px">🔥</div>'+
       '</div>'+
       '<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:12px">'+
-        '<span style="font-size:34px;font-weight:900;font-family:\'DM Mono\',monospace;color:#ff8c42">'+progress.streak+'</span>'+
-        '<span style="font-size:13px;color:var(--muted)">jour'+(progress.streak>1?'s':'')+'</span>'+
+        '<span style="font-size:34px;font-weight:900;font-family:\'DM Mono\',monospace;color:#ff8c42">'+serieActuelle()+'</span>'+
+        '<span style="font-size:13px;color:var(--muted)">jour'+(serieActuelle()>1?'s':'')+'</span>'+
       '</div>'+
       '<div style="display:flex;gap:6px">'+streakDots+'</div>'+
     '</div>'+
@@ -573,17 +539,8 @@ function renderEngageBar() {
       '</div>'+
     '</div>'+
 
-    // ── Carte DÉFI DU JOUR ──
-    '<div onclick="completeDailyChallenge()" style="cursor:pointer;background:linear-gradient(135deg,rgba(74,148,99,0.1),rgba(45,90,61,0.05));border:1px solid rgba(74,148,99,0.25);border-radius:14px;padding:18px 20px;transition:transform .15s" onmouseover="this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.transform=\'\'">'+
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
-        '<div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">Défi du jour</div>'+
-        '<div style="font-size:13px">'+(dc.done?'✅':dc.type.icon)+'</div>'+
-      '</div>'+
-      '<div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px">'+dc.type.t+'</div>'+
-      '<div style="font-size:12px;color:'+(dc.done?'var(--accent-green-light)':'var(--gold)')+'">'+
-        (dc.done ? 'Complété · +50 XP' : 'Puzzle #'+dc.num+' · clique pour relever')+
-      '</div>'+
-    '</div>'+
+    // ── Carte DÉFI DU JOUR #N (36-defi-du-jour-et-cartes.js) ──
+    ((typeof carteDefiAccueil === 'function') ? carteDefiAccueil() : '')+
 
     // ── Carte STATS ──
     '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px">'+
@@ -615,7 +572,6 @@ function renderEngageBar() {
   setTimeout(renderDailyGameCard, 0);
 }
 
-function renderDailyCard() { renderEngageBar(); }
 
 /* ─── Section progression du profil (niveau, courbe ELO, badges) ─── */
 function sparkline(data, w, h, color) {

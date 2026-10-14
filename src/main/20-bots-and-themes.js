@@ -785,22 +785,45 @@ function answerHintsPreference(yes) {
 /* ═══════════════════════════════════════════
    STREAK / DAILY CHALLENGE
 ═══════════════════════════════════════════ */
+/* Bandeau de serie du profil. Avant (v2.57) : une serie de 18 jours inventee pour tout visiteur sans
+   compte, et les jours de la semaine coches d'office jusqu'a aujourd'hui. Desormais : la vraie
+   serie (jours consecutifs avec une partie ou un probleme, voir touchStreak), et les 7 derniers
+   jours coches seulement s'ils appartiennent a cette serie. */
 function renderStreak() {
-  const u = currentUser;
-  const streak = u ? (u.streak||0) : 18;
+  const EN = currentLang() === 'EN';
+  const p = (typeof progress !== 'undefined' && progress) ? progress : {};
+  const auj = todayStr();
+  const n = (typeof serieActuelle === 'function') ? serieActuelle() : (p.streak || 0);
+  const tenue = p.lastActive === auj;
   const el = document.getElementById('streak-title');
-  if (el) el.textContent = 'Série de '+streak+' jours';
+  if (el) el.textContent = n > 0
+    ? _tr('Série de ' + n + ' jour' + (n > 1 ? 's' : ''), n + '-day streak')
+    : _tr('Pas de série en cours', 'No streak yet');
+  const sub = document.getElementById('streak-sub');
+  if (sub) {
+    const rec = (p.bestStreak || 0) > n ? _tr(' Record : ' + p.bestStreak + ' jours.', ' Best: ' + p.bestStreak + ' days.') : '';
+    sub.textContent = (tenue
+      ? _tr('Série tenue aujourd’hui ✓ Revenez demain pour la prolonger.', 'Streak kept today ✓ Come back tomorrow to extend it.')
+      : n > 0
+        ? _tr('Jouez aujourd’hui pour prolonger votre série !', 'Play today to extend your streak!')
+        : _tr('Jouez une partie ou résolvez un problème pour démarrer une série.', 'Play a game or solve a puzzle to start a streak.')) + rec;
+  }
   const daysEl = document.getElementById('streak-days');
   if (!daysEl) return;
   daysEl.innerHTML = '';
-  const days = ['L','M','M','J','V','S','D'];
-  const today = new Date().getDay();
-  days.forEach(function(d,i) {
+  const lettres = EN ? ['S','M','T','W','T','F','S'] : ['D','L','M','M','J','V','S'];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    // jour de la serie la plus recente : entre (dernier jour actif - serie + 1) et le dernier jour actif
+    const ecart = p.lastActive ? daysBetween(ds, p.lastActive) : -1;
+    const fait = ecart >= 0 && ecart < (p.streak || 0);
     const div = document.createElement('div');
-    div.className = 'streak-day ' + (i < today ? 'done' : i === today ? 'today' : 'missed');
-    div.textContent = d;
+    div.className = 'streak-day ' + (fait ? 'done' : (ds === auj ? 'today' : 'missed'));
+    div.title = ds + (fait ? _tr(' : joué', ': played') : '');
+    div.textContent = lettres[d.getDay()];
     daysEl.appendChild(div);
-  });
+  }
 }
 
 /* ═══════════════════════════════════════════

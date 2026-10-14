@@ -34,7 +34,7 @@
       <div class="help-menu" id="help-menu">
         <button class="help-option" onclick="toggleHelpMenu(); showPage('aide')"><span>📖</span> Comment utiliser le site</button>
         <button class="help-option" onclick="openHelp('question')"><span>💬</span> Poser une question</button>
-        <button class="help-option" onclick="openReferralModal()"><span>📨</span> Inviter un ami (+XP)</button>
+        <button class="help-option" onclick="openReferralModal()"><span>📨</span> Inviter un ami</button>
         <button class="help-option" onclick="openHelp('suggestion')"><span>💡</span> Faire une suggestion</button>
         <button class="help-option" onclick="openHelp('bug')"><span>🐞</span> Signaler un bug</button>
         <button class="help-option" onclick="openHelp('abuse')"><span>🚫</span> Signaler un abus</button>
@@ -214,7 +214,7 @@
     <div class="hero-text">
       <div style="display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap">
         <div class="hero-badge" id="hero-stats">100 % hors-ligne · aucun compte requis</div>
-        <div class="hero-badge" id="hero-daily" style="background:rgba(74,148,99,0.1);border-color:rgba(74,148,99,0.2);color:var(--accent-green-light);cursor:pointer" onclick="openDailyPuzzle()">
+        <div class="hero-badge" id="hero-daily" style="background:rgba(74,148,99,0.1);border-color:rgba(74,148,99,0.2);color:var(--accent-green-light);cursor:pointer" onclick="ouvrirDefi()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')ouvrirDefi()">
           🔥 Défi du jour
         </div>
       </div>
@@ -1072,6 +1072,7 @@
           <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;justify-content:center">
             <button class="btn-gold" style="padding:12px 28px;font-size:15px;font-weight:600;border:none;border-radius:8px;cursor:pointer" onclick="resetGame()">Nouvelle partie</button>
             <button class="btn-ghost" style="padding:12px 22px;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:none;color:var(--text)" onclick="shareResult()">📤 Partager</button>
+            <button class="btn-ghost" style="padding:12px 22px;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:none;color:var(--text)" onclick="partagerImageFin()" title="Une image carrée du résultat et du plateau final">🖼️ Image</button>
             <button class="btn-ghost" style="padding:12px 22px;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:none;color:var(--text)" onclick="hideWinOverlay()">🔍 Revoir la partie</button>
             <button class="btn-ghost" style="padding:12px 22px;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:none;color:var(--text)" onclick="openMistakesReview()">⚠️ Revoir mes erreurs</button>
           </div>
@@ -2033,11 +2034,11 @@
   <!-- GUEST: not logged in -->
   <div id="profile-guest" style="display:none;min-height:80vh;padding-top:120px;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center">
     <div style="font-size:64px">&#128274;</div>
-    <h2 style="font-family:'Playfair Display',serif;font-size:32px;color:var(--white)">Connexion requise</h2>
-    <p style="color:var(--muted);font-size:16px;max-width:380px;line-height:1.7">Connectez-vous pour acceder a votre profil, vos stats et votre historique.</p>
+    <h2 style="font-family:'Playfair Display',serif;font-size:32px;color:var(--white)">Votre profil</h2>
+    <p style="color:var(--muted);font-size:16px;max-width:420px;line-height:1.7">Créez un profil (ou connectez-vous) pour voir vos statistiques, votre série et vos dernières parties. Tout reste dans ce navigateur, sur cet appareil.</p>
     <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
       <button class="btn-ghost" onclick="openModal('login')" style="padding:12px 28px;font-size:15px">Se connecter</button>
-      <button class="btn-gold" onclick="openModal('signup')" style="padding:12px 28px;font-size:15px">Creer un compte</button>
+      <button class="btn-gold" onclick="openModal('signup')" style="padding:12px 28px;font-size:15px">Créer un profil</button>
     </div>
   </div>
   <!-- LOGGED: connected -->
@@ -2075,152 +2076,29 @@
           <div class="rank-val" id="profile-elo-display">1200</div>
           <div class="rank-sub" id="profile-elo-sub">Joueur</div>
         </div>
-        <button id="settings-nav-btn" onclick="showPage('settings')" style="padding:9px 16px;background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;white-space:nowrap" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">&#9881; Parametres</button>
-        <button onclick="logout()" style="padding:9px 16px;background:none;border:1px solid rgba(192,57,43,0.3);color:#e05c4b;border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;white-space:nowrap">Deconnexion</button>
+        <button id="settings-nav-btn" onclick="showPage('settings')" style="padding:9px 16px;background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;white-space:nowrap" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">⚙ Paramètres</button>
+        <button onclick="logout()" style="padding:9px 16px;background:none;border:1px solid rgba(192,57,43,0.3);color:#e05c4b;border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;white-space:nowrap">Déconnexion</button>
       </div>
     </div>
     <div class="profile-stats-bar">
       <div class="pstat"><div class="pstat-val" id="ps-games">0</div><div class="pstat-label">Parties</div><div class="pstat-sub" id="ps-games-sub">Commencez !</div></div>
       <div class="pstat"><div class="pstat-val" id="ps-wr">-</div><div class="pstat-label">Victoires</div><div class="pstat-sub" id="ps-wr-sub">-</div></div>
       <div class="pstat"><div class="pstat-val" id="ps-elo">1200</div><div class="pstat-label">ELO actuel</div><div class="pstat-sub" id="ps-elo-sub">Max: 1200</div></div>
-      <div class="pstat"><div class="pstat-val" id="ps-streak">0</div><div class="pstat-label">Serie active</div><div class="pstat-sub">Wins consecutifs</div></div>
-      <div class="pstat"><div class="pstat-val" id="ps-rank">-</div><div class="pstat-label">Rang mondial</div><div class="pstat-sub" id="ps-rank-sub">Non classe</div></div>
+      <div class="pstat"><div class="pstat-val" id="ps-streak">0</div><div class="pstat-label">Série</div><div class="pstat-sub" id="ps-streak-sub">Record : 0</div></div>
+      <div class="pstat"><div class="pstat-val" id="ps-puzzles">0</div><div class="pstat-label">Problèmes résolus</div><div class="pstat-sub" id="ps-puzzles-sub">-</div></div>
     </div>
-    </div>
-
-    <!-- Badges plateforme -->
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-      <a href="http://www.abal.online/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 12px;background:rgba(74,148,99,0.1);color:var(--accent-green-light);border:1px solid rgba(74,148,99,0.3);border-radius:20px;text-decoration:none;font-family:'DM Mono',monospace">🎮 abal.online · ocj94</a>
-      <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 12px;background:rgba(200,168,75,0.08);color:var(--gold);border:1px solid rgba(200,168,75,0.2);border-radius:20px;font-family:'DM Mono',monospace">⭐ 4× Shutout 6-0</span>
-      <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 12px;background:rgba(200,168,75,0.08);color:var(--gold);border:1px solid rgba(200,168,75,0.2);border-radius:20px;font-family:'DM Mono',monospace">🏆 ELO Abalone max 1805</span>
-      <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 12px;background:rgba(200,168,75,0.08);color:var(--gold);border:1px solid rgba(200,168,75,0.2);border-radius:20px;font-family:'DM Mono',monospace">🔥 Streak 18j</span>
-    </div>
-
-    <!-- Historique réel — abal.online -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:24px">
-      <div style="padding:14px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-        <div style="font-size:13px;font-weight:600;color:var(--white)">Parties enregistrées</div>
-        <div style="font-size:11px;color:var(--gold);font-family:'DM Mono',monospace">abal.online · ocj94</div>
-      </div>
-      <div style="display:flex;flex-direction:column">
-        <!-- Dec 2019 - Jan 2020 - Feb 2020 -->
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(42,51,48,0.4)">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Victoire 5-0</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Blanc · 5-0 · 78 coups · 13 déc. 2019</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--accent-green-light)">✅</div><div style="font-size:11px;color:var(--muted)">—</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(42,51,48,0.4);background:rgba(200,168,75,0.03)">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Victoire par forfait <span style="font-size:11px;color:var(--muted)">adversaire abandonné</span></div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Blanc · 3-3 au moment de l'abandon · 76 coups · 31 déc. 2019</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--accent-green-light)">✅</div><div style="font-size:11px;color:var(--muted)">Forfait</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(42,51,48,0.4)">
-          <div style="width:8px;height:8px;border-radius:50%;background:#e05c4b;flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Défaite — Shutout subi</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Noir · 6-0 · 94 coups · 26 jan. 2020 · ELO ~1794</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:#e05c4b">❌</div><div style="font-size:11px;color:var(--muted)">—</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(42,51,48,0.4);background:rgba(200,168,75,0.03)">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Victoire vs fargokayogi 🥇 <span style="font-size:11px;color:var(--gold)">Première victoire en réseau !</span></div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Blanc · 6-2 · 129 coups · 1 fév. 2020 · Adv. ELO 1665</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--gold)">+11</div><div style="font-size:11px;color:var(--muted)">1805 ELO</div></div>
-        </div>
-
-        <!-- Separator -->
-        <div style="padding:8px 18px;background:var(--surface2);border-bottom:1px solid var(--border)">
-          <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Parties suivantes ↓</span>
-        </div>
-
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(42,51,48,0.4)">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Victoire vs Vilches65</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Noir · 6-3 · 94 coups · 14 mai 2019</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--accent-green-light)">+2</div><div style="font-size:11px;color:var(--muted)">1770 ELO</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(42,51,48,0.4);background:rgba(200,168,75,0.03)">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Victoire — Shutout ⭐</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Blanc · <strong style="color:var(--gold)">6-0</strong> · 50 coups · 18 avr. 2020</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--gold)">Shutout</div><div style="font-size:11px;color:var(--muted)">—</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(42,51,48,0.4)">
-          <div style="width:8px;height:8px;border-radius:50%;background:#e05c4b;flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Défaite vs The Mandalorian</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Blanc · 4-1 · 39 coups · 19 avr. 2020 · Adv. ELO 1650</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--muted)">—</div><div style="font-size:11px;color:var(--muted)">non classé</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;background:rgba(200,168,75,0.03)">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Victoire — Shutout ⭐</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Blanc · <strong style="color:var(--gold)">6-0</strong> · 50 coups · 17 mai 2020</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--gold)">Shutout</div><div style="font-size:11px;color:var(--muted)">—</div></div>
-        </div>
-      </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(42,51,48,0.4);background:rgba(200,168,75,0.03)">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Victoire 🥇 <span style="font-size:11px;color:var(--gold)">Première victoire en réseau !</span></div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">6-2 · 120 coups · 1 fév. 2020</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--gold)">🥇</div><div style="font-size:11px;color:var(--muted)">—</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(42,51,48,0.4)">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Victoire — Shutout ⭐ vs Jamjest</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Blanc · <strong style="color:var(--gold)">6-0</strong> · 177 coups · 12 mars 2020</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--gold)">Shutout</div><div style="font-size:11px;color:var(--muted)">—</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(42,51,48,0.4);background:rgba(200,168,75,0.03)">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Victoire — Shutout ⭐ <span style="font-size:11px;color:var(--gold)">Première victoire en réseau !</span></div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Blanc · <strong style="color:var(--gold)">6-0</strong> · 74 coups · 25 mars 2020</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--gold)">🥇 Shutout</div><div style="font-size:11px;color:var(--muted)">—</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Victoire</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Noir · 6-1 · 94 coups · 25 mars 2020</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--accent-green-light)">✅</div><div style="font-size:11px;color:var(--muted)">—</div></div>
-        </div>
-      </div>
-      <div style="padding:10px 18px;background:var(--surface2);display:flex;justify-content:space-between;font-size:11px;color:var(--muted)">
-        <span>10V · 2D · Bilan <strong style="color:var(--accent-green-light)">83%</strong></span>
-        <span>4× Shutout · 1× Forfait · ELO max 1805 · 🥇 1ère victoire 1 fév. 2020</span>
-      </div>
-    </div>
+    <!-- Avant (v2.57) : ici s'affichaient les badges et une douzaine de parties d'abal.online
+         (2019-2020) du compte ocj94, pour TOUT profil, comme si c'etaient les siennes ; et la serie
+         de 18 jours, le graphique ELO « 1388 → 1489 » et les succes etaient ecrits en dur. Tout ce
+         qui suit est calcule a partir de la progression enregistree sur cet appareil. -->
     <div id="streak-banner" style="display:flex;align-items:center;gap:16px;padding:18px 24px;background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.2);border-radius:10px;margin-bottom:24px;flex-wrap:wrap">
       <div style="font-size:36px">🔥</div>
       <div>
-        <div style="font-size:15px;font-weight:700;color:var(--white)" id="streak-title">Série de 18 jours</div>
-        <div style="font-size:13px;color:var(--muted)">Jouez aujourd'hui pour maintenir votre série !</div>
+        <div style="font-size:15px;font-weight:700;color:var(--white)" id="streak-title">Série</div>
+        <div style="font-size:13px;color:var(--muted)" id="streak-sub">Jouez une partie ou résolvez un problème pour démarrer une série.</div>
       </div>
       <div style="margin-left:auto;display:flex;gap:6px">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:2px" id="streak-days"></div>
+        <div style="display:flex;align-items:center;gap:4px" id="streak-days"></div>
       </div>
       <button onclick="playGame()" style="padding:9px 20px;background:var(--gold);border:none;border-radius:8px;color:#0d0f0e;font-size:13px;font-weight:700;cursor:pointer">Jouer maintenant</button>
     </div>
@@ -2524,52 +2402,16 @@
       <div class="profile-card">
         <div class="profile-card-header">
           Historique récent
-          <span style="font-size:12px;color:var(--muted)">10 dernières parties</span>
+          <a href="#" onclick="showPage('historique');return false" style="font-size:12px;color:var(--gold);text-decoration:none">Tout l'historique →</a>
         </div>
         <div class="profile-card-body" id="game-history"></div>
       </div>
       <div class="profile-card">
         <div class="profile-card-header">
           Progression ELO (30 jours)
-          <span style="font-size:12px;color:var(--accent-green-light)">+24 pts</span>
+          <span style="font-size:12px;color:var(--muted)" id="profile-elo-diff"></span>
         </div>
-        <div class="profile-card-body">
-          <div class="rating-chart">
-            <svg viewBox="0 0 260 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#c8a84b" stop-opacity="0.3"/>
-                  <stop offset="100%" stop-color="#c8a84b" stop-opacity="0"/>
-                </linearGradient>
-              </defs>
-              <path d="M0,80 L20,75 L40,70 L60,72 L80,65 L100,60 L120,55 L140,58 L160,50 L180,45 L200,40 L220,35 L240,30 L260,20" fill="none" stroke="#c8a84b" stroke-width="2" stroke-linecap="round"/>
-              <path d="M0,80 L20,75 L40,70 L60,72 L80,65 L100,60 L120,55 L140,58 L160,50 L180,45 L200,40 L220,35 L240,30 L260,20 L260,100 L0,100 Z" fill="url(#chartGrad)"/>
-            </svg>
-          </div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace">
-            <span>1 Avr</span><span>10 Avr</span><span>20 Avr</span><span>1 Mai</span><span>Auj.</span>
-          </div>
-          <div style="margin-top:20px">
-            <div style="display:flex;justify-content:space-between;margin-bottom:12px">
-              <span style="font-size:13px;color:var(--muted)">ELO départ (1 Avr)</span>
-              <span style="font-family:'DM Mono',monospace;color:var(--text)">1388</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:12px">
-              <span style="font-size:13px;color:var(--muted)">ELO maximum</span>
-              <span style="font-family:'DM Mono',monospace;color:var(--gold)">1489</span>
-            </div>
-            <div style="display:flex;justify-content:space-between">
-              <span style="font-size:13px;color:var(--muted)">ELO actuel</span>
-              <span style="font-family:'DM Mono',monospace;color:var(--muted)">—</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="profile-card" style="grid-column:1/-1">
-        <div class="profile-card-header">Succès et badges</div>
-        <div class="profile-card-body">
-          <div class="achievement-grid" id="achievements"></div>
-        </div>
+        <div class="profile-card-body" id="profile-elo-card"></div>
       </div>
     </div>
   </div>
@@ -2591,7 +2433,6 @@
       <button onclick="showSettingsTab('notifs')" class="settings-tab" id="stab-notifs">Notifications</button>
       <button onclick="showSettingsTab('permissions')" class="settings-tab" id="stab-permissions">🔒 Autorisations</button>
       <button onclick="showSettingsTab('accessibility')" class="settings-tab" id="stab-accessibility">👁 Accessibilité</button>
-      <button onclick="showSettingsTab('writer')" class="settings-tab" id="stab-writer" style="display:none;color:#b89ef0;border-left:2px solid #b89ef0">Espace redacteur</button>
       <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
         <button onclick="logout()" style="width:100%;padding:10px 14px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.25);color:#e05c4b;border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;text-align:left">Deconnexion</button>
         <button onclick="exportMyData()" style="width:100%;margin-top:8px;padding:10px 14px;background:rgba(74,148,99,0.05);border:1px solid rgba(74,148,99,0.4);color:var(--accent-green-light);border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;text-align:left">📦 Exporter mes données (JSON)</button>
@@ -2832,6 +2673,8 @@
         <!-- Refresh button -->
         <button class="modal-submit" style="max-width:220px;margin-top:16px" onclick="checkAllPermissions()">🔄 Vérifier toutes les autorisations</button>
       </div>
+      <!-- ══ NOTIFICATIONS ══ (sa balise d'ouverture avait disparu : le bloc s'affichait sous tous les onglets) -->
+      <div class="settings-panel" id="spanel-notifs">
         <div style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:20px">Notifications</div>
         <div style="display:flex;flex-direction:column;gap:12px">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
@@ -3059,46 +2902,6 @@
         <button onclick="resetAccessibility()" style="width:100%;padding:11px;background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;transition:all 0.2s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🔄 Réinitialiser tous les réglages d'accessibilité</button>
       </div>
 
-      <!-- ══ ESPACE RÉDACTEUR ══ -->
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
-          <div style="font-size:18px;font-weight:700;color:#b89ef0">Espace Redacteur</div>
-          <span style="font-size:10px;padding:2px 8px;background:rgba(138,114,210,0.2);color:#b89ef0;border-radius:8px;font-weight:700">REDACTEUR</span>
-        </div>
-        <div style="padding:16px 18px;background:rgba(138,114,210,0.06);border:1px solid rgba(138,114,210,0.2);border-radius:10px;margin-bottom:20px">
-          <div style="font-size:13px;font-weight:600;color:#b89ef0;margin-bottom:6px">Compte redacteur — FightClub</div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.7">Nom reel: Frederic Garnier<br>Blog: onlineabalone.wordpress.com (fondateur 2013)<br>Role: Administrateur principal, redacteur en chef</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:12px">
-          <div class="form-group"><label class="form-label">Titre de l'article</label><input class="form-input" id="article-title" placeholder="Ex: Analyse de l'ouverture Daisy..."></div>
-          <div class="form-group"><label class="form-label">Categorie</label>
-            <select class="form-input" id="article-cat" style="cursor:pointer">
-              <option>Abalone Academy</option><option>Variantes</option><option>Problemes mensuels</option><option>Evenements</option><option>Musee</option><option>Strategie</option><option>Histoire du jeu</option>
-            </select>
-          </div>
-          <div class="form-group"><label class="form-label">Contenu de l'article</label><textarea class="form-input" id="article-body" rows="10" style="resize:vertical;min-height:200px;font-family:'DM Mono',monospace;font-size:13px" placeholder="Redigez votre article ici... Markdown supporte.&#10;&#10;## Titre&#10;**Texte en gras**&#10;[Lien](url)"></textarea></div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <button class="modal-submit" style="max-width:180px" onclick="publishArticle()">Publier l'article</button>
-            <button style="padding:12px 20px;background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px" onclick="showToast('Brouillon sauvegarde')">Sauver brouillon</button>
-          </div>
-        </div>
-        <div style="margin-top:24px;border-top:1px solid var(--border);padding-top:20px">
-          <div style="font-size:13px;font-weight:600;color:var(--white);margin-bottom:12px">Articles recents publies</div>
-          <div style="display:flex;flex-direction:column;gap:8px" id="writer-articles">
-            <div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;display:flex;justify-content:space-between;align-items:center">
-              <div><div style="font-size:13px;color:var(--text)">Les configurations bloquees</div><div style="font-size:11px;color:var(--muted)">Abalone Academy</div></div>
-              <a href="https://onlineabalone.wordpress.com/abalone-academy/un-peu-de-theorie/les-configurations-bloquees/" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold);text-decoration:none">Voir</a>
-            </div>
-            <div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;display:flex;justify-content:space-between;align-items:center">
-              <div><div style="font-size:13px;color:var(--text)">Probleme du mois - Mai 2025</div><div style="font-size:11px;color:var(--muted)">Problemes abaloniens</div></div>
-              <a href="https://onlineabalone.wordpress.com/abalone-academy/problemes-abaloniens/problemes-mensuels/" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold);text-decoration:none">Voir</a>
-            </div>
-            <div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;display:flex;justify-content:space-between;align-items:center">
-              <div><div style="font-size:13px;color:var(--text)">Variantes pour 5 et 6 joueurs</div><div style="font-size:11px;color:var(--muted)">Variantes</div></div>
-              <a href="https://onlineabalone.wordpress.com/les-variantes/abalone-multi-joueurs/" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold);text-decoration:none">Voir</a>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </div>
@@ -3400,10 +3203,11 @@
         <div id="puzzle-progress-label" style="font-size:12px;color:var(--muted);white-space:nowrap;font-weight:600">0 / 0 résolus</div>
       </div>
 
-      <!-- PUZZLE DU JOUR -->
+      <!-- DÉFI DU JOUR #N (36-defi-du-jour-et-cartes.js) -->
       <div style="background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:18px 20px;margin-bottom:16px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-          <span style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px">Le puzzle du jour</span>
+          <span style="font-size:20px">🔥</span>
+          <span style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px">Le défi du jour</span>
         </div>
         <div id="daily-puzzle-card"></div>
       </div>
@@ -3444,7 +3248,7 @@
         <div class="puzzle-mode-btn" id="puzzle-mode-daily" onclick="setPuzzleMode('daily',this)">
           <div style="font-size:18px;margin-bottom:3px">🔥</div>
           <div style="font-size:12px;font-weight:600;color:var(--white)">Défi du jour</div>
-          <div style="font-size:10px;color:var(--gold)">Nouveau chaque jour</div>
+          <div style="font-size:10px;color:var(--gold)">Le même pour tous</div>
         </div>
         <div class="puzzle-mode-btn" id="puzzle-mode-generated" onclick="setPuzzleMode('generated',this)">
           <div style="font-size:18px;margin-bottom:3px">🎲</div>
@@ -3534,7 +3338,15 @@
     <p style="color:var(--muted);font-size:15px;margin-top:12px;max-width:560px">Du classique 2J aux modes multi-joueurs et variantes expérimentales.</p>
   </div>
   <div style="padding:0 60px 80px">
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:32px" id="variants-grid"></div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin:28px 0 0" id="variants-filter-btns">
+      <button class="filter-btn active" onclick="filterVariants('all', event)">Toutes</button>
+      <button class="filter-btn" onclick="filterVariants('2', event)">👥 2 joueurs</button>
+      <button class="filter-btn" onclick="filterVariants('3', event)">🔺 3 joueurs</button>
+      <button class="filter-btn" onclick="filterVariants('4', event)">♟️ 4 joueurs</button>
+      <button class="filter-btn" onclick="filterVariants('5', event)">⭐ 5 joueurs</button>
+      <button class="filter-btn" onclick="filterVariants('6', event)">🌟 6 joueurs</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px" id="variants-grid"></div>
     <!-- Positions catalog from onlineabalone.wordpress.com -->
     <div style="margin-top:32px">
       <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Positions de départ — Source : <a href="https://onlineabalone.wordpress.com" target="_blank" rel="noopener noreferrer" style="color:var(--gold)">onlineabalone.wordpress.com</a></div>
@@ -4113,14 +3925,7 @@
     <p style="color:var(--muted);font-size:15px;margin-top:12px;max-width:560px">Éditions spéciales, pièces de collection et versions historiques du jeu.</p>
   </div>
   <div style="padding:0 60px 80px">
-    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:24px" id="variants-filter-btns">
-      <button class="filter-btn active" onclick="filterVariants('all', event)">Toutes (20)</button>
-      <button class="filter-btn" onclick="filterVariants('2', event)">👥 2 joueurs</button>
-      <button class="filter-btn" onclick="filterVariants('3', event)">🔺 3 joueurs</button>
-      <button class="filter-btn" onclick="filterVariants('4', event)">♟️ 4 joueurs</button>
-      <button class="filter-btn" onclick="filterVariants('5', event)">⭐ 5 joueurs</button>
-      <button class="filter-btn" onclick="filterVariants('6', event)">🌟 6 joueurs</button>
-    </div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:24px" id="museum-filter-btns">
       <button class="filter-btn active" onclick="if(typeof filterMuseum==='function')filterMuseum('all',this)">Tout voir</button>
       <button class="filter-btn" onclick="if(typeof filterMuseum==='function')filterMuseum('luxe',this)">💎 Luxe</button>
       <button class="filter-btn" onclick="if(typeof filterMuseum==='function')filterMuseum('bois',this)">🪵 Bois</button>
@@ -5076,81 +4881,73 @@
       <div style="width:36px;height:36px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f0d080,#c8a84b);display:flex;align-items:center;justify-content:center;font-size:16px">🔐</div>
       <h3 style="margin:0">Bon retour !</h3>
     </div>
-    <p>Connectez-vous à votre compte Abalone.</p>
+    <p>Retrouvez votre profil local.</p>
+    <div style="display:flex;gap:8px;align-items:flex-start;padding:10px 12px;background:rgba(74,148,99,0.07);border:1px solid rgba(74,148,99,0.22);border-radius:8px;margin:0 0 16px;font-size:12px;line-height:1.55;color:var(--muted)">
+      <span>📱</span><span>Pas de serveur : votre profil, vos parties et votre progression restent <b style="color:var(--text)">dans ce navigateur, sur cet appareil</b>. Rien n'est envoyé, aucun e-mail ne vous sera écrit. N'y mettez pas un mot de passe qui vous sert ailleurs. Pour changer d'appareil : Paramètres → Exporter mes données.</span>
+    </div>
     <div class="form-group">
-      <label class="form-label">Email ou nom d'utilisateur</label>
-      <input class="form-input" id="login-email" type="text" placeholder="olivier@exemple.com">
+      <label class="form-label">Nom d'utilisateur ou e-mail</label>
+      <input class="form-input" id="login-email" type="text" placeholder="MarbleKing42" autocomplete="username" onkeydown="if(event.key==='Enter')submitLogin()">
     </div>
     <div class="form-group" style="position:relative">
       <label class="form-label">Mot de passe</label>
-      <input class="form-input" id="login-pw" type="password" placeholder="••••••••" style="padding-right:44px">
-      <button onclick="togglePw('login-pw',this)" style="position:absolute;right:12px;bottom:10px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px">👁</button>
+      <input class="form-input" id="login-pw" type="password" placeholder="••••••••" autocomplete="current-password" style="padding-right:44px" onkeydown="if(event.key==='Enter')submitLogin()">
+      <button onclick="togglePw('login-pw',this)" style="position:absolute;right:12px;bottom:10px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px" aria-label="Afficher le mot de passe">👁</button>
     </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin:-6px 0 18px">
-      <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);cursor:pointer">
-        <input type="checkbox" style="accent-color:var(--gold)"> Rester connecté
-      </label>
+    <div style="display:flex;justify-content:flex-end;align-items:center;margin:-6px 0 18px">
       <a style="font-size:13px;color:var(--gold);cursor:pointer" onclick="closeModal('login');openModal('forgot')">Mot de passe oublié ?</a>
     </div>
     <button class="modal-submit" onclick="submitLogin()">Continuer →</button>
-    <div style="display:flex;align-items:center;gap:12px;margin:18px 0">
-      <div style="flex:1;height:1px;background:var(--border)"></div>
-      <span style="font-size:12px;color:var(--muted)">ou continuer avec</span>
-      <div style="flex:1;height:1px;background:var(--border)"></div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
-      <button class="social-btn" onclick="showToast('🔗 Connexion Google…')">
-        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#EA4335" d="M5.27 9.76A7.08 7.08 0 0 1 12 4.9c1.69 0 3.22.6 4.41 1.57l3.3-3.3A11.94 11.94 0 0 0 12 1C7.82 1 4.17 3.35 2.27 6.82l3 2.94Z"/><path fill="#34A853" d="M16.04 18.01A7.06 7.06 0 0 1 12 19.1a7.08 7.08 0 0 1-6.72-4.82l-3.02 2.33A11.95 11.95 0 0 0 12 23c3.06 0 5.96-1.15 8.12-3.24l-4.08-1.75Z"/><path fill="#FBBC05" d="M19.1 12c0-.65-.07-1.28-.18-1.9H12v3.6h4.01a3.43 3.43 0 0 1-1.49 2.25l4.08 1.75A11.93 11.93 0 0 0 20 12h-.9Z"/><path fill="#4285F4" d="M2.27 6.82A11.93 11.93 0 0 0 1 12c0 1.86.43 3.62 1.2 5.19l3.08-2.39A7.03 7.03 0 0 1 4.9 12c0-.78.13-1.53.37-2.24L2.27 6.82Z"/></svg>
-        Google
-      </button>
-      <button class="social-btn" onclick="showToast('🔗 Connexion Discord…')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="#5865F2"><path d="M20.32 4.37a19.8 19.8 0 0 0-4.93-1.51.07.07 0 0 0-.08.04c-.21.38-.45.87-.61 1.25a18.27 18.27 0 0 0-5.49 0 12.57 12.57 0 0 0-.62-1.25.08.08 0 0 0-.08-.04 19.74 19.74 0 0 0-4.93 1.51.07.07 0 0 0-.03.03C1.77 8.87 1.1 13.25 1.4 17.57c0 .02.01.04.03.05a19.9 19.9 0 0 0 5.99 3.03.08.08 0 0 0 .09-.03 14.2 14.2 0 0 0 1.23-2 .08.08 0 0 0-.04-.1 13.1 13.1 0 0 1-1.87-.9.08.08 0 0 1-.01-.12c.13-.1.25-.2.37-.3a.07.07 0 0 1 .08-.01c3.93 1.8 8.18 1.8 12.06 0a.07.07 0 0 1 .08.01c.12.1.25.21.37.3a.08.08 0 0 1-.01.13 12.3 12.3 0 0 1-1.87.89.08.08 0 0 0-.04.11c.36.7.77 1.37 1.23 2a.08.08 0 0 0 .09.03 19.84 19.84 0 0 0 6-3.03.08.08 0 0 0 .03-.05c.37-3.83-.62-7.16-2.61-10.17a.06.06 0 0 0-.03-.03ZM8.52 15.38c-1.18 0-2.16-1.09-2.16-2.42s.96-2.42 2.16-2.42c1.21 0 2.17 1.1 2.16 2.42 0 1.33-.96 2.42-2.16 2.42Zm7.98 0c-1.18 0-2.16-1.09-2.16-2.42s.96-2.42 2.16-2.42c1.21 0 2.17 1.1 2.16 2.42 0 1.33-.95 2.42-2.16 2.42Z"/></svg>
-        Discord
-      </button>
-    </div>
-    <div class="modal-switch">Pas encore de compte ? <a onclick="closeModal('login');openModal('signup')">S'enregistrer gratuitement</a></div>
+    <div class="modal-switch" style="margin-top:16px">Pas encore de profil ? <a onclick="closeModal('login');openModal('signup')">Créer un profil</a></div>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════
-     MODAL — SUCCÈS CONNEXION (étape 3)
+     MODAL — SUCCÈS CONNEXION
 ══════════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-login-success">
   <div class="modal" style="width:420px;text-align:center">
     <div style="width:72px;height:72px;border-radius:50%;background:rgba(74,148,99,0.15);border:2px solid rgba(74,148,99,0.4);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 20px">✅</div>
-    <h3 style="margin-bottom:8px">Connexion réussie !</h3>
-    <p style="margin-bottom:6px">Bienvenue sur Abalone, <strong style="color:var(--gold)" id="success-username">joueur</strong> !</p>
+    <h3 style="margin-bottom:8px">C'est fait !</h3>
+    <p style="margin-bottom:6px">Bienvenue, <strong style="color:var(--gold)" id="success-username">joueur</strong> !</p>
     <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;background:rgba(74,148,99,0.08);border:1px solid rgba(74,148,99,0.2);border-radius:8px;margin:16px 0;font-size:13px;color:var(--accent-green-light)">
-      <span>📱</span> <span>Compte enregistré sur cet appareil</span>
+      <span>📱</span> <span>Profil enregistré dans ce navigateur</span>
     </div>
     <button class="modal-submit" onclick="closeModal('login-success');showPage('profile')">Accéder à mon profil →</button>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════
-     MODAL — S'ENREGISTRER (étape 1)
+     MODAL — CRÉER UN PROFIL
+     Avant (v2.57) : « Rejoignez… », un nom soi-disant vu des autres joueurs, boutons Google et
+     Discord qui n'affichaient qu'une bulle, e-mail obligatoire jamais utilise, liens vers des
+     conditions qui n'ouvraient rien.
 ══════════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-signup">
   <div class="modal" style="width:460px">
     <button class="modal-close" onclick="closeModal('signup')">×</button>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
       <div style="width:36px;height:36px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f0d080,#c8a84b);display:flex;align-items:center;justify-content:center;font-size:16px">⚪</div>
-      <h3 style="margin:0">Rejoignez Abalone</h3>
+      <h3 style="margin:0">Créer un profil</h3>
     </div>
-    <p>Créez votre compte et jouez en moins d'une minute.</p>
+    <p>Un nom, un mot de passe, et c'est parti. Le profil est facultatif : on peut jouer sans.</p>
+    <div style="display:flex;gap:8px;align-items:flex-start;padding:10px 12px;background:rgba(74,148,99,0.07);border:1px solid rgba(74,148,99,0.22);border-radius:8px;margin:0 0 16px;font-size:12px;line-height:1.55;color:var(--muted)">
+      <span>📱</span><span>Pas de serveur : votre profil, vos parties et votre progression restent <b style="color:var(--text)">dans ce navigateur, sur cet appareil</b>. Rien n'est envoyé, aucun e-mail ne vous sera écrit. N'y mettez pas un mot de passe qui vous sert ailleurs. Pour changer d'appareil : Paramètres → Exporter mes données.</span>
+    </div>
     <div class="form-group">
       <label class="form-label">Nom d'utilisateur</label>
-      <input class="form-input" id="signup-username" type="text" placeholder="MarbleKing42">
-      <div style="font-size:11px;color:var(--muted);margin-top:5px">Visible par les autres joueurs · min. 3 caractères</div>
+      <input class="form-input" id="signup-username" type="text" placeholder="MarbleKing42" autocomplete="username">
+      <div style="font-size:11px;color:var(--muted);margin-top:5px">3 à 24 caractères · affiché sur cet appareil</div>
     </div>
     <div class="form-group">
-      <label class="form-label">Adresse email</label>
-      <input class="form-input" id="signup-email" type="email" placeholder="vous@exemple.com">
+      <label class="form-label">Adresse e-mail (facultatif)</label>
+      <input class="form-input" id="signup-email" type="email" placeholder="vous@exemple.com" autocomplete="email">
+      <div style="font-size:11px;color:var(--muted);margin-top:5px">Sert seulement à vous reconnecter ici.</div>
     </div>
     <div class="form-group" style="position:relative">
       <label class="form-label">Mot de passe</label>
-      <input class="form-input" id="signup-pw" type="password" placeholder="Au moins 8 caractères" oninput="checkPwStrength(this.value)" style="padding-right:44px">
-      <button onclick="togglePw('signup-pw',this)" style="position:absolute;right:12px;bottom:10px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px">👁</button>
+      <input class="form-input" id="signup-pw" type="password" placeholder="Au moins 8 caractères" autocomplete="new-password" oninput="checkPwStrength(this.value,'-2')" style="padding-right:44px">
+      <button onclick="togglePw('signup-pw',this)" style="position:absolute;right:12px;top:31px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px" aria-label="Afficher le mot de passe">👁</button>
       <div id="pw-strength-bar-2" style="height:3px;border-radius:2px;margin-top:6px;background:var(--border);overflow:hidden">
         <div id="pw-strength-fill-2" style="height:100%;width:0%;transition:all 0.3s;border-radius:2px"></div>
       </div>
@@ -5158,42 +4955,28 @@
     </div>
     <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:18px">
       <input type="checkbox" id="signup-terms" style="accent-color:var(--gold);margin-top:2px;flex-shrink:0">
-      <label for="signup-terms" style="font-size:13px;color:var(--muted);cursor:pointer;line-height:1.5">J'accepte les <a style="color:var(--gold)">conditions d'utilisation</a> et la <a style="color:var(--gold)">politique de confidentialité</a></label>
+      <label for="signup-terms" style="font-size:13px;color:var(--muted);cursor:pointer;line-height:1.5">J'accepte les <a style="color:var(--gold);cursor:pointer" onclick="event.preventDefault();closeModal('signup');showPage('mentions')">mentions légales</a> et la <a style="color:var(--gold);cursor:pointer" onclick="event.preventDefault();closeModal('signup');showPage('privacy')">politique de confidentialité</a></label>
     </div>
-    <button class="modal-submit" onclick="submitSignup()">Créer mon compte →</button>
-    <div style="display:flex;align-items:center;gap:12px;margin:16px 0">
-      <div style="flex:1;height:1px;background:var(--border)"></div>
-      <span style="font-size:12px;color:var(--muted)">ou</span>
-      <div style="flex:1;height:1px;background:var(--border)"></div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-      <button class="social-btn" onclick="showToast('🔗 Inscription Google…')">
-        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#EA4335" d="M5.27 9.76A7.08 7.08 0 0 1 12 4.9c1.69 0 3.22.6 4.41 1.57l3.3-3.3A11.94 11.94 0 0 0 12 1C7.82 1 4.17 3.35 2.27 6.82l3 2.94Z"/><path fill="#34A853" d="M16.04 18.01A7.06 7.06 0 0 1 12 19.1a7.08 7.08 0 0 1-6.72-4.82l-3.02 2.33A11.95 11.95 0 0 0 12 23c3.06 0 5.96-1.15 8.12-3.24l-4.08-1.75Z"/><path fill="#FBBC05" d="M19.1 12c0-.65-.07-1.28-.18-1.9H12v3.6h4.01a3.43 3.43 0 0 1-1.49 2.25l4.08 1.75A11.93 11.93 0 0 0 20 12h-.9Z"/><path fill="#4285F4" d="M2.27 6.82A11.93 11.93 0 0 0 1 12c0 1.86.43 3.62 1.2 5.19l3.08-2.39A7.03 7.03 0 0 1 4.9 12c0-.78.13-1.53.37-2.24L2.27 6.82Z"/></svg>
-        Google
-      </button>
-      <button class="social-btn" onclick="showToast('🔗 Inscription Discord…')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="#5865F2"><path d="M20.32 4.37a19.8 19.8 0 0 0-4.93-1.51.07.07 0 0 0-.08.04c-.21.38-.45.87-.61 1.25a18.27 18.27 0 0 0-5.49 0 12.57 12.57 0 0 0-.62-1.25.08.08 0 0 0-.08-.04 19.74 19.74 0 0 0-4.93 1.51.07.07 0 0 0-.03.03C1.77 8.87 1.1 13.25 1.4 17.57c0 .02.01.04.03.05a19.9 19.9 0 0 0 5.99 3.03.08.08 0 0 0 .09-.03 14.2 14.2 0 0 0 1.23-2 .08.08 0 0 0-.04-.1 13.1 13.1 0 0 1-1.87-.9.08.08 0 0 1-.01-.12c.13-.1.25-.2.37-.3a.07.07 0 0 1 .08-.01c3.93 1.8 8.18 1.8 12.06 0a.07.07 0 0 1 .08.01c.12.1.25.21.37.3a.08.08 0 0 1-.01.13 12.3 12.3 0 0 1-1.87.89.08.08 0 0 0-.04.11c.36.7.77 1.37 1.23 2a.08.08 0 0 0 .09.03 19.84 19.84 0 0 0 6-3.03.08.08 0 0 0 .03-.05c.37-3.83-.62-7.16-2.61-10.17a.06.06 0 0 0-.03-.03ZM8.52 15.38c-1.18 0-2.16-1.09-2.16-2.42s.96-2.42 2.16-2.42c1.21 0 2.17 1.1 2.16 2.42 0 1.33-.96 2.42-2.16 2.42Zm7.98 0c-1.18 0-2.16-1.09-2.16-2.42s.96-2.42 2.16-2.42c1.21 0 2.17 1.1 2.16 2.42 0 1.33-.95 2.42-2.16 2.42Z"/></svg>
-        Discord
-      </button>
-    </div>
-    <div class="modal-switch">Déjà inscrit ? <a onclick="closeModal('signup');openModal('login')">Se connecter</a></div>
+    <button class="modal-submit" onclick="submitSignup()">Créer mon profil →</button>
+    <div class="modal-switch" style="margin-top:16px">Déjà un profil dans ce navigateur ? <a onclick="closeModal('signup');openModal('login')">Se connecter</a></div>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════
      MODAL — MOT DE PASSE OUBLIÉ
+     Avant (v2.57) : un e-mail de réinitialisation soi-disant envoyé, sans qu'aucun ne parte.
 ══════════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-forgot">
   <div class="modal" style="width:420px">
     <button class="modal-close" onclick="closeModal('forgot')">×</button>
     <div style="font-size:36px;text-align:center;margin-bottom:16px">🔓</div>
     <h3 style="text-align:center">Mot de passe oublié</h3>
-    <p style="text-align:center">Entrez votre email pour recevoir un lien de réinitialisation sécurisé.</p>
+    <p style="text-align:center">Sans serveur, aucun e-mail ne peut vous être envoyé. Mais votre progression (parties, XP, problèmes) ne dépend pas du mot de passe : elle reste sur cet appareil. Vous pouvez effacer le profil et le recréer aussitôt.</p>
     <div class="form-group">
-      <label class="form-label">Adresse email</label>
-      <input class="form-input" type="email" placeholder="vous@exemple.com">
+      <label class="form-label">Nom d'utilisateur ou e-mail du profil</label>
+      <input class="form-input" id="forgot-ident" type="text" placeholder="MarbleKing42" onkeydown="if(event.key==='Enter')profilOublie()">
     </div>
-    <button class="modal-submit" onclick="closeModal('forgot');showToast('📧 Email de réinitialisation envoyé !')">Envoyer le lien</button>
+    <button class="modal-submit" onclick="profilOublie()">Effacer ce profil et le recréer</button>
     <div style="text-align:center;margin-top:14px">
       <a class="link-btn" onclick="closeModal('forgot');openModal('login')">← Retour à la connexion</a>
     </div>

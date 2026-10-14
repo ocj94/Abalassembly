@@ -2206,7 +2206,7 @@ test('securite : aucune double authentification simulee (interrupteurs, fenetre,
    'Simuler la détection', 'Email OTP', 'YubiKey FIDO2'].forEach(s => assert.strictEqual(src.indexOf(s), -1, 'encore present : ' + s));
   assert.match(src, /id="stab-twofa">Sécurité<\/button>/);
   assert.match(src, /Pas de double authentification, et pourquoi/);
-  assert.match(src, /Compte enregistré sur cet appareil/);
+  assert.match(src, /Profil enregistré dans ce navigateur/);
 });
 
 test('securite : le score ne compte que ce qui existe (100 points sur 3 lignes, plus rien pour une « double authentification »)', async () => {
@@ -2685,7 +2685,7 @@ test('anglais : chaque cle du dictionnaire existe vraiment dans le site (aucune 
     .replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/&#10;/g, ' ').replace(/\s+/g, ' ');
   const hors = norm(src.slice(0, debut) + src.slice(fin));
   // textes composes par le code (morceaux concatenes) : verifies piece par piece
-  const composes = { '▾ Réflexion de l’IA': [' Réflexion de l’IA', "'▾'"], '▸ Réflexion de l’IA': [' Réflexion de l’IA', "'▸'"], 'jours': ["jour'+(progress.streak>1?'s':'')"],
+  const composes = { '▾ Réflexion de l’IA': [' Réflexion de l’IA', "'▾'"], '▸ Réflexion de l’IA': [' Réflexion de l’IA', "'▸'"], 'jours': ["jour'+(serieActuelle()>1?'s':'')"],
     'Les Noirs gagnent !': ["'Les ' + nomCamp(winner) + ' gagnent !'", "'Noirs'"], 'Les Blancs gagnent !': ["' gagnent !'", "'Blancs'"],
     'Les Noirs ont éjecté 6 billes adverses.': ["' ont éjecté 6 billes adverses.'"], 'Les Blancs ont éjecté 6 billes adverses.': ["' ont éjecté 6 billes adverses.'"],
     'Les Noirs ont abandonné.': ["' ont abandonné.'"], 'Les Blancs ont abandonné.': ["' ont abandonné.'"],
@@ -2846,4 +2846,233 @@ test('honnetete : la carte du joueur ne montre plus « Olivier » a tout le mond
     assert.strictEqual(els['me-billes-lg'].textContent, 'Vos billes: Noires ●');
     assert.strictEqual(ctx._i18nEN('Vous (Alex)'), 'You (Alex)'); assert.strictEqual(ctx._i18nEN('Vos billes: Blanches ○'), 'Your marbles: White ○');
   } finally { ctx.document.getElementById = sG; ctx.currentUser = u; ctx.HumanColor.set(c); }
+});
+
+/* ─── 52. v2.57 : ce qui ne marchait pas (Parametres, profil, partage, comptes), et le Defi du jour #N ─── */
+const _sansScripts = src => src.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<!--[\s\S]*?-->/g, '');
+
+test('v2.57 parametres : chaque onglet a son panneau, et le changement d onglet ne tourne plus en boucle', () => {
+  const src = _SRC();
+  assert.strictEqual(src.indexOf('_origShowSettingsTab'), -1, 'l ancienne enveloppe qui s appelait elle-meme');
+  const onglets = Array.from(new Set((src.match(/showSettingsTab\('([a-z]+)'\)/g) || []).map(m => m.slice(17, -2))));
+  assert.ok(onglets.length >= 5, 'onglets : ' + onglets.join(','));
+  onglets.forEach(t => assert.ok(src.indexOf('id="spanel-' + t + '"') > 0, 'onglet sans panneau : ' + t));
+  // dans un faux DOM : un seul onglet et un seul panneau actifs, ceux demandes
+  const mk = id => ({ id: id, classList: { on: false, toggle(c, v) { this.on = !!v; }, add() { this.on = true; }, remove() { this.on = false; }, contains() { return this.on; } } });
+  const tabs = onglets.map(t => mk('stab-' + t)), panels = onglets.map(t => mk('spanel-' + t));
+  const sQ = ctx.document.querySelectorAll, sG = ctx.document.getElementById;
+  ctx.document.querySelectorAll = sel => sel === '.settings-tab' ? tabs : sel === '.settings-panel' ? panels : [];
+  ctx.document.getElementById = id => panels.find(p => p.id === id) || tabs.find(p => p.id === id) || sG.call(ctx.document, id);
+  try {
+    ['accessibility', 'permissions', 'general'].forEach(t => {
+      if (onglets.indexOf(t) < 0) return;
+      ctx.showSettingsTab(t);
+      assert.deepStrictEqual(panels.filter(p => p.classList.on).map(p => p.id), ['spanel-' + t]);
+      assert.deepStrictEqual(tabs.filter(p => p.classList.on).map(p => p.id), ['stab-' + t]);
+    });
+    ctx.showSettingsTab('inexistant');   // rien ne casse
+  } finally { ctx.document.querySelectorAll = sQ; ctx.document.getElementById = sG; }
+});
+
+test('v2.57 pages : chaque page ferme ses balises <div> (le profil et les Parametres debordaient sur les pages suivantes)', () => {
+  const html = _sansScripts(_SRC());
+  const debuts = []; const re = /<div class="page"[^>]*id="(page-[^"]+)"/g; let m;
+  while ((m = re.exec(html))) debuts.push({ i: m.index, id: m[1] });
+  assert.ok(debuts.length > 30);
+  const fins = html.indexOf('</main>') > 0 ? html.indexOf('</main>') : html.length;
+  debuts.forEach((d, k) => {
+    const bout = html.slice(d.i, k + 1 < debuts.length ? debuts[k + 1].i : fins);
+    const ouvre = (bout.match(/<div\b/g) || []).length, ferme = (bout.match(/<\/div>/g) || []).length;
+    if (k + 1 < debuts.length) assert.strictEqual(ouvre - ferme, 0, d.id + ' : ' + ouvre + ' <div> pour ' + ferme + ' </div>');
+  });
+});
+
+test('v2.57 profil : plus rien d ecrit en dur (serie de 18 jours, parties d ocj94, courbe « 1388 → 1489 », rang mondial, succes offerts)', () => {
+  const src = _SRC();
+  ['Série de 18 jours', 'abal.online · ocj94', 'Victoire vs fargokayogi', 'ELO départ (1 Avr)', '>1489<', 'Rang mondial', "name:'Premier sang'",
+   "u ? (u.streak||0) : 18", 'Les parties jouées ne sont pas encore enregistrées', 'id="top-streak"', '⚡ 14 928'].forEach(t => assert.strictEqual(src.indexOf(t), -1, 'encore present : ' + t));
+  // la serie : la vraie, et les jours coches seulement s'ils en font partie
+  const els = {}, crees = [], sG = ctx.document.getElementById, sC = ctx.document.createElement, avant = JSON.stringify(ctx.progress);
+  ctx.document.getElementById = id => (els[id] = els[id] || { id: id, textContent: '', innerHTML: '', style: {}, appendChild(x) { crees.push(x); } });
+  ctx.document.createElement = () => ({ className: '', title: '', textContent: '' });
+  try {
+    const auj = ctx.todayStr(), il_y_a = n => { const d = new Date(); d.setDate(d.getDate() - n); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+    Object.assign(ctx.progress, { streak: 3, lastActive: auj, bestStreak: 5 });
+    ctx.renderStreak();
+    assert.strictEqual(els['streak-title'].textContent, 'Série de 3 jours');
+    assert.match(els['streak-sub'].textContent, /Série tenue aujourd’hui/); assert.match(els['streak-sub'].textContent, /Record : 5 jours/);
+    assert.strictEqual(crees.length, 7);
+    assert.deepStrictEqual(crees.map(x => /done/.test(x.className)), [false, false, false, false, true, true, true]);
+    crees.length = 0;
+    Object.assign(ctx.progress, { streak: 4, lastActive: il_y_a(3) });   // pas joue depuis 3 jours : la serie est rompue
+    assert.strictEqual(ctx.serieActuelle(), 0);
+    ctx.renderStreak();
+    assert.strictEqual(els['streak-title'].textContent, 'Pas de série en cours');
+    assert.deepStrictEqual(crees.map(x => /done/.test(x.className)), [true, true, true, true, false, false, false], 'les 4 jours joues restent coches, pas les suivants');
+    // la courbe ELO : tiree de l'historique, ou vide
+    Object.assign(ctx.progress, { elo: 1010, eloHistory: [{ date: il_y_a(40), elo: 1000 }, { date: il_y_a(10), elo: 1030 }, { date: il_y_a(2), elo: 1010 }] });
+    ctx.renderProfileEloCard();
+    assert.match(els['profile-elo-card'].innerHTML, /<path d="M0,\d+ L\d+,\d+ L\d+,\d+"/);
+    assert.match(els['profile-elo-card'].innerHTML, /ELO maximum<\/span><span[^>]*>1030</);
+    assert.strictEqual(els['profile-elo-diff'].textContent, '+10 pts');
+    Object.assign(ctx.progress, { eloHistory: [] });
+    ctx.renderProfileEloCard();
+    assert.match(els['profile-elo-card'].innerHTML, /La courbe apparaît après deux journées de jeu/);
+  } finally {
+    ctx.document.getElementById = sG; ctx.document.createElement = sC;
+    const p0 = JSON.parse(avant); Object.keys(ctx.progress).forEach(k => { if (!(k in p0)) delete ctx.progress[k]; }); Object.assign(ctx.progress, p0);
+  }
+});
+
+test('v2.57 partage : le message suit la vraie fin de partie (plus de « Je viens de gagner » apres une defaite), et aucun lien invente', () => {
+  const src = _SRC();
+  ['Je viens de gagner une partie', 'discord.gg/abalassembly', 'youtube.com/@abalassembly', 'twitch.tv/abalassembly'].forEach(t => assert.strictEqual(src.indexOf(t), -1, 'encore present : ' + t));
+  const f0 = ctx._finPartie;
+  try {
+    const fin = o => Object.assign({ winner: 'black', reason: null, cb: 6, cw: 2, coups: 48, mode: 'ai', moi: 'black', niveau: 4, adv: '', duree: 0, plateau: {}, date: new Date(2026, 9, 15) }, o);
+    ctx._finPartie = fin({});
+    assert.strictEqual(ctx.buildShareText(), 'J’ai battu l’IA niveau 4 à Abalone : 6-2, en 48 coups 🏆');
+    ctx._finPartie = fin({ winner: 'white', cb: 2, cw: 6 });
+    assert.strictEqual(ctx.buildShareText(), 'Battu par l’IA niveau 4 à Abalone (2-6, 48 coups). Revanche ? ⚫⚪');
+    ctx._finPartie = fin({ winner: 'black', moi: 'white', cb: 6, cw: 3, reason: 'resign' });
+    assert.strictEqual(ctx.buildShareText(), 'Battu par l’IA niveau 4 à Abalone (3-6 par abandon, 48 coups). Revanche ? ⚫⚪');
+    ctx._finPartie = fin({ mode: 'local', winner: 'white', cb: 1, cw: 6 });
+    assert.strictEqual(ctx.buildShareText(), 'Partie d’Abalone à deux : les Blancs gagnent 6-1 en 48 coups ⚫⚪');
+    ctx._finPartie = fin({ winner: null, cb: 3, cw: 3, mode: 'live', adv: 'Alex' });
+    assert.strictEqual(ctx.buildShareText(), 'Partie nulle à Abalone contre Alex (3-3, 48 coups) ⚫⚪');
+    const I = ctx.infosFinPartie(fin({ winner: 'white', cb: 2, cw: 6 }));
+    assert.strictEqual(I.titre, 'DÉFAITE'); assert.strictEqual(I.score, '2 – 6', 'du point de vue du joueur');
+    assert.strictEqual(ctx.infosFinPartie(fin({ mode: 'local', winner: 'white', cb: 1, cw: 6 })).score, '6 – 1', 'a deux : du point de vue du gagnant');
+    ctx._finPartie = null;
+    assert.doesNotMatch(ctx.buildShareText(), /gagn|battu/i, 'sans partie terminee, aucune victoire annoncee');
+  } finally { ctx._finPartie = f0; }
+});
+
+test('v2.57 comptes : un profil local a un vrai mot de passe ; plus de compte « fightclub », de Google ou Discord factices, ni d e-mail « envoye »', async () => {
+  const src = _SRC();
+  ["'fightclub':", 'FightClub (Frederic Garnier)', 'Email de réinitialisation envoyé', "showToast('🔗 Connexion Google", "showToast('🔗 Inscription Discord",
+   'Visible par les autres joueurs', 'Rejoignez Abalone', 'compte Abalone', 'id="spanel-writer"', 'function publishArticle'].forEach(t => assert.strictEqual(src.indexOf(t), -1, 'encore present : ' + t));
+  const u0 = ctx.currentUser, sess = ctx.localStorage.getItem('abalone_session'), reg = ctx.localStorage.getItem('abalone_profils');
+  try {
+    ctx.localStorage.removeItem('abalone_profils');
+    let r = await ctx.profilCreation('Alex', 'alex@exemple.org', 'motdepasse1');
+    assert.ok(r.ok); assert.strictEqual(ctx.currentUser.username, 'Alex');
+    const p = JSON.parse(ctx.localStorage.getItem('abalone_profils')).alex;
+    assert.ok(p && /^[0-9a-f]{64}$/.test(p.passwordHash), 'empreinte PBKDF2 gardee'); assert.strictEqual(p.password, undefined, 'jamais le mot de passe lui-meme');
+    r = await ctx.profilCreation('ALEX', '', 'autremotdepasse'); assert.ok(!r.ok, 'meme nom : refuse');
+    r = await ctx.profilConnexion('alex', 'mauvais'); assert.ok(!r.ok); assert.match(r.msg, /Mot de passe incorrect/);
+    r = await ctx.profilConnexion('Inconnu', 'x'); assert.ok(!r.ok); assert.match(r.msg, /Aucun profil « Inconnu »/);
+    r = await ctx.profilConnexion('ALEX@exemple.org', 'motdepasse1'); assert.ok(r.ok, 'par l e-mail aussi, sans tenir compte des majuscules');
+    // un profil d'avant (aucun mot de passe garde) : le premier mot de passe donne devient le sien
+    const tous = JSON.parse(ctx.localStorage.getItem('abalone_profils')); tous.ancien = { username: 'Ancien', color: '#2d5a3d' };
+    ctx.localStorage.setItem('abalone_profils', JSON.stringify(tous));
+    r = await ctx.profilConnexion('ancien', 'premier123'); assert.ok(r.ok && r.nouveauMdp);
+    r = await ctx.profilConnexion('ancien', 'autre'); assert.ok(!r.ok, 'ensuite il est verifie');
+  } finally {
+    ctx.currentUser = u0;
+    if (sess === null) ctx.localStorage.removeItem('abalone_session'); else ctx.localStorage.setItem('abalone_session', sess);
+    if (reg === null) ctx.localStorage.removeItem('abalone_profils'); else ctx.localStorage.setItem('abalone_profils', reg);
+  }
+});
+
+test('v2.57 parrainage : plus de « 100 XP par ami » impossible a tenir sans serveur ; l ami garde son bonus', () => {
+  const src = _SRC();
+  assert.strictEqual(src.indexOf('XP</strong> par ami qui rejoint'), -1);
+  assert.strictEqual(src.indexOf("localStorage.setItem('abalone_referral_credits'"), -1, 'plus de « simulation sans backend »');
+  const m = { innerHTML: '', style: {}, classList: { add() {}, remove() {} } }, sG = ctx.document.getElementById;
+  ctx.document.getElementById = id => id === 'referral-modal' ? m : sG.call(ctx.document, id);
+  try {
+    ctx.openReferralModal();
+    assert.match(m.innerHTML, /\+50 XP<\/strong> de bienvenue/); assert.match(m.innerHTML, /pas de récompense pour vous/);
+  } finally { ctx.document.getElementById = sG; }
+});
+
+test('v2.57 defi du jour : un numero par jour civil, un tirage sans remise par cycle de 78 jours, des puzzles figes', () => {
+  assert.strictEqual(ctx.DEFI_NB, 78); assert.strictEqual(ctx.SINGLE_MOVE_PUZZLE_COUNT, 78);
+  assert.strictEqual(ctx.defiNumero(new Date(2026, 9, 15, 0, 5)), 1, '#1 = 15 octobre 2026');
+  assert.strictEqual(ctx.defiNumero(new Date(2026, 9, 15, 23, 59)), 1);
+  assert.strictEqual(ctx.defiNumero(new Date(2026, 9, 16, 0, 1)), 2, 'nouveau defi a minuit');
+  assert.strictEqual(ctx.defiNumero(new Date(2026, 9, 14, 12)), 1, 'jamais avant #1');
+  assert.strictEqual(ctx.defiNumero(new Date(2027, 0, 1, 12)), 79);
+  const cycle = k => { const v = []; for (let n = 1 + 78 * k; n <= 78 * (k + 1); n++) v.push(ctx.defiIndex(n)); return v; };
+  const c0 = cycle(0), c1 = cycle(1);
+  assert.deepStrictEqual(c0.slice().sort((a, b) => a - b), Array.from({ length: 78 }, (_, i) => i), 'chaque puzzle une fois par cycle');
+  assert.deepStrictEqual(c1.slice().sort((a, b) => a - b), Array.from({ length: 78 }, (_, i) => i));
+  assert.notDeepStrictEqual(c0, c1, 'un autre ordre au cycle suivant');
+  // FIGE : un numero designe le meme puzzle pour tout le monde, aujourd'hui et dans un an. Changer ces valeurs
+  // changerait les defis deja joues et partages (« #12 ⭐⭐ 🟩 ») : ne pas les modifier.
+  assert.deepStrictEqual(c0.slice(0, 10), [11, 39, 61, 51, 37, 1, 50, 0, 77, 62]);
+  assert.deepStrictEqual(c1.slice(0, 5), [65, 47, 63, 77, 73]);
+  const emp = require('crypto').createHash('sha256').update(JSON.stringify(ctx.PUZZLES.slice(0, 78).map(p =>
+    [p.c, p.bm, p.wm, p.cb, p.cw, p.sol.cells.map(x => [x.r, x.c]), [p.sol.dir.q, p.sol.dir.r], !!p.def]))).digest('hex');
+  assert.strictEqual(emp, 'cbdd6abe1d6ba7969ec19b6648b69c916c6c08b21f60720dc941dfc3c4c8313b',
+    'les 78 puzzles du defi ont change : un nouveau puzzle s ajoute APRES eux, jamais au milieu');
+  assert.strictEqual(ctx._defiDepuisAdresse('?defi=1'), 1);
+  assert.strictEqual(ctx._defiDepuisAdresse('?lang=en&defi'), ctx.defiNumero());
+  assert.strictEqual(ctx._defiDepuisAdresse('?defi=999999'), ctx.defiNumero(), 'un defi futur : celui du jour');
+  assert.strictEqual(ctx._defiDepuisAdresse('?ref=ABA-1'), null);
+});
+
+test('v2.57 defi du jour : grille 🟥🟨🟩⬛, phrase et texte a partager, sans rien devoiler de la solution', () => {
+  const avant = JSON.stringify(ctx.progress), sT = ctx.setTimeout, en0 = ctx._defiEnCours, plus = [];
+  const sX = ctx.addXp, sB = ctx.awardBadge, sR = ctx.renderEngageBar, sD = ctx.renderDailyCard, sH = ctx.updateHeroDaily;
+  ctx.setTimeout = () => 0; ctx.addXp = (n, r) => plus.push(n + ' ' + r); ctx.awardBadge = () => {}; ctx.renderEngageBar = () => {}; ctx.renderDailyCard = () => {}; ctx.updateHeroDaily = () => {};
+  try {
+    ctx.progress.defis = {};
+    const n = ctx.defiNumero(), idx = ctx.defiIndex(n), P = ctx.PUZZLES[idx];
+    ctx._defiEnCours = { n: n, idx: idx, depuis: Date.now() - 42000 };
+    ctx._defiSurPuzzle(idx + 1, 'x');                    // un autre puzzle : ne compte pas
+    assert.strictEqual(ctx.defiEtat(n), null);
+    ['x', 'i', 'i', 'v'].forEach(c => ctx._defiSurPuzzle(idx, c));
+    const e = ctx.defiEtat(n);
+    assert.strictEqual(e.e, 'xiv', 'l indice ne compte qu une fois'); assert.strictEqual(e.f, 'v');
+    assert.ok(e.ms >= 42000 && e.ms < 44000, 'temps passe : ' + e.ms);
+    assert.strictEqual(ctx._defiEnCours, null);
+    assert.deepStrictEqual(plus, ['25 Défi du jour #' + n]);
+    ctx._defiSurPuzzle(idx, 'x');                         // termine : plus rien ne compte
+    assert.strictEqual(ctx.defiEtat(n).e, 'xiv');
+    const t = ctx.texteDefi(n).split('\n');
+    assert.strictEqual(t[0], 'Abalassembly — Défi du jour #' + n + ' ' + '⭐'.repeat(P.d || 1));
+    assert.strictEqual(t[1], '🟥🟨🟩 Trouvé au 2e essai, avec l’indice · ⏱ 0:42');
+    assert.strictEqual(t[2], '🔥 Série : 1 jour');
+    assert.strictEqual(t[3], ctx.SHARE_URL + '?defi=' + n);
+    assert.strictEqual(ctx.texteDefi(n).indexOf(P.lab), -1, 'la solution n apparait pas');
+    assert.doesNotMatch(ctx.texteDefi(n), /\b[a-i][1-9]\b/, 'aucune case nommee');
+    // la veille aussi trouvee : serie de 2 ; la solution affichee casse la serie
+    assert.strictEqual(e.j, n, 'fini le jour meme');
+    ctx.progress.defis[n - 1] = { e: 'v', f: 'v', ms: 5000, j: n - 1 };
+    assert.strictEqual(ctx.defiSerie(), n > 1 ? 2 : 1);
+    ctx.progress.defis[n - 1].j = n;                     // rejoue plus tard par son lien : ne compte pas dans la serie
+    assert.strictEqual(ctx.defiSerie(), 1);
+    ctx.progress.defis[n - 1].j = n - 1;
+    ctx.progress.defis[n] = { e: 'xs', f: 's', ms: 0 };
+    assert.strictEqual(ctx.defiPhrase(ctx.defiEtat(n)), 'Solution affichée');
+    assert.strictEqual(ctx._defiCases('xs'), '🟥⬛');
+    assert.strictEqual(ctx.defiSerie(), n > 1 ? 1 : 0, 'la serie d hier tient encore aujourd hui, mais ne compte pas le defi vu');
+    assert.strictEqual(ctx.defiPhrase({ e: 'v', f: 'v' }), 'Trouvé du premier coup');
+  } finally {
+    ctx.setTimeout = sT; ctx._defiEnCours = en0; ctx.addXp = sX; ctx.awardBadge = sB; ctx.renderEngageBar = sR; ctx.renderDailyCard = sD; ctx.updateHeroDaily = sH;
+    const p0 = JSON.parse(avant); Object.keys(ctx.progress).forEach(k => { if (!(k in p0)) delete ctx.progress[k]; }); Object.assign(ctx.progress, p0);
+  }
+});
+
+test('v2.57 defi et probleme du mois : ouverts sur le plateau de la partie, sans nouvelle partie ; une nouvelle partie quitte le mode puzzle', () => {
+  const src = _SRC();
+  assert.ok(/function playMonthlyPuzzle\(\) \{[^}]*ouvrirPuzzleSurPlateau\(mc\.idx\)/.test(src), 'le probleme du mois ne restait pas sur la page Problemes');
+  assert.ok(/function resetGame\(\) \{\s*try \{ if \(typeof _puzzleFermer === 'function'\) _puzzleFermer\(\); \}/.test(src));
+  const sP = ctx.showPage, sS = ctx.startPuzzle, vus = [];
+  ctx.showPage = nom => vus.push(nom + (ctx._puzzleOuverture ? ' (puzzle)' : ''));
+  ctx.startPuzzle = idx => vus.push('puzzle ' + idx);
+  try {
+    ctx.ouvrirPuzzleSurPlateau(7);
+    assert.deepStrictEqual(vus, ['game (puzzle)', 'puzzle 7']);
+    assert.strictEqual(ctx._puzzleOuverture, false);
+  } finally { ctx.showPage = sP; ctx.startPuzzle = sS; }
+  const pa0 = ctx._puzzleActive, sG = ctx.document.getElementById, bar = { style: { display: 'flex' } };
+  ctx.document.getElementById = id => id === 'puzzle-bar' ? bar : sG.call(ctx.document, id);
+  try {
+    ctx._puzzleActive = { idx: 3, sig: 'x', alts: [], tries: 0 };
+    ctx._puzzleFermer();
+    assert.strictEqual(ctx._puzzleActive, null); assert.strictEqual(bar.style.display, 'none');
+  } finally { ctx._puzzleActive = pa0; ctx.document.getElementById = sG; }
 });

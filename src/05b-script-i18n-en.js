@@ -43,7 +43,7 @@ function currentLang() {
 const I18N_EN = {
   // ── en-tete, menus ──
   'Aide': 'Help', 'Comment utiliser le site': 'How to use the site', 'Poser une question': 'Ask a question',
-  'Inviter un ami (+XP)': 'Invite a friend (+XP)', 'Faire une suggestion': 'Make a suggestion', 'Signaler un bug': 'Report a bug',
+  'Inviter un ami': 'Invite a friend', 'Faire une suggestion': 'Make a suggestion', 'Signaler un bug': 'Report a bug',
   'Signaler un abus': 'Report abuse', 'Se connecter': 'Connect', 'Langue': 'Language', 'Changer de langue': 'Change language',
   '🎮 Jouer': '🎮 Play', 'Accueil': 'Home', 'Jouer': 'Play', 'Historique': 'History', 'Stats du corpus': 'Corpus stats', 'Importer': 'Import',
   'Problèmes': 'Puzzles', 'Éditeur': 'Editor', 'Variantes': 'Variants', '📖 Progresser': '📖 Improve', 'Règles du jeu': 'Game rules',
@@ -88,16 +88,39 @@ const I18N_EN = {
   "— Le blog de référence sur l'Abalone (règles, variantes, Academy, événements)": '— the reference blog about Abalone (rules, variants, Academy, events)',
   '— projet de fan, non affilié à Abalone S.A.': '— a fan project, not affiliated with Abalone S.A.',
   // ── bandeau d'engagement, defis ──
-  'Série': 'Streak', 'jour': 'day', 'jours': 'days', 'Niveau': 'Level', 'Défi du jour': 'Daily challenge', 'Mes stats': 'My stats',
-  '🔥 Défi du jour': '🔥 Daily challenge', '🎁 Défi de la semaine': '🎁 Weekly challenge', '⚡ Défi du jour — partie': '⚡ Daily challenge — game',
+  'Série': 'Streak', 'jour': 'day', 'jours': 'days', 'Niveau': 'Level', 'Défi du jour': 'Daily puzzle', 'Mes stats': 'My stats',
+  '🔥 Défi du jour': '🔥 Daily puzzle', '🎁 Défi de la semaine': '🎁 Weekly challenge', '⚡ Défi du jour — partie': '⚡ Daily challenge — game',
   'Victoires': 'Wins', 'Défaites': 'Losses', 'Nuls': 'Draws', 'Taux': 'Rate', 'Récompense obtenue': 'Reward claimed',
-  'Éjection en 2 coups': 'Ejection in 2 moves', 'Sumito 3v2 gagnant': 'Winning 3-on-2 sumito', 'Défense imprenable': 'Unbreakable defense',
-  'Contrôle du centre': 'Center control', 'Double menace': 'Double threat',
+  'Contrôle du centre': 'Center control',
   'Vainqueur de la semaine': 'Winner of the week', 'Joueur assidu': 'Regular player', 'Tacticien': 'Tactician', 'Régularité': 'Consistency',
   'Gagne 5 parties': 'Win 5 games', 'Joue 10 parties': 'Play 10 games', 'Résous 7 problèmes': 'Solve 7 puzzles', 'Atteins une série de 5 jours': 'Reach a 5-day streak',
   'Victoire du jour': 'Win of the day', 'Chasseur du jour': 'Hunter of the day', 'Assidu du jour': 'Player of the day',
   "Gagne 1 partie aujourd'hui": 'Win 1 game today', "Éjecte 3 billes aujourd'hui": 'Eject 3 marbles today', "Joue 2 parties aujourd'hui": 'Play 2 games today',
-  '✅ Défi du jour déjà complété !': '✅ Daily challenge already completed!',
+  // ── profil local et fenetres de connexion (v2.57) ──
+  'Votre profil': 'Your profile', 'Créer un profil': 'Create a profile', 'Créer mon profil →': 'Create my profile →',
+  'Parties': 'Games', 'ELO actuel': 'Current ELO', 'Joueur': 'Player', 'JOUEUR': 'PLAYER', 'Deco': 'Sign out', 'Jouer maintenant': 'Play now', 'Historique récent': 'Recent games',
+  'Maître': 'Master', 'Grand Maître': 'Grandmaster',
+  'Créez un profil (ou connectez-vous) pour voir vos statistiques, votre série et vos dernières parties. Tout reste dans ce navigateur, sur cet appareil.':
+    'Create a profile (or sign in) to see your statistics, your streak and your latest games. Everything stays in this browser, on this device.',
+  'Problèmes résolus': 'Puzzles solved', 'Jouez une partie ou résolvez un problème pour démarrer une série.': 'Play a game or solve a puzzle to start a streak.',
+  "Tout l'historique →": 'Full history →', 'Progression ELO (30 jours)': 'ELO progress (30 days)', 'Déconnexion': 'Sign out', '⚙ Paramètres': '⚙ Settings',
+  'Bon retour !': 'Welcome back!', 'Retrouvez votre profil local.': 'Open your local profile.',
+  'Pas de serveur : votre profil, vos parties et votre progression restent': 'No server: your profile, your games and your progress stay',
+  'dans ce navigateur, sur cet appareil': 'in this browser, on this device',
+  ". Rien n'est envoyé, aucun e-mail ne vous sera écrit. N'y mettez pas un mot de passe qui vous sert ailleurs. Pour changer d'appareil : Paramètres → Exporter mes données.": '. Nothing is sent, and no e-mail will ever be written to you. Do not use a password you use elsewhere. To change devices: Settings → Export my data.',
+  "Nom d'utilisateur ou e-mail": 'Username or e-mail', 'Mot de passe': 'Password', 'Mot de passe oublié ?': 'Forgot your password?',
+  'Continuer →': 'Continue →', 'Pas encore de profil ?': 'No profile yet?', "C'est fait !": 'Done!', 'Bienvenue,': 'Welcome,',
+  'Profil enregistré dans ce navigateur': 'Profile saved in this browser', 'Accéder à mon profil →': 'Go to my profile →',
+  "Un nom, un mot de passe, et c'est parti. Le profil est facultatif : on peut jouer sans.": 'A name, a password, and off you go. A profile is optional: you can play without one.',
+  '3 à 24 caractères · affiché sur cet appareil': '3 to 24 characters · shown on this device', 'Adresse e-mail (facultatif)': 'E-mail address (optional)',
+  'Sert seulement à vous reconnecter ici.': 'Only used to sign in again here.', 'Au moins 8 caractères': 'At least 8 characters', 'vous@exemple.com': 'you@example.com',
+  "J'accepte les": 'I accept the', 'mentions légales': 'legal notice', 'et la': 'and the', 'politique de confidentialité': 'privacy policy',
+  'Déjà un profil dans ce navigateur ?': 'Already have a profile in this browser?', 'Mot de passe oublié': 'Forgotten password',
+  'Sans serveur, aucun e-mail ne peut vous être envoyé. Mais votre progression (parties, XP, problèmes) ne dépend pas du mot de passe : elle reste sur cet appareil. Vous pouvez effacer le profil et le recréer aussitôt.':
+    'Without a server, no e-mail can be sent to you. But your progress (games, XP, puzzles) does not depend on the password: it stays on this device. You can delete the profile and create it again right away.',
+  "Nom d'utilisateur ou e-mail du profil": 'Username or e-mail of the profile', 'Effacer ce profil et le recréer': 'Delete this profile and create it again',
+  '← Retour à la connexion': '← Back to sign in', 'Afficher le mot de passe': 'Show the password',
+  'Une image carrée du résultat et du plateau final': 'A square image of the result and the final board',
   // ── configuration de partie ──
   'Nouvelle partie': 'New game', 'Configurer avant de jouer': 'Set up your game', 'Configuration': 'Setup', 'Disposition de départ': 'Starting layout',
   'Configuration officielle : 14 billes par camp sur 3 rangées': 'Official layout: 14 marbles per side on 3 rows',
@@ -218,15 +241,15 @@ const I18N_EN = {
   '🏆 Parfait ! Tu sais maintenant attaquer, défendre ET riposter. Tu es prêt pour de vraies parties !': '🏆 Perfect! You can now attack, defend AND strike back. You are ready for real games!',
   'Fermer': 'Close', 'Code copié': 'Code copied',
   // ── problemes (page Problemes, puzzles de vraies parties) ──
-  'Problèmes tactiques': 'Tactical puzzles', 'Le puzzle du jour': 'Puzzle of the day', 'Le problème du mois': 'Puzzle of the month',
+  'Problèmes tactiques': 'Tactical puzzles', 'Le défi du jour': 'The daily puzzle', 'Le problème du mois': 'Puzzle of the month',
   'TROUVER LE COUP GAGNANT': 'FIND THE WINNING MOVE', 'PARER LA MENACE': 'STOP THE THREAT', '🏅 Certifié': '🏅 Certified',
   'Coup vérifié directement contre le moteur du site': 'Move checked directly against the site’s engine',
   'NIVEAU :': 'LEVEL:', 'TRAIT :': 'TO MOVE:', 'OBJECTIF :': 'GOAL:', 'FACILE': 'EASY', 'MOYEN': 'MEDIUM', 'DIFFICILE': 'HARD', 'NOIR': 'BLACK', 'BLANC': 'WHITE',
-  'Jouer le puzzle du jour': 'Play the puzzle of the day', '▶ Jouer le problème du mois': '▶ Play the puzzle of the month', '👁 Voir la solution': '👁 Show the solution',
+  '▶ Jouer le problème du mois': '▶ Play the puzzle of the month', '👁 Voir la solution': '👁 Show the solution',
   '📋 Exporter (APGN)': '📋 Export (APGN)', 'Copie la position et la solution au format Aba-Pro': 'Copies the position and the solution in Aba-Pro format',
   '✅ Résolu ce mois-ci': '✅ Solved this month', '🏆 Problème du mois résolu ! +80 XP': '🏆 Puzzle of the month solved! +80 XP',
   'À réviser': 'To review', 'Réviser maintenant': 'Review now',
-  'Entraînement': 'Training', 'À votre rythme': 'At your own pace', '3 min chrono': '3-minute clock', 'Nouveau chaque jour': 'New every day',
+  'Entraînement': 'Training', 'À votre rythme': 'At your own pace', '3 min chrono': '3-minute clock', 'Le même pour tous': 'The same for everyone',
   'Puzzle infini': 'Endless puzzles', "Généré par l'IA": 'Generated by the AI', 'Finale prouvée': 'Proven endgame', '1 sur 12,96M': '1 in 12.96M',
   'Finale prouvée — séquence': 'Proven endgame — sequence', '3, 5 ou 7 coups, adversaire optimal': '3, 5 or 7 moves, perfect opponent',
   'Finale 4 contre 2': 'Endgame 4 against 2', 'gain en 9 à 25 coups, défense parfaite': 'win in 9 to 25 moves, perfect defense',
@@ -254,7 +277,7 @@ const I18N_EN = {
   '🛡️ Menace parée !': '🛡️ Threat stopped!', '✅ Coup gagnant trouvé !': '✅ Winning move found!', '❌ Raté — pense à 💡 Indice ou ✅ Solution': '❌ Missed — try 💡 Hint or ✅ Solution',
   '❌ La menace demeure, réessaie': '❌ The threat is still there, try again', '❌ Pas le meilleur coup, réessaie': '❌ Not the best move, try again',
   'Puzzle déjà résolu — ⏭ Suivant': 'Puzzle already solved — ⏭ Next', 'Puzzles fermés': 'Puzzles closed', 'Aucun puzzle embarqué': 'No puzzle included',
-  'Puzzle résolu': 'Puzzle solved', 'Puzzle du jour resolu': 'Puzzle of the day solved', 'Problème du mois résolu': 'Puzzle of the month solved',
+  'Puzzle résolu': 'Puzzle solved', 'Problème du mois résolu': 'Puzzle of the month solved',
   // les 18 problemes de la serie (titres, enonces, indices, solutions de secours)
   'Première éjection': 'First ejection', '🟢 Difficulté Facile': '🟢 Difficulty: easy', '🟡 Difficulté Moyenne': '🟡 Difficulty: medium', '🔴 Difficulté Difficile': '🔴 Difficulty: hard',
   'Initiation': 'Beginner', 'Intermédiaire': 'Intermediate', 'Défense & Riposte': 'Defense & counter',
@@ -498,16 +521,11 @@ const I18N_EN_MOTIFS = [
   [/^💡 Menace adverse : (.+) — ta parade part de (\S+)$/, '💡 Opponent’s threat: $1 — your defense starts from $2', 'Menace adverse'],
   [/^💡 Le coup part de (\S+) \(source : (.+)\)$/, '💡 The move starts from $1 (source: $2)', 'Le coup part de'],
   [/^✅ Solution : (.+) — joue-la !$/, '✅ Solution: $1 — play it!', '✅ Solution :'],
-  [/^Resolu aujourd'hui(?: — (\d+) jours d'affilee)?$/, function (_, n) { return 'Solved today' + (n ? ' — ' + n + ' days in a row' : ''); }, "Resolu aujourd'hui"],
-  [/^Serie en cours : (\d+) jour\(s\)$/, 'Current streak: $1 day(s)', 'Serie en cours'],
-  [/^Puzzle du jour resolu ! \+(\d+) XP(?: — (\d+) jours d'affilee)?$/, function (_, x, n) { return 'Puzzle of the day solved! +' + x + ' XP' + (n ? ' — ' + n + ' days in a row' : ''); }, 'Puzzle du jour resolu'],
   [/^\+(\d+) XP · (.+)$/, function (_, x, r) { const t = _i18nEN(r); return t === null ? _ : '+' + x + ' XP · ' + t; }, ' XP · '],
   [/^Défi hebdomadaire : (.+)$/, function (_, t) { return 'Weekly challenge: ' + (_i18nDict(t) || t); }, 'Défi hebdomadaire :'],
   [/^Défi du jour : (.+)$/, function (_, t) { return 'Daily challenge: ' + (_i18nDict(t) || t); }, 'Défi du jour :'],
   [/^🎉 Niveau (\d+) atteint !$/, '🎉 Level $1 reached!', 'atteint !'],
   [/^(· )?(NIVEAU|TRAIT|OBJECTIF) :$/, function (_, sep, e) { return (sep || '') + ({ NIVEAU: 'LEVEL:', TRAIT: 'TO MOVE:', OBJECTIF: 'GOAL:' })[e]; }, ['NIVEAU :', 'TRAIT :', 'OBJECTIF :']],
-  [/^Puzzle #(\d+) · clique pour relever$/, 'Puzzle #$1 · tap to take it on', 'clique pour relever'],
-  [/^🔥 Défi du jour — Puzzle (\d+)\/(\d+)$/, '🔥 Daily challenge — Puzzle $1/$2', '🔥 Défi du jour'],
   [/^Case ([A-I]\d), (bille noire|bille blanche|case vide)(, sélectionnée)?$/, function (_, c, b, s) {
     return 'Cell ' + c + ', ' + ({ 'bille noire': 'black marble', 'bille blanche': 'white marble', 'case vide': 'empty' })[b] + (s ? ', selected' : ''); }, 'Case '],
   [/^Ouvrir la vue (\dD) dans une fenêtre séparée$/, 'Open the $1 view in a separate window', 'Ouvrir la vue'],
@@ -529,7 +547,12 @@ const I18N_EN_MOTIFS = [
   [/^(.+) te défie !$/, '$1 challenges you!', ' te défie !'],
   [/^Prof\. (\d+) : (\d+) premiers coups sur (\d+), (.+) positions, (.+) \(finie à (.+)\)$/, 'Depth $1: $2 first moves out of $3, $4 positions, $5 (done at $6)', 'premiers coups sur'],
   [/^Niveau (\d+) · style (.+)$/, 'Level $1 · style $2', ' · style '],
-  [/^🟢 Connecté(?: à (.+))? — coups en temps réel$/, function (_, n) { return '🟢 Connected' + (n ? ' to ' + n : '') + ' — moves in real time'; }, '🟢 Connecté']
+  [/^🟢 Connecté(?: à (.+))? — coups en temps réel$/, function (_, n) { return '🟢 Connected' + (n ? ' to ' + n : '') + ' — moves in real time'; }, '🟢 Connecté'],
+  // v2.57 : statistiques de l'accueil, historique des parties
+  [/^⚫ (\d+) parties terminées · 🧩 (\d+) puzzles résolus — sur cet appareil$/, '⚫ $1 games finished · 🧩 $2 puzzles solved — on this device', 'parties terminées'],
+  [/^IA (Auto|Agressif|Défensif|Division|Équilibré) — (?:Niveau (\d+)|(.+))$/, function (_, s, n, autre) {
+    return 'AI ' + ({ Auto: 'Auto', Agressif: 'Aggressive', 'Défensif': 'Defensive', Division: 'Divide', 'Équilibré': 'Balanced' })[s] + ' — ' + (n ? 'Level ' + n : autre); }, 'IA '],
+  [/^Local \(même écran\)$/, 'Local (same screen)', 'Local (même écran)']
 ];
 // traduction d'un texte francais, ou null s'il est inconnu (espaces de debut et de fin conserves)
 function _i18nEN(fr) {

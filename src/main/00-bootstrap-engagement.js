@@ -6,7 +6,7 @@
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.56';
+const APP_VERSION = 'v2.57';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -264,10 +264,11 @@ function currentMonthlyPuzzle() {
     revealed: !!progress.monthly.revealed,
   };
 }
+/* Avant (v2.57) : showPage('puzzles') -- le puzzle se posait sur le plateau de la partie, une
+   page cachee, et l'on restait sur la page Problemes sans plateau. */
 function playMonthlyPuzzle() {
   const mc = currentMonthlyPuzzle();
-  showPage('puzzles');
-  if (typeof startPuzzle === 'function') startPuzzle(mc.idx);
+  if (typeof ouvrirPuzzleSurPlateau === 'function') ouvrirPuzzleSurPlateau(mc.idx);
 }
 function revealMonthlySolution() {
   progress.monthly.revealed = true;

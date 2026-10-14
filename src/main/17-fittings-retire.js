@@ -460,9 +460,21 @@ function ouvrirPermutations() {
   document.body.appendChild(m);
   return P;
 }
-function _copierTexte(t) {
-  const ok = function(){ if (typeof showToast === 'function') showToast('📋 Copié'); };
-  try { navigator.clipboard.writeText(t).then(ok, function(){ prompt('À copier :', t); }); } catch (e) { prompt('À copier :', t); }
+/* Copie dans le presse-papier (partagee par les codes de position, le partage de partie et
+   le defi du jour). msg : le message affiche une fois copie. Sans presse-papier (page non
+   securisee, vieux navigateur) : copie classique, puis en dernier recours une fenetre a copier. */
+function _copierTexte(t, msg) {
+  const ok = function(){ if (typeof showToast === 'function') showToast(msg || _tr('📋 Copié', '📋 Copied')); };
+  const secours = function(){
+    try {
+      const z = document.createElement('textarea'); z.value = t; z.setAttribute('readonly', '');
+      z.style.position = 'fixed'; z.style.opacity = '0'; document.body.appendChild(z); z.select();
+      const fait = document.execCommand('copy'); z.remove();
+      if (fait) { ok(); return; }
+    } catch (e) {}
+    prompt(_tr('À copier :', 'To copy:'), t);
+  };
+  try { navigator.clipboard.writeText(t).then(ok, secours); } catch (e) { secours(); }
 }
 
 function _majCodePosition() {

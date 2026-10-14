@@ -129,7 +129,7 @@ const BADGES = [
   { id:'win10',       icon:'⭐', name:'Vétéran',            desc:'Gagner 10 parties' },
   { id:'level5',      icon:'🎖️', name:'Niveau 5',          desc:'Atteindre le niveau 5' },
   { id:'level10',     icon:'👑', name:'Maître',             desc:'Atteindre le niveau 10' },
-  { id:'daily7',      icon:'📅', name:'Assidu',             desc:'7 défis quotidiens' },
+  { id:'daily7',      icon:'📅', name:'Assidu',             desc:'7 défis du jour trouvés' },
   { id:'shutout',     icon:'🧺', name:'Blanchissage',       desc:'Gagner 6-0 sans perdre une bille' },
 ];
 
@@ -222,40 +222,16 @@ function touchStreak() {
   saveProgress(progress);
   checkBadges();
 }
+/* Serie EN COURS : progress.streak n'est remis a zero qu'au prochain jour joue, donc apres
+   deux jours sans jouer il affichait encore l'ancienne serie. Elle est vivante tant que le
+   dernier jour actif est aujourd'hui ou hier. */
+function serieActuelle() {
+  if (!progress || !progress.streak || !progress.lastActive) return 0;
+  return daysBetween(progress.lastActive, todayStr()) <= 1 ? progress.streak : 0;
+}
 
-/* ─── Défi quotidien (déterministe selon la date) ─── */
-function dailySeed() {
-  const t = todayStr();
-  let h = 0;
-  for (let i=0;i<t.length;i++) h = (h*31 + t.charCodeAt(i)) >>> 0;
-  return h;
-}
-function dailyChallenge() {
-  const seed = dailySeed();
-  const num = 200 + (seed % 300);  // numéro de puzzle "du jour"
-  const types = [
-    {t:'Éjection en 2 coups', icon:'🎯'},
-    {t:'Sumito 3v2 gagnant', icon:'💪'},
-    {t:'Défense imprenable', icon:'🛡️'},
-    {t:'Contrôle du centre', icon:'⊕'},
-    {t:'Double menace', icon:'⚔️'}
-  ];
-  const type = types[seed % types.length];
-  return { num, type, done: progress.dailyDone === todayStr() };
-}
-function completeDailyChallenge() {
-  if (progress.dailyDone === todayStr()) {
-    toastEngage('✅ Défi du jour déjà complété !');
-    return;
-  }
-  progress.dailyDone = todayStr();
-  // compteur de défis quotidiens
-  progress._dailyCount = (progress._dailyCount||0) + 1;
-  if (progress._dailyCount >= 7) awardBadge('daily7');
-  saveProgress(progress);
-  touchStreak();
-  addXp(50, 'Défi du jour');
-  renderEngageBar();
-  renderDailyCard();
-}
+/* ─── Défi quotidien ───
+   Avant (v2.57) : un « Puzzle #N » inventé (200 + graine % 300) que l'on « relevait » d'un simple
+   clic contre 50 XP, sans rien jouer. Remplacé par le vrai Défi du jour #N
+   (36-defi-du-jour-et-cartes.js). */
 
