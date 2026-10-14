@@ -13,7 +13,7 @@ donc invisible hors ligne — ce qui contredit le principe du projet.
 
 ### Ajouté — le Défi du jour #N
 - **Un puzzle par jour, le même pour tout le monde** : chaque jour a son numéro
-  (#1 = 15 octobre 2026) et un puzzle tiré de vraies parties, sans compte ni
+  (#1 = 14 octobre 2026) et un puzzle tiré de vraies parties, sans compte ni
   serveur. Il se joue sur le plateau de la partie ; l'accueil, la page Problèmes
   et le badge du haut y mènent, et un lien `?defi=12` ouvre le défi n° 12.
 - **Un résultat à partager sans rien dévoiler** : une grille (🟥 mauvais coup,

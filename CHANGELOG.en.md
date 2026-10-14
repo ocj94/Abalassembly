@@ -13,7 +13,7 @@ invisible offline — which contradicts the project's own principle.
 
 ### Added — Daily puzzle #N
 - **One puzzle a day, the same for everyone**: each day has its number
-  (#1 = 15 October 2026) and a puzzle taken from real games, with no account and
+  (#1 = 14 October 2026) and a puzzle taken from real games, with no account and
   no server. It is played on the game board; the home page, the Puzzles page and
   the badge at the top lead to it, and a `?defi=12` link opens puzzle #12.
 - **A result you can share without spoiling anything**: a grid (🟥 wrong move,
