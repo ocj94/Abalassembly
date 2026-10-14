@@ -1,47 +1,110 @@
+/* ═══════════════════════════════════════════
+   PROFILS LOCAUX
+   Il n'y a pas de serveur : un « compte » est un profil enregistre dans ce navigateur.
+   Avant (v2.57), le mot de passe n'etait jamais verifie (n'importe lequel ouvrait n'importe
+   quel nom), et taper « fightclub » connectait sous le nom d'une vraie personne avec des
+   statistiques inventees (ELO 1950, 312 parties...). Desormais chaque profil garde
+   l'empreinte PBKDF2 de son mot de passe (SEC.hashPassword) et la connexion la verifie.
+   La progression (parties, XP, problemes) reste celle de l'appareil, quel que soit le profil.
+═══════════════════════════════════════════ */
+const PROFILS_KEY = 'abalone_profils';
+const _PROFIL_CHAMPS = ['username', 'email', 'role', 'color', 'bio', 'country', 'joinDate', 'passwordHash', 'passwordSalt'];
+function _profilCle(nom) { return String(nom || '').trim().toLowerCase(); }
+function _profilsLire() {
+  try {
+    const o = JSON.parse(localStorage.getItem(PROFILS_KEY) || '{}');
+    return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {};
+  } catch (e) { return {}; }
 }
-
-/* Login success */
-async function loginSuccess() {
-
-  // Match preset accounts
-  const PRESETS = {
-    'fightclub': { username:'FightClub (Frederic Garnier)', email:'', role:'writer', color:'#4a1c5a', bio:'Fondateur du blog Abalone Online (2013). Theoricien, encyclopediste, redacteur principal.', country:'FR', elo:1950, games:312, wins:198, streak:7, joinDate:'Decembre 2013', eloMax:2105 },
-    'olivier':   { username:'ocj94', email:'', role:'player', color:'#2d5a3d', bio:'Joueur passionné et promoteur de la communauté abalonienne mondiale.', country:'FR', elo:null, games:0, wins:0, streak:0, joinDate:'', eloMax:null },
-  };
-
-  const emailVal = (document.getElementById('login-email')?.value||'').trim().toLowerCase();
-  const usernameVal = (document.getElementById('signup-username')?.value||'').trim();
-  const emailSignup = (document.getElementById('signup-email')?.value||'').trim().toLowerCase();
-
-  // Chemin backend (dormant tant que BACKEND.enabled===false) : si le serveur
-  // authentifie, on utilise SON utilisateur ; sinon on garde la logique locale.
-  if (typeof api!=='undefined' && api.online) {
-    try {
-      const remote = await api.login({ email: emailVal||emailSignup, password: (document.getElementById('login-pw')?.value||'') });
-      if (remote) { currentUser = remote; saveSession(currentUser); updateNavAuth();
-        // Synchronise la progression depuis le serveur (source de vérité si en ligne)
-        try { const rp = await api.fetchProgress(); if (rp) { saveProgress(rp); if (typeof refreshProgressUI==='function') refreshProgressUI(); } } catch(e) {}
-        document.getElementById('success-username').textContent = currentUser.username;
-        openModal('login-success'); return; }
-    } catch(e) {}
+function _profilsEcrire(o) { try { localStorage.setItem(PROFILS_KEY, JSON.stringify(o)); } catch (e) {} }
+/* Enregistre (ou met a jour) le profil de u dans le registre local. */
+function _profilMaj(u) {
+  if (!u || !u.username) return;
+  const tous = _profilsLire();
+  const cle = _profilCle(u.username);
+  const p = Object.assign({}, tous[cle] || {});
+  _PROFIL_CHAMPS.forEach(function (k) { if (u[k] !== undefined && u[k] !== null) p[k] = u[k]; });
+  tous[cle] = p;
+  _profilsEcrire(tous);
+}
+/* Cherche un profil par nom ou par e-mail, sans tenir compte des majuscules. */
+function _profilTrouver(ident) {
+  const q = _profilCle(ident);
+  if (!q) return null;
+  const tous = _profilsLire();
+  if (tous[q]) return { cle: q, profil: tous[q] };
+  for (const cle in tous) {
+    if (tous[cle] && tous[cle].email && _profilCle(tous[cle].email) === q) return { cle: cle, profil: tous[cle] };
   }
-
-  let matched = null;
-  for (const [k,acc] of Object.entries(PRESETS)) {
-    if (emailVal === acc.email || emailVal === k || emailSignup === acc.email) { matched = acc; break; }
-  }
-
-  if (matched) {
-    currentUser = {...matched};
+  return null;
+}
+async function profilConnexion(ident, mdp) {
+  const t = _profilTrouver(ident);
+  if (!t) return { ok: false, msg: _tr('Aucun profil « ' + ident + ' » dans ce navigateur : un profil reste sur l’appareil où il a été créé.',
+                                       'No profile “' + ident + '” in this browser: a profile stays on the device where it was created.') };
+  const p = Object.assign({}, t.profil);
+  let nouveauMdp = false;
+  if (p.passwordHash && p.passwordSalt) {
+    const h = await SEC.hashPassword(mdp, p.passwordSalt);
+    if (h.hash !== p.passwordHash) return { ok: false, msg: _tr('❌ Mot de passe incorrect', '❌ Wrong password') };
   } else {
-    const displayName = usernameVal || emailVal.split('@')[0] || 'Joueur';
-    currentUser = { username:displayName, email:emailSignup||emailVal, role:'player', color:'#2d5a3d', bio:'', country:'', elo:1200, games:0, wins:0, streak:0, joinDate: new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'}), eloMax:1200 };
+    // profil cree avant la v2.57 (aucun mot de passe n'etait garde) : celui-ci devient le sien
+    const h = await SEC.hashPassword(mdp);
+    p.passwordHash = h.hash; p.passwordSalt = h.salt; nouveauMdp = true;
   }
-
-  saveSession(currentUser);
+  currentUser = p;
+  await saveSession(currentUser);
   updateNavAuth();
-
-  document.getElementById('success-username').textContent = currentUser.username;
+  return { ok: true, profil: currentUser, nouveauMdp: nouveauMdp };
+}
+async function profilCreation(nom, email, mdp) {
+  if (_profilTrouver(nom) || (email && _profilTrouver(email))) {
+    return { ok: false, msg: _tr('⚠️ Ce nom ou cet e-mail a déjà un profil dans ce navigateur : connectez-vous.',
+                                 '⚠️ This name or e-mail already has a profile in this browser: sign in.') };
+  }
+  const h = await SEC.hashPassword(mdp);
+  currentUser = { username: nom, email: email || '', role: 'player', color: '#2d5a3d', bio: '', country: '',
+    joinDate: new Date().toLocaleDateString(currentLang() === 'EN' ? 'en-GB' : 'fr-FR', { month: 'long', year: 'numeric' }),
+    passwordHash: h.hash, passwordSalt: h.salt };
+  await saveSession(currentUser);
+  updateNavAuth();
+  return { ok: true, profil: currentUser };
+}
+/* « Mot de passe oublie » : sans serveur, aucun e-mail ne peut partir. On propose d'effacer
+   le profil (nom, mot de passe, couleur) pour le recreer ; la progression n'y est pas liee. */
+function profilOublie() {
+  const champ = document.getElementById('forgot-ident');
+  const ident = ((champ && champ.value) || '').trim();
+  if (!ident) { shakeModal('modal-forgot'); showToast(_tr('⚠️ Indiquez le nom ou l’e-mail du profil', '⚠️ Enter the profile’s name or e-mail')); return; }
+  const t = _profilTrouver(ident);
+  if (!t) { shakeModal('modal-forgot'); showToast(_tr('Aucun profil « ' + ident + ' » dans ce navigateur', 'No profile “' + ident + '” in this browser')); return; }
+  const ok = confirm(_tr('Effacer le profil « ' + t.profil.username + ' » de ce navigateur ?\n\nVos parties, votre XP et vos problèmes résolus restent sur cet appareil : seuls le nom, le mot de passe et la couleur du profil sont effacés. Vous pourrez le recréer tout de suite.',
+                         'Delete the profile “' + t.profil.username + '” from this browser?\n\nYour games, XP and solved puzzles stay on this device: only the profile’s name, password and colour are deleted. You can create it again right away.'));
+  if (!ok) return;
+  const tous = _profilsLire(); delete tous[t.cle]; _profilsEcrire(tous);
+  if (currentUser && _profilCle(currentUser.username) === t.cle) { clearSession(); updateNavAuth(); }
+  if (champ) champ.value = '';
+  closeModal('forgot');
+  openModal('signup');
+  const su = document.getElementById('signup-username'); if (su) su.value = t.profil.username;
+  const se = document.getElementById('signup-email'); if (se) se.value = t.profil.email || '';
+}
+/* Chemin serveur (dormant tant que BACKEND.enabled===false) : si le serveur authentifie, on
+   utilise SON utilisateur. Renvoie true si la connexion a ete faite ainsi. */
+async function _connexionServeur(ident, mdp) {
+  if (!(typeof api !== 'undefined' && api.online)) return false;
+  try {
+    const remote = await api.login({ email: ident, password: mdp });
+    if (!remote) return false;
+    currentUser = remote; saveSession(currentUser); updateNavAuth();
+    // Synchronise la progression depuis le serveur (source de vérité si en ligne)
+    try { const rp = await api.fetchProgress(); if (rp) { saveProgress(rp); if (typeof refreshProgressUI === 'function') refreshProgressUI(); } } catch (e) {}
+    return true;
+  } catch (e) { return false; }
+}
+function _bienvenue(u) {
+  const el = document.getElementById('success-username');
+  if (el) el.textContent = u.username;
   openModal('login-success');
 }
 
@@ -183,6 +246,8 @@ function initSession() {
       if (currentUser.password && !currentUser.passwordHash) {
         currentUser.password = '***'; // ne plus stocker en clair
       }
+      // session ouverte avant la v2.57 : son profil rejoint le registre local
+      if (currentUser.username && !_profilTrouver(currentUser.username)) _profilMaj(currentUser);
       updateNavAuth();
     }).catch(function() {
       // Fallback non chiffré
@@ -211,6 +276,7 @@ async function saveSession(u) {
     // Fallback non chiffré si Web Crypto indisponible
     try { localStorage.setItem('abalone_session', JSON.stringify(u)); } catch {}
   }
+  _profilMaj(u);   // le registre des profils locaux suit chaque changement (nom, couleur, mot de passe)
 }
 
 function clearSession() {
@@ -308,7 +374,7 @@ function resetAllData() {
 
   // Toutes les clés de stockage de l'application
   const keys = [
-    'abalone_progress', 'abalone_session', 'abalone_a11y', 'abalone_lang',
+    'abalone_progress', 'abalone_session', 'abalone_profils', 'abalone_a11y', 'abalone_lang',
     'abalone_lang_banner_dismissed', 'abalone_marble_skin', 'abalone_referral_credits',
     'abalone_sidebar', 'abalone_token_secret', 'abalone_welcome_seen'
   ];
@@ -348,7 +414,7 @@ function updateNavAuth() {
         <div style="width:34px;height:34px;border-radius:50%;background:${currentUser.color||'#2d5a3d'};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;font-family:'Playfair Display',serif;color:var(--gold);border:2px solid var(--border)">${init}</div>
         <div style="line-height:1.2">
           <span style="font-size:13px;font-weight:600;color:var(--white)">${escapeHtml(currentUser.username)}${roleTag}</span><br>
-          <span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">ELO ${currentUser.elo||1200}</span>
+          <span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">ELO ${(typeof progress !== 'undefined' && progress && progress.elo) || 1200}</span>
         </div>
       </div>
       <button onclick="logout()" style="padding:6px 12px;background:none;border:1px solid rgba(192,57,43,0.3);color:#e05c4b;border-radius:6px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif">Deco</button>`;
@@ -377,15 +443,26 @@ function setAvatarColor(col) {
 
 function saveGeneralSettings() {
   if (!currentUser) return;
+  const ancien = currentUser.username;
+  const nomEl = document.getElementById('settings-username');
+  const nouveau = ((nomEl && nomEl.value) || '').trim();
+  if (nouveau && _profilCle(nouveau) !== _profilCle(ancien)) {
+    if (nouveau.length < 3 || nouveau.length > 24 || !/^[\p{L}\p{N} _.\-]+$/u.test(nouveau)) { showToast(_tr('⚠️ Nom : 3 à 24 lettres, chiffres, espaces, - _ .', '⚠️ Name: 3 to 24 letters, digits, spaces, - _ .')); return; }
+    if (_profilTrouver(nouveau)) { showToast(_tr('⚠️ Ce nom a déjà un profil dans ce navigateur', '⚠️ This name already has a profile in this browser')); return; }
+  }
   const fields = { username:'settings-username', email:'settings-email', country:'settings-country', bio:'settings-bio' };
   for (const [key,id] of Object.entries(fields)) {
     const el = document.getElementById(id);
     if (el && el.value.trim()) currentUser[key] = el.value.trim();
   }
+  // renomme : l'ancienne entree du registre disparait, la nouvelle est ecrite par saveSession
+  if (_profilCle(currentUser.username) !== _profilCle(ancien)) {
+    const tous = _profilsLire(); delete tous[_profilCle(ancien)]; _profilsEcrire(tous);
+  }
   saveSession(currentUser);
   updateNavAuth();
   renderProfile();
-  showToast('Profil mis a jour !');
+  showToast(_tr('Profil mis à jour !', 'Profile updated!'));
 }
 
 async function savePassword() {
@@ -418,7 +495,7 @@ async function savePassword() {
   }
 }
 
-/* showSettingsTab — voir version complète ci-dessous */
+/* showSettingsTab : dans 29-security-score-and-puzzles-state.js */
 
 
 
@@ -454,46 +531,76 @@ function showToast(msg) {
 // par 'https://www.abalassembly.com/' le jour où le domaine est configuré.
 const SHARE_URL = 'https://ocj94.github.io/Abalassembly/';
 
+function _lienSite() { return SHARE_URL + (currentLang() === 'EN' ? '?lang=en' : ''); }
+
+/* Le message de fin de partie. Avant (v2.57) : toujours un message de victoire (« ... gagner
+   une partie d'Abalone ! 🏆 »), meme apres une defaite. Il suit maintenant la vraie fin de partie
+   (_finPartie, relevee par l'evenement abalassembly:gameOver) : victoire, defaite, nulle, ou
+   partie a deux sur le meme ecran, avec le score, l'adversaire et le nombre de coups. */
 function buildShareText() {
-  // Construit un message selon l'état de la partie
-  const lvl = (typeof loadProgress === 'function') ? (loadProgress().level || 1) : 1;
-  return "Je viens de gagner une partie d'Abalone sur Abalassembly ! 🏆 Niveau " + lvl + " · Venez m'affronter ⚫⚪";
+  const f = (typeof _finPartie !== 'undefined') ? _finPartie : null;
+  if (!f) return _tr('Une partie d’Abalone ? Gratuit, sans pub, sans compte ⚫⚪', 'Fancy a game of Abalone? Free, no ads, no account ⚫⚪');
+  const nom = function (c) { return c === 'black' ? _tr('Noirs', 'Black') : _tr('Blancs', 'White'); };
+  const ej = function (c) { return c === 'black' ? f.cb : f.cw; };          // billes ejectees PAR ce camp
+  const autre = function (c) { return c === 'black' ? 'white' : 'black'; };
+  const coups = f.coups + ' ' + _tr('coups', 'moves');
+  const raison = f.reason === 'resign' ? _tr(' par abandon', ' by resignation') : f.reason === 'temps' ? _tr(' au temps', ' on time') : '';
+  const adv = f.mode === 'ai' ? _tr('l’IA' + (f.niveau ? ' niveau ' + f.niveau : ''), 'the AI' + (f.niveau ? ' (level ' + f.niveau + ')' : ''))
+            : (f.adv || _tr('mon adversaire', 'my opponent'));
+  if (!f.winner) {
+    return _tr('Partie nulle à Abalone' + (f.mode === 'local' ? '' : ' contre ' + adv) + ' (' + ej('black') + '-' + ej('white') + ', ' + coups + ') ⚫⚪',
+               'Drawn game of Abalone' + (f.mode === 'local' ? '' : ' against ' + adv) + ' (' + ej('black') + '-' + ej('white') + ', ' + coups + ') ⚫⚪');
+  }
+  const score = ej(f.winner) + '-' + ej(autre(f.winner));
+  if (f.mode === 'local') {
+    return _tr('Partie d’Abalone à deux : les ' + nom(f.winner) + ' gagnent ' + score + raison + ' en ' + coups + ' ⚫⚪',
+               'Two-player game of Abalone: ' + nom(f.winner) + ' wins ' + score + raison + ' in ' + coups + ' ⚫⚪');
+  }
+  if (f.winner === f.moi) {
+    return _tr('J’ai battu ' + adv + ' à Abalone : ' + score + raison + ', en ' + coups + ' 🏆',
+               'I beat ' + adv + ' at Abalone: ' + score + raison + ', in ' + coups + ' 🏆');
+  }
+  const monScore = ej(f.moi) + '-' + ej(autre(f.moi));
+  return _tr('Battu par ' + adv + ' à Abalone (' + monScore + raison + ', ' + coups + '). Revanche ? ⚫⚪',
+             'Beaten by ' + adv + ' at Abalone (' + monScore + raison + ', ' + coups + '). Rematch? ⚫⚪');
 }
 
 function shareResult() {
   const text = buildShareText();
   // API native de partage (mobile surtout)
   if (navigator.share) {
-    navigator.share({ title: 'Abalassembly', text: text, url: SHARE_URL })
-      .catch(function(){ openShareModal(text); });
+    navigator.share({ title: 'Abalassembly', text: text, url: _lienSite() })
+      .catch(function(err){ if (!err || err.name !== 'AbortError') openShareModal(text); });
   } else {
     openShareModal(text);
   }
 }
 
 function shareInvite() {
-  const text = "Rejoins-moi sur Abalassembly pour une partie d'Abalone ! ⚫⚪";
+  const text = _tr('Rejoins-moi sur Abalassembly pour une partie d’Abalone ! ⚫⚪', 'Join me on Abalassembly for a game of Abalone! ⚫⚪');
+  const url = (typeof referralLink === 'function') ? referralLink() : _lienSite();
   if (navigator.share) {
-    navigator.share({ title: 'Abalassembly', text: text, url: SHARE_URL })
-      .catch(function(){ openShareModal(text); });
+    navigator.share({ title: 'Abalassembly', text: text, url: url })
+      .catch(function(err){ if (!err || err.name !== 'AbortError') openShareModal(text, url); });
   } else {
-    openShareModal(text);
+    openShareModal(text, url);
   }
 }
 
-function openShareModal(text) {
+/* Avant (v2.57), la fenetre proposait aussi Discord, YouTube et Twitch, vers des adresses
+   « abalassembly » qui n'existent pas (« à remplacer par tes vraies pages ») : retirees. */
+let _partageMessage = '';   // le message de la fenetre de partage ouverte (texte + adresse)
+function openShareModal(text, url) {
+  url = url || _lienSite();
+  _partageMessage = text + ' ' + url;
   const enc = encodeURIComponent(text);
-  const encUrl = encodeURIComponent(SHARE_URL);
+  const encUrl = encodeURIComponent(url);
   const links = {
     twitter:  'https://twitter.com/intent/tweet?text=' + enc + '&url=' + encUrl,
     facebook: 'https://www.facebook.com/sharer/sharer.php?u=' + encUrl + '&quote=' + enc,
     whatsapp: 'https://wa.me/?text=' + enc + '%20' + encUrl,
     telegram: 'https://t.me/share/url?url=' + encUrl + '&text=' + enc,
     reddit:   'https://www.reddit.com/submit?url=' + encUrl + '&title=' + enc,
-    // Liens communauté (à remplacer par tes vraies pages)
-    discord:  'https://discord.gg/abalassembly',
-    youtube:  'https://www.youtube.com/@abalassembly',
-    twitch:   'https://www.twitch.tv/abalassembly',
   };
   let modal = document.getElementById('share-modal');
   if (!modal) {
@@ -512,11 +619,8 @@ function openShareModal(text) {
         '<a href="'+links.whatsapp+'" target="_blank" rel="noopener" class="share-btn wa">WhatsApp</a>' +
         '<a href="'+links.telegram+'" target="_blank" rel="noopener" class="share-btn tg">Telegram</a>' +
         '<a href="'+links.reddit+'" target="_blank" rel="noopener" class="share-btn rd">Reddit</a>' +
-        '<a href="'+links.discord+'" target="_blank" rel="noopener" class="share-btn dc">Discord</a>' +
-        '<a href="'+links.youtube+'" target="_blank" rel="noopener" class="share-btn yt">YouTube</a>' +
-        '<a href="'+links.twitch+'" target="_blank" rel="noopener" class="share-btn tv">Twitch</a>' +
       '</div>' +
-      '<button class="share-copy" onclick="copyShareLink()">🔗 Copier le lien</button>' +
+      '<button class="share-copy" onclick="copyShareLink()">📋 ' + _tr('Copier le message', 'Copy the message') + '</button>' +
       '<button class="share-close" onclick="closeShareModal()">Fermer</button>' +
     '</div>';
   modal.classList.add('show');
@@ -528,12 +632,8 @@ function closeShareModal() {
 }
 
 function copyShareLink() {
-  const text = buildShareText() + ' ' + SHARE_URL;
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(function(){ showToast('🔗 Lien copié !'); });
-  } else {
-    showToast('Copiez : ' + SHARE_URL);
-  }
+  const text = _partageMessage || (buildShareText() + ' ' + _lienSite());
+  _copierTexte(text, _tr('📋 Message copié', '📋 Message copied'));
 }
 
 /* ═══════════════════════════════════════════

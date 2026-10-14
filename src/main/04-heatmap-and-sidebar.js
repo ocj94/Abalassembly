@@ -956,9 +956,11 @@ function togglePw(id, btn) {
 }
 
 /* ── Password strength ── */
-function checkPwStrength(val) {
-  const fill = document.getElementById('pw-strength-fill');
-  const label = document.getElementById('pw-strength-label');
+/* suffixe : '' pour les Parametres, '-2' pour la fenetre de creation de profil (avant, la jauge
+   de cette fenetre ne bougeait jamais : c'etait celle des Parametres, cachee, qui changeait). */
+function checkPwStrength(val, suffixe) {
+  const fill = document.getElementById('pw-strength-fill' + (suffixe || ''));
+  const label = document.getElementById('pw-strength-label' + (suffixe || ''));
   if (!fill) return;
   let score = 0;
   if (val.length >= 8) score++;
@@ -982,30 +984,42 @@ function checkPwStrength(val) {
 ──────────────────────────────────────────── */
 let _loginEmail = '';
 
-function submitLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const pw    = document.getElementById('login-pw').value;
-  if (!email || !pw) { shakeModal('modal-login'); showToast('⚠️ Veuillez remplir tous les champs'); return; }
-  _loginEmail = email;
+async function submitLogin() {
+  const champ = document.getElementById('login-email'), champPw = document.getElementById('login-pw');
+  const ident = champ.value.trim();
+  const pw    = champPw.value;
+  if (!ident || !pw) { shakeModal('modal-login'); showToast(_tr('⚠️ Veuillez remplir tous les champs', '⚠️ Please fill in both fields')); return; }
+  _loginEmail = ident;
+  if (await _connexionServeur(ident, pw)) { champPw.value = ''; closeModal('login'); _bienvenue(currentUser); return; }
+  const r = await profilConnexion(ident, pw);
+  if (!r.ok) { shakeModal('modal-login'); showToast(r.msg); return; }
+  champPw.value = '';
   closeModal('login');
-  loginSuccess(); // profil local, aucune double authentification (pas de serveur)
+  if (r.nouveauMdp) showToast(_tr('🔐 Ce mot de passe protège désormais ce profil', '🔐 This password now protects this profile'));
+  _bienvenue(r.profil);
 }
 
 /* ────────────────────────────────────────────
    SIGNUP FLOW
 ──────────────────────────────────────────── */
-function submitSignup() {
+async function submitSignup() {
   const username = document.getElementById('signup-username').value.trim();
   const email    = document.getElementById('signup-email').value.trim();
-  const pw       = document.getElementById('signup-pw').value;
+  const champPw  = document.getElementById('signup-pw');
+  const pw       = champPw.value;
   const terms    = document.getElementById('signup-terms').checked;
-  if (!username || username.length < 3) { showToast('⚠️ Nom d\'utilisateur trop court (min. 3 caractères)'); return; }
-  if (username.length > 24) { showToast('⚠️ Nom d\'utilisateur trop long (max. 24 caractères)'); return; }
+  if (!username || username.length < 3) { showToast(_tr('⚠️ Nom d\'utilisateur trop court (min. 3 caractères)', '⚠️ Username too short (min. 3 characters)')); return; }
+  if (username.length > 24) { showToast(_tr('⚠️ Nom d\'utilisateur trop long (max. 24 caractères)', '⚠️ Username too long (max. 24 characters)')); return; }
   // Caractères autorisés : lettres, chiffres, espace, tiret, underscore, point (anti-injection)
-  if (!/^[\p{L}\p{N} _.\-]+$/u.test(username)) { showToast('⚠️ Le nom contient des caractères non autorisés'); return; }
-  if (!email || !email.includes('@')) { showToast('⚠️ Adresse email invalide'); return; }
-  if (!pw || pw.length < 8) { showToast('⚠️ Mot de passe trop court (min. 8 caractères)'); return; }
-  if (!terms) { showToast('⚠️ Veuillez accepter les conditions d\'utilisation'); return; }
-  _loginEmail = email;
+  if (!/^[\p{L}\p{N} _.\-]+$/u.test(username)) { showToast(_tr('⚠️ Le nom contient des caractères non autorisés', '⚠️ The name contains characters that are not allowed')); return; }
+  // l'e-mail est facultatif : il sert seulement a se reconnecter ici, rien ne lui est envoye
+  if (email && !/^[^\s@]+@[^\s@]+$/.test(email)) { showToast(_tr('⚠️ Adresse e-mail invalide', '⚠️ Invalid e-mail address')); return; }
+  if (!pw || pw.length < 8) { showToast(_tr('⚠️ Mot de passe trop court (min. 8 caractères)', '⚠️ Password too short (min. 8 characters)')); return; }
+  if (!terms) { showToast(_tr('⚠️ Veuillez accepter les conditions d\'utilisation', '⚠️ Please accept the terms of use')); return; }
+  _loginEmail = email || username;
+  const r = await profilCreation(username, email, pw);
+  if (!r.ok) { shakeModal('modal-signup'); showToast(r.msg); return; }
+  champPw.value = '';
   closeModal('signup');
-  loginSuccess(); // profil local, aucune double authentification (pas de serveur)
+  _bienvenue(r.profil);
+}

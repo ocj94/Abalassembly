@@ -268,17 +268,20 @@ check('replay : la gouttiere est remise a zero', () => {
   return /resetGutterPositions/.test(b) || 'les billes ejectees precedentes persistent';
 });
 
-check('puzzle du jour : deterministe par la date', () =>
-  /function daySeed\s*\(/.test(jsBlocks.join('\n')) &&
-  /function currentDailyPuzzle\s*\(/.test(jsBlocks.join('\n')) ||
-  'les fonctions du puzzle quotidien sont absentes');
+check('defi du jour : numerote et deterministe par la date', () =>
+  /function defiNumero\s*\(/.test(jsBlocks.join('\n')) &&
+  /function defiIndex\s*\(/.test(jsBlocks.join('\n')) ||
+  'les fonctions du defi du jour sont absentes');
 
-check('puzzle du jour : carte presente dans la page Problemes', () =>
+check('defi du jour : carte presente dans la page Problemes', () =>
   /id="daily-puzzle-card"/.test(HTML) || 'la carte n\'est pas dans le HTML');
 
-check('puzzle du jour : completion branchee sur la resolution', () =>
-  /checkDailyCompletion\(pa\.idx\)/.test(jsBlocks.join('\n')) ||
-  'la resolution d\'un puzzle ne met pas a jour le puzzle du jour');
+check('defi du jour : branche sur la resolution, l\'indice et la solution', () => {
+  const js = jsBlocks.join('\n');
+  return (/_defiSurPuzzle\(pa\.idx, 'v'\)/.test(js) && /_defiSurPuzzle\(pa\.idx, 'x'\)/.test(js)
+    && /_defiSurPuzzle\(pa\.idx, 'i'\)/.test(js) && /_defiSurPuzzle\(pa\.idx, 's'\)/.test(js)) ||
+    'la resolution d\'un puzzle ne met pas a jour le defi du jour';
+});
 
 check('analyse d\'apres-partie : calculee sur les vraies positions', () => {
   const b = functionBody('postGameReview');
@@ -383,7 +386,7 @@ check('le README suit les fonctionnalites livrees', () => {
   const manquants = [
     ['APGN', /APGN/],
     ['partie par code', /[Pp]artie par code/],
-    ['puzzle du jour', /[Pp]uzzle du jour/],
+    ['defi du jour', /[Dd]éfi du jour #N/],
     ['suite de tests', /tests\/regression\.js/]
   ].filter(e => !e[1].test(rd)).map(e => e[0]);
   return manquants.length === 0 || ('non documente : ' + manquants.join(', '));

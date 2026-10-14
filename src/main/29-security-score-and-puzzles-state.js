@@ -51,14 +51,21 @@ async function computeSecurityScore() {
   }
 }
 
-/* ── Auto-compute score when settings/twofa tab is shown ── */
-const _origShowSettingsTab = showSettingsTab;
+/* ── Onglets des Parametres ──
+   Avant (v2.57) : « const _orig… = showSettingsTab » enveloppait une version
+   « complete » disparue depuis longtemps. Une declaration de fonction etant hissee, la constante
+   pointait sur l'enveloppe elle-meme : chaque clic tournait en boucle jusqu'a l'erreur, et seul
+   « Profil general » s'affichait (Accessibilite, Autorisations et Mode Enfant inaccessibles). */
 function showSettingsTab(tab) {
-  _origShowSettingsTab(tab);
-  if (tab === 'twofa') setTimeout(computeSecurityScore, 100);
+  const panneau = document.getElementById('spanel-' + tab);
+  if (!panneau) return;
+  document.querySelectorAll('.settings-tab').forEach(function (b) { b.classList.toggle('active', b.id === 'stab-' + tab); });
+  document.querySelectorAll('.settings-panel').forEach(function (p) { p.classList.toggle('active', p === panneau); });
+  if (tab === 'twofa' && typeof computeSecurityScore === 'function') setTimeout(computeSecurityScore, 100);
   // Restaure l'etat sauvegarde des interrupteurs de notification : sans ca
   // ils paraitraient tous eteints a chaque ouverture.
   if (tab === 'notifs' && typeof notifPrefsAppliquerUI === 'function') notifPrefsAppliquerUI();
+  if (tab === 'accessibility' && typeof renderA11yPanel === 'function') renderA11yPanel();
 }
 
 

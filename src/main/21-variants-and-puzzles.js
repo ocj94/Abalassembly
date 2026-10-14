@@ -552,13 +552,12 @@ function nextPuzzle() {
 }
 
 function setPuzzleMode(mode, el) {
+  // le Défi du jour se joue sur le plateau de la partie (comme le problème du mois)
+  if (mode==='daily') { if (typeof ouvrirDefi === 'function') ouvrirDefi(); return; }
   document.querySelectorAll('.puzzle-mode-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
   const stormUI = document.getElementById('storm-ui');
   if (stormUI) stormUI.style.display = mode==='storm' ? 'block' : 'none';
-  if (mode==='daily') {
-    openDailyPuzzleInline();
-  }
   if (mode==='generated') {
     loadGeneratedPuzzle();
   }

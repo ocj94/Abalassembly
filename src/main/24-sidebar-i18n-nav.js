@@ -624,7 +624,10 @@ function showPage(name) {
         setupRenderLayoutThumb(_setupCfg.layout, opt ? (opt.getAttribute('title') || opt.textContent.trim()) : '');
       }
     },
-    game:       function(){ if(!tournamentGame && typeof exitTournamentMode==='function') exitTournamentMode(); initGame();
+    game:       function(){ if(!tournamentGame && typeof exitTournamentMode==='function') exitTournamentMode();
+      // un puzzle s'ouvre sur ce plateau (defi du jour, probleme du mois) : pas de nouvelle partie
+      if (typeof _puzzleOuverture !== 'undefined' && _puzzleOuverture) return;
+      initGame();
       // Pluie de billes : uniquement quand une NOUVELLE partie demarre,
       // pas au retour sur une partie deja engagee.
       if (typeof playMarbleRainTransition === 'function'
@@ -686,7 +689,7 @@ function updateTopBar() {
   const u = currentUser;
   const streakEl = document.getElementById('top-streak');
   const avatarEl = document.getElementById('top-avatar');
-  if (streakEl) streakEl.textContent = '🔥 ' + (u ? (u.streak||0) : 18);
+  if (streakEl) streakEl.textContent = '🔥 ' + serieActuelle();
   if (avatarEl) {
     avatarEl.textContent = u ? (u.username||'?')[0].toUpperCase() : '?';
     avatarEl.style.background = u ? (u.color||'#2d5a3d') : '#2d5a3d';

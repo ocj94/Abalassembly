@@ -2451,7 +2451,7 @@ function currentLang() {
 const I18N_EN = {
   // ── en-tete, menus ──
   'Aide': 'Help', 'Comment utiliser le site': 'How to use the site', 'Poser une question': 'Ask a question',
-  'Inviter un ami (+XP)': 'Invite a friend (+XP)', 'Faire une suggestion': 'Make a suggestion', 'Signaler un bug': 'Report a bug',
+  'Inviter un ami': 'Invite a friend', 'Faire une suggestion': 'Make a suggestion', 'Signaler un bug': 'Report a bug',
   'Signaler un abus': 'Report abuse', 'Se connecter': 'Connect', 'Langue': 'Language', 'Changer de langue': 'Change language',
   '🎮 Jouer': '🎮 Play', 'Accueil': 'Home', 'Jouer': 'Play', 'Historique': 'History', 'Stats du corpus': 'Corpus stats', 'Importer': 'Import',
   'Problèmes': 'Puzzles', 'Éditeur': 'Editor', 'Variantes': 'Variants', '📖 Progresser': '📖 Improve', 'Règles du jeu': 'Game rules',
@@ -2496,16 +2496,39 @@ const I18N_EN = {
   "— Le blog de référence sur l'Abalone (règles, variantes, Academy, événements)": '— the reference blog about Abalone (rules, variants, Academy, events)',
   '— projet de fan, non affilié à Abalone S.A.': '— a fan project, not affiliated with Abalone S.A.',
   // ── bandeau d'engagement, defis ──
-  'Série': 'Streak', 'jour': 'day', 'jours': 'days', 'Niveau': 'Level', 'Défi du jour': 'Daily challenge', 'Mes stats': 'My stats',
-  '🔥 Défi du jour': '🔥 Daily challenge', '🎁 Défi de la semaine': '🎁 Weekly challenge', '⚡ Défi du jour — partie': '⚡ Daily challenge — game',
+  'Série': 'Streak', 'jour': 'day', 'jours': 'days', 'Niveau': 'Level', 'Défi du jour': 'Daily puzzle', 'Mes stats': 'My stats',
+  '🔥 Défi du jour': '🔥 Daily puzzle', '🎁 Défi de la semaine': '🎁 Weekly challenge', '⚡ Défi du jour — partie': '⚡ Daily challenge — game',
   'Victoires': 'Wins', 'Défaites': 'Losses', 'Nuls': 'Draws', 'Taux': 'Rate', 'Récompense obtenue': 'Reward claimed',
-  'Éjection en 2 coups': 'Ejection in 2 moves', 'Sumito 3v2 gagnant': 'Winning 3-on-2 sumito', 'Défense imprenable': 'Unbreakable defense',
-  'Contrôle du centre': 'Center control', 'Double menace': 'Double threat',
+  'Contrôle du centre': 'Center control',
   'Vainqueur de la semaine': 'Winner of the week', 'Joueur assidu': 'Regular player', 'Tacticien': 'Tactician', 'Régularité': 'Consistency',
   'Gagne 5 parties': 'Win 5 games', 'Joue 10 parties': 'Play 10 games', 'Résous 7 problèmes': 'Solve 7 puzzles', 'Atteins une série de 5 jours': 'Reach a 5-day streak',
   'Victoire du jour': 'Win of the day', 'Chasseur du jour': 'Hunter of the day', 'Assidu du jour': 'Player of the day',
   "Gagne 1 partie aujourd'hui": 'Win 1 game today', "Éjecte 3 billes aujourd'hui": 'Eject 3 marbles today', "Joue 2 parties aujourd'hui": 'Play 2 games today',
-  '✅ Défi du jour déjà complété !': '✅ Daily challenge already completed!',
+  // ── profil local et fenetres de connexion (v2.57) ──
+  'Votre profil': 'Your profile', 'Créer un profil': 'Create a profile', 'Créer mon profil →': 'Create my profile →',
+  'Parties': 'Games', 'ELO actuel': 'Current ELO', 'Joueur': 'Player', 'JOUEUR': 'PLAYER', 'Deco': 'Sign out', 'Jouer maintenant': 'Play now', 'Historique récent': 'Recent games',
+  'Maître': 'Master', 'Grand Maître': 'Grandmaster',
+  'Créez un profil (ou connectez-vous) pour voir vos statistiques, votre série et vos dernières parties. Tout reste dans ce navigateur, sur cet appareil.':
+    'Create a profile (or sign in) to see your statistics, your streak and your latest games. Everything stays in this browser, on this device.',
+  'Problèmes résolus': 'Puzzles solved', 'Jouez une partie ou résolvez un problème pour démarrer une série.': 'Play a game or solve a puzzle to start a streak.',
+  "Tout l'historique →": 'Full history →', 'Progression ELO (30 jours)': 'ELO progress (30 days)', 'Déconnexion': 'Sign out', '⚙ Paramètres': '⚙ Settings',
+  'Bon retour !': 'Welcome back!', 'Retrouvez votre profil local.': 'Open your local profile.',
+  'Pas de serveur : votre profil, vos parties et votre progression restent': 'No server: your profile, your games and your progress stay',
+  'dans ce navigateur, sur cet appareil': 'in this browser, on this device',
+  ". Rien n'est envoyé, aucun e-mail ne vous sera écrit. N'y mettez pas un mot de passe qui vous sert ailleurs. Pour changer d'appareil : Paramètres → Exporter mes données.": '. Nothing is sent, and no e-mail will ever be written to you. Do not use a password you use elsewhere. To change devices: Settings → Export my data.',
+  "Nom d'utilisateur ou e-mail": 'Username or e-mail', 'Mot de passe': 'Password', 'Mot de passe oublié ?': 'Forgot your password?',
+  'Continuer →': 'Continue →', 'Pas encore de profil ?': 'No profile yet?', "C'est fait !": 'Done!', 'Bienvenue,': 'Welcome,',
+  'Profil enregistré dans ce navigateur': 'Profile saved in this browser', 'Accéder à mon profil →': 'Go to my profile →',
+  "Un nom, un mot de passe, et c'est parti. Le profil est facultatif : on peut jouer sans.": 'A name, a password, and off you go. A profile is optional: you can play without one.',
+  '3 à 24 caractères · affiché sur cet appareil': '3 to 24 characters · shown on this device', 'Adresse e-mail (facultatif)': 'E-mail address (optional)',
+  'Sert seulement à vous reconnecter ici.': 'Only used to sign in again here.', 'Au moins 8 caractères': 'At least 8 characters', 'vous@exemple.com': 'you@example.com',
+  "J'accepte les": 'I accept the', 'mentions légales': 'legal notice', 'et la': 'and the', 'politique de confidentialité': 'privacy policy',
+  'Déjà un profil dans ce navigateur ?': 'Already have a profile in this browser?', 'Mot de passe oublié': 'Forgotten password',
+  'Sans serveur, aucun e-mail ne peut vous être envoyé. Mais votre progression (parties, XP, problèmes) ne dépend pas du mot de passe : elle reste sur cet appareil. Vous pouvez effacer le profil et le recréer aussitôt.':
+    'Without a server, no e-mail can be sent to you. But your progress (games, XP, puzzles) does not depend on the password: it stays on this device. You can delete the profile and create it again right away.',
+  "Nom d'utilisateur ou e-mail du profil": 'Username or e-mail of the profile', 'Effacer ce profil et le recréer': 'Delete this profile and create it again',
+  '← Retour à la connexion': '← Back to sign in', 'Afficher le mot de passe': 'Show the password',
+  'Une image carrée du résultat et du plateau final': 'A square image of the result and the final board',
   // ── configuration de partie ──
   'Nouvelle partie': 'New game', 'Configurer avant de jouer': 'Set up your game', 'Configuration': 'Setup', 'Disposition de départ': 'Starting layout',
   'Configuration officielle : 14 billes par camp sur 3 rangées': 'Official layout: 14 marbles per side on 3 rows',
@@ -2626,15 +2649,15 @@ const I18N_EN = {
   '🏆 Parfait ! Tu sais maintenant attaquer, défendre ET riposter. Tu es prêt pour de vraies parties !': '🏆 Perfect! You can now attack, defend AND strike back. You are ready for real games!',
   'Fermer': 'Close', 'Code copié': 'Code copied',
   // ── problemes (page Problemes, puzzles de vraies parties) ──
-  'Problèmes tactiques': 'Tactical puzzles', 'Le puzzle du jour': 'Puzzle of the day', 'Le problème du mois': 'Puzzle of the month',
+  'Problèmes tactiques': 'Tactical puzzles', 'Le défi du jour': 'The daily puzzle', 'Le problème du mois': 'Puzzle of the month',
   'TROUVER LE COUP GAGNANT': 'FIND THE WINNING MOVE', 'PARER LA MENACE': 'STOP THE THREAT', '🏅 Certifié': '🏅 Certified',
   'Coup vérifié directement contre le moteur du site': 'Move checked directly against the site’s engine',
   'NIVEAU :': 'LEVEL:', 'TRAIT :': 'TO MOVE:', 'OBJECTIF :': 'GOAL:', 'FACILE': 'EASY', 'MOYEN': 'MEDIUM', 'DIFFICILE': 'HARD', 'NOIR': 'BLACK', 'BLANC': 'WHITE',
-  'Jouer le puzzle du jour': 'Play the puzzle of the day', '▶ Jouer le problème du mois': '▶ Play the puzzle of the month', '👁 Voir la solution': '👁 Show the solution',
+  '▶ Jouer le problème du mois': '▶ Play the puzzle of the month', '👁 Voir la solution': '👁 Show the solution',
   '📋 Exporter (APGN)': '📋 Export (APGN)', 'Copie la position et la solution au format Aba-Pro': 'Copies the position and the solution in Aba-Pro format',
   '✅ Résolu ce mois-ci': '✅ Solved this month', '🏆 Problème du mois résolu ! +80 XP': '🏆 Puzzle of the month solved! +80 XP',
   'À réviser': 'To review', 'Réviser maintenant': 'Review now',
-  'Entraînement': 'Training', 'À votre rythme': 'At your own pace', '3 min chrono': '3-minute clock', 'Nouveau chaque jour': 'New every day',
+  'Entraînement': 'Training', 'À votre rythme': 'At your own pace', '3 min chrono': '3-minute clock', 'Le même pour tous': 'The same for everyone',
   'Puzzle infini': 'Endless puzzles', "Généré par l'IA": 'Generated by the AI', 'Finale prouvée': 'Proven endgame', '1 sur 12,96M': '1 in 12.96M',
   'Finale prouvée — séquence': 'Proven endgame — sequence', '3, 5 ou 7 coups, adversaire optimal': '3, 5 or 7 moves, perfect opponent',
   'Finale 4 contre 2': 'Endgame 4 against 2', 'gain en 9 à 25 coups, défense parfaite': 'win in 9 to 25 moves, perfect defense',
@@ -2662,7 +2685,7 @@ const I18N_EN = {
   '🛡️ Menace parée !': '🛡️ Threat stopped!', '✅ Coup gagnant trouvé !': '✅ Winning move found!', '❌ Raté — pense à 💡 Indice ou ✅ Solution': '❌ Missed — try 💡 Hint or ✅ Solution',
   '❌ La menace demeure, réessaie': '❌ The threat is still there, try again', '❌ Pas le meilleur coup, réessaie': '❌ Not the best move, try again',
   'Puzzle déjà résolu — ⏭ Suivant': 'Puzzle already solved — ⏭ Next', 'Puzzles fermés': 'Puzzles closed', 'Aucun puzzle embarqué': 'No puzzle included',
-  'Puzzle résolu': 'Puzzle solved', 'Puzzle du jour resolu': 'Puzzle of the day solved', 'Problème du mois résolu': 'Puzzle of the month solved',
+  'Puzzle résolu': 'Puzzle solved', 'Problème du mois résolu': 'Puzzle of the month solved',
   // les 18 problemes de la serie (titres, enonces, indices, solutions de secours)
   'Première éjection': 'First ejection', '🟢 Difficulté Facile': '🟢 Difficulty: easy', '🟡 Difficulté Moyenne': '🟡 Difficulty: medium', '🔴 Difficulté Difficile': '🔴 Difficulty: hard',
   'Initiation': 'Beginner', 'Intermédiaire': 'Intermediate', 'Défense & Riposte': 'Defense & counter',
@@ -2906,16 +2929,11 @@ const I18N_EN_MOTIFS = [
   [/^💡 Menace adverse : (.+) — ta parade part de (\S+)$/, '💡 Opponent’s threat: $1 — your defense starts from $2', 'Menace adverse'],
   [/^💡 Le coup part de (\S+) \(source : (.+)\)$/, '💡 The move starts from $1 (source: $2)', 'Le coup part de'],
   [/^✅ Solution : (.+) — joue-la !$/, '✅ Solution: $1 — play it!', '✅ Solution :'],
-  [/^Resolu aujourd'hui(?: — (\d+) jours d'affilee)?$/, function (_, n) { return 'Solved today' + (n ? ' — ' + n + ' days in a row' : ''); }, "Resolu aujourd'hui"],
-  [/^Serie en cours : (\d+) jour\(s\)$/, 'Current streak: $1 day(s)', 'Serie en cours'],
-  [/^Puzzle du jour resolu ! \+(\d+) XP(?: — (\d+) jours d'affilee)?$/, function (_, x, n) { return 'Puzzle of the day solved! +' + x + ' XP' + (n ? ' — ' + n + ' days in a row' : ''); }, 'Puzzle du jour resolu'],
   [/^\+(\d+) XP · (.+)$/, function (_, x, r) { const t = _i18nEN(r); return t === null ? _ : '+' + x + ' XP · ' + t; }, ' XP · '],
   [/^Défi hebdomadaire : (.+)$/, function (_, t) { return 'Weekly challenge: ' + (_i18nDict(t) || t); }, 'Défi hebdomadaire :'],
   [/^Défi du jour : (.+)$/, function (_, t) { return 'Daily challenge: ' + (_i18nDict(t) || t); }, 'Défi du jour :'],
   [/^🎉 Niveau (\d+) atteint !$/, '🎉 Level $1 reached!', 'atteint !'],
   [/^(· )?(NIVEAU|TRAIT|OBJECTIF) :$/, function (_, sep, e) { return (sep || '') + ({ NIVEAU: 'LEVEL:', TRAIT: 'TO MOVE:', OBJECTIF: 'GOAL:' })[e]; }, ['NIVEAU :', 'TRAIT :', 'OBJECTIF :']],
-  [/^Puzzle #(\d+) · clique pour relever$/, 'Puzzle #$1 · tap to take it on', 'clique pour relever'],
-  [/^🔥 Défi du jour — Puzzle (\d+)\/(\d+)$/, '🔥 Daily challenge — Puzzle $1/$2', '🔥 Défi du jour'],
   [/^Case ([A-I]\d), (bille noire|bille blanche|case vide)(, sélectionnée)?$/, function (_, c, b, s) {
     return 'Cell ' + c + ', ' + ({ 'bille noire': 'black marble', 'bille blanche': 'white marble', 'case vide': 'empty' })[b] + (s ? ', selected' : ''); }, 'Case '],
   [/^Ouvrir la vue (\dD) dans une fenêtre séparée$/, 'Open the $1 view in a separate window', 'Ouvrir la vue'],
@@ -2937,7 +2955,12 @@ const I18N_EN_MOTIFS = [
   [/^(.+) te défie !$/, '$1 challenges you!', ' te défie !'],
   [/^Prof\. (\d+) : (\d+) premiers coups sur (\d+), (.+) positions, (.+) \(finie à (.+)\)$/, 'Depth $1: $2 first moves out of $3, $4 positions, $5 (done at $6)', 'premiers coups sur'],
   [/^Niveau (\d+) · style (.+)$/, 'Level $1 · style $2', ' · style '],
-  [/^🟢 Connecté(?: à (.+))? — coups en temps réel$/, function (_, n) { return '🟢 Connected' + (n ? ' to ' + n : '') + ' — moves in real time'; }, '🟢 Connecté']
+  [/^🟢 Connecté(?: à (.+))? — coups en temps réel$/, function (_, n) { return '🟢 Connected' + (n ? ' to ' + n : '') + ' — moves in real time'; }, '🟢 Connecté'],
+  // v2.57 : statistiques de l'accueil, historique des parties
+  [/^⚫ (\d+) parties terminées · 🧩 (\d+) puzzles résolus — sur cet appareil$/, '⚫ $1 games finished · 🧩 $2 puzzles solved — on this device', 'parties terminées'],
+  [/^IA (Auto|Agressif|Défensif|Division|Équilibré) — (?:Niveau (\d+)|(.+))$/, function (_, s, n, autre) {
+    return 'AI ' + ({ Auto: 'Auto', Agressif: 'Aggressive', 'Défensif': 'Defensive', Division: 'Divide', 'Équilibré': 'Balanced' })[s] + ' — ' + (n ? 'Level ' + n : autre); }, 'IA '],
+  [/^Local \(même écran\)$/, 'Local (same screen)', 'Local (même écran)']
 ];
 // traduction d'un texte francais, ou null s'il est inconnu (espaces de debut et de fin conserves)
 function _i18nEN(fr) {
@@ -3088,7 +3111,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
       <div class="help-menu" id="help-menu">
         <button class="help-option" onclick="toggleHelpMenu(); showPage('aide')"><span>📖</span> Comment utiliser le site</button>
         <button class="help-option" onclick="openHelp('question')"><span>💬</span> Poser une question</button>
-        <button class="help-option" onclick="openReferralModal()"><span>📨</span> Inviter un ami (+XP)</button>
+        <button class="help-option" onclick="openReferralModal()"><span>📨</span> Inviter un ami</button>
         <button class="help-option" onclick="openHelp('suggestion')"><span>💡</span> Faire une suggestion</button>
         <button class="help-option" onclick="openHelp('bug')"><span>🐞</span> Signaler un bug</button>
         <button class="help-option" onclick="openHelp('abuse')"><span>🚫</span> Signaler un abus</button>
@@ -3268,7 +3291,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
     <div class="hero-text">
       <div style="display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap">
         <div class="hero-badge" id="hero-stats">100 % hors-ligne · aucun compte requis</div>
-        <div class="hero-badge" id="hero-daily" style="background:rgba(74,148,99,0.1);border-color:rgba(74,148,99,0.2);color:var(--accent-green-light);cursor:pointer" onclick="openDailyPuzzle()">
+        <div class="hero-badge" id="hero-daily" style="background:rgba(74,148,99,0.1);border-color:rgba(74,148,99,0.2);color:var(--accent-green-light);cursor:pointer" onclick="ouvrirDefi()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')ouvrirDefi()">
           🔥 Défi du jour
         </div>
       </div>
@@ -4126,6 +4149,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
           <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;justify-content:center">
             <button class="btn-gold" style="padding:12px 28px;font-size:15px;font-weight:600;border:none;border-radius:8px;cursor:pointer" onclick="resetGame()">Nouvelle partie</button>
             <button class="btn-ghost" style="padding:12px 22px;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:none;color:var(--text)" onclick="shareResult()">📤 Partager</button>
+            <button class="btn-ghost" style="padding:12px 22px;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:none;color:var(--text)" onclick="partagerImageFin()" title="Une image carrée du résultat et du plateau final">🖼️ Image</button>
             <button class="btn-ghost" style="padding:12px 22px;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:none;color:var(--text)" onclick="hideWinOverlay()">🔍 Revoir la partie</button>
             <button class="btn-ghost" style="padding:12px 22px;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:none;color:var(--text)" onclick="openMistakesReview()">⚠️ Revoir mes erreurs</button>
           </div>
@@ -5087,11 +5111,11 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
   <!-- GUEST: not logged in -->
   <div id="profile-guest" style="display:none;min-height:80vh;padding-top:120px;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center">
     <div style="font-size:64px">&#128274;</div>
-    <h2 style="font-family:'Playfair Display',serif;font-size:32px;color:var(--white)">Connexion requise</h2>
-    <p style="color:var(--muted);font-size:16px;max-width:380px;line-height:1.7">Connectez-vous pour acceder a votre profil, vos stats et votre historique.</p>
+    <h2 style="font-family:'Playfair Display',serif;font-size:32px;color:var(--white)">Votre profil</h2>
+    <p style="color:var(--muted);font-size:16px;max-width:420px;line-height:1.7">Créez un profil (ou connectez-vous) pour voir vos statistiques, votre série et vos dernières parties. Tout reste dans ce navigateur, sur cet appareil.</p>
     <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
       <button class="btn-ghost" onclick="openModal('login')" style="padding:12px 28px;font-size:15px">Se connecter</button>
-      <button class="btn-gold" onclick="openModal('signup')" style="padding:12px 28px;font-size:15px">Creer un compte</button>
+      <button class="btn-gold" onclick="openModal('signup')" style="padding:12px 28px;font-size:15px">Créer un profil</button>
     </div>
   </div>
   <!-- LOGGED: connected -->
@@ -5129,152 +5153,29 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
           <div class="rank-val" id="profile-elo-display">1200</div>
           <div class="rank-sub" id="profile-elo-sub">Joueur</div>
         </div>
-        <button id="settings-nav-btn" onclick="showPage('settings')" style="padding:9px 16px;background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;white-space:nowrap" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">&#9881; Parametres</button>
-        <button onclick="logout()" style="padding:9px 16px;background:none;border:1px solid rgba(192,57,43,0.3);color:#e05c4b;border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;white-space:nowrap">Deconnexion</button>
+        <button id="settings-nav-btn" onclick="showPage('settings')" style="padding:9px 16px;background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;white-space:nowrap" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">⚙ Paramètres</button>
+        <button onclick="logout()" style="padding:9px 16px;background:none;border:1px solid rgba(192,57,43,0.3);color:#e05c4b;border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;white-space:nowrap">Déconnexion</button>
       </div>
     </div>
     <div class="profile-stats-bar">
       <div class="pstat"><div class="pstat-val" id="ps-games">0</div><div class="pstat-label">Parties</div><div class="pstat-sub" id="ps-games-sub">Commencez !</div></div>
       <div class="pstat"><div class="pstat-val" id="ps-wr">-</div><div class="pstat-label">Victoires</div><div class="pstat-sub" id="ps-wr-sub">-</div></div>
       <div class="pstat"><div class="pstat-val" id="ps-elo">1200</div><div class="pstat-label">ELO actuel</div><div class="pstat-sub" id="ps-elo-sub">Max: 1200</div></div>
-      <div class="pstat"><div class="pstat-val" id="ps-streak">0</div><div class="pstat-label">Serie active</div><div class="pstat-sub">Wins consecutifs</div></div>
-      <div class="pstat"><div class="pstat-val" id="ps-rank">-</div><div class="pstat-label">Rang mondial</div><div class="pstat-sub" id="ps-rank-sub">Non classe</div></div>
+      <div class="pstat"><div class="pstat-val" id="ps-streak">0</div><div class="pstat-label">Série</div><div class="pstat-sub" id="ps-streak-sub">Record : 0</div></div>
+      <div class="pstat"><div class="pstat-val" id="ps-puzzles">0</div><div class="pstat-label">Problèmes résolus</div><div class="pstat-sub" id="ps-puzzles-sub">-</div></div>
     </div>
-    </div>
-
-    <!-- Badges plateforme -->
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-      <a href="http://www.abal.online/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 12px;background:rgba(74,148,99,0.1);color:var(--accent-green-light);border:1px solid rgba(74,148,99,0.3);border-radius:20px;text-decoration:none;font-family:'DM Mono',monospace">🎮 abal.online · ocj94</a>
-      <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 12px;background:rgba(200,168,75,0.08);color:var(--gold);border:1px solid rgba(200,168,75,0.2);border-radius:20px;font-family:'DM Mono',monospace">⭐ 4× Shutout 6-0</span>
-      <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 12px;background:rgba(200,168,75,0.08);color:var(--gold);border:1px solid rgba(200,168,75,0.2);border-radius:20px;font-family:'DM Mono',monospace">🏆 ELO Abalone max 1805</span>
-      <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 12px;background:rgba(200,168,75,0.08);color:var(--gold);border:1px solid rgba(200,168,75,0.2);border-radius:20px;font-family:'DM Mono',monospace">🔥 Streak 18j</span>
-    </div>
-
-    <!-- Historique réel — abal.online -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:24px">
-      <div style="padding:14px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-        <div style="font-size:13px;font-weight:600;color:var(--white)">Parties enregistrées</div>
-        <div style="font-size:11px;color:var(--gold);font-family:'DM Mono',monospace">abal.online · ocj94</div>
-      </div>
-      <div style="display:flex;flex-direction:column">
-        <!-- Dec 2019 - Jan 2020 - Feb 2020 -->
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(42,51,48,0.4)">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Victoire 5-0</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Blanc · 5-0 · 78 coups · 13 déc. 2019</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--accent-green-light)">✅</div><div style="font-size:11px;color:var(--muted)">—</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(42,51,48,0.4);background:rgba(200,168,75,0.03)">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Victoire par forfait <span style="font-size:11px;color:var(--muted)">adversaire abandonné</span></div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Blanc · 3-3 au moment de l'abandon · 76 coups · 31 déc. 2019</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--accent-green-light)">✅</div><div style="font-size:11px;color:var(--muted)">Forfait</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(42,51,48,0.4)">
-          <div style="width:8px;height:8px;border-radius:50%;background:#e05c4b;flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Défaite — Shutout subi</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Noir · 6-0 · 94 coups · 26 jan. 2020 · ELO ~1794</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:#e05c4b">❌</div><div style="font-size:11px;color:var(--muted)">—</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(42,51,48,0.4);background:rgba(200,168,75,0.03)">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Victoire vs fargokayogi 🥇 <span style="font-size:11px;color:var(--gold)">Première victoire en réseau !</span></div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Blanc · 6-2 · 129 coups · 1 fév. 2020 · Adv. ELO 1665</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--gold)">+11</div><div style="font-size:11px;color:var(--muted)">1805 ELO</div></div>
-        </div>
-
-        <!-- Separator -->
-        <div style="padding:8px 18px;background:var(--surface2);border-bottom:1px solid var(--border)">
-          <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Parties suivantes ↓</span>
-        </div>
-
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(42,51,48,0.4)">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Victoire vs Vilches65</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Noir · 6-3 · 94 coups · 14 mai 2019</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--accent-green-light)">+2</div><div style="font-size:11px;color:var(--muted)">1770 ELO</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(42,51,48,0.4);background:rgba(200,168,75,0.03)">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Victoire — Shutout ⭐</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Blanc · <strong style="color:var(--gold)">6-0</strong> · 50 coups · 18 avr. 2020</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--gold)">Shutout</div><div style="font-size:11px;color:var(--muted)">—</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(42,51,48,0.4)">
-          <div style="width:8px;height:8px;border-radius:50%;background:#e05c4b;flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Défaite vs The Mandalorian</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Blanc · 4-1 · 39 coups · 19 avr. 2020 · Adv. ELO 1650</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--muted)">—</div><div style="font-size:11px;color:var(--muted)">non classé</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;background:rgba(200,168,75,0.03)">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Victoire — Shutout ⭐</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Blanc · <strong style="color:var(--gold)">6-0</strong> · 50 coups · 17 mai 2020</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--gold)">Shutout</div><div style="font-size:11px;color:var(--muted)">—</div></div>
-        </div>
-      </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(42,51,48,0.4);background:rgba(200,168,75,0.03)">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Victoire 🥇 <span style="font-size:11px;color:var(--gold)">Première victoire en réseau !</span></div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">6-2 · 120 coups · 1 fév. 2020</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--gold)">🥇</div><div style="font-size:11px;color:var(--muted)">—</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(42,51,48,0.4)">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Victoire — Shutout ⭐ vs Jamjest</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Blanc · <strong style="color:var(--gold)">6-0</strong> · 177 coups · 12 mars 2020</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--gold)">Shutout</div><div style="font-size:11px;color:var(--muted)">—</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(42,51,48,0.4);background:rgba(200,168,75,0.03)">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Victoire — Shutout ⭐ <span style="font-size:11px;color:var(--gold)">Première victoire en réseau !</span></div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Blanc · <strong style="color:var(--gold)">6-0</strong> · 74 coups · 25 mars 2020</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--gold)">🥇 Shutout</div><div style="font-size:11px;color:var(--muted)">—</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 18px">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent-green-light);flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--white)">Victoire</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">Joueur Noir · 6-1 · 94 coups · 25 mars 2020</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--accent-green-light)">✅</div><div style="font-size:11px;color:var(--muted)">—</div></div>
-        </div>
-      </div>
-      <div style="padding:10px 18px;background:var(--surface2);display:flex;justify-content:space-between;font-size:11px;color:var(--muted)">
-        <span>10V · 2D · Bilan <strong style="color:var(--accent-green-light)">83%</strong></span>
-        <span>4× Shutout · 1× Forfait · ELO max 1805 · 🥇 1ère victoire 1 fév. 2020</span>
-      </div>
-    </div>
+    <!-- Avant (v2.57) : ici s'affichaient les badges et une douzaine de parties d'abal.online
+         (2019-2020) du compte ocj94, pour TOUT profil, comme si c'etaient les siennes ; et la serie
+         de 18 jours, le graphique ELO « 1388 → 1489 » et les succes etaient ecrits en dur. Tout ce
+         qui suit est calcule a partir de la progression enregistree sur cet appareil. -->
     <div id="streak-banner" style="display:flex;align-items:center;gap:16px;padding:18px 24px;background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.2);border-radius:10px;margin-bottom:24px;flex-wrap:wrap">
       <div style="font-size:36px">🔥</div>
       <div>
-        <div style="font-size:15px;font-weight:700;color:var(--white)" id="streak-title">Série de 18 jours</div>
-        <div style="font-size:13px;color:var(--muted)">Jouez aujourd'hui pour maintenir votre série !</div>
+        <div style="font-size:15px;font-weight:700;color:var(--white)" id="streak-title">Série</div>
+        <div style="font-size:13px;color:var(--muted)" id="streak-sub">Jouez une partie ou résolvez un problème pour démarrer une série.</div>
       </div>
       <div style="margin-left:auto;display:flex;gap:6px">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:2px" id="streak-days"></div>
+        <div style="display:flex;align-items:center;gap:4px" id="streak-days"></div>
       </div>
       <button onclick="playGame()" style="padding:9px 20px;background:var(--gold);border:none;border-radius:8px;color:#0d0f0e;font-size:13px;font-weight:700;cursor:pointer">Jouer maintenant</button>
     </div>
@@ -5578,52 +5479,16 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
       <div class="profile-card">
         <div class="profile-card-header">
           Historique récent
-          <span style="font-size:12px;color:var(--muted)">10 dernières parties</span>
+          <a href="#" onclick="showPage('historique');return false" style="font-size:12px;color:var(--gold);text-decoration:none">Tout l'historique →</a>
         </div>
         <div class="profile-card-body" id="game-history"></div>
       </div>
       <div class="profile-card">
         <div class="profile-card-header">
           Progression ELO (30 jours)
-          <span style="font-size:12px;color:var(--accent-green-light)">+24 pts</span>
+          <span style="font-size:12px;color:var(--muted)" id="profile-elo-diff"></span>
         </div>
-        <div class="profile-card-body">
-          <div class="rating-chart">
-            <svg viewBox="0 0 260 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#c8a84b" stop-opacity="0.3"/>
-                  <stop offset="100%" stop-color="#c8a84b" stop-opacity="0"/>
-                </linearGradient>
-              </defs>
-              <path d="M0,80 L20,75 L40,70 L60,72 L80,65 L100,60 L120,55 L140,58 L160,50 L180,45 L200,40 L220,35 L240,30 L260,20" fill="none" stroke="#c8a84b" stroke-width="2" stroke-linecap="round"/>
-              <path d="M0,80 L20,75 L40,70 L60,72 L80,65 L100,60 L120,55 L140,58 L160,50 L180,45 L200,40 L220,35 L240,30 L260,20 L260,100 L0,100 Z" fill="url(#chartGrad)"/>
-            </svg>
-          </div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace">
-            <span>1 Avr</span><span>10 Avr</span><span>20 Avr</span><span>1 Mai</span><span>Auj.</span>
-          </div>
-          <div style="margin-top:20px">
-            <div style="display:flex;justify-content:space-between;margin-bottom:12px">
-              <span style="font-size:13px;color:var(--muted)">ELO départ (1 Avr)</span>
-              <span style="font-family:'DM Mono',monospace;color:var(--text)">1388</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:12px">
-              <span style="font-size:13px;color:var(--muted)">ELO maximum</span>
-              <span style="font-family:'DM Mono',monospace;color:var(--gold)">1489</span>
-            </div>
-            <div style="display:flex;justify-content:space-between">
-              <span style="font-size:13px;color:var(--muted)">ELO actuel</span>
-              <span style="font-family:'DM Mono',monospace;color:var(--muted)">—</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="profile-card" style="grid-column:1/-1">
-        <div class="profile-card-header">Succès et badges</div>
-        <div class="profile-card-body">
-          <div class="achievement-grid" id="achievements"></div>
-        </div>
+        <div class="profile-card-body" id="profile-elo-card"></div>
       </div>
     </div>
   </div>
@@ -5645,7 +5510,6 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
       <button onclick="showSettingsTab('notifs')" class="settings-tab" id="stab-notifs">Notifications</button>
       <button onclick="showSettingsTab('permissions')" class="settings-tab" id="stab-permissions">🔒 Autorisations</button>
       <button onclick="showSettingsTab('accessibility')" class="settings-tab" id="stab-accessibility">👁 Accessibilité</button>
-      <button onclick="showSettingsTab('writer')" class="settings-tab" id="stab-writer" style="display:none;color:#b89ef0;border-left:2px solid #b89ef0">Espace redacteur</button>
       <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
         <button onclick="logout()" style="width:100%;padding:10px 14px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.25);color:#e05c4b;border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;text-align:left">Deconnexion</button>
         <button onclick="exportMyData()" style="width:100%;margin-top:8px;padding:10px 14px;background:rgba(74,148,99,0.05);border:1px solid rgba(74,148,99,0.4);color:var(--accent-green-light);border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;text-align:left">📦 Exporter mes données (JSON)</button>
@@ -5886,6 +5750,8 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
         <!-- Refresh button -->
         <button class="modal-submit" style="max-width:220px;margin-top:16px" onclick="checkAllPermissions()">🔄 Vérifier toutes les autorisations</button>
       </div>
+      <!-- ══ NOTIFICATIONS ══ (sa balise d'ouverture avait disparu : le bloc s'affichait sous tous les onglets) -->
+      <div class="settings-panel" id="spanel-notifs">
         <div style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:20px">Notifications</div>
         <div style="display:flex;flex-direction:column;gap:12px">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
@@ -6113,46 +5979,6 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
         <button onclick="resetAccessibility()" style="width:100%;padding:11px;background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;transition:all 0.2s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🔄 Réinitialiser tous les réglages d'accessibilité</button>
       </div>
 
-      <!-- ══ ESPACE RÉDACTEUR ══ -->
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
-          <div style="font-size:18px;font-weight:700;color:#b89ef0">Espace Redacteur</div>
-          <span style="font-size:10px;padding:2px 8px;background:rgba(138,114,210,0.2);color:#b89ef0;border-radius:8px;font-weight:700">REDACTEUR</span>
-        </div>
-        <div style="padding:16px 18px;background:rgba(138,114,210,0.06);border:1px solid rgba(138,114,210,0.2);border-radius:10px;margin-bottom:20px">
-          <div style="font-size:13px;font-weight:600;color:#b89ef0;margin-bottom:6px">Compte redacteur — FightClub</div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.7">Nom reel: Frederic Garnier<br>Blog: onlineabalone.wordpress.com (fondateur 2013)<br>Role: Administrateur principal, redacteur en chef</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:12px">
-          <div class="form-group"><label class="form-label">Titre de l'article</label><input class="form-input" id="article-title" placeholder="Ex: Analyse de l'ouverture Daisy..."></div>
-          <div class="form-group"><label class="form-label">Categorie</label>
-            <select class="form-input" id="article-cat" style="cursor:pointer">
-              <option>Abalone Academy</option><option>Variantes</option><option>Problemes mensuels</option><option>Evenements</option><option>Musee</option><option>Strategie</option><option>Histoire du jeu</option>
-            </select>
-          </div>
-          <div class="form-group"><label class="form-label">Contenu de l'article</label><textarea class="form-input" id="article-body" rows="10" style="resize:vertical;min-height:200px;font-family:'DM Mono',monospace;font-size:13px" placeholder="Redigez votre article ici... Markdown supporte.&#10;&#10;## Titre&#10;**Texte en gras**&#10;[Lien](url)"></textarea></div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <button class="modal-submit" style="max-width:180px" onclick="publishArticle()">Publier l'article</button>
-            <button style="padding:12px 20px;background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px" onclick="showToast('Brouillon sauvegarde')">Sauver brouillon</button>
-          </div>
-        </div>
-        <div style="margin-top:24px;border-top:1px solid var(--border);padding-top:20px">
-          <div style="font-size:13px;font-weight:600;color:var(--white);margin-bottom:12px">Articles recents publies</div>
-          <div style="display:flex;flex-direction:column;gap:8px" id="writer-articles">
-            <div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;display:flex;justify-content:space-between;align-items:center">
-              <div><div style="font-size:13px;color:var(--text)">Les configurations bloquees</div><div style="font-size:11px;color:var(--muted)">Abalone Academy</div></div>
-              <a href="https://onlineabalone.wordpress.com/abalone-academy/un-peu-de-theorie/les-configurations-bloquees/" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold);text-decoration:none">Voir</a>
-            </div>
-            <div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;display:flex;justify-content:space-between;align-items:center">
-              <div><div style="font-size:13px;color:var(--text)">Probleme du mois - Mai 2025</div><div style="font-size:11px;color:var(--muted)">Problemes abaloniens</div></div>
-              <a href="https://onlineabalone.wordpress.com/abalone-academy/problemes-abaloniens/problemes-mensuels/" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold);text-decoration:none">Voir</a>
-            </div>
-            <div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;display:flex;justify-content:space-between;align-items:center">
-              <div><div style="font-size:13px;color:var(--text)">Variantes pour 5 et 6 joueurs</div><div style="font-size:11px;color:var(--muted)">Variantes</div></div>
-              <a href="https://onlineabalone.wordpress.com/les-variantes/abalone-multi-joueurs/" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold);text-decoration:none">Voir</a>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </div>
@@ -6454,10 +6280,11 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
         <div id="puzzle-progress-label" style="font-size:12px;color:var(--muted);white-space:nowrap;font-weight:600">0 / 0 résolus</div>
       </div>
 
-      <!-- PUZZLE DU JOUR -->
+      <!-- DÉFI DU JOUR #N (36-defi-du-jour-et-cartes.js) -->
       <div style="background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:18px 20px;margin-bottom:16px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-          <span style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px">Le puzzle du jour</span>
+          <span style="font-size:20px">🔥</span>
+          <span style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px">Le défi du jour</span>
         </div>
         <div id="daily-puzzle-card"></div>
       </div>
@@ -6498,7 +6325,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
         <div class="puzzle-mode-btn" id="puzzle-mode-daily" onclick="setPuzzleMode('daily',this)">
           <div style="font-size:18px;margin-bottom:3px">🔥</div>
           <div style="font-size:12px;font-weight:600;color:var(--white)">Défi du jour</div>
-          <div style="font-size:10px;color:var(--gold)">Nouveau chaque jour</div>
+          <div style="font-size:10px;color:var(--gold)">Le même pour tous</div>
         </div>
         <div class="puzzle-mode-btn" id="puzzle-mode-generated" onclick="setPuzzleMode('generated',this)">
           <div style="font-size:18px;margin-bottom:3px">🎲</div>
@@ -6588,7 +6415,15 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
     <p style="color:var(--muted);font-size:15px;margin-top:12px;max-width:560px">Du classique 2J aux modes multi-joueurs et variantes expérimentales.</p>
   </div>
   <div style="padding:0 60px 80px">
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:32px" id="variants-grid"></div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin:28px 0 0" id="variants-filter-btns">
+      <button class="filter-btn active" onclick="filterVariants('all', event)">Toutes</button>
+      <button class="filter-btn" onclick="filterVariants('2', event)">👥 2 joueurs</button>
+      <button class="filter-btn" onclick="filterVariants('3', event)">🔺 3 joueurs</button>
+      <button class="filter-btn" onclick="filterVariants('4', event)">♟️ 4 joueurs</button>
+      <button class="filter-btn" onclick="filterVariants('5', event)">⭐ 5 joueurs</button>
+      <button class="filter-btn" onclick="filterVariants('6', event)">🌟 6 joueurs</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px" id="variants-grid"></div>
     <!-- Positions catalog from onlineabalone.wordpress.com -->
     <div style="margin-top:32px">
       <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Positions de départ — Source : <a href="https://onlineabalone.wordpress.com" target="_blank" rel="noopener noreferrer" style="color:var(--gold)">onlineabalone.wordpress.com</a></div>
@@ -7167,14 +7002,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
     <p style="color:var(--muted);font-size:15px;margin-top:12px;max-width:560px">Éditions spéciales, pièces de collection et versions historiques du jeu.</p>
   </div>
   <div style="padding:0 60px 80px">
-    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:24px" id="variants-filter-btns">
-      <button class="filter-btn active" onclick="filterVariants('all', event)">Toutes (20)</button>
-      <button class="filter-btn" onclick="filterVariants('2', event)">👥 2 joueurs</button>
-      <button class="filter-btn" onclick="filterVariants('3', event)">🔺 3 joueurs</button>
-      <button class="filter-btn" onclick="filterVariants('4', event)">♟️ 4 joueurs</button>
-      <button class="filter-btn" onclick="filterVariants('5', event)">⭐ 5 joueurs</button>
-      <button class="filter-btn" onclick="filterVariants('6', event)">🌟 6 joueurs</button>
-    </div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:24px" id="museum-filter-btns">
       <button class="filter-btn active" onclick="if(typeof filterMuseum==='function')filterMuseum('all',this)">Tout voir</button>
       <button class="filter-btn" onclick="if(typeof filterMuseum==='function')filterMuseum('luxe',this)">💎 Luxe</button>
       <button class="filter-btn" onclick="if(typeof filterMuseum==='function')filterMuseum('bois',this)">🪵 Bois</button>
@@ -8130,81 +7958,73 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
       <div style="width:36px;height:36px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f0d080,#c8a84b);display:flex;align-items:center;justify-content:center;font-size:16px">🔐</div>
       <h3 style="margin:0">Bon retour !</h3>
     </div>
-    <p>Connectez-vous à votre compte Abalone.</p>
+    <p>Retrouvez votre profil local.</p>
+    <div style="display:flex;gap:8px;align-items:flex-start;padding:10px 12px;background:rgba(74,148,99,0.07);border:1px solid rgba(74,148,99,0.22);border-radius:8px;margin:0 0 16px;font-size:12px;line-height:1.55;color:var(--muted)">
+      <span>📱</span><span>Pas de serveur : votre profil, vos parties et votre progression restent <b style="color:var(--text)">dans ce navigateur, sur cet appareil</b>. Rien n'est envoyé, aucun e-mail ne vous sera écrit. N'y mettez pas un mot de passe qui vous sert ailleurs. Pour changer d'appareil : Paramètres → Exporter mes données.</span>
+    </div>
     <div class="form-group">
-      <label class="form-label">Email ou nom d'utilisateur</label>
-      <input class="form-input" id="login-email" type="text" placeholder="olivier@exemple.com">
+      <label class="form-label">Nom d'utilisateur ou e-mail</label>
+      <input class="form-input" id="login-email" type="text" placeholder="MarbleKing42" autocomplete="username" onkeydown="if(event.key==='Enter')submitLogin()">
     </div>
     <div class="form-group" style="position:relative">
       <label class="form-label">Mot de passe</label>
-      <input class="form-input" id="login-pw" type="password" placeholder="••••••••" style="padding-right:44px">
-      <button onclick="togglePw('login-pw',this)" style="position:absolute;right:12px;bottom:10px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px">👁</button>
+      <input class="form-input" id="login-pw" type="password" placeholder="••••••••" autocomplete="current-password" style="padding-right:44px" onkeydown="if(event.key==='Enter')submitLogin()">
+      <button onclick="togglePw('login-pw',this)" style="position:absolute;right:12px;bottom:10px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px" aria-label="Afficher le mot de passe">👁</button>
     </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin:-6px 0 18px">
-      <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);cursor:pointer">
-        <input type="checkbox" style="accent-color:var(--gold)"> Rester connecté
-      </label>
+    <div style="display:flex;justify-content:flex-end;align-items:center;margin:-6px 0 18px">
       <a style="font-size:13px;color:var(--gold);cursor:pointer" onclick="closeModal('login');openModal('forgot')">Mot de passe oublié ?</a>
     </div>
     <button class="modal-submit" onclick="submitLogin()">Continuer →</button>
-    <div style="display:flex;align-items:center;gap:12px;margin:18px 0">
-      <div style="flex:1;height:1px;background:var(--border)"></div>
-      <span style="font-size:12px;color:var(--muted)">ou continuer avec</span>
-      <div style="flex:1;height:1px;background:var(--border)"></div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
-      <button class="social-btn" onclick="showToast('🔗 Connexion Google…')">
-        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#EA4335" d="M5.27 9.76A7.08 7.08 0 0 1 12 4.9c1.69 0 3.22.6 4.41 1.57l3.3-3.3A11.94 11.94 0 0 0 12 1C7.82 1 4.17 3.35 2.27 6.82l3 2.94Z"/><path fill="#34A853" d="M16.04 18.01A7.06 7.06 0 0 1 12 19.1a7.08 7.08 0 0 1-6.72-4.82l-3.02 2.33A11.95 11.95 0 0 0 12 23c3.06 0 5.96-1.15 8.12-3.24l-4.08-1.75Z"/><path fill="#FBBC05" d="M19.1 12c0-.65-.07-1.28-.18-1.9H12v3.6h4.01a3.43 3.43 0 0 1-1.49 2.25l4.08 1.75A11.93 11.93 0 0 0 20 12h-.9Z"/><path fill="#4285F4" d="M2.27 6.82A11.93 11.93 0 0 0 1 12c0 1.86.43 3.62 1.2 5.19l3.08-2.39A7.03 7.03 0 0 1 4.9 12c0-.78.13-1.53.37-2.24L2.27 6.82Z"/></svg>
-        Google
-      </button>
-      <button class="social-btn" onclick="showToast('🔗 Connexion Discord…')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="#5865F2"><path d="M20.32 4.37a19.8 19.8 0 0 0-4.93-1.51.07.07 0 0 0-.08.04c-.21.38-.45.87-.61 1.25a18.27 18.27 0 0 0-5.49 0 12.57 12.57 0 0 0-.62-1.25.08.08 0 0 0-.08-.04 19.74 19.74 0 0 0-4.93 1.51.07.07 0 0 0-.03.03C1.77 8.87 1.1 13.25 1.4 17.57c0 .02.01.04.03.05a19.9 19.9 0 0 0 5.99 3.03.08.08 0 0 0 .09-.03 14.2 14.2 0 0 0 1.23-2 .08.08 0 0 0-.04-.1 13.1 13.1 0 0 1-1.87-.9.08.08 0 0 1-.01-.12c.13-.1.25-.2.37-.3a.07.07 0 0 1 .08-.01c3.93 1.8 8.18 1.8 12.06 0a.07.07 0 0 1 .08.01c.12.1.25.21.37.3a.08.08 0 0 1-.01.13 12.3 12.3 0 0 1-1.87.89.08.08 0 0 0-.04.11c.36.7.77 1.37 1.23 2a.08.08 0 0 0 .09.03 19.84 19.84 0 0 0 6-3.03.08.08 0 0 0 .03-.05c.37-3.83-.62-7.16-2.61-10.17a.06.06 0 0 0-.03-.03ZM8.52 15.38c-1.18 0-2.16-1.09-2.16-2.42s.96-2.42 2.16-2.42c1.21 0 2.17 1.1 2.16 2.42 0 1.33-.96 2.42-2.16 2.42Zm7.98 0c-1.18 0-2.16-1.09-2.16-2.42s.96-2.42 2.16-2.42c1.21 0 2.17 1.1 2.16 2.42 0 1.33-.95 2.42-2.16 2.42Z"/></svg>
-        Discord
-      </button>
-    </div>
-    <div class="modal-switch">Pas encore de compte ? <a onclick="closeModal('login');openModal('signup')">S'enregistrer gratuitement</a></div>
+    <div class="modal-switch" style="margin-top:16px">Pas encore de profil ? <a onclick="closeModal('login');openModal('signup')">Créer un profil</a></div>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════
-     MODAL — SUCCÈS CONNEXION (étape 3)
+     MODAL — SUCCÈS CONNEXION
 ══════════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-login-success">
   <div class="modal" style="width:420px;text-align:center">
     <div style="width:72px;height:72px;border-radius:50%;background:rgba(74,148,99,0.15);border:2px solid rgba(74,148,99,0.4);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 20px">✅</div>
-    <h3 style="margin-bottom:8px">Connexion réussie !</h3>
-    <p style="margin-bottom:6px">Bienvenue sur Abalone, <strong style="color:var(--gold)" id="success-username">joueur</strong> !</p>
+    <h3 style="margin-bottom:8px">C'est fait !</h3>
+    <p style="margin-bottom:6px">Bienvenue, <strong style="color:var(--gold)" id="success-username">joueur</strong> !</p>
     <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;background:rgba(74,148,99,0.08);border:1px solid rgba(74,148,99,0.2);border-radius:8px;margin:16px 0;font-size:13px;color:var(--accent-green-light)">
-      <span>📱</span> <span>Compte enregistré sur cet appareil</span>
+      <span>📱</span> <span>Profil enregistré dans ce navigateur</span>
     </div>
     <button class="modal-submit" onclick="closeModal('login-success');showPage('profile')">Accéder à mon profil →</button>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════
-     MODAL — S'ENREGISTRER (étape 1)
+     MODAL — CRÉER UN PROFIL
+     Avant (v2.57) : « Rejoignez… », un nom soi-disant vu des autres joueurs, boutons Google et
+     Discord qui n'affichaient qu'une bulle, e-mail obligatoire jamais utilise, liens vers des
+     conditions qui n'ouvraient rien.
 ══════════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-signup">
   <div class="modal" style="width:460px">
     <button class="modal-close" onclick="closeModal('signup')">×</button>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
       <div style="width:36px;height:36px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f0d080,#c8a84b);display:flex;align-items:center;justify-content:center;font-size:16px">⚪</div>
-      <h3 style="margin:0">Rejoignez Abalone</h3>
+      <h3 style="margin:0">Créer un profil</h3>
     </div>
-    <p>Créez votre compte et jouez en moins d'une minute.</p>
+    <p>Un nom, un mot de passe, et c'est parti. Le profil est facultatif : on peut jouer sans.</p>
+    <div style="display:flex;gap:8px;align-items:flex-start;padding:10px 12px;background:rgba(74,148,99,0.07);border:1px solid rgba(74,148,99,0.22);border-radius:8px;margin:0 0 16px;font-size:12px;line-height:1.55;color:var(--muted)">
+      <span>📱</span><span>Pas de serveur : votre profil, vos parties et votre progression restent <b style="color:var(--text)">dans ce navigateur, sur cet appareil</b>. Rien n'est envoyé, aucun e-mail ne vous sera écrit. N'y mettez pas un mot de passe qui vous sert ailleurs. Pour changer d'appareil : Paramètres → Exporter mes données.</span>
+    </div>
     <div class="form-group">
       <label class="form-label">Nom d'utilisateur</label>
-      <input class="form-input" id="signup-username" type="text" placeholder="MarbleKing42">
-      <div style="font-size:11px;color:var(--muted);margin-top:5px">Visible par les autres joueurs · min. 3 caractères</div>
+      <input class="form-input" id="signup-username" type="text" placeholder="MarbleKing42" autocomplete="username">
+      <div style="font-size:11px;color:var(--muted);margin-top:5px">3 à 24 caractères · affiché sur cet appareil</div>
     </div>
     <div class="form-group">
-      <label class="form-label">Adresse email</label>
-      <input class="form-input" id="signup-email" type="email" placeholder="vous@exemple.com">
+      <label class="form-label">Adresse e-mail (facultatif)</label>
+      <input class="form-input" id="signup-email" type="email" placeholder="vous@exemple.com" autocomplete="email">
+      <div style="font-size:11px;color:var(--muted);margin-top:5px">Sert seulement à vous reconnecter ici.</div>
     </div>
     <div class="form-group" style="position:relative">
       <label class="form-label">Mot de passe</label>
-      <input class="form-input" id="signup-pw" type="password" placeholder="Au moins 8 caractères" oninput="checkPwStrength(this.value)" style="padding-right:44px">
-      <button onclick="togglePw('signup-pw',this)" style="position:absolute;right:12px;bottom:10px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px">👁</button>
+      <input class="form-input" id="signup-pw" type="password" placeholder="Au moins 8 caractères" autocomplete="new-password" oninput="checkPwStrength(this.value,'-2')" style="padding-right:44px">
+      <button onclick="togglePw('signup-pw',this)" style="position:absolute;right:12px;top:31px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px" aria-label="Afficher le mot de passe">👁</button>
       <div id="pw-strength-bar-2" style="height:3px;border-radius:2px;margin-top:6px;background:var(--border);overflow:hidden">
         <div id="pw-strength-fill-2" style="height:100%;width:0%;transition:all 0.3s;border-radius:2px"></div>
       </div>
@@ -8212,42 +8032,28 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
     </div>
     <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:18px">
       <input type="checkbox" id="signup-terms" style="accent-color:var(--gold);margin-top:2px;flex-shrink:0">
-      <label for="signup-terms" style="font-size:13px;color:var(--muted);cursor:pointer;line-height:1.5">J'accepte les <a style="color:var(--gold)">conditions d'utilisation</a> et la <a style="color:var(--gold)">politique de confidentialité</a></label>
+      <label for="signup-terms" style="font-size:13px;color:var(--muted);cursor:pointer;line-height:1.5">J'accepte les <a style="color:var(--gold);cursor:pointer" onclick="event.preventDefault();closeModal('signup');showPage('mentions')">mentions légales</a> et la <a style="color:var(--gold);cursor:pointer" onclick="event.preventDefault();closeModal('signup');showPage('privacy')">politique de confidentialité</a></label>
     </div>
-    <button class="modal-submit" onclick="submitSignup()">Créer mon compte →</button>
-    <div style="display:flex;align-items:center;gap:12px;margin:16px 0">
-      <div style="flex:1;height:1px;background:var(--border)"></div>
-      <span style="font-size:12px;color:var(--muted)">ou</span>
-      <div style="flex:1;height:1px;background:var(--border)"></div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-      <button class="social-btn" onclick="showToast('🔗 Inscription Google…')">
-        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#EA4335" d="M5.27 9.76A7.08 7.08 0 0 1 12 4.9c1.69 0 3.22.6 4.41 1.57l3.3-3.3A11.94 11.94 0 0 0 12 1C7.82 1 4.17 3.35 2.27 6.82l3 2.94Z"/><path fill="#34A853" d="M16.04 18.01A7.06 7.06 0 0 1 12 19.1a7.08 7.08 0 0 1-6.72-4.82l-3.02 2.33A11.95 11.95 0 0 0 12 23c3.06 0 5.96-1.15 8.12-3.24l-4.08-1.75Z"/><path fill="#FBBC05" d="M19.1 12c0-.65-.07-1.28-.18-1.9H12v3.6h4.01a3.43 3.43 0 0 1-1.49 2.25l4.08 1.75A11.93 11.93 0 0 0 20 12h-.9Z"/><path fill="#4285F4" d="M2.27 6.82A11.93 11.93 0 0 0 1 12c0 1.86.43 3.62 1.2 5.19l3.08-2.39A7.03 7.03 0 0 1 4.9 12c0-.78.13-1.53.37-2.24L2.27 6.82Z"/></svg>
-        Google
-      </button>
-      <button class="social-btn" onclick="showToast('🔗 Inscription Discord…')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="#5865F2"><path d="M20.32 4.37a19.8 19.8 0 0 0-4.93-1.51.07.07 0 0 0-.08.04c-.21.38-.45.87-.61 1.25a18.27 18.27 0 0 0-5.49 0 12.57 12.57 0 0 0-.62-1.25.08.08 0 0 0-.08-.04 19.74 19.74 0 0 0-4.93 1.51.07.07 0 0 0-.03.03C1.77 8.87 1.1 13.25 1.4 17.57c0 .02.01.04.03.05a19.9 19.9 0 0 0 5.99 3.03.08.08 0 0 0 .09-.03 14.2 14.2 0 0 0 1.23-2 .08.08 0 0 0-.04-.1 13.1 13.1 0 0 1-1.87-.9.08.08 0 0 1-.01-.12c.13-.1.25-.2.37-.3a.07.07 0 0 1 .08-.01c3.93 1.8 8.18 1.8 12.06 0a.07.07 0 0 1 .08.01c.12.1.25.21.37.3a.08.08 0 0 1-.01.13 12.3 12.3 0 0 1-1.87.89.08.08 0 0 0-.04.11c.36.7.77 1.37 1.23 2a.08.08 0 0 0 .09.03 19.84 19.84 0 0 0 6-3.03.08.08 0 0 0 .03-.05c.37-3.83-.62-7.16-2.61-10.17a.06.06 0 0 0-.03-.03ZM8.52 15.38c-1.18 0-2.16-1.09-2.16-2.42s.96-2.42 2.16-2.42c1.21 0 2.17 1.1 2.16 2.42 0 1.33-.96 2.42-2.16 2.42Zm7.98 0c-1.18 0-2.16-1.09-2.16-2.42s.96-2.42 2.16-2.42c1.21 0 2.17 1.1 2.16 2.42 0 1.33-.95 2.42-2.16 2.42Z"/></svg>
-        Discord
-      </button>
-    </div>
-    <div class="modal-switch">Déjà inscrit ? <a onclick="closeModal('signup');openModal('login')">Se connecter</a></div>
+    <button class="modal-submit" onclick="submitSignup()">Créer mon profil →</button>
+    <div class="modal-switch" style="margin-top:16px">Déjà un profil dans ce navigateur ? <a onclick="closeModal('signup');openModal('login')">Se connecter</a></div>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════
      MODAL — MOT DE PASSE OUBLIÉ
+     Avant (v2.57) : un e-mail de réinitialisation soi-disant envoyé, sans qu'aucun ne parte.
 ══════════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-forgot">
   <div class="modal" style="width:420px">
     <button class="modal-close" onclick="closeModal('forgot')">×</button>
     <div style="font-size:36px;text-align:center;margin-bottom:16px">🔓</div>
     <h3 style="text-align:center">Mot de passe oublié</h3>
-    <p style="text-align:center">Entrez votre email pour recevoir un lien de réinitialisation sécurisé.</p>
+    <p style="text-align:center">Sans serveur, aucun e-mail ne peut vous être envoyé. Mais votre progression (parties, XP, problèmes) ne dépend pas du mot de passe : elle reste sur cet appareil. Vous pouvez effacer le profil et le recréer aussitôt.</p>
     <div class="form-group">
-      <label class="form-label">Adresse email</label>
-      <input class="form-input" type="email" placeholder="vous@exemple.com">
+      <label class="form-label">Nom d'utilisateur ou e-mail du profil</label>
+      <input class="form-input" id="forgot-ident" type="text" placeholder="MarbleKing42" onkeydown="if(event.key==='Enter')profilOublie()">
     </div>
-    <button class="modal-submit" onclick="closeModal('forgot');showToast('📧 Email de réinitialisation envoyé !')">Envoyer le lien</button>
+    <button class="modal-submit" onclick="profilOublie()">Effacer ce profil et le recréer</button>
     <div style="text-align:center;margin-top:14px">
       <a class="link-btn" onclick="closeModal('forgot');openModal('login')">← Retour à la connexion</a>
     </div>
@@ -8294,7 +8100,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.56';
+const APP_VERSION = 'v2.57';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -8552,10 +8358,11 @@ function currentMonthlyPuzzle() {
     revealed: !!progress.monthly.revealed,
   };
 }
+/* Avant (v2.57) : showPage('puzzles') -- le puzzle se posait sur le plateau de la partie, une
+   page cachee, et l'on restait sur la page Problemes sans plateau. */
 function playMonthlyPuzzle() {
   const mc = currentMonthlyPuzzle();
-  showPage('puzzles');
-  if (typeof startPuzzle === 'function') startPuzzle(mc.idx);
+  if (typeof ouvrirPuzzleSurPlateau === 'function') ouvrirPuzzleSurPlateau(mc.idx);
 }
 function revealMonthlySolution() {
   progress.monthly.revealed = true;
@@ -8825,7 +8632,7 @@ const BADGES = [
   { id:'win10',       icon:'⭐', name:'Vétéran',            desc:'Gagner 10 parties' },
   { id:'level5',      icon:'🎖️', name:'Niveau 5',          desc:'Atteindre le niveau 5' },
   { id:'level10',     icon:'👑', name:'Maître',             desc:'Atteindre le niveau 10' },
-  { id:'daily7',      icon:'📅', name:'Assidu',             desc:'7 défis quotidiens' },
+  { id:'daily7',      icon:'📅', name:'Assidu',             desc:'7 défis du jour trouvés' },
   { id:'shutout',     icon:'🧺', name:'Blanchissage',       desc:'Gagner 6-0 sans perdre une bille' },
 ];
 
@@ -8918,42 +8725,18 @@ function touchStreak() {
   saveProgress(progress);
   checkBadges();
 }
+/* Serie EN COURS : progress.streak n'est remis a zero qu'au prochain jour joue, donc apres
+   deux jours sans jouer il affichait encore l'ancienne serie. Elle est vivante tant que le
+   dernier jour actif est aujourd'hui ou hier. */
+function serieActuelle() {
+  if (!progress || !progress.streak || !progress.lastActive) return 0;
+  return daysBetween(progress.lastActive, todayStr()) <= 1 ? progress.streak : 0;
+}
 
-/* ─── Défi quotidien (déterministe selon la date) ─── */
-function dailySeed() {
-  const t = todayStr();
-  let h = 0;
-  for (let i=0;i<t.length;i++) h = (h*31 + t.charCodeAt(i)) >>> 0;
-  return h;
-}
-function dailyChallenge() {
-  const seed = dailySeed();
-  const num = 200 + (seed % 300);  // numéro de puzzle "du jour"
-  const types = [
-    {t:'Éjection en 2 coups', icon:'🎯'},
-    {t:'Sumito 3v2 gagnant', icon:'💪'},
-    {t:'Défense imprenable', icon:'🛡️'},
-    {t:'Contrôle du centre', icon:'⊕'},
-    {t:'Double menace', icon:'⚔️'}
-  ];
-  const type = types[seed % types.length];
-  return { num, type, done: progress.dailyDone === todayStr() };
-}
-function completeDailyChallenge() {
-  if (progress.dailyDone === todayStr()) {
-    toastEngage('✅ Défi du jour déjà complété !');
-    return;
-  }
-  progress.dailyDone = todayStr();
-  // compteur de défis quotidiens
-  progress._dailyCount = (progress._dailyCount||0) + 1;
-  if (progress._dailyCount >= 7) awardBadge('daily7');
-  saveProgress(progress);
-  touchStreak();
-  addXp(50, 'Défi du jour');
-  renderEngageBar();
-  renderDailyCard();
-}
+/* ─── Défi quotidien ───
+   Avant (v2.57) : un « Puzzle #N » inventé (200 + graine % 300) que l'on « relevait » d'un simple
+   clic contre 50 XP, sans rien jouer. Remplacé par le vrai Défi du jour #N
+   (36-defi-du-jour-et-cartes.js). */
 
 /* ═══════════════════════════════════════════
    DÉFIS HEBDOMADAIRES (objectifs + récompenses)
@@ -9046,8 +8829,8 @@ function renderWeeklyCard() {
    DÉFI DU JOUR — PARTIE (distinct du puzzle du jour)
    Même principe que le défi hebdomadaire mais à échelle quotidienne, et
    centré sur les PARTIES (victoires, parties jouées, éjections) plutôt que
-   sur un puzzle précis — le défi puzzle du jour (dailyChallenge) reste
-   inchangé, celui-ci s'y ajoute sans le remplacer.
+   sur un puzzle précis — le Défi du jour #N (un puzzle, le même pour tous)
+   reste à part, celui-ci s'y ajoute sans le remplacer.
 ═══════════════════════════════════════════ */
 const DAILY_GAME_CHALLENGES = [
   { id:'win1',    icon:'🏆', title:'Victoire du jour',  desc:'Gagne 1 partie aujourd\'hui',    goal:1, metric:'wins',      reward:40 },
@@ -9155,9 +8938,13 @@ function onPuzzleSolved() {
 }
 
 /* ═══════════════════════════════════════════
-   PARRAINAGE — invite des amis, gagne des récompenses
+   PARRAINAGE — inviter un ami
+   Avant (v2.57) : « Gagnez 100 XP par ami qui rejoint Abalassembly avec votre lien ».
+   Sans serveur, rien ne peut dire au parrain que son lien a ete ouvert sur un autre appareil :
+   le credit n'arrivait que si l'ami ouvrait le lien... sur l'appareil du parrain (« simulation
+   sans backend »). Reste ce qui marche vraiment : l'ami recoit un bonus de bienvenue.
 ═══════════════════════════════════════════ */
-const REFERRAL_REWARD = 100;  // XP par parrainage réussi
+const REFERRAL_WELCOME = 50;  // XP de bienvenue pour l'ami invite
 
 function getReferralCode() {
   if (!progress.referralCode) {
@@ -9170,10 +8957,10 @@ function getReferralCode() {
 }
 
 function referralLink() {
-  return SHARE_URL + '?ref=' + encodeURIComponent(getReferralCode());
+  return SHARE_URL + '?ref=' + encodeURIComponent(getReferralCode()) + (currentLang() === 'EN' ? '&lang=en' : '');
 }
 
-// Au chargement : détecte un code de parrainage dans l'URL
+// Au chargement : un code d'invitation dans l'adresse donne le bonus de bienvenue (une fois)
 function checkIncomingReferral() {
   try {
     const params = new URLSearchParams(window.location.search);
@@ -9181,38 +8968,12 @@ function checkIncomingReferral() {
     if (ref && !progress.referredBy && ref !== progress.referralCode) {
       progress.referredBy = ref;
       saveProgress(progress);
-      // bonus de bienvenue pour le filleul
-      addXp(50, 'Bienvenue ! Parrainé par un ami');
-      // On mémorise localement le crédit du parrain (simulation sans backend)
-      try {
-        const pending = JSON.parse(localStorage.getItem('abalone_referral_credits') || '{}');
-        pending[ref] = (pending[ref] || 0) + 1;
-        localStorage.setItem('abalone_referral_credits', JSON.stringify(pending));
-      } catch(e) {}
-    }
-    // Crédite le parrain de ses parrainages en attente (même appareil/démo)
-    creditPendingReferrals();
-  } catch(e) {}
-}
-
-function creditPendingReferrals() {
-  try {
-    const code = progress.referralCode;
-    if (!code) return;
-    const pending = JSON.parse(localStorage.getItem('abalone_referral_credits') || '{}');
-    if (pending[code] && pending[code] > progress.referrals) {
-      const gained = pending[code] - progress.referrals;
-      progress.referrals = pending[code];
-      saveProgress(progress);
-      addXp(REFERRAL_REWARD * gained, gained + ' parrainage' + (gained>1?'s':'') + ' réussi' + (gained>1?'s':'') + ' !');
-      if (progress.referrals >= 3 && typeof awardBadge === 'function') awardBadge('referral3');
+      addXp(REFERRAL_WELCOME, _tr('Bienvenue ! Invité par un ami', 'Welcome! Invited by a friend'));
     }
   } catch(e) {}
 }
 
 function openReferralModal() {
-  const code = getReferralCode();
-  const link = referralLink();
   let modal = document.getElementById('referral-modal');
   if (!modal) {
     modal = document.createElement('div');
@@ -9222,19 +8983,13 @@ function openReferralModal() {
   }
   modal.innerHTML =
     '<div class="share-modal-box">' +
-      '<div class="share-modal-title">🎁 Parrainez vos amis</div>' +
-      '<div class="share-modal-text">Gagnez <strong style="color:var(--gold)">' + REFERRAL_REWARD + ' XP</strong> par ami qui rejoint Abalassembly avec votre lien. Votre filleul reçoit aussi un bonus de bienvenue !</div>' +
-      '<div style="background:var(--surface2);border-radius:10px;padding:14px;margin-bottom:14px;text-align:center">' +
-        '<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Votre code</div>' +
-        '<div style="font-family:\'DM Mono\',monospace;font-size:22px;font-weight:700;color:var(--gold);letter-spacing:2px">' + code + '</div>' +
-      '</div>' +
-      '<div style="display:flex;justify-content:space-around;margin-bottom:16px">' +
-        '<div style="text-align:center"><div style="font-size:24px;font-weight:800;color:var(--text)">' + (progress.referrals||0) + '</div><div style="font-size:11px;color:var(--muted)">parrainages</div></div>' +
-        '<div style="text-align:center"><div style="font-size:24px;font-weight:800;color:var(--gold)">' + ((progress.referrals||0)*REFERRAL_REWARD) + '</div><div style="font-size:11px;color:var(--muted)">XP gagnés</div></div>' +
-      '</div>' +
-      '<button class="share-copy" onclick="copyReferralLink()">🔗 Copier mon lien d\'invitation</button>' +
-      '<button class="share-copy" style="background:#5865f2;color:#fff" onclick="shareInvite()">📨 Partager</button>' +
-      '<button class="share-close" onclick="closeReferralModal()">Fermer</button>' +
+      '<div class="share-modal-title">📨 ' + _tr('Inviter un ami', 'Invite a friend') + '</div>' +
+      '<div class="share-modal-text">' + _tr(
+        'En ouvrant votre lien, votre ami reçoit <strong style="color:var(--gold)">+' + REFERRAL_WELCOME + ' XP</strong> de bienvenue.<br><span style="font-size:12px;color:var(--muted)">Le site n’a pas de serveur : il ne peut pas savoir qui a ouvert votre lien, donc pas de récompense pour vous… à part un adversaire de plus !</span>',
+        'When your friend opens your link, they get <strong style="color:var(--gold)">+' + REFERRAL_WELCOME + ' XP</strong> as a welcome.<br><span style="font-size:12px;color:var(--muted)">The site has no server: it cannot know who opened your link, so there is no reward for you… apart from one more opponent!</span>') + '</div>' +
+      '<button class="share-copy" onclick="copyReferralLink()">🔗 ' + _tr('Copier mon lien d’invitation', 'Copy my invitation link') + '</button>' +
+      '<button class="share-copy" style="background:#5865f2;color:#fff" onclick="shareInvite()">📨 ' + _tr('Partager', 'Share') + '</button>' +
+      '<button class="share-close" onclick="closeReferralModal()">' + _tr('Fermer', 'Close') + '</button>' +
     '</div>';
   modal.classList.add('show');
 }
@@ -9245,12 +9000,7 @@ function closeReferralModal() {
 }
 
 function copyReferralLink() {
-  const link = referralLink();
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(link).then(function(){ showToast('🔗 Lien de parrainage copié !'); });
-  } else {
-    showToast('Copiez : ' + link);
-  }
+  _copierTexte(referralLink(), _tr('🔗 Lien d’invitation copié !', '🔗 Invitation link copied!'));
 }
 
 /* ═══════════════════════════════════════════
@@ -9454,7 +9204,6 @@ function renderEngageBar() {
   const host = document.getElementById('engage-bar');
   if (!host) return;
   const xpp = xpProgressInLevel(progress.xp);
-  const dc = dailyChallenge();
   const winRate = progress.gamesPlayed ? Math.round(progress.gamesWon/progress.gamesPlayed*100) : 0;
 
   // 5 derniers jours pour la mini-frise de streak
@@ -9509,8 +9258,8 @@ function renderEngageBar() {
         '<div style="font-size:13px">🔥</div>'+
       '</div>'+
       '<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:12px">'+
-        '<span style="font-size:34px;font-weight:900;font-family:\'DM Mono\',monospace;color:#ff8c42">'+progress.streak+'</span>'+
-        '<span style="font-size:13px;color:var(--muted)">jour'+(progress.streak>1?'s':'')+'</span>'+
+        '<span style="font-size:34px;font-weight:900;font-family:\'DM Mono\',monospace;color:#ff8c42">'+serieActuelle()+'</span>'+
+        '<span style="font-size:13px;color:var(--muted)">jour'+(serieActuelle()>1?'s':'')+'</span>'+
       '</div>'+
       '<div style="display:flex;gap:6px">'+streakDots+'</div>'+
     '</div>'+
@@ -9530,17 +9279,8 @@ function renderEngageBar() {
       '</div>'+
     '</div>'+
 
-    // ── Carte DÉFI DU JOUR ──
-    '<div onclick="completeDailyChallenge()" style="cursor:pointer;background:linear-gradient(135deg,rgba(74,148,99,0.1),rgba(45,90,61,0.05));border:1px solid rgba(74,148,99,0.25);border-radius:14px;padding:18px 20px;transition:transform .15s" onmouseover="this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.transform=\'\'">'+
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
-        '<div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">Défi du jour</div>'+
-        '<div style="font-size:13px">'+(dc.done?'✅':dc.type.icon)+'</div>'+
-      '</div>'+
-      '<div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px">'+dc.type.t+'</div>'+
-      '<div style="font-size:12px;color:'+(dc.done?'var(--accent-green-light)':'var(--gold)')+'">'+
-        (dc.done ? 'Complété · +50 XP' : 'Puzzle #'+dc.num+' · clique pour relever')+
-      '</div>'+
-    '</div>'+
+    // ── Carte DÉFI DU JOUR #N (36-defi-du-jour-et-cartes.js) ──
+    ((typeof carteDefiAccueil === 'function') ? carteDefiAccueil() : '')+
 
     // ── Carte STATS ──
     '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px">'+
@@ -9572,7 +9312,6 @@ function renderEngageBar() {
   setTimeout(renderDailyGameCard, 0);
 }
 
-function renderDailyCard() { renderEngageBar(); }
 
 /* ─── Section progression du profil (niveau, courbe ELO, badges) ─── */
 function sparkline(data, w, h, color) {
@@ -11498,9 +11237,11 @@ function togglePw(id, btn) {
 }
 
 /* ── Password strength ── */
-function checkPwStrength(val) {
-  const fill = document.getElementById('pw-strength-fill');
-  const label = document.getElementById('pw-strength-label');
+/* suffixe : '' pour les Parametres, '-2' pour la fenetre de creation de profil (avant, la jauge
+   de cette fenetre ne bougeait jamais : c'etait celle des Parametres, cachee, qui changeait). */
+function checkPwStrength(val, suffixe) {
+  const fill = document.getElementById('pw-strength-fill' + (suffixe || ''));
+  const label = document.getElementById('pw-strength-label' + (suffixe || ''));
   if (!fill) return;
   let score = 0;
   if (val.length >= 8) score++;
@@ -11524,77 +11265,152 @@ function checkPwStrength(val) {
 ──────────────────────────────────────────── */
 let _loginEmail = '';
 
-function submitLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const pw    = document.getElementById('login-pw').value;
-  if (!email || !pw) { shakeModal('modal-login'); showToast('⚠️ Veuillez remplir tous les champs'); return; }
-  _loginEmail = email;
+async function submitLogin() {
+  const champ = document.getElementById('login-email'), champPw = document.getElementById('login-pw');
+  const ident = champ.value.trim();
+  const pw    = champPw.value;
+  if (!ident || !pw) { shakeModal('modal-login'); showToast(_tr('⚠️ Veuillez remplir tous les champs', '⚠️ Please fill in both fields')); return; }
+  _loginEmail = ident;
+  if (await _connexionServeur(ident, pw)) { champPw.value = ''; closeModal('login'); _bienvenue(currentUser); return; }
+  const r = await profilConnexion(ident, pw);
+  if (!r.ok) { shakeModal('modal-login'); showToast(r.msg); return; }
+  champPw.value = '';
   closeModal('login');
-  loginSuccess(); // profil local, aucune double authentification (pas de serveur)
+  if (r.nouveauMdp) showToast(_tr('🔐 Ce mot de passe protège désormais ce profil', '🔐 This password now protects this profile'));
+  _bienvenue(r.profil);
 }
 
 /* ────────────────────────────────────────────
    SIGNUP FLOW
 ──────────────────────────────────────────── */
-function submitSignup() {
+async function submitSignup() {
   const username = document.getElementById('signup-username').value.trim();
   const email    = document.getElementById('signup-email').value.trim();
-  const pw       = document.getElementById('signup-pw').value;
+  const champPw  = document.getElementById('signup-pw');
+  const pw       = champPw.value;
   const terms    = document.getElementById('signup-terms').checked;
-  if (!username || username.length < 3) { showToast('⚠️ Nom d\'utilisateur trop court (min. 3 caractères)'); return; }
-  if (username.length > 24) { showToast('⚠️ Nom d\'utilisateur trop long (max. 24 caractères)'); return; }
+  if (!username || username.length < 3) { showToast(_tr('⚠️ Nom d\'utilisateur trop court (min. 3 caractères)', '⚠️ Username too short (min. 3 characters)')); return; }
+  if (username.length > 24) { showToast(_tr('⚠️ Nom d\'utilisateur trop long (max. 24 caractères)', '⚠️ Username too long (max. 24 characters)')); return; }
   // Caractères autorisés : lettres, chiffres, espace, tiret, underscore, point (anti-injection)
-  if (!/^[\p{L}\p{N} _.\-]+$/u.test(username)) { showToast('⚠️ Le nom contient des caractères non autorisés'); return; }
-  if (!email || !email.includes('@')) { showToast('⚠️ Adresse email invalide'); return; }
-  if (!pw || pw.length < 8) { showToast('⚠️ Mot de passe trop court (min. 8 caractères)'); return; }
-  if (!terms) { showToast('⚠️ Veuillez accepter les conditions d\'utilisation'); return; }
-  _loginEmail = email;
+  if (!/^[\p{L}\p{N} _.\-]+$/u.test(username)) { showToast(_tr('⚠️ Le nom contient des caractères non autorisés', '⚠️ The name contains characters that are not allowed')); return; }
+  // l'e-mail est facultatif : il sert seulement a se reconnecter ici, rien ne lui est envoye
+  if (email && !/^[^\s@]+@[^\s@]+$/.test(email)) { showToast(_tr('⚠️ Adresse e-mail invalide', '⚠️ Invalid e-mail address')); return; }
+  if (!pw || pw.length < 8) { showToast(_tr('⚠️ Mot de passe trop court (min. 8 caractères)', '⚠️ Password too short (min. 8 characters)')); return; }
+  if (!terms) { showToast(_tr('⚠️ Veuillez accepter les conditions d\'utilisation', '⚠️ Please accept the terms of use')); return; }
+  _loginEmail = email || username;
+  const r = await profilCreation(username, email, pw);
+  if (!r.ok) { shakeModal('modal-signup'); showToast(r.msg); return; }
+  champPw.value = '';
   closeModal('signup');
-  loginSuccess(); // profil local, aucune double authentification (pas de serveur)
+  _bienvenue(r.profil);
 }
-
-/* Login success */
-async function loginSuccess() {
-
-  // Match preset accounts
-  const PRESETS = {
-    'fightclub': { username:'FightClub (Frederic Garnier)', email:'', role:'writer', color:'#4a1c5a', bio:'Fondateur du blog Abalone Online (2013). Theoricien, encyclopediste, redacteur principal.', country:'FR', elo:1950, games:312, wins:198, streak:7, joinDate:'Decembre 2013', eloMax:2105 },
-    'olivier':   { username:'ocj94', email:'', role:'player', color:'#2d5a3d', bio:'Joueur passionné et promoteur de la communauté abalonienne mondiale.', country:'FR', elo:null, games:0, wins:0, streak:0, joinDate:'', eloMax:null },
-  };
-
-  const emailVal = (document.getElementById('login-email')?.value||'').trim().toLowerCase();
-  const usernameVal = (document.getElementById('signup-username')?.value||'').trim();
-  const emailSignup = (document.getElementById('signup-email')?.value||'').trim().toLowerCase();
-
-  // Chemin backend (dormant tant que BACKEND.enabled===false) : si le serveur
-  // authentifie, on utilise SON utilisateur ; sinon on garde la logique locale.
-  if (typeof api!=='undefined' && api.online) {
-    try {
-      const remote = await api.login({ email: emailVal||emailSignup, password: (document.getElementById('login-pw')?.value||'') });
-      if (remote) { currentUser = remote; saveSession(currentUser); updateNavAuth();
-        // Synchronise la progression depuis le serveur (source de vérité si en ligne)
-        try { const rp = await api.fetchProgress(); if (rp) { saveProgress(rp); if (typeof refreshProgressUI==='function') refreshProgressUI(); } } catch(e) {}
-        document.getElementById('success-username').textContent = currentUser.username;
-        openModal('login-success'); return; }
-    } catch(e) {}
+/* ═══════════════════════════════════════════
+   PROFILS LOCAUX
+   Il n'y a pas de serveur : un « compte » est un profil enregistre dans ce navigateur.
+   Avant (v2.57), le mot de passe n'etait jamais verifie (n'importe lequel ouvrait n'importe
+   quel nom), et taper « fightclub » connectait sous le nom d'une vraie personne avec des
+   statistiques inventees (ELO 1950, 312 parties...). Desormais chaque profil garde
+   l'empreinte PBKDF2 de son mot de passe (SEC.hashPassword) et la connexion la verifie.
+   La progression (parties, XP, problemes) reste celle de l'appareil, quel que soit le profil.
+═══════════════════════════════════════════ */
+const PROFILS_KEY = 'abalone_profils';
+const _PROFIL_CHAMPS = ['username', 'email', 'role', 'color', 'bio', 'country', 'joinDate', 'passwordHash', 'passwordSalt'];
+function _profilCle(nom) { return String(nom || '').trim().toLowerCase(); }
+function _profilsLire() {
+  try {
+    const o = JSON.parse(localStorage.getItem(PROFILS_KEY) || '{}');
+    return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {};
+  } catch (e) { return {}; }
+}
+function _profilsEcrire(o) { try { localStorage.setItem(PROFILS_KEY, JSON.stringify(o)); } catch (e) {} }
+/* Enregistre (ou met a jour) le profil de u dans le registre local. */
+function _profilMaj(u) {
+  if (!u || !u.username) return;
+  const tous = _profilsLire();
+  const cle = _profilCle(u.username);
+  const p = Object.assign({}, tous[cle] || {});
+  _PROFIL_CHAMPS.forEach(function (k) { if (u[k] !== undefined && u[k] !== null) p[k] = u[k]; });
+  tous[cle] = p;
+  _profilsEcrire(tous);
+}
+/* Cherche un profil par nom ou par e-mail, sans tenir compte des majuscules. */
+function _profilTrouver(ident) {
+  const q = _profilCle(ident);
+  if (!q) return null;
+  const tous = _profilsLire();
+  if (tous[q]) return { cle: q, profil: tous[q] };
+  for (const cle in tous) {
+    if (tous[cle] && tous[cle].email && _profilCle(tous[cle].email) === q) return { cle: cle, profil: tous[cle] };
   }
-
-  let matched = null;
-  for (const [k,acc] of Object.entries(PRESETS)) {
-    if (emailVal === acc.email || emailVal === k || emailSignup === acc.email) { matched = acc; break; }
-  }
-
-  if (matched) {
-    currentUser = {...matched};
+  return null;
+}
+async function profilConnexion(ident, mdp) {
+  const t = _profilTrouver(ident);
+  if (!t) return { ok: false, msg: _tr('Aucun profil « ' + ident + ' » dans ce navigateur : un profil reste sur l’appareil où il a été créé.',
+                                       'No profile “' + ident + '” in this browser: a profile stays on the device where it was created.') };
+  const p = Object.assign({}, t.profil);
+  let nouveauMdp = false;
+  if (p.passwordHash && p.passwordSalt) {
+    const h = await SEC.hashPassword(mdp, p.passwordSalt);
+    if (h.hash !== p.passwordHash) return { ok: false, msg: _tr('❌ Mot de passe incorrect', '❌ Wrong password') };
   } else {
-    const displayName = usernameVal || emailVal.split('@')[0] || 'Joueur';
-    currentUser = { username:displayName, email:emailSignup||emailVal, role:'player', color:'#2d5a3d', bio:'', country:'', elo:1200, games:0, wins:0, streak:0, joinDate: new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'}), eloMax:1200 };
+    // profil cree avant la v2.57 (aucun mot de passe n'etait garde) : celui-ci devient le sien
+    const h = await SEC.hashPassword(mdp);
+    p.passwordHash = h.hash; p.passwordSalt = h.salt; nouveauMdp = true;
   }
-
-  saveSession(currentUser);
+  currentUser = p;
+  await saveSession(currentUser);
   updateNavAuth();
-
-  document.getElementById('success-username').textContent = currentUser.username;
+  return { ok: true, profil: currentUser, nouveauMdp: nouveauMdp };
+}
+async function profilCreation(nom, email, mdp) {
+  if (_profilTrouver(nom) || (email && _profilTrouver(email))) {
+    return { ok: false, msg: _tr('⚠️ Ce nom ou cet e-mail a déjà un profil dans ce navigateur : connectez-vous.',
+                                 '⚠️ This name or e-mail already has a profile in this browser: sign in.') };
+  }
+  const h = await SEC.hashPassword(mdp);
+  currentUser = { username: nom, email: email || '', role: 'player', color: '#2d5a3d', bio: '', country: '',
+    joinDate: new Date().toLocaleDateString(currentLang() === 'EN' ? 'en-GB' : 'fr-FR', { month: 'long', year: 'numeric' }),
+    passwordHash: h.hash, passwordSalt: h.salt };
+  await saveSession(currentUser);
+  updateNavAuth();
+  return { ok: true, profil: currentUser };
+}
+/* « Mot de passe oublie » : sans serveur, aucun e-mail ne peut partir. On propose d'effacer
+   le profil (nom, mot de passe, couleur) pour le recreer ; la progression n'y est pas liee. */
+function profilOublie() {
+  const champ = document.getElementById('forgot-ident');
+  const ident = ((champ && champ.value) || '').trim();
+  if (!ident) { shakeModal('modal-forgot'); showToast(_tr('⚠️ Indiquez le nom ou l’e-mail du profil', '⚠️ Enter the profile’s name or e-mail')); return; }
+  const t = _profilTrouver(ident);
+  if (!t) { shakeModal('modal-forgot'); showToast(_tr('Aucun profil « ' + ident + ' » dans ce navigateur', 'No profile “' + ident + '” in this browser')); return; }
+  const ok = confirm(_tr('Effacer le profil « ' + t.profil.username + ' » de ce navigateur ?\n\nVos parties, votre XP et vos problèmes résolus restent sur cet appareil : seuls le nom, le mot de passe et la couleur du profil sont effacés. Vous pourrez le recréer tout de suite.',
+                         'Delete the profile “' + t.profil.username + '” from this browser?\n\nYour games, XP and solved puzzles stay on this device: only the profile’s name, password and colour are deleted. You can create it again right away.'));
+  if (!ok) return;
+  const tous = _profilsLire(); delete tous[t.cle]; _profilsEcrire(tous);
+  if (currentUser && _profilCle(currentUser.username) === t.cle) { clearSession(); updateNavAuth(); }
+  if (champ) champ.value = '';
+  closeModal('forgot');
+  openModal('signup');
+  const su = document.getElementById('signup-username'); if (su) su.value = t.profil.username;
+  const se = document.getElementById('signup-email'); if (se) se.value = t.profil.email || '';
+}
+/* Chemin serveur (dormant tant que BACKEND.enabled===false) : si le serveur authentifie, on
+   utilise SON utilisateur. Renvoie true si la connexion a ete faite ainsi. */
+async function _connexionServeur(ident, mdp) {
+  if (!(typeof api !== 'undefined' && api.online)) return false;
+  try {
+    const remote = await api.login({ email: ident, password: mdp });
+    if (!remote) return false;
+    currentUser = remote; saveSession(currentUser); updateNavAuth();
+    // Synchronise la progression depuis le serveur (source de vérité si en ligne)
+    try { const rp = await api.fetchProgress(); if (rp) { saveProgress(rp); if (typeof refreshProgressUI === 'function') refreshProgressUI(); } } catch (e) {}
+    return true;
+  } catch (e) { return false; }
+}
+function _bienvenue(u) {
+  const el = document.getElementById('success-username');
+  if (el) el.textContent = u.username;
   openModal('login-success');
 }
 
@@ -11736,6 +11552,8 @@ function initSession() {
       if (currentUser.password && !currentUser.passwordHash) {
         currentUser.password = '***'; // ne plus stocker en clair
       }
+      // session ouverte avant la v2.57 : son profil rejoint le registre local
+      if (currentUser.username && !_profilTrouver(currentUser.username)) _profilMaj(currentUser);
       updateNavAuth();
     }).catch(function() {
       // Fallback non chiffré
@@ -11764,6 +11582,7 @@ async function saveSession(u) {
     // Fallback non chiffré si Web Crypto indisponible
     try { localStorage.setItem('abalone_session', JSON.stringify(u)); } catch {}
   }
+  _profilMaj(u);   // le registre des profils locaux suit chaque changement (nom, couleur, mot de passe)
 }
 
 function clearSession() {
@@ -11861,7 +11680,7 @@ function resetAllData() {
 
   // Toutes les clés de stockage de l'application
   const keys = [
-    'abalone_progress', 'abalone_session', 'abalone_a11y', 'abalone_lang',
+    'abalone_progress', 'abalone_session', 'abalone_profils', 'abalone_a11y', 'abalone_lang',
     'abalone_lang_banner_dismissed', 'abalone_marble_skin', 'abalone_referral_credits',
     'abalone_sidebar', 'abalone_token_secret', 'abalone_welcome_seen'
   ];
@@ -11901,7 +11720,7 @@ function updateNavAuth() {
         <div style="width:34px;height:34px;border-radius:50%;background:${currentUser.color||'#2d5a3d'};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;font-family:'Playfair Display',serif;color:var(--gold);border:2px solid var(--border)">${init}</div>
         <div style="line-height:1.2">
           <span style="font-size:13px;font-weight:600;color:var(--white)">${escapeHtml(currentUser.username)}${roleTag}</span><br>
-          <span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">ELO ${currentUser.elo||1200}</span>
+          <span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">ELO ${(typeof progress !== 'undefined' && progress && progress.elo) || 1200}</span>
         </div>
       </div>
       <button onclick="logout()" style="padding:6px 12px;background:none;border:1px solid rgba(192,57,43,0.3);color:#e05c4b;border-radius:6px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif">Deco</button>`;
@@ -11930,15 +11749,26 @@ function setAvatarColor(col) {
 
 function saveGeneralSettings() {
   if (!currentUser) return;
+  const ancien = currentUser.username;
+  const nomEl = document.getElementById('settings-username');
+  const nouveau = ((nomEl && nomEl.value) || '').trim();
+  if (nouveau && _profilCle(nouveau) !== _profilCle(ancien)) {
+    if (nouveau.length < 3 || nouveau.length > 24 || !/^[\p{L}\p{N} _.\-]+$/u.test(nouveau)) { showToast(_tr('⚠️ Nom : 3 à 24 lettres, chiffres, espaces, - _ .', '⚠️ Name: 3 to 24 letters, digits, spaces, - _ .')); return; }
+    if (_profilTrouver(nouveau)) { showToast(_tr('⚠️ Ce nom a déjà un profil dans ce navigateur', '⚠️ This name already has a profile in this browser')); return; }
+  }
   const fields = { username:'settings-username', email:'settings-email', country:'settings-country', bio:'settings-bio' };
   for (const [key,id] of Object.entries(fields)) {
     const el = document.getElementById(id);
     if (el && el.value.trim()) currentUser[key] = el.value.trim();
   }
+  // renomme : l'ancienne entree du registre disparait, la nouvelle est ecrite par saveSession
+  if (_profilCle(currentUser.username) !== _profilCle(ancien)) {
+    const tous = _profilsLire(); delete tous[_profilCle(ancien)]; _profilsEcrire(tous);
+  }
   saveSession(currentUser);
   updateNavAuth();
   renderProfile();
-  showToast('Profil mis a jour !');
+  showToast(_tr('Profil mis à jour !', 'Profile updated!'));
 }
 
 async function savePassword() {
@@ -11971,7 +11801,7 @@ async function savePassword() {
   }
 }
 
-/* showSettingsTab — voir version complète ci-dessous */
+/* showSettingsTab : dans 29-security-score-and-puzzles-state.js */
 
 
 
@@ -12007,46 +11837,76 @@ function showToast(msg) {
 // par 'https://www.abalassembly.com/' le jour où le domaine est configuré.
 const SHARE_URL = 'https://ocj94.github.io/Abalassembly/';
 
+function _lienSite() { return SHARE_URL + (currentLang() === 'EN' ? '?lang=en' : ''); }
+
+/* Le message de fin de partie. Avant (v2.57) : toujours un message de victoire (« ... gagner
+   une partie d'Abalone ! 🏆 »), meme apres une defaite. Il suit maintenant la vraie fin de partie
+   (_finPartie, relevee par l'evenement abalassembly:gameOver) : victoire, defaite, nulle, ou
+   partie a deux sur le meme ecran, avec le score, l'adversaire et le nombre de coups. */
 function buildShareText() {
-  // Construit un message selon l'état de la partie
-  const lvl = (typeof loadProgress === 'function') ? (loadProgress().level || 1) : 1;
-  return "Je viens de gagner une partie d'Abalone sur Abalassembly ! 🏆 Niveau " + lvl + " · Venez m'affronter ⚫⚪";
+  const f = (typeof _finPartie !== 'undefined') ? _finPartie : null;
+  if (!f) return _tr('Une partie d’Abalone ? Gratuit, sans pub, sans compte ⚫⚪', 'Fancy a game of Abalone? Free, no ads, no account ⚫⚪');
+  const nom = function (c) { return c === 'black' ? _tr('Noirs', 'Black') : _tr('Blancs', 'White'); };
+  const ej = function (c) { return c === 'black' ? f.cb : f.cw; };          // billes ejectees PAR ce camp
+  const autre = function (c) { return c === 'black' ? 'white' : 'black'; };
+  const coups = f.coups + ' ' + _tr('coups', 'moves');
+  const raison = f.reason === 'resign' ? _tr(' par abandon', ' by resignation') : f.reason === 'temps' ? _tr(' au temps', ' on time') : '';
+  const adv = f.mode === 'ai' ? _tr('l’IA' + (f.niveau ? ' niveau ' + f.niveau : ''), 'the AI' + (f.niveau ? ' (level ' + f.niveau + ')' : ''))
+            : (f.adv || _tr('mon adversaire', 'my opponent'));
+  if (!f.winner) {
+    return _tr('Partie nulle à Abalone' + (f.mode === 'local' ? '' : ' contre ' + adv) + ' (' + ej('black') + '-' + ej('white') + ', ' + coups + ') ⚫⚪',
+               'Drawn game of Abalone' + (f.mode === 'local' ? '' : ' against ' + adv) + ' (' + ej('black') + '-' + ej('white') + ', ' + coups + ') ⚫⚪');
+  }
+  const score = ej(f.winner) + '-' + ej(autre(f.winner));
+  if (f.mode === 'local') {
+    return _tr('Partie d’Abalone à deux : les ' + nom(f.winner) + ' gagnent ' + score + raison + ' en ' + coups + ' ⚫⚪',
+               'Two-player game of Abalone: ' + nom(f.winner) + ' wins ' + score + raison + ' in ' + coups + ' ⚫⚪');
+  }
+  if (f.winner === f.moi) {
+    return _tr('J’ai battu ' + adv + ' à Abalone : ' + score + raison + ', en ' + coups + ' 🏆',
+               'I beat ' + adv + ' at Abalone: ' + score + raison + ', in ' + coups + ' 🏆');
+  }
+  const monScore = ej(f.moi) + '-' + ej(autre(f.moi));
+  return _tr('Battu par ' + adv + ' à Abalone (' + monScore + raison + ', ' + coups + '). Revanche ? ⚫⚪',
+             'Beaten by ' + adv + ' at Abalone (' + monScore + raison + ', ' + coups + '). Rematch? ⚫⚪');
 }
 
 function shareResult() {
   const text = buildShareText();
   // API native de partage (mobile surtout)
   if (navigator.share) {
-    navigator.share({ title: 'Abalassembly', text: text, url: SHARE_URL })
-      .catch(function(){ openShareModal(text); });
+    navigator.share({ title: 'Abalassembly', text: text, url: _lienSite() })
+      .catch(function(err){ if (!err || err.name !== 'AbortError') openShareModal(text); });
   } else {
     openShareModal(text);
   }
 }
 
 function shareInvite() {
-  const text = "Rejoins-moi sur Abalassembly pour une partie d'Abalone ! ⚫⚪";
+  const text = _tr('Rejoins-moi sur Abalassembly pour une partie d’Abalone ! ⚫⚪', 'Join me on Abalassembly for a game of Abalone! ⚫⚪');
+  const url = (typeof referralLink === 'function') ? referralLink() : _lienSite();
   if (navigator.share) {
-    navigator.share({ title: 'Abalassembly', text: text, url: SHARE_URL })
-      .catch(function(){ openShareModal(text); });
+    navigator.share({ title: 'Abalassembly', text: text, url: url })
+      .catch(function(err){ if (!err || err.name !== 'AbortError') openShareModal(text, url); });
   } else {
-    openShareModal(text);
+    openShareModal(text, url);
   }
 }
 
-function openShareModal(text) {
+/* Avant (v2.57), la fenetre proposait aussi Discord, YouTube et Twitch, vers des adresses
+   « abalassembly » qui n'existent pas (« à remplacer par tes vraies pages ») : retirees. */
+let _partageMessage = '';   // le message de la fenetre de partage ouverte (texte + adresse)
+function openShareModal(text, url) {
+  url = url || _lienSite();
+  _partageMessage = text + ' ' + url;
   const enc = encodeURIComponent(text);
-  const encUrl = encodeURIComponent(SHARE_URL);
+  const encUrl = encodeURIComponent(url);
   const links = {
     twitter:  'https://twitter.com/intent/tweet?text=' + enc + '&url=' + encUrl,
     facebook: 'https://www.facebook.com/sharer/sharer.php?u=' + encUrl + '&quote=' + enc,
     whatsapp: 'https://wa.me/?text=' + enc + '%20' + encUrl,
     telegram: 'https://t.me/share/url?url=' + encUrl + '&text=' + enc,
     reddit:   'https://www.reddit.com/submit?url=' + encUrl + '&title=' + enc,
-    // Liens communauté (à remplacer par tes vraies pages)
-    discord:  'https://discord.gg/abalassembly',
-    youtube:  'https://www.youtube.com/@abalassembly',
-    twitch:   'https://www.twitch.tv/abalassembly',
   };
   let modal = document.getElementById('share-modal');
   if (!modal) {
@@ -12065,11 +11925,8 @@ function openShareModal(text) {
         '<a href="'+links.whatsapp+'" target="_blank" rel="noopener" class="share-btn wa">WhatsApp</a>' +
         '<a href="'+links.telegram+'" target="_blank" rel="noopener" class="share-btn tg">Telegram</a>' +
         '<a href="'+links.reddit+'" target="_blank" rel="noopener" class="share-btn rd">Reddit</a>' +
-        '<a href="'+links.discord+'" target="_blank" rel="noopener" class="share-btn dc">Discord</a>' +
-        '<a href="'+links.youtube+'" target="_blank" rel="noopener" class="share-btn yt">YouTube</a>' +
-        '<a href="'+links.twitch+'" target="_blank" rel="noopener" class="share-btn tv">Twitch</a>' +
       '</div>' +
-      '<button class="share-copy" onclick="copyShareLink()">🔗 Copier le lien</button>' +
+      '<button class="share-copy" onclick="copyShareLink()">📋 ' + _tr('Copier le message', 'Copy the message') + '</button>' +
       '<button class="share-close" onclick="closeShareModal()">Fermer</button>' +
     '</div>';
   modal.classList.add('show');
@@ -12081,12 +11938,8 @@ function closeShareModal() {
 }
 
 function copyShareLink() {
-  const text = buildShareText() + ' ' + SHARE_URL;
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(function(){ showToast('🔗 Lien copié !'); });
-  } else {
-    showToast('Copiez : ' + SHARE_URL);
-  }
+  const text = _partageMessage || (buildShareText() + ' ' + _lienSite());
+  _copierTexte(text, _tr('📋 Message copié', '📋 Message copied'));
 }
 
 /* ═══════════════════════════════════════════
@@ -12290,6 +12143,11 @@ function renderLeaderboard() {
 
 /* ═══════════════════════════════════════════
    PROFILE DATA
+   Avant (v2.57), ce profil lisait le compte (u.games, u.wins, u.elo, u.streak) : des champs
+   que rien ne mettait jamais a jour (0 partie, ELO 1200 pour toujours), plus un « rang
+   mondial » calcule a partir de l'ELO (« #1600 », « Top France ») sans aucun classement
+   derriere, et des succes debloques d'office (« Premier sang », « Mondial »...). Les chiffres
+   viennent maintenant de la progression reellement enregistree sur cet appareil.
 ═══════════════════════════════════════════ */
 function renderProfile() {
   const u = currentUser;
@@ -12307,6 +12165,7 @@ function renderProfile() {
   if (typeof renderHeatmap === 'function') renderHeatmap();
 
   const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  const p = (typeof progress !== 'undefined' && progress) ? progress : {};
 
   // Avatar & identity
   const avatarDisp = document.getElementById('profile-avatar-display');
@@ -12316,26 +12175,30 @@ function renderProfile() {
 
   const nameEl = document.getElementById('profile-name-display');
   const handleEl = document.getElementById('profile-handle-display');
-  const roleTag = u.role==='writer'
-    ? ' <span style="font-size:10px;padding:2px 8px;background:rgba(138,114,210,0.2);color:#b89ef0;border-radius:8px;font-weight:700">REDACTEUR</span>'
-    : '';
-  if (nameEl) nameEl.innerHTML = escapeHtml(u.username) + roleTag;
-  if (handleEl) handleEl.textContent = '@'+(u.username||'').toLowerCase().replace(/ /g,'_')+' - Depuis '+(u.joinDate||'2024');
+  if (nameEl) nameEl.textContent = u.username || '';
+  if (handleEl) handleEl.textContent = '@'+(u.username||'').toLowerCase().replace(/ /g,'_')
+    + (u.joinDate ? _tr(' - Depuis ', ' - Since ') + u.joinDate : '')
+    + _tr(' · profil local (cet appareil)', ' · local profile (this device)');
 
-  set('profile-elo-display', u.elo||1200);
-  set('profile-elo-sub', u.elo>=2000?'Grand Maitre':u.elo>=1600?'Maitre':u.elo>=1400?'Expert':'Joueur');
+  const elo = p.elo || 1200;
+  const eloMax = Math.max(elo, ...((p.eloHistory || []).map(function(e){ return e && e.elo || 0; })));
+  set('profile-elo-display', elo);
+  set('profile-elo-sub', elo>=2000?'Grand Maître':elo>=1600?'Maître':elo>=1400?'Expert':'Joueur');
 
-  const games=u.games||0, wins=u.wins||0;
+  const games = p.gamesPlayed||0, wins = p.gamesWon||0, losses = p.gamesLost||0, draws = p.gamesDraw||0;
   const wr = games>0 ? Math.round(wins/games*100) : 0;
   set('ps-games', games);
-  set('ps-games-sub', games>0 ? '+'+Math.max(1,Math.round(games*0.05))+' ce mois' : 'Commencez !');
+  set('ps-games-sub', games>0 ? _tr(wins+' V · '+losses+' D · '+draws+' N', wins+' W · '+losses+' L · '+draws+' D') : _tr('Commencez !', 'Get started!'));
   set('ps-wr', games>0 ? wr+'%' : '-');
-  set('ps-wr-sub', games>0 ? wins+' gagnees' : '-');
-  set('ps-elo', u.elo||1200);
-  set('ps-elo-sub', 'Max: '+(u.eloMax||u.elo||1200));
-  set('ps-streak', u.streak||0);
-  set('ps-rank', u.elo>=2000 ? '#<50' : '#'+Math.round(1000+(2000-(u.elo||1200))*3));
-  set('ps-rank-sub', u.country==='FR' ? 'Top France' : 'Non classe');
+  set('ps-wr-sub', games>0 ? wins+_tr(' gagnée'+(wins>1?'s':''), ' won') : '-');
+  set('ps-elo', elo);
+  set('ps-elo-sub', 'Max : '+eloMax);
+  const serie = (typeof serieActuelle === 'function') ? serieActuelle() : (p.streak||0);
+  set('ps-streak', serie);
+  set('ps-streak-sub', _tr('Record : ', 'Best: ')+(p.bestStreak||0)+_tr(' j', ' d'));
+  set('ps-puzzles', p.puzzlesSolved||0);
+  const defis = (typeof defiTrouves === 'function') ? defiTrouves() : 0;
+  set('ps-puzzles-sub', defis ? _tr('+ '+defis+' défi'+(defis>1?'s':'')+' du jour', '+ '+defis+' daily puzzle'+(defis>1?'s':'')) : '-');
 
   // Settings pre-fill
   const fieldMap = {username:'settings-username', email:'settings-email', country:'settings-country', bio:'settings-bio'};
@@ -12346,63 +12209,103 @@ function renderProfile() {
   const sp=document.getElementById('settings-avatar-preview');
   if (sp) { sp.style.background=u.color||'#2d5a3d'; sp.textContent=(u.username||'?')[0].toUpperCase(); }
 
-  // Writer tab visibility
-  const wTab=document.getElementById('stab-writer');
-  if (wTab) wTab.style.display = u.role==='writer'?'block':'none';
-
-  /* Historique des parties.
-     Cette liste etait inventee de bout en bout : une dizaine d'adversaires
-     fictifs, leur ELO, la variation de classement et « il y a 2h ». Elle
-     s'affichait comme l'historique reel du joueur. Aucune partie n'etant
-     conservee a ce jour, la seule reponse honnete est un etat vide qui
-     annonce ce qui manque. Le stockage des parties (voir games/ et le
-     format APGN) est ce qui remplira cette liste. */
-  const history = [];
-  const resLabel={win:'V',loss:'D',draw:'N'};
-  const ghEl=document.getElementById('game-history');
-  if (ghEl && !history.length) {
-    ghEl.innerHTML = '<div style="padding:18px;text-align:center;color:var(--muted);font-size:13px;'
-      + 'border:1px dashed var(--border);border-radius:10px">Aucune partie conservée pour l\'instant.'
-      + '<br><span style="font-size:12px">Les parties jouées ne sont pas encore enregistrées.</span></div>';
-  } else if (ghEl) ghEl.innerHTML = history.map(g=>`
-    <div class="game-history-item">
-      <div class="result-badge ${g.res}">${resLabel[g.res]}</div>
-      <div class="game-opp">${g.opp} <span>(${g.elo} ELO)</span><br><span>${g.ago}</span></div>
-      <div class="game-rating-change ${g.res==='loss'?'neg':'pos'}">${g.change}</div>
-    </div>`).join('');
-
-  // Achievements
-  const baseAchs = [
-    { icon:'T', name:'Premier sang',  desc:'1ere ejection',           locked:false },
-    { icon:'S', name:'Sumito x3',     desc:'3 poussees en 1 partie',  locked:false },
-    { icon:'F', name:'Serie de 10',   desc:'10 victoires consec.',    locked:(u.streak||0)<10 },
-    { icon:'P', name:'Precision',     desc:'90% coups optimaux',      locked:true },
-    { icon:'K', name:'Maitre',        desc:'Atteindre ELO 1500',      locked:(u.elo||1200)<1500 },
-    { icon:'G', name:'Mondial',       desc:'Jouer 5 nationalites',    locked:false },
-    { icon:'B', name:'Blitz King',    desc:'Gagner en < 5 min',       locked:true },
-    { icon:'D', name:'Grand Maitre',  desc:'Atteindre ELO 2000',      locked:(u.elo||1200)<2000 },
-  ];
-  const writerAchs = [
-    { icon:'P', name:'1er article',    desc:'Premier article publie',  locked:false },
-    { icon:'E', name:'Encyclopediste', desc:'10 articles rediges',     locked:false },
-    { icon:'F', name:'Fondateur',      desc:'Createur du blog 2013',   locked:false },
-    { icon:'R', name:'Reference',      desc:'Source francophone n1',   locked:false },
-    { icon:'T', name:'Theoricien',     desc:'Articles de theorie',     locked:false },
-    { icon:'C', name:'Compositeur',    desc:'Problemes mensuels',      locked:false },
-    { icon:'A', name:'Academy',        desc:'Abalone Academy',         locked:false },
-    { icon:'M', name:'Musee',          desc:'Catalogue complet',       locked:false },
-  ];
-  const achs = u.role==='writer' ? writerAchs : baseAchs;
-  const achEl=document.getElementById('achievements');
-  if (achEl) achEl.innerHTML = achs.map(a=>`
-    <div class="achievement ${a.locked?'locked':''}">
-      <div class="ach-icon">${a.icon}</div>
-      <div class="ach-name">${a.name}</div>
-      <div class="ach-desc">${a.desc}</div>
-    </div>`).join('');
+  renderProfileHistory();
+  renderProfileEloCard();
 }
 
+/* Les 10 dernieres parties, tirees de l'historique local (abaGameHistory). Le texte d'avant
+   annoncait que les parties n'etaient pas encore enregistrees, alors qu'elles le sont
+   (page Historique). Les parties seulement consultees (tournois importes) n'y figurent pas. */
+function renderProfileHistory() {
+  const ghEl = document.getElementById('game-history');
+  if (!ghEl) return;
+  const liste = (typeof getMesParties === 'function') ? getMesParties().filter(function(e){ return e.mode !== 'import'; }).slice(0, 10) : [];
+  if (!liste.length) {
+    ghEl.innerHTML = '<div style="padding:18px;text-align:center;color:var(--muted);font-size:13px;'
+      + 'border:1px dashed var(--border);border-radius:10px">' + _tr('Aucune partie terminée pour l’instant.', 'No finished game yet.')
+      + '<br><span style="font-size:12px">' + _tr('Vos parties s’enregistrent ici dès la fin de la première.', 'Your games are saved here as soon as the first one ends.') + '</span></div>';
+    return;
+  }
+  const EN = currentLang() === 'EN';
+  ghEl.innerHTML = liste.map(function(g){
+    const deuxJoueurs = g.mode === 'local' && !g.blackName && !g.whiteName;
+    let cls, lettre;
+    if (!g.winner) { cls = 'draw'; lettre = EN ? 'D' : 'N'; }
+    else if (deuxJoueurs) { cls = 'draw'; lettre = g.winner === 'black' ? '●' : '○'; }
+    else if (g.winner === g.humanColor) { cls = 'win'; lettre = EN ? 'W' : 'V'; }
+    else { cls = 'loss'; lettre = EN ? 'L' : 'D'; }
+    let quand = '';
+    try { quand = new Date(g.date).toLocaleDateString(EN ? 'en-GB' : 'fr-FR', { day:'numeric', month:'short', year:'numeric' }); } catch(e) {}
+    const coups = g.moveCount ? ' · ' + g.moveCount + _tr(' coups', ' moves') : '';
+    const raison = g.reason === 'resign' ? _tr('abandon', 'resigned') : g.reason === 'temps' ? _tr('au temps', 'on time') : '';
+    const qui = (typeof _historyOpponentLabel === 'function') ? _historyOpponentLabel(g) : '';
+    return '<div class="game-history-item">'
+      + '<div class="result-badge ' + cls + '">' + lettre + '</div>'
+      + '<div class="game-opp">' + escapeHtml(qui) + '<br><span>' + escapeHtml(quand + coups) + '</span></div>'
+      + '<div class="game-rating-change" style="color:var(--muted)">' + escapeHtml(raison) + '</div>'
+      + '</div>';
+  }).join('');
+}
 
+/* « Progression ELO (30 jours) » : c'etait un dessin fixe (« +24 pts », « 1388 », « 1489 »,
+   « 1 Avr ... 1 Mai »). Courbe et chiffres viennent maintenant de progress.eloHistory
+   (un point par jour joue, voir onGamePlayed). */
+function renderProfileEloCard() {
+  const host = document.getElementById('profile-elo-card');
+  if (!host) return;
+  const diffEl = document.getElementById('profile-elo-diff');
+  const p = (typeof progress !== 'undefined' && progress) ? progress : {};
+  const auj = todayStr();
+  const hist = (p.eloHistory || []).filter(function(e){ return e && e.date && typeof e.elo === 'number'; });
+  const dans = hist.filter(function(e){ return daysBetween(e.date, auj) <= 30; });
+  const avant = hist.filter(function(e){ return daysBetween(e.date, auj) > 30; }).pop();
+  // point de depart : l'ELO tel qu'il etait au debut de la fenetre, s'il est connu
+  const d0 = new Date(); d0.setDate(d0.getDate() - 30);
+  const debut = d0.getFullYear()+'-'+String(d0.getMonth()+1).padStart(2,'0')+'-'+String(d0.getDate()).padStart(2,'0');
+  const pts = (avant ? [{ date: debut, elo: avant.elo }] : []).concat(dans);
+  const EN = currentLang() === 'EN';
+  const jour = function(ds){ try { return new Date(ds + 'T12:00:00').toLocaleDateString(EN ? 'en-GB' : 'fr-FR', { day:'numeric', month:'short' }); } catch(e) { return ds; } };
+  const ligne = function(lab, val, coul){
+    return '<div style="display:flex;justify-content:space-between;margin-bottom:12px"><span style="font-size:13px;color:var(--muted)">' + lab + '</span>'
+      + '<span style="font-family:\'DM Mono\',monospace;color:' + (coul || 'var(--text)') + '">' + val + '</span></div>';
+  };
+  if (pts.length < 2) {
+    if (diffEl) diffEl.textContent = '';
+    host.innerHTML = '<div style="padding:18px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed var(--border);border-radius:10px">'
+      + _tr('La courbe apparaît après deux journées de jeu.', 'The curve appears after two days of play.') + '</div>'
+      + '<div style="margin-top:20px">' + ligne(_tr('ELO actuel', 'Current ELO'), p.elo || 1200, 'var(--gold)') + '</div>';
+    return;
+  }
+  const x0 = pts[0].date;
+  const etendue = Math.max(1, daysBetween(x0, auj));
+  const vals = pts.map(function(e){ return e.elo; });
+  const lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+  const ech = Math.max(10, hi - lo);
+  const xy = pts.map(function(e){
+    const x = Math.round(daysBetween(x0, e.date) / etendue * 260);
+    const y = Math.round(90 - (e.elo - lo) / ech * 80);
+    return x + ',' + y;
+  });
+  const ligneSvg = 'M' + xy.join(' L');
+  const dernier = xy[xy.length - 1].split(',')[0];
+  const diff = vals[vals.length - 1] - vals[0];
+  if (diffEl) {
+    diffEl.textContent = (diff > 0 ? '+' : '') + diff + ' pts';
+    diffEl.style.color = diff > 0 ? 'var(--accent-green-light)' : diff < 0 ? '#e05c4b' : 'var(--muted)';
+  }
+  host.innerHTML = '<div class="rating-chart"><svg viewBox="0 0 260 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">'
+    + '<defs><linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c8a84b" stop-opacity="0.3"/><stop offset="100%" stop-color="#c8a84b" stop-opacity="0"/></linearGradient></defs>'
+    + '<path d="' + ligneSvg + '" fill="none" stroke="#c8a84b" stroke-width="2" stroke-linecap="round" vector-effect="non-scaling-stroke"/>'
+    + '<path d="' + ligneSvg + ' L' + dernier + ',100 L' + xy[0].split(',')[0] + ',100 Z" fill="url(#chartGrad)"/>'
+    + '</svg></div>'
+    + '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:8px;font-family:\'DM Mono\',monospace">'
+    + '<span>' + jour(x0) + '</span><span>' + _tr('Auj.', 'Today') + '</span></div>'
+    + '<div style="margin-top:20px">'
+    + ligne(_tr('ELO au ', 'ELO on ') + jour(pts[0].date), vals[0])
+    + ligne(_tr('ELO maximum', 'Highest ELO'), hi, 'var(--gold)')
+    + ligne(_tr('ELO actuel', 'Current ELO'), p.elo || vals[vals.length - 1])
+    + '</div>';
+}
 /* ═══════════════════════════════════════════
    ABALONE BOARD ENGINE
 ═══════════════════════════════════════════ */
@@ -15188,6 +15091,7 @@ function hideWinOverlay() {
 }
 
 function resetGame() {
+  try { if (typeof _puzzleFermer === 'function') _puzzleFermer(); } catch (e) {}   // une nouvelle partie quitte le mode puzzle
   if (typeof progress !== 'undefined') { progress.__firstEjDone = false; progress.__hadLead = false; }
   GameOver.set(false);
   selected = [];
@@ -22162,9 +22066,30 @@ function openPuzzles(){
   if(isNaN(idx)||idx<0||idx>=PUZZLES.length) idx=0;
   startPuzzle(idx);
 }
+/* Ouvre un puzzle sur le plateau de la partie depuis une autre page (defi du jour, probleme du
+   mois). Avant (v2.57), showPage('game') demarrait d'abord une partie neuve : la partie en cours
+   sauvegardee etait effacee (ou la fenetre « Reprendre ? » s'ouvrait par-dessus le puzzle), la
+   pluie de billes tombait, et une minute plus tard « Partie annulée — aucun coup joué » renvoyait
+   a l'accueil en plein puzzle. Le drapeau dit a la page de jeu de ne rien demarrer. */
+var _puzzleOuverture = false;
+function ouvrirPuzzleSurPlateau(idx){
+  _puzzleOuverture = true;
+  try { showPage('game'); } finally { _puzzleOuverture = false; }
+  startPuzzle(idx);
+}
+/* Ferme le mode puzzle sans toucher au plateau (nouvelle partie, partie reprise, tournoi) :
+   sinon chaque coup de la partie suivante etait compare a la solution du puzzle, et annule. */
+function _puzzleFermer(){
+  if(typeof _defiQuitter==='function') _defiQuitter();
+  if(!_puzzleActive) return;
+  _puzzleActive=null;
+  const bar=document.getElementById('puzzle-bar'); if(bar) bar.style.display='none';
+}
 function startPuzzle(idx){
   const p=PUZZLES[idx]; if(!p) return;
   if(typeof botDuelMode!=='undefined' && botDuelMode && typeof stopBotDuel==='function') stopBotDuel();
+  if(typeof _defiQuitter==='function') _defiQuitter();   // un autre puzzle : le defi en cours garde son temps
+  if(typeof disarmInactivityCancel==='function') disarmInactivityCancel();   // un puzzle n'est pas une partie a annuler
   // Pose la position
   board={}; p.bm.forEach(function(k){board[k]='black';}); p.wm.forEach(function(k){board[k]='white';});
   CapturedByBlack.set(p.cb); CapturedByWhite.set(p.cw);
@@ -22187,17 +22112,20 @@ function checkPuzzleMove(){
   if(!snap || !snap.moveInfo){ return; }
   const played=_pzSig(snap.moveInfo.cells, snap.moveInfo.dir);
   const isDef=!!(PUZZLES[pa.idx]&&PUZZLES[pa.idx].def);
+  const nDefi=(typeof _defiEnCours!=='undefined' && _defiEnCours && _defiEnCours.idx===pa.idx) ? _defiEnCours.n : 0;
   if(played===pa.sig || (pa.alts&&pa.alts.indexOf(played)!==-1)){
     _puzzleActive=null;
     const solved=parseInt(localStorage.getItem('abaPuzzleSolved')||'0',10)+1;
     localStorage.setItem('abaPuzzleSolved', String(solved));
     if (typeof checkMonthlyCompletion === 'function') checkMonthlyCompletion(pa.idx);
-    if (typeof checkDailyCompletion === 'function') checkDailyCompletion(pa.idx);
+    if (typeof _defiSurPuzzle === 'function') _defiSurPuzzle(pa.idx, 'v');
     const t=document.getElementById('pz-title');
-    if(t) t.textContent='✅ Bravo ! Puzzle réussi ('+solved+' résolus) — ⏭ pour le suivant';
+    if(t) t.textContent = nDefi ? _tr('✅ Défi du jour #'+nDefi+' trouvé !', '✅ Daily puzzle #'+nDefi+' solved!')
+                                : '✅ Bravo ! Puzzle réussi ('+solved+' résolus) — ⏭ pour le suivant';
     showToast(isDef?'🛡️ Menace parée !':'✅ Coup gagnant trouvé !');
   } else {
     pa.tries++;
+    if (typeof _defiSurPuzzle === 'function') _defiSurPuzzle(pa.idx, 'x');
     doUndo();
     showToast(pa.tries>=2 ? '❌ Raté — pense à 💡 Indice ou ✅ Solution'
       : (isDef?'❌ La menace demeure, réessaie':'❌ Pas le meilleur coup, réessaie'));
@@ -22206,12 +22134,14 @@ function checkPuzzleMove(){
 function puzzleHint(){
   const pa=_puzzleActive; if(!pa){ showToast('Puzzle déjà résolu — ⏭ Suivant'); return; }
   const p=PUZZLES[pa.idx];
+  if (typeof _defiSurPuzzle === 'function') _defiSurPuzzle(pa.idx, 'i');
   if(p.def){ showToast('💡 Menace adverse : '+p.thr+' — ta parade part de '+p.lab.slice(0,2)); return; }
   showToast('💡 Le coup part de '+p.lab.slice(0,2)+' (source : '+p.src.split('·')[0].trim()+')');
 }
 function puzzleSolution(){
   const pa=_puzzleActive; if(!pa){ showToast('Puzzle déjà résolu — ⏭ Suivant'); return; }
   const p=PUZZLES[pa.idx];
+  if (typeof _defiSurPuzzle === 'function') _defiSurPuzzle(pa.idx, 's');
   selected = p.sol.cells.map(function(x){ return {r:x.r,c:x.c}; });
   drawBoard();
   showToast('✅ Solution : '+p.lab+' — joue-la !');
@@ -22222,8 +22152,7 @@ function puzzleNext(){
   startPuzzle(idx);
 }
 function puzzleQuit(){
-  _puzzleActive=null;
-  const bar=document.getElementById('puzzle-bar'); if(bar) bar.style.display='none';
+  _puzzleFermer();
   if(typeof resetGame==='function') resetGame();
   showToast('Puzzles fermés');
 }
@@ -23470,24 +23399,14 @@ function renderLab(){
 try{ if(localStorage.getItem('abaLabAutoRun')==='1'){ setTimeout(function(){ if(!_labRunning){ startLab(); if(typeof showToast==='function') showToast('\ud83e\uddea Labo repris en arri\u00e8re-plan'); } }, 4000); } }catch(e){}
 
 // ── Crédibilité : vraies stats, vrai défi du jour, bannières honnêtes ──
-function _dailyPuzzleIdx(){ try{ return Math.floor(Date.now()/86400000)%puzzlesData.length; }catch(e){ return 0; } }
-function openDailyPuzzleInline(){
-  try{
-    const N=puzzlesData.length, idx=_dailyPuzzleIdx();
-    loadPuzzle(idx);
-    showToast('\ud83d\udd25 D\u00e9fi du jour \u2014 \u00ab '+puzzlesData[idx].title+' \u00bb ('+(idx+1)+'/'+N+')');
-  }catch(e){}
-}
-function openDailyPuzzle(){
-  showPage('puzzles');
-  setTimeout(function(){
-    document.querySelectorAll('.puzzle-mode-btn').forEach(function(b){b.classList.remove('active');});
-    openDailyPuzzleInline();
-  },60);
-}
+/* Le « défi du jour » d'ici (un des 18 problèmes de la série, selon la date UTC) est remplacé
+   par le Défi du jour #N (36-defi-du-jour-et-cartes.js) : un seul défi, le même pour tous. */
+function openDailyPuzzle(){ if (typeof ouvrirDefi === 'function') ouvrirDefi(); }
 function updateHeroDaily(){
   const el=document.getElementById('hero-daily');
-  if(el && typeof puzzlesData!=='undefined'){ el.textContent='\ud83d\udd25 D\u00e9fi du jour \u2014 Puzzle '+(_dailyPuzzleIdx()+1)+'/'+puzzlesData.length; }
+  if(!el || typeof defiNumero!=='function') return;
+  const n=defiNumero(), e=defiEtat(n);
+  el.textContent='🔥 '+_tr('Défi du jour','Daily puzzle')+' #'+n+(e&&e.f==='v' ? ' ✅' : e&&e.f==='s' ? ' ⬛' : '');
 }
 function updateHeroStats(){
   const el=document.getElementById('hero-stats'); if(!el) return;
@@ -23497,22 +23416,9 @@ function updateHeroStats(){
   el.textContent = (g+p>0) ? ('\u26ab '+g+' parties termin\u00e9es \u00b7 \ud83e\udde9 '+p+' puzzles r\u00e9solus \u2014 sur cet appareil')
                            : '100 % hors-ligne \u00b7 aucun compte requis';
 }
-function _injectHonestyBanners(){
-  const txt={
-    'modal-login':'\ud83d\udd12 <b>Profil 100 % local</b> \u2014 stock\u00e9 uniquement sur cet appareil (localStorage). Aucun serveur, aucun envoi. N\u2019utilise pas un mot de passe sensible.',
-    'modal-signup':'\ud83d\udd12 <b>Profil 100 % local</b> \u2014 stock\u00e9 uniquement sur cet appareil (localStorage). Aucun serveur, aucun envoi. N\u2019utilise pas un mot de passe sensible.'
-  };
-  Object.keys(txt).forEach(function(id){
-    const m=document.getElementById(id); if(!m || m.querySelector('.honesty-note')) return;
-    const box=m.querySelector('.modal-box')||m.firstElementChild||m;
-    const b=document.createElement('div');
-    b.className='honesty-note';
-    b.style.cssText='font-size:11px;line-height:1.5;color:var(--muted);background:rgba(255,255,255,0.05);border:1px solid var(--border,#333);border-radius:8px;padding:8px 10px;margin:8px 0';
-    b.innerHTML=txt[id];
-    box.insertBefore(b, box.children[1]||null);
-  });
-}
-window.addEventListener('load', function(){ updateHeroDaily(); updateHeroStats(); _injectHonestyBanners(); });
+/* _injectHonestyBanners() ajoutait une note « Profil 100 % local » en haut des fenetres de
+   connexion : elle est maintenant ecrite dans ces fenetres (v2.57), avec le reste des explications. */
+window.addEventListener('load', function(){ updateHeroDaily(); updateHeroStats(); });
 
 // ── 🏆 TOURNOI MENSUEL RÉEL : élimination directe vs bots, pendule 10+5, prix décernés ──
 let _tourneyMatch=null;
@@ -25122,9 +25028,21 @@ function ouvrirPermutations() {
   document.body.appendChild(m);
   return P;
 }
-function _copierTexte(t) {
-  const ok = function(){ if (typeof showToast === 'function') showToast('📋 Copié'); };
-  try { navigator.clipboard.writeText(t).then(ok, function(){ prompt('À copier :', t); }); } catch (e) { prompt('À copier :', t); }
+/* Copie dans le presse-papier (partagee par les codes de position, le partage de partie et
+   le defi du jour). msg : le message affiche une fois copie. Sans presse-papier (page non
+   securisee, vieux navigateur) : copie classique, puis en dernier recours une fenetre a copier. */
+function _copierTexte(t, msg) {
+  const ok = function(){ if (typeof showToast === 'function') showToast(msg || _tr('📋 Copié', '📋 Copied')); };
+  const secours = function(){
+    try {
+      const z = document.createElement('textarea'); z.value = t; z.setAttribute('readonly', '');
+      z.style.position = 'fixed'; z.style.opacity = '0'; document.body.appendChild(z); z.select();
+      const fait = document.execCommand('copy'); z.remove();
+      if (fait) { ok(); return; }
+    } catch (e) {}
+    prompt(_tr('À copier :', 'To copy:'), t);
+  };
+  try { navigator.clipboard.writeText(t).then(ok, secours); } catch (e) { secours(); }
 }
 
 function _majCodePosition() {
@@ -27293,54 +27211,10 @@ function replayScannedGame(id){
 // affiche la liste des parties scannées au chargement de la page
 try{ renderScannedGames(); }catch(e){}
 
-/* ── PUBLISH ARTICLE (FightClub / writer) ── */
-function publishArticle() {
-  if (!currentUser || currentUser.role !== 'writer') {
-    showToast('⛔ Accès réservé aux rédacteurs');
-    return;
-  }
-  const title = document.getElementById('article-title')?.value?.trim();
-  const body  = document.getElementById('article-body')?.value?.trim();
-  const cat   = document.getElementById('article-cat')?.value;
-  if (!title) { showToast('⚠️ Entrez un titre pour l\'article'); return; }
-  if (!body || body.length < 50) { showToast('⚠️ L\'article est trop court (min. 50 caractères)'); return; }
-
-  // Save to localStorage as demo
-  try {
-    const articles = JSON.parse(localStorage.getItem('abalone_articles') || '[]');
-    articles.unshift({
-      id: Date.now(), title, body, cat,
-      author: currentUser.username,
-      date: new Date().toLocaleDateString('fr-FR', {day:'numeric',month:'long',year:'numeric'}),
-      published: true
-    });
-    localStorage.setItem('abalone_articles', JSON.stringify(articles.slice(0,20)));
-  } catch(e) {}
-
-  showToast(`✅ Article "${title}" publié dans ${cat} !`);
-  document.getElementById('article-title').value = '';
-  document.getElementById('article-body').value = '';
-
-  // Refresh article list
-  refreshWriterArticles();
-}
-
-function refreshWriterArticles() {
-  try {
-    const articles = JSON.parse(localStorage.getItem('abalone_articles') || '[]');
-    const wrap = document.getElementById('writer-articles');
-    if (!wrap || articles.length === 0) return;
-    const localHtml = articles.slice(0,5).map(a => `
-      <div style="padding:12px 14px;background:var(--surface);border:1px solid rgba(138,114,210,0.25);border-radius:8px;display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <div style="font-size:13px;color:var(--text)">${escapeHtml(a.title)}</div>
-          <div style="font-size:11px;color:var(--muted)">${escapeHtml(a.cat)} · ${escapeHtml(a.date)}</div>
-        </div>
-        <span style="font-size:10px;padding:2px 8px;background:rgba(74,148,99,0.12);color:var(--accent-green-light);border-radius:12px;border:1px solid rgba(74,148,99,0.25)">Publié</span>
-      </div>`).join('');
-    wrap.innerHTML = localHtml + wrap.innerHTML;
-  } catch(e) {}
-}
+/* L'« Espace rédacteur » (publishArticle) est retire en v2.57 : il n'etait accessible qu'en se
+   connectant avec le mot « fightclub » (sans mot de passe verifie) sous le nom d'une vraie
+   personne, avec des statistiques inventees, et « publiait » des articles que seul ce
+   navigateur pouvait voir. */
 
 
 /* ═══════════════════════════════════════════
@@ -28605,22 +28479,45 @@ function answerHintsPreference(yes) {
 /* ═══════════════════════════════════════════
    STREAK / DAILY CHALLENGE
 ═══════════════════════════════════════════ */
+/* Bandeau de serie du profil. Avant (v2.57) : une serie de 18 jours inventee pour tout visiteur sans
+   compte, et les jours de la semaine coches d'office jusqu'a aujourd'hui. Desormais : la vraie
+   serie (jours consecutifs avec une partie ou un probleme, voir touchStreak), et les 7 derniers
+   jours coches seulement s'ils appartiennent a cette serie. */
 function renderStreak() {
-  const u = currentUser;
-  const streak = u ? (u.streak||0) : 18;
+  const EN = currentLang() === 'EN';
+  const p = (typeof progress !== 'undefined' && progress) ? progress : {};
+  const auj = todayStr();
+  const n = (typeof serieActuelle === 'function') ? serieActuelle() : (p.streak || 0);
+  const tenue = p.lastActive === auj;
   const el = document.getElementById('streak-title');
-  if (el) el.textContent = 'Série de '+streak+' jours';
+  if (el) el.textContent = n > 0
+    ? _tr('Série de ' + n + ' jour' + (n > 1 ? 's' : ''), n + '-day streak')
+    : _tr('Pas de série en cours', 'No streak yet');
+  const sub = document.getElementById('streak-sub');
+  if (sub) {
+    const rec = (p.bestStreak || 0) > n ? _tr(' Record : ' + p.bestStreak + ' jours.', ' Best: ' + p.bestStreak + ' days.') : '';
+    sub.textContent = (tenue
+      ? _tr('Série tenue aujourd’hui ✓ Revenez demain pour la prolonger.', 'Streak kept today ✓ Come back tomorrow to extend it.')
+      : n > 0
+        ? _tr('Jouez aujourd’hui pour prolonger votre série !', 'Play today to extend your streak!')
+        : _tr('Jouez une partie ou résolvez un problème pour démarrer une série.', 'Play a game or solve a puzzle to start a streak.')) + rec;
+  }
   const daysEl = document.getElementById('streak-days');
   if (!daysEl) return;
   daysEl.innerHTML = '';
-  const days = ['L','M','M','J','V','S','D'];
-  const today = new Date().getDay();
-  days.forEach(function(d,i) {
+  const lettres = EN ? ['S','M','T','W','T','F','S'] : ['D','L','M','M','J','V','S'];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    // jour de la serie la plus recente : entre (dernier jour actif - serie + 1) et le dernier jour actif
+    const ecart = p.lastActive ? daysBetween(ds, p.lastActive) : -1;
+    const fait = ecart >= 0 && ecart < (p.streak || 0);
     const div = document.createElement('div');
-    div.className = 'streak-day ' + (i < today ? 'done' : i === today ? 'today' : 'missed');
-    div.textContent = d;
+    div.className = 'streak-day ' + (fait ? 'done' : (ds === auj ? 'today' : 'missed'));
+    div.title = ds + (fait ? _tr(' : joué', ': played') : '');
+    div.textContent = lettres[d.getDay()];
     daysEl.appendChild(div);
-  });
+  }
 }
 
 /* ═══════════════════════════════════════════
@@ -29189,13 +29086,12 @@ function nextPuzzle() {
 }
 
 function setPuzzleMode(mode, el) {
+  // le Défi du jour se joue sur le plateau de la partie (comme le problème du mois)
+  if (mode==='daily') { if (typeof ouvrirDefi === 'function') ouvrirDefi(); return; }
   document.querySelectorAll('.puzzle-mode-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
   const stormUI = document.getElementById('storm-ui');
   if (stormUI) stormUI.style.display = mode==='storm' ? 'block' : 'none';
-  if (mode==='daily') {
-    openDailyPuzzleInline();
-  }
   if (mode==='generated') {
     loadGeneratedPuzzle();
   }
@@ -30391,6 +30287,7 @@ function loadSavedGame() {
     if (!raw) return false;
     const state = JSON.parse(raw);
     if (!state.board || Object.keys(state.board).length === 0) return false;
+    try { if (typeof _puzzleFermer === 'function') _puzzleFermer(); } catch (e) {}   // la partie reprise remplace le puzzle
     board = state.board;
     CurrentTurn.set(state.turn || 'black');
     CapturedByBlack.set(state.capB || 0);
@@ -31081,7 +30978,10 @@ function showPage(name) {
         setupRenderLayoutThumb(_setupCfg.layout, opt ? (opt.getAttribute('title') || opt.textContent.trim()) : '');
       }
     },
-    game:       function(){ if(!tournamentGame && typeof exitTournamentMode==='function') exitTournamentMode(); initGame();
+    game:       function(){ if(!tournamentGame && typeof exitTournamentMode==='function') exitTournamentMode();
+      // un puzzle s'ouvre sur ce plateau (defi du jour, probleme du mois) : pas de nouvelle partie
+      if (typeof _puzzleOuverture !== 'undefined' && _puzzleOuverture) return;
+      initGame();
       // Pluie de billes : uniquement quand une NOUVELLE partie demarre,
       // pas au retour sur une partie deja engagee.
       if (typeof playMarbleRainTransition === 'function'
@@ -31143,7 +31043,7 @@ function updateTopBar() {
   const u = currentUser;
   const streakEl = document.getElementById('top-streak');
   const avatarEl = document.getElementById('top-avatar');
-  if (streakEl) streakEl.textContent = '🔥 ' + (u ? (u.streak||0) : 18);
+  if (streakEl) streakEl.textContent = '🔥 ' + serieActuelle();
   if (avatarEl) {
     avatarEl.textContent = u ? (u.username||'?')[0].toUpperCase() : '?';
     avatarEl.style.background = u ? (u.color||'#2d5a3d') : '#2d5a3d';
@@ -33187,14 +33087,21 @@ async function computeSecurityScore() {
   }
 }
 
-/* ── Auto-compute score when settings/twofa tab is shown ── */
-const _origShowSettingsTab = showSettingsTab;
+/* ── Onglets des Parametres ──
+   Avant (v2.57) : « const _orig… = showSettingsTab » enveloppait une version
+   « complete » disparue depuis longtemps. Une declaration de fonction etant hissee, la constante
+   pointait sur l'enveloppe elle-meme : chaque clic tournait en boucle jusqu'a l'erreur, et seul
+   « Profil general » s'affichait (Accessibilite, Autorisations et Mode Enfant inaccessibles). */
 function showSettingsTab(tab) {
-  _origShowSettingsTab(tab);
-  if (tab === 'twofa') setTimeout(computeSecurityScore, 100);
+  const panneau = document.getElementById('spanel-' + tab);
+  if (!panneau) return;
+  document.querySelectorAll('.settings-tab').forEach(function (b) { b.classList.toggle('active', b.id === 'stab-' + tab); });
+  document.querySelectorAll('.settings-panel').forEach(function (p) { p.classList.toggle('active', p === panneau); });
+  if (tab === 'twofa' && typeof computeSecurityScore === 'function') setTimeout(computeSecurityScore, 100);
   // Restaure l'etat sauvegarde des interrupteurs de notification : sans ca
   // ils paraitraient tous eteints a chaque ouverture.
   if (tab === 'notifs' && typeof notifPrefsAppliquerUI === 'function') notifPrefsAppliquerUI();
+  if (tab === 'accessibility' && typeof renderA11yPanel === 'function') renderA11yPanel();
 }
 
 
@@ -37484,92 +37391,383 @@ function showPostGameReview() {
   document.body.appendChild(modal);
 }
 
-/* ── 3. PUZZLE DU JOUR ───────────────────────────────────────────────
-   Le probleme du mois donne une raison de revenir le mois prochain.
-   Celui-ci en donne une pour demain. Deterministe par la date : tout le
-   monde a le meme, sans compte ni serveur. */
+/* ── 3. PUZZLE DU JOUR : remplace par le Défi du jour #N (36-defi-du-jour-et-cartes.js),
+   un puzzle par jour numerote, le meme pour tous, et un resultat a partager. ── */
 
-function dayStr() {
-  const d = new Date();
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
-       + '-' + String(d.getDate()).padStart(2, '0');
-}
-function daySeed() {
-  const s = dayStr();
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
-  return h;
-}
+/* ═══════════════════════════════════════════
+   DÉFI DU JOUR #N — UN PUZZLE PAR JOUR, LE MÊME POUR TOUT LE MONDE (v2.57)
+   Façon Wordle : chaque jour a son numéro (#1 = 15 octobre 2026), un puzzle tiré de vraies
+   parties, le même pour tous sans compte ni serveur, et un résultat qui se partage sans rien
+   dévoiler de la solution :
+       Abalassembly — Défi du jour #12 ⭐⭐
+       🟥🟨🟩 Trouvé au 2e essai, avec l'indice · ⏱ 0:42
+       🔥 Série : 3 jours
+       https://ocj94.github.io/Abalassembly/?defi=12
+   🟥 mauvais coup · 🟨 indice · 🟩 trouvé · ⬛ solution affichée.
+   Il remplace trois « défis du jour » qui coexistaient : un faux (un numéro de puzzle inventé,
+   « relevé » d'un simple clic contre 50 XP), un tiré des 18 problèmes de la série, et un tiré
+   des vrais puzzles qui dépendait de l'état local (deux joueurs pouvaient tomber sur deux
+   puzzles différents le même jour).
+   Le puzzle d'un numéro ne change jamais : il est tiré parmi les 78 puzzles à un coup (en tête
+   de PUZZLES), figés -- un test vérifie leur empreinte. Chaque cycle de 78 jours est un tirage
+   sans remise, toujours le même.
+═══════════════════════════════════════════ */
+const DEFI_DEBUT = Date.UTC(2026, 9, 15);   // #1 = 15 octobre 2026 (jour de sortie, v2.57), jour civil local
+const DEFI_NB = 78;                          // puzzles du tirage : les 78 à un coup (SINGLE_MOVE_PUZZLE_COUNT)
+const DEFI_GARDE = 400;                      // jours gardés dans l'historique des défis
+var _defiEnCours = null;                     // { n, idx, depuis } : le puzzle affiché est le défi n
+var _defiMinuteur = null;
 
-function currentDailyPuzzle() {
-  const day = dayStr();
-  if (!progress.daily || progress.daily.day !== day) {
-    let idx = daySeed() % SINGLE_MOVE_PUZZLE_COUNT;
-    /* Evite de servir le meme que le probleme du mois le jour ou ils tombent
-       ensemble : deux cartes identiques sur la meme page font negligé. */
-    if (progress.monthly && progress.monthly.idx === idx) idx = (idx + 1) % SINGLE_MOVE_PUZZLE_COUNT;
-    const prevStreak = (progress.daily && progress.daily.solved
-      && daysBetween(progress.daily.day, day) === 1) ? (progress.daily.streak || 0) : 0;
-    progress.daily = { day: day, idx: idx, solved: false, streak: prevStreak };
-    saveProgress(progress);
+function defiNumero(d) {   // numéro du défi d'un jour civil local (par défaut : aujourd'hui)
+  d = d || new Date();
+  // au plus tôt #1 : le jour de la sortie, un fuseau encore « la veille » joue aussi le #1
+  return Math.max(1, Math.floor((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - DEFI_DEBUT) / 86400000) + 1);
+}
+function defiIndex(n) {    // index dans PUZZLES du puzzle du défi n
+  const k = Math.floor((n - 1) / DEFI_NB), i = (((n - 1) % DEFI_NB) + DEFI_NB) % DEFI_NB;
+  const ordre = []; for (let j = 0; j < DEFI_NB; j++) ordre.push(j);
+  let a = (20261014 + 7919 * k) >>> 0;     // mulberry32, graine fixe par cycle
+  const alea = function () { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  for (let j = DEFI_NB - 1; j > 0; j--) { const r = Math.floor(alea() * (j + 1)); const x = ordre[j]; ordre[j] = ordre[r]; ordre[r] = x; }
+  return ordre[i];
+}
+function _defis() { if (!progress.defis || typeof progress.defis !== 'object') progress.defis = {}; return progress.defis; }
+function defiEtat(n) { return _defis()[n] || null; }
+// e : la suite des essais ('x' mauvais coup, 'i' indice, 'v' trouvé, 's' solution affichée), f : fin ('v' ou 's'),
+// j : numéro du jour où il a été fini, ms : temps passé sur le puzzle (seulement pendant qu'il est affiché)
+function _defiNoter(n, c) {
+  const D = _defis(), e = D[n] || (D[n] = { e: '', ms: 0 });
+  if (e.f) return e;                                     // terminé : plus rien ne compte
+  if (c === 'i' && e.e.indexOf('i') >= 0) return e;     // l'indice ne compte qu'une fois
+  e.e += c;
+  if (c === 'v' || c === 's') {
+    e.f = c; e.j = defiNumero();
+    if (_defiEnCours && _defiEnCours.n === n && _defiEnCours.depuis) { e.ms = (e.ms || 0) + (Date.now() - _defiEnCours.depuis); _defiEnCours.depuis = 0; }
   }
-  const p = PUZZLES[progress.daily.idx];
-  return {
-    idx: progress.daily.idx, puzzle: p,
-    niveau: MONTHLY_LEVEL_LABEL[p.d] || 'MOYEN',
-    trait: p.c === 'black' ? 'NOIR' : 'BLANC',
-    objectif: p.def ? 'PARER LA MENACE' : 'TROUVER LE COUP GAGNANT',
-    solved: !!progress.daily.solved,
-    streak: progress.daily.streak || 0
+  const cles = Object.keys(D).map(Number).sort(function (a, b) { return a - b; });
+  while (cles.length > DEFI_GARDE) delete D[cles.shift()];
+  if (typeof saveProgress === 'function') saveProgress(progress);
+  return e;
+}
+// jours d'affilée avec le défi DU JOUR trouvé (sans la solution), jusqu'à aujourd'hui ou hier : comme pour Wordle,
+// un ancien défi rejoué par son lien (?defi=3) compte dans les défis trouvés, pas dans la série
+function defiSerie() {
+  const D = _defis(), ok = function (k) { return D[k] && D[k].f === 'v' && D[k].j === k; };
+  let n = defiNumero();
+  if (!ok(n)) n--;
+  let s = 0; while (n >= 1 && ok(n)) { s++; n--; }
+  return s;
+}
+function defiTrouves() { const D = _defis(); return Object.keys(D).filter(function (k) { return D[k].f === 'v'; }).length; }
+function _defiDuree(ms) { const s = Math.max(0, Math.round((ms || 0) / 1000)); return s >= 3600 ? Math.floor(s / 3600) + ':' + String(Math.floor(s % 3600 / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0') : Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+function _defiCases(e) { return (e || '').split('').map(function (c) { return { x: '🟥', i: '🟨', v: '🟩', s: '⬛' }[c] || ''; }).join(''); }
+function _defiEssais(e) { return (e || '').split('').filter(function (c) { return c === 'x' || c === 'v'; }).length; }
+
+// Phrase de résultat, sans rien dévoiler (ni case, ni direction)
+function defiPhrase(e) {
+  if (!e || !e.f) return _tr('En cours', 'In progress');
+  const indice = e.e.indexOf('i') >= 0;
+  if (e.f === 's') return _tr('Solution affichée', 'Solution shown');
+  const k = _defiEssais(e.e);
+  const fr = k === 1 ? 'Trouvé du premier coup' : 'Trouvé au ' + k + 'e essai';
+  const en = k === 1 ? 'Solved first try' : 'Solved on try ' + k;
+  return _tr(fr + (indice ? ', avec l’indice' : ''), en + (indice ? ', with the hint' : ''));
+}
+function _defiLien(n) { return SHARE_URL + '?defi=' + n + (currentLang() === 'EN' ? '&lang=en' : ''); }
+function texteDefi(n) {
+  const e = defiEtat(n), p = PUZZLES[defiIndex(n)], serie = defiSerie();
+  const etoiles = p ? '⭐'.repeat(p.d || 1) : '';
+  const l1 = 'Abalassembly — ' + _tr('Défi du jour', 'Daily puzzle') + ' #' + n + ' ' + etoiles;
+  const l2 = _defiCases(e && e.e) + ' ' + defiPhrase(e) + (e && e.f === 'v' && e.ms ? ' · ⏱ ' + _defiDuree(e.ms) : '');
+  const l3 = serie > 0 ? '🔥 ' + _tr('Série : ', 'Streak: ') + serie + ' ' + _tr(serie > 1 ? 'jours' : 'jour', serie > 1 ? 'days' : 'day') : '';
+  return [l1, l2, l3, _defiLien(n)].filter(Boolean).join('\n');
+}
+
+// Lancer le défi n (aujourd'hui par défaut). Déjà terminé : on montre le résultat.
+function jouerDefi(n) {
+  const auj = defiNumero();
+  if (!(n >= 1 && n <= auj)) n = auj;
+  const e = defiEtat(n);
+  if (e && e.f) { ouvrirResultatDefi(n); return; }
+  const idx = defiIndex(n);
+  const D = _defis(); if (!D[n]) { D[n] = { e: '', ms: 0 }; if (typeof saveProgress === 'function') saveProgress(progress); }
+  _defiQuitter();                                          // un défi déjà ouvert garde son temps
+  if (typeof ouvrirPuzzleSurPlateau === 'function') ouvrirPuzzleSurPlateau(idx);   // sur le plateau de la partie
+  _defiEnCours = { n: n, idx: idx, depuis: Date.now() };
+  const t = document.getElementById('pz-title'), p = PUZZLES[idx];
+  if (t && p) t.textContent = '🔥 ' + _tr('Défi du jour', 'Daily puzzle') + ' #' + n + ' · ' + '⭐'.repeat(p.d || 1) + ' — '
+    + (p.c === 'black' ? _tr('Noirs', 'Black') : _tr('Blancs', 'White'))
+    + (p.def ? _tr(' jouent et parent la menace !', ' to play and stop the threat!') : _tr(' jouent et éjectent !', ' to play and eject!'));
+}
+function ouvrirDefi() { jouerDefi(defiNumero()); }
+// Appelée par les puzzles (bonne réponse, erreur, indice, solution) : ne compte que pour le défi en cours
+function _defiSurPuzzle(idx, c) {
+  const d = _defiEnCours; if (!d || d.idx !== idx) return;
+  const avant = defiEtat(d.n), dejaFini = !!(avant && avant.f);
+  const e = _defiNoter(d.n, c);
+  if (dejaFini || !e.f) return;
+  if (e.f === 'v') {
+    if (typeof touchStreak === 'function') touchStreak();   // un défi trouvé compte comme un jour joué
+    if (typeof addXp === 'function') addXp(25, 'Défi du jour #' + d.n);
+    if (defiTrouves() >= 7 && typeof awardBadge === 'function') awardBadge('daily7');
+  }
+  _defiEnCours = null;
+  if (typeof renderEngageBar === 'function') renderEngageBar();
+  if (typeof renderDailyCard === 'function') renderDailyCard();
+  if (typeof updateHeroDaily === 'function') updateHeroDaily();
+  setTimeout(function () { ouvrirResultatDefi(d.n); }, e.f === 'v' ? 900 : 1600);
+}
+function _defiQuitter() {   // on quitte le puzzle sans l'avoir fini : le temps passé est gardé
+  const d = _defiEnCours; if (!d) return;
+  _defiPause(true);
+  _defiEnCours = null;
+}
+/* Le chrono du défi ne compte que le temps passé devant le puzzle : il s'arrête quand l'onglet
+   est caché ou qu'on change de page, et repart au retour. */
+function _defiPause(pause) {
+  const d = _defiEnCours; if (!d) return;
+  const e = defiEtat(d.n); if (!e || e.f) return;
+  if (pause && d.depuis) { e.ms = (e.ms || 0) + (Date.now() - d.depuis); d.depuis = 0; if (typeof saveProgress === 'function') saveProgress(progress); }
+  else if (!pause && !d.depuis) d.depuis = Date.now();
+}
+document.addEventListener('visibilitychange', function () { _defiPause(document.hidden); });
+(function () {
+  if (typeof showPage !== 'function') return;
+  const avant = showPage;
+  showPage = function (nom) {
+    _defiPause(nom !== 'game');
+    // la barre du puzzle (position fixe) restait affichee par-dessus les autres pages
+    const barre = document.getElementById('puzzle-bar');
+    if (barre && nom !== 'game') barre.style.display = 'none';
+    return avant.apply(this, arguments);
   };
+})();
+function _defiProchain() {  // temps avant le prochain défi (minuit local), toujours en h:mm:ss
+  const d = new Date(), m = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
+  const t = Math.max(0, Math.round((m - d) / 1000));
+  return String(Math.floor(t / 3600)).padStart(2, '0') + ':' + String(Math.floor(t % 3600 / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0');
 }
 
-function playDailyPuzzle() {
-  const dc = currentDailyPuzzle();
-  showPage('puzzles');
-  if (typeof startPuzzle === 'function') startPuzzle(dc.idx);
+// Fenêtre de résultat (comme celle de Wordle)
+function ouvrirResultatDefi(n) {
+  if (n === undefined) n = defiNumero();
+  const e = defiEtat(n), p = PUZZLES[defiIndex(n)], serie = defiSerie();
+  let m = document.getElementById('defi-modal');
+  if (!m) { m = document.createElement('div'); m.id = 'defi-modal'; m.className = 'share-modal-overlay'; document.body.appendChild(m); }
+  const fini = !!(e && e.f), auj = (n === defiNumero());
+  m.innerHTML = '<div class="share-modal-box" style="max-width:420px;text-align:center">'
+    + '<div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gold)">' + _tr('Défi du jour', 'Daily puzzle') + ' #' + n + (p ? ' · ' + '⭐'.repeat(p.d || 1) : '') + '</div>'
+    + '<div style="font-size:13px;color:var(--muted);margin:4px 0 12px">' + (p && p.def ? _tr('🛡️ Parer la menace', '🛡️ Stop the threat') : _tr('🎯 Trouver le coup gagnant', '🎯 Find the winning move')) + '</div>'
+    + (fini ? '<div style="font-size:34px;letter-spacing:4px;margin:6px 0">' + _defiCases(e.e) + '</div>'
+      + '<div style="font-size:16px;color:var(--white);font-weight:600">' + defiPhrase(e) + (e.f === 'v' && e.ms ? ' · <span style="white-space:nowrap">⏱ ' + _defiDuree(e.ms) + '</span>' : '') + '</div>'
+      : '<div style="font-size:14px;color:var(--text);margin:8px 0">' + _tr('Pas encore joué.', 'Not played yet.') + '</div>')
+    + '<div style="display:flex;justify-content:center;gap:22px;margin:16px 0 6px">'
+    + '<div><div style="font-size:24px;font-weight:800;color:var(--gold)">' + serie + '</div><div style="font-size:11px;color:var(--muted)">🔥 ' + _tr('série', 'streak') + '</div></div>'
+    + '<div><div style="font-size:24px;font-weight:800;color:var(--gold)">' + defiTrouves() + '</div><div style="font-size:11px;color:var(--muted)">✅ ' + _tr('défis trouvés', 'puzzles solved') + '</div></div>'
+    + '</div>'
+    + (fini ? '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px">'
+      + '<button class="share-copy" style="width:auto;padding:10px 18px;margin:0" onclick="partagerDefi(' + n + ')">📤 ' + _tr('Partager', 'Share') + '</button>'
+      + '<button class="share-close" style="width:auto;padding:10px 18px;margin:0" onclick="partagerImageDefi(' + n + ')">🖼️ ' + _tr('Image', 'Image') + '</button>'
+      + '</div>'
+      : '<button class="share-copy" onclick="document.getElementById(\'defi-modal\').classList.remove(\'show\');jouerDefi(' + n + ')">▶ ' + _tr('Jouer le défi', 'Play the puzzle') + '</button>')
+    + (auj ? '<div style="font-size:12px;color:var(--muted);margin-top:14px">' + _tr('Prochain défi dans', 'Next puzzle in') + ' <span id="defi-prochain" style="font-family:\'DM Mono\',monospace;color:var(--text)">' + _defiProchain() + '</span></div>' : '')
+    + '<button class="share-close" style="margin-top:12px" onclick="fermerResultatDefi()">' + _tr('Fermer', 'Close') + '</button>'
+    + '</div>';
+  m.classList.add('show');
+  clearInterval(_defiMinuteur);
+  if (auj) _defiMinuteur = setInterval(function () {
+    const s = document.getElementById('defi-prochain');
+    if (!s || !m.classList.contains('show')) { clearInterval(_defiMinuteur); return; }
+    s.textContent = _defiProchain();
+  }, 1000);
 }
+function fermerResultatDefi() { const m = document.getElementById('defi-modal'); if (m) m.classList.remove('show'); clearInterval(_defiMinuteur); }
 
-function checkDailyCompletion(solvedIdx) {
-  const dc = currentDailyPuzzle();
-  if (solvedIdx !== dc.idx || progress.daily.solved) return;
-  progress.daily.solved = true;
-  progress.daily.streak = (progress.daily.streak || 0) + 1;
-  saveProgress(progress);
-  addXp(25, 'Puzzle du jour resolu');
-  setTimeout(function(){
-    showToast('Puzzle du jour resolu ! +25 XP'
-      + (progress.daily.streak > 1 ? ' — ' + progress.daily.streak + ' jours d\'affilee' : ''));
-  }, 700);
-  renderDailyCard();
+// Petite grille + phrase, ou l'objectif si le défi n'est pas fini (cartes de l'accueil et des Problèmes)
+function _defiResume(n) {
+  const e = defiEtat(n), p = PUZZLES[defiIndex(n)];
+  if (e && e.f) return '<span style="letter-spacing:2px">' + _defiCases(e.e) + '</span> ' + defiPhrase(e);
+  return (p && p.def ? _tr('🛡️ Parer la menace', '🛡️ Stop the threat') : _tr('🎯 Trouver le coup gagnant', '🎯 Find the winning move'))
+    + (p ? ' · ' + '⭐'.repeat(p.d || 1) : '');
 }
-
+// Carte de l'accueil (bandeau d'engagement)
+function carteDefiAccueil() {
+  const n = defiNumero(), e = defiEtat(n), fini = !!(e && e.f), serie = defiSerie();
+  return '<div onclick="ouvrirDefi()" role="button" tabindex="0" onkeydown="if(event.key===\'Enter\')ouvrirDefi()" style="cursor:pointer;background:linear-gradient(135deg,rgba(74,148,99,0.1),rgba(45,90,61,0.05));border:1px solid rgba(74,148,99,0.25);border-radius:14px;padding:18px 20px;transition:transform .15s" onmouseover="this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.transform=\'\'">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'
+    +   '<div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">' + _tr('Défi du jour', 'Daily puzzle') + ' #' + n + '</div>'
+    +   '<div style="font-size:13px">' + (fini ? (e.f === 'v' ? '✅' : '⬛') : '🔥') + '</div>'
+    + '</div>'
+    + '<div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px">' + _defiResume(n) + '</div>'
+    + '<div style="font-size:12px;color:' + (fini ? 'var(--accent-green-light)' : 'var(--gold)') + '">'
+    +   (fini ? _tr('Voir le résultat · le partager', 'See the result · share it') : _tr('Le même puzzle pour tout le monde · ▶ jouer', 'The same puzzle for everyone · ▶ play'))
+    +   (serie > 0 ? ' · 🔥 ' + serie : '')
+    + '</div></div>';
+}
+// Carte de la page Problèmes
 function renderDailyCard() {
   const host = document.getElementById('daily-puzzle-card');
   if (!host) return;
-  const dc = currentDailyPuzzle();
-  const certified = (typeof isPuzzleCertified === 'function') && isPuzzleCertified(dc.idx);
-  host.innerHTML =
-    '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:10px">'
-      + 'NIVEAU : <strong style="color:var(--gold)">' + dc.niveau + '</strong> &nbsp;&nbsp; '
-      + 'TRAIT : <strong style="color:var(--gold)">' + dc.trait + '</strong> &nbsp;&nbsp; '
-      + 'OBJECTIF : <strong style="color:var(--gold)">' + dc.objectif + '</strong>'
-      + (certified ? ' &nbsp;&nbsp; <span style="color:#5ab48c" title="Coup vérifié directement contre le moteur du site">🏅 Certifié</span>' : '')
+  const n = defiNumero(), e = defiEtat(n), fini = !!(e && e.f), serie = defiSerie(), total = defiTrouves();
+  host.innerHTML = '<div style="font-size:13px;color:var(--text);margin-bottom:6px"><strong style="color:var(--gold)">#' + n + '</strong> · ' + _defiResume(n) + '</div>'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:12px">'
+    +   _tr('Un puzzle tiré de vraies parties, le même pour tout le monde, nouveau à minuit.', 'A puzzle from real games, the same for everyone, new at midnight.')
+    +   (serie > 0 ? ' 🔥 ' + _tr('Série : ', 'Streak: ') + serie + ' · ' : ' ') + (total ? _tr(total + ' trouvé' + (total > 1 ? 's' : ''), total + ' solved') : '')
     + '</div>'
-    + (dc.solved
-        ? '<div style="color:#5ab48c;font-size:13px;margin-bottom:10px">Resolu aujourd\'hui'
-          + (dc.streak > 1 ? ' — ' + dc.streak + ' jours d\'affilee' : '') + '</div>'
-        : (dc.streak > 0
-            ? '<div style="font-size:13px;color:var(--muted);margin-bottom:10px">Serie en cours : ' + dc.streak + ' jour(s)</div>'
-            : ''))
     + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
-    + '<button class="ctrl-btn" onclick="playDailyPuzzle()">Jouer le puzzle du jour</button>'
-    + '<button class="ctrl-btn" onclick="exportPuzzleAPGN(' + dc.idx + ')" title="Copie la position et la solution au format Aba-Pro">📋 Exporter (APGN)</button>'
+    + (fini ? '<button class="ctrl-btn" onclick="ouvrirResultatDefi(' + n + ')">📊 ' + _tr('Mon résultat', 'My result') + '</button>'
+            + '<button class="ctrl-btn" onclick="partagerDefi(' + n + ')">📤 ' + _tr('Partager', 'Share') + '</button>'
+            : '<button class="ctrl-btn primary" onclick="jouerDefi(' + n + ')">▶ ' + _tr('Jouer le défi #', 'Play puzzle #') + n + '</button>')
     + '</div>';
 }
 
+// Partage : le texte (avec le lien), par le partage du téléphone ou dans le presse-papier
+// (_copierTexte : dans 17-fittings-retire.js)
+function partagerDefi(n) {
+  const t = texteDefi(n), ok = _tr('📋 Résultat copié — colle-le où tu veux', '📋 Result copied — paste it anywhere');
+  if (navigator.share) { navigator.share({ text: t }).catch(function (err) { if (!err || err.name !== 'AbortError') _copierTexte(t, ok); }); return; }
+  _copierTexte(t, ok);
+}
+
+// ?defi ou ?defi=12 dans l'adresse : le défi s'ouvre directement (un lien partagé mène au bon puzzle)
+function _defiDepuisAdresse(q) {
+  const m = /[?&]defi(?:=(\d+))?(?:&|$)/.exec(q || ''); if (!m) return null;
+  const auj = defiNumero(), n = m[1] ? parseInt(m[1], 10) : auj;
+  return (n >= 1 && n <= auj) ? n : auj;
+}
+document.addEventListener('DOMContentLoaded', function () {
+  const n = _defiDepuisAdresse((typeof location !== 'undefined' && location.search) || '');
+  if (n) setTimeout(function () { jouerDefi(n); }, 700);
+});
+
+/* ═══════════════════════════════════════════
+   CARTES À PARTAGER (IMAGES) — fin de partie et défi du jour
+   Une image carrée (1080 × 1080) : le résultat, le plateau final (fin de partie) ou la grille
+   du défi (sans la position : ce serait la solution), et l'adresse du site. Partagée par le
+   téléphone quand il sait partager des fichiers, sinon montrée avec un bouton de téléchargement.
+═══════════════════════════════════════════ */
+var _finPartie = null;   // dernière fin de partie : { winner, reason, cb, cw, coups, mode, moi, niveau, adv, duree, plateau }
+document.addEventListener('abalassembly:gameOver', function (ev) {
+  try {
+    const d = (ev && ev.detail) || {};
+    const mode = (typeof GameMode !== 'undefined') ? GameMode.get() : 'ai';
+    _finPartie = {
+      winner: d.winner || null, reason: d.reason || null, cb: d.capturedByBlack | 0, cw: d.capturedByWhite | 0, coups: d.moveCount | 0,
+      mode: mode, moi: (typeof monCamp === 'function') ? monCamp() : 'black',
+      niveau: (mode === 'ai' && typeof _setupCfg !== 'undefined' && typeof _niveauIA === 'function') ? _niveauIA(_setupCfg.diff) : null,
+      adv: (typeof _rtcOpponentName !== 'undefined' && _rtcOpponentName) ? String(_rtcOpponentName).slice(0, 24) : '',
+      duree: (typeof gameStartTime !== 'undefined' && gameStartTime) ? Date.now() - gameStartTime : 0,
+      plateau: Object.assign({}, (typeof board !== 'undefined') ? board : {}), date: new Date()
+    };
+  } catch (e) { _finPartie = null; }
+});
+// Les textes de la carte de fin de partie (testables sans canvas)
+function infosFinPartie(f) {
+  f = f || _finPartie; if (!f) return null;
+  const local = f.mode === 'local', nul = !f.winner;
+  const gagne = !nul && f.winner === f.moi;
+  const nom = function (c) { return c === 'black' ? _tr('Noirs', 'Black') : _tr('Blancs', 'White'); };
+  let titre;
+  if (nul) titre = _tr('PARTIE NULLE', 'DRAW');
+  else if (local) titre = _tr('LES ' + nom(f.winner).toUpperCase() + ' GAGNENT', nom(f.winner).toUpperCase() + ' WINS');
+  else titre = gagne ? _tr('VICTOIRE', 'VICTORY') : _tr('DÉFAITE', 'DEFEAT');
+  // score : billes ejectees par moi contre billes perdues (a deux sur un ecran : du point de vue du gagnant)
+  const ejN = f.cb, ejB = f.cw;   // CapturedByBlack = billes blanches ejectees par les Noirs
+  const camp = (local && !nul) ? f.winner : f.moi;
+  const pour = camp === 'black' ? ejN : ejB, contre = camp === 'black' ? ejB : ejN;
+  let adv;
+  if (local) adv = _tr('À deux sur le même appareil', 'Two players, same device');
+  else if (f.mode === 'ai') adv = _tr('Contre l’IA', 'Against the AI') + (f.niveau ? ' · ' + _tr('niveau', 'level') + ' ' + f.niveau : '');
+  else adv = f.adv ? _tr('Contre ', 'Against ') + f.adv : _tr('Partie en direct', 'Live game');
+  const raison = f.reason === 'resign' ? _tr('par abandon', 'by resignation') : f.reason === 'temps' ? _tr('au temps', 'on time')
+    : f.reason === 'repetition' ? _tr('par répétition', 'by repetition') : f.reason === 'accord' ? _tr('d’un commun accord', 'by agreement') : '';
+  const details = [f.coups + ' ' + _tr('coups', 'moves')];
+  if (f.duree > 0) details.push('⏱ ' + _defiDuree(f.duree));
+  details.push(f.date.toLocaleDateString(currentLang() === 'EN' ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }));
+  return { titre: titre, score: pour + ' – ' + contre, adv: adv, raison: raison, details: details.join(' · '), gagne: gagne, nul: nul };
+}
+function _carteFond(ctx, W) {
+  const g = ctx.createLinearGradient(0, 0, 0, W); g.addColorStop(0, '#16191a'); g.addColorStop(1, '#0d0f0e');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, W);
+  ctx.strokeStyle = 'rgba(200,168,75,0.35)'; ctx.lineWidth = 4; ctx.strokeRect(26, 26, W - 52, W - 52);
+}
+function _cartePied(ctx, W) {
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#c8a84b'; ctx.font = '700 46px Georgia, "Playfair Display", serif'; ctx.fillText('ABALASSEMBLY', W / 2, W - 118);
+  ctx.fillStyle = '#9aa39e'; ctx.font = '28px "DM Sans", Arial, sans-serif';
+  ctx.fillText('ocj94.github.io/Abalassembly · ' + _tr('gratuit, sans pub, sans compte', 'free, no ads, no account'), W / 2, W - 70);
+}
+function _carteCanvas() { const c = document.createElement('canvas'); c.width = 1080; c.height = 1080; return c; }
+function _carteBlob(c) { return new Promise(function (ok) { if (c.toBlob) c.toBlob(function (b) { ok(b); }, 'image/png'); else ok(null); }); }
+function carteFinPartie() {
+  const I = infosFinPartie(); if (!I) return Promise.resolve(null);
+  const W = 1080, c = _carteCanvas(), ctx = c.getContext('2d'); if (!ctx) return Promise.resolve(null);
+  _carteFond(ctx, W);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = I.nul ? '#d9d4c7' : (I.gagne || _finPartie.mode === 'local' ? '#e3c672' : '#d9d4c7');
+  ctx.font = '900 76px Georgia, "Playfair Display", serif'; ctx.fillText(I.titre, W / 2, 128);
+  ctx.fillStyle = '#ffffff'; ctx.font = '700 56px "DM Sans", Arial, sans-serif'; ctx.fillText(I.score + (I.raison ? '  ' : ''), W / 2 - (I.raison ? 90 : 0), 200);
+  if (I.raison) { ctx.fillStyle = '#9aa39e'; ctx.font = '32px "DM Sans", Arial, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(I.raison, W / 2 + 30, 198); ctx.textAlign = 'center'; }
+  ctx.fillStyle = '#c9c4b6'; ctx.font = '32px "DM Sans", Arial, sans-serif'; ctx.fillText(I.adv, W / 2, 250);
+  // le plateau final, dessine par le moteur de rendu 2D du site sur un canvas temporaire
+  try {
+    const tmp = document.createElement('canvas'); tmp.id = 'carte-plateau-tmp'; tmp.width = 640; tmp.height = 640; tmp.style.display = 'none';
+    document.body.appendChild(tmp);
+    drawBoard({ canvasId: 'carte-plateau-tmp', board: _finPartie.plateau, selected: [], showHints: false, hideGameOverlays: true });
+    ctx.drawImage(tmp, (W - 580) / 2, 278, 580, 580);
+    tmp.remove();
+  } catch (e) {}
+  ctx.fillStyle = '#9aa39e'; ctx.font = '28px "DM Sans", Arial, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(I.details, W / 2, 900);
+  _cartePied(ctx, W);
+  return _carteBlob(c);
+}
+function carteDefi(n) {
+  const e = defiEtat(n), p = PUZZLES[defiIndex(n)], serie = defiSerie();
+  const W = 1080, c = _carteCanvas(), ctx = c.getContext('2d'); if (!ctx) return Promise.resolve(null);
+  _carteFond(ctx, W);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#e3c672'; ctx.font = '900 70px Georgia, "Playfair Display", serif'; ctx.fillText(_tr('DÉFI DU JOUR', 'DAILY PUZZLE') + ' #' + n, W / 2, 150);
+  ctx.fillStyle = '#c9c4b6'; ctx.font = '36px "DM Sans", Arial, sans-serif';
+  ctx.fillText((p && p.def ? _tr('Parer la menace', 'Stop the threat') : _tr('Trouver le coup gagnant', 'Find the winning move')) + (p ? '  ' + '★'.repeat(p.d || 1) : ''), W / 2, 215);
+  // la grille, en carres de couleur (pas d'emoji dans un canvas : rendu inegal selon les appareils)
+  const cases = ((e && e.e) || '').split(''), coul = { x: '#d9534f', i: '#e3b341', v: '#4caf50', s: '#3a3f3d' };
+  const t = Math.min(130, Math.floor(820 / Math.max(1, cases.length)) - 16), y = 330, total = cases.length * (t + 16) - 16;
+  cases.forEach(function (k, j) { ctx.fillStyle = coul[k] || '#555'; const x = (W - total) / 2 + j * (t + 16); ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, t, t, 16); else ctx.rect(x, y, t, t); ctx.fill(); });
+  ctx.fillStyle = '#ffffff'; ctx.font = '700 50px "DM Sans", Arial, sans-serif'; ctx.fillText(defiPhrase(e), W / 2, y + t + 110);
+  if (e && e.f === 'v' && e.ms) { ctx.fillStyle = '#c9c4b6'; ctx.font = '40px "DM Sans", Arial, sans-serif'; ctx.fillText('⏱ ' + _defiDuree(e.ms), W / 2, y + t + 175); }
+  if (serie > 0) { ctx.fillStyle = '#ff8c42'; ctx.font = '700 44px "DM Sans", Arial, sans-serif'; ctx.fillText(_tr('Série : ', 'Streak: ') + serie + ' ' + _tr(serie > 1 ? 'jours' : 'jour', serie > 1 ? 'days' : 'day'), W / 2, y + t + 250); }
+  ctx.fillStyle = '#9aa39e'; ctx.font = '30px "DM Sans", Arial, sans-serif'; ctx.fillText(_tr('Le même puzzle pour tout le monde, chaque jour', 'The same puzzle for everyone, every day'), W / 2, W - 190);
+  _cartePied(ctx, W);
+  return _carteBlob(c);
+}
+// Partager une image : le partage du téléphone s'il accepte les fichiers, sinon l'image avec un bouton de téléchargement
+function partagerImage(blob, nom, texte) {
+  if (!blob) { if (typeof showToast === 'function') showToast(_tr('⚠️ Image impossible sur cet appareil', '⚠️ Cannot make the image on this device')); return; }
+  try {
+    const f = (typeof File === 'function') ? new File([blob], nom, { type: 'image/png' }) : null;
+    if (f && navigator.canShare && navigator.canShare({ files: [f] }) && navigator.share) {
+      navigator.share({ files: [f], text: texte }).catch(function (err) { if (!err || err.name !== 'AbortError') _montrerImage(blob, nom); });
+      return;
+    }
+  } catch (e) {}
+  _montrerImage(blob, nom);
+}
+function _montrerImage(blob, nom) {
+  const url = URL.createObjectURL(blob);
+  let m = document.getElementById('image-modal');
+  if (!m) { m = document.createElement('div'); m.id = 'image-modal'; m.className = 'share-modal-overlay'; document.body.appendChild(m); }
+  m.innerHTML = '<div class="share-modal-box" style="max-width:460px;text-align:center">'
+    + '<img src="' + url + '" alt="" style="width:100%;border-radius:10px;border:1px solid var(--border)">'
+    + '<a class="share-copy" style="display:block;text-decoration:none;margin-top:12px" href="' + url + '" download="' + nom + '">⬇️ ' + _tr('Télécharger l’image', 'Download the image') + '</a>'
+    + '<button class="share-close" onclick="document.getElementById(\'image-modal\').classList.remove(\'show\')">' + _tr('Fermer', 'Close') + '</button>'
+    + '</div>';
+  m.classList.add('show');
+}
+function partagerImageFin() { carteFinPartie().then(function (b) { partagerImage(b, 'abalassembly-partie.png', buildShareText() + ' ' + SHARE_URL + (currentLang() === 'EN' ? '?lang=en' : '')); }); }
+function partagerImageDefi(n) { carteDefi(n).then(function (b) { partagerImage(b, 'abalassembly-defi-' + n + '.png', texteDefi(n)); }); }
 
 </script>
+
 
 <!-- ═══ MODULE VUE 3D (chargé à la demande, n'alourdit pas le démarrage) ═══ -->
 <script>
@@ -38933,13 +39131,9 @@ window.refresh3DIfActive = function() {
         0      0      0      1  0"/>
     </filter>
   </defs>
-  </div>
-  <div class="mtb-right">
-    <div class="streak-pill" id="top-streak">🔥 18</div>
-    <div class="xp-pill" id="top-xp">⚡ 14 928</div>
-    <div style="width:32px;height:32px;border-radius:50%;background:#2d5a3d;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;font-family:'Playfair Display',serif;color:var(--gold);cursor:pointer" onclick="showPage('profile')" id="top-avatar">?</div>
-  </div>
-</div>
+</svg>
+<!-- Ici trainait la fin d'une ancienne barre du haut pour telephone : une serie et un total d'XP
+     ecrits en dur, visibles tout en bas de chaque page. Retiree (v2.57). -->
 
 
 <div id="migs-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9999;align-items:center;justify-content:center" onclick="if(event.target===this)closeMigsBrowser()">

@@ -468,6 +468,7 @@ function loadSavedGame() {
     if (!raw) return false;
     const state = JSON.parse(raw);
     if (!state.board || Object.keys(state.board).length === 0) return false;
+    try { if (typeof _puzzleFermer === 'function') _puzzleFermer(); } catch (e) {}   // la partie reprise remplace le puzzle
     board = state.board;
     CurrentTurn.set(state.turn || 'black');
     CapturedByBlack.set(state.capB || 0);

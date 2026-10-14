@@ -2055,53 +2055,9 @@ function replayScannedGame(id){
 // affiche la liste des parties scannées au chargement de la page
 try{ renderScannedGames(); }catch(e){}
 
-/* ── PUBLISH ARTICLE (FightClub / writer) ── */
-function publishArticle() {
-  if (!currentUser || currentUser.role !== 'writer') {
-    showToast('⛔ Accès réservé aux rédacteurs');
-    return;
-  }
-  const title = document.getElementById('article-title')?.value?.trim();
-  const body  = document.getElementById('article-body')?.value?.trim();
-  const cat   = document.getElementById('article-cat')?.value;
-  if (!title) { showToast('⚠️ Entrez un titre pour l\'article'); return; }
-  if (!body || body.length < 50) { showToast('⚠️ L\'article est trop court (min. 50 caractères)'); return; }
-
-  // Save to localStorage as demo
-  try {
-    const articles = JSON.parse(localStorage.getItem('abalone_articles') || '[]');
-    articles.unshift({
-      id: Date.now(), title, body, cat,
-      author: currentUser.username,
-      date: new Date().toLocaleDateString('fr-FR', {day:'numeric',month:'long',year:'numeric'}),
-      published: true
-    });
-    localStorage.setItem('abalone_articles', JSON.stringify(articles.slice(0,20)));
-  } catch(e) {}
-
-  showToast(`✅ Article "${title}" publié dans ${cat} !`);
-  document.getElementById('article-title').value = '';
-  document.getElementById('article-body').value = '';
-
-  // Refresh article list
-  refreshWriterArticles();
-}
-
-function refreshWriterArticles() {
-  try {
-    const articles = JSON.parse(localStorage.getItem('abalone_articles') || '[]');
-    const wrap = document.getElementById('writer-articles');
-    if (!wrap || articles.length === 0) return;
-    const localHtml = articles.slice(0,5).map(a => `
-      <div style="padding:12px 14px;background:var(--surface);border:1px solid rgba(138,114,210,0.25);border-radius:8px;display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <div style="font-size:13px;color:var(--text)">${escapeHtml(a.title)}</div>
-          <div style="font-size:11px;color:var(--muted)">${escapeHtml(a.cat)} · ${escapeHtml(a.date)}</div>
-        </div>
-        <span style="font-size:10px;padding:2px 8px;background:rgba(74,148,99,0.12);color:var(--accent-green-light);border-radius:12px;border:1px solid rgba(74,148,99,0.25)">Publié</span>
-      </div>`).join('');
-    wrap.innerHTML = localHtml + wrap.innerHTML;
-  } catch(e) {}
-}
+/* L'« Espace rédacteur » (publishArticle) est retire en v2.57 : il n'etait accessible qu'en se
+   connectant avec le mot « fightclub » (sans mot de passe verifie) sous le nom d'une vraie
+   personne, avec des statistiques inventees, et « publiait » des articles que seul ce
+   navigateur pouvait voir. */
 
 

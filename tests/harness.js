@@ -85,6 +85,7 @@ function contexteFactice() {
   ctx.performance = { now: () => Date.now() };
   ctx.Promise = Promise;
   ctx.TextDecoder = TextDecoder;
+  ctx.TextEncoder = TextEncoder;   // empreintes de mot de passe (PBKDF2) des profils locaux, v2.57
   ctx.URLSearchParams = URLSearchParams;
   ctx.URL = URL;
   ctx.Blob = typeof Blob !== 'undefined' ? Blob : undefined;
@@ -193,6 +194,11 @@ const PASSERELLE = `
   if (typeof I18N_TITRE !== 'undefined') relier('I18N_TITRE', function(){return I18N_TITRE;});
   if (typeof _i18nObs !== 'undefined') relier('_i18nObs', function(){return _i18nObs;});
   if (typeof puzzlesData !== 'undefined') relier('puzzlesData', function(){return puzzlesData;});
+  // defi du jour et puzzles sur le plateau (v2.57)
+  if (typeof _puzzleActive !== 'undefined') relier('_puzzleActive', function(){return _puzzleActive;}, function(v){_puzzleActive=v;});
+  if (typeof SHARE_URL !== 'undefined') relier('SHARE_URL', function(){return SHARE_URL;});
+  if (typeof DEFI_NB !== 'undefined') relier('DEFI_NB', function(){return DEFI_NB;});
+  if (typeof SINGLE_MOVE_PUZZLE_COUNT !== 'undefined') relier('SINGLE_MOVE_PUZZLE_COUNT', function(){return SINGLE_MOVE_PUZZLE_COUNT;});
   if (typeof undoStack !== 'undefined')        relier('undoStack', function(){return undoStack;}, function(v){undoStack=v;});
   if (typeof selected !== 'undefined')         relier('selected', function(){return selected;}, function(v){selected=v;});
   if (typeof LAYOUTS !== 'undefined')          relier('LAYOUTS', function(){return LAYOUTS;});

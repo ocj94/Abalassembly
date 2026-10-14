@@ -195,6 +195,7 @@ function hideWinOverlay() {
 }
 
 function resetGame() {
+  try { if (typeof _puzzleFermer === 'function') _puzzleFermer(); } catch (e) {}   // une nouvelle partie quitte le mode puzzle
   if (typeof progress !== 'undefined') { progress.__firstEjDone = false; progress.__hadLead = false; }
   GameOver.set(false);
   selected = [];

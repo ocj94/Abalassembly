@@ -28,7 +28,7 @@ sur le fichier actuel. Choix délibéré, pas une étape provisoire.
 
 ## État actuel : le script principal est décomposé par thème
 
-`main/` contient 36 fichiers, coupés aux frontières des bandeaux de
+`main/` contient 41 fichiers, coupés aux frontières des bandeaux de
 section déjà présents dans le code (`/* ═══ NOM DE SECTION ═══ */`), sans
 aucune ligne déplacée ni réordonnée — une coupe séquentielle, pas une
 réorganisation. Chaque nom de fichier regroupe un ou plusieurs bandeaux
@@ -74,7 +74,7 @@ chaque fois avant de passer à l'étape suivante.
 | `01-jsonld.part` | Métadonnées JSON-LD (SEO) |
 | `03-script-utils-a.js`, `05-script-utils-b.js` | Deux petits scripts utilitaires en tête de page |
 | `05b-script-i18n-en.js` | La langue (`currentLang`) et la version anglaise : dictionnaire, motifs, observateur. Bloc à part, lu **avant** le reste de la page pour qu'en anglais rien ne s'affiche d'abord en français |
-| `main/00-*.js` … `main/35-*.js` | Le script principal, décomposé par thème (voir ci-dessus) |
+| `main/00-*.js` … `main/36-*.js` | Le script principal, décomposé par thème (voir ci-dessus) ; `main/36-defi-du-jour-et-cartes.js` : le Défi du jour #N et les images à partager (v2.57) |
 | `main/data/15-code-01.js` … `15-code-07.js` | Le peu de VRAI code de l'ancien `15-opening-book.js` (livre d'ouvertures, profilage adverse, options NNUE) |
 | `main/data/15-nnue.b64`, `15-trees.b64`, `15-migs.b64`, `15-ao.b64`, `15-empreintes.b64`, `15-graph.b64` | Les 6 blobs de données (99,3% de l'ancien fichier), en base64 pur — plus une seule ligne de JS mélangée dedans |
 | `main/data/17-puzzles.json` | Les 138 puzzles, en JSON pur — extraits du même genre de mélange code/données |
