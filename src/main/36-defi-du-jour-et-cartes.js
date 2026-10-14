@@ -1,7 +1,7 @@
 
 /* ═══════════════════════════════════════════
    DÉFI DU JOUR #N — UN PUZZLE PAR JOUR, LE MÊME POUR TOUT LE MONDE (v2.57)
-   Façon Wordle : chaque jour a son numéro (#1 = 15 octobre 2026), un puzzle tiré de vraies
+   Façon Wordle : chaque jour a son numéro (#1 = 14 octobre 2026), un puzzle tiré de vraies
    parties, le même pour tous sans compte ni serveur, et un résultat qui se partage sans rien
    dévoiler de la solution :
        Abalassembly — Défi du jour #12 ⭐⭐
@@ -17,7 +17,7 @@
    de PUZZLES), figés -- un test vérifie leur empreinte. Chaque cycle de 78 jours est un tirage
    sans remise, toujours le même.
 ═══════════════════════════════════════════ */
-const DEFI_DEBUT = Date.UTC(2026, 9, 15);   // #1 = 15 octobre 2026 (jour de sortie, v2.57), jour civil local
+const DEFI_DEBUT = Date.UTC(2026, 9, 14);   // #1 = 14 octobre 2026 (jour de sortie, v2.57), jour civil local
 const DEFI_NB = 78;                          // puzzles du tirage : les 78 à un coup (SINGLE_MOVE_PUZZLE_COUNT)
 const DEFI_GARDE = 400;                      // jours gardés dans l'historique des défis
 var _defiEnCours = null;                     // { n, idx, depuis } : le puzzle affiché est le défi n

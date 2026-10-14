@@ -2989,11 +2989,12 @@ test('v2.57 parrainage : plus de « 100 XP par ami » impossible a tenir sans se
 
 test('v2.57 defi du jour : un numero par jour civil, un tirage sans remise par cycle de 78 jours, des puzzles figes', () => {
   assert.strictEqual(ctx.DEFI_NB, 78); assert.strictEqual(ctx.SINGLE_MOVE_PUZZLE_COUNT, 78);
-  assert.strictEqual(ctx.defiNumero(new Date(2026, 9, 15, 0, 5)), 1, '#1 = 15 octobre 2026');
-  assert.strictEqual(ctx.defiNumero(new Date(2026, 9, 15, 23, 59)), 1);
-  assert.strictEqual(ctx.defiNumero(new Date(2026, 9, 16, 0, 1)), 2, 'nouveau defi a minuit');
-  assert.strictEqual(ctx.defiNumero(new Date(2026, 9, 14, 12)), 1, 'jamais avant #1');
-  assert.strictEqual(ctx.defiNumero(new Date(2027, 0, 1, 12)), 79);
+  assert.strictEqual(ctx.defiNumero(new Date(2026, 9, 14, 0, 5)), 1, '#1 = 14 octobre 2026, jour de la v2.57');
+  assert.strictEqual(ctx.defiNumero(new Date(2026, 9, 14, 23, 59)), 1);
+  assert.strictEqual(ctx.defiNumero(new Date(2026, 9, 15, 0, 1)), 2, 'nouveau defi a minuit');
+  assert.strictEqual(ctx.defiNumero(new Date(2026, 9, 13, 12)), 1, 'jamais avant #1');
+  assert.strictEqual(ctx.defiNumero(new Date(2026, 11, 31, 12)), 79);
+  assert.strictEqual(ctx.defiNumero(new Date(2027, 0, 1, 12)), 80, 'le cycle suivant commence au #79');
   const cycle = k => { const v = []; for (let n = 1 + 78 * k; n <= 78 * (k + 1); n++) v.push(ctx.defiIndex(n)); return v; };
   const c0 = cycle(0), c1 = cycle(1);
   assert.deepStrictEqual(c0.slice().sort((a, b) => a - b), Array.from({ length: 78 }, (_, i) => i), 'chaque puzzle une fois par cycle');
