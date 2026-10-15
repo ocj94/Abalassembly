@@ -129,6 +129,9 @@ function playFromEditor() {
     board = JSON.parse(JSON.stringify(editorBoard));
     CapturedByWhite.set(editorCapturedWhite); CapturedByBlack.set(editorCapturedBlack);
     CurrentTurn.set('black'); MoveCount.set(0); GameOver.set(false);
+    // la position de depart de cette partie est celle de l'editeur (rejeu ⏮, Liste, regle de repetition)
+    _replayStartBoard = JSON.parse(JSON.stringify(board));
+    if (typeof _replayStartCaptures !== 'undefined') _replayStartCaptures = { b: editorCapturedBlack, w: editorCapturedWhite };
     selected = [];
     if (typeof updateCaptures === 'function') updateCaptures();
     if (typeof updateStatus === 'function') updateStatus();

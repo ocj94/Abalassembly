@@ -96,6 +96,21 @@ const I18N_EN = {
   'Gagne 5 parties': 'Win 5 games', 'Joue 10 parties': 'Play 10 games', 'Résous 7 problèmes': 'Solve 7 puzzles', 'Atteins une série de 5 jours': 'Reach a 5-day streak',
   'Victoire du jour': 'Win of the day', 'Chasseur du jour': 'Hunter of the day', 'Assidu du jour': 'Player of the day',
   "Gagne 1 partie aujourd'hui": 'Win 1 game today', "Éjecte 3 billes aujourd'hui": 'Eject 3 marbles today', "Joue 2 parties aujourd'hui": 'Play 2 games today',
+  // ── onglets Liste et Commentaires de la partie (v2.58) ──
+  '📋 Liste': '📋 List', '📝 Commentaires': '📝 Comments', 'Liste des coups': 'Move list', 'Commentaires': 'Comments', '📋 Copier': '📋 Copy',
+  'Copie le tableau (à coller dans un tableur ou un message)': 'Copies the table (to paste into a spreadsheet or a message)',
+  'Copie tous les commentaires en texte': 'Copies all the comments as text',
+  'Notation Aba-Pro. (2-1) : le score après une éjection, Noirs-Blancs. Touchez un coup pour revoir la position.':
+    'Aba-Pro notation. (2-1): the score after an ejection, Black-White. Tap a move to see the position again.',
+  'Position de départ': 'Starting position', 'Coup précédent': 'Previous move', 'Coup suivant': 'Next move', 'Dernier coup': 'Last move',
+  '↩ Partie en cours': '↩ Current game', 'Que mesurent ces chiffres ?': 'What do these numbers measure?',
+  '🎮 Une partie en cours a été trouvée. La reprendre ?': '🎮 A game in progress was found. Resume it?', 'Reprendre': 'Resume',
+  'Distance au centre': 'Distance to centre', ": somme des distances des billes à la case centrale e5 (plus c'est bas, plus le camp tient le centre).":
+    ': sum of the distances of the marbles to the central cell e5 (the lower, the more central the side).',
+  'Cohésion': 'Cohesion', ': paires de billes voisines du même camp.': ': pairs of neighbouring marbles of the same side.', 'Au bord': 'On the edge',
+  ': billes sur le cercle extérieur.': ': marbles on the outer ring.', 'En danger': 'In danger',
+  ": billes que l'adversaire peut éjecter dès son prochain coup. Pour les coups de l'IA : sa suite prévue (le coup attendu en réponse, puis les suivants), son évaluation de la position, la profondeur atteinte, les positions examinées et le temps.":
+    ': marbles the opponent can eject with its next move. For the AI’s moves: its expected continuation (the expected reply, then the next moves), its evaluation of the position, the depth reached, the positions examined and the time.',
   // ── profil local et fenetres de connexion (v2.57) ──
   'Votre profil': 'Your profile', 'Créer un profil': 'Create a profile', 'Créer mon profil →': 'Create my profile →',
   'Parties': 'Games', 'ELO actuel': 'Current ELO', 'Joueur': 'Player', 'JOUEUR': 'PLAYER', 'Deco': 'Sign out', 'Jouer maintenant': 'Play now', 'Historique récent': 'Recent games',
@@ -552,7 +567,8 @@ const I18N_EN_MOTIFS = [
   [/^⚫ (\d+) parties terminées · 🧩 (\d+) puzzles résolus — sur cet appareil$/, '⚫ $1 games finished · 🧩 $2 puzzles solved — on this device', 'parties terminées'],
   [/^IA (Auto|Agressif|Défensif|Division|Équilibré) — (?:Niveau (\d+)|(.+))$/, function (_, s, n, autre) {
     return 'AI ' + ({ Auto: 'Auto', Agressif: 'Aggressive', 'Défensif': 'Defensive', Division: 'Divide', 'Équilibré': 'Balanced' })[s] + ' — ' + (n ? 'Level ' + n : autre); }, 'IA '],
-  [/^Local \(même écran\)$/, 'Local (same screen)', 'Local (même écran)']
+  [/^Local \(même écran\)$/, 'Local (same screen)', 'Local (même écran)'],
+  [/^✅ Partie importée : (\d+) coups?$/, function (_, n) { return '✅ Game imported: ' + n + (n === '1' ? ' move' : ' moves'); }, 'Partie importée']
 ];
 // traduction d'un texte francais, ou null s'il est inconnu (espaces de debut et de fin conserves)
 function _i18nEN(fr) {

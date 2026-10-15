@@ -319,7 +319,7 @@ function openApgnImportModal(){
   modal.innerHTML =
     '<div style="max-width:520px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:24px;max-height:90vh;overflow-y:auto">'
     + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:6px">Importer une notation Aba-Pro</h3>'
-    + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Colle une séquence de coups en notation Aba-Pro (ex. « e5f6 c3b2 »), avec ou sans numéros de coup — la notation la plus répandue dans la communauté Abalone, pas un format propriétaire d\u2019un site en particulier.</div>'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Colle une séquence de coups en notation Aba-Pro (ex. « e5f6 c3b2 »), avec ou sans numéros de coup — la notation la plus répandue dans la communauté Abalone, pas un format propriétaire d\u2019un site en particulier. La Liste et le journal de commentaires d\u2019Uncle Lolo\u2019s Abalone se collent tels quels.</div>'
     + '<div style="display:flex;gap:8px;margin-bottom:10px">'
       + '<select id="apgn-import-variant" style="flex:1;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px">' + variantOptions + '</select>'
       + '<select id="apgn-import-first" style="flex:1;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px"><option value="black">Noir commence</option><option value="white">Blanc commence</option></select>'
@@ -346,6 +346,31 @@ function _stripApgnHeaders(text){
     .join('\n').trim();
 }
 
+/* Les coups d'un texte colle, quelle que soit sa source (v2.58) : export du site, Liste
+   d'Uncle Lolo's Abalone (majuscules, numeros de coup seuls, score apres ejection « (2-1) »)
+   ou journal de commentaires d'ULA (« 12x. G6G7 ... (suite prévue: ...) »). Dans le journal,
+   seul le coup joue de chaque ligne compte -- pas la suite prevue -- et un coup repris (meme
+   numero rejoue) remplace la suite, comme dans ULA. Les mots qui ne sont pas des coups sont
+   ignores ; un coup illegal arrete l'import, qui le signale. */
+function _jetonsAbaPro(texte){
+  const t = String(texte || '');
+  if (/^\s*\d+[xy]\.\s+[A-Ia-i][1-9]/m.test(t)) {
+    const suite = [];
+    t.split(/\r?\n/).forEach(function(l){
+      const m = /^\s*(\d+)([xy])\.\s+([A-Ia-i][1-9][A-Ia-i][1-9](?:[A-Ia-i][1-9])?)/.exec(l);
+      if (!m) return;
+      const demi = (parseInt(m[1], 10) - 1) * 2 + (m[2] === 'y' ? 1 : 0);
+      if (demi > suite.length) return;                 // trou dans le journal : ligne ignoree
+      suite.length = demi;                             // coup repris : la suite repart d'ici
+      suite.push(m[3].toLowerCase());
+    });
+    return suite;
+  }
+  return t.replace(/\d+\./g, ' ').replace(/\((?:\d+-\d+|e)\)/gi, ' ').split(/\s+/)
+    .map(function(x){ return x.toLowerCase(); })
+    .filter(function(x){ return /^[a-i][1-9][a-i][1-9](?:[a-i][1-9])?$/.test(x); });
+}
+
 function _doApgnImport(){
   const textEl = document.getElementById('apgn-import-text');
   const status = document.getElementById('apgn-import-status');
@@ -354,7 +379,8 @@ function _doApgnImport(){
   const text = _stripApgnHeaders(raw);
   if (!text) { if (status){ status.textContent = 'Aucun coup trouvé — le texte ne contient que des en-têtes.'; status.style.color = '#e05c4b'; } return; }
 
-  const tokens = text.replace(/\d+\./g,' ').trim().split(/\s+/).filter(Boolean);
+  const tokens = _jetonsAbaPro(text);
+  if (!tokens.length) { if (status){ status.textContent = 'Aucun coup trouvé dans ce texte.'; status.style.color = '#e05c4b'; } return; }
   const variant = document.getElementById('apgn-import-variant').value;
   const first = document.getElementById('apgn-import-first').value;
 
@@ -365,7 +391,7 @@ function _doApgnImport(){
   currentLayout = variant;
   if (typeof initBoardState === 'function') initBoardState();
   CapturedByBlack.set(0); CapturedByWhite.set(0);
-  _replaySeqToSnapshots(text, 'Partie importée', first);
+  _replaySeqToSnapshots(tokens.join(' '), 'Partie importée', first);
 
   const played = boardSnapshots.length;
   const modal = document.getElementById('apgn-import-modal');

@@ -509,12 +509,15 @@ function loadSnapshot(idx) {
   if (idx === -1) {
     if (!_replayStartBoard) return;
     board = JSON.parse(JSON.stringify(_replayStartBoard));
-    CapturedByBlack.set(0); CapturedByWhite.set(0);
+    // billes deja ejectees au depart (un puzzle tire d'une vraie partie en a souvent)
+    const cap0 = (typeof _replayStartCaptures !== 'undefined' && _replayStartCaptures) ? _replayStartCaptures : { b: 0, w: 0 };
+    CapturedByBlack.set(cap0.b); CapturedByWhite.set(cap0.w);
     drawBoard(); updateCaptures();
     document.querySelectorAll('.move-item').forEach(function(el){ el.classList.remove('current'); });
     const st0 = document.getElementById('game-status-text');
     if (st0) st0.textContent = 'Replay — position de depart (0/' + boardSnapshots.length + ')';
     if (typeof _majCodePosition === 'function') _majCodePosition();
+    if (typeof _majSurbrillanceOnglets === 'function') _majSurbrillanceOnglets(-1);
     return;
   }
   if (!boardSnapshots[idx]) return;
@@ -531,5 +534,6 @@ function loadSnapshot(idx) {
   const statusEl = document.getElementById('game-status-text');
   if (statusEl) statusEl.textContent = 'Replay — Coup ' + (idx+1) + '/' + boardSnapshots.length + ': ' + snap.label;
   if (typeof _majCodePosition === 'function') _majCodePosition();   // le code suit le coup affiche
+  if (typeof _majSurbrillanceOnglets === 'function') _majSurbrillanceOnglets(idx);
 }
 

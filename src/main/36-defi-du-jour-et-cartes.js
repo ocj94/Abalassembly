@@ -370,5 +370,3 @@ function _montrerImage(blob, nom) {
 }
 function partagerImageFin() { carteFinPartie().then(function (b) { partagerImage(b, 'abalassembly-partie.png', buildShareText() + ' ' + SHARE_URL + (currentLang() === 'EN' ? '?lang=en' : '')); }); }
 function partagerImageDefi(n) { carteDefi(n).then(function (b) { partagerImage(b, 'abalassembly-defi-' + n + '.png', texteDefi(n)); }); }
-
-</script>

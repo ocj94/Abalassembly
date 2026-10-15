@@ -9,6 +9,42 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.58]
+
+### Ajouté — Liste et Commentaires de la partie, comme dans Uncle Lolo's Abalone
+- **📋 Liste** : un onglet à côté de « Partie ». Les coups en tableau
+  Coup | Noir | Blanc, en notation Aba-Pro, avec le score après chaque éjection
+  « (2-1) » (Noirs-Blancs), comme la Liste d'ULA. Toucher un coup montre la
+  position ; ⏮ ◀ ▶ ⏭ pour naviguer, « ↩ Partie en cours » pour revenir ;
+  « Copier » donne le tableau (pour un tableur ou un message).
+- **📝 Commentaires** : un bloc par coup, comme le journal d'ULA. Pour chaque coup
+  de l'IA : sa suite prévue (la réponse qu'elle attend, puis les coups
+  suivants), son évaluation, la profondeur, les positions examinées et le
+  temps ; ou d'où vient le coup quand il n'est pas calculé (livre d'ouvertures,
+  vraies parties, table de finale). Pour chaque position, les deux camps : distance
+  au centre, cohésion, billes au bord, billes en danger. Sumitos, éjections
+  (avec le score) et positions répétées sont signalés. « Copier » donne tout le
+  journal en texte, numéroté 1x, 1y… comme dans ULA.
+- **Importer une partie (Aba-Pro)** accepte la Liste et le journal de
+  commentaires d'ULA collés tels quels (majuscules, numéros de coup, scores
+  « (1-1) », coups repris). La partie d'ULA envoyée par Olivier (Marguerite
+  belge, 217 coups) se rejoue en entier : éjections aux mêmes coups, 6-2.
+
+### Corrigé
+- **Annuler** : le coup annulé restait dans la liste des coups, les exports et la
+  partie enregistrée (dans un puzzle, le mauvais coup restait avant le bon).
+- **Rejeu** : « Position de départ » montrait celle d'une partie importée
+  auparavant (la règle des trois répétitions la prenait aussi pour départ), ou la
+  disposition standard pour une partie lancée depuis l'éditeur ; les billes déjà
+  éjectées au départ d'un puzzle n'étaient pas comptées.
+- **Téléphone** : sous le plateau, « Cliquez sur vos billes… » recouvrait la
+  ligne « Projeter ».
+
+### Tests
+- 5 nouveaux tests : import de la Liste et du journal d'ULA, la partie d'ULA
+  rejouée en entier avec les mêmes scores, les mesures de position, les
+  commentaires de l'IA, l'annulation.
+
 ## [v2.57]
 
 ### Ajouté — le Défi du jour #N

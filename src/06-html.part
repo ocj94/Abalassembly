@@ -1082,9 +1082,11 @@
 
     <!-- Right panel -->
     <div class="game-right-panel">
-      <!-- Tab switcher -->
-      <div style="display:flex;border-bottom:1px solid var(--border)">
+      <!-- Tab switcher (deux rangees de trois depuis la v2.58 : Liste et Commentaires, comme dans ULA) -->
+      <div class="game-tabs" style="display:flex;flex-wrap:wrap;border-bottom:1px solid var(--border)">
         <button onclick="switchGameTab('game',this)" class="game-tab active" id="gtab-game">Partie</button>
+        <button onclick="switchGameTab('liste',this)" class="game-tab" id="gtab-liste">📋 Liste</button>
+        <button onclick="switchGameTab('commentaires',this)" class="game-tab" id="gtab-commentaires">📝 Commentaires</button>
         <button onclick="switchGameTab('chat',this)" class="game-tab" id="gtab-chat">💬 Chat</button>
         <button onclick="switchGameTab('analyse',this)" class="game-tab" id="gtab-analyse">📊 Analyse</button>
         <button onclick="switchGameTab('bots',this)" class="game-tab" id="gtab-bots">🤖 Bots</button>
@@ -1186,6 +1188,48 @@
         <div style="padding:0 10px 10px;display:flex;gap:6px">
           <input id="chat-input" class="form-input" placeholder="Message…  (ou /bot règles, /bot champions…)" style="flex:1;padding:8px 12px;font-size:13px" onkeydown="if(event.key==='Enter')sendChatMsg()">
           <button onclick="sendChatMsg()" style="padding:8px 14px;background:var(--gold);border:none;border-radius:7px;cursor:pointer;font-size:14px">➤</button>
+        </div>
+      </div>
+
+      <!-- TAB: LISTE — les coups en tableau Coup | Noir | Blanc, comme la Liste d'Uncle Lolo's Abalone (v2.58) -->
+      <div id="gpanel-liste" class="game-tab-panel" style="display:none;padding:12px 14px;overflow-y:auto;direction:rtl">
+        <div style="direction:ltr">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px">
+          <div style="font-size:13px;font-weight:600;color:var(--white)">Liste des coups</div>
+          <button class="ctrl-btn" onclick="copierListeCoups()" style="width:auto;padding:3px 10px;font-size:11px" title="Copie le tableau (à coller dans un tableur ou un message)">📋 Copier</button>
+        </div>
+        <div class="coups-nav">
+          <button class="ctrl-btn" onclick="naviguerCoups('debut')" title="Position de départ" aria-label="Position de départ">⏮</button>
+          <button class="ctrl-btn" onclick="naviguerCoups(-1)" title="Coup précédent" aria-label="Coup précédent">◀</button>
+          <button class="ctrl-btn" onclick="naviguerCoups(1)" title="Coup suivant" aria-label="Coup suivant">▶</button>
+          <button class="ctrl-btn" onclick="naviguerCoups('fin')" title="Dernier coup" aria-label="Dernier coup">⏭</button>
+          <button class="ctrl-btn coups-nav-retour" onclick="naviguerCoups('partie')" style="display:none">↩ Partie en cours</button>
+        </div>
+        <div id="liste-coups"></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5">Notation Aba-Pro. (2-1) : le score après une éjection, Noirs-Blancs. Touchez un coup pour revoir la position.</div>
+        </div>
+      </div>
+
+      <!-- TAB: COMMENTAIRES — un bloc par coup, comme le journal d'Uncle Lolo's Abalone (v2.58) -->
+      <div id="gpanel-commentaires" class="game-tab-panel" style="display:none;padding:12px 14px;overflow-y:auto;direction:rtl">
+        <div style="direction:ltr">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px">
+          <div style="font-size:13px;font-weight:600;color:var(--white)">Commentaires</div>
+          <button class="ctrl-btn" onclick="copierCommentaires()" style="width:auto;padding:3px 10px;font-size:11px" title="Copie tous les commentaires en texte">📋 Copier</button>
+        </div>
+        <div id="commentaires-entete" style="font-size:11px;color:var(--muted);margin-bottom:8px"></div>
+        <div class="coups-nav">
+          <button class="ctrl-btn" onclick="naviguerCoups('debut')" title="Position de départ" aria-label="Position de départ">⏮</button>
+          <button class="ctrl-btn" onclick="naviguerCoups(-1)" title="Coup précédent" aria-label="Coup précédent">◀</button>
+          <button class="ctrl-btn" onclick="naviguerCoups(1)" title="Coup suivant" aria-label="Coup suivant">▶</button>
+          <button class="ctrl-btn" onclick="naviguerCoups('fin')" title="Dernier coup" aria-label="Dernier coup">⏭</button>
+          <button class="ctrl-btn coups-nav-retour" onclick="naviguerCoups('partie')" style="display:none">↩ Partie en cours</button>
+        </div>
+        <div id="commentaires-coups"></div>
+        <details style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.55">
+          <summary style="cursor:pointer">Que mesurent ces chiffres ?</summary>
+          <div style="margin-top:6px"><b>Distance au centre</b> : somme des distances des billes à la case centrale e5 (plus c'est bas, plus le camp tient le centre). <b>Cohésion</b> : paires de billes voisines du même camp. <b>Au bord</b> : billes sur le cercle extérieur. <b>En danger</b> : billes que l'adversaire peut éjecter dès son prochain coup. Pour les coups de l'IA : sa suite prévue (le coup attendu en réponse, puis les suivants), son évaluation de la position, la profondeur atteinte, les positions examinées et le temps.</div>
+        </details>
         </div>
       </div>
 
@@ -3691,6 +3735,7 @@
 <li><b>1D / 2D / 3D</b> : trois vues du plateau, toutes jouables. <b>🔄 Inverser</b> tourne le plateau.</li>
 <li>Le dernier coup est marqué par des <b>chevrons</b> sur les billes déplacées.</li>
 <li>Sous la liste des coups : le <b>code de la position</b> (format KAAH), avec <b>Copier</b> et <b>Permutations</b> (ses 12 symétries et l'échange des camps).</li>
+<li>Les onglets <b>📋 Liste</b> (les coups en tableau Coup | Noir | Blanc, avec le score après chaque éjection) et <b>📝 Commentaires</b> (un bloc par coup : suite prévue et évaluation de l'IA, distance au centre, cohésion, billes en danger), comme dans Uncle Lolo's Abalone. <b>📋 Copier</b> les donne en texte.</li>
 <li>Sous chaque coup de l'IA, son <b>évaluation</b> (« Mil. +1090 · prof. 8 · 19,0 s ») ; touche-la pour voir toute sa réflexion.</li>
 </ul>
 </div></details>
@@ -3794,6 +3839,7 @@
 <li><b>1D / 2D / 3D</b>: three views of the board, all playable. <b>🔄 Flip</b> turns the board around.</li>
 <li>The last move is marked with <b>chevrons</b> on the marbles that moved.</li>
 <li>Below the move list: the <b>position code</b> (KAAH format), with <b>Copy</b> and <b>Permutations</b> (its 12 symmetries and the colour swap).</li>
+<li>The <b>📋 List</b> tab (the moves in a Move | Black | White table, with the score after each ejection) and the <b>📝 Comments</b> tab (one block per move: the AI's expected continuation and evaluation, distance to centre, cohesion, marbles in danger), as in Uncle Lolo's Abalone. <b>📋 Copy</b> gives them as text.</li>
 <li>Under each AI move, its <b>evaluation</b> (“Mid. +1090 · depth 8 · 19.0 s”); tap it to see its whole reasoning.</li>
 </ul>
 </div></details>

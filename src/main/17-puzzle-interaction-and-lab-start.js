@@ -35,6 +35,10 @@ function startPuzzle(idx){
   board={}; p.bm.forEach(function(k){board[k]='black';}); p.wm.forEach(function(k){board[k]='white';});
   CapturedByBlack.set(p.cb); CapturedByWhite.set(p.cw);
   GameOver.set(false); replayMode=false; selected=[]; undoStack=[]; boardSnapshots=[]; MoveCount.set(0);
+  _replayStartBoard = JSON.parse(JSON.stringify(board));
+  if (typeof _replayStartCaptures !== 'undefined') _replayStartCaptures = { b: p.cb || 0, w: p.cw || 0 };
+  const _ml = document.getElementById('move-list'); if (_ml && typeof MOVE_LIST_HEADER !== 'undefined') _ml.innerHTML = MOVE_LIST_HEADER;
+  if (typeof _majOngletsPartieBientot === 'function') _majOngletsPartieBientot();
   HumanColor.set(p.c); CurrentTurn.set(p.c); _bookNode=null; gameBestHint=null;
   const rb=document.getElementById('replay-btn'); if(rb) rb.style.display='none';
   _puzzleActive={ idx:idx, sig:_pzSig(p.sol.cells,p.sol.dir), alts:(p.alt||[]), tries:0 };
@@ -1738,7 +1742,7 @@ function aiMove() {
   //    patron que les poids NNUE) ; chargement impossible : IA habituelle. ──
   if (_niveauIA() !== 1 && !_tb42Indispo && _tb42Applicable()) {
     const parfait = _tb42MeilleurCoup(ai);
-    if (parfait) { executeAIMove(parfait); return; }
+    if (parfait) { if (typeof _noterSourceCoupIA === 'function') _noterSourceCoupIA('table', ai); executeAIMove(parfait); return; }
     const genTb = _aiGen;
     showAIThinking(true);
     _tb42Charger(ai).then(function(){ showAIThinking(false); if (genTb === _aiGen && !GameOver.get()) aiMove(); })
@@ -1749,20 +1753,20 @@ function aiMove() {
   // ── Livre d'ouvertures STATISTIQUE (~15000 parties Migs + AbalOnline, 5 variantes, pondéré par taux de victoire) ──
   if (_bookNode && _bookNode.k) {
     const statMove = pickBookMove(_bookNode, moves);
-    if (statMove) { executeAIMove(statMove); return; }
+    if (statMove) { if (typeof _noterSourceCoupIA === 'function') _noterSourceCoupIA('stat', ai); executeAIMove(statMove); return; }
   }
 
   // ── Repli empreintes historiques : position exacte inconnue du livre, mais une
   //    position très proche (même trait) existe dans les 418595 empreintes réelles ──
   if (boardSnapshots.length < 20) {
     const empMove = pickEmpreinteFallbackMove(ai, moves, boardSnapshots.length);
-    if (empMove) { executeAIMove(empMove); return; }
+    if (empMove) { if (typeof _noterSourceCoupIA === 'function') _noterSourceCoupIA('empreinte', ai); executeAIMove(empMove); return; }
   }
 
   // ── Livre d'ouvertures (début de partie) : joue un coup LÉGAL connu si disponible ──
   if (boardSnapshots.length < 16) {
     const bookMove = getOpeningMove(ai, moves);
-    if (bookMove) { executeAIMove(bookMove); return; }
+    if (bookMove) { if (typeof _noterSourceCoupIA === 'function') _noterSourceCoupIA('livre', ai); executeAIMove(bookMove); return; }
   }
 
   // Profondeur et budget temps par difficulté — table partagée AI_DIFFICULTY_CONFIG
@@ -1773,6 +1777,7 @@ function aiMove() {
   // Niveau 1 : décision immédiate (un peu d'aléatoire), pas besoin du worker
   if (_niveauIA() === 1 && !(typeof _tourneyMatch!=='undefined' && _tourneyMatch)) {
     moves.sort(function(a,b){ return (a.code||9)-(b.code||9); });
+    if (typeof _noterSourceCoupIA === 'function') _noterSourceCoupIA('n1', ai);
     executeAIMove(moves[Math.floor(Math.random()*Math.min(4,moves.length))]);
     return;
   }
