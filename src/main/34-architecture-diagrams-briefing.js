@@ -249,14 +249,26 @@ async function renderCorpusStatsPage(){
   if (typeof renderReflexionStats === 'function') renderReflexionStats();
   const host = document.getElementById('corpus-stats-body');
   if (!host) return;
-  host.innerHTML = '<div style="font-size:13px;color:var(--muted)" id="corpus-progress">Calcul en cours (première fois seulement — mis en cache ensuite)…</div>';
+  /* Les 12 dimensions n'attendent pas le reste : le premier calcul des
+     vainqueurs MIGS prend plus d'une minute, leur carte s'affiche avant. */
+  host.innerHTML = '<div id="corpus-autres"><div style="font-size:13px;color:var(--muted);margin-bottom:16px" id="corpus-progress">Calcul en cours (première fois seulement — mis en cache ensuite)…</div></div>'
+    + '<div id="dims-carte">' + _carteStats(_tr('Les 12 dimensions, mesurées sur tout le corpus', 'The 12 dimensions, measured over the whole corpus'),
+      '<div style="font-size:12px;color:var(--muted)">' + _tr('Chargement des positions mesurées…', 'Loading the measured positions…') + '</div>') + '</div>'
+    + '<div id="dims-corr"></div>';
+  /* Les dimensions d'abord (moins d'une seconde une fois les positions chargees),
+     PUIS le reste : le rejeu des parties MIGS rend la main au navigateur par
+     paquets de 40 parties, et chaque etape des dimensions attendait derriere
+     (mesure : 23 s avant d'afficher la carte). 4 s au plus, puis le reste demarre. */
+  const dimsPret = _dimsPreparer().catch(function(e){ console.warn('12 dimensions :', e); });   // jamais bloquant pour le reste
+  await Promise.race([dimsPret, new Promise(function(r){ setTimeout(r, 4000); })]);
+  const autres = document.getElementById('corpus-autres') || host;
 
   const s = await computeCorpusStats(function(done, total){
     const el = document.getElementById('corpus-progress');
     if (el) el.textContent = 'Calcul en cours (première fois seulement) — ' + done + '/' + total + ' parties rejouées…';
   });
   if (!host.isConnected) return;
-  if (!s) { host.innerHTML = '<div style="font-size:13px;color:var(--muted)">Bibliothèque de parties pas encore chargée — réessaie dans un instant.</div>'; return; }
+  if (!s) { autres.innerHTML = '<div style="font-size:13px;color:var(--muted);margin-bottom:16px">Bibliothèque de parties pas encore chargée — réessaie dans un instant.</div>'; return; }
 
   function card(title, body, note){
     return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:16px">'
@@ -278,7 +290,7 @@ async function renderCorpusStatsPage(){
   let html = '';
   html += '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">Sources : MIGS (' + s.nMigs.toLocaleString('fr-FR') + ' parties), AbalOnline (' + s.nAo.toLocaleString('fr-FR') + ')'
     + (s.nPs ? ', Yearly Abalone Arena de PlayStrategy (' + s.nPs + (s.nPsSansCoup ? ', dont ' + s.nPsSansCoup + ' abandonnées avant le premier coup' : '') + ')' : '') + (s.nRef ? ', parties de référence des variantes (' + s.nRef + ')' : '') + '. Toutes les parties comptent, même abandonnées.'
-    + (s.nPs ? ' Les 12 dimensions et le livre d\u2019ouvertures restent calculés sur MIGS et AbalOnline : ils sont précalculés hors-ligne.' : '') + '</div>';
+    + (s.nPs ? ' Le livre d\u2019ouvertures reste calculé sur MIGS et AbalOnline (précalculé hors ligne).' : '') + '</div>';
 
   html += card('L\u2019avantage du premier joueur',
     '<div style="display:flex;gap:10px;margin-bottom:8px">'
@@ -313,39 +325,237 @@ async function renderCorpusStatsPage(){
     }).join(''),
     s.nVariants + ' variantes distinctes recensées dans le corpus AbalOnline ('+s.nAo.toLocaleString('fr-FR')+' parties)' + (s.nPs ? ', plus le Belgian Daisy du tournoi PlayStrategy (' + s.nPs + ' parties)' : '') + '.');
 
-  // --- Distribution des 12 dimensions (referentiel objectif) ---
-  const dist = computeDimensionDistributions();
-  if (dist) {
-    const rows = EMPREINTES_CHAMPS.map(function(f){
-      const d = dist[f];
-      const label = (typeof LABELS_EMPREINTE !== 'undefined' && LABELS_EMPREINTE[f]) ? LABELS_EMPREINTE[f] : f;
-      return '<div style="padding:7px 0;border-bottom:1px solid var(--border)">'
-        + '<div style="font-size:12px;color:var(--text);margin-bottom:2px">'+label+'</div>'
-        + '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-family:\'DM Mono\',monospace">'
-          + '<span>10ᵉ centile : '+d.p10.toFixed(2)+'</span>'
-          + '<span style="color:var(--gold);font-weight:700">médiane '+d.median.toFixed(2)+'</span>'
-          + '<span>90ᵉ centile : '+d.p90.toFixed(2)+'</span>'
-        + '</div></div>';
-    }).join('');
-    html += card('Les 12 dimensions, mesurées sur tout le corpus', rows,
-      'Calculé sur les '+dist[EMPREINTES_CHAMPS[0]].n.toLocaleString('fr-FR')+' positions issues des parties réelles — une empreinte par coup joué. C\u2019est le référentiel qui permet de situer une position : au-dessus du 90ᵉ centile, elle fait partie des 10 % les plus marquées sur cette dimension.');
-  }
+  // Les 12 dimensions et leur redondance suivent, dans leurs propres cartes (v2.59, voir _dimsPreparer)
+  autres.innerHTML = html;
+}
 
-  // --- Redondance entre dimensions (mesure honnete, pas une supposition) ---
-  const corr = computeDimensionCorrelations();
-  if (corr) {
-    const top = corr.pairs.slice(0, 5).map(function(pr){
-      const la = (LABELS_EMPREINTE[pr.a]||pr.a), lb = (LABELS_EMPREINTE[pr.b]||pr.b);
-      const force = Math.abs(pr.r) > 0.8 ? 'très forte' : (Math.abs(pr.r) > 0.5 ? 'forte' : 'modérée');
-      return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">'
-        + '<span style="color:var(--text)">'+la+' ↔ '+lb+'</span>'
-        + '<span style="font-weight:700;color:'+(Math.abs(pr.r)>0.8?'#e08050':'var(--gold)')+'">'+pr.r+' <span style="font-weight:400;color:var(--muted);font-size:11px">('+force+')</span></span></div>';
-    }).join('');
-    html += card('Ces dimensions sont-elles indépendantes ?', top,
-      'Corrélation de Pearson mesurée sur les '+corr.n.toLocaleString('fr-FR')+' positions. Cohésion, soutien et billes sans soutien mesurent largement la même chose (jusqu\u2019à 0,93) : ces trois axes bougent ensemble, il ne faut pas les lire comme trois informations distinctes. Aucune dimension n\u2019est constante, donc aucune n\u2019est inutile — mais ce groupe est redondant.');
+/* ═══════════════════════════════════════════
+   LES 12 DIMENSIONS : EXPLICATION ET GRAPHIQUES (v2.59)
+   Demande d'Olivier : mettre dans la page le dessin qui explique les centiles,
+   un graphique pour les deux camps ensemble, un pour les Noirs, un pour les
+   Blancs, toujours accordes au nombre de parties. Tout est calcule ici, a
+   l'ouverture de la page, a partir des positions chargees (banque principale
+   + complement) : aucun chiffre ecrit a la main. Si des parties de la page
+   n'ont pas encore leurs mesures, la carte le dit et donne leur nombre.
+   Sur un ecran etroit (telephone), le dessin a sa propre mise en page :
+   reduit tel quel, son texte tombait a 6 pixels.
+═══════════════════════════════════════════ */
+let _dimChamp = 'coeurRatio', _dimVueTable = 'tous', _dimValeur = null, _dimL = null, _dimEtroitRendu = null;
+const _DIM_VUES = ['tous', 'black', 'white'];
+const _DIM_COUL = { bas: '#2f9e7f', milieu: '#8f8d84', haut: '#d9773f', repere: '#7f77dd' };
+function _carteStats(titre, corps, note){
+  return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:16px">'
+    + '<div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">' + titre + '</div>'
+    + corps + (note ? '<div style="font-size:11px;color:var(--muted);margin-top:10px">' + note + '</div>' : '') + '</div>';
+}
+function _dimNomVue(v){ return v === 'black' ? _tr('Noirs', 'Black') : (v === 'white' ? _tr('Blancs', 'White') : _tr('Les deux camps', 'Both sides')); }
+function _dimNb(x){ return Number(x).toLocaleString(currentLang() === 'EN' ? 'en-GB' : 'fr-FR'); }
+function _dimDec(x, k){ const t = Number(x).toFixed(k === undefined ? 2 : k); return currentLang() === 'EN' ? t : t.replace('.', ','); }
+function _dimPct(p){ return ((p >= 10 || p === 0) ? String(Math.round(p)) : _dimDec(p, 1)) + ' %'; }
+function _dimDp(){ return currentLang() === 'EN' ? ': ' : ' : '; }   // deux-points : espace avant en francais seulement
+function _dimEtroit(){ const h = document.getElementById('dims-carte'); return !!(h && h.clientWidth && h.clientWidth < 520); }
+// les trois reperes, en long (ecran large) ou en court (telephone)
+function _dimReperes(etroit){
+  return etroit
+    ? [[10, 'p10', _tr('10ᵉ', '10th')], [50, 'median', _tr('méd.', 'med.')], [90, 'p90', _tr('90ᵉ', '90th')]]
+    : [[10, 'p10', _tr('10ᵉ centile', '10th percentile')], [50, 'median', _tr('médiane', 'median')], [90, 'p90', _tr('90ᵉ centile', '90th percentile')]];
+}
+// Parties que la page compte, par source, et celles qui ont leurs mesures
+function _dimCouverture(){
+  const K = _empCorpusDonnees(); if (!K) return null;
+  const PS = (typeof PS_TOURNOI_YEARLY_2026 !== 'undefined') ? PS_TOURNOI_YEARLY_2026 : [];
+  const REF = (typeof PARTIES_REFERENCE !== 'undefined') ? PARTIES_REFERENCE : [];
+  const avecCoups = function(seq){ return !!String(seq || '').replace(/\d+\./g, ' ').trim(); };
+  const attendu = { MIGS: MIGS_GAMES.length, AO: AO_GAMES.length,
+    PS: PS.filter(function(g){ return avecCoups(g[5]); }).length, REF: REF.filter(function(g){ return avecCoups(g[6]); }).length };
+  let manque = 0;
+  Object.keys(attendu).forEach(function(k){ manque += Math.max(0, attendu[k] - (K.parties[k] || 0)); });
+  const C = (typeof EMPREINTES_COMPLEMENT !== 'undefined') ? EMPREINTES_COMPLEMENT : null;
+  const perime = !!(C && typeof _empComplementSignature === 'function' && C.sig !== _empComplementSignature());
+  return { K: K, attendu: attendu, manque: manque, perime: perime,
+    parties: K.parties.MIGS + K.parties.AO + K.parties.PS + K.parties.REF,
+    sansCoup: (PS.length - attendu.PS) + (REF.length - attendu.REF) };
+}
+async function _dimsPreparer(){
+  const host = document.getElementById('dims-carte'); if (!host) return;
+  const titre = _tr('Les 12 dimensions, mesurées sur tout le corpus', 'The 12 dimensions, measured over the whole corpus');
+  const ok = (typeof ensureEmpreintesHistoriques === 'function') ? await ensureEmpreintesHistoriques() : false;
+  if (typeof ensureEmpreintesComplement === 'function') await ensureEmpreintesComplement();
+  if (!host.isConnected) return;
+  if (!ok || !_empCorpusDonnees()) {
+    host.innerHTML = _carteStats(titre, '<div style="font-size:12px;color:var(--muted)">' + _tr('Les positions mesurées n’ont pas pu être chargées (navigateur trop ancien ?).', 'The measured positions could not be loaded (browser too old?).') + '</div>');
+    return;
   }
-
-  host.innerHTML = html;
+  // d'un seul tenant (mesure : ~0,3 s pour les 15 distributions) : des pauses entre
+  // chaque etape laissaient passer devant d'autres calculs de la page, bien plus longs
+  await new Promise(function(r){ setTimeout(r, 0); });
+  if (!host.isConnected) return;
+  _dimsRendre();
+  await new Promise(function(r){ setTimeout(r, 0); });
+  _dimsCorrelations();
+}
+// Les trois bandes (deux camps, Noirs, Blancs) de la dimension choisie : chaque barre = 1 % des positions
+function _dimSVG(champ, etroit){
+  const L = etroit ? { W: 360, x0: 10, pas: 3.4, bw: 2.5, H1: 100, ft: 11, fr: 10.5 } : { W: 640, x0: 20, pas: 6, bw: 4.6, H1: 112, ft: 12, fr: 11 };
+  L.yb = L.H1 - 10; L.haut = L.H1 - 46; _dimL = L;
+  const ds = _DIM_VUES.map(function(v){ return distributionDimension(champ, v); });
+  const barres = ds.map(function(d){ const b = []; for (let i = 0; i < 100; i++) b.push(d.q[i * 10 + 5]); return b; });
+  let lo = Infinity, hi = -Infinity;
+  barres.forEach(function(b){ b.forEach(function(v){ if (v < lo) lo = v; if (v > hi) hi = v; }); });
+  if (hi === lo) hi = lo + 1;
+  const couleur = function(i){ return i < 10 ? _DIM_COUL.bas : (i >= 90 ? _DIM_COUL.haut : _DIM_COUL.milieu); };
+  let s = '<svg id="dims-svg" viewBox="0 0 ' + L.W + ' ' + (3 * L.H1 + 4) + '" width="100%" role="img" aria-label="' + _tr('Positions rangées par valeur : les deux camps, les Noirs, les Blancs', 'Positions ranked by value: both sides, Black, White') + '" style="display:block;margin:6px 0 4px">';
+  ds.forEach(function(d, k){
+    const y0 = k * L.H1, yb = y0 + L.yb, vue = _DIM_VUES[k];
+    s += '<text x="' + L.x0 + '" y="' + (y0 + L.ft + 1) + '" style="font-size:' + L.ft + 'px;fill:var(--text);font-weight:' + (vue === _dimVueTable ? 700 : 400) + '">' + _dimNomVue(vue) + ' · ' + _dimNb(d.n) + ' positions</text>';
+    for (let i = 0; i < 100; i++) {
+      const h = 3 + (barres[k][i] - lo) / (hi - lo) * (L.haut - 3);
+      s += '<rect class="dims-barre" x="' + (L.x0 + L.pas * i).toFixed(1) + '" y="' + (yb - h).toFixed(1) + '" width="' + L.bw + '" height="' + h.toFixed(1) + '" rx="0.8" fill="' + couleur(i) + '"/>';
+    }
+    _dimReperes(etroit).forEach(function(m){
+      const x = (L.x0 + L.pas * m[0] - (L.pas - L.bw) / 2).toFixed(1);
+      s += '<line x1="' + x + '" y1="' + (yb - L.haut - 2) + '" x2="' + x + '" y2="' + yb + '" style="stroke:var(--muted)" stroke-width="1" stroke-dasharray="3 3"/>';
+      s += '<text x="' + x + '" y="' + (yb - L.haut - 7) + '" text-anchor="middle" style="font-size:' + L.fr + 'px;fill:var(--muted);font-family:\'DM Mono\',monospace">' + m[2] + _dimDp() + _dimDec(d[m[1]]) + '</text>';
+    });
+    s += '<line x1="' + L.x0 + '" y1="' + (yb + 0.5) + '" x2="' + (L.x0 + L.pas * 100) + '" y2="' + (yb + 0.5) + '" style="stroke:var(--border)" stroke-width="1"/>';
+    s += '<line id="dims-rep-' + k + '" x1="0" y1="' + (yb - L.haut - 2) + '" x2="0" y2="' + yb + '" stroke="' + _DIM_COUL.repere + '" stroke-width="2.5" visibility="hidden"/>';
+    s += '<polygon id="dims-tri-' + k + '" points="0,0 0,0 0,0" fill="' + _DIM_COUL.repere + '" visibility="hidden"/>';
+  });
+  return s + '</svg>';
+}
+function _dimLegende(){
+  const carre = function(c){ return '<span style="width:9px;height:9px;border-radius:2px;background:' + c + ';display:inline-block;margin-right:5px"></span>'; };
+  return '<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 12px;font-size:11px;color:var(--muted);margin-bottom:8px">'
+    + '<span>' + carre(_DIM_COUL.bas) + _tr('10 % les moins marquées', '10 % least marked') + '</span>'
+    + '<span>' + carre(_DIM_COUL.milieu) + _tr('80 % : la zone normale', '80 %: the normal range') + '</span>'
+    + '<span>' + carre(_DIM_COUL.haut) + _tr('10 % les plus marquées', '10 % most marked') + '</span></div>';
+}
+function _dimsRendre(){
+  const host = document.getElementById('dims-carte'); if (!host) return;
+  const cv = _dimCouverture(); if (!cv) return;
+  const K = cv.K, champ = _dimChamp, dT = distributionDimension(champ, 'tous'), etroit = _dimEtroit();
+  _dimEtroitRendu = etroit;
+  const entiers = [0, 250, 500, 750, 1000].every(function(k){ return Number.isInteger(dT.q[k]); });
+  if (_dimValeur === null || _dimValeur < dT.min || _dimValeur > dT.max) _dimValeur = dT.median;
+  const s = function(n){ return n > 1 ? 's' : ''; };
+  let h = '';
+  // 1. sur quoi c'est mesure : toujours les parties reellement chargees
+  h += '<div id="dims-couverture" style="font-size:12px;color:var(--text);line-height:1.6;margin-bottom:12px">'
+    + _tr('Mesuré sur <b>' + _dimNb(K.n) + ' positions</b> de <b>' + _dimNb(cv.parties) + ' parties</b> : MIGS ' + _dimNb(K.parties.MIGS) + ', AbalOnline ' + _dimNb(K.parties.AO) + ', PlayStrategy ' + _dimNb(K.parties.PS) + ', référence ' + _dimNb(K.parties.REF)
+          + ' — une mesure après chaque coup joué, du côté du camp qui vient de jouer. Tout est calculé à partir des parties chargées dans le site : quand des parties s’ajoutent, les chiffres et les graphiques suivent.',
+          'Measured over <b>' + _dimNb(K.n) + ' positions</b> from <b>' + _dimNb(cv.parties) + ' games</b>: MIGS ' + _dimNb(K.parties.MIGS) + ', AbalOnline ' + _dimNb(K.parties.AO) + ', PlayStrategy ' + _dimNb(K.parties.PS) + ', reference ' + _dimNb(K.parties.REF)
+          + ' — one measure after each move, for the side that has just moved. Everything is computed from the games loaded in the site: when games are added, the numbers and the charts follow.')
+    + (cv.sansCoup ? ' ' + _tr(cv.sansCoup + ' partie' + s(cv.sansCoup) + ' de la page, abandonnée' + s(cv.sansCoup) + ' avant le premier coup, n’' + (cv.sansCoup > 1 ? 'ont' : 'a') + ' aucune position.',
+                               cv.sansCoup + ' game' + s(cv.sansCoup) + ' on this page, abandoned before the first move, ' + (cv.sansCoup > 1 ? 'have' : 'has') + ' no position.') : '')
+    + (cv.manque ? '<div style="color:' + _DIM_COUL.haut + ';margin-top:4px">⚠ ' + _tr(cv.manque + ' partie' + s(cv.manque) + ' de cette page n’' + (cv.manque > 1 ? 'ont' : 'a') + ' pas encore leurs mesures : elle' + s(cv.manque) + ' n’' + (cv.manque > 1 ? 'y sont' : 'y est') + ' pas comptée' + s(cv.manque) + '.',
+                                                                                 cv.manque + ' game' + s(cv.manque) + ' on this page ' + (cv.manque > 1 ? 'are' : 'is') + ' not measured yet, so not counted here.') + '</div>'
+      : (cv.perime ? '<div style="color:' + _DIM_COUL.haut + ';margin-top:4px">⚠ ' + _tr('Des parties PlayStrategy ou de référence ont changé depuis le calcul de leurs mesures.', 'Some PlayStrategy or reference games changed since their measures were computed.') + '</div>' : ''))
+    + '</div>';
+  // 2. comment lire
+  h += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--text);line-height:1.65">'
+    + '<div style="font-weight:700;margin-bottom:4px">' + _tr('Comment lire ce tableau', 'How to read this table') + '</div>'
+    + _tr('Chaque dimension est un nombre mesuré dans chaque position des vraies parties. Range toutes ces positions de la plus petite valeur à la plus grande : dans les graphiques, chaque barre en représente 1 %.',
+          'Each dimension is a number measured in every position of the real games. Line up all these positions from the smallest value to the largest: in the charts, each bar stands for 1 % of them.')
+    + '<ul style="margin:6px 0 6px 18px;padding:0">'
+    + '<li>' + _tr('<b>10ᵉ centile</b> : la valeur au premier dixième de la file — environ 10 % des positions ont moins.', '<b>10th percentile</b>: the value one tenth of the way along the line — about 10 % of positions are lower.') + '</li>'
+    + '<li>' + _tr('<b>Médiane</b> : la valeur du milieu — la moitié des positions ont moins, l’autre moitié plus.', '<b>Median</b>: the middle value — half of the positions are lower, half higher.') + '</li>'
+    + '<li>' + _tr('<b>90ᵉ centile</b> : environ 90 % des positions ont moins, et 10 % seulement ont plus.', '<b>90th percentile</b>: about 90 % of positions are lower, and only 10 % higher.') + '</li>'
+    + '</ul>'
+    + _tr('Entre le 10ᵉ et le 90ᵉ centile se trouvent 80 % des positions : la zone normale. Au-dessus du 90ᵉ centile, une position fait partie des 10 % les plus marquées sur cette dimension ; en dessous du 10ᵉ, des 10 % les moins marquées. Quand beaucoup de positions ont exactement la même valeur (souvent 0), plusieurs centiles tombent sur cette valeur.',
+          'Between the 10th and the 90th percentile lie 80 % of positions: the normal range. Above the 90th percentile, a position is among the 10 % most marked on that dimension; below the 10th, among the 10 % least marked. When many positions share exactly the same value (often 0), several percentiles fall on that value.')
+    + '</div>';
+  // 3. les trois graphiques de la dimension choisie
+  h += '<div style="font-size:13px;font-weight:700;color:var(--gold)">' + _labelDimension(champ) + '</div>'
+    + '<div style="font-size:11px;color:var(--muted)">' + _tr('Les deux camps ensemble, puis les Noirs (positions juste après un coup des Noirs), puis les Blancs. Clique sur une ligne du tableau pour changer de dimension.', 'Both sides together, then Black (positions just after a Black move), then White. Click a row of the table to change dimension.') + '</div>'
+    + _dimSVG(champ, etroit) + _dimLegende();
+  // 4. situer une valeur
+  h += '<div style="display:flex;align-items:center;gap:10px;margin:6px 0;font-size:12px;color:var(--text)">'
+    + '<span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap"><span style="width:10px;height:10px;border-radius:2px;background:' + _DIM_COUL.repere + ';display:inline-block"></span>' + _tr('Situer une valeur', 'Place a value') + '</span>'
+    + '<input type="range" id="dims-curseur" min="' + dT.min + '" max="' + dT.max + '" step="' + (entiers ? 1 : 0.01) + '" value="' + _dimValeur + '" oninput="_dimsSituer(this.value)" style="flex:1;min-width:80px" aria-label="' + _tr('Valeur à situer', 'Value to place') + '">'
+    + '<span id="dims-valeur" style="min-width:48px;text-align:right;font-weight:700;font-family:\'DM Mono\',monospace"></span></div>'
+    + '<div id="dims-lecture" style="font-size:12px;line-height:1.8;margin-bottom:14px"></div>';
+  // 5. le tableau, pour le camp choisi
+  const vues = _DIM_VUES.map(function(v){
+    const actif = v === _dimVueTable;
+    return '<button onclick="_dimVue(\'' + v + '\')" style="padding:4px 10px;font-size:11px;border-radius:6px;cursor:pointer;border:1px solid ' + (actif ? 'var(--gold)' : 'var(--border)') + ';background:' + (actif ? 'rgba(201,168,76,0.15)' : 'transparent') + ';color:' + (actif ? 'var(--gold)' : 'var(--text)') + '">' + _dimNomVue(v) + '</button>';
+  }).join(' ');
+  h += '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:4px 0 6px;font-size:12px;color:var(--muted)">' + _tr('Valeurs du tableau', 'Table values') + _dimDp() + vues + '</div>';
+  const rep = _dimReperes(etroit);
+  h += EMPREINTES_CHAMPS.map(function(f){
+    const d = distributionDimension(f, _dimVueTable), choisi = f === champ;
+    return '<div class="dims-ligne" role="button" tabindex="0" onclick="_dimChoisir(\'' + f + '\')" onkeydown="if(event.key===\'Enter\')_dimChoisir(\'' + f + '\')" style="padding:7px 8px;border-bottom:1px solid var(--border);cursor:pointer;border-radius:6px;' + (choisi ? 'background:rgba(201,168,76,0.10);' : '') + '">'
+      + '<div style="font-size:12px;color:' + (choisi ? 'var(--gold)' : 'var(--text)') + ';margin-bottom:2px;font-weight:' + (choisi ? 700 : 400) + '">' + (choisi ? '▸ ' : '') + _labelDimension(f) + '</div>'
+      + '<div style="display:flex;justify-content:space-between;gap:6px;font-size:11px;color:var(--muted);font-family:\'DM Mono\',monospace;white-space:nowrap">'
+        + '<span>' + rep[0][2] + _dimDp() + _dimDec(d.p10) + '</span>'
+        + '<span style="color:var(--gold);font-weight:700">' + rep[1][2] + ' ' + _dimDec(d.median) + '</span>'
+        + '<span>' + rep[2][2] + _dimDp() + _dimDec(d.p90) + '</span>'
+      + '</div></div>';
+  }).join('');
+  host.innerHTML = _carteStats(_tr('Les 12 dimensions, mesurées sur tout le corpus', 'The 12 dimensions, measured over the whole corpus'), h,
+    _tr('C’est le référentiel qui permet de situer une position : au-dessus du 90ᵉ centile, elle fait partie des 10 % les plus marquées sur cette dimension.',
+        'This is the yardstick for placing a position: above the 90th percentile, it is among the 10 % most marked on that dimension.'));
+  _dimsSituer(_dimValeur);
+}
+// Le curseur : ou tombe une valeur dans chacune des trois files
+function _dimsSituer(val){
+  const v = Number(val); if (!isFinite(v)) return;
+  _dimValeur = v;
+  const out = document.getElementById('dims-valeur'); if (out) out.textContent = _dimDec(v);
+  const L = _dimL || { x0: 20, pas: 6, bw: 4.6, H1: 112, yb: 102 };
+  const lignes = [];
+  _DIM_VUES.forEach(function(vue, k){
+    const d = distributionDimension(_dimChamp, vue); if (!d) return;
+    const p = pourcentEnDessous(d, v), x = (L.x0 + L.pas * p - (L.pas - L.bw) / 2).toFixed(1), yb = k * L.H1 + L.yb;
+    const l = document.getElementById('dims-rep-' + k), t = document.getElementById('dims-tri-' + k);
+    if (l && l.setAttribute) { l.setAttribute('x1', x); l.setAttribute('x2', x); l.setAttribute('visibility', 'visible'); }
+    if (t && t.setAttribute) { t.setAttribute('points', (x - 6) + ',' + (yb + 9) + ' ' + (+x + 6) + ',' + (yb + 9) + ' ' + x + ',' + (yb + 1)); t.setAttribute('visibility', 'visible'); }
+    let verdict, fond, coul;
+    if (v < d.p10) { verdict = _tr('sous le 10ᵉ centile : parmi les 10 % les moins marquées', 'below the 10th percentile: among the 10 % least marked'); fond = 'rgba(47,158,127,0.15)'; coul = _DIM_COUL.bas; }
+    else if (v > d.p90) { verdict = _tr('au-dessus du 90ᵉ centile : parmi les 10 % les plus marquées', 'above the 90th percentile: among the 10 % most marked'); fond = 'rgba(217,119,63,0.15)'; coul = _DIM_COUL.haut; }
+    else { verdict = _tr('entre le 10ᵉ et le 90ᵉ centile : la zone normale', 'between the 10th and 90th percentiles: the normal range'); fond = 'transparent'; coul = 'var(--muted)'; }
+    lignes.push('<div><b>' + _dimNomVue(vue) + '</b>' + _dimDp() + _tr('au-dessus de ' + _dimPct(p) + ' des positions', 'higher than ' + _dimPct(p) + ' of positions')
+      + ' <span style="padding:1px 8px;border-radius:6px;background:' + fond + ';color:' + coul + '">' + verdict + '</span></div>');
+  });
+  const lec = document.getElementById('dims-lecture'); if (lec) lec.innerHTML = lignes.join('');
+}
+function _dimChoisir(champ){
+  if (EMPREINTES_CHAMPS.indexOf(champ) < 0) return;
+  _dimChamp = champ; _dimValeur = null;
+  _dimsRendre();
+}
+async function _dimVue(vue){
+  _dimVueTable = (vue === 'black' || vue === 'white') ? vue : 'tous';
+  for (const f of EMPREINTES_CHAMPS) {
+    const K = _empCorpusDonnees();
+    if (K && !K.dist[_dimVueTable + ':' + f]) { distributionDimension(f, _dimVueTable); await new Promise(function(r){ setTimeout(r, 0); }); }
+  }
+  _dimsRendre();
+}
+// Ecran tourne ou fenetre redimensionnee : la mise en page etroite / large suit
+window.addEventListener('resize', function(){
+  clearTimeout(_dimsRendre._t);
+  _dimsRendre._t = setTimeout(function(){
+    const host = document.getElementById('dims-carte');
+    if (host && host.isConnected && document.getElementById('dims-svg') && _dimEtroit() !== _dimEtroitRendu) _dimsRendre();
+  }, 250);
+});
+// Redondance entre dimensions (mesure honnete, pas une supposition) -- sur les memes positions
+function _dimsCorrelations(){
+  const host = document.getElementById('dims-corr'); if (!host) return;
+  const corr = computeDimensionCorrelations(); if (!corr) return;
+  const top = corr.pairs.slice(0, 5).map(function(pr){
+    const force = Math.abs(pr.r) > 0.8 ? _tr('très forte', 'very strong') : (Math.abs(pr.r) > 0.5 ? _tr('forte', 'strong') : _tr('modérée', 'moderate'));
+    return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">'
+      + '<span style="color:var(--text)">' + _labelDimension(pr.a) + ' ↔ ' + _labelDimension(pr.b) + '</span>'
+      + '<span style="font-weight:700;color:' + (Math.abs(pr.r) > 0.8 ? '#e08050' : 'var(--gold)') + '">' + _dimDec(pr.r, 3) + ' <span style="font-weight:400;color:var(--muted);font-size:11px">(' + force + ')</span></span></div>';
+  }).join('');
+  // le plus fort lien du groupe cohesion / soutien / billes sans soutien, mesure ici (plus ecrit a la main)
+  const groupe = ['cohesionMoyenne', 'soutienMoyen', 'proportionSansSoutien'];
+  let rMax = 0;
+  corr.pairs.forEach(function(pr){ if (groupe.indexOf(pr.a) >= 0 && groupe.indexOf(pr.b) >= 0) rMax = Math.max(rMax, Math.abs(pr.r)); });
+  host.innerHTML = _carteStats(_tr('Ces dimensions sont-elles indépendantes ?', 'Are these dimensions independent?'), top,
+    _tr('Corrélation de Pearson mesurée sur les ' + _dimNb(corr.n) + ' positions. Cohésion, soutien et billes sans soutien mesurent largement la même chose (jusqu’à ' + _dimDec(rMax) + ') : ces trois axes bougent ensemble, il ne faut pas les lire comme trois informations distinctes. Aucune dimension n’est constante, donc aucune n’est inutile — mais ce groupe est redondant.',
+        'Pearson correlation measured over the ' + _dimNb(corr.n) + ' positions. Cohesion, support and unsupported marbles largely measure the same thing (up to ' + _dimDec(rMax) + '): these three axes move together and should not be read as three separate pieces of information. No dimension is constant, so none is useless — but this group is redundant.'));
 }
 
 function renderHistoriquePage(){

@@ -87,7 +87,7 @@ What it hides: **chat**, the **AI Lab**, **settings**, and **external links**. I
 - Move-by-move game analysis: every mistake in the report is clickable and replays the position
 - **Post-game analysis**: replays the positions actually reached with the AI's evaluation, and points out where the game turned and on which move the first marble was lost
 - **Understanding engine** (Analysis page): for any position, a breakdown of spatial control, support weakness, sumito potential, immediate threats, tactical depth, and 2-move mobility — a short summary by default, the numbers behind Technical mode. A targeted search ("threat in N moves") is available on request, never automatic
-- **Positional fingerprint** (same page): a 12-dimension vector per position, invariant under left-right mirroring. Capture a position as a reference, then compare any later position to it (distance shown, per-dimension detail in Technical mode). No historical position database yet — comparison on demand, between explicitly chosen positions
+- **Positional fingerprint** (same page): a 12-dimension vector per position, invariant under left-right mirroring. Capture a position as a reference, then compare any later position to it (distance shown, per-dimension detail in Technical mode). Comparison on demand between chosen positions; the 12 dimensions are also measured over every position of the real games (Game statistics page)
 - **Daily puzzle #N**: one numbered puzzle per day, the same for everyone, no account or server needed; a Wordle-style result to share (🟥🟨🟩, without spoiling the solution) and an image; a day-streak counter. Direct link: `?defi=12`
 
 **Real board**
@@ -97,6 +97,7 @@ What it hides: **chat**, the **AI Lab**, **settings**, and **external links**. I
 **Library**
 - 4,579 real games embedded (MIGS, AbalOnline, tournaments and reference games), replayable move by move
 - Opening book mined from these games
+- **Game statistics**: what these games say (first-player advantage, length, endings) and the 12 fingerprint dimensions measured over all their positions, with an explanation of percentiles, one chart for both sides, one for Black, one for White, and a slider to place a value. Everything is computed from the loaded games: the numbers follow when the corpus grows
 - **2,589 of these games republished** in [APGN](APGN.en.md) under [`games/`](games/) — the ones from the MiGs server, which closed on May 30, 2017, and for which no other known public source exists
 
 **Lab**

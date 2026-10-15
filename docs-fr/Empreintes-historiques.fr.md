@@ -47,3 +47,9 @@ Pour les parties MIGS terminées par **abandon, fin de temps ou déconnexion** (
 ## Comment y accéder
 
 Menu de jeu → onglet **Analyse**, pendant ou après une partie. La comparaison aux positions historiques (percentile, rareté, positions similaires, corrélations) s'affiche automatiquement dès que la bibliothèque a fini de se charger.
+
+## Les 12 dimensions, page Statistiques du jeu (v2.59)
+
+La page **Statistiques du jeu** montre, pour chaque dimension, le 10ᵉ centile, la médiane et le 90ᵉ centile sur toutes les positions des vraies parties, avec une explication et un dessin : les positions rangées de la plus petite valeur à la plus grande, une barre pour 1 % d'entre elles. Trois graphiques par dimension : les deux camps ensemble, les Noirs, les Blancs (une position compte pour le camp qui vient de jouer). Un curseur dit où tombe une valeur dans chacun.
+
+Pour que ces mesures portent sur **toutes** les parties que la page compte, les 93 parties du tournoi PlayStrategy et les 7 parties de référence ont reçu leurs empreintes (8 561 positions, même fonction, même convention), calculées par `node tools/empreintes-complement.js`. Ce complément ne sert qu'aux statistiques du corpus : l'IA et le panneau d'analyse restent sur la banque principale. Si une de ces parties change sans que l'outil soit relancé, un test échoue et la page signale les parties sans mesures.
