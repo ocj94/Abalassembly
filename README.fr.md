@@ -72,6 +72,7 @@ Ce qu'il masque : le **chat**, le **Labo IA**, les **paramètres** et les **lien
 **Jeu**
 - Partie contre l'IA (plusieurs niveaux, moteur alpha-bêta + PVS + quiescence dans un Web Worker — l'interface ne gèle jamais ; table de finales 2v2/3v2 consultée pendant la recherche, résultat exact dès qu'une fin de partie résolue est atteinte)
 - Mode 2 joueurs sur le même écran
+- **Liste et Commentaires**, comme dans Uncle Lolo's Abalone : les coups en tableau Coup | Noir | Blanc avec le score après chaque éjection, et un journal coup par coup (suite prévue et évaluation de l'IA, distance au centre, cohésion, billes en danger). Les deux se copient ; la Liste et le journal d'ULA s'importent tels quels
 - 18 variantes de position de départ recensées dans la bibliothèque AbalOnline (belge, german daisy, the wall, star…)
 - Pendule réelle optionnelle : cadences 5+3, 10+5, 20+10 avec incrément et défaite au temps (mode « libre » par défaut)
 - Bots conseillers (Bot Noir / Bot Blanc), duels de bots, skins de billes à débloquer, vue 3D à la demande

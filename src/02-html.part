@@ -1184,8 +1184,12 @@ footer {
      à côte) : board-msg (position:absolute; bottom:-40px) déborderait sous
      #game-board-wrap et chevaucherait la barre d'onglets juste en dessous.
      On réserve l'espace pour que le message reste visible sans rien recouvrir. */
-  #game-board-wrap { margin-bottom: 46px; }
-  .board-msg { bottom: -38px; white-space: normal; max-width: 90vw; text-align: center; }
+  /* v2.58 : le message part du BAS du cadre (top:100%), quelle que soit sa hauteur : ancre par
+     bottom:-38px, ses deux ou trois lignes remontaient sur la ligne « Projeter » ajoutee sous le
+     plateau. Il reste hors du flux : la hauteur du cadre (dont dependent les boutons de
+     rotation, places en %) ne change pas. */
+  #game-board-wrap { margin-bottom: 58px; }
+  .board-msg { top: calc(100% + 6px); bottom: auto; white-space: normal; max-width: 90vw; text-align: center; }
 }
 
 /* ─── MOBILE (≤480px) ─── */
@@ -1809,10 +1813,41 @@ body.a11y-oneaction .ctrl-btn:not(.primary):not(:hover):not(:focus) { opacity: 0
   font-size:12px; font-weight:600; color:var(--muted); cursor:pointer;
   font-family:'DM Sans',sans-serif; transition:all 0.15s; text-align:center;
 }
+.game-tabs .game-tab { flex:1 0 33.33%; padding:10px 2px; white-space:nowrap; font-size:11.5px; }   /* deux rangees de trois onglets (v2.58) */
 .game-tab:hover { color:var(--text); }
 .game-tab.active { color:var(--gold); border-bottom-color:var(--gold); }
 .game-tab-panel { display:flex; flex-direction:column; flex:1; overflow:hidden; }
 .game-tab-panel.active { display:flex; }
+/* ─── LISTE ET COMMENTAIRES DE LA PARTIE (v2.58, comme dans ULA) ─── */
+.coups-nav { display:flex; gap:4px; margin-bottom:10px; flex-wrap:wrap; }
+.coups-nav .ctrl-btn { width:auto; flex:1; padding:4px 0; font-size:12px; min-width:34px; }
+.coups-nav .coups-nav-retour { flex:1 0 100%; color:var(--gold); }
+table.liste-coups { width:100%; border-collapse:collapse; font-family:'DM Mono',monospace; font-size:12.5px; display:table !important; }   /* pas le « table { display:block } » des telephones : trois colonnes courtes tiennent */
+table.liste-coups th { position:sticky; top:-12px; z-index:1; background:var(--surface); text-align:left; font-weight:600; font-size:11px; color:var(--muted); padding:4px 6px; border-bottom:1px solid var(--border); font-family:'DM Sans',sans-serif; }
+table.liste-coups td { padding:3px 6px; border-bottom:1px solid rgba(255,255,255,0.04); white-space:nowrap; }
+table.liste-coups td.lc-num { color:var(--muted); width:2.6em; }
+table.liste-coups td.lc-coup { cursor:pointer; color:var(--text); }
+table.liste-coups td.lc-coup:hover { background:var(--surface2); }
+table.liste-coups td.lc-vide { color:var(--muted); }
+table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset:-2px; color:var(--gold); background:rgba(200,168,75,0.08); }
+.cmt { padding:8px 8px 9px; border-bottom:1px solid var(--border); cursor:pointer; border-radius:6px; }
+.cmt:hover { background:var(--surface2); }
+.cmt.cmt-courant { background:rgba(200,168,75,0.08); outline:1px dashed var(--gold-dim); outline-offset:-1px; }
+.cmt-tete { font-family:'DM Mono',monospace; font-size:13px; color:var(--white); }
+.cmt-tete b { color:var(--gold); font-weight:600; }
+.cmt-num { color:var(--muted); }
+.cmt-qui { font-family:'DM Sans',sans-serif; font-size:10px; padding:1px 6px; border-radius:8px; background:rgba(98,153,255,0.12); color:#8fb4ff; margin-left:4px; }
+.cmt-ligne { font-size:11.5px; line-height:1.45; margin-top:3px; color:var(--text); }
+.cmt-ligne.cmt-evt { color:#e3b341; }
+.cmt-ligne.cmt-ia { color:#a9c4ef; font-family:'DM Mono',monospace; font-size:11px; }
+.cmt-mes { display:grid; grid-template-columns:1fr 3.2em 3.2em; gap:1px 6px; margin-top:5px; font-size:11px; color:var(--muted); }
+.cmt-mes span:nth-child(3n+2), .cmt-mes span:nth-child(3n+3) { text-align:right; font-family:'DM Mono',monospace; color:var(--text); }
+.cmt-mes span:nth-child(-n+3) { color:var(--muted); font-family:'DM Sans',sans-serif; }
+.cmt-mes .cmt-alerte { color:#e05c4b !important; font-weight:700; }
+@media (max-width: 900px) {
+  /* telephone : colonne de droite sous le plateau, sans hauteur bornee : la liste defile dans son cadre */
+  #gpanel-liste, #gpanel-commentaires { max-height:70vh; }
+}
 
 /* ─── ÉDITEUR ─── */
 .editor-preset-btn {

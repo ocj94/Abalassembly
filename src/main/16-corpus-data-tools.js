@@ -121,6 +121,7 @@ function _replaySeqToSnapshots(seq, labelText, startColor){
      jamais l'ouverture. On ne l'insere pas dans boardSnapshots, dont l'index
      est la reference de l'export, de l'historique et de l'analyse. */
   _replayStartBoard = JSON.parse(JSON.stringify(board));
+  if (typeof _replayStartCaptures !== 'undefined') _replayStartCaptures = { b: CapturedByBlack.get(), w: CapturedByWhite.get() };
   let color=startColor||'black', played=0;
   const tokens=String(seq).replace(/\d+\./g,' ').trim().split(/\s+/).filter(Boolean);
   for(let i=0;i<tokens.length;i++){

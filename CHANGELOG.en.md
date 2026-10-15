@@ -9,6 +9,41 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.58]
+
+### Added — the game's List and Comments, as in Uncle Lolo's Abalone
+- **📋 List**: a tab next to "Game". The moves in a Move | Black | White table,
+  in Aba-Pro notation, with the score after each ejection "(2-1)" (Black-White),
+  as in ULA's List. Tap a move to see the position; ⏮ ◀ ▶ ⏭ to navigate,
+  "↩ Current game" to come back; "Copy" gives the table (for a spreadsheet or a
+  message).
+- **📝 Comments**: one block per move, as in ULA's log. For each AI move: its
+  expected continuation (the reply it expects, then the following moves), its
+  evaluation, the depth, the positions examined and the time; or where the move
+  comes from when it was not computed (opening book, real games, endgame table).
+  For each position, both sides: distance to centre, cohesion, marbles on the
+  edge, marbles in danger. Sumitos, ejections (with the score) and repeated
+  positions are flagged. "Copy" gives the whole log as text, numbered 1x, 1y…
+  as in ULA.
+- **Import a game (Aba-Pro)** accepts ULA's List and comment log pasted as they
+  are (capitals, move numbers, "(1-1)" scores, taken-back moves). The ULA game
+  Olivier sent (Belgian Daisy, 217 moves) replays in full: ejections on the same
+  moves, 6-2.
+
+### Fixed
+- **Undo**: the undone move stayed in the move list, the exports and the saved
+  game (in a puzzle, the wrong move stayed before the right one).
+- **Replay**: "Starting position" showed the one of a previously imported game
+  (the threefold-repetition rule used it as the start too), or the standard
+  layout for a game started from the editor; marbles already ejected at the
+  start of a puzzle were not counted.
+- **Phone**: below the board, "Click on your marbles…" covered the "Project"
+  row.
+
+### Tests
+- 5 new tests: importing ULA's List and log, the ULA game replayed in full with
+  the same scores, the position measures, the AI's comments, undo.
+
 ## [v2.57]
 
 ### Added — Daily puzzle #N

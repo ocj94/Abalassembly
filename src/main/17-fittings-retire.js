@@ -187,6 +187,12 @@ function addMoveToHistory(move, color, moveInfo) {
       if (typeof _majPanneauReflexion === 'function') setTimeout(_majPanneauReflexion, 0); }
   }
   _mesuresCoupIA = null;
+  // coup de l'IA joue sans recherche (livre, table de finale...) : d'ou il vient, pour les Commentaires
+  if (typeof _sourceCoupIA !== 'undefined' && _sourceCoupIA) {
+    if (_sourceCoupIA.c === color) boardSnapshots[boardSnapshots.length - 1].src = _sourceCoupIA.src;
+    _sourceCoupIA = null;
+  }
+  if (typeof _majOngletsPartieBientot === 'function') _majOngletsPartieBientot();
   if (_bookNode) bookDescend(moveInfo);   // suit l'ouverture jouée
   const replayBtn = document.getElementById('replay-btn');
   if (replayBtn && boardSnapshots.length > 1) replayBtn.style.display = 'block';
@@ -564,6 +570,7 @@ function _highlightMoveRow(idx){
   list.querySelectorAll('.move-item').forEach(function(el){
     el.classList.toggle('current', Number(el.dataset.ply) === idx + 1);
   });
+  if (typeof _majSurbrillanceOnglets === 'function') _majSurbrillanceOnglets(idx);
 }
 
 // Recalcule tous les libellés de l'historique selon les systèmes de notation actifs.
@@ -581,6 +588,7 @@ function rebuildMoveListLabels() {
     }
   });
   scrollMoveListToEnd();
+  if (typeof _majOngletsPartieBientot === 'function') _majOngletsPartieBientot();
 }
 
 // Auto-init board on canvas ready

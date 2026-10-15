@@ -222,6 +222,10 @@ function resetGame() {
   replayMode = false;
   replayCurrentIdx = -1;
   initBoardState();
+  /* position de depart de CETTE partie, pour le rejeu (⏮) et la regle de repetition : sans
+     ca, celle d'une partie importee avant restait en place (v2.58) */
+  _replayStartBoard = JSON.parse(JSON.stringify(board));
+  if (typeof _replayStartCaptures !== 'undefined') _replayStartCaptures = null;
   drawBoard();
   updateCaptures();
   updateStatus();
@@ -231,6 +235,7 @@ function resetGame() {
   if (ml) ml.innerHTML = '<div class="move-head"><span></span><span></span><span>Aba-Pro</span><span>Nacre</span></div>';
   const rb = document.getElementById('replay-btn');
   if (rb) { rb.textContent = '▶ Rejouer la partie'; }
+  if (typeof _majOngletsPartieBientot === 'function') _majOngletsPartieBientot();
   gameBestHint = null;  // efface toute suggestion
   startGameTimer();     // démarre le chronomètre
   clearSavedGame();     // nouvelle partie = efface l'ancienne sauvegarde
@@ -574,6 +579,14 @@ function doUndo() {
   myTime = st.myTime;
   oppTime = st.oppTime;
   selected = [];
+  /* L'historique suit l'annulation (v2.58). Avant, le coup annule restait dans la liste des
+     coups, les exports et la partie enregistree : une suite de coups qui n'avait jamais eu
+     lieu (et, apres une erreur dans un puzzle, le mauvais coup avant le bon). */
+  if (!(typeof variantMode !== 'undefined' && variantMode) && !(typeof replayMode !== 'undefined' && replayMode)
+      && typeof boardSnapshots !== 'undefined' && boardSnapshots.length > MoveCount.get()) {
+    boardSnapshots.length = MoveCount.get();
+    if (typeof rebuildMoveListLabels === 'function') rebuildMoveListLabels();
+  }
   updateCaptures();
   updateStatus();
   drawBoard();

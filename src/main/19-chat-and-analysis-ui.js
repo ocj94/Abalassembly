@@ -10,6 +10,8 @@ function switchGameTab(tab, btn) {
   if (panel) { panel.style.display='flex'; panel.classList.add('active'); }
   if (tab === 'bots') renderBots();
   if (tab === 'analyse') runAnalysis();
+  if (tab === 'liste' && typeof renderListeCoups === 'function') renderListeCoups();
+  if (tab === 'commentaires' && typeof renderCommentaires === 'function') renderCommentaires();
 }
 
 /* ═══════════════════════════════════════════

@@ -2766,7 +2766,7 @@ test('anglais : l aide anglaise cite les libelles traduits du site ; menu de lan
   const existe = l => valeurs.some(v => v === l || v.endsWith(' ' + l) || v.startsWith(l + ' '));
   const cites = ['Play', 'Set up your game', 'Starting layout', 'Opponent', 'Who starts?', 'Level', 'AI style', 'Max thinking time (s)', 'Time control', 'Aids',
     'Start the game', 'Customize…', 'Clock', 'Against the AI', 'Same device', 'Discovery', '↩️ Undo last move', '💡 Suggest a move', '🧠 Why this move?', '🤝 Offer a draw',
-    'Resign', '🔄 Flip', 'Copy', 'Permutations', '▸ AI reasoning', 'Eval.', 'Time', 'Under it', 'Expected line', '🔍 Analyze the game', '⚠️ Review my mistakes',
+    'Resign', '🔄 Flip', 'Copy', 'Permutations', '📋 List', '📝 Comments', '📋 Copy', '▸ AI reasoning', 'Eval.', 'Time', 'Under it', 'Expected line', '🔍 Analyze the game', '⚠️ Review my mistakes',
     '▶ Replay the game', '⟨ Previous', 'Next ⟩', '📤 Share', '📋 Export the game', 'History', '📤 Export all (Aba-Pro)', '📥 Import', '📦 Export my data (JSON)',
     '📥 Import my data (JSON)', 'Create a game', 'Join', 'Game by code', 'Game rules', 'Puzzles', 'Openings', 'Analysis', 'My statistics', 'Brain Gym',
     '⚔️ Brain Duel', 'Connect to a friend', 'Start a duel', 'Trainer course', 'Game library', 'Corpus stats', 'Endgame tables', 'AI Lab',
@@ -3077,3 +3077,141 @@ test('v2.57 defi et probleme du mois : ouverts sur le plateau de la partie, sans
     assert.strictEqual(ctx._puzzleActive, null); assert.strictEqual(bar.style.display, 'none');
   } finally { ctx._puzzleActive = pa0; ctx.document.getElementById = sG; }
 });
+
+/* ─── 53. v2.58 : Liste et Commentaires de la partie, comme dans Uncle Lolo's Abalone (ULA) ─── */
+// La partie du journal d'ULA joint par Olivier (Marguerite belge, ULA niveau 3, 217 coups, 6-2) :
+// les coups seuls, dans l'ordre final (coups repris compris)
+const ULA_PARTIE = [
+  'i9h8 a5b5 i8h7 a4b4 a1b1 i5h5 h8g7 h4h5 h9g8 g4g5f3 h8g8 i6h5 c1c3d2 c5c6d6 b1b3c1 b5b6c5',
+  'g6f6 h5g5 g8f7 h6g5 d2c2 g4g5 b2a2b1 b4c4 f7e6 a2b3a3 f8e7 b4c5 g7f7 c5d6 g9g8 f8e7',
+  'g8f8 a3b4 a1b2 c5d6 g9g8 b4a4 c3c4 f8e7 f6e5 c6d6 g8f8 a4b5 b2b3 e3f4 c1d2 d7e8',
+  'd2e3 d6c5 b1b2 c5b4 c4c5 a3b4 b3c4 h6g5 b2b3 e3f4 d2e3 b4a4 f6g7 f3f4 g7f7 a4b5a3',
+  'd4e5 h6g5 d2d3 e3f3 d4d5 d8e8 d7e7 i7h6 e5d5 b4b5 d5c5 e8f8 h8g7 f8e8 e7f8 h6h5',
+  'b5c5 g8h8 e4e5 h7g6 e6e5 h8h7 g7f7 d7d8 f7g8 f3f4 d6d5 f4f5 d4e5 a5b6 e5f6 b6c7c6',
+  'f9g9 h8h7 d3e4d4 c6d6 c2d3 h6g6 e5e6 f6f7 f9e8 c6d6 e8e7 h7g6 d7e8 g6f5 d4d5 g5f5',
+  'g9g8 e9f9 c5d6 d5d4 g6g7 h5g5 g8f8 a3b4 b5c5 d3c3 a3a4 b4b3 a4b4 b3c3 c4c5 d4d5',
+  'b4b5 b2c3 g7g8 g5f4 g8h9 d4e5 c6d6 f4e4 h9g9 d7c6 g9f9 c3d4 f9e8 f5g5 h8g8 g6f5',
+  'c2c3 g5f4 c3c4 f4e4 b4b5 c4d4 b6a5 f4e4 g7g8 c4d4 e9d8 e4f5 e8e7 e3d3 e7e6 e3f4',
+  'g9f8 c3c4 g8f8 f4g5 b5b4 c6b5 e8d7 c4d4 e7e6 f7f6 f8f7 f4f5 f3f4 f6f5 c6d6 h6g6h7',
+  'f8e7 e3d3 f3e3 g5f4 a5b6 e3f4 b6c6 b5a4 c6c5 a4b5 c4c5 g5f4 d2c2 e3f3 c2b2 f3e3',
+  'b2b3 e3d3 a3a4 b3c4 c7c6 c2b2 c6c5 b2b3 e5f6 h8g8 e4e5 c2d3 e7e6 b3b2 c3b3 e3d3',
+  'b3b4 b6c6 c4c5 f4g5 c5c6 d4d5c4 c7d7 c3c4d4 g7f6 b2c3b3 d7e7 g7g6 f7f6 b3c4 f7f6 f3e3',
+  'a4b5 e3d2 d7e7 g8h8 e7f7 h8i8 f7g7 i7h6 e5f5 d5c5 a5b6 h5h6 d8d7 d3c3 d7d6 i8h7',
+  'd5d4 d1e2 d3c2 b5c5 c2d2 f2f3 e2d2e3 h7g6 d3e3 g3g4 e3f4 i7h7 f6e5 c3c4 c7d7 e6f6',
+  'd6d7e6 c4d5 e7f7 i7i6 h8h7 c5d6 c2d3 d6c6 d3d4 c6b6c5 b4c4 d6d7 g7f7 d7c6 e7d6 c6b5',
+  'f7e7 a4b4 d4e5 g7f7 h7g7 g6f5 f6g6 d3e4 f3f4 c5b4 e5d5 f6e6 d5c5 a5b6 g7f6 f7e6',
+  'b5c5 b6b5 d5c5 a5b6 h5g5 a3a2 e5d4 d6d5 d3c3 e6e5 c3b3 a2b2 e7d6 d4d5 h7h6 e4e5',
+  'f5e4 e6e5 f6f5 b2c3 b3c4 c3d4 c4d5 e4e5 f5e4 g4f3 f4g4 f7e6 g4h5 g6f5 i6i5 f3f4',
+  'b5c6 b6b5 c6d7 b5b4 c5c4 f4f5 i5g5h4 b4c5 d7e7 c5d6 e8f8 e7e6 e2e3d2 d6d5 d1d2e2 f6f5',
+  'f9f8 b3b4 h4g4h5 d4e5 c3d4 b4c5 f3e3 e6e5 e1e2d1 d5e5 h5h6 e5f6 h8g8 f4f5 f9e8 g5g6',
+  'd7e8d6 c5d5 c4d4 f7e6 d1d2c1 f4f5 i5h5 f5e5 h5h6g4 e3f4 g5f5 d5e5 f8e7 e6e5 c5d5 f7e6',
+  'e3d3 b3b4 c1c2 g7f6 d3c3 g6f6 c2c3 d6e6 e7d6 g6f6 b6b5 e4f5 g4g5 e6f6 h6g5 e3e4',
+  'g8f7 g7g6 f7e6 g6g5 g3f3 g4g5 h7g7 g6h6 f3e3 h6g6 e3d3 g6f5 c2b2 d3e4 a2a3 g6g5',
+  'g7f7 g4g5 f7e7 g6g7 e6e7 e4e5 b3c4 g7f7 c4d5 g8g7 b2c3b3 g7g6 d7d8 f6f5 f3e3 g6f5',
+  'e3d3 f4f5 d8e8 e4e3 e8f9 e3e4 f9f8 d6e7 f6f7 f9e8 g9f8 e8d8 f7e7 f4e3 c6d7 e3f4',
+  'f8e8'
+].join(' ');
+
+function _bacPartie(fn) {
+  const sauve = { b: ctx.board, s: ctx.boardSnapshots, l: ctx.currentLayout, cb: ctx.CapturedByBlack.get(), cw: ctx.CapturedByWhite.get(), go: ctx.GameOver.get(),
+    rm: ctx.replayMode, ri: ctx.replayCurrentIdx, mc: ctx.MoveCount.get() };
+  const stubs = {}; ['showToast', 'rebuildMoveListLabels', 'loadSnapshot', 'closeMigsBrowser', 'updateCaptures', 'updateStatus', 'drawBoard'].forEach(k => { stubs[k] = ctx[k]; ctx[k] = () => {}; });
+  try { return fn(); } finally {
+    Object.keys(stubs).forEach(k => { ctx[k] = stubs[k]; });
+    ctx.board = sauve.b; ctx.boardSnapshots = sauve.s; ctx.currentLayout = sauve.l; ctx.CapturedByBlack.set(sauve.cb); ctx.CapturedByWhite.set(sauve.cw);
+    ctx.GameOver.set(sauve.go); ctx.replayMode = sauve.rm; ctx.replayCurrentIdx = sauve.ri; ctx.MoveCount.set(sauve.mc);
+  }
+}
+
+test('v2.58 import : la Liste et le journal d ULA se collent tels quels (majuscules, numeros, scores, coups repris)', () => {
+  assert.deepStrictEqual(Array.from(ctx._jetonsAbaPro('Coup\tNoir\tBlanc\n54\tE8E7\tH7G6\n59\tG6G7(1-1)\tH5G5')), ['e8e7', 'h7g6', 'g6g7', 'h5g5']);
+  assert.deepStrictEqual(Array.from(ctx._jetonsAbaPro('1.e5f6 c3b2 2.d1e3')), ['e5f6', 'c3b2', 'd1e3'], 'l export du site reste lisible');
+  const journal = ['1x. I9H8', 'somme des distances au centre noirs,blancs : 43 ,46', 'Temps : 0,4 s',
+    '1y. A5B5 (suite prévue: I8H7 - A4B4 - C2C3D3 -  évaluation16)', '2x. I8H7', '2y. A4B4 (suite prévue: A1B1 - G4G5F4 - G7G8F7 -  évaluation13)',
+    '2x. A1B1', 'Répétition trouvée, on évite le coup F7F6'].join('\r\n');
+  assert.deepStrictEqual(Array.from(ctx._jetonsAbaPro(journal)), ['i9h8', 'a5b5', 'a1b1'], 'seuls les coups joues ; le 2x repris remplace la suite');
+});
+
+test('v2.58 liste : la partie d ULA se rejoue en entier ; le score apres chaque ejection est celui de la Liste d ULA', () => _bacPartie(() => {
+  ctx.currentLayout = 'belgian'; ctx.initBoardState(); ctx.CapturedByBlack.set(0); ctx.CapturedByWhite.set(0);
+  ctx._replaySeqToSnapshots(ULA_PARTIE, 'ULA', 'black');
+  const S = ctx.boardSnapshots;
+  assert.strictEqual(S.length, 433); assert.strictEqual(S[432].capturedByBlack + '-' + S[432].capturedByWhite, '6-2');
+  const L = ctx._demiCoups();
+  const avecScore = L.filter(d => /\(/.test(d.n)).map(d => d.num + (d.col === 'black' ? 'x' : 'y') + ' ' + d.n);
+  // tels quels dans la Liste d'ULA : 26y C5B4(0-1), 59x G6G7(1-1), 60x G8F8(2-1), 70x G9F9(3-1), 107x C5C6(4-1), 132y D6C6(4-2), 159x G4H5(5-2), 217x F8E8(6-2)
+  assert.deepStrictEqual(Array.from(avecScore), ['26y c5b4 (0-1)', '59x g6g7 (1-1)', '60x g8f8 (2-1)', '70x g9f9 (3-1)', '107x c5c6 (4-1)', '132y d6c6 (4-2)', '159x g4h5 (5-2)', '217x f8e8 (6-2)']);
+  // le tableau : 217 lignes Coup | Noir | Blanc ; la derniere sans coup blanc
+  const hote = { innerHTML: '', dataset: {}, querySelector: () => null, closest: () => null };
+  const sG = ctx.document.getElementById; ctx.document.getElementById = id => id === 'liste-coups' ? hote : sG.call(ctx.document, id);
+  try { ctx.renderListeCoups(); } finally { ctx.document.getElementById = sG; }
+  const lignes = hote.innerHTML.match(/<tr>/g).length - 1;
+  assert.strictEqual(lignes, 217);
+  assert.match(hote.innerHTML, /<td class="lc-num">1<\/td><td class="lc-coup[^"]*" data-i="0"[^>]*>i9h8<\/td><td class="lc-coup[^"]*" data-i="1"[^>]*>a5b5<\/td>/);
+  assert.match(hote.innerHTML, /<td class="lc-num">217<\/td><td [^>]*data-i="432"[^>]*>f8e8 \(6-2\)<\/td><td class="lc-vide">…<\/td>/);
+  // la distance au centre : celle d'ULA dans les positions calmes (ses sept premiers chiffres)
+  ctx.currentLayout = 'belgian'; ctx.initBoardState();
+  const ula = [[43, 46], [43, 43], [41, 43], [41, 41], [41, 41], [41, 38], [38, 38]];
+  ula.forEach((v, i) => { const m = ctx.mesuresPosition(S[i].board); assert.deepStrictEqual([m.centre.black, m.centre.white], v, 'demi-coup ' + (i + 1)); });
+}));
+
+test('v2.58 mesures : distance au centre, cohesion, bord, billes en danger', () => {
+  // trois noires alignees au centre : distances 0 + 1 + 1, deux paires voisines, aucune au bord
+  let m = ctx.mesuresPosition({ '4,4': 'black', '4,3': 'black', '4,5': 'black' });
+  assert.strictEqual(m.centre.black, 2); assert.strictEqual(m.coh.black, 2); assert.strictEqual(m.bord.black, 0); assert.strictEqual(m.danger.black, 0);
+  // une blanche au bord, deux noires derriere elle dans l'axe : ejectable (2 contre 1)
+  m = ctx.mesuresPosition({ '4,0': 'white', '4,1': 'black', '4,2': 'black' });
+  assert.strictEqual(m.bord.white, 1); assert.strictEqual(m.danger.white, 1); assert.strictEqual(m.danger.black, 0);
+  // deux blanches au bord contre deux noires : pas de sumito, pas de danger
+  m = ctx.mesuresPosition({ '4,0': 'white', '4,1': 'white', '4,2': 'black', '4,3': 'black' });
+  assert.strictEqual(m.danger.white, 0);
+  // trois contre deux : danger
+  m = ctx.mesuresPosition({ '4,0': 'white', '4,1': 'white', '4,2': 'black', '4,3': 'black', '4,4': 'black' });
+  assert.strictEqual(m.danger.white, 1, 'une seule sort au prochain coup : celle du bord');
+});
+
+test('v2.58 commentaires : la suite prevue et l evaluation de l IA, la source d un coup non calcule, rien d attribue a l IA dans une partie importee', () => _bacPartie(() => {
+  ctx.currentLayout = 'standard'; ctx.initBoardState(); ctx.CapturedByBlack.set(0); ctx.CapturedByWhite.set(0);
+  const jouer = (col, k) => {
+    const mv = ctx.getAllMovesForColor(col)[k]; const avant = JSON.parse(JSON.stringify(ctx.board));
+    ctx.applyMove({ cells: mv.cells, dir: mv.dir, info: mv.info }, col);
+    return { mv: mv, s: { board: JSON.parse(JSON.stringify(ctx.board)), avant: avant, color: col, capturedByBlack: 0, capturedByWhite: 0,
+      moveInfo: { cells: mv.cells, dir: mv.dir, type: mv.info.type, ejection: false }, label: '' } };
+  };
+  const a = jouer('black', 0), b = jouer('white', 0), c = jouer('black', 1), d = jouer('white', 1), e = jouer('black', 2);
+  // le coup blanc b est « calcule » : suite prevue = c puis d puis e
+  b.s.ia = { e: 16, p: 4, t: 412, detail: { prof: [{ d: 4, total: 40, noeuds: 5000, fin: 400, lignes: [{ pv: [c.mv, d.mv, e.mv].map(x => ({ cells: x.cells, dir: x.dir })) }] }] } };
+  d.s.src = 'livre';
+  ctx.boardSnapshots = [a.s, b.s, c.s, d.s, e.s];
+  const L = ctx._demiCoups();
+  const cb = ctx._lignesCommentaire(L[1], L, 1);
+  assert.ok(cb.estIA);
+  const txt = cb.lignes.map(x => x.t).join(' | ');
+  assert.ok(txt.indexOf('Suite prévue : ' + [c, d, e].map(x => ctx.moveToABAPRO(x.mv.cells, x.mv.dir, x.mv.info.type)).join(' - ')) === 0, txt);
+  assert.match(txt, /Évaluation \+16 pour l’IA · profondeur 4 · 5\s000 positions · 412 ms/);
+  assert.match(ctx._lignesCommentaire(L[3], L, 1).lignes[0].t, /Coup du livre d’ouvertures/);
+  // sans reflexion ni source (partie importee, ou a deux) : pas « IA »
+  assert.strictEqual(ctx._lignesCommentaire(L[2], L, 1).estIA, false);
+  assert.strictEqual(ctx._lignesCommentaire(L[4], L, 1).estIA, false);
+  // le texte a copier : la numerotation d'ULA (1x, 1y...)
+  const t = ctx.texteCommentaires().split('\n');
+  assert.match(t[1], /^1x\. /); assert.match(t.find(l => /^1y\. /.test(l)), /\(IA\)$/); assert.ok(t.some(l => /^\s+distance au centre noirs,blancs : \d+, \d+/.test(l)));
+}));
+
+test('v2.58 annulation : le coup annule quitte la liste, les commentaires et l historique', () => _bacPartie(() => {
+  ctx.currentLayout = 'standard'; ctx.initBoardState();
+  const s0 = ctx.undoStack;
+  try {
+    ctx.boardSnapshots = [{ color: 'black' }, { color: 'white' }, { color: 'black' }];
+    ctx.MoveCount.set(3);
+    ctx.undoStack = [{ board: JSON.parse(JSON.stringify(ctx.board)), capturedByBlack: 0, capturedByWhite: 0, moveCount: 2, currentTurn: 'black', myTime: 0, oppTime: 0 }];
+    ctx.replayMode = false;
+    ctx.doUndo();
+    assert.strictEqual(ctx.boardSnapshots.length, 2);
+    // en rejeu ou en variante, l'historique de la partie n'est jamais raccourci
+    ctx.boardSnapshots = [{}, {}, {}]; ctx.MoveCount.set(3); ctx.replayMode = true;
+    ctx.undoStack = [{ board: JSON.parse(JSON.stringify(ctx.board)), capturedByBlack: 0, capturedByWhite: 0, moveCount: 1, currentTurn: 'black', myTime: 0, oppTime: 0 }];
+    ctx.doUndo();
+    assert.strictEqual(ctx.boardSnapshots.length, 3);
+  } finally { ctx.undoStack = s0; }
+}));
