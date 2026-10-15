@@ -908,10 +908,11 @@ function getOpeningMove(aiCol, legalMoves) {
       if (l && !(l in byLabel)) byLabel[l] = mv;
     }
     // Candidats du livre RÉSOLVABLES en coup légal, choisis par fréquence (avec variété)
+    // — jamais un coup qui reviendrait en arrière (v2.59, voir _coupRetourEnArriere)
     const resolvable = [];
     for (const t of entry.moves) {
       const want = (t.from + t.to).toLowerCase();
-      if (byLabel[want]) resolvable.push({ mv: byLabel[want], freq: t.freq || 1 });
+      if (byLabel[want] && !_coupRetourEnArriere(byLabel[want], aiCol)) resolvable.push({ mv: byLabel[want], freq: t.freq || 1 });
     }
     if (!resolvable.length) return null;
     let total = 0; for (const x of resolvable) total += x.freq;

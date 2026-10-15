@@ -4,7 +4,7 @@
 
 Three maps for understanding how Abalassembly is built. They are **written by hand** and need to be updated when the architecture changes — unlike the site's own "AI briefing" page, which computes everything at runtime.
 
-Checked against the code at time of writing (v2.45).
+Checked against the code at time of writing (v2.45); diagram 1 reviewed in v2.59.
 
 ---
 
@@ -17,8 +17,8 @@ flowchart TD
     A[AI's turn] --> B{Opening book<br/>covers the position?}
     B -->|yes| B1[Move drawn at random,<br/>weighted by frequency × win rate]
     B -->|no| C{Fewer than 20 moves played?}
-    C -->|yes| C1{Close position found<br/>among 418,595 fingerprints?}
-    C1 -->|yes| C2[Move from the closest<br/>historical position]
+    C -->|yes| C1{Same position found<br/>in a real game?<br/>checked by replaying it}
+    C1 -->|yes| C2[Move played from<br/>that position]
     C1 -->|no| D
     C -->|no| D{Fewer than 16 moves<br/>and static book available?}
     D -->|yes| D1[Move from the static book]
@@ -41,7 +41,7 @@ flowchart TD
     style F fill:#1a3a3a
 ```
 
-**Worth noting**: the historical-fingerprint fallback, sitting between the two books, is easy to forget — it only kicks in during the first twenty moves, when the main book doesn't know the exact position but a very close one exists in the corpus.
+**Worth noting**: the real-games fallback, sitting between the two books, is easy to forget — it only kicks in during the first twenty moves, when the main book has lost track of the game but the **same** position (reached in a different order) exists in the corpus. Fingerprints are only used to find candidates: each one is checked by replaying its game, and the move played next in that game is kept only if it doesn't bring back a position already seen and doesn't undo the same side's previous move. Both books follow the same rule. Up to v2.58, this fallback took the *closest* historical position, with no threshold: it played moves from other games, often from another starting layout, and went back and forth (h9g8 then g8h9).
 
 ---
 
