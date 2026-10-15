@@ -4,7 +4,7 @@
 
 Trois cartes pour comprendre comment Abalassembly est construit. Elles sont **écrites à la main** et doivent être mises à jour quand l'architecture change — contrairement à la « Fiche pour IA » du site, qui compte tout à l'exécution.
 
-Vérifié contre le code au moment de la rédaction (v2.45).
+Vérifié contre le code au moment de la rédaction (v2.45) ; schéma 1 revu en v2.59.
 
 ---
 
@@ -17,8 +17,8 @@ flowchart TD
     A[Tour de l'IA] --> B{Livre d'ouvertures<br/>couvre la position ?}
     B -->|oui| B1[Coup tiré au sort,<br/>pondéré fréquence × taux de victoire]
     B -->|non| C{Moins de 20 coups joués ?}
-    C -->|oui| C1{Position proche dans<br/>les 418 595 empreintes ?}
-    C1 -->|oui| C2[Coup de la position<br/>historique la plus proche]
+    C -->|oui| C1{La même position existe<br/>dans une partie réelle ?<br/>vérifiée en la rejouant}
+    C1 -->|oui| C2[Coup joué depuis<br/>cette position]
     C1 -->|non| D
     C -->|non| D{Moins de 16 coups<br/>et livre statique ?}
     D -->|oui| D1[Coup du livre statique]
@@ -41,7 +41,7 @@ flowchart TD
     style F fill:#1a3a3a
 ```
 
-**À noter** : le repli par empreintes historiques, entre les deux livres, est facile à oublier — il ne s'active que dans les vingt premiers coups, quand le livre principal ne connaît pas la position exacte mais qu'une position très proche existe dans le corpus.
+**À noter** : le repli par les parties réelles, entre les deux livres, est facile à oublier — il ne s'active que dans les vingt premiers coups, quand le livre principal a perdu la trace de la partie mais que la **même** position (atteinte dans un autre ordre) existe dans le corpus. Les empreintes ne servent qu'à trouver les candidates : chacune est vérifiée en rejouant sa partie, et le coup joué ensuite dans cette partie n'est retenu que s'il ne ramène pas une position déjà vue et ne défait pas le coup précédent du même camp. Même règle pour les deux livres. Jusqu'à la v2.58, ce repli prenait la position historique *la plus proche*, sans seuil : il jouait des coups d'autres parties, souvent d'une autre disposition, et faisait des allers-retours (h9g8 puis g8h9).
 
 ---
 

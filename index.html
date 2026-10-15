@@ -18403,22 +18403,47 @@ function _gameHistKeys(){
   try { return boardSnapshots.slice(-60).map(function(s){ return _repKeyOf(s.board); }); }
   catch(e){ return []; }
 }
+// ── Aller-retour (v2.59) : un coup qui remet MES billes exactement comme avant
+// mon coup précédent coûte 140·n² (n = 1, puis 2 si mon coup précédent était déjà
+// un aller-retour, 3 au-delà). La règle des positions déjà vues ne le voyait pas :
+// pendant que l'adversaire avance ailleurs, la position complète ne se répète
+// jamais (mesuré sur des parties simulées au niveau 3 : f4f5 puis f7f6, quatre
+// fois de suite). Au plus 1260, jamais une bille (≈2000) : un vrai danger fait
+// toujours reculer. La même règle vit dans le fil de calcul (AI_WORKER_CODE) :
+// les garder identiques.
+function _mesBillesCle(k, pov){ return k.replace(pov === 'black' ? /w/g : /b/g, '-'); }
+function _allerRetourRef(hist, pov){
+  if (!hist || hist.length < 3) return null;
+  // D[0] = mes billes maintenant, D[1] = avant mon coup précédent, D[2] = avant celui d'avant…
+  const D = [];
+  for (let i = hist.length - 1; i >= 0 && D.length < 8; i -= 2) D.push(_mesBillesCle(hist[i], pov));
+  let n = 1;
+  for (let k = 0; k + 2 < D.length && D[k] === D[k + 2] && n < 3; k++) n++;
+  return { cle: D[1], n: n };
+}
 function searchBestMove(povColor, maxDepth, timeLimitMs, hist) {
   const start = Date.now();
   let bestMove = null;
   killerMoves = {}; historyTable = {}; TT.clear(); _nodesSearched = 0;
-  const repCount = _repCountMap(hist);
+  const repCount = _repCountMap(hist), ar = _allerRetourRef(hist, povColor);
   for (let d = 1; d <= maxDepth; d++) {
     let moves = getAllMovesForColor(povColor);
     if (!moves.length) break;
     moves = orderMoves(moves, d, null);
+    // v2.59 : le meilleur coup de la profondeur précédente d'abord (même règle que
+    // dans le fil de calcul : une profondeur coupée par le temps ne rend plus un
+    // coup pire que lui) ; à score égal, l'ordre d'avant décide
+    const rang = new Map(); moves.forEach(function(m, i){ rang.set(m, i); });
+    if (bestMove) { const bk = moveKey(bestMove); const ip = moves.findIndex(function(m){ return moveKey(m) === bk; }); if (ip > 0) moves.unshift(moves.splice(ip, 1)[0]); }
     let localBest = null, localScore = -Infinity, alpha = -Infinity;
     for (const m of moves) {
       const undo = applyMove(m, povColor);
       let score = search(d-1, -Infinity, Infinity, false, povColor);
-      if (repCount) { const rc = repCount.get(_boardRepKey()); if (rc) score -= 140*rc*rc; }
+      const cle = (repCount || ar) ? _boardRepKey() : null;
+      if (repCount) { const rc = repCount.get(cle); if (rc) score -= 140*rc*rc; }
+      if (ar && _mesBillesCle(cle, povColor) === ar.cle) score -= 140*ar.n*ar.n;
       undoMove(undo);
-      if (score > localScore) { localScore = score; localBest = m; }
+      if (score > localScore || (score === localScore && localBest && rang.get(m) < rang.get(localBest))) { localScore = score; localBest = m; }
       if (score > alpha) alpha = score;
       if (Date.now() - start > timeLimitMs) break;
     }
@@ -18937,12 +18962,18 @@ function search(depth,alpha,beta,maxi,pov,prevKey){
 }
 function _repKeyOf(bd){let s='';for(let r=0;r<9;r++){for(let c=0;c<ROWS[r];c++){const v=bd[r+','+c];s+=v?(v==='black'?'b':'w'):'-';}}return s;}
 function _repCountMap(h){if(!h||!h.length)return null;const m=new Map();for(const k of h)m.set(k,(m.get(k)||0)+1);return m;}
+/* Aller-retour (v2.59) : meme regle que _allerRetourRef cote page (voir son commentaire) --
+   un coup qui remet MES billes comme avant mon coup precedent coute 140*n*n, n <= 3. */
+function _mesBillesCle(k,pov){return k.replace(pov==='black'?/w/g:/b/g,'-');}
+function _allerRetourRef(hist,pov){if(!hist||hist.length<3)return null;const D=[];
+  for(let i=hist.length-1;i>=0&&D.length<8;i-=2)D.push(_mesBillesCle(hist[i],pov));
+  let n=1;for(let k=0;k+2<D.length&&D[k]===D[k+2]&&n<3;k++)n++;return {cle:D[1],n:n};}
 function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
   const start=Date.now();let bestMove=null,bestScore=-Infinity,reached=0,lastRoots=null,lastRootsDepth=0;
   const rootsByDepth={},ejCache={},opp=(pov==='black'?'white':'black');
   const depthInfo={},posTerms=evalDetail(pov);   // tableau « Reflexion IA » : bilan par profondeur, criteres de la position
   killerMoves={};historyTable={};counterMove={};TT.clear();_nodes=0;_ttLk=0;_ttHit=0;
-  const repCount=_repCountMap(hist);
+  const repCount=_repCountMap(hist),ar=_allerRetourRef(hist,pov);
   const split=(workerCount>1);   // partage des racines entre plusieurs workers (voir requestAIMovePooled)
   for(let d=1;d<=maxDepth;d++){
     let moves=getAllMovesForColor(pov);if(!moves.length)break;
@@ -18965,9 +18996,22 @@ function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
        N'affecte pas l'ordonnancement alpha-beta : orderMoves passe apres. */
     if(split){moves=moves.slice().sort(function(a,b){const ka=moveKey(a),kb=moveKey(b);return ka<kb?-1:(ka>kb?1:0);}).filter(function(m,idx){return idx%workerCount===workerIndex;});if(!moves.length)break;}
     moves=orderMoves(moves,d,null);
+    /* v2.59 -- profondeur coupee par le minuteur : le coup rendu etait le meilleur
+       des SEULS coups deja examines a cette profondeur, souvent le premier de la
+       liste, meme bien pire que le meilleur de la profondeur precedente (mesure :
+       jusqu'a 1952 points, presque une bille, voir CHANGELOG v2.59) -- et la
+       penalite d'aller-retour ne compte que si les autres coups ont ete examines.
+       Le meilleur coup de la profondeur precedente est donc examine EN PREMIER :
+       une profondeur coupee rend un coup au moins aussi bon que lui a cette
+       profondeur. A score egal, l'ordre d'avant decide (meme choix qu'avant
+       quand la profondeur va au bout). */
+    const rang=new Map();moves.forEach(function(m,i){rang.set(m,i);});
+    if(bestMove){const bk=moveKey(bestMove);const ip=moves.findIndex(function(m){return moveKey(m)===bk;});if(ip>0)moves.unshift(moves.splice(ip,1)[0]);}
     let lb=null,ls=-Infinity,alpha=-Infinity,roots=[],cut=false;const _nd0=_nodes,_td0=Date.now();
     for(const m of moves){const mk=moveKey(m);const _n0=_nodes,_t0=Date.now();const u=applyMove(m,pov);let s=search(d-1,-Infinity,Infinity,false,pov,mk);
-      if(repCount){const rc=repCount.get(_repKeyOf(board));if(rc)s-=140*rc*rc;}
+      const ck=(repCount||ar)?_repKeyOf(board):null;
+      if(repCount){const rc=repCount.get(ck);if(rc)s-=140*rc*rc;}
+      if(ar&&_mesBillesCle(ck,pov)===ar.cle)s-=140*ar.n*ar.n;
       /* Menace adverse IMMEDIATE apres ce coup : compte exact des ejections
          dont dispose l'adversaire au pli suivant. Un fait verifiable a 1 pli,
          pas une projection -- ce moteur n'enregistre aucune variante
@@ -18983,7 +19027,7 @@ function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
       }
       undoMove(u);
       roots.push({cells:m.cells,dir:m.dir,type:m.type,eject:m.eject,score:s,oppEject:ejCache[mk],key:mk,k:_nodes-_n0,ms:Date.now()-_t0,t:Date.now()-start});
-      if(s>ls){ls=s;lb=m;}if(s>alpha)alpha=s;if(Date.now()-start>timeLimit){cut=true;break;}}
+      if(s>ls||(s===ls&&lb&&rang.get(m)<rang.get(lb))){ls=s;lb=m;}if(s>alpha)alpha=s;if(Date.now()-start>timeLimit){cut=true;break;}}
     // bestScore=ls (pas lastRoots[0].score) : correct meme si cette profondeur a
     // ete coupee par le minuteur avant d'explorer tous les coups — lastRoots ne
     // change alors pas (garde la profondeur precedente, complete), donc le lire
@@ -20606,10 +20650,11 @@ function getOpeningMove(aiCol, legalMoves) {
       if (l && !(l in byLabel)) byLabel[l] = mv;
     }
     // Candidats du livre RÉSOLVABLES en coup légal, choisis par fréquence (avec variété)
+    // — jamais un coup qui reviendrait en arrière (v2.59, voir _coupRetourEnArriere)
     const resolvable = [];
     for (const t of entry.moves) {
       const want = (t.from + t.to).toLowerCase();
-      if (byLabel[want]) resolvable.push({ mv: byLabel[want], freq: t.freq || 1 });
+      if (byLabel[want] && !_coupRetourEnArriere(byLabel[want], aiCol)) resolvable.push({ mv: byLabel[want], freq: t.freq || 1 });
     }
     if (!resolvable.length) return null;
     let total = 0; for (const x of resolvable) total += x.freq;
@@ -20752,7 +20797,11 @@ function bookDescend(moveInfo){
 // choisit une continuation du livre (tirage pondéré par fréquence × taux de victoire) qui soit LÉGALE
 function pickBookMove(node, legalMoves){
   if(!node || !node.k) return null;
-  const ids = Object.keys(node.k);
+  // v2.59 : un coup qui reviendrait en arriere (position deja vue, aller-retour)
+  // n'est jamais tire au sort -- voir _coupRetourEnArriere
+  const exclus = new Set();
+  for(const m of legalMoves){ const id = canonId(m); if(node.k[id] && _coupRetourEnArriere(m)) exclus.add(id); }
+  const ids = Object.keys(node.k).filter(function(id){ return !exclus.has(id); });
   if(!ids.length) return null;
   // poids = fréquence × (0.5 + taux de victoire du joueur ayant joué ce coup), borné
   // Le "0.5 +" evite qu'un coup jamais gagnant (wr=0) ait un poids nul (donc
@@ -20775,56 +20824,171 @@ function pickBookMove(node, legalMoves){
   return null;
 }
 
-/* Repli "livre" par empreintes historiques : quand la position exacte n'est
-   pas connue de OPENING_TREES, on cherche parmi les 418595 empreintes
-   reconstruites la plus proche PARTAGEANT LE MEME TRAIT et un nombre de
-   coups comparable. Dans l'enregistrement trouve (ply m, couleur c), le
-   coup que ce meme camp a rejoue ENSUITE dans cette partie reelle se
-   trouve a l'indice m+2 de la sequence (m est son propre coup, m+1 la
-   reponse adverse, m+2 son coup suivant). On ne le propose QUE s'il est
-   verifie legal sur le plateau actuel (resolveAbaProToken) — jamais
-   fabrique, jamais applique aveuglement. Ne touche pas evaluateBoard :
-   la Lab a etabli qu'ajouter des criteres a la fonction d'evaluation
-   degrade ses performances ; ce repli reste un choix de coup en amont
-   de la recherche, pas une modification des poids d'evaluation. */
-function pickEmpreinteFallbackMove(color, legalMoves, moveCountActuel){
-  if (typeof EMPREINTES_HISTORIQUES === 'undefined' || !EMPREINTES_HISTORIQUES.length) return null;
-  if (!legalMoves || !legalMoves.length) return null;
-  const emp = calculerEmpreinte(color);
-  let meilleur = null, meilleureDist = Infinity;
-  const D = EMPREINTES_CHAMPS.length;
-  if (EMPREINTES_FLAT) {
-    const empFlat = new Float64Array(D);
-    for (let c = 0; c < D; c++) empFlat[c] = emp[EMPREINTES_CHAMPS[c]];
-    for (let i = 0; i < EMPREINTES_HISTORIQUES.length; i++) {
-      const p = EMPREINTES_HISTORIQUES[i];
-      if (p.c !== color) continue;
-      if (Math.abs(p.m - moveCountActuel) > 6) continue;
-      const off = i * D;
-      let sq = 0;
-      for (let c = 0; c < D; c++) { const diff = empFlat[c] - EMPREINTES_FLAT[off+c]; sq += diff*diff; }
-      const d = Math.sqrt(sq);
-      if (d < meilleureDist) { meilleureDist = d; meilleur = p; }
+/* Repli "livre" par les parties reelles, quand l'arbre (OPENING_TREES) a
+   perdu la trace de la partie : la MEME position, atteinte dans un autre
+   ordre (transposition), existe-t-elle dans une des 4479 parties du corpus ?
+   Si oui, on joue ce que les joueurs y ont joue.
+
+   Ce que faisait ce repli jusqu'a la v2.58, et pourquoi c'etait faux
+   (allers-retours h9g8 / g8h9 vus contre l'IA niveau 3) :
+   - il prenait l'empreinte la plus PROCHE, sans aucun seuil : une position
+     sans rapport (autre disposition de depart, autre partie) donnait son coup ;
+   - il comparait la position, ou l'IA est au trait, a des positions ou
+     c'etait a l'ADVERSAIRE de jouer (un enregistrement {m, c} decrit la
+     position juste apres le coup m du camp c, vue de c -- verifie en
+     rejouant des parties : distance 0,001 pour {m, c} apres m+1 demi-coups),
+     puis rejouait le coup m+2, joue dans une position que l'adversaire avait
+     deja changee ;
+   - rien n'empechait de revenir a une position deja vue, ni de defaire son
+     propre coup precedent.
+   Mesure avant correction (parties simulees, voir CHANGELOG v2.59) : la
+   majorite des coups de l'IA des 20 premiers demi-coups venaient de ce repli.
+
+   Depuis la v2.59 :
+   1. on compare la position actuelle, vue du camp qui VIENT de jouer, aux
+      enregistrements de ce camp (meme trait), a 6 demi-coups pres ;
+   2. seuls les enregistrements quasi identiques comptent (distance < 0,01 :
+      l'arrondi du stockage donne au plus 0,002 pour la meme position) ;
+   3. chacun est VERIFIE : on rejoue sa partie jusqu'a ce coup, et la
+      position doit etre exactement la notre (memes billes, memes ejections) ;
+      on joue alors la reponse jouee dans cette partie (coup m+1) ;
+   4. jamais un coup qui ramene une position deja vue dans la partie, ni qui
+      defait le coup precedent du meme camp ;
+   5. plusieurs parties d'accord : tirage pondere par le nombre de parties.
+   Rien de verifie : null, et la recherche decide. Ne touche pas evaluateBoard
+   (la Lab a etabli qu'ajouter des criteres a l'evaluation la degrade). */
+const EMP_SEUIL_IDENTIQUE = 0.01, EMP_MAX_VERIFS = 16, EMP_FENETRE = 6;
+let _empIndexDemiCoups = null;     // demi-coup m -> indices des enregistrements (construit une fois)
+const _empRejeux = new Map();      // 'MIGS:12' -> positions de la partie rejouee (cache borne)
+function _empIndex(){
+  if (_empIndexDemiCoups && _empIndexDemiCoups.n === EMPREINTES_HISTORIQUES.length) return _empIndexDemiCoups.t;
+  const parM = [];
+  for (let i = 0; i < EMPREINTES_HISTORIQUES.length; i++) {
+    const m = EMPREINTES_HISTORIQUES[i].m;
+    if (m > 40) continue;            // seul le debut de partie sert ici
+    (parM[m] || (parM[m] = [])).push(i);
+  }
+  _empIndexDemiCoups = { n: EMPREINTES_HISTORIQUES.length, t: parM.map(function(a){ return a ? Int32Array.from(a) : null; }) };
+  return _empIndexDemiCoups.t;
+}
+// position de depart d'une partie du corpus, sans toucher au jeu en cours
+function _empDepartPartie(s, jeu){
+  const bd = {};
+  if (s === 'MIGS') {                // MIGS : toujours la Marguerite belge (comme loadMigsGame)
+    LAYOUTS.belgian.black.forEach(function(p){ bd[p[0]+','+p[1]] = 'black'; });
+    LAYOUTS.belgian.white.forEach(function(p){ bd[p[0]+','+p[1]] = 'white'; });
+    return { board: bd, cb: 0, cw: 0 };
+  }
+  // AbalOnline : meme lecture que _setupFromAOStart, sans modifier les compteurs du jeu
+  const parts = String(jeu[5]).split(','); if (parts.length !== 2) return null;
+  const perdues = [];
+  for (let i = 0; i < 2; i++) {
+    const m = parts[i].match(/^(\d)(.*)$/); if (!m) return null;
+    const cases = m[2].match(/[a-i][1-9]/g) || [];
+    for (const cc of cases) { const rc = abaproToRc(cc); if (!rc) return null; bd[rc.r+','+rc.c] = i === 0 ? 'black' : 'white'; }
+    perdues.push(parseInt(m[1], 10));
+  }
+  return { board: bd, cb: perdues[1], cw: perdues[0] };   // billes blanches perdues = score des noirs
+}
+function _empCle(bd, cb, cw){ return _repKeyOf(bd) + '|' + cb + '-' + cw; }
+// rejoue (une fois, puis en cache) les nb premiers demi-coups d'une partie du corpus
+function _empRejeuPartie(s, g, nb){
+  const id = s + ':' + g;
+  let r = _empRejeux.get(id);
+  if (r && (r.fini || r.cles.length >= nb)) return r;
+  const jeu = s === 'MIGS' ? MIGS_GAMES[g] : AO_GAMES[g];
+  if (!jeu) return null;
+  const depart = _empDepartPartie(s, jeu);
+  if (!depart) return null;
+  const jetons = String(s === 'MIGS' ? jeu[5] : jeu[6]).replace(/\d+\.-?/g, ' ').trim().split(/\s+/).filter(Boolean);
+  r = { cles: [], jetons: jetons, fini: false };
+  // resolveAbaProToken lit le plateau global : on le permute le temps du rejeu,
+  // et on le restaure meme en cas d'exception (meme patron que les indices de coups)
+  const sauve = board;
+  try {
+    board = depart.board;
+    let col = 'black', cb = depart.cb, cw = depart.cw;
+    for (let k = 0; k < nb; k++) {
+      const mv = k < jetons.length ? resolveAbaProToken(jetons[k], col) : null;
+      if (!mv) { r.fini = true; break; }
+      if (abApplyMove(mv.cells, mv.dir, col, mv.info).ejected) { if (col === 'black') cb++; else cw++; }
+      r.cles.push(_empCle(board, cb, cw));
+      col = col === 'black' ? 'white' : 'black';
     }
-  } else {
-    for (let i = 0; i < EMPREINTES_HISTORIQUES.length; i++) {
-      const p = EMPREINTES_HISTORIQUES[i];
-      if (p.c !== color) continue;
-      if (Math.abs(p.m - moveCountActuel) > 6) continue;
-      const d = distanceEmpreintes(emp, p.e);
-      if (d < meilleureDist) { meilleureDist = d; meilleur = p; }
+  } finally { board = sauve; }
+  if (_empRejeux.size >= 400) _empRejeux.clear();
+  _empRejeux.set(id, r);
+  return r;
+}
+// Ce coup ramene-t-il une position deja vue, ou defait-il le coup precedent du meme camp ?
+// Partage par le repli et par les livres d'ouvertures : un coup joue SANS calcul
+// ne revient jamais en arriere (la recherche, elle, a sa propre penalite de
+// repetition et peut choisir de revenir si c'est vraiment le meilleur coup).
+function _coupRetourEnArriere(mv, color){
+  if (!mv || !mv.info || !mv.cells || !mv.cells.length || typeof boardSnapshots === 'undefined') return false;
+  color = color || board[mv.cells[0].r + ',' + mv.cells[0].c];
+  if (!color) return false;
+  const depart = (typeof _replayStartBoard !== 'undefined' && _replayStartBoard) ? _replayStartBoard : null;
+  const n = boardSnapshots.length;
+  const undo = applyMove(mv, color);
+  let retour = false;
+  try {
+    const cle = _repKeyOf(board);
+    if (depart && _repKeyOf(depart) === cle) retour = true;
+    for (let i = 0; i < n && !retour; i++) if (boardSnapshots[i] && boardSnapshots[i].board && _repKeyOf(boardSnapshots[i].board) === cle) retour = true;
+    // aller-retour : mes billes reviennent la ou elles etaient avant mon coup precedent
+    if (!retour && n >= 2) {
+      const avantMonCoup = n >= 3 ? (boardSnapshots[n - 3] && boardSnapshots[n - 3].board) : depart;
+      if (avantMonCoup && boardSnapshots[n - 2] && boardSnapshots[n - 2].color === color) {
+        const miennes = function(bd){ return Object.keys(bd).filter(function(k){ return bd[k] === color; }).sort().join(' '); };
+        if (miennes(board) === miennes(avantMonCoup)) retour = true;
+      }
+    }
+  } finally { undoMove(undo); }
+  return retour;
+}
+function pickEmpreinteFallbackMove(color, legalMoves, moveCountActuel){
+  if (typeof EMPREINTES_HISTORIQUES === 'undefined' || !EMPREINTES_HISTORIQUES.length || !EMPREINTES_FLAT) return null;
+  if (!legalMoves || !legalMoves.length || !moveCountActuel) return null;
+  if (!MIGS_GAMES.length && !AO_GAMES.length) return null;
+  const adv = color === 'black' ? 'white' : 'black';   // le camp qui vient de jouer
+  const emp = calculerEmpreinte(adv);
+  const D = EMPREINTES_CHAMPS.length, e = new Float64Array(D), S2 = EMP_SEUIL_IDENTIQUE * EMP_SEUIL_IDENTIQUE;
+  for (let c = 0; c < D; c++) e[c] = emp[EMPREINTES_CHAMPS[c]];
+  const index = _empIndex(), proches = [];
+  // enregistrement {m, c=adv} : position apres m+1 demi-coups, notre camp au trait
+  for (let m = Math.max(0, moveCountActuel - 1 - EMP_FENETRE); m <= moveCountActuel - 1 + EMP_FENETRE; m++) {
+    const ids = index[m]; if (!ids) continue;
+    for (let j = 0; j < ids.length; j++) {
+      const i = ids[j], p = EMPREINTES_HISTORIQUES[i];
+      if (p.c !== adv) continue;
+      const off = i * D; let sq = 0;
+      for (let c = 0; c < D && sq < S2; c++) { const df = e[c] - EMPREINTES_FLAT[off + c]; sq += df * df; }
+      if (sq < S2) proches.push({ p: p, d: sq });
     }
   }
-  if (!meilleur) return null;
-  const jeu = meilleur.s === 'MIGS' ? MIGS_GAMES[meilleur.g] : AO_GAMES[meilleur.g];
-  if (!jeu) return null;
-  const seq = meilleur.s === 'MIGS' ? jeu[5] : jeu[6];
-  const tokens = String(seq).replace(/\d+\.-?/g, ' ').trim().split(/\s+/).filter(Boolean);
-  const token = tokens[meilleur.m + 2];
-  if (!token) return null;
-  const mv = resolveAbaProToken(token, color);
-  for (const m of legalMoves) { if (mv && canonId(m) === canonId(mv)) return m; }  // sécurité : doit être légal ici
-  return null;
+  if (!proches.length) return null;
+  proches.sort(function(a, b){ return a.d - b.d; });
+  const ici = _empCle(board, CapturedByBlack.get(), CapturedByWhite.get());
+  const votes = new Map();
+  for (let j = 0; j < proches.length && j < EMP_MAX_VERIFS; j++) {
+    const q = proches[j].p;
+    const r = _empRejeuPartie(q.s, q.g, q.m + 1);
+    if (!r || r.cles[q.m] !== ici) continue;           // pas exactement notre position : on n'en tire rien
+    const jeton = r.jetons[q.m + 1];
+    const mv = jeton ? resolveAbaProToken(jeton, color) : null;
+    if (!mv) continue;
+    let legal = null;
+    for (const m of legalMoves) { if (canonId(m) === canonId(mv)) { legal = m; break; } }   // doit etre legal ici
+    if (!legal || _coupRetourEnArriere(legal, color)) continue;
+    const id = canonId(legal), v = votes.get(id) || { m: legal, n: 0 };
+    v.n++; votes.set(id, v);
+  }
+  if (!votes.size) return null;
+  let total = 0; votes.forEach(function(v){ total += v.n; });
+  let x = Math.random() * total;
+  for (const v of votes.values()) { x -= v.n; if (x <= 0) return v.m; }
+  return votes.values().next().value.m;
 }
 
 
@@ -23926,8 +24090,9 @@ function aiMove() {
     if (statMove) { if (typeof _noterSourceCoupIA === 'function') _noterSourceCoupIA('stat', ai); executeAIMove(statMove); return; }
   }
 
-  // ── Repli empreintes historiques : position exacte inconnue du livre, mais une
-  //    position très proche (même trait) existe dans les 418595 empreintes réelles ──
+  // ── Repli parties réelles : l'arbre a perdu la trace de la partie, mais la MÊME
+  //    position (même trait, vérifiée en rejouant la partie) existe dans le corpus
+  //    — jamais un coup qui revient en arrière (v2.59, voir pickEmpreinteFallbackMove) ──
   if (boardSnapshots.length < 20) {
     const empMove = pickEmpreinteFallbackMove(ai, moves, boardSnapshots.length);
     if (empMove) { if (typeof _noterSourceCoupIA === 'function') _noterSourceCoupIA('empreinte', ai); executeAIMove(empMove); return; }
@@ -23947,8 +24112,13 @@ function aiMove() {
   // Niveau 1 : décision immédiate (un peu d'aléatoire), pas besoin du worker
   if (_niveauIA() === 1 && !(typeof _tourneyMatch!=='undefined' && _tourneyMatch)) {
     moves.sort(function(a,b){ return (a.code||9)-(b.code||9); });
+    // v2.59 : tiré parmi les 4 premiers qui ne reviennent pas en arrière (aller-retour,
+    // position déjà vue) ; s'il n'y en a aucun, parmi les 4 premiers comme avant
+    const choix = [];
+    for (let i = 0; i < moves.length && choix.length < 4; i++) if (!_coupRetourEnArriere(moves[i], ai)) choix.push(moves[i]);
+    const parmi = choix.length ? choix : moves.slice(0, 4);
     if (typeof _noterSourceCoupIA === 'function') _noterSourceCoupIA('n1', ai);
-    executeAIMove(moves[Math.floor(Math.random()*Math.min(4,moves.length))]);
+    executeAIMove(parmi[Math.floor(Math.random()*parmi.length)]);
     return;
   }
 
@@ -36327,8 +36497,8 @@ const ARCHI_DIAGRAMS = [
       { t:'Tour de l\u2019IA', c:'neutre' },
       { t:'Le livre d\u2019ouvertures couvre-t-il la position ?', c:'test' },
       { t:'Coup tiré au sort, pondéré fréquence × taux de victoire', c:'sortie' },
-      { t:'Moins de 20 coups, et une position proche existe dans les 418 595 empreintes ?', c:'test' },
-      { t:'Coup de la position historique la plus proche', c:'sortie' },
+      { t:'Moins de 20 coups, et la même position existe dans une partie réelle (vérifiée en la rejouant) ?', c:'test' },
+      { t:'Coup joué depuis cette position dans les parties réelles', c:'sortie' },
       { t:'Moins de 16 coups, et le livre statique connaît la position ?', c:'test' },
       { t:'Coup du livre statique', c:'sortie' },
       { t:'Niveau 1 ?', c:'test' },
@@ -38021,7 +38191,7 @@ function _texteSourceCoupIA(src) {
     table: _tr('Coup parfait de la table de finale (4 contre 2).', 'Perfect move from the endgame table (4 against 2).'),
     livre: _tr('Coup du livre d’ouvertures, tiré de vraies parties.', 'Opening book move, taken from real games.'),
     stat: _tr('Coup du livre d’ouvertures, tiré de vraies parties.', 'Opening book move, taken from real games.'),
-    empreinte: _tr('Coup tiré de vraies parties passées par une position très proche.', 'Move taken from real games that went through a very close position.'),
+    empreinte: _tr('Coup joué dans de vraies parties depuis exactement la même position.', 'Move played in real games from exactly the same position.'),
     n1: _tr('Niveau 1 : un des quatre coups les plus actifs, au hasard, sans calcul.', 'Level 1: one of the four most active moves, at random, without search.')
   })[src] || '';
 }

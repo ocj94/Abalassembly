@@ -214,22 +214,47 @@ function _gameHistKeys(){
   try { return boardSnapshots.slice(-60).map(function(s){ return _repKeyOf(s.board); }); }
   catch(e){ return []; }
 }
+// ── Aller-retour (v2.59) : un coup qui remet MES billes exactement comme avant
+// mon coup précédent coûte 140·n² (n = 1, puis 2 si mon coup précédent était déjà
+// un aller-retour, 3 au-delà). La règle des positions déjà vues ne le voyait pas :
+// pendant que l'adversaire avance ailleurs, la position complète ne se répète
+// jamais (mesuré sur des parties simulées au niveau 3 : f4f5 puis f7f6, quatre
+// fois de suite). Au plus 1260, jamais une bille (≈2000) : un vrai danger fait
+// toujours reculer. La même règle vit dans le fil de calcul (AI_WORKER_CODE) :
+// les garder identiques.
+function _mesBillesCle(k, pov){ return k.replace(pov === 'black' ? /w/g : /b/g, '-'); }
+function _allerRetourRef(hist, pov){
+  if (!hist || hist.length < 3) return null;
+  // D[0] = mes billes maintenant, D[1] = avant mon coup précédent, D[2] = avant celui d'avant…
+  const D = [];
+  for (let i = hist.length - 1; i >= 0 && D.length < 8; i -= 2) D.push(_mesBillesCle(hist[i], pov));
+  let n = 1;
+  for (let k = 0; k + 2 < D.length && D[k] === D[k + 2] && n < 3; k++) n++;
+  return { cle: D[1], n: n };
+}
 function searchBestMove(povColor, maxDepth, timeLimitMs, hist) {
   const start = Date.now();
   let bestMove = null;
   killerMoves = {}; historyTable = {}; TT.clear(); _nodesSearched = 0;
-  const repCount = _repCountMap(hist);
+  const repCount = _repCountMap(hist), ar = _allerRetourRef(hist, povColor);
   for (let d = 1; d <= maxDepth; d++) {
     let moves = getAllMovesForColor(povColor);
     if (!moves.length) break;
     moves = orderMoves(moves, d, null);
+    // v2.59 : le meilleur coup de la profondeur précédente d'abord (même règle que
+    // dans le fil de calcul : une profondeur coupée par le temps ne rend plus un
+    // coup pire que lui) ; à score égal, l'ordre d'avant décide
+    const rang = new Map(); moves.forEach(function(m, i){ rang.set(m, i); });
+    if (bestMove) { const bk = moveKey(bestMove); const ip = moves.findIndex(function(m){ return moveKey(m) === bk; }); if (ip > 0) moves.unshift(moves.splice(ip, 1)[0]); }
     let localBest = null, localScore = -Infinity, alpha = -Infinity;
     for (const m of moves) {
       const undo = applyMove(m, povColor);
       let score = search(d-1, -Infinity, Infinity, false, povColor);
-      if (repCount) { const rc = repCount.get(_boardRepKey()); if (rc) score -= 140*rc*rc; }
+      const cle = (repCount || ar) ? _boardRepKey() : null;
+      if (repCount) { const rc = repCount.get(cle); if (rc) score -= 140*rc*rc; }
+      if (ar && _mesBillesCle(cle, povColor) === ar.cle) score -= 140*ar.n*ar.n;
       undoMove(undo);
-      if (score > localScore) { localScore = score; localBest = m; }
+      if (score > localScore || (score === localScore && localBest && rang.get(m) < rang.get(localBest))) { localScore = score; localBest = m; }
       if (score > alpha) alpha = score;
       if (Date.now() - start > timeLimitMs) break;
     }
@@ -748,12 +773,18 @@ function search(depth,alpha,beta,maxi,pov,prevKey){
 }
 function _repKeyOf(bd){let s='';for(let r=0;r<9;r++){for(let c=0;c<ROWS[r];c++){const v=bd[r+','+c];s+=v?(v==='black'?'b':'w'):'-';}}return s;}
 function _repCountMap(h){if(!h||!h.length)return null;const m=new Map();for(const k of h)m.set(k,(m.get(k)||0)+1);return m;}
+/* Aller-retour (v2.59) : meme regle que _allerRetourRef cote page (voir son commentaire) --
+   un coup qui remet MES billes comme avant mon coup precedent coute 140*n*n, n <= 3. */
+function _mesBillesCle(k,pov){return k.replace(pov==='black'?/w/g:/b/g,'-');}
+function _allerRetourRef(hist,pov){if(!hist||hist.length<3)return null;const D=[];
+  for(let i=hist.length-1;i>=0&&D.length<8;i-=2)D.push(_mesBillesCle(hist[i],pov));
+  let n=1;for(let k=0;k+2<D.length&&D[k]===D[k+2]&&n<3;k++)n++;return {cle:D[1],n:n};}
 function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
   const start=Date.now();let bestMove=null,bestScore=-Infinity,reached=0,lastRoots=null,lastRootsDepth=0;
   const rootsByDepth={},ejCache={},opp=(pov==='black'?'white':'black');
   const depthInfo={},posTerms=evalDetail(pov);   // tableau « Reflexion IA » : bilan par profondeur, criteres de la position
   killerMoves={};historyTable={};counterMove={};TT.clear();_nodes=0;_ttLk=0;_ttHit=0;
-  const repCount=_repCountMap(hist);
+  const repCount=_repCountMap(hist),ar=_allerRetourRef(hist,pov);
   const split=(workerCount>1);   // partage des racines entre plusieurs workers (voir requestAIMovePooled)
   for(let d=1;d<=maxDepth;d++){
     let moves=getAllMovesForColor(pov);if(!moves.length)break;
@@ -776,9 +807,22 @@ function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
        N'affecte pas l'ordonnancement alpha-beta : orderMoves passe apres. */
     if(split){moves=moves.slice().sort(function(a,b){const ka=moveKey(a),kb=moveKey(b);return ka<kb?-1:(ka>kb?1:0);}).filter(function(m,idx){return idx%workerCount===workerIndex;});if(!moves.length)break;}
     moves=orderMoves(moves,d,null);
+    /* v2.59 -- profondeur coupee par le minuteur : le coup rendu etait le meilleur
+       des SEULS coups deja examines a cette profondeur, souvent le premier de la
+       liste, meme bien pire que le meilleur de la profondeur precedente (mesure :
+       jusqu'a 1952 points, presque une bille, voir CHANGELOG v2.59) -- et la
+       penalite d'aller-retour ne compte que si les autres coups ont ete examines.
+       Le meilleur coup de la profondeur precedente est donc examine EN PREMIER :
+       une profondeur coupee rend un coup au moins aussi bon que lui a cette
+       profondeur. A score egal, l'ordre d'avant decide (meme choix qu'avant
+       quand la profondeur va au bout). */
+    const rang=new Map();moves.forEach(function(m,i){rang.set(m,i);});
+    if(bestMove){const bk=moveKey(bestMove);const ip=moves.findIndex(function(m){return moveKey(m)===bk;});if(ip>0)moves.unshift(moves.splice(ip,1)[0]);}
     let lb=null,ls=-Infinity,alpha=-Infinity,roots=[],cut=false;const _nd0=_nodes,_td0=Date.now();
     for(const m of moves){const mk=moveKey(m);const _n0=_nodes,_t0=Date.now();const u=applyMove(m,pov);let s=search(d-1,-Infinity,Infinity,false,pov,mk);
-      if(repCount){const rc=repCount.get(_repKeyOf(board));if(rc)s-=140*rc*rc;}
+      const ck=(repCount||ar)?_repKeyOf(board):null;
+      if(repCount){const rc=repCount.get(ck);if(rc)s-=140*rc*rc;}
+      if(ar&&_mesBillesCle(ck,pov)===ar.cle)s-=140*ar.n*ar.n;
       /* Menace adverse IMMEDIATE apres ce coup : compte exact des ejections
          dont dispose l'adversaire au pli suivant. Un fait verifiable a 1 pli,
          pas une projection -- ce moteur n'enregistre aucune variante
@@ -794,7 +838,7 @@ function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
       }
       undoMove(u);
       roots.push({cells:m.cells,dir:m.dir,type:m.type,eject:m.eject,score:s,oppEject:ejCache[mk],key:mk,k:_nodes-_n0,ms:Date.now()-_t0,t:Date.now()-start});
-      if(s>ls){ls=s;lb=m;}if(s>alpha)alpha=s;if(Date.now()-start>timeLimit){cut=true;break;}}
+      if(s>ls||(s===ls&&lb&&rang.get(m)<rang.get(lb))){ls=s;lb=m;}if(s>alpha)alpha=s;if(Date.now()-start>timeLimit){cut=true;break;}}
     // bestScore=ls (pas lastRoots[0].score) : correct meme si cette profondeur a
     // ete coupee par le minuteur avant d'explorer tous les coups — lastRoots ne
     // change alors pas (garde la profondeur precedente, complete), donc le lire
