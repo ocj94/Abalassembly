@@ -3215,3 +3215,163 @@ test('v2.58 annulation : le coup annule quitte la liste, les commentaires et l h
     assert.strictEqual(ctx.boardSnapshots.length, 3);
   } finally { ctx.undoStack = s0; }
 }));
+
+/* ─── 54. v2.59 : les 12 dimensions sur toutes les parties de la page, expliquées, par camp ─── */
+// Demande d'Olivier : le dessin qui explique les centiles dans la page Statistiques du jeu, un
+// graphique pour les deux camps, un pour les Noirs, un pour les Blancs, toujours accordés au
+// nombre de parties. Les parties PlayStrategy et de référence n'avaient pas d'empreintes : elles
+// en ont (tools/empreintes-complement.js), et ces tests échouent si une partie change sans elles.
+const _vm54 = require('vm');
+const _r54 = code => _vm54.runInContext(code, ctx);
+const _jetons54 = seq => String(seq || '').replace(/\d+\./g, ' ').trim().split(/\s+/).filter(Boolean);
+async function _charger54() {
+  assert.ok(await ctx.ensureGameBanks()); assert.ok(await ctx.ensureEmpreintesHistoriques());
+  assert.strictEqual(await _r54('ensureEmpreintesComplement()'), true, 'complement embarque et lisible');
+}
+async function _enFrancais54(fn) {
+  const avant = ctx.localStorage.getItem('abalone_lang');
+  ctx.localStorage.setItem('abalone_lang', 'FR');
+  try { return await fn(); } finally { if (avant === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avant); }
+}
+// Des tests plus haut laissent leur faux document.getElementById (sections 21-22) : ces tests-ci
+// ont le leur, qui garde chaque element, le temps du test.
+async function _dom54(fn) {
+  const origine = ctx.document.getElementById, els = {};
+  ctx.document.getElementById = id => (els[id] || (els[id] = { id, innerHTML: '', textContent: '', style: {}, isConnected: true, clientWidth: 900,
+    setAttribute() {}, classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } } }));
+  try { return await fn(els); } finally { ctx.document.getElementById = origine; }
+}
+
+test('v2.59 complement : chaque partie PlayStrategy et de référence a ses empreintes, à jour (sinon : node tools/empreintes-complement.js)', async () => {
+  await _charger54();
+  const C = _r54('EMPREINTES_COMPLEMENT');
+  assert.strictEqual(C.sig, _r54('_empComplementSignature()'),
+    'parties PlayStrategy ou de reference modifiees : node tools/build.js && node tools/empreintes-complement.js && node tools/build.js');
+  // une position par demi-coup de chaque partie, ni plus ni moins
+  const parPartie = new Map();
+  for (let i = 0; i < C.n; i++) { const k = C.source[i] + ':' + C.partie[i]; parPartie.set(k, (parPartie.get(k) || 0) + 1); }
+  Array.from(ctx.PS_TOURNOI_YEARLY_2026).forEach((g, i) => assert.strictEqual(parPartie.get('0:' + i) || 0, _jetons54(g[5]).length, 'PlayStrategy ' + i));
+  Array.from(ctx.PARTIES_REFERENCE).forEach((g, i) => assert.strictEqual(parPartie.get('1:' + i) || 0, _jetons54(g[6]).length, 'reference ' + i));
+});
+
+test('v2.59 complement : même convention que la banque -- la position après le coup m, vue du camp qui vient de jouer', async () => {
+  await _charger54();
+  const C = _r54('EMPREINTES_COMPLEMENT'), CH = Array.from(_r54('EMPREINTES_CHAMPS'));
+  let vus = 0;
+  _bacPartie(() => {
+    const ps = ctx.PS_TOURNOI_YEARLY_2026[1], ref = ctx.PARTIES_REFERENCE[2];
+    for (const [src, gi, dispo, seq] of [[0, 1, 'belgian', ps[5]], [1, 2, ref[4], ref[6]]]) {
+      const T = _jetons54(seq);
+      for (let i = 0; i < C.n; i++) {
+        if (C.source[i] !== src || C.partie[i] !== gi || C.m[i] > 5) continue;
+        ctx.currentLayout = dispo; ctx.initBoardState(); ctx.CapturedByBlack.set(0); ctx.CapturedByWhite.set(0);
+        let col = 'black';
+        for (let k = 0; k <= C.m[i]; k++) { ctx.applyMove(ctx.resolveAbaProToken(T[k], col), col); col = col === 'black' ? 'white' : 'black'; }
+        const e = ctx.calculerEmpreinte(C.couleur[i] ? 'white' : 'black');
+        let sq = 0; CH.forEach((f, c) => { const d = e[f] - C.flat[i * CH.length + c]; sq += d * d; });
+        assert.ok(Math.sqrt(sq) < 0.002, 'source ' + src + ', partie ' + gi + ', coup ' + C.m[i] + ' : ' + Math.sqrt(sq));
+        vus++;
+      }
+    }
+  });
+  assert.strictEqual(vus, 12);
+});
+
+test('v2.59 les 12 dimensions : toutes les parties de la page, par camp, centiles calculés comme avant', async () => {
+  await _charger54();
+  const K = _r54('_empCorpusDonnees()'), nP = _r54('EMPREINTES_HISTORIQUES.length'), C = _r54('EMPREINTES_COMPLEMENT');
+  const ps = Array.from(ctx.PS_TOURNOI_YEARLY_2026), ref = Array.from(ctx.PARTIES_REFERENCE);
+  assert.strictEqual(K.n, nP + C.n);
+  assert.strictEqual(K.nNoirs + K.nBlancs, K.n);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(K.parties)),
+    { MIGS: ctx.MIGS_GAMES.length, AO: ctx.AO_GAMES.length, PS: ps.filter(g => _jetons54(g[5]).length).length, REF: ref.length });
+  const cv = _r54('_dimCouverture()');
+  assert.strictEqual(cv.manque, 0); assert.strictEqual(cv.perime, false);
+  // les parties comptees par la page (computeCorpusStats.totalGames), sauf celles abandonnees avant le premier coup
+  assert.strictEqual(cv.parties + cv.sansCoup, ctx.MIGS_GAMES.length + ctx.AO_GAMES.length + ps.length + ref.length);
+  // la regle d'avant (valeur de rang floor(n x p) apres tri), sur toutes les positions, et par camp
+  const D = 12, CH = Array.from(_r54('EMPREINTES_CHAMPS'));
+  for (const f of ['coeurRatio', 'materialDiff', 'mobilite2Ratio']) {
+    const c = CH.indexOf(f), tous = [], noirs = [];
+    const P = _r54(`EMPREINTES_HISTORIQUES.map(function(p){ return [p.e['${f}'], p.c === 'black' ? 1 : 0]; })`);
+    P.forEach(x => { tous.push(x[0]); if (x[1]) noirs.push(x[0]); });
+    for (let i = 0; i < C.n; i++) { const v = Math.round(C.flat[i * D + c] * 1000) / 1000; tous.push(v); if (!C.couleur[i]) noirs.push(v); }
+    for (const [vals, vue] of [[tous, 'tous'], [noirs, 'black']]) {
+      vals.sort((a, b) => a - b);
+      const q = p => vals[Math.min(vals.length - 1, Math.floor(vals.length * p))];
+      const d = _r54(`distributionDimension('${f}', '${vue}')`);
+      assert.deepStrictEqual([d.n, d.min, d.p10, d.median, d.p90, d.max], [vals.length, vals[0], q(0.1), q(0.5), q(0.9), vals[vals.length - 1]], f + ' / ' + vue);
+    }
+  }
+  // la part des positions sous une valeur
+  const d = _r54(`distributionDimension('coeurRatio', 'tous')`);
+  assert.strictEqual(ctx.pourcentEnDessous(d, d.min), 0);
+  assert.strictEqual(ctx.pourcentEnDessous(d, d.max + 1), 100);
+  const p90 = ctx.pourcentEnDessous(d, d.p90 + 0.001);
+  assert.ok(p90 >= 89 && p90 <= 100, String(p90));
+  // l'ancienne fonction garde sa forme, sur les memes positions
+  const dist = _r54('computeDimensionDistributions()');
+  assert.deepStrictEqual(Object.keys(dist), CH);
+  assert.strictEqual(dist.coeurRatio.n, K.n);
+  assert.strictEqual(_r54('computeDimensionCorrelations()').n, K.n);
+});
+
+test('v2.59 page Statistiques du jeu : explication, trois graphiques (deux camps, Noirs, Blancs), curseur, tableau par camp', () => _enFrancais54(() => _dom54(async () => {
+  await _charger54();
+  try {
+    _r54("_dimChamp = 'coeurRatio'; _dimVueTable = 'tous'; _dimValeur = null;");
+    _r54('_dimsRendre()');
+    const K = _r54('_empCorpusDonnees()'), nb = x => _r54('_dimNb(' + x + ')');
+    let html = ctx.document.getElementById('dims-carte').innerHTML;
+    assert.strictEqual((html.match(/class="dims-barre"/g) || []).length, 300, '3 graphiques de 100 barres');
+    assert.match(html, /Comment lire ce tableau/);
+    assert.ok(html.indexOf('Mesuré sur <b>' + nb(K.n) + ' positions</b> de <b>' + nb(_r54('_dimCouverture()').parties) + ' parties</b>') >= 0, 'les nombres viennent des donnees');
+    ['Les deux camps · ' + nb(K.n), 'Noirs · ' + nb(K.nNoirs), 'Blancs · ' + nb(K.nBlancs)].forEach(t => assert.ok(html.indexOf(t) >= 0, t));
+    assert.strictEqual((html.match(/class="dims-ligne"/g) || []).length, 12);
+    assert.match(html, /▸ Billes au cœur/);
+    // le curseur : 0,43 au cœur, au-dessus du 90e centile dans les trois files
+    _r54('_dimsSituer(0.43)');
+    const lec = ctx.document.getElementById('dims-lecture').innerHTML;
+    assert.strictEqual((lec.match(/au-dessus du 90ᵉ centile : parmi les 10 % les plus marquées/g) || []).length, 3);
+    // une dimension en nombres entiers : curseur au pas de 1
+    _r54("_dimChoisir('materialDiff')");
+    html = ctx.document.getElementById('dims-carte').innerHTML;
+    assert.match(html, /id="dims-curseur" min="-?\d+" max="\d+" step="1"/);
+    assert.match(html, /▸ Différence matérielle/);
+    // le tableau des Noirs : leurs propres valeurs
+    await _r54("_dimVue('black')");
+    html = ctx.document.getElementById('dims-carte').innerHTML;
+    const dN = _r54("distributionDimension('cohesionMoyenne', 'black')"), dT = _r54("distributionDimension('cohesionMoyenne', 'tous')");
+    assert.notStrictEqual(dN.median, dT.median, 'les Noirs ne sont pas les deux camps');
+    assert.ok(html.indexOf('médiane ' + _r54('_dimDec(' + dN.median + ')')) >= 0);
+    // la redondance, mesuree ici : plus de « 0,93 » ecrit a la main
+    _r54('_dimsCorrelations()');
+    const corr = _r54('computeDimensionCorrelations()'), g = ['cohesionMoyenne', 'soutienMoyen', 'proportionSansSoutien'];
+    const rMax = Math.max(...corr.pairs.filter(p => g.includes(p.a) && g.includes(p.b)).map(p => Math.abs(p.r)));
+    assert.ok(ctx.document.getElementById('dims-corr').innerHTML.indexOf('jusqu’à ' + _r54('_dimDec(' + rMax + ')') + ')') >= 0);
+  } finally { _r54("_dimChamp = 'coeurRatio'; _dimVueTable = 'tous'; _dimValeur = null;"); }
+})));
+
+test('v2.59 les graphiques suivent les données : des parties sans mesures sont comptées et signalées, jamais oubliées en silence', () => _enFrancais54(() => _dom54(async () => {
+  await _charger54();
+  const C = _r54('EMPREINTES_COMPLEMENT'), nP = _r54('EMPREINTES_HISTORIQUES.length');
+  try {
+    _r54('EMPREINTES_COMPLEMENT = null');
+    const K = _r54('_empCorpusDonnees()');
+    assert.strictEqual(K.n, nP, 'recalcule des que les donnees changent');
+    const cv = _r54('_dimCouverture()');
+    assert.strictEqual(cv.manque, cv.attendu.PS + cv.attendu.REF);
+    _r54('_dimsRendre()');
+    const html = ctx.document.getElementById('dims-carte').innerHTML;
+    assert.ok(html.indexOf('⚠ ' + cv.manque + ' parties de cette page n’ont pas encore leurs mesures') >= 0);
+    assert.ok(html.indexOf('Les deux camps · ' + _r54('_dimNb(' + nP + ')') + ' positions') >= 0);
+  } finally { ctx.__c54 = C; _r54('EMPREINTES_COMPLEMENT = __c54'); }
+  // une partie modifiee sans relancer l'outil : signalee aussi
+  const sig = C.sig;
+  try {
+    C.sig = 'autre';
+    assert.strictEqual(_r54('_dimCouverture()').perime, true);
+  } finally { C.sig = sig; }
+  assert.strictEqual(_r54('_empCorpusDonnees()').n, nP + C.n, 'et tout revient avec le complement');
+  _r54('_dimsRendre()');
+})));

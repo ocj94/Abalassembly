@@ -9,6 +9,44 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.59]
+
+### Added — understanding the 12 dimensions, Game statistics page
+- **How to read the table**: an explanation of percentiles, with a picture. Each
+  dimension is measured in every position of the real games; these positions
+  are lined up from the smallest value to the largest, and each bar of the
+  picture stands for 1 % of them. The 10th percentile, the median and the 90th
+  percentile are marked, with the normal range (80 % of positions) in between.
+- **Three charts** for the chosen dimension: both sides together, Black, White
+  (a position counts for the side that has just moved). Clicking a row of the
+  table changes the dimension; the table can show both sides, Black or White.
+- **Place a value**: a slider places a value in the three charts and says what
+  share of positions it is above ("higher than 93 % of positions: among the
+  10 % most marked").
+- **In step with the number of games**: the 93 games of the PlayStrategy
+  tournament and the 7 reference games had no measures yet, so the 12
+  dimensions covered 4,479 games while the page announces 4,579. They have them
+  now: 427,156 positions from 4,576 games (the 3 games abandoned before the
+  first move have none). Everything is computed from the loaded games: if games
+  are added without their measures, the card says how many are missing, and a
+  test refuses it.
+- On phones, the picture has its own readable layout.
+
+### Fixed
+- **Game statistics page**: it froze the browser for about 5 seconds every time
+  it opened (computing the 12 dimensions and their correlations, measured at
+  2.7 s + 2.4 s). Now 0.25 s the first time, then instant; and the 12-dimension
+  card shows up without waiting for the rest of the page, whose first
+  computation takes more than a minute.
+- "Up to 0.93" (the link between cohesion, support and unsupported marbles) was
+  written by hand: it is now measured.
+
+### Tests
+- 5 new tests: every PlayStrategy and reference game has its measures, up to
+  date; they follow the same convention as the main bank; the percentiles over
+  all games and per side; the card (explanation, charts, slider, per-side
+  table); games without measures are flagged.
+
 ## [v2.58]
 
 ### Added — the game's List and Comments, as in Uncle Lolo's Abalone

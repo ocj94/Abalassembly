@@ -75,4 +75,8 @@ function ensureEmpreintesHistoriques(){
   if (typeof requestIdleCallback === 'function') requestIdleCallback(start, {timeout: 2000});
   else setTimeout(start, 300);
 })();
-
+/* EMPREINTES COMPLEMENTAIRES (v2.59) : les parties du tournoi PlayStrategy et
+   les parties de reference, absentes de la banque ci-dessus (MIGS + AbalOnline).
+   Calculees hors ligne par tools/empreintes-complement.js ; decodage dans
+   15-code-08.js. */
+const EMPREINTES_COMPLEMENT_B64='

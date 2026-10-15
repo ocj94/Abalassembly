@@ -87,7 +87,7 @@ Ce qu'il masque : le **chat**, le **Labo IA**, les **paramètres** et les **lien
 - Analyse de partie coup par coup : chaque erreur du rapport est cliquable et rejoue la position
 - **Analyse d'après-partie** : rejoue les positions réellement traversées avec l'évaluation de l'IA, et indique où la partie a basculé, à quel coup la première bille a été perdue
 - **Moteur de compréhension** (page Analyse) : sur n'importe quelle position, décomposition spatiale, faiblesse de soutien, potentiel de sumito, menaces immédiates, profondeur tactique et mobilité à 2 coups — un résumé court par défaut, le détail chiffré derrière le mode technique. Une recherche ciblée (« menace à N coups ») disponible sur demande, jamais automatique
-- **Empreinte positionnelle** (même page) : vecteur de 12 dimensions par position, invariant au miroir gauche-droite. Capture une position comme référence, compare-la à toute position visitée ensuite (distance affichée, détail par dimension en mode technique). Pas de base de positions historiques pour l'instant — comparaison à la demande, entre positions explicitement choisies
+- **Empreinte positionnelle** (même page) : vecteur de 12 dimensions par position, invariant au miroir gauche-droite. Capture une position comme référence, compare-la à toute position visitée ensuite (distance affichée, détail par dimension en mode technique). Comparaison à la demande entre positions choisies ; les 12 dimensions sont aussi mesurées sur toutes les positions des vraies parties (page Statistiques du jeu)
 - **Défi du jour #N** : un puzzle numéroté par jour, le même pour tout le monde, sans compte ni serveur ; un résultat à partager façon Wordle (🟥🟨🟩, sans dévoiler la solution) et une image ; série de jours consécutifs. Lien direct : `?defi=12`
 
 **Plateau réel**
@@ -97,6 +97,7 @@ Ce qu'il masque : le **chat**, le **Labo IA**, les **paramètres** et les **lien
 **Bibliothèque**
 - 4 579 parties réelles embarquées (MIGS, AbalOnline, tournois et parties de référence), rejouables coup par coup
 - Book d'ouvertures miné depuis ces parties
+- **Statistiques du jeu** : ce que disent ces parties (avantage du premier joueur, durée, fins de partie) et les 12 dimensions de l'empreinte mesurées sur toutes leurs positions, avec une explication des centiles, un graphique pour les deux camps, un pour les Noirs, un pour les Blancs, et un curseur pour situer une valeur. Tout est calculé à partir des parties chargées : les chiffres suivent quand le corpus grandit
 - **2 589 de ces parties republiées** en [APGN](APGN.fr.md) dans [`games/`](games/) — celles du serveur MiGs, fermé le 30 mai 2017, dont il n'existe aucune autre source publique connue
 
 **Labo**

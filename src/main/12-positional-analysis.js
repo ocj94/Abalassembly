@@ -962,26 +962,103 @@ function computeEjectionStats(){
 
    Le calcul MIGS s'appuie sur le cache deja construit (~78s la premiere
    fois, jamais refait ensuite). */
-/* Distribution des 12 dimensions sur l'ensemble du corpus (418 595
-   positions). Quasi instantane (~0,2 s mesure) : les empreintes sont
-   deja en memoire, on ne fait que trier. Donne un referentiel objectif
-   -- "ta cohesion est au Xe centile de toutes les positions humaines
-   jamais jouees" -- la ou le radar personnel n'avait aucun point de
-   comparaison exterieur.
-   Source : EMPREINTES_HISTORIQUES, une entree par coup joue dans les
-   4 479 parties reelles du corpus. */
-function computeDimensionDistributions(){
-  if (typeof EMPREINTES_HISTORIQUES === 'undefined' || !EMPREINTES_HISTORIQUES.length) return null;
+/* ═══════════════════════════════════════════
+   LES 12 DIMENSIONS SUR TOUT LE CORPUS (v2.59)
+   Toutes les parties de la page Statistiques du jeu : la banque principale
+   (MIGS + AbalOnline) et le complement (tournoi PlayStrategy + parties de
+   reference, voir 15-code-08.js), pour les deux camps ou pour un seul
+   ('black' : positions juste apres un coup des Noirs, mesurees de leur cote ;
+   'white' : de meme pour les Blancs).
+   Avant : tri de 418 595 objets par dimension a chaque ouverture de la page
+   (mesure sous Node : 2,9 s pour les 12 dimensions, 2,8 s pour les
+   correlations). Maintenant : colonnes entieres (valeur x 1000, exactement
+   celles de la banque), tri natif, resultats en cache. Le cache suit la taille
+   des donnees : si une banque change, tout est recalcule -- les chiffres
+   affiches suivent toujours les parties reellement chargees.
+═══════════════════════════════════════════ */
+const LABELS_EMPREINTE_EN = {
+  materialDiff: 'Material difference', cohesionMoyenne: 'Average cohesion', soutienMoyen: 'Average support',
+  proportionSansSoutien: 'Unsupported marbles', zoneForteCohesion: 'Strong-zone cohesion', zoneFaibleCohesion: 'Weak-zone cohesion',
+  coeurRatio: 'Marbles in the centre', bordRatio: 'Marbles on the edge', sumitoRatio: 'Sumito potential',
+  menaceRatio: 'Threats faced', profondeurTactique: 'Tactical depth', mobilite2Ratio: 'Mobility (2 moves)'
+};
+function _labelDimension(ch){
+  return (typeof currentLang === 'function' && currentLang() === 'EN') ? (LABELS_EMPREINTE_EN[ch] || ch) : (LABELS_EMPREINTE[ch] || ch);
+}
+let _empCorpus = null;
+function _empCorpusDonnees(){
+  const P = (typeof EMPREINTES_HISTORIQUES !== 'undefined') ? EMPREINTES_HISTORIQUES : [];
+  if (!P.length || typeof EMPREINTES_FLAT === 'undefined' || !EMPREINTES_FLAT) return null;
+  const C = (typeof EMPREINTES_COMPLEMENT !== 'undefined' && EMPREINTES_COMPLEMENT) ? EMPREINTES_COMPLEMENT : null;
+  const nP = P.length, nC = C ? C.n : 0, n = nP + nC, D = EMPREINTES_CHAMPS.length;
+  if (_empCorpus && _empCorpus.nP === nP && _empCorpus.nC === nC) return _empCorpus;
+  // parties vues, par source : une case par numero de partie (uint16), plus rapide qu'un Set
+  const vus = { MIGS: new Uint8Array(65536), AO: new Uint8Array(65536), PS: new Uint8Array(65536), REF: new Uint8Array(65536) };
+  const parties = { MIGS: 0, AO: 0, PS: 0, REF: 0 };
+  const voir = function(src, g){ const t = vus[src]; if (t && !t[g]) { t[g] = 1; parties[src]++; } };
+  const noir = new Uint8Array(n);
+  let nNoirs = 0;
+  // valeur x 1000, entiere : exactement le contenu de la banque (int16), tri natif et sommes exactes
+  const cols = EMPREINTES_CHAMPS.map(function(){ return new Int16Array(n); });
+  const FL = EMPREINTES_FLAT, CF = C ? C.flat : null, R = Math.round;   // en local : boucle de 5 millions de lectures
+  for (let i = 0; i < nP; i++) {
+    const p = P[i];
+    if (p.c === 'black') { noir[i] = 1; nNoirs++; }
+    voir(p.s, p.g);
+    const o = i * D; for (let c = 0; c < D; c++) cols[c][i] = R(FL[o + c] * 1000);
+  }
+  for (let j = 0; j < nC; j++) {
+    if (C.couleur[j] === 0) { noir[nP + j] = 1; nNoirs++; }
+    voir(C.source[j] === 0 ? 'PS' : 'REF', C.partie[j]);
+    const o = j * D; for (let c = 0; c < D; c++) cols[c][nP + j] = R(CF[o + c] * 1000);
+  }
+  _empCorpus = { n: n, nP: nP, nC: nC, noir: noir, nNoirs: nNoirs, nBlancs: n - nNoirs, cols: cols, parties: parties, dist: {}, corr: null };
+  return _empCorpus;
+}
+// Distribution d'une dimension : vue 'tous' (les deux camps), 'black' ou 'white'.
+// q : 1001 valeurs, q[k] = la valeur atteinte apres k pour mille des positions rangees.
+function distributionDimension(champ, vue){
+  const K = _empCorpusDonnees(); if (!K) return null;
+  vue = (vue === 'black' || vue === 'white') ? vue : 'tous';
+  const cle = vue + ':' + champ;
+  if (K.dist[cle]) return K.dist[cle];
+  const c = EMPREINTES_CHAMPS.indexOf(champ); if (c < 0) return null;
+  let vals;
+  if (vue === 'tous') vals = Int16Array.from(K.cols[c]);
+  else {
+    const veut = vue === 'black' ? 1 : 0, src = K.cols[c];
+    vals = new Int16Array(veut ? K.nNoirs : K.nBlancs);
+    let k = 0; for (let i = 0; i < K.n; i++) if (K.noir[i] === veut) vals[k++] = src[i];
+  }
+  vals.sort();
+  const n = vals.length; if (!n) return null;
+  const q = function(p){ return vals[Math.min(n - 1, Math.floor(n * p))] / 1000; };
+  const Q = new Float64Array(1001);
+  for (let k = 0; k <= 1000; k++) Q[k] = vals[Math.min(n - 1, Math.floor(n * k / 1000))] / 1000;
+  return (K.dist[cle] = { n: n, vue: vue, min: vals[0] / 1000, p10: q(0.10), median: q(0.50), p90: q(0.90), max: vals[n - 1] / 1000, q: Q });
+}
+// Part des positions (en %, a 0,1 % pres) dont la valeur est strictement plus petite que v.
+function pourcentEnDessous(d, v){
+  if (!d) return null;
+  const Q = d.q;
+  if (v <= Q[0]) return 0;
+  if (v > Q[1000]) return 100;
+  let lo = 0, hi = 1000;
+  while (lo < hi) { const mid = (lo + hi) >> 1; if (Q[mid] >= v) hi = mid; else lo = mid + 1; }
+  return lo / 10;
+}
+/* Distribution des 12 dimensions (les deux camps, ou un seul) : meme forme
+   qu'avant ({min, p10, median, p90, max, n} par dimension), meme regle de
+   centile (la valeur de rang floor(n x p) apres tri). Donne un referentiel
+   objectif -- "ta cohesion est au Xe centile de toutes les positions des
+   vraies parties" -- la ou le radar personnel n'avait aucun point de
+   comparaison exterieur. */
+function computeDimensionDistributions(vue){
+  if (!_empCorpusDonnees()) return null;
   const out = {};
   EMPREINTES_CHAMPS.forEach(function(f){
-    const vals = EMPREINTES_HISTORIQUES.map(function(e){ return e.e[f]; });
-    vals.sort(function(a,b){ return a-b; });
-    const n = vals.length;
-    const q = function(p){ return vals[Math.min(n-1, Math.floor(n*p))]; };
-    out[f] = {
-      min: vals[0], p10: q(0.10), median: q(0.50), p90: q(0.90), max: vals[n-1],
-      n: n
-    };
+    const d = distributionDimension(f, vue);
+    out[f] = { min: d.min, p10: d.p10, median: d.median, p90: d.p90, max: d.max, n: d.n };
   });
   return out;
 }
@@ -991,30 +1068,25 @@ function computeDimensionDistributions(){
    presque la meme chose -- information utile pour lire le radar sans
    surinterpreter trois axes qui bougent ensemble.
    Mesure reelle : cohesion/soutien/sans-soutien forment un groupe
-   fortement redondant (|r| jusqu'a 0,93). */
+   fortement redondant (|r| jusqu'a 0,93 sur MIGS + AbalOnline). Calcul
+   sur les colonnes entieres (r ne depend pas de l'unite), en cache. */
 function computeDimensionCorrelations(){
-  if (typeof EMPREINTES_HISTORIQUES === 'undefined' || !EMPREINTES_HISTORIQUES.length) return null;
-  const F = EMPREINTES_CHAMPS, N = EMPREINTES_HISTORIQUES.length;
-  const mean = {}, sd = {};
-  F.forEach(function(f){
-    let s = 0; for (let i=0;i<N;i++) s += EMPREINTES_HISTORIQUES[i].e[f];
-    mean[f] = s/N;
-  });
-  F.forEach(function(f){
-    let s = 0; for (let i=0;i<N;i++){ const d = EMPREINTES_HISTORIQUES[i].e[f]-mean[f]; s += d*d; }
-    sd[f] = Math.sqrt(s/N);
-  });
+  const K = _empCorpusDonnees(); if (!K) return null;
+  if (K.corr) return K.corr;
+  const F = EMPREINTES_CHAMPS, N = K.n, mean = [], sd = [];
+  K.cols.forEach(function(v, c){ let s = 0; for (let i = 0; i < N; i++) s += v[i]; mean[c] = s / N; });
+  K.cols.forEach(function(v, c){ let s = 0; const m = mean[c]; for (let i = 0; i < N; i++) { const d = v[i] - m; s += d * d; } sd[c] = Math.sqrt(s / N); });
   const pairs = [];
-  for (let a=0;a<F.length;a++) for (let b=a+1;b<F.length;b++){
-    const fa=F[a], fb=F[b];
+  for (let a = 0; a < F.length; a++) for (let b = a + 1; b < F.length; b++) {
+    const va = K.cols[a], vb = K.cols[b], ma = mean[a], mb = mean[b];
     let cov = 0;
-    for (let i=0;i<N;i++) cov += (EMPREINTES_HISTORIQUES[i].e[fa]-mean[fa])*(EMPREINTES_HISTORIQUES[i].e[fb]-mean[fb]);
+    for (let i = 0; i < N; i++) cov += (va[i] - ma) * (vb[i] - mb);
     cov /= N;
-    const r = (sd[fa] && sd[fb]) ? cov/(sd[fa]*sd[fb]) : 0;
-    pairs.push({ a:fa, b:fb, r: +r.toFixed(3) });
+    const r = (sd[a] && sd[b]) ? cov / (sd[a] * sd[b]) : 0;
+    pairs.push({ a: F[a], b: F[b], r: +r.toFixed(3) });
   }
-  pairs.sort(function(x,y){ return Math.abs(y.r) - Math.abs(x.r); });
-  return { n: N, pairs: pairs };
+  pairs.sort(function(x, y){ return Math.abs(y.r) - Math.abs(x.r); });
+  return (K.corr = { n: N, pairs: pairs });
 }
 
 async function computeCorpusStats(onProgress){

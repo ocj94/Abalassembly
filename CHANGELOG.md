@@ -9,6 +9,45 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.59]
+
+### Ajouté — comprendre les 12 dimensions, page Statistiques du jeu
+- **Comment lire le tableau** : une explication des centiles, avec un dessin.
+  Chaque dimension est mesurée dans chaque position des vraies parties ; on range
+  ces positions de la plus petite valeur à la plus grande, et chaque barre du
+  dessin en représente 1 %. Le 10ᵉ centile, la médiane et le 90ᵉ centile y sont
+  marqués, avec entre les deux la zone normale (80 % des positions).
+- **Trois graphiques** pour la dimension choisie : les deux camps ensemble, les
+  Noirs, les Blancs (une position compte pour le camp qui vient de jouer).
+  Cliquer sur une ligne du tableau change de dimension ; le tableau s'affiche
+  pour les deux camps, les Noirs ou les Blancs.
+- **Situer une valeur** : un curseur place une valeur dans les trois graphiques
+  et dit au-dessus de quelle part des positions elle se trouve (« au-dessus de
+  93 % des positions : parmi les 10 % les plus marquées »).
+- **Accordé au nombre de parties** : les 93 parties du tournoi PlayStrategy et
+  les 7 parties de référence n'avaient pas encore leurs mesures, si bien que les
+  12 dimensions portaient sur 4 479 parties quand la page en annonce 4 579. Elles
+  les ont maintenant : 427 156 positions de 4 576 parties (les 3 parties
+  abandonnées avant le premier coup n'en ont aucune). Tout est calculé à partir
+  des parties chargées : si des parties s'ajoutent sans leurs mesures, la carte
+  dit combien manquent, et un test le refuse.
+- Sur téléphone, le dessin a sa propre mise en page, lisible.
+
+### Corrigé
+- **Page Statistiques du jeu** : elle bloquait le navigateur environ 5 secondes à
+  chaque ouverture (calcul des 12 dimensions et de leurs corrélations, mesuré à
+  2,7 s + 2,4 s). Maintenant 0,25 s la première fois, puis instantané ; et la
+  carte des 12 dimensions s'affiche sans attendre le reste de la page, dont le
+  premier calcul prend plus d'une minute.
+- « Jusqu'à 0,93 » (le lien entre cohésion, soutien et billes sans soutien)
+  était écrit à la main : il est maintenant mesuré.
+
+### Tests
+- 5 nouveaux tests : chaque partie PlayStrategy et de référence a ses mesures, à
+  jour ; elles suivent la même convention que la banque ; les centiles sur toutes
+  les parties et par camp ; la carte (explication, graphiques, curseur, tableau
+  par camp) ; les parties sans mesures sont signalées.
+
 ## [v2.58]
 
 ### Ajouté — Liste et Commentaires de la partie, comme dans Uncle Lolo's Abalone

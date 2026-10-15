@@ -75,8 +75,8 @@ chaque fois avant de passer à l'étape suivante.
 | `03-script-utils-a.js`, `05-script-utils-b.js` | Deux petits scripts utilitaires en tête de page |
 | `05b-script-i18n-en.js` | La langue (`currentLang`) et la version anglaise : dictionnaire, motifs, observateur. Bloc à part, lu **avant** le reste de la page pour qu'en anglais rien ne s'affiche d'abord en français |
 | `main/00-*.js` … `main/37-*.js` | Le script principal, décomposé par thème (voir ci-dessus) ; `main/36-defi-du-jour-et-cartes.js` : le Défi du jour #N et les images à partager (v2.57) ; `main/37-liste-et-commentaires.js` : les onglets Liste et Commentaires de la partie (v2.58) |
-| `main/data/15-code-01.js` … `15-code-07.js` | Le peu de VRAI code de l'ancien `15-opening-book.js` (livre d'ouvertures, profilage adverse, options NNUE) |
-| `main/data/15-nnue.b64`, `15-trees.b64`, `15-migs.b64`, `15-ao.b64`, `15-empreintes.b64`, `15-graph.b64` | Les 6 blobs de données (99,3% de l'ancien fichier), en base64 pur — plus une seule ligne de JS mélangée dedans |
+| `main/data/15-code-01.js` … `15-code-08.js` | Le peu de VRAI code de l'ancien `15-opening-book.js` (livre d'ouvertures, profilage adverse, options NNUE) ; `15-code-08.js` : lecture des empreintes complémentaires (v2.59) |
+| `main/data/15-nnue.b64`, `15-trees.b64`, `15-migs.b64`, `15-ao.b64`, `15-empreintes.b64`, `15-graph.b64`, `15-empreintes-complement.b64` | Les 7 blobs de données, en base64 pur — plus une seule ligne de JS mélangée dedans. Le dernier (v2.59) : les empreintes des parties PlayStrategy et de référence, produites par `node tools/empreintes-complement.js` — à relancer quand une de ces parties change (un test le réclame) |
 | `main/data/17-puzzles.json` | Les 138 puzzles, en JSON pur — extraits du même genre de mélange code/données |
 | `09-script-tablebase.js` | Chargement des tables de finale (copie thread principal) + arbre d'ouverture |
 | `11-script-tail.js` | Script de fin de page |
