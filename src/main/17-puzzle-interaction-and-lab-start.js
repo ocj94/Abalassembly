@@ -1756,8 +1756,9 @@ function aiMove() {
     if (statMove) { if (typeof _noterSourceCoupIA === 'function') _noterSourceCoupIA('stat', ai); executeAIMove(statMove); return; }
   }
 
-  // ── Repli empreintes historiques : position exacte inconnue du livre, mais une
-  //    position très proche (même trait) existe dans les 418595 empreintes réelles ──
+  // ── Repli parties réelles : l'arbre a perdu la trace de la partie, mais la MÊME
+  //    position (même trait, vérifiée en rejouant la partie) existe dans le corpus
+  //    — jamais un coup qui revient en arrière (v2.60, voir pickEmpreinteFallbackMove) ──
   if (boardSnapshots.length < 20) {
     const empMove = pickEmpreinteFallbackMove(ai, moves, boardSnapshots.length);
     if (empMove) { if (typeof _noterSourceCoupIA === 'function') _noterSourceCoupIA('empreinte', ai); executeAIMove(empMove); return; }
@@ -1777,8 +1778,13 @@ function aiMove() {
   // Niveau 1 : décision immédiate (un peu d'aléatoire), pas besoin du worker
   if (_niveauIA() === 1 && !(typeof _tourneyMatch!=='undefined' && _tourneyMatch)) {
     moves.sort(function(a,b){ return (a.code||9)-(b.code||9); });
+    // v2.60 : tiré parmi les 4 premiers qui ne reviennent pas en arrière (aller-retour,
+    // position déjà vue) ; s'il n'y en a aucun, parmi les 4 premiers comme avant
+    const choix = [];
+    for (let i = 0; i < moves.length && choix.length < 4; i++) if (!_coupRetourEnArriere(moves[i], ai)) choix.push(moves[i]);
+    const parmi = choix.length ? choix : moves.slice(0, 4);
     if (typeof _noterSourceCoupIA === 'function') _noterSourceCoupIA('n1', ai);
-    executeAIMove(moves[Math.floor(Math.random()*Math.min(4,moves.length))]);
+    executeAIMove(parmi[Math.floor(Math.random()*parmi.length)]);
     return;
   }
 

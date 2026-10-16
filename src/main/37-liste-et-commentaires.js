@@ -95,7 +95,7 @@ function _texteSourceCoupIA(src) {
     table: _tr('Coup parfait de la table de finale (4 contre 2).', 'Perfect move from the endgame table (4 against 2).'),
     livre: _tr('Coup du livre d’ouvertures, tiré de vraies parties.', 'Opening book move, taken from real games.'),
     stat: _tr('Coup du livre d’ouvertures, tiré de vraies parties.', 'Opening book move, taken from real games.'),
-    empreinte: _tr('Coup tiré de vraies parties passées par une position très proche.', 'Move taken from real games that went through a very close position.'),
+    empreinte: _tr('Coup joué dans de vraies parties depuis exactement la même position.', 'Move played in real games from exactly the same position.'),
     n1: _tr('Niveau 1 : un des quatre coups les plus actifs, au hasard, sans calcul.', 'Level 1: one of the four most active moves, at random, without search.')
   })[src] || '';
 }
