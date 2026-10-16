@@ -1342,15 +1342,31 @@ test('niveaux : l historique affiche le numero, y compris pour les anciennes par
 
 test('niveaux : le niveau 1 (comme l ancien « Facile ») joue tout de suite, au hasard parmi les 4 premiers coups', () => {
   ctx.initBoardState(); ctx.CapturedByBlack.set(0); ctx.CapturedByWhite.set(0); ctx.GameOver.set(false);
-  const sauve = { a: ctx.aiColor, e: ctx.executeAIMove };
-  for (const niv of ['1', 'easy']) {
-    let joue = null; ctx.aiColor = () => 'white'; ctx.executeAIMove = m => { joue = m; };
-    ctx.aiDifficulty = niv; ctx.aiMove();
-    assert.ok(joue, niv + ' : coup joue immediatement');
-    const tries = ctx.getAllMovesForColor('white').sort((a, b) => (a.code || 9) - (b.code || 9)).slice(0, 4).map(m => JSON.stringify([m.cells, m.dir]));
-    assert.ok(tries.includes(JSON.stringify([joue.cells, joue.dir])), niv + ' : parmi les 4 premiers');
+  // hors des livres d'ouvertures (20 demi-coups deja joues, sans position) et sans l'historique
+  // laisse par les tests precedents : seul le tirage du niveau 1 decide
+  const sauve = { a: ctx.aiColor, e: ctx.executeAIMove, s: ctx.boardSnapshots, r: ctx._coupRetourEnArriere };
+  ctx.boardSnapshots = Array.from({ length: 20 }, () => ({}));
+  require('vm').runInContext('_bookNode = null', ctx);
+  try {
+    const cle = m => JSON.stringify([m.cells, m.dir]);
+    const tries = () => ctx.getAllMovesForColor('white').sort((a, b) => (a.code || 9) - (b.code || 9)).map(cle);
+    for (const niv of ['1', 'easy']) {
+      let joue = null; ctx.aiColor = () => 'white'; ctx.executeAIMove = m => { joue = m; };
+      ctx.aiDifficulty = niv; ctx.aiMove();
+      assert.ok(joue, niv + ' : coup joue immediatement');
+      assert.ok(tries().slice(0, 4).includes(cle(joue)), niv + ' : parmi les 4 premiers');
+    }
+    // v2.60 : jamais un coup qui revient en arriere -- les 4 premiers qui ne le font pas
+    const T = tries(), retours = new Set(T.slice(0, 3));
+    ctx._coupRetourEnArriere = m => retours.has(cle(m));
+    for (let k = 0; k < 20; k++) {
+      let joue = null; ctx.executeAIMove = m => { joue = m; };
+      ctx.aiDifficulty = '1'; ctx.aiMove();
+      assert.ok(T.slice(3, 7).includes(cle(joue)), 'parmi les 4 premiers qui ne reviennent pas en arriere');
+    }
+  } finally {
+    ctx.aiColor = sauve.a; ctx.executeAIMove = sauve.e; ctx.boardSnapshots = sauve.s; ctx._coupRetourEnArriere = sauve.r; ctx.aiDifficulty = '3';
   }
-  ctx.aiColor = sauve.a; ctx.executeAIMove = sauve.e; ctx.aiDifficulty = '3';
 });
 
 /* ─── 32. Nulle : proposition reelle (IA, meme ecran, a distance) et triple repetition ─── */
@@ -3375,3 +3391,169 @@ test('v2.59 les graphiques suivent les données : des parties sans mesures sont 
   assert.strictEqual(_r54('_empCorpusDonnees()').n, nP + C.n, 'et tout revient avec le complement');
   _r54('_dimsRendre()');
 })));
+/* ─── 55. v2.60 : plus d'allers-retours de l'IA en debut de partie ─── */
+// Le repli « empreintes » prenait la position historique la plus proche, sans seuil, avec le
+// mauvais camp au trait, et rejouait un coup tire d'une autre partie : h9g8 puis g8h9 contre
+// l'IA niveau 3. Il ne joue plus que depuis une position IDENTIQUE, verifiee en rejouant la
+// partie reelle, et aucun coup joue sans calcul ne revient en arriere.
+const _vm55 = require('vm');
+const _r55 = code => _vm55.runInContext(code, ctx);
+const _jetons55 = seq => String(seq).replace(/\d+\.-?/g, ' ').trim().split(/\s+/).filter(Boolean);
+function _bac55(fn) {
+  const depart = ctx._replayStartBoard;
+  try { return _bacPartie(fn); } finally { ctx._replayStartBoard = depart; }
+}
+// pose une position en rejouant des jetons Aba-Pro depuis une disposition, historique compris ; rend le camp au trait
+function _poser55(layout, jetons) {
+  ctx.currentLayout = layout; ctx.initBoardState(); ctx.CapturedByBlack.set(0); ctx.CapturedByWhite.set(0);
+  ctx._replayStartBoard = JSON.parse(JSON.stringify(ctx.board));
+  ctx.boardSnapshots = [];
+  let col = 'black';
+  for (const t of jetons) {
+    const mv = ctx.resolveAbaProToken(t, col);
+    assert.ok(mv, 'jeton illisible : ' + t);
+    ctx.applyMove(mv, col);
+    ctx.boardSnapshots.push({ board: JSON.parse(JSON.stringify(ctx.board)), color: col, capturedByBlack: ctx.CapturedByBlack.get(), capturedByWhite: ctx.CapturedByWhite.get() });
+    col = col === 'black' ? 'white' : 'black';
+  }
+  return col;
+}
+const _coup55 = (col, label) => ctx.getAllMovesForColor(col).find(m => ctx.moveToABAPRO(m.cells, m.dir, m.type) === label);
+
+test('v2.60 empreintes : un enregistrement {m, c} decrit la position apres m+1 demi-coups, vue du camp c qui vient de jouer', async () => {
+  assert.ok(await ctx.ensureGameBanks()); assert.ok(await ctx.ensureEmpreintesHistoriques());
+  _bac55(() => {
+    const g = 77, jetons = _jetons55(ctx.MIGS_GAMES[g][5]);
+    const recs = _r55(`EMPREINTES_HISTORIQUES.filter(function(p){ return p.s === 'MIGS' && p.g === ${g} && p.m < 6; })`);
+    assert.strictEqual(recs.length, 6);
+    recs.forEach(r => {
+      _poser55('belgian', jetons.slice(0, r.m + 1));
+      assert.strictEqual(r.c, r.m % 2 === 0 ? 'black' : 'white');
+      assert.ok(ctx.distanceEmpreintes(ctx.calculerEmpreinte(r.c), r.e) < 0.002, 'm=' + r.m + ' : la meme position, a l arrondi du stockage pres');
+    });
+  });
+});
+
+test('v2.60 repli : depuis une position de vraie partie, il joue un coup reellement joue depuis CETTE position', async () => {
+  assert.ok(await ctx.ensureGameBanks()); assert.ok(await ctx.ensureEmpreintesHistoriques());
+  _bac55(() => {
+    for (const [g, n] of [[10, 6], [120, 9], [1500, 12]]) {
+      const col = _poser55('belgian', _jetons55(ctx.MIGS_GAMES[g][5]).slice(0, n));
+      const mv = ctx.pickEmpreinteFallbackMove(col, ctx.getAllMovesForColor(col), n);
+      assert.ok(mv, 'partie ' + g + ' apres ' + n + ' demi-coups : position du corpus, un coup attendu');
+      // les parties rejouees pour verifier : le coup rendu est une reponse jouee depuis exactement cette position
+      const ici = ctx._empCle(ctx.board, ctx.CapturedByBlack.get(), ctx.CapturedByWhite.get());
+      const reponses = new Set();
+      _r55('_empRejeux').forEach(r => r.cles.forEach((k, i) => {
+        if (k !== ici || !r.jetons[i + 1]) return;
+        const m = ctx.resolveAbaProToken(r.jetons[i + 1], col); if (m) reponses.add(ctx.canonId(m));
+      }));
+      assert.ok(reponses.has(ctx.canonId(mv)), 'partie ' + g + ' : ' + ctx.moveToABAPRO(mv.cells, mv.dir, mv.type) + ' doit etre une reponse reelle');
+    }
+  });
+});
+
+test('v2.60 repli : une position absente des parties reelles ne donne rien -- la recherche decide', async () => {
+  assert.ok(await ctx.ensureGameBanks()); assert.ok(await ctx.ensureEmpreintesHistoriques());
+  _bac55(() => {
+    // trois coups inhabituels en disposition standard : aucune partie reelle ne passe par la.
+    // Avant la v2.60, la position historique « la plus proche » donnait quand meme son coup,
+    // et c'etait g8h9 -- l'aller-retour juste apres h9g8, comme contre l'IA niveau 3.
+    const col = _poser55('standard', ['c3c2', 'h9g8', 'b5c5c6']);
+    assert.strictEqual(ctx.pickEmpreinteFallbackMove(col, ctx.getAllMovesForColor(col), 3), null);
+    assert.strictEqual(ctx._coupRetourEnArriere(_coup55('white', 'g8h9'), 'white'), true, 'g8h9 serait un aller-retour');
+    // pas de coup joue : rien a comparer
+    _poser55('standard', []);
+    assert.strictEqual(ctx.pickEmpreinteFallbackMove('black', ctx.getAllMovesForColor('black'), 0), null);
+  });
+});
+
+test('v2.60 : un coup joue sans calcul ne revient jamais en arriere (aller-retour, position deja vue)', () => _bac55(() => {
+  // h9g8 puis g8h9 : les blanches reviennent la ou elles etaient
+  _poser55('standard', ['c3d3', 'h9g8', 'c4d4']);
+  assert.strictEqual(ctx._coupRetourEnArriere(_coup55('white', 'g8h9'), 'white'), true, 'aller-retour');
+  assert.strictEqual(ctx._coupRetourEnArriere(_coup55('white', 'g7f7'), 'white'), false, 'coup normal');
+  // les noirs aussi reviennent : la position de depart reviendrait
+  _poser55('standard', ['c3d3', 'h9g8', 'd3c3']);
+  assert.strictEqual(ctx._coupRetourEnArriere(_coup55('white', 'g8h9'), 'white'), true, 'position deja vue');
+  // le livre statistique ne tire jamais un tel coup, meme tres frequent
+  _poser55('standard', ['c3d3', 'h9g8', 'c4d4']);
+  const legaux = ctx.getAllMovesForColor('white');
+  const node = { k: {} };
+  node.k[ctx.canonId(_coup55('white', 'g8h9'))] = { c: 1000, w: 10, wg: 10 };
+  node.k[ctx.canonId(_coup55('white', 'g7f7'))] = { c: 1, w: 0, wg: 0 };
+  for (let i = 0; i < 30; i++) {
+    const m = ctx.pickBookMove(node, legaux);
+    assert.strictEqual(ctx.moveToABAPRO(m.cells, m.dir, m.type), 'g7f7');
+  }
+  // et la position ne bouge pas pendant ces verifications
+  assert.strictEqual(ctx._repKeyOf(ctx.board), ctx._repKeyOf(ctx.boardSnapshots[2].board));
+}));
+
+test('v2.60 recherche : un coup qui remet mes billes comme avant mon coup precedent coute 140, puis 560 si je recommence', () => _bac55(() => {
+  const cles = () => ctx.boardSnapshots.map(s => ctx._repKeyOf(s.board));
+  const W = 'white', scores = (hist) => {
+    const r = _filDeCalcul()({ board: ctx.board, capturedByWhite: 0, capturedByBlack: 0, color: W, depth: 1, time: 60000, weights: _POIDS_DEFAUT, hist: hist });
+    return new Map(r.metrics.rootsByDepth[1].map(x => [x.key, x.score]));
+  };
+  const cleCoup = label => { const m = _coup55(W, label); return m.cells.map(c => c.r + ',' + c.c).sort().join('|') + '>' + m.dir.q + ',' + m.dir.r; };
+  // h9g8, l'adversaire avance ailleurs : g8h9 serait un aller-retour (la position complete, elle, est nouvelle)
+  _poser55('standard', ['c3d3', 'h9g8', 'c4d4']);
+  let ref = ctx._allerRetourRef(cles(), W);
+  assert.strictEqual(ref.n, 1);
+  let sans = scores([]), avec = scores(cles());
+  const ar = cleCoup('g8h9');
+  assert.ok(sans.has(ar));
+  for (const [k, v] of sans) assert.strictEqual(avec.get(k), k === ar ? v - 140 : v, k);
+  // deuxieme aller-retour de suite : 140 x 2 x 2
+  _poser55('standard', ['c3d3', 'h9g8', 'c4d4', 'g8h9', 'c5d5']);
+  ref = ctx._allerRetourRef(cles(), W);
+  assert.strictEqual(ref.n, 2);
+  sans = scores([]); avec = scores(cles());
+  const ar2 = cleCoup('h9g8');
+  for (const [k, v] of sans) assert.strictEqual(avec.get(k), k === ar2 ? v - 560 : v, k);
+  // la page (recherche sans fil de calcul) suit la meme regle que le fil de calcul
+  const w = _filDeCalcul(true).w;
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(w._allerRetourRef(cles(), W))), JSON.parse(JSON.stringify(ref)));
+  // trop peu d'historique : rien
+  assert.strictEqual(ctx._allerRetourRef(cles().slice(0, 2), W), null);
+  // au quatrieme aller-retour de suite, toujours 140 x 3 x 3 = 1260 : jamais le prix d'une bille (~2000)
+  _poser55('standard', ['c3d3', 'h9g8', 'c4d4', 'g8h9', 'c5d5', 'h9g8', 'b2c2', 'g8h9', 'b3c3']);
+  ref = ctx._allerRetourRef(cles(), W);
+  assert.strictEqual(ref.n, 3);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(w._allerRetourRef(cles(), W))), JSON.parse(JSON.stringify(ref)));
+  sans = scores([]); avec = scores(cles());
+  const ar3 = cleCoup('h9g8');
+  for (const [k, v] of sans) assert.strictEqual(avec.get(k), k === ar3 ? v - 1260 : v, k);
+}));
+
+test('v2.60 recherche coupée par le temps : jamais pire que le meilleur coup de la profondeur précédente', async () => {
+  assert.ok(await ctx.ensureGameBanks());
+  // le vrai fil de calcul, avec une horloge factice : chaque lecture avance d'un cran,
+  // donc la coupure tombe toujours au meme endroit (avant : a 2 crans pres, e8e7 au lieu de h9h8, -1952)
+  let tic = 0, recu = null;
+  const Horloge = function () { return new Date(); }; Horloge.now = () => ++tic;
+  const w = { console, Date: Horloge, Math, JSON, Map, Set, Object, Array, Number, String, Infinity, isFinite, parseInt, Uint8Array, Int8Array, Float32Array, Int32Array, Uint32Array, DataView, ArrayBuffer,
+              navigator: { deviceMemory: 4 }, atob: s => Buffer.from(s, 'base64').toString('binary'), btoa: s => Buffer.from(s, 'binary').toString('base64') };
+  w.self = w; require('vm').createContext(w); require('vm').runInContext(ctx.AI_WORKER_CODE, w);
+  w.self.postMessage = m => { recu = m; };
+  const chercher = p => { recu = null; w.self.onmessage({ data: p }); return recu; };
+  const cle = m => m.cells.map(c => c.r + ',' + c.c).sort().join('|') + '>' + m.dir.q + ',' + m.dir.r;
+  let coupees = 0;
+  _bac55(() => {
+    for (const [g, n] of [[5, 10], [77, 20]]) {
+      const col = _poser55('belgian', _jetons55(ctx.MIGS_GAMES[g][5]).slice(0, n));
+      const base = { board: ctx.board, capturedByWhite: ctx.CapturedByWhite.get(), capturedByBlack: ctx.CapturedByBlack.get(), color: col, weights: _POIDS_DEFAUT, hist: ctx._gameHistKeys() };
+      const ref = chercher(Object.assign({}, base, { depth: 3, time: 1e12 }));
+      const s3 = new Map(ref.metrics.rootsByDepth[3].map(x => [x.key, x.score]));
+      const pv2 = cle(chercher(Object.assign({}, base, { depth: 2, time: 1e12 })).move);
+      for (const extra of [2, 6, 12]) {
+        const r = chercher(Object.assign({}, base, { depth: 3, time: ref.metrics.depthInfo[2].fin + extra }));
+        if (r.metrics.depth !== 3 || r.metrics.rootsByDepth[3]) continue;   // pas coupee pendant la profondeur 3
+        coupees++;
+        assert.ok(s3.get(cle(r.move)) >= s3.get(pv2), 'partie ' + g + ' apres ' + n + ', +' + extra + ' : ' + s3.get(cle(r.move)) + ' < ' + s3.get(pv2));
+      }
+    }
+  });
+  assert.ok(coupees >= 4, coupees + ' recherches coupees');
+});

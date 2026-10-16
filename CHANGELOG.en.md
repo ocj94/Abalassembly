@@ -9,6 +9,53 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.60]
+
+### Fixed — the AI no longer goes back and forth in the opening
+- **Where it came from.** In the first 20 half-moves, when the opening book had
+  lost track of the game, the AI often played without computing a move "taken
+  from real games that went through a very close position". This fallback
+  actually took the closest historical position, with no threshold at all:
+  often another game, from another starting layout, with the wrong side to
+  move, and replayed a move picked two half-moves further on. Hence h9g8,
+  g8h9, h9g8… — at every level, since this fallback came before the search.
+- **Measured before the fix.** In the browser, levels 1 to 5, standard layout
+  and Belgian Daisy: 99 of the AI's first 146 moves came from this fallback,
+  with 25 back-and-forth moves (5 at every level in the standard layout). Over
+  24 simulated games at level 3: 136 moves out of 264, 16 of them going back
+  and forth, on average 313 points worse than the computed move and up to
+  2,112 (more than a marble).
+- **Now** this fallback only plays from exactly the same position as a real
+  game (reached in a different order), checked by replaying that game;
+  otherwise the AI computes. No move played without computing (opening books,
+  this fallback, level 1) ever brings back a position already seen or undoes
+  the same side's previous move.
+- **The search could oscillate too**: in a simulated game, f4f5 then f7f6,
+  four times in a row — the whole position never repeated, since the opponent
+  was moving elsewhere. A move that puts one's marbles back exactly as before
+  one's previous move now costs 140 points, 560 the second time in a row,
+  1,260 after that: never the price of a marble, so the AI still retreats from
+  a real danger.
+- **Result.** In the browser, same games: no back-and-forth in 144 moves, only
+  5 moves taken from real games (that went through exactly the same position).
+  In the simulated games: no back-and-forth.
+
+### Fixed — a sometimes very bad move when thinking time runs out
+- When thinking time ran out in the middle of a depth, the AI played the best
+  of only the moves already examined at that depth — often the first in the
+  list — even when it was much worse than the best move of the previous depth.
+  Measured over 132 cut searches (positions from real games, always cut at the
+  same point): 61 returned a move worse than that one, by up to 2,010 points (a
+  marble). The previous depth's best move is now examined first: none is
+  worse. This affects levels 2 to 9, especially on a slow device.
+
+### Tests
+- 6 new tests: what a fingerprint record describes; the fallback only plays
+  moves really played from the same position, and nothing outside real games
+  (the position that gave g8h9 right after h9g8); no move played without
+  computing goes back; the cost of a back-and-forth (140, 560, 1,260); a search
+  cut by time is never worse than the previous depth.
+
 ## [v2.59]
 
 ### Added — understanding the 12 dimensions, Game statistics page

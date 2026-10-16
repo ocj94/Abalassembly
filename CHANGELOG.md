@@ -9,6 +9,56 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.60]
+
+### Corrigé — l'IA ne fait plus d'allers-retours en début de partie
+- **D'où ils venaient.** Dans les 20 premiers demi-coups, quand le livre
+  d'ouvertures avait perdu la trace de la partie, l'IA jouait souvent sans
+  calculer un coup « tiré de vraies parties passées par une position proche ».
+  Ce repli prenait en fait la position historique la plus proche, sans aucun
+  seuil : souvent une autre partie, d'une autre disposition de départ, avec le
+  mauvais camp au trait, dont il rejouait un coup choisi deux demi-coups plus
+  loin. D'où h9g8, g8h9, h9g8… — et à tous les niveaux, car ce repli passait
+  avant le calcul.
+- **Mesuré avant correction.** Dans le navigateur, niveaux 1 à 5, disposition
+  standard et marguerite belge : 99 des 146 premiers coups de l'IA venaient de
+  ce repli, avec 25 allers-retours (5 à chaque niveau en disposition standard).
+  Sur 24 parties simulées au niveau 3 : 136 coups sur 264, dont 16
+  allers-retours, en moyenne 313 points moins bons que le coup calculé et
+  jusqu'à 2 112 (plus d'une bille).
+- **Maintenant**, ce repli ne joue que depuis exactement la même position
+  qu'une partie réelle (atteinte dans un autre ordre), vérifiée en rejouant
+  cette partie ; sinon l'IA calcule. Aucun coup joué sans calcul (livres
+  d'ouvertures, ce repli, niveau 1) ne ramène une position déjà vue ni ne
+  défait le coup précédent du même camp.
+- **Le calcul aussi pouvait osciller** : dans une partie simulée, f4f5 puis
+  f7f6, quatre fois de suite — la position complète ne se répétait pas, car
+  l'adversaire avançait ailleurs. Un coup qui remet ses billes exactement comme
+  avant son coup précédent coûte maintenant 140 points, 560 la deuxième fois de
+  suite, 1 260 ensuite : jamais le prix d'une bille, donc l'IA recule toujours
+  devant un vrai danger.
+- **Résultat.** Dans le navigateur, mêmes parties : 0 aller-retour sur 144
+  coups, 5 coups seulement tirés de parties réelles (passées exactement par la
+  même position). Sur les parties simulées : 0 aller-retour.
+
+### Corrigé — un coup parfois très mauvais quand le temps de réflexion s'arrête
+- Quand le temps de réflexion s'arrêtait au milieu d'une profondeur, l'IA
+  jouait le meilleur des seuls coups déjà examinés à cette profondeur — souvent
+  le premier de la liste — même s'il était bien pire que le meilleur coup de la
+  profondeur précédente. Mesuré sur 132 recherches coupées (positions de vraies
+  parties, coupure toujours au même endroit) : 61 rendaient un coup pire que
+  celui-là, jusqu'à 2 010 points (une bille). Le meilleur coup de la profondeur
+  précédente est maintenant examiné en premier : aucune n'est pire. Cela
+  concerne les niveaux 2 à 9, surtout sur un appareil lent.
+
+### Tests
+- 6 nouveaux tests : ce que décrit un enregistrement d'empreinte ; le repli ne
+  joue que des coups réellement joués depuis la même position, et rien hors des
+  parties réelles (la position qui donnait g8h9 juste après h9g8) ; aucun coup
+  joué sans calcul ne revient en arrière ; le coût d'un aller-retour (140, 560,
+  1 260) ; une recherche coupée par le temps n'est jamais pire que la
+  profondeur précédente.
+
 ## [v2.59]
 
 ### Ajouté — comprendre les 12 dimensions, page Statistiques du jeu
