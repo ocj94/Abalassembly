@@ -9,6 +9,22 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.62]
+
+### Modifié — « Sur un vrai plateau » commence à 3 ans, pas avant
+- **On respecte la boîte.** Abalone ne convient pas aux moins de 3 ans
+  (petits éléments : les billes). La page commence donc à 3 ans, et le dit
+  partout : en tête de page (« À partir de 3 ans »), dès la première phrase,
+  en premier point de l'encadré sécurité, dans l'aide et la documentation.
+- **Retiré** : tout ce qui visait les moins de 3 ans — les âges « dès 2 ans »
+  et « 2 ans ½ », et le plateau géant au sol avec de gros objets.
+- **L'étape 1** se joue maintenant sur le vrai plateau : on n'utilise d'abord
+  que les 19 trous du centre (3, 4, 5, 4, 3), une bille par trou. Toutes les
+  étapes ont un âge repère de 3 ans ou plus.
+- **Un plus petit de moins de 3 ans à la maison** ne joue pas encore, même
+  « juste pour toucher » : on joue pendant sa sieste, on recompte les 28
+  billes et la boîte retourne en hauteur.
+
 ## [v2.61]
 
 ### Ajouté — « Apprendre sur un vrai plateau », pour les tout-petits

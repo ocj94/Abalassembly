@@ -1,11 +1,13 @@
 /* ═══════════════════════════════════════════
    APPRENDRE SUR UN VRAI PLATEAU (v2.61)
-   Pour les tout-petits (des 2 ans), loin des ecrans : demande d'Olivier,
-   qui veut apprendre Abalone a deux enfants de 2 et 3 ans « sans traumas
-   et sans les degouter des jeux de plateau ».
+   Pour apprendre Abalone aux enfants A PARTIR DE 3 ANS, loin des ecrans,
+   « sans traumas et sans les degouter des jeux de plateau » (demande
+   d'Olivier).
    - Securite d'abord : la boite d'Abalone ne convient pas aux moins de
-     3 ans (petits elements) et vise 6-7 ans ; avant 3 ans, pas de vraies
-     billes, un plateau geant au sol avec de gros objets.
+     3 ans (petits elements : les billes) et vise 6-7 ans. La page commence
+     donc a 3 ans, pas avant (v2.62 : tout ce qui visait les moins de 3 ans
+     est retire, plateau geant compris) ; toujours avec un adulte, billes
+     comptees, boite hors de portee d'un plus petit.
    - Huit etapes courtes, chacune un petit jeu, avec un schema dessine ici
      (SVG, sans image externe), « c'est acquis quand » et « si ca coince ».
      Les schemas des etapes 7 et 8 viennent des dispositions du moteur
@@ -151,18 +153,18 @@ const _VP_PETIT = [3, 4, 5, 4, 3], _VP_GRAND = [5, 6, 7, 8, 9, 8, 7, 6, 5];
 function _vpEtapes() {
   return [
     { n: 1, ic: '🏠', titre: _tr('Une bille par maison', 'One marble per house'),
-      age: _tr('dès 2 ans, avec des objets géants', 'from age 2, with giant objects'),
-      but: _tr('Découvrir le plateau, trier les deux couleurs, poser un objet par case.', 'Discover the board, sort the two colours, put one object on each spot.'),
-      jeu: _tr('<b>Le plateau géant</b> : au sol, 19 cases en 5 rangées de 3, 4, 5, 4 et 3 — des assiettes en carton, des ronds de papier ou du ruban de peintre. Comme « billes » : des objets de deux couleurs <b>trop gros pour passer dans un rouleau de papier toilette</b> (gros cubes de construction, gobelets retournés, balles de tennis). <b>Le jeu</b> : « Chaque bille veut sa maison » — il pose un objet par case. Puis on trie : les noirs d’un côté, les blancs de l’autre. Dès 3 ans, le même jeu marche sur le vrai plateau, avec un adulte.',
-        '<b>The giant board</b>: on the floor, 19 spots in 5 rows of 3, 4, 5, 4 and 3 — paper plates, paper circles or painter’s tape. As “marbles”: objects in two colours that are <b>too big to fit through a toilet-paper tube</b> (big building blocks, upside-down cups, tennis balls). <b>The game</b>: “Every marble wants its house” — the child puts one object on each spot. Then sort them: dark on one side, light on the other. From age 3 the same game works on the real board, with an adult.'),
+      age: _tr('dès 3 ans', 'from age 3'),
+      but: _tr('Découvrir le plateau, trier les deux couleurs, poser une bille par trou.', 'Discover the board, sort the two colours, put one marble in each hole.'),
+      jeu: _tr('<b>Le petit plateau</b> : au début, on n’utilise que le milieu du vrai plateau — les 19 trous du centre, en rangées de 3, 4, 5, 4 et 3 ; le reste du plateau, c’est « dehors ». <b>Le jeu</b> : « Chaque bille veut sa maison » — il pose une bille par trou. Puis on trie : les noires d’un côté, les blanches de l’autre, et on les compte ensemble.',
+        '<b>The small board</b>: at first, use only the middle of the real board — the 19 holes in the centre, in rows of 3, 4, 5, 4 and 3; the rest of the board is “outside”. <b>The game</b>: “Every marble wants its house” — the child puts one marble in each hole. Then sort them: dark on one side, light on the other, and count them together.'),
       schema: function () { return _vpSvgHex({ rangees: _VP_PETIT, ecart: 2.85, billes: { '0,0': 'b', '0,2': 'w', '1,1': 'w', '2,2': 'b', '2,4': 'w', '3,0': 'b', '4,1': 'w', '4,2': 'b' },
-        titre: _tr('Le petit plateau de 19 cases, quelques billes posées, une par case', 'The small 19-spot board, a few marbles placed, one per spot') }); },
-      legende: _tr('Le petit plateau : 19 cases (3, 4, 5, 4, 3). Une seule bille par case.', 'The small board: 19 spots (3, 4, 5, 4, 3). Only one marble per spot.'),
-      acquis: _tr('il pose un seul objet par case et sépare les deux couleurs.', 'they put only one object per spot and separate the two colours.'),
-      coince: _tr('moins de cases (7 : une fleur), une seule couleur au début.', 'fewer spots (7: a flower), a single colour at first.') },
+        titre: _tr('Le petit plateau : les 19 trous du centre, quelques billes posées, une par trou', 'The small board: the 19 centre holes, a few marbles placed, one per hole') }); },
+      legende: _tr('Le petit plateau : les 19 trous du centre (3, 4, 5, 4, 3). Une seule bille par trou.', 'The small board: the 19 centre holes (3, 4, 5, 4, 3). Only one marble per hole.'),
+      acquis: _tr('il pose une seule bille par trou et sépare les deux couleurs.', 'they put only one marble per hole and separate the two colours.'),
+      coince: _tr('moins de trous (7 : une fleur au centre), une seule couleur au début.', 'fewer holes (7: a flower in the centre), a single colour at first.') },
 
     { n: 2, ic: '🐞', titre: _tr('Un petit pas', 'One little step'),
-      age: _tr('vers 2 ans ½ – 3 ans', 'around 2½–3'),
+      age: _tr('dès 3 ans', 'from age 3'),
       but: _tr('Bouger une bille d’une seule case, vers une case voisine vide.', 'Move one marble by a single spot, to an empty neighbouring spot.'),
       jeu: _tr('<b>La coccinelle</b> : une bille au milieu, c’est la coccinelle. Elle fait un petit pas vers une maison voisine — il y en a 6 autour, comptez-les ensemble. Puis « la coccinelle va voir son amie » : posez une autre bille 2 ou 3 cases plus loin, il l’y amène pas à pas.',
         '<b>The ladybird</b>: one marble in the middle is the ladybird. It takes one little step to a neighbouring house — there are 6 around it, count them together. Then “the ladybird visits her friend”: put another marble 2 or 3 spots away; the child gets there step by step.'),
@@ -176,8 +178,8 @@ function _vpEtapes() {
     { n: 3, ic: '🔄', titre: _tr('Chacun son tour', 'Taking turns'),
       age: _tr('vers 3 ans', 'around 3'),
       but: _tr('Jouer un coup chacun, à tour de rôle.', 'Play one move each, in turn.'),
-      jeu: _tr('<b>Le doudou du tour</b> : celui qui tient le doudou (ou un petit objet) fait un petit pas, puis le donne à l’autre. Une bille noire et une blanche font la course jusqu’au bord d’en face.',
-        '<b>The turn teddy</b>: whoever holds the teddy (or any small object) takes one little step, then hands it over. A dark marble and a light one race to the opposite edge.'),
+      jeu: _tr('<b>Le doudou du tour</b> : celui qui tient le doudou (ou un autre jouet) fait un petit pas, puis le donne à l’autre. Une bille noire et une blanche font la course jusqu’au bord d’en face.',
+        '<b>The turn teddy</b>: whoever holds the teddy (or another toy) takes one little step, then hands it over. A dark marble and a light one race to the opposite edge.'),
       schema: function () { return _vpSvgHex({ rangees: _VP_PETIT, ecart: 2.85, billes: { '4,1': 'b', '0,1': 'w' }, fantomes: [[3, 2], [1, 1]],
         fleches: [{ de: [4, 1], dir: 'NE', num: '1' }, { de: [0, 1], dir: 'SO', num: '2' }],
         titre: _tr('La bille noire fait un pas (1), puis la blanche (2)', 'The dark marble takes a step (1), then the light one (2)') }); },
@@ -369,18 +371,18 @@ function renderPlateauPage() {
   _vpSvgN = 0;
   const E = _vpEtapes(), dp = _tr(' : ', ': ');   // deux-points : espace avant en francais seulement
   let h = '<p class="vp-intro">' + _tr(
-    'Pour apprendre Abalone à de tout jeunes enfants, sur un vrai plateau, loin des écrans. Le but n’est pas qu’ils jouent tout de suite une vraie partie : la boîte indique « à partir de 6 ou 7 ans ». Le but, c’est qu’ils aiment ce plateau, ces billes et ces moments avec vous — c’est ça qui fera de grands joueurs plus tard. Huit petites étapes, chacune un jeu de quelques minutes. Les âges sont des repères, pas des objectifs : chaque enfant va à son rythme, et rester des semaines sur une étape, c’est normal.',
-    'For teaching Abalone to very young children, on a real board, away from screens. The aim is not a real game straight away: the box says “from age 6 or 7”. The aim is for them to love this board, these marbles and this time with you — that is what makes strong players later. Eight small steps, each a game lasting a few minutes. The ages are landmarks, not targets: every child goes at their own pace, and staying on one step for weeks is normal.') + '</p>'
+    'Pour apprendre Abalone aux enfants <b>à partir de 3 ans</b> (pas avant : voir la sécurité juste en dessous), sur un vrai plateau, loin des écrans. Le but n’est pas qu’ils jouent tout de suite une vraie partie : la boîte indique « à partir de 6 ou 7 ans ». Le but, c’est qu’ils aiment ce plateau, ces billes et ces moments avec vous — c’est ça qui fera de grands joueurs plus tard. Huit petites étapes, chacune un jeu de quelques minutes. Les âges sont des repères, pas des objectifs : chaque enfant va à son rythme, et rester des semaines sur une étape, c’est normal.',
+    'For teaching Abalone to children <b>from age 3</b> (not before: see safety just below), on a real board, away from screens. The aim is not a real game straight away: the box says “from age 6 or 7”. The aim is for them to love this board, these marbles and this time with you — that is what makes strong players later. Eight small steps, each a game lasting a few minutes. The ages are landmarks, not targets: every child goes at their own pace, and staying on one step for weeks is normal.') + '</p>'
     + '<div class="vp-noprint" style="margin:14px 0 6px"><button type="button" class="vp-bouton" onclick="vpImprimer()">🖨️ ' + _tr('Imprimer la fiche', 'Print the guide') + '</button></div>';
 
   // Securite
   h += '<div class="vp-encadre vp-securite" id="vp-securite"><div class="vp-encadre-titre">🛡️ ' + _tr('La sécurité d’abord', 'Safety first') + '</div><ul>'
-    + '<li>' + _tr('<b>Moins de 3 ans : pas de vraies billes.</b> La boîte prévient que le jeu ne convient pas aux moins de 3 ans (petits éléments). Avant 3 ans, un enfant ne devrait avoir en main que de grands objets ; repère simple : <b>ce qui passe dans un rouleau de papier toilette vide peut l’étouffer</b>. Aux États-Unis, les balles de 4,4 cm de diamètre ou moins sont même interdites dans les jouets pour les moins de 3 ans. Pour le plus petit : le plateau géant au sol (étape 1), avec de gros objets.',
-        '<b>Under 3: no real marbles.</b> The box warns that the game is not suitable for children under 3 (small parts). Before 3, a child should only handle large objects; a simple check: <b>anything that fits through an empty toilet-paper tube can choke them</b>. In the United States, balls 1.75 in (4.4 cm) across or smaller are even banned from toys for under-3s. For the little one: the giant floor board (step 1), with big objects.') + '</li>'
-    + '<li>' + _tr('<b>Dès 3 ans, avec les vraies billes</b> : toujours un adulte assis à côté, à table. On compte les billes en les sortant et en les rangeant (14 noires + 14 blanches = 28). La boîte se range hors de portée. S’il porte encore les objets à la bouche, on reste au plateau géant.',
-        '<b>From 3, with the real marbles</b>: always an adult sitting next to them, at a table. Count the marbles when you take them out and put them away (14 dark + 14 light = 28). The box goes out of reach afterwards. If the child still puts things in their mouth, stay with the giant board.') + '</li>'
-    + '<li>' + _tr('<b>Les deux ensemble</b> : tant que le plus jeune a moins de 3 ans, les séances à deux se font sur le plateau géant. Les vraies billes, c’est pour l’aîné, quand le petit n’est pas là (pendant la sieste, par exemple).',
-        '<b>Both together</b>: while the younger one is under 3, joint sessions happen on the giant board. The real marbles are for the older child, when the little one is not around (during nap time, for example).') + '</li>'
+    + '<li>' + _tr('<b>À partir de 3 ans, pas avant.</b> La boîte prévient que le jeu ne convient pas aux moins de 3 ans : les billes sont de petits éléments. Repère des pédiatres : <b>ce qui passe dans un rouleau de papier toilette vide peut étouffer un jeune enfant</b> ; aux États-Unis, les balles de 4,4 cm de diamètre ou moins sont même interdites dans les jouets pour les moins de 3 ans. Ce guide commence donc à 3 ans.',
+        '<b>From age 3, not before.</b> The box warns that the game is not suitable for children under 3: the marbles are small parts. A paediatric rule of thumb: <b>anything that fits through an empty toilet-paper tube can choke a young child</b>; in the United States, balls 1.75 in (4.4 cm) across or smaller are even banned from toys for under-3s. So this guide starts at 3.') + '</li>'
+    + '<li>' + _tr('<b>Toujours avec un adulte</b> : assis à côté, à table. On compte les billes en les sortant et en les rangeant (14 noires + 14 blanches = 28), et la boîte se range hors de portée. S’il porte encore les objets à la bouche, on attend encore un peu avant de commencer.',
+        '<b>Always with an adult</b>: sitting next to them, at a table. Count the marbles when you take them out and put them away (14 dark + 14 light = 28), and the box goes out of reach. If the child still puts things in their mouth, wait a little longer before starting.') + '</li>'
+    + '<li>' + _tr('<b>Un plus petit de moins de 3 ans à la maison ?</b> Il ne joue pas encore, même « juste pour toucher ». On joue quand il n’est pas là (pendant sa sieste, par exemple), on recompte les 28 billes et la boîte retourne en hauteur. Son tour viendra à 3 ans.',
+        '<b>A little one under 3 at home?</b> They don’t play yet, not even “just to touch”. Play when they are not around (during their nap, for example), count the 28 marbles again and put the box back up high. Their turn will come at 3.') + '</li>'
     + '</ul></div>';
 
   // Regles d'or

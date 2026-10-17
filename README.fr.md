@@ -67,7 +67,7 @@ Ce qu'il masque : le **chat**, le **Labo IA**, les **paramètres** et les **lien
 
 **L'état est conservé.** Un rechargement de page ne rouvre rien : le mode se remet en place au démarrage, et il faut toujours répondre à l'addition pour en sortir.
 
-**Avant l'écran, un vrai plateau.** Pour les tout-petits (dès 2 ans), la page **Sur un vrai plateau** (menu ☰ → Progresser) guide les parents hors écran : la sécurité d'abord (pas de vraies billes avant 3 ans, plateau géant au sol), des règles d'or pour qu'ils aiment le jeu sans pleurs ni dégoût, 8 petites étapes avec leurs schémas (« Une bille par maison », « Le petit train », « Le plus fort pousse », « Plouf ! »… jusqu'à la vraie partie), un carnet de progrès pour plusieurs enfants (prénoms gardés sur l'appareil) et une fiche à imprimer.
+**Avant l'écran, un vrai plateau.** Pour les enfants **à partir de 3 ans** (pas avant : la boîte d'Abalone ne convient pas aux moins de 3 ans), la page **Sur un vrai plateau** (menu ☰ → Progresser) guide les parents hors écran : la sécurité d'abord (toujours avec un adulte, billes comptées, boîte hors de portée d'un plus petit), des règles d'or pour qu'ils aiment le jeu sans pleurs ni dégoût, 8 petites étapes avec leurs schémas (« Une bille par maison », « Le petit train », « Le plus fort pousse », « Plouf ! »… jusqu'à la vraie partie), un carnet de progrès pour plusieurs enfants (prénoms gardés sur l'appareil) et une fiche à imprimer.
 
 ## Ce que contient le fichier
 
@@ -80,7 +80,7 @@ Ce qu'il masque : le **chat**, le **Labo IA**, les **paramètres** et les **lien
 - Bots conseillers (Bot Noir / Bot Blanc), duels de bots, skins de billes à débloquer, vue 3D à la demande
 - **Vue à la première personne** : avec les blancs, le plateau se retourne pour que votre camp soit toujours en bas. La notation, elle, reste absolue — `e5` désigne `e5` quelle que soit l'orientation
 - **Mode Enfant** (voir plus haut) : plateau allégé, aide au coup, sortie protégée
-- **Sur un vrai plateau** (voir plus haut) : apprendre aux tout-petits, sans écran, en 8 étapes, avec carnet de progrès et fiche à imprimer
+- **Sur un vrai plateau** (voir plus haut) : apprendre aux enfants dès 3 ans, sans écran, en 8 étapes, avec carnet de progrès et fiche à imprimer
 - **Mode technique** — réglage global qui bascule l'affichage de contenu détaillé (méthode, chiffres bruts, limites) sur les pages qui en ont, sans encombrer la vue joueur par défaut. Pages équipées : Tables de finale, Ouvertures, Labo, Statistiques
 - **12 langues au sélecteur** — français natif ; anglais et hébreu avec traduction embarquée de la navigation (instantanée, sans réseau) ; les 9 autres s'appuient sur la traduction native du navigateur, avec un guide adapté selon Chrome/Firefox/Safari/Edge. **Hébreu en RTL** : sidebar, mise en page et menus déroulants basculent à droite ; les flèches directionnelles se retournent nativement (caractères Unicode *bidi-mirrored*, aucun texte réécrit)
 

@@ -9,6 +9,22 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.62]
+
+### Changed — "On a real board" starts at age 3, not before
+- **Following the box.** Abalone is not suitable for children under 3 (small
+  parts: the marbles). The page now starts at 3 and says so everywhere: in
+  the page header ("From age 3"), in the very first sentence, as the first
+  point of the safety box, in the help and in the documentation.
+- **Removed**: everything aimed at under-3s — the "from age 2" and "2½" ages,
+  and the giant floor board with big objects.
+- **Step 1** is now played on the real board: use only the 19 centre holes at
+  first (3, 4, 5, 4, 3), one marble per hole. Every step has a landmark age
+  of 3 or more.
+- **A little one under 3 at home** does not play yet, not even "just to
+  touch": play during their nap, count the 28 marbles again and put the box
+  back up high.
+
 ## [v2.61]
 
 ### Added — "Learning on a real board", for toddlers

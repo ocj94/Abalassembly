@@ -28,9 +28,9 @@ L'état survit à un rechargement de page : le mode se remet en place au démarr
 
 ## Avant l'écran : un vrai plateau
 
-Pour les tout-petits, la page **Sur un vrai plateau** (menu ☰ → Progresser) précède le Mode Enfant : apprendre sur un vrai plateau, dès 2 ans, sans écran.
+Pour les jeunes enfants, la page **Sur un vrai plateau** (menu ☰ → Progresser) précède le Mode Enfant : apprendre sur un vrai plateau, **à partir de 3 ans**, sans écran.
 
-- **Sécurité d'abord** : pas de vraies billes avant 3 ans (la boîte l'interdit, petits éléments) ; un plateau géant au sol avec de gros objets ; dès 3 ans, un adulte à côté et les 28 billes comptées.
+- **Sécurité d'abord** : pas avant 3 ans (la boîte ne convient pas aux moins de 3 ans, petits éléments) ; toujours un adulte à côté, les 28 billes comptées, la boîte hors de portée d'un plus petit.
 - **Règles d'or** pour qu'ils aiment le jeu : séances courtes, l'enfant choisit, il gagne souvent puis joue contre un handicap, le parent montre comment perdre, frère et sœur dans la même équipe.
 - **8 étapes** avec leurs schémas, d'« Une bille par maison » à « La vraie partie » ; l'étape 7, la mini-partie, utilise la disposition Découverte de ce mode.
 - **Carnet de progrès** pour 1 à 4 enfants, gardé sur l'appareil, et **fiche à imprimer**.
