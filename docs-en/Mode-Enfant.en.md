@@ -28,9 +28,9 @@ The state survives a page reload: the mode restores itself on startup, and the a
 
 ## Before the screen: a real board
 
-For toddlers, the **On a real board** page (☰ menu → Improve) comes before Kids Mode: learning on a real board, from age 2, screen-free.
+For young children, the **On a real board** page (☰ menu → Improve) comes before Kids Mode: learning on a real board, **from age 3**, screen-free.
 
-- **Safety first**: no real marbles before 3 (the box rules it out, small parts); a giant floor board with big objects; from 3, an adult alongside and the 28 marbles counted.
+- **Safety first**: not before 3 (the box is not suitable for under-3s, small parts); always an adult alongside, the 28 marbles counted, the box out of a little one's reach.
 - **Golden rules** so they love the game: short sessions, the child chooses, they win often and then play against a handicap, the parent shows how to lose, siblings on the same team.
 - **8 steps** with diagrams, from "One marble per house" to "The real game"; step 7, the mini-game, uses this mode's Discovery layout.
 - **Progress notebook** for 1 to 4 children, kept on the device, and a **printable guide**.

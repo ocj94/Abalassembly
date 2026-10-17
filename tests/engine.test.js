@@ -3559,7 +3559,7 @@ test('v2.60 recherche coupée par le temps : jamais pire que le meilleur coup de
 });
 
 // ═══════════════════════════════════════════
-// 56. v2.61 : apprendre sur un vrai plateau (tout-petits, sans ecran)
+// 56. v2.61 : apprendre sur un vrai plateau (a partir de 3 ans depuis v2.62, sans ecran)
 // ═══════════════════════════════════════════
 async function _vp56(lang, fn) {
   const avant = ctx.localStorage.getItem('abalone_lang'), carnet = ctx.localStorage.getItem('abaPlateauCarnet');
@@ -3585,8 +3585,10 @@ test('v2.61 vrai plateau : page, entrée du menu (Progresser), dessin à l’ouv
   assert.strictEqual(ctx.I18N_EN['Sur un vrai plateau'], 'On a real board');
   assert.strictEqual(ctx.I18N_EN['Apprendre sur un vrai plateau'], 'Learning on a real board');
   const aide = src.slice(src.indexOf('<div class="page" id="page-aide">'), src.indexOf('<div class="page" id="page-mentions">'));
-  assert.ok(aide.indexOf('<li><b>Sur un vrai plateau</b> : apprendre Abalone aux tout-petits (dès 2 ans), sans écran') > 0);
-  assert.ok(aide.indexOf('<li><b>On a real board</b>: teaching Abalone to toddlers (from age 2), screen-free') > 0);
+  assert.ok(aide.indexOf('<li><b>Sur un vrai plateau</b> : apprendre Abalone aux enfants à partir de 3 ans, sans écran') > 0);
+  assert.ok(aide.indexOf('<li><b>On a real board</b>: teaching Abalone to children from age 3, screen-free') > 0);
+  assert.match(src, /<div class="page" id="page-plateau">\s*<div class="page-header"[^>]*>\s*<div class="section-label">À partir de 3 ans · en famille, sans écran<\/div>/);
+  assert.strictEqual(ctx.I18N_EN['À partir de 3 ans · en famille, sans écran'], 'From age 3 · as a family, screen-free');
 });
 
 test('v2.61 vrai plateau : sécurité d’abord, 8 étapes dans l’ordre, chacune avec son schéma, « acquis quand » et « si ça coince »', () => _vp56('FR', async els => {
@@ -3595,7 +3597,8 @@ test('v2.61 vrai plateau : sécurité d’abord, 8 étapes dans l’ordre, chacu
   // la securite vient avant tout le reste
   const sec = h.indexOf('id="vp-securite"');
   assert.ok(sec > 0 && sec < h.indexOf('Les règles d’or') && sec < h.indexOf('id="vp-etape-1"'));
-  ['Moins de 3 ans : pas de vraies billes.', 'rouleau de papier toilette vide', '4,4 cm', '(14 noires + 14 blanches = 28)', 'tant que le plus jeune a moins de 3 ans']
+  ['Pour apprendre Abalone aux enfants <b>à partir de 3 ans</b> (pas avant', '<b>À partir de 3 ans, pas avant.</b>', 'rouleau de papier toilette vide', '4,4 cm',
+   '(14 noires + 14 blanches = 28)', '<b>Un plus petit de moins de 3 ans à la maison ?</b> Il ne joue pas encore']
     .forEach(t => assert.ok(h.indexOf(t) > 0, t));
   ['https://www.canada.ca/fr/sante-canada/services/securite-jouets/petites-pieces-jouets.html', 'https://www.inspq.qc.ca/mieux-vivre/enfant/securite/prevenir-etouffements',
    'https://www.cpsc.gov/s3fs-public/pdfs/blk_media_cspa.pdf'].forEach(u => assert.ok(h.indexOf('href="' + u + '" target="_blank" rel="noopener"') > 0, u));
@@ -3616,6 +3619,13 @@ test('v2.61 vrai plateau : sécurité d’abord, 8 étapes dans l’ordre, chacu
   assert.deepStrictEqual((c5.match(/[✓✗]<\/text>/g) || []).map(x => x[0]), ['✓', '✓', '✗']);
   // un seul bon age sur la boite : 6 ou 7 ans, pas 3
   assert.ok(h.indexOf('la boîte indique « à partir de 6 ou 7 ans »') > 0);
+  // v2.62 : rien avant 3 ans -- ni age plus bas, ni plateau geant pour les moins de 3 ans ; chaque etape a 3 ans ou plus
+  ['2 ans', 'géant', 'tout-petits', 'objets géants'].forEach(t => assert.strictEqual(h.indexOf(t), -1, 'reste d avant 3 ans : ' + t));
+  titres.forEach((t, i) => {
+    const age = /<span class="vp-age">([^<]*)<\/span>/.exec(_carte56(h, i + 1))[1], n = +(age.match(/\d+/) || [0])[0];
+    assert.ok(n >= 3, 'etape ' + (i + 1) + ' : ' + age);
+  });
+  assert.strictEqual(/<span class="vp-age">([^<]*)<\/span>/.exec(_carte56(h, 1))[1], 'dès 3 ans');
 }));
 
 test('v2.61 vrai plateau : les schémas des étapes 7 et 8 sont les dispositions du moteur (Découverte = Mode Enfant, classique)', () => _vp56('FR', async els => {
@@ -3657,9 +3667,11 @@ test('v2.61 vrai plateau : schémas justes -- tout tient dans le cadre, les 6 fl
 test('v2.61 vrai plateau : en anglais, tout le texte de la page est anglais (ponctuation anglaise comprise)', () => _vp56('EN', async els => {
   ctx.renderPlateauPage();
   const h = els['plateau-corps'].innerHTML;
-  ['Safety first', 'Under 3: no real marbles.', 'One marble per house', 'The stronger one pushes', 'Splash!', 'Where are they up to?', 'Child 1', 'Next step: ',
+  ['Safety first', 'A little one under 3 at home?', 'One marble per house', 'The stronger one pushes', 'Splash!', 'Where are they up to?', 'Child 1', 'Next step: ',
    '<b>Aim</b>: ', '<b>If it’s not working</b>: ', 'Sources for the safety box: '].forEach(t => assert.ok(h.indexOf(t) > 0, t));
   ['Sécurité', 'Une bille par maison', 'Prochaine étape', 'Enfant 1', 'C’est acquis', 'Si ça coince', ' : '].forEach(t => assert.strictEqual(h.indexOf(t), -1, 'francais oublie : ' + t));
+  ['age 2', '2½', 'giant', 'toddler'].forEach(t => assert.strictEqual(h.indexOf(t), -1, 'reste d avant 3 ans : ' + t));
+  assert.ok(h.indexOf('<b>From age 3, not before.</b>') > 0 && h.indexOf('children <b>from age 3</b>') > 0);
 }));
 
 test('v2.61 vrai plateau : carnet de progrès sur l’appareil -- étoiles datées, prénoms échappés, 1 à 4 enfants, données abîmées ignorées', () => _vp56('FR', async els => {

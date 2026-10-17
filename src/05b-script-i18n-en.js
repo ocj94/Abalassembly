@@ -48,7 +48,7 @@ const I18N_EN = {
   '🎮 Jouer': '🎮 Play', 'Accueil': 'Home', 'Jouer': 'Play', 'Historique': 'History', 'Stats du corpus': 'Corpus stats', 'Importer': 'Import',
   'Problèmes': 'Puzzles', 'Éditeur': 'Editor', 'Variantes': 'Variants', '📖 Progresser': '📖 Improve', 'Règles du jeu': 'Game rules',
   'Ouvertures': 'Openings', 'Analyse': 'Analysis', 'Mes statistiques': 'My statistics',
-  'Sur un vrai plateau': 'On a real board', 'Apprendre sur un vrai plateau': 'Learning on a real board', 'En famille, sans écran': 'As a family, screen-free',
+  'Sur un vrai plateau': 'On a real board', 'Apprendre sur un vrai plateau': 'Learning on a real board', 'À partir de 3 ans · en famille, sans écran': 'From age 3 · as a family, screen-free',
   'Gym Cerveau': 'Brain Gym', 'Formation Formateurs': 'Trainer course', '🧪 Explorer': '🧪 Explore', 'Labo IA': 'AI Lab',
   'Bibliothèque de parties': 'Game library', 'Tables de finale': 'Endgame tables', 'Détection photo / plateau': 'Photo / board detection',
   'Insights GitHub': 'GitHub insights', 'Fiche pour IA': 'Sheet for AIs', 'Musée': 'Museum', 'Pionniers': 'Pioneers', 'Trombinoscope': 'Members',
