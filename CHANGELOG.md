@@ -9,6 +9,42 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.61]
+
+### Ajouté — « Apprendre sur un vrai plateau », pour les tout-petits
+- **Une nouvelle page** (menu ☰ → Progresser → **Sur un vrai plateau**) pour
+  apprendre Abalone à de très jeunes enfants, dès 2 ans, sur un vrai plateau
+  et loin des écrans. Le but n'est pas une vraie partie tout de suite (la
+  boîte indique 6 ou 7 ans), mais qu'ils aiment le plateau, les billes et ce
+  moment avec un parent.
+- **La sécurité d'abord.** La boîte prévient que le jeu ne convient pas aux
+  moins de 3 ans (petits éléments). Avant 3 ans : pas de vraies billes, un
+  plateau géant au sol (19 cases en 3-4-5-4-3) avec de gros objets qui ne
+  passent pas dans un rouleau de papier toilette ; dès 3 ans, un adulte à côté
+  et les 28 billes comptées à la sortie et au rangement. Sources citées sur la
+  page (fiche du jeu, Santé Canada, INSPQ et Société canadienne de pédiatrie,
+  CPSC).
+- **Neuf règles d'or** pour qu'ils ne soient ni blessés par la défaite ni
+  dégoûtés du jeu : séances courtes et joyeuses, l'enfant choisit, il gagne
+  souvent puis joue avec un handicap pour vous, on félicite ce qu'il a fait,
+  le parent montre comment perdre, une bille poussée « va à la piscine »
+  (jamais « tuée »), frère et sœur dans la même équipe, sans comparaison…
+- **Une séance type de 5 à 10 minutes** et **8 étapes**, chacune un petit jeu
+  avec son âge repère, son schéma, « c'est acquis quand » et « si ça coince » :
+  Une bille par maison, Un petit pas, Chacun son tour, Le petit train, Le plus
+  fort pousse (le sumito : 2 contre 1, 3 contre 2… et 2 contre 2 bloque),
+  Plouf !, La mini-partie (7 billes chacun, la disposition Découverte du Mode
+  Enfant) et La vraie partie. Les schémas sont dessinés par la page (SVG) ;
+  ceux des deux dernières étapes viennent des dispositions du moteur.
+- **Et pour en faire des « machines de guerre »** : trois petites phrases qui
+  préparent les futurs bons joueurs (« Je regarde avant de toucher »,
+  « Ensemble, on est plus forts », « Au milieu, on ne tombe pas »).
+- **Un carnet de progrès** pour 1 à 4 enfants : une étoile datée par étape
+  acquise et la prochaine étape de chacun. Les prénoms et les dates restent
+  sur l'appareil (localStorage), ils ne sont envoyés nulle part.
+- **Une fiche à imprimer** (5 pages A4, sur fond blanc) et la page entière en
+  anglais.
+
 ## [v2.60]
 
 ### Corrigé — l'IA ne fait plus d'allers-retours en début de partie

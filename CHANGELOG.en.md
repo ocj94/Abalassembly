@@ -9,6 +9,39 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.61]
+
+### Added — "Learning on a real board", for toddlers
+- **A new page** (☰ menu → Improve → **On a real board**) for teaching Abalone
+  to very young children, from age 2, on a real board and away from screens.
+  The aim is not a real game straight away (the box says 6 or 7), but for them
+  to love the board, the marbles and this time with a parent.
+- **Safety first.** The box warns that the game is not suitable for under-3s
+  (small parts). Before 3: no real marbles, a giant floor board (19 spots in
+  3-4-5-4-3) with big objects that don't fit through a toilet-paper tube; from
+  3, an adult alongside and the 28 marbles counted out and back in. Sources
+  cited on the page (product page, Health Canada, INSPQ and Canadian
+  Paediatric Society, CPSC).
+- **Nine golden rules** so children are neither hurt by losing nor put off the
+  game: short, happy sessions, the child chooses, they win often and then play
+  against your handicap, praise what they did, the parent shows how to lose, a
+  pushed marble "goes to the pool" (never "killed"), siblings on the same
+  team, no comparing…
+- **A typical 5-to-10-minute session** and **8 steps**, each a little game with
+  a landmark age, a diagram, "done when" and "if it's not working": One marble
+  per house, One little step, Taking turns, The little train, The stronger one
+  pushes (the sumito: 2 against 1, 3 against 2… and 2 against 2 is stuck),
+  Splash!, The mini-game (7 marbles each, the Kids mode Discovery layout) and
+  The real game. The diagrams are drawn by the page (SVG); the last two come
+  from the engine's layouts.
+- **And to turn them into "war machines"**: three little sayings that prepare
+  future strong players ("I look before I touch", "Together we're stronger",
+  "In the middle, you don't fall").
+- **A progress notebook** for 1 to 4 children: a dated star for each step done
+  and each child's next step. Names and dates stay on the device
+  (localStorage); they are never sent anywhere.
+- **A printable guide** (5 A4 pages, on white) and the whole page in English.
+
 ## [v2.60]
 
 ### Fixed — the AI no longer goes back and forth in the opening
