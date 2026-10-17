@@ -96,6 +96,9 @@
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-learn" onclick="sidebarNav('learn',this)">
       <span class="s-icon">📖</span><span class="s-label" data-i18n="nav.rules">Règles du jeu</span>
     </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-plateau" onclick="sidebarNav('plateau',this)">
+      <span class="s-icon">🧸</span><span class="s-label">Sur un vrai plateau</span>
+    </button>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-academy" onclick="sidebarNav('academy',this)">
       <span class="s-icon">🎓</span><span class="s-label" data-i18n="nav.academy">Abalone Academy</span>
     </button>
@@ -3776,6 +3779,7 @@
 <details class="aide-rub"><summary>📖 Progresser</summary><div class="aide-corps">
 <ul>
 <li><b>Règles du jeu</b> et <b>Abalone Academy</b> : les règles, puis les principes de stratégie.</li>
+<li><b>Sur un vrai plateau</b> : apprendre Abalone aux tout-petits (dès 2 ans), sans écran — la sécurité, les règles d’or, 8 petites étapes avec leurs schémas, un carnet de progrès et une fiche à imprimer.</li>
 <li><b>Problèmes</b> : des positions à résoudre, tirées de vraies parties.</li>
 <li><b>Ouvertures</b> : les débuts de partie, avec leurs taux de gain réels.</li>
 <li><b>Analyse</b> et <b>Mes statistiques</b> : ta progression, ton classement, ton style.</li>
@@ -3880,6 +3884,7 @@
 <details class="aide-rub"><summary>📖 Improving</summary><div class="aide-corps">
 <ul>
 <li><b>Game rules</b> and <b>Abalone Academy</b>: the rules, then strategy principles.</li>
+<li><b>On a real board</b>: teaching Abalone to toddlers (from age 2), screen-free — safety, golden rules, 8 small steps with diagrams, a progress notebook and a printable guide.</li>
 <li><b>Puzzles</b>: positions to solve, taken from real games.</li>
 <li><b>Openings</b>: how games begin, with their real win rates.</li>
 <li><b>Analysis</b> and <b>My statistics</b>: your progress, your rating, your style.</li>
@@ -4327,6 +4332,19 @@
 
 
 
+
+<!-- ══════════════════════════════════════════
+     PAGE: APPRENDRE SUR UN VRAI PLATEAU (v2.61) -- pour les tout-petits
+     (des 2 ans), sans ecran. Contenu ecrit par 38-apprendre-vrai-plateau.js
+     (francais et anglais), schemas dessines en SVG, carnet sur l'appareil.
+════════════════════════════════════════════ -->
+<div class="page" id="page-plateau">
+  <div class="page-header" style="padding-bottom:28px">
+    <div class="section-label">En famille, sans écran</div>
+    <h2>Apprendre sur un vrai plateau</h2>
+  </div>
+  <div style="padding:0 60px 100px" id="plateau-corps"></div>
+</div>
 
 <!-- ══════════════════════════════════════════
      PAGE: FORMATION FORMATEURS

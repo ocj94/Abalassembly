@@ -294,4 +294,3 @@ function copierCommentaires() {
   _copierTexte(texteCommentaires(), _tr('📋 Commentaires copiés', '📋 Comments copied'));
 }
 
-</script>

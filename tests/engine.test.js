@@ -2181,7 +2181,7 @@ test('aide : chaque libelle cite existe vraiment ailleurs dans le site (aucun bo
     '↩️ Annuler le dernier coup', '💡 Suggérer un coup', '🧠 Pourquoi ce coup ?', '🤝 Proposer nulle', 'Abandonner', '🔄 Inverser', 'Permutations',
     '▸ Réflexion de l’IA', '🔍 Analyser la partie', '⚠️ Revoir mes erreurs', '▶ Rejouer la partie', '⟨ Précédent', 'Suivant ⟩', '📤 Partager',
     '📋 Exporter la partie', '📤 Exporter tout', 'Créer une partie', 'Rejoindre', 'Partie par code', '📦 Exporter mes données (JSON)',
-    '📥 Importer mes données (JSON)', 'Mode Enfant', 'Règles du jeu', 'Abalone Academy', 'Problèmes', 'Ouvertures', 'Mes statistiques', 'Gym Cerveau',
+    '📥 Importer mes données (JSON)', 'Mode Enfant', 'Règles du jeu', 'Sur un vrai plateau', 'Abalone Academy', 'Problèmes', 'Ouvertures', 'Mes statistiques', 'Gym Cerveau',
     'Formation Formateurs', 'Bibliothèque de parties', 'Stats du corpus', 'Tables de finale', 'Labo IA', 'Détection photo / plateau', 'Observer',
     'Tournoi', 'Variantes', 'Éditeur', 'Historique', 'Paramètres', 'Belgian Daisy', 'Découverte', 'Même appareil', 'En direct'];
   const absents = cites.filter(s => aide.indexOf(s) < 0 && aide.indexOf(s.replace(/^\S+ /, '')) < 0);
@@ -2784,7 +2784,7 @@ test('anglais : l aide anglaise cite les libelles traduits du site ; menu de lan
     'Start the game', 'Customize…', 'Clock', 'Against the AI', 'Same device', 'Discovery', '↩️ Undo last move', '💡 Suggest a move', '🧠 Why this move?', '🤝 Offer a draw',
     'Resign', '🔄 Flip', 'Copy', 'Permutations', '📋 List', '📝 Comments', '📋 Copy', '▸ AI reasoning', 'Eval.', 'Time', 'Under it', 'Expected line', '🔍 Analyze the game', '⚠️ Review my mistakes',
     '▶ Replay the game', '⟨ Previous', 'Next ⟩', '📤 Share', '📋 Export the game', 'History', '📤 Export all (Aba-Pro)', '📥 Import', '📦 Export my data (JSON)',
-    '📥 Import my data (JSON)', 'Create a game', 'Join', 'Game by code', 'Game rules', 'Puzzles', 'Openings', 'Analysis', 'My statistics', 'Brain Gym',
+    '📥 Import my data (JSON)', 'Create a game', 'Join', 'Game by code', 'Game rules', 'On a real board', 'Puzzles', 'Openings', 'Analysis', 'My statistics', 'Brain Gym',
     '⚔️ Brain Duel', 'Connect to a friend', 'Start a duel', 'Trainer course', 'Game library', 'Corpus stats', 'Endgame tables', 'AI Lab',
     'Photo / board detection', 'Watch', 'Tournament', 'Variants', 'Editor', 'Settings', 'Kids mode'];
   const absents = cites.filter(l => en.indexOf(l) < 0);
@@ -3557,3 +3557,144 @@ test('v2.60 recherche coupée par le temps : jamais pire que le meilleur coup de
   });
   assert.ok(coupees >= 4, coupees + ' recherches coupees');
 });
+
+// ═══════════════════════════════════════════
+// 56. v2.61 : apprendre sur un vrai plateau (tout-petits, sans ecran)
+// ═══════════════════════════════════════════
+async function _vp56(lang, fn) {
+  const avant = ctx.localStorage.getItem('abalone_lang'), carnet = ctx.localStorage.getItem('abaPlateauCarnet');
+  ctx.localStorage.setItem('abalone_lang', lang);
+  ctx.localStorage.removeItem('abaPlateauCarnet');
+  try { return await _dom54(fn); } finally {
+    if (avant === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avant);
+    if (carnet === null) ctx.localStorage.removeItem('abaPlateauCarnet'); else ctx.localStorage.setItem('abaPlateauCarnet', carnet);
+  }
+}
+// le morceau de page d'une etape
+const _carte56 = (h, n) => { const i = h.indexOf('id="vp-etape-' + n + '"'); assert.ok(i > 0, 'etape ' + n); const j = h.indexOf('</section>', i); return h.slice(i, j); };
+const _billes56 = (h, c) => (h.match(new RegExp('data-bille="' + c + '"', 'g')) || []).length;
+
+test('v2.61 vrai plateau : page, entrée du menu (Progresser), dessin à l’ouverture, impression, aide FR et EN', () => {
+  const src = _SRC();
+  assert.match(src, /<div class="page" id="page-plateau">[\s\S]{0,400}<h2>Apprendre sur un vrai plateau<\/h2>[\s\S]{0,200}id="plateau-corps"/);
+  const prog = src.slice(src.indexOf('<div class="sidebar-group-label">📖 Progresser</div>'), src.indexOf('<div class="sidebar-group-label">🧪 Explorer</div>'));
+  assert.match(prog, /id="sid-plateau" onclick="sidebarNav\('plateau',this\)">\s*<span class="s-icon">🧸<\/span><span class="s-label">Sur un vrai plateau<\/span>/);
+  assert.ok(src.indexOf("plateau:    function(){ if (typeof renderPlateauPage === 'function') renderPlateauPage(); }") > 0, 'dessinee a l ouverture');
+  assert.ok(src.indexOf("if (pp && pp.classList.contains('active') && typeof renderPlateauPage === 'function') renderPlateauPage();") > 0, 'redessinee au changement de langue');
+  assert.ok(src.indexOf('#page-plateau, #page-plateau * { visibility:visible; }') > 0, 'fiche imprimable');
+  assert.strictEqual(ctx.I18N_EN['Sur un vrai plateau'], 'On a real board');
+  assert.strictEqual(ctx.I18N_EN['Apprendre sur un vrai plateau'], 'Learning on a real board');
+  const aide = src.slice(src.indexOf('<div class="page" id="page-aide">'), src.indexOf('<div class="page" id="page-mentions">'));
+  assert.ok(aide.indexOf('<li><b>Sur un vrai plateau</b> : apprendre Abalone aux tout-petits (dès 2 ans), sans écran') > 0);
+  assert.ok(aide.indexOf('<li><b>On a real board</b>: teaching Abalone to toddlers (from age 2), screen-free') > 0);
+});
+
+test('v2.61 vrai plateau : sécurité d’abord, 8 étapes dans l’ordre, chacune avec son schéma, « acquis quand » et « si ça coince »', () => _vp56('FR', async els => {
+  ctx.renderPlateauPage();
+  const h = els['plateau-corps'].innerHTML;
+  // la securite vient avant tout le reste
+  const sec = h.indexOf('id="vp-securite"');
+  assert.ok(sec > 0 && sec < h.indexOf('Les règles d’or') && sec < h.indexOf('id="vp-etape-1"'));
+  ['Moins de 3 ans : pas de vraies billes.', 'rouleau de papier toilette vide', '4,4 cm', '(14 noires + 14 blanches = 28)', 'tant que le plus jeune a moins de 3 ans']
+    .forEach(t => assert.ok(h.indexOf(t) > 0, t));
+  ['https://www.canada.ca/fr/sante-canada/services/securite-jouets/petites-pieces-jouets.html', 'https://www.inspq.qc.ca/mieux-vivre/enfant/securite/prevenir-etouffements',
+   'https://www.cpsc.gov/s3fs-public/pdfs/blk_media_cspa.pdf'].forEach(u => assert.ok(h.indexOf('href="' + u + '" target="_blank" rel="noopener"') > 0, u));
+  assert.strictEqual((h.match(/<div class="vp-regle">/g) || []).length, 9 + 3, '9 regles d or + 3 habitudes');
+  const titres = ['Une bille par maison', 'Un petit pas', 'Chacun son tour', 'Le petit train', 'Le plus fort pousse', 'Plouf !', 'La mini-partie', 'La vraie partie'];
+  let avant = 0;
+  titres.forEach((t, i) => {
+    const c = _carte56(h, i + 1);
+    assert.ok(h.indexOf('id="vp-etape-' + (i + 1) + '"') > avant); avant = h.indexOf('id="vp-etape-' + (i + 1) + '"');
+    assert.ok(c.indexOf(t) > 0, t);
+    assert.ok(c.indexOf('<svg') > 0 && c.indexOf('role="img" aria-label="') > 0, 'schema decrit : ' + t);
+    assert.ok(c.indexOf('<b>C’est acquis quand</b>') > 0 && c.indexOf('<b>Si ça coince</b> : ') > 0, t);
+  });
+  assert.strictEqual((h.match(/<section class="vp-carte"/g) || []).length, 8);
+  assert.strictEqual((h.match(/<svg /g) || []).length, 10, '8 schemas, dont 3 lignes pour « le plus fort pousse »');
+  // les poussees : 2 contre 1 et 3 contre 2 passent, 2 contre 2 bloque
+  const c5 = _carte56(h, 5);
+  assert.deepStrictEqual((c5.match(/[✓✗]<\/text>/g) || []).map(x => x[0]), ['✓', '✓', '✗']);
+  // un seul bon age sur la boite : 6 ou 7 ans, pas 3
+  assert.ok(h.indexOf('la boîte indique « à partir de 6 ou 7 ans »') > 0);
+}));
+
+test('v2.61 vrai plateau : les schémas des étapes 7 et 8 sont les dispositions du moteur (Découverte = Mode Enfant, classique)', () => _vp56('FR', async els => {
+  ctx.renderPlateauPage();
+  const h = els['plateau-corps'].innerHTML, c7 = _carte56(h, 7), c8 = _carte56(h, 8);
+  assert.strictEqual(ctx.LAYOUTS.decouverte.black.length, 7);
+  assert.strictEqual(_billes56(c7, 'b'), 7); assert.strictEqual(_billes56(c7, 'w'), 7);
+  assert.strictEqual(_billes56(c8, 'b'), 14); assert.strictEqual(_billes56(c8, 'w'), 14);
+  // 61 trous sur le vrai plateau, 19 sur le petit
+  const trous = c => (c.match(/fill="rgba\(92,58,22,0\.30\)"/g) || []).length;
+  assert.strictEqual(trous(c7), 61); assert.strictEqual(trous(c8), 61); assert.strictEqual(trous(_carte56(h, 1)), 19);
+  // dessin identique d'une fois sur l'autre (identifiants de degrades remis a zero)
+  const premier = h; ctx.renderPlateauPage(); assert.strictEqual(els['plateau-corps'].innerHTML, premier);
+}));
+
+test('v2.61 vrai plateau : schémas justes -- tout tient dans le cadre, les 6 flèches de « un petit pas » visent les 6 cases voisines', () => _vp56('FR', async els => {
+  ctx.renderPlateauPage();
+  const h = els['plateau-corps'].innerHTML;
+  (h.match(/<svg [\s\S]*?<\/svg>/g) || []).forEach((svg, k) => {
+    const vb = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg), W = +vb[1], H = +vb[2];
+    for (const m of svg.matchAll(/<circle cx="([\d.-]+)" cy="([\d.-]+)" r="([\d.]+)"/g)) {
+      const x = +m[1], y = +m[2], r = +m[3];
+      assert.ok(x - r >= 0 && x + r <= W && y - r >= 0 && y + r <= H, 'schema ' + k + ' : cercle hors cadre ' + m[0]);
+    }
+  });
+  const c2 = _carte56(h, 2);
+  const fantomes = [...c2.matchAll(/<circle cx="([\d.]+)" cy="([\d.]+)" r="13" fill="none"/g)].map(m => [+m[1], +m[2]]);
+  const pointes = [...c2.matchAll(/<path d="M[\d.]+,[\d.]+ L([\d.]+),([\d.]+)" stroke="#1d5fa8"/g)].map(m => [+m[1], +m[2]]);
+  assert.strictEqual(fantomes.length, 6); assert.strictEqual(pointes.length, 6);
+  const centre = [...c2.matchAll(/<circle cx="([\d.]+)" cy="([\d.]+)" r="13" fill="url/g)].map(m => [+m[1], +m[2]]);
+  assert.strictEqual(centre.length, 1);
+  fantomes.forEach(f => {
+    assert.ok(pointes.some(p => Math.hypot(p[0] - f[0], p[1] - f[1]) < 4), 'une fleche vise ' + f);
+    // une case voisine : a une distance d'un pas exactement, la meme pour les 6
+    assert.ok(Math.abs(Math.hypot(f[0] - centre[0][0], f[1] - centre[0][1]) - 13 * 2.85) < 0.2);
+  });
+}));
+
+test('v2.61 vrai plateau : en anglais, tout le texte de la page est anglais (ponctuation anglaise comprise)', () => _vp56('EN', async els => {
+  ctx.renderPlateauPage();
+  const h = els['plateau-corps'].innerHTML;
+  ['Safety first', 'Under 3: no real marbles.', 'One marble per house', 'The stronger one pushes', 'Splash!', 'Where are they up to?', 'Child 1', 'Next step: ',
+   '<b>Aim</b>: ', '<b>If it’s not working</b>: ', 'Sources for the safety box: '].forEach(t => assert.ok(h.indexOf(t) > 0, t));
+  ['Sécurité', 'Une bille par maison', 'Prochaine étape', 'Enfant 1', 'C’est acquis', 'Si ça coince', ' : '].forEach(t => assert.strictEqual(h.indexOf(t), -1, 'francais oublie : ' + t));
+}));
+
+test('v2.61 vrai plateau : carnet de progrès sur l’appareil -- étoiles datées, prénoms échappés, 1 à 4 enfants, données abîmées ignorées', () => _vp56('FR', async els => {
+  const lire = () => JSON.parse(ctx.localStorage.getItem('abaPlateauCarnet'));
+  // rien d'enregistre : deux enfants vides
+  ctx.renderPlateauPage();
+  assert.strictEqual((els['plateau-corps'].innerHTML.match(/class="vp-enfant"/g) || []).length, 2);
+  assert.ok(els['plateau-corps'].innerHTML.indexOf('placeholder="Enfant 2"') > 0);
+  // une etoile : la date du jour, retiree au second appui
+  ctx.vpBasculerAcquis(0, 3);
+  const d = new Date(), jour = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  assert.deepStrictEqual(lire().enfants[0].acquis, { 3: jour });
+  assert.ok(els['vp-carnet'].innerHTML.indexOf('aria-pressed="true"') > 0);
+  assert.ok(els['vp-carnet'].innerHTML.indexOf('Prochaine étape : <a href="#" onclick="vpAller(1);return false;">1 · 🏠 Une bille par maison</a>') > 0, 'la premiere non acquise');
+  ctx.vpBasculerAcquis(0, 3);
+  assert.deepStrictEqual(lire().enfants[0].acquis, {});
+  ctx.vpBasculerAcquis(0, 9); ctx.vpBasculerAcquis(7, 1);
+  assert.deepStrictEqual(lire().enfants[0].acquis, {}, 'etape ou enfant inexistant : rien');
+  // un prenom n'est jamais du HTML
+  ctx.vpRenommer(1, '<img src=x onerror=a()>"');
+  assert.strictEqual(lire().enfants[1].nom, '<img src=x onerror=a()>"');
+  ctx.vpRenommer(0, 'x'.repeat(40)); assert.strictEqual(lire().enfants[0].nom.length, 24, '24 caracteres au plus');
+  ctx._vpCarnetRafraichir();
+  assert.strictEqual(els['vp-carnet'].innerHTML.indexOf('<img'), -1);
+  assert.ok(els['vp-carnet'].innerHTML.indexOf('value="&lt;img src=x onerror=a()&gt;&quot;"') > 0);
+  // 4 enfants au plus, toujours au moins 1
+  for (let i = 0; i < 5; i++) ctx.vpAjouterEnfant();
+  assert.strictEqual(lire().enfants.length, 4);
+  assert.strictEqual(els['vp-carnet'].innerHTML.indexOf('Ajouter un enfant'), -1);
+  for (let i = 0; i < 6; i++) ctx.vpRetirerEnfant(0);
+  assert.strictEqual(lire().enfants.length, 1);
+  assert.strictEqual(els['vp-carnet'].innerHTML.indexOf('vpRetirerEnfant'), -1, 'pas de bouton pour retirer le dernier');
+  // donnees abimees : ignorees sans planter
+  ctx.localStorage.setItem('abaPlateauCarnet', '{pas du json');
+  assert.strictEqual(ctx._vpCarnetLire().enfants.length, 2);
+  ctx.localStorage.setItem('abaPlateauCarnet', JSON.stringify({ enfants: [{ nom: 'Alex', acquis: { 2: '2026-10-17', 9: '2026-10-17', x: 1, 4: 5 } }] }));
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(ctx._vpCarnetLire().enfants)), [{ nom: 'Alex', acquis: { 2: '2026-10-17' } }]);
+}));

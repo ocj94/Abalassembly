@@ -319,6 +319,8 @@ function setLanguage(code) {
   if (typeof renderEngageBar === 'function') renderEngageBar();   // initiales des jours de la serie
   if (typeof _majCarteJoueur === 'function') _majCarteJoueur();
   if (typeof filtrerAide === 'function') { const q = document.getElementById('aide-recherche'); filtrerAide(q ? q.value : ''); }
+  // page ecrite par le code (v2.61) : redessinee dans la nouvelle langue si elle est affichee
+  { const pp = document.getElementById('page-plateau'); if (pp && pp.classList.contains('active') && typeof renderPlateauPage === 'function') renderPlateauPage(); }
   if (code === 'FR' || code === 'EN') {
     if (typeof showToast === 'function') showToast(sel.flag + ' ' + sel.name);
     return;
@@ -654,6 +656,7 @@ function showPage(name) {
     formateurs: function(){ if (typeof renderFormateurs === 'function') renderFormateurs(); },
     historique: function(){ if (typeof renderHistoriquePage === 'function') renderHistoriquePage(); },
     corpusstats:function(){ if (typeof renderCorpusStatsPage === 'function') renderCorpusStatsPage(); },
+    plateau:    function(){ if (typeof renderPlateauPage === 'function') renderPlateauPage(); },
     archi:      function(){ if (typeof renderArchiPage === 'function') renderArchiPage(); },
     compare:    function(){ renderCompare(); },
     friends:    function(){ renderFriends(); },

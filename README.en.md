@@ -67,6 +67,8 @@ What it hides: **chat**, the **AI Lab**, **settings**, and **external links**. I
 
 **State is preserved.** Reloading the page doesn't reopen anything: the mode restores itself at startup, and the addition problem still has to be answered to leave it.
 
+**Before the screen, a real board.** For toddlers (from age 2), the **On a real board** page (☰ menu → Improve) guides parents away from screens: safety first (no real marbles before age 3, a giant floor board), golden rules so children love the game without tears or disgust, 8 small steps with diagrams ("One marble per house", "The little train", "The stronger one pushes", "Splash!"… up to the real game), a progress notebook for several children (names kept on the device) and a printable guide.
+
 ## What's in the file
 
 **Play**
@@ -78,6 +80,7 @@ What it hides: **chat**, the **AI Lab**, **settings**, and **external links**. I
 - Advisor bots (Black Bot / White Bot), bot-vs-bot duels, unlockable marble skins, on-demand 3D view
 - **First-person view**: playing White flips the board so your side is always at the bottom. Notation stays absolute either way — `e5` means `e5` regardless of orientation
 - **Kids Mode** (see above): lighter board, move assist, locked exit
+- **On a real board** (see above): teaching toddlers, screen-free, in 8 steps, with a progress notebook and a printable guide
 - **Technical mode** — a global toggle that reveals detailed content (methodology, raw numbers, limitations) on the pages that have it, without cluttering the default player view. Covered pages: Endgame tables, Openings, Lab, Statistics
 - **12 languages in the selector** — French is native; English and Hebrew ship with embedded navigation translation (instant, no network needed); the other 9 rely on the browser's native translation, with a guide tailored to Chrome/Firefox/Safari/Edge. **Hebrew in RTL**: sidebar, layout and dropdown menus flip to the right; directional arrows mirror natively (Unicode *bidi-mirrored* characters, no text is rewritten)
 
