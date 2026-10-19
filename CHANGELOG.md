@@ -9,6 +9,56 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.63]
+
+### Ajouté — les billes qui tombent, ce qui fait gagner, comment jouent les vrais joueurs
+- **L'idée** vient des fonctions d'analyse de séquences de ClickHouse
+  (`sequenceMatch`, `windowFunnel`) : suivre les enchaînements d'événements
+  d'une partie. Réécrite ici, sans rien installer, sur les vraies parties.
+- **Page Statistiques du jeu, « Les billes qui tombent »** (calculé en
+  rejouant les 4 247 parties jouées depuis une position de départ) :
+  - le camp qui fait tomber la première bille gagne **65 %** des parties ;
+  - la première bille tombe en médiane au **coup 26** (entre 9 et 49 dans
+    8 parties sur 10), avec le détail par disposition de départ ;
+  - **le tableau des remontées** : à 1-0, celui qui mène gagne 65 % ; à 3-0,
+    90 % ; mené 0-2, on gagne encore 23 % du temps ;
+  - **le score final** : 6-3 est le plus fréquent (22 %), 6-0 et 6-5 font
+    13 % chacun ;
+  - **la carte des éjections**, vue du joueur qui perd la bille : en
+    Standard, 75 % des billes tombent de sa propre moitié ; toutes
+    dispositions confondues, les 6 coins n'en donnent que 15 %, alors qu'ils
+    font un quart des cases du bord.
+- **« Ce qui fait gagner »**, juste après les 12 dimensions : au 20ᵉ, 40ᵉ et
+  60ᵉ coup, les dimensions des deux camps comparées sur la même position, et
+  la part des parties gagnées par celui qui mène sur chacune. Au 40ᵉ coup,
+  le camp qui subit le moins de menaces gagne 69 % des parties, autant
+  qu'avoir plus de billes. Présenté comme un lien constaté, pas une cause.
+- **« Comment jouent les vrais joueurs »** : 25 % de coups à une bille, 33 %
+  à deux en ligne, 32 % à trois en ligne, 9 % de côté ; 39 % des coups
+  poussent des billes adverses, 6,8 % en font tomber une ; 33 % des
+  occasions de faire tomber une bille sont saisies.
+- **Mes statistiques, carte Éjections** : tes remontées (victoires après
+  avoir perdu ou fait tomber la première bille), toi face aux vrais joueurs
+  (éjections par partie, occasions saisies, première éjection, sortes de
+  coups, phases), et où tombent tes billes, vue de ton côté. Mêmes
+  définitions des deux côtés.
+- **Écran de fin de partie** : une ligne tirée des vraies parties, par
+  exemple « Belle remontée ! Vous étiez mené 1 à 3. Dans les vraies parties,
+  le camp mené 1 à 3 ne gagne que 21 % du temps. » Jamais en mode Enfant.
+
+### Comment c'est calculé
+- `tools/stats-parties.js` rejoue chaque partie embarquée avec le vrai
+  moteur (environ 5 minutes) et écrit `15-stats-parties.b64` ; la page n'a
+  plus qu'à additionner. Un test rejoue un échantillon de 17 parties et
+  compare au fichier, et vérifie la signature des parties ; d'autres
+  vérifient chaque addition sur des parties construites à la main.
+
+### Amélioré
+- La page Statistiques du jeu s'affiche entière en moins d'une seconde dès
+  la première visite : les vainqueurs MIGS viennent de ces données (vérifiés
+  identiques au rejeu sur les 1 518 parties « Au score ») au lieu de plus
+  d'une minute de rejeu dans le navigateur.
+
 ## [v2.62]
 
 ### Modifié — « Sur un vrai plateau » commence à 3 ans, pas avant

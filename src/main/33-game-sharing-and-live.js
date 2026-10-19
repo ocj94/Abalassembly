@@ -660,7 +660,16 @@ function renderEjectionStats(){
     html += '<div style="font-size:11px;color:var(--muted);margin-top:10px">Par phase (ouverture = avant toute perte · milieu = après la 1ʳᵉ perte · finale = un camp a déjà perdu 3 billes ou plus) : '
       + 'ouverture '+Math.round(s.byPhase.ouverture/tot*100)+'% · milieu '+Math.round(s.byPhase.milieu/tot*100)+'% · finale '+Math.round(s.byPhase.finale/tot*100)+'%</div>';
   }
+  // v2.63 : tes remontees, toi face aux vrais joueurs, ou tombent tes billes (39-statistiques-billes.js)
+  if (typeof _sbHtmlPerso === 'function') html += _sbHtmlPerso(s);
   host.innerHTML = html;
+  // les chiffres des vrais joueurs arrivent avec les donnees embarquees : seul ce bloc est redessine, sans refaire le rejeu de tes parties
+  if (typeof ensureStatsParties === 'function' && typeof STATS_PARTIES !== 'undefined' && !STATS_PARTIES) {
+    ensureStatsParties().then(function(ok){
+      const bloc = document.getElementById('sb-perso');
+      if (ok && bloc && bloc.isConnected) bloc.outerHTML = _sbHtmlPerso(s);
+    });
+  }
 }
 
 function renderColorStats(){

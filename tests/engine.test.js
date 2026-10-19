@@ -3710,3 +3710,232 @@ test('v2.61 vrai plateau : carnet de progrès sur l’appareil -- étoiles daté
   ctx.localStorage.setItem('abaPlateauCarnet', JSON.stringify({ enfants: [{ nom: 'Alex', acquis: { 2: '2026-10-17', 9: '2026-10-17', x: 1, 4: 5 } }] }));
   assert.deepStrictEqual(JSON.parse(JSON.stringify(ctx._vpCarnetLire().enfants)), [{ nom: 'Alex', acquis: { 2: '2026-10-17' } }]);
 }));
+
+// ═══════════════════════════════════════════
+// 57. v2.63 : les billes qui tombent, ce qui fait gagner, comment jouent les vrais joueurs
+// ═══════════════════════════════════════════
+const _r57 = code => require('vm').runInContext(code, ctx);
+async function _charger57() {
+  assert.ok(await ctx.ensureGameBanks(), 'banques de parties');
+  assert.ok(await ctx.ensureStatsParties(), 'evenements des parties (STATS_PARTIES_B64)');
+  return _r57('STATS_PARTIES');
+}
+// rang dans les donnees embarquees de la partie i de la source src
+const _rang57 = (src, i) => ctx._sbBanques().slice(0, src).reduce((a, b) => a + b.length, 0) + i;
+// une partie MIGS au format d'import, du cote de « Alex »
+const _texte57 = (g, gagnant, alexNoir) => '# 2026-10-01 · Belgian Daisy · ' + (gagnant === 1 ? 'Noir gagne' : 'Blanc gagne') + ' (6 éjections) · '
+  + (alexNoir ? 'Alex vs Bob' : 'Bob vs Alex') + '\n' + g[5];
+
+test('v2.63 événements des parties : signature à jour (sinon : node tools/build.js && node tools/stats-parties.js && node tools/build.js), toutes les parties, mêmes dimensions', async () => {
+  const D = await _charger57();
+  assert.strictEqual(D.v, 1);
+  assert.strictEqual(D.sig, ctx._sbSignature(), 'parties embarquees modifiees : relancer tools/stats-parties.js');
+  const B = ctx._sbBanques();
+  assert.deepStrictEqual(Array.from(D.nb), Array.from(B, b => b.length));
+  assert.strictEqual(D.p.length, B.reduce((a, b) => a + b.length, 0));
+  assert.deepStrictEqual(Array.from(D.etapes), [20, 40, 60]);
+  assert.deepStrictEqual(Array.from(D.champs), Array.from(_r57('EMPREINTES_CHAMPS')));
+  // chaque partie : vainqueur connu ou non, demi-coups, ejections par paires, 8 compteurs par camp
+  D.p.forEach((p, k) => {
+    assert.ok([0, 1, 2, 3].includes(p[0]) && p[1] >= 0 && (p[2] === 0 || p[2] === 1) && D.dispos[p[3]], 'partie ' + k);
+    assert.ok(p[4].length % 2 === 0 && p[4].length <= 22 && p[5].length === 8 && p[6].length === 8, 'partie ' + k);
+    for (let i = 0; i < p[4].length; i += 2) assert.ok(p[4][i] >= 1 && p[4][i] <= p[1] && (p[4][i + 1] >> 1) < 61, 'ejection lisible, partie ' + k);
+  });
+});
+
+test('v2.63 événements : un échantillon de vraies parties, rejouées ici, redonne exactement les données embarquées', async () => {
+  const D = await _charger57();
+  const B = ctx._sbBanques(), avant = JSON.stringify(ctx.board);
+  const echantillon = [[0, 0], [0, 1], [0, 2], [0, 777], [0, 1500], [0, 2588], [1, 0], [1, 5], [1, 100], [1, 1000], [1, 1889], [2, 0], [2, 46], [2, 92], [3, 0], [3, 2], [3, 6]];
+  for (const [src, i] of echantillon) {
+    const g = B[src][i], rec = ctx._sbRejouerPartie(src, g, true);
+    const enc = JSON.parse(JSON.stringify(ctx._sbEncoder(rec, D.dispos.indexOf(ctx._sbDispo(src, g)))));
+    assert.deepStrictEqual(enc, JSON.parse(JSON.stringify(D.p[_rang57(src, i)])), ['MIGS', 'AO', 'PS', 'REF'][src] + ' ' + i);
+  }
+  assert.strictEqual(JSON.stringify(ctx.board), avant, 'le rejeu ne touche pas au plateau du jeu');
+  // les deux facons de lire un coup donnent le meme coup (liste des coups legaux fournie ou non)
+  const { poserDisposition } = require('./harness'); poserDisposition(ctx, 'belgian');
+  const legal = ctx.getAllMovesForColor('black');
+  ['i9h8', 'a1b1', 'h8g7', 'a5b5'].forEach(t => assert.strictEqual(JSON.stringify(ctx.resolveAbaProToken(t, 'black', legal)), JSON.stringify(ctx.resolveAbaProToken(t, 'black')), t));
+});
+
+test('v2.63 additions : sur des parties construites à la main, chaque chiffre est le bon', async () => {
+  await _charger57();
+  const vrai = _r57('STATS_PARTIES'), C = Array.from(_r57('EMPREINTES_CHAMPS'));
+  const z = () => [0, 0, 0, 0, 0, 0, 0, 0];
+  const faux = { v: 1, sig: 'test', nb: [], etapes: [20, 40, 60], champs: C, dispos: ['belgian', 'standard'], p: [
+    // Noirs gagnent ; Noirs ejectent en premier (case 0), Blancs (case 60), Noirs (case 4)
+    [1, 30, 1, 0, [10, 1, 15, 120, 20, 9], [1, 2, 3, 4, 5, 6, 7, 8], [1, 1, 1, 1, 1, 1, 1, 1], ['+-=+-=+-=+-=', '', '++++++++++++']],
+    // Blancs gagnent 6-2 : billes noires aux cases 5, 11, 17, 26, 35, 42 ; blanches aux cases 6 et 25
+    [2, 30, 1, 1, [5, 10, 9, 13, 12, 22, 14, 34, 20, 51, 22, 52, 25, 70, 30, 84], z(), z(), 0],
+    // partie commencee sur une position de probleme : jamais comptee
+    [1, 4, 0, 0, [1, 1, 2, 3], [9, 9, 9, 9, 9, 9, 9, 9], z(), 0],
+    // vainqueur inconnu : compte pour « quand » et la carte, pas pour les remontees
+    [0, 8, 1, 0, [3, 1], z(), z(), 0],
+    // nulle sans ejection
+    [3, 50, 1, 0, [], z(), z(), 0]
+  ] };
+  try {
+    _r57('STATS_PARTIES = ' + JSON.stringify(faux) + '; _sbCache = null;');
+    const v = JSON.parse(JSON.stringify(ctx._sbAgreger()));
+    assert.strictEqual(v.nParties, 5); assert.strictEqual(v.nComplets, 4); assert.strictEqual(v.nDecides, 2); assert.strictEqual(v.nAvecEj, 3);
+    assert.deepStrictEqual(v.premiere, { n: 2, gagne: 2 });
+    assert.deepStrictEqual(v.quand, [3, 5, 10]);
+    assert.deepStrictEqual(v.remontees, { '1-0': { n: 2, g: 2 }, '2-1': { n: 2, g: 2 }, '3-1': { n: 1, g: 1 }, '3-2': { n: 1, g: 1 }, '4-2': { n: 1, g: 1 }, '5-2': { n: 1, g: 1 } });
+    assert.deepStrictEqual(v.finals, [0, 0, 1, 0, 0, 0]);
+    // la carte : vue du joueur qui perd la bille (bille blanche -> plateau retourne : case i -> 60 - i)
+    const carte = (pairs) => { const c = new Array(61).fill(0); pairs.forEach(([i, n]) => { c[i] = n; }); return c; };
+    assert.deepStrictEqual(v.cartes.belgian, carte([[60, 3], [56, 1]]));
+    assert.deepStrictEqual(v.cartes.standard, carte([[5, 1], [11, 1], [17, 1], [26, 1], [35, 2], [42, 1], [54, 1]]));
+    assert.deepStrictEqual(v.cartes['*'], carte([[60, 3], [56, 1], [5, 1], [11, 1], [17, 1], [26, 1], [35, 2], [42, 1], [54, 1]]));
+    assert.deepStrictEqual(v.types, [2, 3, 4, 5, 6, 7, 8, 9]);
+    assert.deepStrictEqual(v.camp, { ej: 12, camps: 8, premiereSomme: 42, premiereN: 5, phases: { ouverture: 3, milieu: 5, finale: 4 } });
+    assert.deepStrictEqual(v.nDimsParties, [1, 0, 1]);
+    v.dims[0].forEach((t, j) => assert.deepStrictEqual(t, [{ n: 1, g: 1 }, { n: 1, g: 0 }, { n: 0, g: 0 }][j % 3], 'dimension ' + j));
+    v.dims[2].forEach(t => assert.deepStrictEqual(t, { n: 1, g: 1 }));
+    assert.strictEqual(ctx._sbTauxRemontee(1, 0), null, 'moins de 30 parties : pas de taux');
+  } finally {
+    require('vm').runInContext('STATS_PARTIES = __sbVrai; _sbCache = null;', Object.assign(ctx, { __sbVrai: vrai }));
+  }
+});
+
+test('v2.63 page Statistiques du jeu : les trois sections, leurs chiffres viennent des additions, en français et en anglais', async () => {
+  await _charger57();
+  const v = ctx._sbAgreger();
+  const nb = x => Number(x).toLocaleString('fr-FR');
+  await _enFrancais54(() => _dom54(async () => {
+    const h = ctx._sbHtmlBilles(v);
+    ['Les billes qui tombent', 'Qui fait tomber la première bille gagne-t-il ?', 'À quel coup tombe la première bille', 'Le tableau des remontées', 'Le score final', 'La carte des éjections']
+      .forEach(t => assert.ok(h.indexOf(t) > 0, t));
+    assert.ok(h.indexOf(String(Math.round(v.premiere.gagne / v.premiere.n * 100))) > 0, 'le pourcentage de la premiere bille');
+    assert.ok(h.indexOf('Sur ' + nb(v.premiere.n) + ' parties dont on connaît le vainqueur') > 0);
+    assert.ok(h.indexOf('<b>' + nb(v.nComplets) + ' parties</b>') > 0);
+    assert.ok(h.indexOf('id="sb-histo"') > 0 && h.indexOf('id="sb-score"') > 0);
+    assert.strictEqual((h.match(/class="sb-g-case"/g) || []).length, 15, '15 scores du tableau des remontees, tous a 30 parties ou plus');
+    assert.ok(h.indexOf('<b>coup ' + ctx._sbMediane(v.quand) + '</b>') > 0, 'la mediane');
+    assert.doesNotMatch(h, /NaN|undefined|Infinity/);
+    const g = ctx._sbHtmlGagner(v);
+    assert.ok(g.indexOf('Ce qui fait gagner') > 0 && g.indexOf('Au 40ᵉ coup') > 0);
+    assert.strictEqual((g.match(/class="sb-div-l"/g) || []).length, 12, 'les 12 dimensions');
+    assert.doesNotMatch(g, /NaN|undefined/);
+    // triees de la plus parlante a la moins parlante
+    const pcts = [...g.matchAll(/class="sb-div-val" role="cell">([\d,]+) %/g)].map(m => Math.abs(parseFloat(m[1].replace(',', '.')) - 50));
+    assert.strictEqual(pcts.length, 12);
+    for (let i = 1; i < pcts.length; i++) assert.ok(pcts[i] <= pcts[i - 1] + 1, 'tri : ' + pcts.join(' '));
+    const j = ctx._sbHtmlJeu(v);
+    ['1 bille', '2 billes en ligne', '3 billes en ligne', '2 billes de côté', '3 billes de côté'].forEach(t => assert.ok(j.indexOf('<span class="sb-hb-nom">' + t + '</span>') > 0, t));
+    assert.strictEqual((j.match(/class="sb-tuile"/g) || []).length, 3);
+    assert.doesNotMatch(j, /NaN|undefined/);
+  }));
+  const avant = ctx.localStorage.getItem('abalone_lang');
+  ctx.localStorage.setItem('abalone_lang', 'EN');
+  try {
+    await _dom54(async () => {
+      const t = ctx._sbHtmlBilles(v) + ctx._sbHtmlGagner(v) + ctx._sbHtmlJeu(v);
+      ['Falling marbles', 'The comeback table', 'What wins games', 'How real players play', 'The ejection map'].forEach(x => assert.ok(t.indexOf(x) > 0, x));
+      ['Les billes', 'parties dont', 'Au 40ᵉ coup', 'billes en ligne', 'remontées'].forEach(x => assert.strictEqual(t.indexOf(x), -1, 'francais oublie : ' + x));
+    });
+  } finally { if (avant === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avant); }
+});
+
+test('v2.63 Mes statistiques : tes remontées, tes billes tombées et tes coups, comptés comme dans le corpus', async () => {
+  const D = await _charger57();
+  const M = ctx.MIGS_GAMES;
+  // trois parties MIGS « Au score » : Alex aux Noirs, aux Blancs, aux Noirs
+  const idx = []; for (let i = 0; i < M.length && idx.length < 3; i++) if (M[i][4] === 'Au score' && [1, 2].includes(D.p[i][0])) idx.push(i);
+  const texte = idx.map((i, k) => _texte57(M[i], D.p[i][0], k !== 1)).join('\n');
+  const entrees = ctx._parseBulkHistoryText(texte, 'Alex').map(r => { assert.ok(r.ok); return r.entry; });
+  const sauve = ctx.localStorage.getItem(ctx.GAME_HISTORY_KEY);
+  try {
+    ctx.localStorage.setItem(ctx.GAME_HISTORY_KEY, JSON.stringify(entrees));
+    const s = JSON.parse(JSON.stringify(ctx.computeEjectionStats()));
+    // attendu, depuis les evenements embarques des memes parties
+    const carte = new Array(61).fill(0), sortes = [0, 0, 0, 0, 0, 0, 0, 0], prem = { perdue: { n: 0, g: 0 }, faite: { n: 0, g: 0 } };
+    idx.forEach((i, k) => {
+      const p = D.p[i], alexNoir = k !== 1, alex = alexNoir ? 1 : 2;
+      (alexNoir ? p[5] : p[6]).forEach((x, j) => { sortes[j] += x; });
+      for (let e = 0; e < p[4].length; e += 2) {
+        const code = p[4][e + 1], blancheTombe = code & 1, c = code >> 1;
+        if (alexNoir && !blancheTombe) carte[c]++;
+        if (!alexNoir && blancheTombe) carte[60 - c]++;   // aux Blancs : vue de son cote, plateau retourne
+      }
+      if (p[4].length) {
+        const premier = (p[4][1] & 1) ? 1 : 2, b = premier === alex ? prem.faite : prem.perdue;
+        b.n++; if (p[0] === alex) b.g++;
+      }
+    });
+    assert.deepStrictEqual(s.carteSubies, carte);
+    assert.deepStrictEqual(s.sortes, sortes);
+    assert.deepStrictEqual(s.premiere, prem);
+    assert.strictEqual(s.realisees, sortes[6]); assert.strictEqual(s.opportunites, sortes[7]);
+    // la carte Ejections : les trois blocs, avec les chiffres des vrais joueurs
+    await _enFrancais54(() => _dom54(async els => {
+      ctx.renderEjectionStats();
+      const h = els['ejection-stats-personal'].innerHTML;
+      ['Tes remontées', 'Toi face aux vrais joueurs', 'Où tombent tes billes', 'Victoires après avoir perdu la 1ʳᵉ bille', 'Occasions d’éjection saisies'].forEach(t => assert.ok(h.indexOf(t) > 0, t));
+      assert.doesNotMatch(h, /NaN|undefined|…/);
+      const v = ctx._sbAgreger();
+      assert.ok(h.indexOf(ctx._dimDec(v.camp.ej / v.camp.camps, 2)) > 0, 'ejections par partie des vrais joueurs');
+    }));
+  } finally { if (sauve === null) ctx.localStorage.removeItem(ctx.GAME_HISTORY_KEY); else ctx.localStorage.setItem(ctx.GAME_HISTORY_KEY, sauve); }
+});
+
+test('v2.63 fin de partie : une ligne tirée des vraies parties (remontée, avance perdue, première bille), jamais en mode Enfant', async () => {
+  await _charger57();
+  const t31 = ctx._sbTauxRemontee(3, 1), p = ctx._sbAgreger().premiere;
+  const pct = x => ctx._dimPct(x).replace(' %', ' %');
+  // [billes tombees chez les Blancs (= score des Noirs), chez les Noirs (= score des Blancs)] apres chaque coup
+  const poser = suite => { ctx.boardSnapshots = suite.map(([n, b], i) => ({ board: {}, capturedByBlack: n, capturedByWhite: b, moveCount: i + 1 })); };
+  const avantLang = ctx.localStorage.getItem('abalone_lang'), avantKids = ctx.kidsMode, avantSnaps = ctx.boardSnapshots;
+  ctx.localStorage.setItem('abalone_lang', 'FR');
+  try {
+    ctx.kidsMode = false;
+    // les Blancs, menes 1 a 3, gagnent 6-3
+    poser([[0, 0], [1, 0], [1, 1], [2, 1], [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [3, 6]]);
+    assert.strictEqual(ctx._sbRepereFinDePartie('white', 'white', false), 'Belle remontée ! Vous étiez mené 1 à 3. Dans les vraies parties, le camp mené 1 à 3 ne gagne que ' + pct(100 - t31.pct) + ' du temps.');
+    assert.strictEqual(ctx._sbRepereFinDePartie('white', 'black', false), 'Vous meniez 3 à 1. Dans les vraies parties, celui qui mène 3 à 1 gagne ' + pct(t31.pct) + ' du temps : l’adversaire a réussi une remontée rare.');
+    assert.strictEqual(ctx._sbRepereFinDePartie('white', 'black', true), 'Les Blancs ont remonté un retard de 1 à 3. Dans les vraies parties, le camp mené 1 à 3 ne gagne que ' + pct(100 - t31.pct) + ' du temps.');
+    // les Noirs menent de bout en bout
+    poser([[0, 0], [1, 0], [2, 0], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1]]);
+    assert.strictEqual(ctx._sbRepereFinDePartie('black', 'black', false), 'Vous avez fait tomber la première bille. Dans les vraies parties, le camp qui fait tomber la première bille gagne ' + pct(p.gagne / p.n * 100) + ' du temps.');
+    assert.strictEqual(ctx._sbRepereFinDePartie('black', 'white', false), 'L’adversaire a fait tomber la première bille. Dans les vraies parties, le camp qui fait tomber la première bille gagne ' + pct(p.gagne / p.n * 100) + ' du temps.');
+    // rien a dire : aucune bille tombee, partie commencee avec un score, mode Enfant
+    poser([[0, 0], [0, 0], [0, 0]]);
+    assert.strictEqual(ctx._sbRepereFinDePartie('black', 'black', false), '');
+    poser([[3, 2], [4, 2], [5, 2], [6, 2]]);
+    assert.strictEqual(ctx._sbRepereFinDePartie('black', 'black', false), '');
+    poser([[0, 0], [1, 0], [2, 0], [6, 0]]);
+    ctx.kidsMode = true;
+    assert.strictEqual(ctx._sbRepereFinDePartie('black', 'black', false), '');
+  } finally {
+    ctx.kidsMode = avantKids; ctx.boardSnapshots = avantSnaps;
+    if (avantLang === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avantLang);
+  }
+  // l'ecran de fin de partie a sa place pour cette ligne
+  assert.match(_SRC(), /<div class="win-sub" id="win-sub">[^<]*<\/div>\s*<!--[^>]*-->\s*<div class="win-repere" id="win-repere" aria-live="polite"><\/div>/);
+});
+
+test('v2.63 vainqueurs MIGS : lus dans les événements pré-calculés (plus de minute de rejeu), identiques au rejeu sur un échantillon', async () => {
+  const D = await _charger57();
+  _r57('_migsWinnersCache = null');
+  const W = await ctx.ensureMigsWinners();
+  const M = ctx.MIGS_GAMES;
+  assert.strictEqual(W.size, M.filter((g, i) => g[4] === 'Au score' && [1, 2].includes(D.p[i][0])).length);
+  const { poserDisposition } = require('./harness');
+  let vus = 0;
+  for (let i = 0; i < M.length && vus < 15; i += 97) {
+    if (M[i][4] !== 'Au score') continue;
+    poserDisposition(ctx, 'belgian');
+    let col = 'black';
+    for (const t of M[i][5].replace(/\d+\./g, ' ').trim().split(/\s+/)) {
+      const mv = ctx.resolveAbaProToken(t, col); if (!mv) break;
+      const info = ctx.validateMove(mv.cells, mv.dir, col); if (!info.valid) break;
+      ctx.applyMove({ cells: mv.cells, dir: mv.dir, info: info }, col);
+      col = col === 'black' ? 'white' : 'black';
+    }
+    const attendu = ctx.CapturedByBlack.get() >= 6 ? 'black' : (ctx.CapturedByWhite.get() >= 6 ? 'white' : undefined);
+    assert.strictEqual(W.get(i), attendu, 'MIGS ' + i);
+    vus++;
+  }
+  assert.strictEqual(vus, 15);
+});

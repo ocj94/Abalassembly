@@ -581,6 +581,22 @@ const MIGS_WINNERS_KEY = 'abaMigsWinnersCache';
 let _migsWinnersCache = null;
 async function ensureMigsWinners(onProgress){
   if (_migsWinnersCache) return _migsWinnersCache;
+  /* v2.63 : les vainqueurs sont deja dans les evenements pre-calcules des parties
+     (tools/stats-parties.js, meme rejeu : verifie identique sur les 1 518 parties
+     « Au score » ; un test le revérifie sur un echantillon). Plus d'une minute de
+     rejeu evitee a la premiere visite de la page Statistiques du jeu. */
+  try {
+    if (typeof ensureStatsParties === 'function' && await ensureStatsParties() && STATS_PARTIES
+        && typeof MIGS_GAMES !== 'undefined' && MIGS_GAMES.length && STATS_PARTIES.nb && STATS_PARTIES.nb[0] === MIGS_GAMES.length) {
+      const m = new Map();
+      for (let i = 0; i < MIGS_GAMES.length; i++) {
+        const g = STATS_PARTIES.p[i][0];
+        if (MIGS_GAMES[i][4] === 'Au score' && (g === 1 || g === 2)) m.set(i, g === 1 ? 'black' : 'white');
+      }
+      _migsWinnersCache = m;
+      return m;
+    }
+  } catch (e) {}
   try {
     const raw = localStorage.getItem(MIGS_WINNERS_KEY);
     if (raw) { _migsWinnersCache = new Map(JSON.parse(raw)); return _migsWinnersCache; }
@@ -883,6 +899,13 @@ function computeEjectionStats(){
   let realisees = 0, subies = 0, opportunites = 0, gamesWithData = 0;
   let bestGame = 0, firstEjPlies = [];
   const byPhase = { ouverture:0, milieu:0, finale:0 };
+  /* v2.63 : de quoi te comparer aux vraies parties (39-statistiques-billes.js) --
+     tes remontees (qui a fait tomber la premiere bille, et qui a gagne), ou tombent
+     tes billes (vue de ton cote, comme sur ton ecran : plateau retourne quand tu as
+     les Blancs), et tes sortes de coups, comptees comme dans le corpus. */
+  const premiere = { perdue: { n: 0, g: 0 }, faite: { n: 0, g: 0 } };
+  const carteSubies = new Array(61).fill(0), sortes = [0, 0, 0, 0, 0, 0, 0, 0];
+  const avecSb = (typeof _sbClasser === 'function');
 
   history.forEach(function(entry){
     if (!entry.code) return;
@@ -891,12 +914,13 @@ function computeEjectionStats(){
     const humanC = entry.humanColor || 'black';
     currentLayout = parsed.layout || 'standard';
     initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
-    let turn = 'black', thisGameEj = 0, firstEjThisGame = null, ply = 0;
+    let turn = 'black', thisGameEj = 0, firstEjThisGame = null, ply = 0, premierCamp = null;
     for (let i = 0; i < parsed.moves.length; i++) {
       const mv = parsed.moves[i];
       const v = validateMove(mv.cells, mv.dir, turn);
       if (!v || !v.valid) break;
       ply++;
+      if (v.ejection && premierCamp === null) premierCamp = turn;
       const capB0 = CapturedByBlack.get(), capW0 = CapturedByWhite.get();
       // phase AVANT ce coup, basee sur les pertes deja subies par chaque camp
       const maxLoss = Math.max(capB0, capW0);
@@ -905,13 +929,18 @@ function computeEjectionStats(){
       if (turn === humanC) {
         const legal = getAllMovesForColor(turn);
         const uneOpportunite = legal.some(function(m){ return m.dir && validateMove(m.cells, m.dir, turn).ejection; });
-        if (uneOpportunite) opportunites++;
+        if (uneOpportunite) { opportunites++; sortes[7]++; }
+        if (avecSb) _sbClasser(sortes, mv, v);
         if (v.ejection) {
-          realisees++; thisGameEj++; byPhase[phase]++;
+          realisees++; thisGameEj++; byPhase[phase]++; sortes[6]++;
           if (firstEjThisGame === null) firstEjThisGame = ply;
         }
       } else {
-        if (v.ejection) subies++;
+        if (v.ejection) {
+          subies++;
+          const rc = avecSb ? _sbCaseEjectee(mv, v) : null;
+          if (rc) { const idx = _sbIndex(rc.r, rc.c); carteSubies[humanC === 'white' ? 60 - idx : idx]++; }
+        }
       }
 
       applyMove({cells:mv.cells, dir:mv.dir, info:v}, turn);
@@ -920,6 +949,10 @@ function computeEjectionStats(){
     if (ply > 0) gamesWithData++;
     if (thisGameEj > bestGame) bestGame = thisGameEj;
     if (firstEjThisGame !== null) firstEjPlies.push(firstEjThisGame);
+    if (premierCamp && (entry.winner === 'black' || entry.winner === 'white')) {
+      const b = (premierCamp === humanC) ? premiere.faite : premiere.perdue;
+      b.n++; if (entry.winner === humanC) b.g++;
+    }
   });
 
   currentLayout = saveLayout; board = saveBoard; CapturedByBlack.set(saveCB); CapturedByWhite.set(saveCW);
@@ -935,7 +968,8 @@ function computeEjectionStats(){
     premiereEjectionMoyenne: firstEjPlies.length ? +(firstEjPlies.reduce(function(a,b){return a+b;},0)/firstEjPlies.length).toFixed(1) : null,
     partiesAvecEjection: firstEjPlies.length,
     meilleurePartie: bestGame,
-    byPhase: byPhase
+    byPhase: byPhase,
+    premiere: premiere, carteSubies: carteSubies, sortes: sortes
   };
 }
 

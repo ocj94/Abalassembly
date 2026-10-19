@@ -251,10 +251,15 @@ async function renderCorpusStatsPage(){
   if (!host) return;
   /* Les 12 dimensions n'attendent pas le reste : le premier calcul des
      vainqueurs MIGS prend plus d'une minute, leur carte s'affiche avant. */
+  /* v2.63 : les billes qui tombent (apres « qui gagne, duree, fins de partie »), puis les
+     variantes, ce qui fait gagner (juste apres les 12 dimensions), comment jouent les vrais
+     joueurs (a la fin). Hotes poses ici, remplis par 39-statistiques-billes.js sans attendre. */
   host.innerHTML = '<div id="corpus-autres"><div style="font-size:13px;color:var(--muted);margin-bottom:16px" id="corpus-progress">Calcul en cours (première fois seulement — mis en cache ensuite)…</div></div>'
+    + '<div id="billes-section"></div><div id="corpus-variantes"></div>'
     + '<div id="dims-carte">' + _carteStats(_tr('Les 12 dimensions, mesurées sur tout le corpus', 'The 12 dimensions, measured over the whole corpus'),
       '<div style="font-size:12px;color:var(--muted)">' + _tr('Chargement des positions mesurées…', 'Loading the measured positions…') + '</div>') + '</div>'
-    + '<div id="dims-corr"></div>';
+    + '<div id="gagner-section"></div><div id="dims-corr"></div><div id="jeu-section"></div>';
+  if (typeof _sbRendreCorpus === 'function') _sbRendreCorpus().catch(function(e){ console.warn('billes qui tombent :', e); });
   /* Les dimensions d'abord (moins d'une seconde une fois les positions chargees),
      PUIS le reste : le rejeu des parties MIGS rend la main au navigateur par
      paquets de 40 parties, et chaque etape des dimensions attendait derriere
@@ -318,7 +323,8 @@ async function renderCorpusStatsPage(){
     }).join(''),
     'Champ enregistré directement dans le corpus MIGS, pas déduit.');
 
-  html += card('Variantes les plus jouées',
+  // v2.63 : apres les billes qui tombent, dans son propre hote
+  let htmlVariantes = card('Variantes les plus jouées',
     s.topVariants.map(function(v){
       const label = (typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[v[0]]) ? HEAT_VARIANT_LABEL[v[0]] : v[0];
       return ligne(label, v[1].toLocaleString('fr-FR') + ' parties');
@@ -327,6 +333,8 @@ async function renderCorpusStatsPage(){
 
   // Les 12 dimensions et leur redondance suivent, dans leurs propres cartes (v2.59, voir _dimsPreparer)
   autres.innerHTML = html;
+  const hv = document.getElementById('corpus-variantes');
+  if (hv) hv.innerHTML = htmlVariantes; else autres.innerHTML += htmlVariantes;
 }
 
 /* ═══════════════════════════════════════════

@@ -444,4 +444,3 @@ function renderPlateauPage() {
   el.innerHTML = h;
 }
 
-</script>
