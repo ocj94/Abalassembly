@@ -9,6 +9,31 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.64]
+
+### Added — one address per page
+- **Every menu entry has its own address**, to bookmark or send: for example
+  `https://ocj94.github.io/Abalassembly/#corpus` opens Corpus stats straight
+  away, `#rules` the Game rules, `#puzzles` the Puzzles, `#my-statistics`,
+  `#real-board`, `#library`… (full list in the README). The home page keeps
+  the bare address.
+- **The Back button** of the browser or phone returns to the previous page,
+  and Forward to the next.
+- **Arriving through one of these addresses** opens the page directly,
+  without the intro.
+- **In French**, the site shows French addresses (`#regles`,
+  `#mes-statistiques`…); both languages are always understood, as are
+  accents (`#problèmes`), capitals and the full menu names (`#game-rules`).
+  Switching language switches the address shown.
+- **The menu's windows** (Import, Game library, Sheet for AIs) have their own
+  address too; once closed, the address returns to the page underneath, and
+  the Back button closes them.
+- **A game in progress is never restarted**: coming back to `#game` shows it
+  again as it was. With no game, `#game` leads to setting one up, or offers
+  to resume the saved one.
+- Kids mode keeps its restrictions (`#settings`, `#lab` are refused there as
+  in the menu); existing links (`?partie=`, `?pos=`, `?defi`) take priority.
+
 ## [v2.63]
 
 ### Added — falling marbles, what wins games, how real players play

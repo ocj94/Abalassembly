@@ -68,6 +68,7 @@ main/36-defi-du-jour-et-cartes.js
 main/37-liste-et-commentaires.js
 main/38-apprendre-vrai-plateau.js
 main/39-statistiques-billes.js
+main/40-adresses-pages.js
 08-html.part
 09-script-tablebase.js
 10-html.part
