@@ -621,4 +621,3 @@ function _sbRepereFinDePartie(winner, moi, deuxJoueurs){
   return _tr('Les ' + nomCamp(premier) + ' ont fait tomber la première bille. Dans les vraies parties, ce camp gagne ' + _sbPct(pc) + ' du temps.', nomCamp(premier) + ' pushed off the first marble. In real games, that side wins ' + _sbPct(pc) + ' of the time.');
 }
 
-</script>

@@ -20,6 +20,7 @@ The site speaks **English and French** (language menu at the top right, or `?lan
 
 - [Rules in brief](#rules-in-brief)
 - [Kids Mode](#kids-mode)
+- [One address per page](#one-address-per-page)
 - [What's in the file](#whats-in-the-file)
 - [Exchanging games](#exchanging-games)
 - [Technical choices](#technical-choices)
@@ -68,6 +69,52 @@ What it hides: **chat**, the **AI Lab**, **settings**, and **external links**. I
 **State is preserved.** Reloading the page doesn't reopen anything: the mode restores itself at startup, and the addition problem still has to be answered to leave it.
 
 **Before the screen, a real board.** For children **from age 3** (not before: the Abalone box is not suitable for under-3s), the **On a real board** page (☰ menu → Improve) guides parents away from screens: safety first (always with an adult, marbles counted, box out of a little one's reach), golden rules so children love the game without tears or disgust, 8 small steps with diagrams ("One marble per house", "The little train", "The stronger one pushes", "Splash!"… up to the real game), a progress notebook for several children (names kept on the device) and a printable guide.
+
+## One address per page
+
+Every menu entry has its own address, to bookmark or send: for example <https://ocj94.github.io/Abalassembly/#corpus> opens Corpus stats straight away. Opening a page puts its address in the bar, and the Back button of the browser or phone returns to the previous page. French addresses work too (the site shows them when it is in French), as do accents (`#problèmes`). A game in progress is never restarted by `#game`: it is shown again as it was. Kids mode keeps its restrictions.
+
+| Page | Address | In French |
+|---|---|---|
+| Home | the site address, or `#home` | `#accueil` |
+| Play (set up a game) | `#play` | `#jouer` |
+| Game in progress | `#game` | `#partie` |
+| History | `#history` | `#historique` |
+| Corpus stats | `#corpus` | `#corpus` |
+| Import | `#import` | `#importer` |
+| Puzzles | `#puzzles` | `#problemes` |
+| Editor | `#editor` | `#editeur` |
+| Variants | `#variants` | `#variantes` |
+| Help | `#help` | `#aide` |
+| Game rules | `#rules` | `#regles` |
+| On a real board | `#real-board` | `#plateau` |
+| Abalone Academy | `#academy` | `#academy` |
+| Openings | `#openings` | `#ouvertures` |
+| Analysis | `#analysis` | `#analyse` |
+| My statistics | `#my-statistics` | `#mes-statistiques` |
+| Brain Gym | `#brain-gym` | `#gym` |
+| Trainer course | `#trainers` | `#formateurs` |
+| AI Lab | `#lab` | `#labo` |
+| Game library | `#library` | `#bibliotheque` |
+| Endgame tables | `#endgames` | `#finales` |
+| Photo / board detection | `#photo` | `#photo` |
+| Documentation | `#documentation` | `#documentation` |
+| GitHub insights | `#github` | `#github` |
+| Architecture | `#architecture` | `#architecture` |
+| Sheet for AIs | `#ai-sheet` | `#fiche-ia` |
+| Museum | `#museum` | `#musee` |
+| Pioneers | `#pioneers` | `#pionniers` |
+| Members | `#members` | `#trombinoscope` |
+| Leaderboard | `#leaderboard` | `#classement` |
+| Watch | `#watch` | `#observer` |
+| Community | `#community` | `#communaute` |
+| Tournament | `#tournament` | `#tournoi` |
+| Compare | `#compare` | `#comparer` |
+| Friends | `#friends` | `#amis` |
+| Profile | `#profile` | `#profil` |
+| Settings | `#settings` | `#parametres` |
+| Legal notice | `#legal` | `#mentions` |
+| Privacy | `#privacy` | `#confidentialite` |
 
 ## What's in the file
 

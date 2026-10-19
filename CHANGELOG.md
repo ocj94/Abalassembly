@@ -9,6 +9,31 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.64]
+
+### Ajouté — une adresse par page
+- **Chaque entrée du menu a son adresse**, à garder en favori ou à envoyer :
+  par exemple `https://ocj94.github.io/Abalassembly/#corpus` ouvre directement
+  les Stats du corpus, `#regles` les Règles du jeu, `#problemes` les
+  Problèmes, `#mes-statistiques`, `#plateau`, `#bibliotheque`… (liste
+  complète dans le README). L'accueil garde l'adresse nue.
+- **Le bouton Retour** du navigateur ou du téléphone revient à la page
+  d'avant, et Avance à la suivante.
+- **Arriver par une de ces adresses** ouvre directement la page, sans l'intro.
+- **En anglais**, le site montre des adresses anglaises (`#rules`,
+  `#my-statistics`…) ; les deux langues sont toujours comprises, comme les
+  accents (`#problèmes`), les majuscules et les noms complets du menu
+  (`#regles-du-jeu`). Changer de langue change l'adresse affichée.
+- **Les fenêtres du menu** (Importer, Bibliothèque de parties, Fiche pour IA)
+  ont aussi leur adresse ; refermées, l'adresse revient à la page dessous, et
+  le bouton Retour les referme.
+- **Une partie en cours n'est jamais recommencée** : revenir sur `#partie`
+  la remontre telle quelle. Sans partie, `#partie` mène à la préparation
+  d'une partie, ou propose de reprendre celle qui était sauvegardée.
+- Le mode Enfant garde ses interdits (`#parametres`, `#labo` y sont refusés
+  comme au menu) ; les liens existants (`?partie=`, `?pos=`, `?defi`) passent
+  avant.
+
 ## [v2.63]
 
 ### Ajouté — les billes qui tombent, ce qui fait gagner, comment jouent les vrais joueurs

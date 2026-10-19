@@ -3939,3 +3939,140 @@ test('v2.63 vainqueurs MIGS : lus dans les événements pré-calculés (plus de 
   }
   assert.strictEqual(vus, 15);
 });
+
+// ═══════════════════════════════════════════
+// 58. v2.64 : une adresse par page (#corpus, #regles...)
+// ═══════════════════════════════════════════
+const _r58 = code => require('vm').runInContext(code, ctx);
+// faux historique : chaque adresse ecrite est notee, et location.hash suit
+function _historique58() {
+  const journal = [];
+  const loc = { pathname: '/Abalassembly/', search: '', hash: '', href: 'https://ocj94.github.io/Abalassembly/' };
+  const ecrire = (mode) => (s, t, url) => { journal.push([mode, url]); const i = url.indexOf('#'); loc.hash = i >= 0 ? url.slice(i) : ''; loc.href = 'https://ocj94.github.io' + url; };
+  return { journal, loc, hist: { pushState: ecrire('push'), replaceState: ecrire('replace') } };
+}
+async function _avecAdresses58(fn) {
+  const sauve = { location: ctx.location, history: ctx.history, page: ctx._adrPageActive, nav: ctx.sidebarNav, show: ctx.showPage, pret: _r58('_adrPret'), lang: ctx.localStorage.getItem('abalone_lang') };
+  const h = _historique58();
+  ctx.location = h.loc; ctx.history = h.hist; _r58('_adrPret = true');
+  ctx.localStorage.setItem('abalone_lang', 'FR');
+  try { return await fn(h); } finally {
+    ctx.location = sauve.location; ctx.history = sauve.history; ctx._adrPageActive = sauve.page; ctx.sidebarNav = sauve.nav; ctx.showPage = sauve.show;
+    _r58('_adrPret = ' + sauve.pret);
+    if (sauve.lang === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', sauve.lang);
+  }
+}
+
+test('v2.64 adresses : chaque entrée du menu et chaque page ont la leur, unique, sans accent, en français et en anglais', () => {
+  const src = _SRC(), T = Array.from(_r58('ADRESSES_PAGES'), l => Array.from(l));
+  const pages = [...src.matchAll(/<div class="page[^"]*" id="page-([a-z0-9_-]+)"/g)].map(m => m[1]);
+  assert.ok(pages.length >= 35);
+  pages.forEach(p => assert.ok(T.some(l => l[0] === p), 'page sans adresse : ' + p));
+  // le menu : pages (sidebarNav / showPage) et fenetres (Importer, Bibliotheque, Fiche pour IA, Labo)
+  const debut = src.indexOf('<div class="sidebar-group-label">🎮 Jouer</div>'), fin = src.indexOf('nav.settings">Paramètres</span>');
+  const menu = src.slice(debut, fin + 40);
+  const cibles = [...menu.matchAll(/onclick="(?:sidebarNav|showPage)\('([a-z]+)'/g)].map(m => m[1]);
+  assert.ok(cibles.length >= 30, cibles.length + ' entrees');   // 32 pages au menu (v2.64), plus 4 fenetres ci-dessous
+  cibles.forEach(c => assert.ok(T.some(l => l[0] === c), 'entree du menu sans adresse : ' + c));
+  ['openApgnImportModal', 'openMigsBrowser', 'openSiteBriefing', 'openLabFromMenu'].forEach(f => assert.ok(menu.indexOf(f + '(') > 0, f));
+  ['import', 'library', 'briefing', 'lab'].forEach(c => assert.ok(T.some(l => l[0] === c), c));
+  // uniques, lisibles, et aucune ne designe deux pages
+  const toutes = new Map();
+  T.forEach(l => [l[1], l[2], l[0].toLowerCase()].forEach(a => {
+    assert.match(a, /^[a-z0-9]+(-[a-z0-9]+)*$/, 'adresse : ' + a);
+    assert.ok(!toutes.has(a) || toutes.get(a) === l[0], a + ' : ' + toutes.get(a) + ' et ' + l[0]);
+    toutes.set(a, l[0]);
+  }));
+  // aucune n'est aussi l'id d'un element (le navigateur sauterait dessus)
+  T.forEach(l => [l[1], l[2]].forEach(a => assert.strictEqual(src.indexOf('id="' + a + '"'), -1, 'id ' + a)));
+  assert.strictEqual(_r58("_adrLire('corpus')"), 'corpusstats', 'l exemple d Olivier : #corpus');
+});
+
+test('v2.64 adresses : lecture tolérante (accents, majuscules, espaces, encodage, noms internes), écriture dans la langue du site', () => {
+  const lire = h => ctx._adrLire(h);
+  assert.strictEqual(lire('#corpus'), 'corpusstats');
+  assert.strictEqual(lire('#problèmes'), 'puzzles'); assert.strictEqual(lire('#probl%C3%A8mes'), 'puzzles'); assert.strictEqual(lire('#PROBLEMES'), 'puzzles');
+  assert.strictEqual(lire('#Règles du jeu'), 'learn'); assert.strictEqual(lire('#rules'), 'learn'); assert.strictEqual(lire('#learn'), 'learn');
+  assert.strictEqual(lire('#corpusstats'), 'corpusstats'); assert.strictEqual(lire('#stats'), 'stats'); assert.strictEqual(lire('#mes-statistiques'), 'stats');
+  assert.strictEqual(lire('#bibliotheque'), 'library'); assert.strictEqual(lire('#paramètres'), 'settings'); assert.strictEqual(lire('#accueil'), 'home');
+  assert.strictEqual(lire('#n-importe-quoi'), null); assert.strictEqual(lire('#'), null); assert.strictEqual(lire(''), null);
+  const avant = ctx.localStorage.getItem('abalone_lang');
+  try {
+    ctx.localStorage.setItem('abalone_lang', 'FR');
+    assert.strictEqual(ctx._adrPour('corpusstats'), 'corpus'); assert.strictEqual(ctx._adrPour('learn'), 'regles'); assert.strictEqual(ctx._adrPour('home'), '');
+    ctx.localStorage.setItem('abalone_lang', 'EN');
+    assert.strictEqual(ctx._adrPour('learn'), 'rules'); assert.strictEqual(ctx._adrPour('stats'), 'my-statistics'); assert.strictEqual(ctx._adrPour('home'), '');
+    assert.strictEqual(ctx._adrPour('inconnue'), null);
+  } finally { if (avant === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avant); }
+});
+
+test('v2.64 adresses : naviguer empile une entrée (bouton Retour), suivre la barre d’adresse remplace sans empiler', () => _avecAdresses58(async ({ journal, loc }) => {
+  let active = 'home';
+  ctx._adrPageActive = () => active;
+  // l'utilisateur ouvre une page : nouvelle entree
+  active = 'corpusstats'; ctx._adrSuivre(false);
+  assert.deepStrictEqual(journal.pop(), ['push', '/Abalassembly/#corpus']);
+  ctx._adrSuivre(false); assert.strictEqual(journal.length, 0, 'meme page : rien de plus');
+  // retour a l'accueil : l'adresse nue
+  active = 'home'; ctx._adrSuivre(false);
+  assert.deepStrictEqual(journal.pop(), ['push', '/Abalassembly/']);
+  // la barre d'adresse change (Retour, adresse tapee) : la page suit, l'historique ne s'allonge pas
+  const vus = [];
+  ctx.sidebarNav = (p) => { vus.push(p); active = p; ctx._adrSuivre(false); };
+  loc.hash = '#regles'; ctx._adrSurChangement();
+  assert.deepStrictEqual(vus, ['learn']);
+  assert.ok(journal.every(e => e[0] === 'replace'), JSON.stringify(journal));
+  // un alias est remis au propre, sans empiler
+  journal.length = 0; loc.hash = '#learn'; ctx._adrSurChangement();
+  assert.deepStrictEqual(journal, [['replace', '/Abalassembly/#regles']]);
+  assert.deepStrictEqual(vus, ['learn'], 'deja sur la page : pas de nouvelle ouverture');
+  // adresse inconnue, ou « # » seul : on ne bouge pas
+  journal.length = 0; loc.hash = '#n-importe-quoi'; ctx._adrSurChangement();
+  loc.hash = ''; loc.href = 'https://ocj94.github.io/Abalassembly/#'; ctx._adrSurChangement();
+  assert.deepStrictEqual(vus, ['learn']); assert.strictEqual(journal.length, 0);
+  // plus d'adresse du tout (Retour jusqu'a l'arrivee) : l'accueil
+  loc.href = 'https://ocj94.github.io/Abalassembly/'; ctx._adrSurChangement();
+  assert.deepStrictEqual(vus, ['learn', 'home']);
+}));
+
+test('v2.64 adresses : #partie ne recommence jamais une partie ; arrivée sur le site ; les liens ?partie= ?pos= ?defi passent avant', () => _avecAdresses58(async ({ journal, loc }) => {
+  const ouvertes = [];
+  ctx.showPage = (p) => { ouvertes.push(p); };
+  ctx._adrPageActive = () => 'home';
+  const snaps = ctx.boardSnapshots, sauvee = ctx.localStorage.getItem('abalone_saved_game');
+  try {
+    ctx.boardSnapshots = [{ board: {}, capturedByBlack: 0, capturedByWhite: 0, moveCount: 1 }]; ctx._adrPartie();
+    assert.deepStrictEqual(ouvertes, [], 'partie en cours : remontree telle quelle, sans showPage(game)');
+    ctx.boardSnapshots = []; ctx.MoveCount.set(14);   // 14 : la valeur de depart du compteur, sans partie
+    ctx.localStorage.removeItem('abalone_saved_game'); ctx._adrPartie();
+    assert.deepStrictEqual(ouvertes, ['setup'], 'aucune partie : la page pour en preparer une');
+    ctx.localStorage.setItem('abalone_saved_game', JSON.stringify({ board: { '4,4': 'black' } })); ctx._adrPartie();
+    assert.deepStrictEqual(ouvertes, ['setup', 'game'], 'une partie sauvegardee : proposee a la reprise');
+  } finally {
+    ctx.boardSnapshots = snaps;
+    if (sauvee === null) ctx.localStorage.removeItem('abalone_saved_game'); else ctx.localStorage.setItem('abalone_saved_game', sauvee);
+  }
+  // arrivee : la page de l'adresse s'ouvre, sans intro
+  const vus = []; ctx.sidebarNav = (p) => vus.push(p);
+  _r58('_adrPret = false'); loc.hash = '#formateurs'; ctx._adrAuChargement();
+  assert.deepStrictEqual(vus, ['formateurs']); assert.strictEqual(_r58('_adrPret'), true);
+  // un lien de partie, de position ou de defi : il ouvre sa page lui-meme
+  for (const q of ['?partie=ABAL1:standard:', '?pos=abc', '?defi=12', '?defi']) {
+    _r58('_adrPret = false'); loc.search = q; loc.hash = '#corpus'; ctx._adrAuChargement();
+    assert.deepStrictEqual(vus, ['formateurs'], q);
+  }
+  loc.search = '';
+}));
+
+test('v2.64 adresses : branchées sur showPage, les fenêtres du menu et le changement de langue ; expliquées dans l’aide', () => {
+  // (d'autres tests remplacent showPage par un faux : on verifie le branchement dans le code du site)
+  const src = _SRC();
+  assert.ok(src.indexOf("showPage = function(){ const r = precedent.apply(this, arguments); _adrSuivre(false); return r; };") > 0);
+  assert.ok(src.indexOf("window[nom] = function(){ const r = avant.apply(this, arguments); _adrFenetreSuivie(cle); return r; };") > 0);
+  assert.ok(src.indexOf("setLanguage = function(){ const r = avantLangue.apply(this, arguments); _adrSuivre(true); return r; };") > 0);
+  assert.deepStrictEqual(Object.keys(_r58('_ADR_OUVREURS')).sort(), ['briefing', 'import', 'library']);
+  ['openApgnImportModal', 'openMigsBrowser', 'openSiteBriefing'].forEach(f => assert.strictEqual(typeof ctx[f], 'function', f));
+  assert.ok(src.indexOf('<li><b>Une adresse par page</b> : chaque entrée du menu a la sienne') > 0);
+  assert.ok(src.indexOf('<li><b>One address per page</b>: every menu entry has its own') > 0);
+  assert.ok(src.indexOf('<code>…/Abalassembly/#corpus</code>') > 0);
+});

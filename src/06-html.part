@@ -3821,6 +3821,7 @@
 <li>Menu → <b>Paramètres</b> : ton profil, l'accessibilité, les notifications, et les autorisations — dont le <b>Mode Enfant</b> (plateau aux couleurs vives, sans chat ni liens externes), la caméra et le micro.</li>
 <li>Toujours dans les Paramètres : <b>📦 Exporter mes données (JSON)</b> et <b>📥 Importer mes données (JSON)</b>, la sauvegarde <b>complète</b> de tes données.</li>
 <li>Menu <b>❓ Aide</b> en haut de l'écran : poser une question, faire une suggestion, signaler un bug. Ces messages s'ouvrent sur GitHub, qui demande un compte (gratuit).</li>
+<li><b>Une adresse par page</b> : chaque entrée du menu a la sienne, à garder en favori ou à envoyer. Par exemple <code>…/Abalassembly/#corpus</code> ouvre directement les Stats du corpus, <code>#regles</code> les Règles du jeu, <code>#problemes</code> les Problèmes. Le bouton Retour revient à la page d'avant.</li>
 </ul>
 <button class="ctrl-btn aide-aller" onclick="showPage('settings')">Ouvrir les Paramètres →</button></div></details>
     </div>
@@ -3926,6 +3927,7 @@
 <li>Menu → <b>Settings</b>: your profile, accessibility, notifications and permissions — including <b>Kids mode</b> (bright board, no chat or external links), camera and microphone.</li>
 <li>Also in Settings: <b>📦 Export my data (JSON)</b> and <b>📥 Import my data (JSON)</b>, the <b>full</b> backup of your data.</li>
 <li>The <b>❓ Help</b> menu at the top of the screen: ask a question, make a suggestion, report a bug. These messages open on GitHub, which needs a (free) account.</li>
+<li><b>One address per page</b>: every menu entry has its own, to bookmark or send. For example <code>…/Abalassembly/#corpus</code> opens Corpus stats straight away, <code>#rules</code> the Game rules, <code>#puzzles</code> the Puzzles. The Back button returns to the previous page.</li>
 </ul>
 <button class="ctrl-btn aide-aller" onclick="showPage('settings')">Open Settings →</button></div></details>
     </div>

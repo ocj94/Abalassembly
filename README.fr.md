@@ -20,6 +20,7 @@ Le site parle **français et anglais** (menu de langue en haut à droite, ou `?l
 
 - [Règles en bref](#règles-en-bref)
 - [Mode Enfant](#mode-enfant)
+- [Une adresse par page](#une-adresse-par-page)
 - [Ce que contient le fichier](#ce-que-contient-le-fichier)
 - [Échanger des parties](#échanger-des-parties)
 - [Choix techniques](#choix-techniques)
@@ -68,6 +69,52 @@ Ce qu'il masque : le **chat**, le **Labo IA**, les **paramètres** et les **lien
 **L'état est conservé.** Un rechargement de page ne rouvre rien : le mode se remet en place au démarrage, et il faut toujours répondre à l'addition pour en sortir.
 
 **Avant l'écran, un vrai plateau.** Pour les enfants **à partir de 3 ans** (pas avant : la boîte d'Abalone ne convient pas aux moins de 3 ans), la page **Sur un vrai plateau** (menu ☰ → Progresser) guide les parents hors écran : la sécurité d'abord (toujours avec un adulte, billes comptées, boîte hors de portée d'un plus petit), des règles d'or pour qu'ils aiment le jeu sans pleurs ni dégoût, 8 petites étapes avec leurs schémas (« Une bille par maison », « Le petit train », « Le plus fort pousse », « Plouf ! »… jusqu'à la vraie partie), un carnet de progrès pour plusieurs enfants (prénoms gardés sur l'appareil) et une fiche à imprimer.
+
+## Une adresse par page
+
+Chaque entrée du menu a son adresse, à garder en favori ou à envoyer : par exemple <https://ocj94.github.io/Abalassembly/#corpus> ouvre directement les Stats du corpus. Ouvrir une page met son adresse dans la barre, et le bouton Retour du navigateur ou du téléphone revient à la page d'avant. Les adresses anglaises marchent aussi (le site les montre quand il est en anglais), comme les accents (`#problèmes`). Une partie en cours n'est jamais recommencée par `#partie` : elle est remontrée telle quelle. Le mode Enfant garde ses interdits.
+
+| Page | Adresse | En anglais |
+|---|---|---|
+| Accueil | l’adresse du site, ou `#accueil` | `#home` |
+| Jouer (préparer une partie) | `#jouer` | `#play` |
+| Partie en cours | `#partie` | `#game` |
+| Historique | `#historique` | `#history` |
+| Stats du corpus | `#corpus` | `#corpus` |
+| Importer | `#importer` | `#import` |
+| Problèmes | `#problemes` | `#puzzles` |
+| Éditeur | `#editeur` | `#editor` |
+| Variantes | `#variantes` | `#variants` |
+| Aide | `#aide` | `#help` |
+| Règles du jeu | `#regles` | `#rules` |
+| Sur un vrai plateau | `#plateau` | `#real-board` |
+| Abalone Academy | `#academy` | `#academy` |
+| Ouvertures | `#ouvertures` | `#openings` |
+| Analyse | `#analyse` | `#analysis` |
+| Mes statistiques | `#mes-statistiques` | `#my-statistics` |
+| Gym Cerveau | `#gym` | `#brain-gym` |
+| Formation Formateurs | `#formateurs` | `#trainers` |
+| Labo IA | `#labo` | `#lab` |
+| Bibliothèque de parties | `#bibliotheque` | `#library` |
+| Tables de finale | `#finales` | `#endgames` |
+| Détection photo / plateau | `#photo` | `#photo` |
+| Documentation | `#documentation` | `#documentation` |
+| Insights GitHub | `#github` | `#github` |
+| Architecture | `#architecture` | `#architecture` |
+| Fiche pour IA | `#fiche-ia` | `#ai-sheet` |
+| Musée | `#musee` | `#museum` |
+| Pionniers | `#pionniers` | `#pioneers` |
+| Trombinoscope | `#trombinoscope` | `#members` |
+| Classement | `#classement` | `#leaderboard` |
+| Observer | `#observer` | `#watch` |
+| Communauté | `#communaute` | `#community` |
+| Tournoi | `#tournoi` | `#tournament` |
+| Comparer | `#comparer` | `#compare` |
+| Amis | `#amis` | `#friends` |
+| Profil | `#profil` | `#profile` |
+| Paramètres | `#parametres` | `#settings` |
+| Mentions légales | `#mentions` | `#legal` |
+| Confidentialité | `#confidentialite` | `#privacy` |
 
 ## Ce que contient le fichier
 
