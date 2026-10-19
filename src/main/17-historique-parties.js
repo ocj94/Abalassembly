@@ -170,6 +170,13 @@ function triggerWin(winner, reason) {
     sub.textContent = reason === 'resign' ? 'Vous avez abandonné.' : 'L\'adversaire a éjecté 6 de vos billes.';
   }
   overlay.classList.add('show');
+  // v2.63 : une ligne tiree du tableau des remontees des vraies parties (vide en mode Enfant ou si aucune bille n'est tombee)
+  (function(){
+    const rep = document.getElementById('win-repere');
+    if (!rep || typeof _sbRepereFinDePartie !== 'function') return;
+    rep.textContent = '';
+    ensureStatsParties().then(function(){ rep.textContent = _sbRepereFinDePartie(winner, moi, deuxJoueurs); });
+  })();
   if (typeof renderStyleCard === 'function') renderStyleCard();   // carte d'analyse de style
   if (typeof renderHeatmapCard === 'function') renderHeatmapCard();   // carte de chaleur de la partie
   // ── Hook engagement : XP, streak, ELO, badges ──

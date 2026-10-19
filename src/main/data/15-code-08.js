@@ -51,3 +51,5 @@ function _empComplementSignature(){
   REF.forEach(function(g){ fnv('REF|' + g[4] + '|' + (g[6] || '') + '\n'); });
   return 'ps' + PS.length + '-ref' + REF.length + '-' + h.toString(16);
 }
+/* Evenements de chaque partie du corpus (v2.63) : ecrit par tools/stats-parties.js, lu par ensureStatsParties() (39-statistiques-billes.js) */
+const STATS_PARTIES_B64='

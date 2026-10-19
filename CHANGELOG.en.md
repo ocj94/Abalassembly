@@ -9,6 +9,53 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.63]
+
+### Added — falling marbles, what wins games, how real players play
+- **The idea** comes from ClickHouse's sequence-analysis functions
+  (`sequenceMatch`, `windowFunnel`): following the chains of events in a
+  game. Rewritten here, with nothing to install, on the real games.
+- **Game statistics page, “Falling marbles”** (computed by replaying the
+  4,247 games played from a starting position):
+  - the side that pushes off the first marble wins **65 %** of games;
+  - the first marble falls at **move 26** (median; between 9 and 49 in
+    8 games out of 10), with the detail by starting layout;
+  - **the comeback table**: at 1-0 the leader wins 65 %; at 3-0, 90 %;
+    trailing 0-2, a side still wins 23 % of the time;
+  - **the final score**: 6-3 is the most frequent (22 %), 6-0 and 6-5 make
+    13 % each;
+  - **the ejection map**, seen by the player who loses the marble: in
+    Standard, 75 % of marbles fall from their own half; over all layouts,
+    the 6 corners give only 15 %, although they make up a quarter of the
+    edge spots.
+- **“What wins games”**, right after the 12 dimensions: at moves 20, 40 and
+  60, both sides' dimensions compared on the same position, and the share of
+  games won by the side ahead on each. At move 40, the side facing fewer
+  threats wins 69 % of games, as much as having more marbles. Presented as a
+  link observed, not a cause.
+- **“How real players play”**: 25 % one-marble moves, 33 % two in line,
+  32 % three in line, 9 % sideways; 39 % of moves push opposing marbles,
+  6.8 % push one off; 33 % of chances to push a marble off are taken.
+- **My statistics, Ejections card**: your comebacks (wins after losing or
+  pushing off the first marble), you against real players (ejections per
+  game, chances taken, first ejection, kinds of moves, phases), and where
+  your marbles fall, seen from your side. Same definitions on both sides.
+- **End-of-game screen**: one line drawn from real games, e.g. “What a
+  comeback! You were behind 1 to 3. In real games, the side trailing 1 to 3
+  wins only 21 % of the time.” Never in Kids mode.
+
+### How it is computed
+- `tools/stats-parties.js` replays every embedded game with the real engine
+  (about 5 minutes) and writes `15-stats-parties.b64`; the page only has to
+  add up. A test replays a sample of 17 games and compares with the file,
+  and checks the games' signature; others check every sum on hand-built games.
+
+### Improved
+- The Game statistics page now shows in full in under a second from the
+  first visit: MIGS winners come from this data (checked identical to the
+  replay on all 1,518 “Au score” games) instead of over a minute of replay
+  in the browser.
+
 ## [v2.62]
 
 ### Changed — "On a real board" starts at age 3, not before

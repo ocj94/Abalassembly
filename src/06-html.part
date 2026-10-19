@@ -1070,6 +1070,8 @@
           <div style="font-size:60px">🏆</div>
           <div class="win-title" id="win-title">Victoire !</div>
           <div class="win-sub" id="win-sub">Vous avez éjecté 6 billes adverses</div>
+          <!-- v2.63 : une ligne tiree des vraies parties (remontee, ou premiere bille) -->
+          <div class="win-repere" id="win-repere" aria-live="polite"></div>
           <div id="style-card" style="display:flex;justify-content:center"></div>
           <div id="heatmap-card" style="display:flex;justify-content:center"></div>
           <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;justify-content:center">
@@ -3782,7 +3784,7 @@
 <li><b>Sur un vrai plateau</b> : apprendre Abalone aux enfants à partir de 3 ans, sans écran — la sécurité, les règles d’or, 8 petites étapes avec leurs schémas, un carnet de progrès et une fiche à imprimer.</li>
 <li><b>Problèmes</b> : des positions à résoudre, tirées de vraies parties.</li>
 <li><b>Ouvertures</b> : les débuts de partie, avec leurs taux de gain réels.</li>
-<li><b>Analyse</b> et <b>Mes statistiques</b> : ta progression, ton classement, ton style.</li>
+<li><b>Analyse</b> et <b>Mes statistiques</b> : ta progression, ton classement, ton style ; dans la carte Éjections, tes remontées, où tombent tes billes et toi face aux vrais joueurs.</li>
 <li><b>Gym Cerveau</b> : des exercices courts de vision du jeu. <b>⚔️ Duel Cerveau</b> : relie-toi à un ami (<i>Se connecter à un ami</i>, même code que pour jouer en direct), puis <i>Lancer un duel</i> — 3 manches de vitesse, la même position pour vous deux ; le meilleur score gagne la manche, à égalité le plus rapide. Une barre face à face, aux couleurs du thème de chacun, montre qui pousse qui : au front, 1 bille contre 1 à égalité, jusqu'à 3 contre 1 pour celui qui mène ; la pastille verte ✓ veut dire que l'autre a déjà répondu.</li>
 <li><b>Formation Formateurs</b> : pour animer des ateliers.</li>
 </ul>
@@ -3790,7 +3792,7 @@
 <details class="aide-rub"><summary>🧪 Explorer</summary><div class="aide-corps">
 <ul>
 <li><b>Bibliothèque de parties</b> : des milliers de vraies parties (MIGS, AbalOnline, tournois, KAAH), à rejouer et filtrer.</li>
-<li><b>Stats du corpus</b> : les chiffres de ces parties, et la <b>profondeur de l'IA selon le temps de réflexion</b>, mesurée sur ton appareil et relevée pendant tes parties.</li>
+<li><b>Stats du corpus</b> : les chiffres de ces parties — dont les billes qui tombent (qui fait tomber la première bille gagne-t-il, le tableau des remontées, le score final, la carte des éjections), ce qui fait gagner et comment jouent les vrais joueurs —, et la <b>profondeur de l'IA selon le temps de réflexion</b>, mesurée sur ton appareil et relevée pendant tes parties.</li>
 <li><b>Tables de finale</b> : les finales résolues exactement (2 contre 2, 3 contre 2, 4 contre 2), avec un entraînement.</li>
 <li><b>Labo IA</b> : l'IA s'améliore en jouant contre elle-même, plusieurs parties à la fois. Chaque changement de ses poids (y compris les critères de KAAH) est joué par paires d'ouvertures et n'est adopté qu'après un verdict statistique ; le « gain réel mesuré » compare ensuite le champion aux poids d'origine. En bas de page : le test des critères de KAAH.</li>
 <li><b>Détection photo / plateau</b> : photographie un vrai plateau pour le reproduire.</li>
@@ -3887,7 +3889,7 @@
 <li><b>On a real board</b>: teaching Abalone to children from age 3, screen-free — safety, golden rules, 8 small steps with diagrams, a progress notebook and a printable guide.</li>
 <li><b>Puzzles</b>: positions to solve, taken from real games.</li>
 <li><b>Openings</b>: how games begin, with their real win rates.</li>
-<li><b>Analysis</b> and <b>My statistics</b>: your progress, your rating, your style.</li>
+<li><b>Analysis</b> and <b>My statistics</b>: your progress, your rating, your style; in the Ejections card, your comebacks, where your marbles fall and you against real players.</li>
 <li><b>Brain Gym</b>: short board-vision exercises. <b>⚔️ Brain Duel</b>: link up with a friend (<i>Connect to a friend</i>, the same code as for live play), then <i>Start a duel</i> — 3 speed rounds, the same position for both of you; the best score wins the round, the fastest breaks a tie. A face-to-face bar, in each player’s theme colours, shows who is pushing whom: at the front, 1 marble against 1 when level, up to 3 against 1 for the leader; the green ✓ dot means the other player has already answered.</li>
 <li><b>Trainer course</b>: for running workshops.</li>
 </ul>
@@ -3895,7 +3897,7 @@
 <details class="aide-rub"><summary>🧪 Explore</summary><div class="aide-corps">
 <ul>
 <li><b>Game library</b>: thousands of real games (MIGS, AbalOnline, tournaments, KAAH) to replay and filter.</li>
-<li><b>Corpus stats</b>: the numbers behind these games, and the <b>AI’s depth by thinking time</b>, measured on your device and recorded during your games.</li>
+<li><b>Corpus stats</b>: the numbers behind these games — including falling marbles (does the first to push a marble off win, the comeback table, the final score, the ejection map), what wins games and how real players play — and the <b>AI’s depth by thinking time</b>, measured on your device and recorded during your games.</li>
 <li><b>Endgame tables</b>: endgames solved exactly (2 vs 2, 3 vs 2, 4 vs 2), with training.</li>
 <li><b>AI Lab</b>: the AI improves by playing against itself, several games at a time. Each change to its weights (KAAH’s criteria included) is played in pairs of openings and adopted only after a statistical verdict; the “measured real gain” then compares the champion with the original weights. At the bottom of the page: the test of KAAH’s criteria.</li>
 <li><b>Photo / board detection</b>: photograph a real board to reproduce it.</li>

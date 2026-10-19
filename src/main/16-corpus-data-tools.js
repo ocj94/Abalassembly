@@ -75,8 +75,10 @@ function abaproOfficialLabels(mv){
 // quel plateau (pas seulement celui d'origine) car la notation ABA-PRO est
 // en coordonnees absolues, pas relatives — d'ou son usage aussi pour le
 // repli empreintes historiques (verifie qu'un coup historique est LEGAL ici).
-function resolveAbaProToken(token,color){
-  const legal=getAllMovesForColor(color);
+function resolveAbaProToken(token,color,legalDeja){
+  // legalDeja (v2.63) : les coups legaux deja calcules par l'appelant pour ce plateau
+  // et ce camp -- le rejeu des statistiques s'en sert aussi, inutile de les recalculer
+  const legal=legalDeja||getAllMovesForColor(color);
   // abaproOfficialLabels(mv) genere tous les libelles textuels valides pour
   // ce coup (un meme coup peut avoir plusieurs notations equivalentes selon
   // la bille de reference choisie dans le groupe) — on cherche le token dedans.

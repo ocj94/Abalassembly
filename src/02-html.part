@@ -1971,6 +1971,59 @@ table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset
   #page-plateau .vp-etoile { color:#333 !important; border-color:#999 !important; background:#fff !important; }
 }
 
+/* ─── STATISTIQUES : LES BILLES QUI TOMBENT, CE QUI FAIT GAGNER (v2.63) ─── */
+.sb-titre { font-family:'Playfair Display',serif; font-size:20px; color:var(--gold); margin:30px 0 6px; font-weight:600; }
+.sb-sous { font-size:12.5px; color:var(--muted); line-height:1.6; margin:0 0 14px; }
+.sb-hero { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin:2px 0 8px; }
+.sb-hero-val { font-size:40px; font-weight:800; color:var(--text); font-family:'DM Mono',monospace; line-height:1; }
+.sb-hero-txt { font-size:13.5px; color:var(--text); flex:1; min-width:180px; line-height:1.5; }
+.sb-phrase { font-size:13px; color:var(--text); line-height:1.6; margin:4px 0 12px; }
+.sb-tab-titre { font-size:12px; font-weight:700; color:var(--text); margin:16px 0 6px; }
+.sb-tab { font-size:12px; }
+.sb-tab-l { display:grid; grid-template-columns:minmax(0,1fr) 64px 76px; gap:8px; padding:5px 0; border-bottom:1px solid var(--border); color:var(--text); }
+.sb-tab-l span:not(:first-child) { text-align:right; font-variant-numeric:tabular-nums; }
+.sb-tab-ent { color:var(--muted); font-size:11px; }
+.sb-legende-grille { font-size:11.5px; color:var(--muted); line-height:1.5; }
+.sb-grille { display:grid; grid-template-columns:auto repeat(5, minmax(0,1fr)); gap:3px; max-width:440px; margin:10px 0 2px; }
+.sb-g-coin { font-size:10px; color:var(--muted); align-self:end; padding:0 6px 4px 0; white-space:nowrap; }
+.sb-g-ent { font-size:11px; color:var(--muted); text-align:center; align-self:center; padding:2px 6px; font-weight:700; }
+.sb-g-case { border-radius:6px; text-align:center; font-size:12.5px; font-weight:700; padding:9px 2px; font-variant-numeric:tabular-nums; outline-offset:1px; }
+.sb-g-case:focus-visible, .sb-g-case:hover { outline:2px solid var(--gold); }
+.sb-g-rare { color:var(--muted); background:var(--bg); font-weight:400; }
+.sb-onglets { display:flex; gap:6px; flex-wrap:wrap; margin:0 0 10px; }
+.sb-onglet { padding:5px 12px; font-size:12px; font-weight:600; border-radius:16px; cursor:pointer; border:1px solid var(--border); background:none; color:var(--muted); font-family:'DM Sans',sans-serif; }
+.sb-onglet[aria-pressed="true"] { background:var(--gold); color:#0d0f0e; border-color:var(--gold); }
+.sb-div { display:flex; flex-direction:column; gap:6px; margin-top:6px; }
+.sb-div-l, .sb-div-axe { display:grid; grid-template-columns:minmax(0,38%) minmax(0,1fr) 46px; gap:10px; align-items:center; }
+.sb-div-nom { font-size:12px; color:var(--text); text-align:right; line-height:1.3; }
+.sb-div-piste { position:relative; height:18px; background:linear-gradient(var(--muted),var(--muted)) 50% 0/1px 100% no-repeat; }
+.sb-div-barre { position:absolute; top:4px; height:10px; border-radius:3px; }
+.sb-div-val { font-size:12px; font-weight:700; color:var(--text); text-align:right; font-variant-numeric:tabular-nums; }
+.sb-div-axe { margin-top:4px; font-size:10.5px; color:var(--muted); }
+.sb-div-axe > span:nth-child(2) { display:flex; justify-content:space-between; gap:6px; }
+.sb-div-axe i { font-style:normal; }
+.sb-div-l:focus-visible { outline:2px solid var(--gold); outline-offset:2px; border-radius:4px; }
+.sb-gros-pct { font-size:0.55em; font-weight:700; margin-left:0.12em; font-family:'DM Sans',sans-serif; }
+.sb-hb { display:flex; flex-direction:column; gap:7px; margin:4px 0 14px; }
+.sb-hb-l { display:grid; grid-template-columns:minmax(0,36%) minmax(0,1fr) 52px; gap:10px; align-items:center; font-size:12px; color:var(--text); }
+.sb-hb-piste { height:10px; }
+.sb-hb-barre { display:block; height:10px; border-radius:0 3px 3px 0; background:var(--gold); min-width:2px; }
+.sb-hb-val { text-align:right; font-weight:700; font-variant-numeric:tabular-nums; }
+.sb-tuiles { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:10px; }
+.sb-tuile { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
+.sb-tuile-val { font-size:24px; font-weight:800; color:var(--text); font-family:'DM Mono',monospace; }
+.sb-tuile-nom { font-size:12px; color:var(--muted); line-height:1.45; margin-top:2px; }
+.sb-alerte { font-size:12px; color:#d9773f; margin:-6px 0 16px; }
+.sb-perso { margin-top:14px; padding-top:12px; border-top:1px solid var(--border); }
+.sb-perso-titre { font-size:12px; font-weight:700; color:var(--white); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.sb-cmp { width:100%; font-size:12px; }
+.sb-cmp-l { display:grid; grid-template-columns:minmax(0,1fr) 72px 92px; gap:8px; padding:6px 0; border-bottom:1px solid var(--border); color:var(--text); }
+.sb-cmp-l span:not(:first-child) { text-align:right; font-variant-numeric:tabular-nums; }
+.sb-cmp-l span:nth-child(2) { font-weight:700; color:var(--gold); }
+.sb-cmp-ent span { color:var(--muted) !important; font-weight:400 !important; font-size:11px; }
+.win-repere { max-width:440px; margin:10px auto 0; font-size:13px; line-height:1.55; color:var(--text); background:rgba(200,168,75,0.08); border:1px solid rgba(200,168,75,0.25); border-radius:10px; padding:9px 14px; }
+.win-repere:empty { display:none; }
+
 /* ─── EDITOR ─── */
 .editor-preset-btn {
   width:100%; padding:11px 14px; text-align:left; background:transparent;

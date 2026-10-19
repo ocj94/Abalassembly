@@ -36,6 +36,8 @@ main/data/15-graph.b64
 main/data/15-code-07.js
 main/data/15-empreintes-complement.b64
 main/data/15-code-08.js
+main/data/15-stats-parties.b64
+main/data/15-code-09.js
 main/16-corpus-data-tools.js
 main/17-profil-faiblesse-a.js
 main/data/17-puzzles.json
@@ -65,6 +67,7 @@ main/35-history-export-import.js
 main/36-defi-du-jour-et-cartes.js
 main/37-liste-et-commentaires.js
 main/38-apprendre-vrai-plateau.js
+main/39-statistiques-billes.js
 08-html.part
 09-script-tablebase.js
 10-html.part

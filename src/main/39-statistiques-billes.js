@@ -1,0 +1,624 @@
+/* ═══════════════════════════════════════════
+   LES BILLES QUI TOMBENT, CE QUI FAIT GAGNER, COMMENT JOUENT LES VRAIS JOUEURS (v2.63)
+   Demande d'Olivier, apres un coup d'oeil a ClickHouse : reprendre l'idee de
+   ses fonctions d'analyse de sequences (sequenceMatch, windowFunnel) -- suivre
+   les enchainements d'evenements d'une partie -- et l'appliquer aux vraies
+   parties, sans rien installer. Dix statistiques :
+   - page Statistiques du jeu : qui fait tomber la premiere bille gagne-t-il,
+     le tableau des remontees, a quel coup tombe la premiere bille, le score
+     final, la carte des ejections, ce qui fait gagner (les 12 dimensions,
+     camp contre camp), comment jouent les vrais joueurs ;
+   - page Mes statistiques (carte Ejections) : tes remontees, ou tombent tes
+     billes, toi face aux vrais joueurs ;
+   - et une ligne sur l'ecran de fin de partie, tiree du tableau des remontees.
+
+   D'ou viennent les chiffres. Chaque partie embarquee (MIGS, AbalOnline,
+   tournoi PlayStrategy, parties de reference) est REJOUEE coup par coup avec
+   le vrai moteur par _sbRejouerPartie ci-dessous : ejections (demi-coup, case,
+   camp), types de coups, occasions d'ejection, et aux 20e, 40e et 60e
+   demi-coups la comparaison des 12 dimensions des deux camps (calculerEmpreinte).
+   Ce rejeu prend plusieurs minutes : il est fait hors ligne par
+   tools/stats-parties.js (cette meme fonction, chargee depuis index.html), et
+   son resultat est embarque compresse (STATS_PARTIES_B64). Un test rejoue un
+   echantillon de parties et compare au fichier, et verifie la signature des
+   parties : une partie ajoutee ou modifiee sans relancer l'outil le fait echouer.
+   La page n'a plus qu'a additionner (quelques millisecondes).
+═══════════════════════════════════════════ */
+
+const _SB_ETAPES = [20, 40, 60];      // demi-coups ou l'on compare les 12 dimensions des deux camps
+const _SB_SOURCES = ['MIGS', 'AO', 'PS', 'REF'];
+
+function _sbBanques(){
+  return [
+    (typeof MIGS_GAMES !== 'undefined') ? MIGS_GAMES : [],
+    (typeof AO_GAMES !== 'undefined') ? AO_GAMES : [],
+    (typeof PS_TOURNOI_YEARLY_2026 !== 'undefined') ? PS_TOURNOI_YEARLY_2026 : [],
+    (typeof PARTIES_REFERENCE !== 'undefined') ? PARTIES_REFERENCE : []
+  ];
+}
+// case (r, c) <-> rang 0..60, rangee par rangee. Le demi-tour du plateau envoie le rang i sur 60 - i.
+function _sbIndex(r, c){ let i = 0; for (let k = 0; k < r; k++) i += ROWS[k]; return i + c; }
+function _sbCase(i){ let r = 0; while (r < 9 && i >= ROWS[r]) { i -= ROWS[r]; r++; } return { r: r, c: i }; }
+
+// Disposition de depart d'une partie : MIGS et PlayStrategy jouent la Marguerite belge
+function _sbDispo(src, g){ return (src === 0 || src === 2) ? 'belgian' : String(g[4] || '?'); }
+function _sbDepart(src, g){
+  if (src === 1) return _empDepartPartie('AO', g);   // AbalOnline : position (et score) de depart enregistres avec la partie
+  const L = LAYOUTS[_sbDispo(src, g)];
+  if (!L) return null;
+  const bd = {};
+  L.black.forEach(function(p){ bd[p[0] + ',' + p[1]] = 'black'; });
+  L.white.forEach(function(p){ bd[p[0] + ',' + p[1]] = 'white'; });
+  return { board: bd, cb: 0, cw: 0 };
+}
+function _sbJetons(src, g){
+  return String(((src === 0 || src === 2) ? g[5] : g[6]) || '').replace(/\d+\.-?/g, ' ').trim().split(/\s+/).filter(Boolean);
+}
+/* Vainqueur : 0 inconnu, 1 Noirs, 2 Blancs, 3 nul. MIGS : seulement les parties
+   « Au score » (6 billes ejectees au rejeu) -- les archives ne disent pas qui a
+   abandonne ou perdu au temps. AbalOnline et reference : le nom enregistre.
+   PlayStrategy : le resultat du serveur, abandons compris. */
+function _sbGagnant(src, g, cb, cw){
+  if (src === 0) {
+    if (g[4] === 'Match nul') return 3;
+    if (g[4] !== 'Au score') return 0;
+    return cb >= 6 ? 1 : (cw >= 6 ? 2 : 0);
+  }
+  if (src === 2) return g[4] === g[2] + ' gagne' ? 1 : (g[4] === g[3] + ' gagne' ? 2 : 0);
+  const w = g[3];
+  return (w && w === g[1]) ? 1 : ((w && w === g[2]) ? 2 : 0);
+}
+// Les 12 dimensions des deux camps, sur le plateau courant : '+' les Noirs ont la plus grande valeur, '-' les Blancs, '=' egalite
+function _sbComparerDims(){
+  const eN = calculerEmpreinte('black'), eB = calculerEmpreinte('white');
+  return EMPREINTES_CHAMPS.map(function(ch){ const d = eN[ch] - eB[ch]; return Math.abs(d) < 1e-9 ? '=' : (d > 0 ? '+' : '-'); }).join('');
+}
+/* Types de coups, par camp (8 compteurs) :
+   0 une bille · 1 deux en ligne · 2 trois en ligne · 3 deux de cote · 4 trois de cote
+   5 poussees (sumito) · 6 ejections · 7 occasions (au moins un coup qui ejecte etait possible) */
+function _sbClasser(t, mv, info){
+  const n = mv.cells.length;
+  if (info.type === 'broadside') t[n === 3 ? 4 : 3]++;
+  else t[n === 1 ? 0 : (n === 2 ? 1 : 2)]++;
+  if (info.type === 'push') t[5]++;
+}
+// Case d'ou tombe la bille ejectee par ce coup (la derniere bille adverse de la ligne poussee)
+function _sbCaseEjectee(mv, info){
+  if (!info || info.type !== 'push' || !info.ejection) return null;
+  return axialToRc(info.oppStart.q + (info.push - 1) * mv.dir.q, info.oppStart.r + (info.push - 1) * mv.dir.r);
+}
+
+/* Rejoue une partie du corpus. Ne touche jamais au jeu en cours : le plateau global
+   est permute le temps du rejeu (resolveAbaProToken et calculerEmpreinte le lisent),
+   puis restaure, meme en cas d'erreur. */
+function _sbRejouerPartie(src, g, avecDims){
+  const dep = _sbDepart(src, g);
+  if (!dep) return null;
+  const jetons = _sbJetons(src, g);
+  let nN = 0, nB = 0;
+  for (const k in dep.board) { if (dep.board[k] === 'black') nN++; else if (dep.board[k] === 'white') nB++; }
+  // « partie complete » : jouee depuis une position de depart (score 0-0, au moins 12 billes chacun),
+  // pas depuis une position de probleme -- seules celles-ci entrent dans les statistiques
+  const rec = { n: 0, nj: jetons.length, complet: (dep.cb === 0 && dep.cw === 0 && Math.min(nN, nB) >= 12) ? 1 : 0,
+    ej: [], tN: [0, 0, 0, 0, 0, 0, 0, 0], tB: [0, 0, 0, 0, 0, 0, 0, 0], dims: null, cb: dep.cb, cw: dep.cw, g: 0 };
+  const dimsUtiles = avecDims && rec.complet && (src === 0 ? g[4] === 'Au score' : [1, 2].indexOf(_sbGagnant(src, g, 0, 0)) >= 0);
+  if (dimsUtiles) rec.dims = _SB_ETAPES.map(function(){ return ''; });
+  const sauve = board;
+  try {
+    board = Object.assign({}, dep.board);
+    let col = 'black';
+    for (let k = 0; k < jetons.length; k++) {
+      const legal = getAllMovesForColor(col);
+      const mv = resolveAbaProToken(jetons[k], col, legal);
+      if (!mv) break;                            // comme le rejeu du site : arret au premier coup illisible
+      const info = mv.info;
+      const t = col === 'black' ? rec.tN : rec.tB;
+      if (legal.some(function(m){ return m.info && m.info.type === 'push' && m.info.ejection; })) t[7]++;
+      _sbClasser(t, mv, info);
+      const caseEj = _sbCaseEjectee(mv, info);
+      if (abApplyMove(mv.cells, mv.dir, col, info).ejected) {
+        t[6]++;
+        if (col === 'black') rec.cb++; else rec.cw++;
+        // [demi-coup, rang de la case x 2 + 1 si la bille tombee est blanche]
+        rec.ej.push(k + 1, (caseEj ? _sbIndex(caseEj.r, caseEj.c) : 127) * 2 + (col === 'black' ? 1 : 0));
+      }
+      rec.n = k + 1;
+      if (dimsUtiles) { const e = _SB_ETAPES.indexOf(k + 1); if (e >= 0) rec.dims[e] = _sbComparerDims(); }
+      col = col === 'black' ? 'white' : 'black';
+      if (rec.cb >= 6 || rec.cw >= 6) break;      // partie gagnee
+    }
+  } finally { board = sauve; }
+  rec.g = _sbGagnant(src, g, rec.cb, rec.cw);
+  return rec;
+}
+// Forme embarquee d'une partie (tools/stats-parties.js) : [vainqueur, demi-coups rejoues, complete, disposition, ejections, coups Noirs, coups Blancs, dimensions]
+function _sbEncoder(rec, dispo){ return [rec.g, rec.n, rec.complet, dispo, rec.ej, rec.tN, rec.tB, rec.dims || 0]; }
+
+/* Signature des parties couvertes : une partie ajoutee, retiree ou modifiee
+   (coups, resultat, disposition) sans relancer tools/stats-parties.js ne
+   correspond plus, et un test le signale. */
+function _sbSignature(){
+  let h = 2166136261;
+  const fnv = function(s){ for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } };
+  const B = _sbBanques();
+  B[0].forEach(function(g){ fnv('M|' + g[0] + '|' + g[4] + '|' + (g[5] || '') + '\n'); });
+  B[1].forEach(function(g){ fnv('A|' + g[1] + '|' + g[2] + '|' + g[3] + '|' + g[4] + '|' + g[5] + '|' + (g[6] || '') + '\n'); });
+  B[2].forEach(function(g){ fnv('P|' + g[0] + '|' + g[2] + '|' + g[3] + '|' + g[4] + '|' + (g[5] || '') + '\n'); });
+  B[3].forEach(function(g){ fnv('R|' + g[1] + '|' + g[2] + '|' + g[3] + '|' + g[4] + '|' + (g[6] || '') + '\n'); });
+  return B.map(function(b){ return b.length; }).join('-') + '-' + h.toString(16);
+}
+
+/* ─── Chargement des donnees embarquees ─── */
+let STATS_PARTIES = null, _sbPret = null, _sbCache = null;
+function ensureStatsParties(){
+  if (_sbPret) return _sbPret;
+  if (typeof DecompressionStream === 'undefined' || typeof STATS_PARTIES_B64 === 'undefined' || !STATS_PARTIES_B64) { _sbPret = Promise.resolve(false); return _sbPret; }
+  _sbPret = _inflB64(STATS_PARTIES_B64).then(function(txt){
+    const d = JSON.parse(txt);
+    if (!d || d.v !== 1 || !Array.isArray(d.p) || !Array.isArray(d.champs) || d.champs.join() !== EMPREINTES_CHAMPS.join()) return false;
+    STATS_PARTIES = d; _sbCache = null;
+    return true;
+  }).catch(function(){ return false; });
+  return _sbPret;
+}
+
+/* ─── Les additions ───
+   Seules les parties « completes » comptent (jouees depuis une position de
+   depart). Celles qui demandent le vainqueur ne gardent que les parties ou on
+   le connait. Les etats « 6-x » (partie finie) ne sont pas des remontees. */
+function _sbAgreger(){
+  const D = STATS_PARTIES;
+  if (!D) return null;
+  if (_sbCache && _sbCache.d === D) return _sbCache.v;
+  const nDims = D.champs.length, cartes = {}, quandParDispo = {};
+  const v = {
+    nParties: D.p.length, nComplets: 0, nDecides: 0, nAvecEj: 0,
+    premiere: { n: 0, gagne: 0 },              // le camp qui fait tomber la premiere bille gagne
+    quand: [],                                 // demi-coup de la premiere ejection de chaque partie
+    remontees: {},                             // 'a-b' (a > b, a < 6) -> { n, g } : le camp qui mene a-b gagne g fois sur n
+    finals: [0, 0, 0, 0, 0, 0],                // parties gagnees 6-x : x = 0..5
+    types: [0, 0, 0, 0, 0, 0, 0, 0],
+    dims: _SB_ETAPES.map(function(){ const t = []; for (let j = 0; j < nDims; j++) t.push({ n: 0, g: 0 }); return t; }),
+    nDimsParties: _SB_ETAPES.map(function(){ return 0; }),
+    camp: { ej: 0, camps: 0, premiereSomme: 0, premiereN: 0, phases: { ouverture: 0, milieu: 0, finale: 0 } },
+    cartes: cartes, quandParDispo: quandParDispo, dispos: D.dispos
+  };
+  D.p.forEach(function(p){
+    const gagnant = p[0], complet = p[2], dispo = D.dispos[p[3]], ej = p[4], dims = p[7];
+    if (!complet) return;
+    v.nComplets++;
+    const decide = (gagnant === 1 || gagnant === 2);
+    if (decide) v.nDecides++;
+    for (let k = 0; k < 8; k++) v.types[k] += p[5][k] + p[6][k];
+    v.camp.camps += 2; v.camp.ej += ej.length / 2;
+    const carte = cartes[dispo] || (cartes[dispo] = new Array(61).fill(0));
+    let nb = 0, nw = 0, premN = 0, premB = 0;
+    for (let i = 0; i < ej.length; i += 2) {
+      const ply = ej[i], code = ej[i + 1], blancheTombe = code & 1, idx = code >> 1;
+      // phase AVANT ce coup, meme regle que la carte Ejections de Mes statistiques
+      const phase = (nb === 0 && nw === 0) ? 'ouverture' : (Math.max(nb, nw) >= 3 ? 'finale' : 'milieu');
+      v.camp.phases[phase]++;
+      if (blancheTombe) { nb++; if (!premN) premN = ply; } else { nw++; if (!premB) premB = ply; }
+      // la carte : vue du joueur qui perd la bille, comme sur son ecran (plateau retourne pour les Blancs, boardRotation = 180)
+      if (idx < 61) carte[blancheTombe ? 60 - idx : idx]++;
+      if (decide && nb !== nw && Math.max(nb, nw) < 6) {
+        const cle = Math.max(nb, nw) + '-' + Math.min(nb, nw), e = v.remontees[cle] || (v.remontees[cle] = { n: 0, g: 0 });
+        e.n++; if ((nb > nw ? 1 : 2) === gagnant) e.g++;
+      }
+    }
+    if (premN) { v.camp.premiereSomme += premN; v.camp.premiereN++; }
+    if (premB) { v.camp.premiereSomme += premB; v.camp.premiereN++; }
+    if (ej.length) {
+      v.nAvecEj++;
+      v.quand.push(ej[0]);
+      (quandParDispo[dispo] || (quandParDispo[dispo] = [])).push(ej[0]);
+      if (decide) { v.premiere.n++; if (((ej[1] & 1) ? 1 : 2) === gagnant) v.premiere.gagne++; }
+    }
+    if (decide && Math.max(nb, nw) === 6) v.finals[Math.min(nb, nw)]++;
+    if (decide && dims) {
+      for (let s = 0; s < _SB_ETAPES.length; s++) {
+        const str = dims[s];
+        if (!str) continue;
+        v.nDimsParties[s]++;
+        for (let j = 0; j < nDims; j++) {
+          const c = str.charAt(j);
+          if (c === '=') continue;
+          const t = v.dims[s][j]; t.n++;
+          if ((c === '+' ? 1 : 2) === gagnant) t.g++;
+        }
+      }
+    }
+  });
+  v.quand.sort(function(a, b){ return a - b; });
+  Object.keys(quandParDispo).forEach(function(k){ quandParDispo[k].sort(function(a, b){ return a - b; }); });
+  const tous = new Array(61).fill(0);
+  Object.keys(cartes).forEach(function(k){ cartes[k].forEach(function(x, i){ tous[i] += x; }); });
+  cartes['*'] = tous;
+  _sbCache = { d: D, v: v };
+  return v;
+}
+// Le camp qui mene a-b : part des vraies parties qu'il gagne (null si moins de 30 parties)
+function _sbTauxRemontee(a, b){
+  const v = _sbAgreger(); if (!v) return null;
+  const e = v.remontees[Math.max(a, b) + '-' + Math.min(a, b)];
+  return (e && e.n >= 30) ? { pct: e.g / e.n * 100, n: e.n } : null;
+}
+function _sbMediane(t){ return t.length ? t[Math.floor(t.length / 2)] : null; }
+function _sbQuantile(t, q){ return t.length ? t[Math.min(t.length - 1, Math.floor(t.length * q))] : null; }
+
+/* ═══════════════════════════════════════════
+   AFFICHAGE — page Statistiques du jeu
+   Couleurs : celles des graphiques des 12 dimensions (vert-bleu = « plus
+   souvent », orange = « moins souvent ») et l'or du site pour les barres
+   d'une seule serie ; la carte des ejections reprend l'echelle de la carte
+   de chaleur du profil (heatColor). Paire vert-bleu / orange verifiee pour
+   les daltonismes (ecart 8,4 sur fond sombre) ; chaque valeur est aussi
+   ecrite en clair, jamais portee par la couleur seule.
+═══════════════════════════════════════════ */
+const _SB_VERT = '#2f9e7f', _SB_ORANGE = '#d9773f';
+const _SB_COINS = [0, 4, 26, 34, 56, 60];          // rangs des 6 cases de coin
+const _SB_NOMS_AO = { german_daisy: 'german', swiss_daisy: 'swiss', dutch_daisy: 'dutch', centrifugeuse: 'centrifuge' };
+let _sbOngletCarte = 'belgian', _sbEtape = 1, _sbEtroitRendu = null;
+
+function _sbNomDispo(d){
+  if (d === '*') return _tr('Toutes', 'All');
+  if (d === 'custom') return _tr('Disposition libre', 'Custom layout');
+  const k = _SB_NOMS_AO[d] || d;
+  if (typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[k]) return HEAT_VARIANT_LABEL[k];
+  return String(d).replace(/_/g, ' ').replace(/^./, function(c){ return c.toUpperCase(); });
+}
+function _sbTitre(t, sous){ return '<h3 class="sb-titre">' + t + '</h3>' + (sous ? '<p class="sb-sous">' + sous + '</p>' : ''); }
+function _sbEtroit(){ const h = document.getElementById('billes-section') || document.getElementById('corpus-stats-body'); return !!(h && h.clientWidth && h.clientWidth < 520); }
+function _sbS(n){ return n > 1 ? 's' : ''; }
+function _sbPct(p){ return _dimPct(p).replace(' %', '\u00a0%'); }
+function _sbGrosPct(p){ const t = _dimPct(p).replace(' %', ''); return t + '<span class="sb-gros-pct">%</span>'; }
+// barre verticale arrondie en haut, carree a la base (bord arrondi de 3 px)
+function _sbBarre(x, y, w, h, style, titre){
+  if (h <= 0) return '';
+  const r = Math.min(3, h, w / 2);
+  const d = 'M' + x.toFixed(1) + ',' + (y + h).toFixed(1) + ' V' + (y + r).toFixed(1) + ' Q' + x.toFixed(1) + ',' + y.toFixed(1) + ' ' + (x + r).toFixed(1) + ',' + y.toFixed(1)
+    + ' H' + (x + w - r).toFixed(1) + ' Q' + (x + w).toFixed(1) + ',' + y.toFixed(1) + ' ' + (x + w).toFixed(1) + ',' + (y + r).toFixed(1) + ' V' + (y + h).toFixed(1) + ' Z';
+  return '<path d="' + d + '" style="' + style + '" tabindex="0">' + (titre ? '<title>' + titre + '</title>' : '') + '</path>';
+}
+
+/* Histogramme du demi-coup de la premiere ejection : tranches de 5 coups, la derniere ouverte (81 et plus) */
+function _sbHistoSVG(t, etroit){
+  const L = 5, NB = 17, bins = new Array(NB).fill(0);
+  t.forEach(function(x){ bins[Math.min(NB - 1, Math.floor((x - 1) / L))]++; });
+  const W = etroit ? 360 : 560, H = 196, g = etroit ? 30 : 38, d = 8, haut = 30, bas = 30;
+  const lw = W - g - d, lh = H - haut - bas, pas = lw / NB, bw = Math.min(24, pas - 3), n = t.length || 1;
+  const max = Math.max.apply(null, bins) || 1, pctMax = max / n * 100;
+  const pasGrad = pctMax > 12 ? 5 : (pctMax > 6 ? 2 : 1);
+  let s = '<svg id="sb-histo" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + _tr('Histogramme du coup de la première éjection', 'Histogram of the move of the first ejection') + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;font-family:\'DM Sans\',sans-serif">';
+  for (let v = 0; v <= pctMax + 1e-9; v += pasGrad) {     // graduations en % des parties
+    const y = haut + lh - (v / 100 * n) / max * lh;
+    s += '<line x1="' + g + '" x2="' + (W - d) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" style="stroke:var(--border)" stroke-width="1"/>'
+      + '<text x="' + (g - 5) + '" y="' + (y + 3.5).toFixed(1) + '" text-anchor="end" font-size="10" style="fill:var(--muted)">' + v + ' %</text>';
+  }
+  bins.forEach(function(b, i){
+    const h = b / max * lh, x = g + i * pas + (pas - bw) / 2, de = i * L + 1, a = (i === NB - 1) ? null : (i + 1) * L;
+    const titre = (a ? _tr('Coups ' + de + ' à ' + a, 'Moves ' + de + ' to ' + a) : _tr('Coup ' + de + ' et plus', 'Move ' + de + ' and later')) + _dimDp()
+      + _dimNb(b) + ' ' + _tr('partie' + _sbS(b), 'game' + _sbS(b)) + ' (' + _sbPct(b / n * 100) + ')';
+    s += _sbBarre(x, haut + lh - h, bw, h, 'fill:var(--gold)', titre);
+  });
+  [0, 4, 8, 12, 16].forEach(function(i){
+    s += '<text x="' + (g + i * pas + pas / 2).toFixed(1) + '" y="' + (haut + lh + 15) + '" text-anchor="middle" font-size="10.5" style="fill:var(--muted)">' + (i === NB - 1 ? (i * L + 1) + '+' : (i * L + 1)) + '</text>';
+  });
+  s += '<text x="' + (W - d) + '" y="' + (H - 2) + '" text-anchor="end" font-size="10.5" style="fill:var(--muted)">' + _tr('coup de la première éjection', 'move of the first ejection') + '</text>';
+  const med = _sbMediane(t);
+  if (med) {
+    const xm = g + Math.min(NB, (med - 1) / L + 0.5) * pas;
+    s += '<line x1="' + xm.toFixed(1) + '" x2="' + xm.toFixed(1) + '" y1="' + (haut - 8) + '" y2="' + (haut + lh) + '" style="stroke:var(--text)" stroke-width="1.5"/>'
+      + '<text x="' + (xm + 5).toFixed(1) + '" y="' + (haut - 12) + '" font-size="11" font-weight="700" style="fill:var(--text)">' + _tr('médiane : coup ', 'median: move ') + med + '</text>';
+  }
+  return s + '</svg>';
+}
+
+/* Colonnes du score final (6-0 ... 6-5), pourcentage ecrit sur chaque colonne */
+function _sbScoreSVG(f, etroit){
+  const tot = f.reduce(function(a, b){ return a + b; }, 0) || 1;
+  const W = etroit ? 360 : 480, H = 170, g = 10, d = 10, haut = 24, bas = 26;
+  const lw = W - g - d, lh = H - haut - bas, pas = lw / 6, bw = Math.min(24, pas - 8), max = Math.max.apply(null, f) || 1;
+  let s = '<svg id="sb-score" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + _tr('Répartition des scores finaux', 'Distribution of final scores') + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:' + W + 'px;height:auto;display:block;margin:0 auto;font-family:\'DM Sans\',sans-serif">'
+    + '<line x1="' + g + '" x2="' + (W - d) + '" y1="' + (haut + lh) + '" y2="' + (haut + lh) + '" style="stroke:var(--border)" stroke-width="1"/>';
+  f.forEach(function(v, i){
+    const h = v / max * lh, x = g + i * pas + (pas - bw) / 2, y = haut + lh - h;
+    s += _sbBarre(x, y, bw, h, 'fill:var(--gold)', '6-' + i + _dimDp() + _dimNb(v) + ' ' + _tr('partie' + _sbS(v), 'game' + _sbS(v)))
+      + '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (y - 6).toFixed(1) + '" text-anchor="middle" font-size="11" font-weight="700" style="fill:var(--text)">' + _sbPct(v / tot * 100) + '</text>'
+      + '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (haut + lh + 16) + '" text-anchor="middle" font-size="11" style="fill:var(--muted)">6-' + i + '</text>';
+  });
+  return s + '</svg>';
+}
+
+/* La carte : un plateau, chaque case coloree selon le nombre de billes tombees de cette case.
+   Meme echelle que la carte de chaleur du profil. Les nombres ne sont ecrits que s'ils restent petits. */
+function _sbCarteSVG(cnt, nombres, aria){
+  let max = 0; for (let i = 0; i < 61; i++) if (cnt[i] > max) max = cnt[i];
+  const tot = cnt.reduce(function(a, b){ return a + b; }, 0) || 1;
+  const SIZE = 280, sc = SIZE / 640, R = HEX_RADIUS * sc * 0.92;
+  let s = '', x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (let i = 0; i < 61; i++) {
+    const rc = _sbCase(i), p = hexCoord(rc.r, rc.c, true), x = p.x * sc, y = p.y * sc, n = cnt[i] || 0;
+    x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+    const fill = heatColor(n && max ? n / max : 0);
+    const titre = _dimNb(n) + ' ' + _tr('bille' + _sbS(n) + ' tombée' + _sbS(n) + ' de cette case', 'marble' + _sbS(n) + ' pushed off from this spot') + (n ? ' (' + _sbPct(n / tot * 100) + ')' : '');
+    s += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + R.toFixed(1) + '" fill="' + fill + '" stroke="rgba(255,255,255,0.10)" stroke-width="1"><title>' + titre + '</title></circle>';
+    if (nombres && n) s += '<text x="' + x.toFixed(1) + '" y="' + (y + 3).toFixed(1) + '" text-anchor="middle" font-size="9" font-weight="700" fill="' + (_heatIsLight(fill) ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.85)') + '" pointer-events="none">' + n + '</text>';
+  }
+  const m = R + 3, vw = x1 - x0 + 2 * m, vh = y1 - y0 + 2 * m;
+  return '<svg viewBox="' + (x0 - m).toFixed(1) + ' ' + (y0 - m).toFixed(1) + ' ' + vw.toFixed(1) + ' ' + vh.toFixed(1) + '" role="img" aria-label="' + aria + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:' + Math.round(vw) + 'px;height:auto;display:block;margin:0 auto">' + s + '</svg>';
+}
+function _sbLegendeCarte(max){
+  const stops = HEATMAP_SCALE.map(function(c, i){ return c + ' ' + Math.round(i / (HEATMAP_SCALE.length - 1) * 100) + '%'; }).join(',');
+  return '<div style="max-width:280px;margin:8px auto 0"><div style="height:10px;border-radius:5px;border:1px solid var(--border);background:linear-gradient(90deg,' + HEATMAP_EMPTY + ' 0%,' + stops + ')"></div>'
+    + '<div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);margin-top:3px"><span>' + _tr('aucune bille', 'no marble') + '</span><span>' + _dimNb(max) + ' ' + _tr('billes', 'marbles') + '</span></div></div>';
+}
+// Ce que la carte dit en clair : moitie du plateau du joueur (en bas, comme sur son ecran), moitie d'en face, coins
+function _sbLireCarte(cnt){
+  const tot = cnt.reduce(function(a, b){ return a + b; }, 0);
+  if (!tot) return null;
+  let bas = 0, haut = 0;
+  for (let i = 0; i < 61; i++) { const r = _sbCase(i).r; if (r > 4) bas += cnt[i]; else if (r < 4) haut += cnt[i]; }
+  const coins = _SB_COINS.reduce(function(a, i){ return a + cnt[i]; }, 0);
+  return { tot: tot, basPct: bas / tot * 100, hautPct: haut / tot * 100, coinsPct: coins / tot * 100 };
+}
+
+/* ─── Les sections de la page ─── */
+function _sbHtmlBilles(v){
+  const etroit = _sbEtroit(); _sbEtroitRendu = etroit;
+  const dp = _dimDp(), h = [];
+  h.push(_sbTitre(_tr('Les billes qui tombent', 'Falling marbles'),
+    _tr('Chaque bille éjectée, dans chaque vraie partie : qui la fait tomber, à quel coup, de quelle case, et ce que ça change pour la suite. Calculé en rejouant coup par coup les <b>' + _dimNb(v.nComplets) + ' parties</b> jouées depuis une position de départ ; les ' + _dimNb(v.nParties - v.nComplets) + ' parties AbalOnline commencées sur une position de problème sont laissées de côté.',
+        'Every marble pushed off, in every real game: who pushes it, on which move, from which spot, and what it changes for the rest of the game. Computed by replaying, move by move, the <b>' + _dimNb(v.nComplets) + ' games</b> played from a starting position; the ' + _dimNb(v.nParties - v.nComplets) + ' AbalOnline games that began from a puzzle position are left out.')));
+  // 1. la premiere bille
+  const p = v.premiere, pct = p.n ? p.gagne / p.n * 100 : null;
+  if (pct !== null) h.push(_carteStats(_tr('Qui fait tomber la première bille gagne-t-il ?', 'Does the side that pushes off the first marble win?'),
+    '<div class="sb-hero"><span class="sb-hero-val">' + _sbGrosPct(pct) + '</span><span class="sb-hero-txt">' + _tr('des parties sont gagnées par le camp qui fait tomber la première bille.', 'of games are won by the side that pushes off the first marble.') + '</span></div>'
+    + '<div class="sb-phrase">' + _tr('Celui qui perd la première bille gagne quand même <b>' + _sbPct(100 - pct) + '</b> des parties.', 'The side that loses the first marble still wins <b>' + _sbPct(100 - pct) + '</b> of games.') + '</div>',
+    _tr('Sur ' + _dimNb(p.n) + ' parties dont on connaît le vainqueur et où au moins une bille est tombée.', 'Over ' + _dimNb(p.n) + ' games with a known winner in which at least one marble was pushed off.')));
+  // 2. a quel coup
+  if (v.quand.length) {
+    const lignes = Object.keys(v.quandParDispo).map(function(k){ return [k, v.quandParDispo[k]]; }).filter(function(x){ return x[1].length >= 50; })
+      .sort(function(a, b){ return b[1].length - a[1].length; });
+    let tab = '<div class="sb-tab-titre">' + _tr('Selon la disposition de départ', 'By starting layout') + '</div>'
+      + '<div class="sb-tab"><div class="sb-tab-l sb-tab-ent"><span>' + _tr('Disposition', 'Layout') + '</span><span>' + _tr('Parties', 'Games') + '</span><span>' + _tr('Médiane', 'Median') + '</span></div>';
+    lignes.forEach(function(x){ tab += '<div class="sb-tab-l"><span>' + _sbNomDispo(x[0]) + '</span><span>' + _dimNb(x[1].length) + '</span><span>' + _tr('coup ', 'move ') + _sbMediane(x[1]) + '</span></div>'; });
+    tab += '</div>';
+    h.push(_carteStats(_tr('À quel coup tombe la première bille', 'When the first marble falls'),
+      '<div class="sb-phrase">' + _tr('La moitié des parties ont leur première éjection avant le <b>coup ' + _sbMediane(v.quand) + '</b> ; dans 8 parties sur 10, elle arrive entre le coup ' + _sbQuantile(v.quand, 0.1) + ' et le coup ' + _sbQuantile(v.quand, 0.9) + '.',
+                                      'Half of all games see their first ejection before <b>move ' + _sbMediane(v.quand) + '</b>; in 8 games out of 10 it comes between move ' + _sbQuantile(v.quand, 0.1) + ' and move ' + _sbQuantile(v.quand, 0.9) + '.') + '</div>'
+      + _sbHistoSVG(v.quand, etroit) + tab,
+      _tr('Un coup = le coup d’un joueur, comme pour la durée des parties. Sur ' + _dimNb(v.quand.length) + ' parties où au moins une bille est tombée ; tableau : dispositions jouées au moins 50 fois.',
+          'One move = one player’s move, as for game length. Over ' + _dimNb(v.quand.length) + ' games in which at least one marble was pushed off; table: layouts played at least 50 times.')));
+  }
+  // 3. les remontees
+  const r = function(a, b){ const e = v.remontees[a + '-' + b]; return (e && e.n >= 30) ? e.g / e.n * 100 : null; };
+  let grille = '<div class="sb-grille" role="table" aria-label="' + _tr('Tableau des remontées', 'Comeback table') + '">'
+    + '<div class="sb-g-coin" role="columnheader">' + _tr('mène ↓ · l’autre →', 'leader ↓ · other →') + '</div>';
+  for (let b = 0; b < 5; b++) grille += '<div class="sb-g-ent" role="columnheader">' + b + '</div>';
+  for (let a = 1; a <= 5; a++) {
+    grille += '<div class="sb-g-ent" role="rowheader">' + a + '</div>';
+    for (let b = 0; b < 5; b++) {
+      if (b >= a) { grille += '<div class="sb-g-vide" role="cell"></div>'; continue; }
+      const e = v.remontees[a + '-' + b], q = r(a, b);
+      if (q === null) { grille += '<div class="sb-g-case sb-g-rare" role="cell" title="' + _tr('Moins de 30 parties', 'Fewer than 30 games') + '">—</div>'; continue; }
+      const alpha = 0.14 + Math.max(0, q - 50) / 50 * 0.8, clair = alpha > 0.55;
+      grille += '<div class="sb-g-case" role="cell" tabindex="0" style="background:rgba(47,158,127,' + alpha.toFixed(2) + ');color:' + (clair ? '#fff' : 'var(--text)') + '" title="'
+        + _tr('À ' + a + '-' + b + ', le camp qui mène gagne ' + _sbPct(q) + ' de ' + _dimNb(e.n) + ' parties', 'At ' + a + '-' + b + ', the leading side wins ' + _sbPct(q) + ' of ' + _dimNb(e.n) + ' games') + '">' + Math.round(q) + ' %</div>';
+    }
+  }
+  grille += '</div>';
+  const r10 = r(1, 0), r20 = r(2, 0), r30 = r(3, 0), r31 = r(3, 1);
+  h.push(_carteStats(_tr('Le tableau des remontées', 'The comeback table'),
+    '<div class="sb-phrase">' + _tr('À <b>1-0</b>, celui qui mène gagne ' + _sbPct(r10) + ' des parties ; à <b>3-0</b>, ' + _sbPct(r30) + '. Mené <b>0-2</b>, on gagne encore ' + _sbPct(100 - r20) + ' du temps.',
+                                    'At <b>1-0</b>, the leader wins ' + _sbPct(r10) + ' of games; at <b>3-0</b>, ' + _sbPct(r30) + '. Trailing <b>0-2</b>, a side still wins ' + _sbPct(100 - r20) + ' of the time.') + '</div>'
+    + '<div class="sb-legende-grille">' + _tr('Lignes : billes que le camp qui mène a fait tomber. Colonnes : celles de l’autre camp. Case : part des parties gagnées par celui qui mène.', 'Rows: marbles pushed off by the leading side. Columns: by the other side. Cell: share of games won by the leader.') + '</div>'
+    + grille,
+    _tr('Lecture : à 3-1, le camp qui a fait tomber 3 billes contre 1 gagne ' + _sbPct(r31) + ' des parties passées par ce score. Chaque partie compte une fois par score atteint. Cases de moins de 30 parties laissées vides. Parties dont on connaît le vainqueur : les parties MIGS terminées par abandon ou au temps sont exclues, faute de savoir qui a abandonné.',
+        'Reading: at 3-1, the side that has pushed off 3 marbles against 1 wins ' + _sbPct(r31) + ' of the games that reached that score. Each game counts once per score reached. Cells with fewer than 30 games left empty. Games with a known winner: MIGS games ended by resignation or on time are excluded, since nobody knows who resigned.')));
+  // 4. le score final
+  const tf = v.finals.reduce(function(a, b){ return a + b; }, 0);
+  if (tf) {
+    let im = 0; v.finals.forEach(function(x, i){ if (x > v.finals[im]) im = i; });
+    h.push(_carteStats(_tr('Le score final', 'The final score'),
+      '<div class="sb-phrase">' + _tr('Le score le plus fréquent est <b>6-' + im + '</b> (' + _sbPct(v.finals[im] / tf * 100) + '). Une victoire sans perdre une bille, 6-0, arrive dans ' + _sbPct(v.finals[0] / tf * 100) + ' des parties ; la plus serrée, 6-5, dans ' + _sbPct(v.finals[5] / tf * 100) + '.',
+                                      'The most frequent score is <b>6-' + im + '</b> (' + _sbPct(v.finals[im] / tf * 100) + '). A win without losing a marble, 6-0, happens in ' + _sbPct(v.finals[0] / tf * 100) + ' of games; the closest, 6-5, in ' + _sbPct(v.finals[5] / tf * 100) + '.') + '</div>'
+      + _sbScoreSVG(v.finals, etroit),
+      _tr('Sur les ' + _dimNb(tf) + ' parties gagnées en faisant tomber 6 billes (les parties gagnées par abandon s’arrêtent avant et ne sont pas comptées ici).', 'Over the ' + _dimNb(tf) + ' games won by pushing off 6 marbles (games won by resignation stop earlier and are not counted here).')));
+  }
+  // 5. la carte
+  const onglets = ['belgian', 'standard', '*'].filter(function(k){ return v.cartes[k] && v.cartes[k].some(function(x){ return x > 0; }); });
+  if (onglets.indexOf(_sbOngletCarte) < 0) _sbOngletCarte = onglets[0] || '*';
+  const cnt = v.cartes[_sbOngletCarte] || new Array(61).fill(0), lc = _sbLireCarte(cnt);
+  if (lc) {
+    const boutons = onglets.map(function(k){ return '<button type="button" class="sb-onglet" aria-pressed="' + (k === _sbOngletCarte) + '" onclick="_sbChoisirCarte(\'' + k + '\')">' + _sbNomDispo(k) + '</button>'; }).join('');
+    const max = Math.max.apply(null, cnt);
+    h.push('<div id="sb-carte-carte">' + _carteStats(_tr('La carte des éjections', 'The ejection map'),
+      '<div class="sb-onglets">' + boutons + '</div>'
+      + '<div class="sb-phrase">' + _tr('<b>' + _sbPct(lc.basPct) + '</b> des billes tombent de la moitié du plateau du joueur qui les perd, ' + _sbPct(lc.hautPct) + ' de la moitié d’en face (le reste, de la rangée du milieu). Les 6 coins n’en donnent que ' + _sbPct(lc.coinsPct) + ', alors qu’ils font un quart des cases du bord.',
+                                      '<b>' + _sbPct(lc.basPct) + '</b> of marbles fall from the half of the board of the player who loses them, ' + _sbPct(lc.hautPct) + ' from the far half (the rest from the middle row). The 6 corners give only ' + _sbPct(lc.coinsPct) + ', although they make up a quarter of the edge spots.') + '</div>'
+      + _sbCarteSVG(cnt, false, _tr('Carte des cases d’où tombent les billes', 'Map of the spots marbles are pushed off from')) + _sbLegendeCarte(max),
+      _tr('Vue du joueur qui perd la bille, comme sur son écran : sa moitié du plateau en bas (pour les Blancs, le plateau est retourné, comme en partie). ' + _dimNb(lc.tot) + ' billes tombées dans les parties « ' + _sbNomDispo(_sbOngletCarte) + ' ». Survoler une case donne son nombre.',
+          'Seen by the player who loses the marble, as on their screen: their half of the board at the bottom (for White the board is turned round, as during a game). ' + _dimNb(lc.tot) + ' marbles pushed off in “' + _sbNomDispo(_sbOngletCarte) + '” games. Hover a spot for its count.')) + '</div>');
+  }
+  return h.join('');
+}
+
+function _sbHtmlGagner(v){
+  const D = STATS_PARTIES, s = Math.max(0, Math.min(_SB_ETAPES.length - 1, _sbEtape)), et = _SB_ETAPES[s];
+  const lignes = D.champs.map(function(ch, j){ const t = v.dims[s][j]; return { ch: ch, n: t.n, p: t.n ? t.g / t.n * 100 : null }; })
+    .filter(function(x){ return x.n >= 50; }).sort(function(a, b){ return Math.abs(b.p - 50) - Math.abs(a.p - 50); });
+  const boutons = _SB_ETAPES.map(function(e, k){ return '<button type="button" class="sb-onglet" aria-pressed="' + (k === s) + '" onclick="_sbChoisirEtape(' + k + ')">' + _tr('Au ' + e + 'ᵉ coup', 'At move ' + e) + '</button>'; }).join('');
+  let barres = '<div class="sb-div" role="table">';
+  lignes.forEach(function(x){
+    const plus = x.p >= 50, larg = Math.abs(x.p - 50);     // en points de pourcentage, la demi-largeur valant 50 points
+    barres += '<div class="sb-div-l" role="row" tabindex="0" title="' + _tr('Le camp qui a la valeur la plus haute gagne ' + _sbPct(x.p) + ' de ' + _dimNb(x.n) + ' parties', 'The side with the higher value wins ' + _sbPct(x.p) + ' of ' + _dimNb(x.n) + ' games') + '">'
+      + '<span class="sb-div-nom" role="rowheader">' + _labelDimension(x.ch) + '</span>'
+      + '<span class="sb-div-piste" role="presentation"><span class="sb-div-barre" style="' + (plus ? 'left:50%' : 'right:50%') + ';width:' + larg + '%;background:' + (plus ? _SB_VERT : _SB_ORANGE) + '"></span></span>'
+      + '<span class="sb-div-val" role="cell">' + _sbPct(x.p) + '</span></div>';
+  });
+  barres += '</div><div class="sb-div-axe" aria-hidden="true"><span></span><span><i>' + _tr('← gagne moins', '← wins less') + '</i><i>50\u00a0%</i><i>' + _tr('gagne plus →', 'wins more →') + '</i></span><span></span></div>';
+  // la phrase : la dimension la plus parlante apres le nombre de billes
+  const hors = lignes.filter(function(x){ return x.ch !== 'materialDiff'; })[0], mat = lignes.filter(function(x){ return x.ch === 'materialDiff'; })[0];
+  let phrase = '';
+  if (hors) phrase = _tr((mat ? 'Avoir plus de billes que l’adversaire fait gagner ' + _sbPct(mat.p) + ' des parties. Ensuite, ' : '') + 'c’est « <b>' + _labelDimension(hors.ch) + '</b> » qui distingue le plus le futur gagnant : le camp qui ' + (hors.p >= 50 ? 'a la valeur la plus haute' : 'a la valeur la plus basse') + ' gagne ' + _sbPct(hors.p >= 50 ? hors.p : 100 - hors.p) + ' des parties.',
+    (mat ? 'Having more marbles than the opponent wins ' + _sbPct(mat.p) + ' of games. After that, ' : '') + '“<b>' + _labelDimension(hors.ch) + '</b>” best tells the future winner apart: the side with the ' + (hors.p >= 50 ? 'higher' : 'lower') + ' value wins ' + _sbPct(hors.p >= 50 ? hors.p : 100 - hors.p) + ' of games.');
+  return _sbTitre(_tr('Ce qui fait gagner', 'What wins games'), _tr('Les 12 dimensions, camp contre camp : sur la même position, lequel des deux est devant, et gagne-t-il à la fin ?', 'The 12 dimensions, side against side: on the same position, which side is ahead, and does it win in the end?'))
+    + _carteStats(_tr('Le camp qui mène sur chaque dimension', 'The side ahead on each dimension'),
+      '<div class="sb-onglets">' + boutons + '</div>' + (phrase ? '<div class="sb-phrase">' + phrase + '</div>' : '') + barres,
+      _tr('Au ' + et + 'ᵉ coup de ' + _dimNb(v.nDimsParties[s]) + ' parties dont on connaît le vainqueur, on mesure chaque dimension pour les deux camps sur la même position. « Gagne 62 % » : le camp qui a la valeur la plus haute gagne 62 % de ces parties (égalités exclues). Vert-bleu : avoir plus aide ; orange : avoir plus est mauvais signe. Un lien constaté, pas une preuve de cause : une dimension peut accompagner une bonne position sans en être la raison.',
+          'At move ' + et + ' of ' + _dimNb(v.nDimsParties[s]) + ' games with a known winner, each dimension is measured for both sides on the same position. “Wins 62 %”: the side with the higher value wins 62 % of those games (ties left out). Blue-green: having more helps; orange: having more is a bad sign. A link observed, not proof of cause: a dimension can go with a good position without being its reason.'));
+}
+
+function _sbHtmlJeu(v){
+  const T = v.types, coups = T[0] + T[1] + T[2] + T[3] + T[4] || 1;
+  const sortes = [[_tr('1 bille', '1 marble'), T[0]], [_tr('2 billes en ligne', '2 marbles in line'), T[1]], [_tr('3 billes en ligne', '3 marbles in line'), T[2]], [_tr('2 billes de côté', '2 marbles sideways'), T[3]], [_tr('3 billes de côté', '3 marbles sideways'), T[4]]];
+  const max = Math.max.apply(null, sortes.map(function(x){ return x[1]; })) || 1;
+  let barres = '<div class="sb-hb">';
+  sortes.forEach(function(x){
+    const p = x[1] / coups * 100;
+    barres += '<div class="sb-hb-l"><span class="sb-hb-nom">' + x[0] + '</span><span class="sb-hb-piste"><span class="sb-hb-barre" style="width:' + (x[1] / max * 100).toFixed(1) + '%"></span></span><span class="sb-hb-val">' + _sbPct(p) + '</span></div>';
+  });
+  barres += '</div>';
+  const tuiles = '<div class="sb-tuiles">'
+    + '<div class="sb-tuile"><div class="sb-tuile-val">' + _sbGrosPct(T[5] / coups * 100) + '</div><div class="sb-tuile-nom">' + _tr('des coups poussent des billes adverses (sumito)', 'of moves push opposing marbles (sumito)') + '</div></div>'
+    + '<div class="sb-tuile"><div class="sb-tuile-val">' + _sbGrosPct(T[6] / coups * 100) + '</div><div class="sb-tuile-nom">' + _tr('des coups font tomber une bille', 'of moves push a marble off') + '</div></div>'
+    + '<div class="sb-tuile"><div class="sb-tuile-val">' + (T[7] ? _sbGrosPct(T[6] / T[7] * 100) : '—') + '</div><div class="sb-tuile-nom">' + _tr('des occasions de faire tomber une bille sont saisies', 'of chances to push a marble off are taken') + '</div></div>'
+    + '</div>';
+  return _sbTitre(_tr('Comment jouent les vrais joueurs', 'How real players play'), _tr('Tous les coups des vraies parties, rangés par sorte.', 'Every move of the real games, sorted by kind.'))
+    + _carteStats(_tr('Les coups joués', 'The moves played'), barres + tuiles,
+      _tr('Sur les ' + _dimNb(coups) + ' coups des ' + _dimNb(v.nComplets) + ' parties jouées depuis une position de départ. « De côté » : la ligne de billes avance de biais, chaque bille vers une case vide. Occasion : un moment où au moins un coup permettait de faire tomber une bille ; « saisie » quand une bille tombe à ce coup.',
+          'Over the ' + _dimNb(coups) + ' moves of the ' + _dimNb(v.nComplets) + ' games played from a starting position. “Sideways”: the line of marbles moves at an angle, each marble into an empty spot. Chance: a moment when at least one move could push a marble off; “taken” when a marble falls on that move.'));
+}
+
+function _sbChoisirCarte(k){
+  _sbOngletCarte = k;
+  const v = _sbAgreger(), host = document.getElementById('billes-section');
+  if (v && host) host.innerHTML = _sbHtmlBilles(v);
+}
+function _sbChoisirEtape(k){
+  _sbEtape = k;
+  const v = _sbAgreger(), host = document.getElementById('gagner-section');
+  if (v && host) host.innerHTML = _sbHtmlGagner(v);
+}
+
+/* Les trois sections de la page Statistiques du jeu : elles n'attendent ni les
+   12 dimensions ni le reste (les evenements sont deja calcules, embarques). */
+async function _sbRendreCorpus(){
+  const hb = document.getElementById('billes-section'), hg = document.getElementById('gagner-section'), hj = document.getElementById('jeu-section');
+  if (!hb && !hg && !hj) return;
+  const ok = await ensureStatsParties();
+  const v = ok ? _sbAgreger() : null;
+  if (!v) {
+    if (hb) hb.innerHTML = _carteStats(_tr('Les billes qui tombent', 'Falling marbles'), '<div style="font-size:12px;color:var(--muted)">' + _tr('Ce navigateur ne sait pas lire les données compressées du site : ces statistiques ne peuvent pas s’afficher.', 'This browser cannot read the site’s compressed data: these statistics cannot be shown.') + '</div>');
+    return;
+  }
+  // parties ajoutees au site depuis le dernier calcul : dites, jamais comptees en silence
+  const B = _sbBanques(), nb = STATS_PARTIES.nb || [];
+  const ecart = B.every(function(b){ return b.length; }) ? B.reduce(function(a, b, i){ return a + Math.max(0, b.length - (nb[i] || 0)); }, 0) : 0;
+  if (hb) hb.innerHTML = _sbHtmlBilles(v) + (ecart ? '<div class="sb-alerte">⚠ ' + _tr(ecart + ' partie' + _sbS(ecart) + ' ajoutée' + _sbS(ecart) + ' depuis le dernier calcul n’' + (ecart > 1 ? 'y sont' : 'y est') + ' pas encore comptée' + _sbS(ecart) + '.', ecart + ' game' + _sbS(ecart) + ' added since the last computation ' + (ecart > 1 ? 'are' : 'is') + ' not counted yet.') + '</div>' : '');
+  if (hg) hg.innerHTML = _sbHtmlGagner(v);
+  if (hj) hj.innerHTML = _sbHtmlJeu(v);
+}
+window.addEventListener('resize', function(){
+  clearTimeout(_sbRendreCorpus._t);
+  _sbRendreCorpus._t = setTimeout(function(){
+    const host = document.getElementById('billes-section');
+    if (host && host.isConnected && host.innerHTML && STATS_PARTIES && _sbEtroit() !== _sbEtroitRendu) host.innerHTML = _sbHtmlBilles(_sbAgreger());
+  }, 200);
+});
+
+/* ═══════════════════════════════════════════
+   MES STATISTIQUES — carte Ejections : tes remontees, toi face aux vrais
+   joueurs, ou tombent tes billes. Les chiffres « toi » viennent de
+   computeEjectionStats (tes parties, rejouees sur cet appareil) ; ceux des
+   vrais joueurs, des memes additions que la page Statistiques du jeu, avec
+   les memes definitions (meme phase, memes sortes de coups, meme occasion).
+═══════════════════════════════════════════ */
+function _sbHtmlPerso(s){
+  if (!s) return '';
+  const v = STATS_PARTIES ? _sbAgreger() : null;
+  const attente = '<span style="color:var(--muted)">…</span>';
+  const pct = function(a, b){ return b ? _sbPct(a / b * 100) : '—'; };
+  const ligne = function(nom, toi, eux){ return '<div class="sb-cmp-l"><span>' + nom + '</span><span>' + toi + '</span><span>' + (v ? eux : attente) + '</span></div>'; };
+  const entete = '<div class="sb-cmp-l sb-cmp-ent"><span></span><span>' + _tr('Toi', 'You') + '</span><span>' + _tr('Vrais joueurs', 'Real players') + '</span></div>';
+  const P = s.premiere || { perdue: { n: 0, g: 0 }, faite: { n: 0, g: 0 } };
+  const pc = (v && v.premiere.n) ? v.premiere.gagne / v.premiere.n * 100 : null;
+  const sur = function(x){ return x.n ? _dimNb(x.g) + '/' + _dimNb(x.n) + ' · ' + _sbPct(x.g / x.n * 100) : '—'; };
+  let h = '<div id="sb-perso">';
+  // 1. tes remontees
+  h += '<div class="sb-perso"><div class="sb-perso-titre">' + _tr('Tes remontées', 'Your comebacks') + '</div><div class="sb-cmp">' + entete
+    + ligne(_tr('Victoires après avoir perdu la 1ʳᵉ bille', 'Wins after losing the 1st marble'), sur(P.perdue), pc === null ? '—' : _sbPct(100 - pc))
+    + ligne(_tr('Victoires quand tu fais tomber la 1ʳᵉ bille', 'Wins when you push off the 1st marble'), sur(P.faite), pc === null ? '—' : _sbPct(pc))
+    + '</div><div style="font-size:11px;color:var(--muted);margin-top:6px">' + _tr('Tes parties terminées avec un vainqueur et au moins une bille tombée. Le tableau complet des remontées est sur la page Statistiques du jeu.', 'Your finished games with a winner and at least one marble pushed off. The full comeback table is on the Game statistics page.') + '</div></div>';
+  // 2. toi face aux vrais joueurs
+  const S = s.sortes || [0, 0, 0, 0, 0, 0, 0, 0], coups = S[0] + S[1] + S[2] + S[3] + S[4];
+  const T = v ? v.types : null, coupsV = T ? T[0] + T[1] + T[2] + T[3] + T[4] : 0;
+  const ph = s.byPhase || { ouverture: 0, milieu: 0, finale: 0 }, phT = ph.ouverture + ph.milieu + ph.finale;
+  const phV = v ? v.camp.phases : null, phVT = phV ? phV.ouverture + phV.milieu + phV.finale : 0;
+  const trois = function(o, t){ return t ? Math.round(o.ouverture / t * 100) + ' / ' + Math.round(o.milieu / t * 100) + ' / ' + Math.round(o.finale / t * 100) + ' %' : '—'; };
+  h += '<div class="sb-perso"><div class="sb-perso-titre">' + _tr('Toi face aux vrais joueurs', 'You against real players') + '</div><div class="sb-cmp">' + entete
+    + ligne(_tr('Éjections par partie', 'Ejections per game'), _dimDec(s.parPartie, 2), v ? _dimDec(v.camp.ej / v.camp.camps, 2) : '')
+    + ligne(_tr('Occasions d’éjection saisies', 'Ejection chances taken'), s.efficacite != null ? _sbPct(s.efficacite) : '—', T ? pct(T[6], T[7]) : '')
+    + ligne(_tr('1ʳᵉ éjection en moyenne', '1st ejection on average'), s.premiereEjectionMoyenne != null ? _tr('coup ', 'move ') + _dimDec(s.premiereEjectionMoyenne, 1) : '—', v && v.camp.premiereN ? _tr('coup ', 'move ') + _dimDec(v.camp.premiereSomme / v.camp.premiereN, 1) : '—')
+    + ligne(_tr('Coups à 3 billes', '3-marble moves'), pct(S[2] + S[4], coups), T ? pct(T[2] + T[4], coupsV) : '')
+    + ligne(_tr('Déplacements de côté', 'Sideways moves'), pct(S[3] + S[4], coups), T ? pct(T[3] + T[4], coupsV) : '')
+    + ligne(_tr('Poussées (sumito)', 'Pushes (sumito)'), pct(S[5], coups), T ? pct(T[5], coupsV) : '')
+    + ligne(_tr('Éjections : ouverture / milieu / finale', 'Ejections: opening / middle / endgame'), trois(ph, phT), phV ? trois(phV, phVT) : '')
+    + '</div><div style="font-size:11px;color:var(--muted);margin-top:6px">' + _tr('Vrais joueurs : les ' + (v ? _dimNb(v.nComplets) + ' ' : '') + 'parties du corpus jouées depuis une position de départ, les deux camps comptés. Mêmes définitions des deux côtés : occasion = un coup permettait de faire tomber une bille ; phases comme ci-dessus.',
+                                                                              'Real players: the ' + (v ? _dimNb(v.nComplets) + ' ' : '') + 'corpus games played from a starting position, both sides counted. Same definitions on both sides: chance = a move could push a marble off; phases as above.') + '</div></div>';
+  // 3. ou tombent tes billes
+  const cnt = s.carteSubies || new Array(61).fill(0), lc = _sbLireCarte(cnt);
+  h += '<div class="sb-perso"><div class="sb-perso-titre">' + _tr('Où tombent tes billes', 'Where your marbles fall') + '</div>';
+  if (!lc) h += '<div style="font-size:12px;color:var(--muted)">' + _tr('Aucune de tes billes n’est encore tombée dans tes parties archivées.', 'None of your marbles has been pushed off yet in your archived games.') + '</div>';
+  else {
+    const lv = v ? _sbLireCarte(v.cartes['*']) : null;
+    h += '<div class="sb-phrase">' + _tr('<b>' + _sbPct(lc.basPct) + '</b> de tes billes tombent de ta moitié du plateau', '<b>' + _sbPct(lc.basPct) + '</b> of your marbles fall from your half of the board') + (lv ? _tr(' (vrais joueurs : ' + _sbPct(lv.basPct) + ')', ' (real players: ' + _sbPct(lv.basPct) + ')') : '') + '.</div>'
+      + _sbCarteSVG(cnt, true, _tr('Carte des cases d’où sont tombées tes billes', 'Map of the spots your marbles were pushed off from')) + _sbLegendeCarte(Math.max.apply(null, cnt))
+      + '<div style="font-size:11px;color:var(--muted);margin-top:6px">' + _tr('Vue de ton côté, comme sur ton écran : quand tu as les Blancs, le plateau est retourné. ' + _dimNb(lc.tot) + ' bille' + _sbS(lc.tot) + ' perdue' + _sbS(lc.tot) + '.', 'Seen from your side, as on your screen: when you play White, the board is turned round. ' + _dimNb(lc.tot) + ' marble' + _sbS(lc.tot) + ' lost.') + '</div>';
+  }
+  return h + '</div></div>';
+}
+
+/* ═══════════════════════════════════════════
+   ECRAN DE FIN DE PARTIE — une ligne tiree des vraies parties
+   Le moment le plus parlant de la partie : la plus grosse remontee du
+   vainqueur (ou l'avance que le perdant n'a pas su garder), sinon la
+   premiere bille. Jamais en mode Enfant, jamais sur moins de 30 parties,
+   rien si aucune bille n'est tombee.
+═══════════════════════════════════════════ */
+function _sbRepereFinDePartie(winner, moi, deuxJoueurs){
+  if (!STATS_PARTIES || (winner !== 'black' && winner !== 'white')) return '';
+  if (typeof kidsMode !== 'undefined' && kidsMode) return '';
+  const snaps = (typeof boardSnapshots !== 'undefined' && boardSnapshots) ? boardSnapshots : [];
+  if (!snaps.length || (snaps[0].capturedByBlack || 0) + (snaps[0].capturedByWhite || 0) > 1) return '';   // partie commencee sur une position avec un score
+  const perdant = winner === 'black' ? 'white' : 'black';
+  const nomCamp = function(x){ return x === 'black' ? _tr('Noirs', 'Black') : _tr('Blancs', 'White'); };
+  // le score le plus mal engage pour le futur vainqueur : celui ou, dans les vraies parties, le camp qui menait gagnait le plus souvent
+  let pire = null, t = null, premier = null, avant = 0;
+  snaps.forEach(function(sn){
+    const sW = winner === 'black' ? sn.capturedByBlack : sn.capturedByWhite, sL = winner === 'black' ? sn.capturedByWhite : sn.capturedByBlack;
+    if (sW + sL > avant && premier === null) premier = (sW > 0) ? winner : perdant;
+    avant = sW + sL;
+    if (sL > sW && sL < 6) { const x = _sbTauxRemontee(sL, sW); if (x && (!t || x.pct > t.pct)) { t = x; pire = [sW, sL]; } }
+  });
+  if (premier === null) return '';
+  const vous = !deuxJoueurs;
+  if (pire) {
+    const a = pire[0] + ' ' + _tr('à', 'to') + ' ' + pire[1], b = pire[1] + ' ' + _tr('à', 'to') + ' ' + pire[0];
+    if (vous && winner === moi) return _tr('Belle remontée ! Vous étiez mené ' + a + '. Dans les vraies parties, le camp mené ' + a + ' ne gagne que ' + _sbPct(100 - t.pct) + ' du temps.',
+                                          'What a comeback! You were behind ' + a + '. In real games, the side trailing ' + a + ' wins only ' + _sbPct(100 - t.pct) + ' of the time.');
+    if (vous) return _tr('Vous meniez ' + b + '. Dans les vraies parties, celui qui mène ' + b + ' gagne ' + _sbPct(t.pct) + ' du temps : l’adversaire a réussi une remontée rare.',
+                         'You were ahead ' + b + '. In real games, the side leading ' + b + ' wins ' + _sbPct(t.pct) + ' of the time: your opponent pulled off a rare comeback.');
+    return _tr('Les ' + nomCamp(winner) + ' ont remonté un retard de ' + a + '. Dans les vraies parties, le camp mené ' + a + ' ne gagne que ' + _sbPct(100 - t.pct) + ' du temps.',
+               nomCamp(winner) + ' came back from ' + a + ' down. In real games, the side trailing ' + a + ' wins only ' + _sbPct(100 - t.pct) + ' of the time.');
+  }
+  const v = _sbAgreger(); if (!v || v.premiere.n < 30) return '';
+  const pc = v.premiere.gagne / v.premiere.n * 100;
+  if (vous) return (premier === moi)
+    ? _tr('Vous avez fait tomber la première bille. Dans les vraies parties, le camp qui fait tomber la première bille gagne ' + _sbPct(pc) + ' du temps.', 'You pushed off the first marble. In real games, the side that pushes off the first marble wins ' + _sbPct(pc) + ' of the time.')
+    : _tr('L’adversaire a fait tomber la première bille. Dans les vraies parties, le camp qui fait tomber la première bille gagne ' + _sbPct(pc) + ' du temps.', 'Your opponent pushed off the first marble. In real games, the side that pushes off the first marble wins ' + _sbPct(pc) + ' of the time.');
+  return _tr('Les ' + nomCamp(premier) + ' ont fait tomber la première bille. Dans les vraies parties, ce camp gagne ' + _sbPct(pc) + ' du temps.', nomCamp(premier) + ' pushed off the first marble. In real games, that side wins ' + _sbPct(pc) + ' of the time.');
+}
+
+</script>
