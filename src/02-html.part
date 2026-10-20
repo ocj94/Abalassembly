@@ -2021,6 +2021,36 @@ table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset
 .sb-cmp-l span:not(:first-child) { text-align:right; font-variant-numeric:tabular-nums; }
 .sb-cmp-l span:nth-child(2) { font-weight:700; color:var(--gold); }
 .sb-cmp-ent span { color:var(--muted) !important; font-weight:400 !important; font-size:11px; }
+/* v2.65 : a quel coup tombent les billes (une ligne par bille, cliquable) et graduations de l'echelle de couleurs */
+.sb-cad { display:flex; flex-direction:column; gap:1px; margin:6px 0 4px; }
+.sb-cad-l, .sb-cad-axe { display:grid; grid-template-columns:64px minmax(0,1fr) 66px; gap:10px; align-items:center; }
+.sb-cad-l { width:100%; min-height:26px; padding:4px 6px; background:none; border:0; border-radius:6px; cursor:pointer; color:var(--text); font-family:'DM Sans',sans-serif; font-size:12px; text-align:left; }
+@media (hover: hover) { .sb-cad-l:hover { background:rgba(255,255,255,0.035); } }
+.sb-cad-l:focus-visible { outline:2px solid var(--gold); outline-offset:0; }
+.sb-cad-l[aria-pressed="true"] { background:rgba(200,168,75,0.10); }
+.sb-cad-nom { white-space:nowrap; }
+.sb-cad-val { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.sb-cad-l[aria-pressed="true"] .sb-cad-nom, .sb-cad-l[aria-pressed="true"] .sb-cad-val { color:var(--gold); font-weight:700; }
+.sb-cad-piste { position:relative; height:12px; }
+.sb-cad-trait { position:absolute; top:4px; height:4px; border-radius:2px; background:var(--muted); }
+.sb-cad-point { position:absolute; top:1px; width:10px; height:10px; margin-left:-5px; border-radius:50%; background:var(--text); }
+.sb-cad-l[aria-pressed="true"] .sb-cad-trait { background:var(--gold-dim); }
+.sb-cad-l[aria-pressed="true"] .sb-cad-point { background:var(--gold); }
+.sb-cad-sep { height:1px; background:var(--border); margin:4px 6px; }
+.sb-cad-axe { padding:0 6px; font-size:10.5px; color:var(--muted); }
+.sb-cad-axe .sb-cad-piste { height:14px; }
+.sb-cad-axe i { position:absolute; top:0; transform:translateX(-50%); font-style:normal; font-variant-numeric:tabular-nums; }
+.sb-cad-leg { display:flex; flex-wrap:wrap; align-items:center; gap:4px 14px; font-size:11px; color:var(--muted); margin:6px 6px 0; }
+.sb-cad-leg span { display:inline-flex; align-items:center; gap:5px; }
+.sb-cad-leg-point { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--text); }
+.sb-cad-leg-trait { display:inline-block; width:18px; height:4px; border-radius:2px; background:var(--muted); }
+.sb-quand-titre { margin-top:18px; }
+.sb-leg { max-width:280px; margin:8px auto 0; }
+.sb-leg-barre { height:10px; border-radius:5px; border:1px solid var(--border); }
+.sb-leg-reperes { position:relative; height:20px; margin:0 1px; }
+.sb-leg-trait { position:absolute; top:0; width:1px; height:6px; background:var(--text); opacity:0.6; }
+.sb-leg-nb { position:absolute; top:7px; font-size:10.5px; line-height:12px; color:var(--muted); white-space:nowrap; font-variant-numeric:tabular-nums; }
+.sb-leg-titre { text-align:center; font-size:10.5px; color:var(--muted); }
 .win-repere { max-width:440px; margin:10px auto 0; font-size:13px; line-height:1.55; color:var(--text); background:rgba(200,168,75,0.08); border:1px solid rgba(200,168,75,0.25); border-radius:10px; padding:9px 14px; }
 .win-repere:empty { display:none; }
 

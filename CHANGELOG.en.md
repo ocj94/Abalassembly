@@ -9,6 +9,38 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.65]
+
+### Added — when the marbles fall, every marble
+- The “When the first marble falls” card of the Game statistics page becomes
+  **“When the marbles fall”**: one row per marble, from the **1st to the
+  11th**, then **the last one** (the winner's 6th, the marble that ends the
+  game). Each row shows the median (the dot) and the range in which 8 games
+  out of 10 fall (the bar), all on the same scale of moves.
+- What the real games say: the 1st marble falls around **move 26**, then
+  another one falls roughly **every 10 moves** (the 6th around move 75, the
+  11th around move 121). The last one, the marble that wins, falls around
+  **move 99** — around move 73 in Standard, move 104 in Belgian Daisy.
+- **Picking a row** shows its details just below: the sentence, the
+  histogram and the medians by starting layout. The histogram keeps the same
+  axes from one marble to the next: you see the hump slide right and spread.
+- Each marble only counts the games in which it fell (4,063 for the 1st, 317
+  for the 11th); a marble that fell in fewer than 50 games would not be shown.
+- Nothing to recompute: the move of every ejection was already in the
+  embedded data.
+
+### Added — graduations under the colour scale
+- Under the colour scale of **the ejection map**, vertical ticks and their
+  numbers, **from 0 to the maximum**: 0, 200, 500, 1,000 and 1,767 marbles
+  on the “All” map. Each tick sits exactly where the map puts the colour of
+  that number.
+- The same under the “Where your marbles fall” map of My statistics (up to
+  6 marbles, every number gets its tick).
+
+### Fixed
+- Switching tabs on the ejection map no longer hides the “games added since
+  the last computation” warning.
+
 ## [v2.64]
 
 ### Added — one address per page

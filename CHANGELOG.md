@@ -9,6 +9,41 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.65]
+
+### Ajouté — à quel coup tombent les billes, toutes les billes
+- La carte « À quel coup tombe la première bille » de la page Statistiques du
+  jeu devient **« À quel coup tombent les billes »** : une ligne par bille,
+  de la **1ʳᵉ à la 11ᵉ**, puis **la dernière** (la 6ᵉ du vainqueur, celle qui
+  finit la partie). Sur chaque ligne, la médiane (le point) et l'intervalle
+  où tombent 8 parties sur 10 (le trait), tous sur la même échelle de coups.
+- Ce que disent les vraies parties : la 1ʳᵉ bille tombe vers le **coup 26**,
+  puis il en tombe une autre à peu près **tous les 10 coups** (la 6ᵉ vers le
+  coup 75, la 11ᵉ vers le coup 121). La dernière, celle qui fait gagner,
+  tombe vers le **coup 99** — vers le coup 73 en Standard, le coup 104 en
+  Belgian Daisy.
+- **Choisir une ligne** montre son détail juste en dessous : la phrase,
+  l'histogramme et les médianes selon la disposition de départ.
+  L'histogramme garde les mêmes axes d'une bille à l'autre : on voit la
+  bosse glisser vers la droite et s'étaler.
+- Chaque bille ne compte que les parties où elle est tombée (4 063 pour la
+  1ʳᵉ, 317 pour la 11ᵉ) ; une bille tombée dans moins de 50 parties ne serait
+  pas montrée.
+- Rien à recalculer : le coup de chaque éjection était déjà dans les données
+  embarquées.
+
+### Ajouté — des graduations sous l'échelle de couleurs
+- Sous l'échelle de couleurs de **la carte des éjections**, des traits
+  verticaux et leurs nombres, **de 0 au maximum** : 0, 200, 500, 1 000 et
+  1 767 billes sur la carte « Toutes ». Chaque trait est placé exactement là
+  où la carte met la couleur de ce nombre.
+- Même chose sous la carte « Où tombent tes billes » de Mes statistiques
+  (jusqu'à 6 billes, chaque nombre a son trait).
+
+### Corrigé
+- Changer d'onglet sur la carte des éjections ne fait plus disparaître
+  l'avertissement « parties ajoutées depuis le dernier calcul ».
+
 ## [v2.64]
 
 ### Ajouté — une adresse par page

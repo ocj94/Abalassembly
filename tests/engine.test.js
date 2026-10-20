@@ -3805,7 +3805,7 @@ test('v2.63 page Statistiques du jeu : les trois sections, leurs chiffres vienne
   const nb = x => Number(x).toLocaleString('fr-FR');
   await _enFrancais54(() => _dom54(async () => {
     const h = ctx._sbHtmlBilles(v);
-    ['Les billes qui tombent', 'Qui fait tomber la première bille gagne-t-il ?', 'À quel coup tombe la première bille', 'Le tableau des remontées', 'Le score final', 'La carte des éjections']
+    ['Les billes qui tombent', 'Qui fait tomber la première bille gagne-t-il ?', 'À quel coup tombent les billes', 'Le tableau des remontées', 'Le score final', 'La carte des éjections']
       .forEach(t => assert.ok(h.indexOf(t) > 0, t));
     assert.ok(h.indexOf(String(Math.round(v.premiere.gagne / v.premiere.n * 100))) > 0, 'le pourcentage de la premiere bille');
     assert.ok(h.indexOf('Sur ' + nb(v.premiere.n) + ' parties dont on connaît le vainqueur') > 0);
@@ -3832,7 +3832,7 @@ test('v2.63 page Statistiques du jeu : les trois sections, leurs chiffres vienne
   try {
     await _dom54(async () => {
       const t = ctx._sbHtmlBilles(v) + ctx._sbHtmlGagner(v) + ctx._sbHtmlJeu(v);
-      ['Falling marbles', 'The comeback table', 'What wins games', 'How real players play', 'The ejection map'].forEach(x => assert.ok(t.indexOf(x) > 0, x));
+      ['Falling marbles', 'When the marbles fall', 'The comeback table', 'What wins games', 'How real players play', 'The ejection map'].forEach(x => assert.ok(t.indexOf(x) > 0, x));
       ['Les billes', 'parties dont', 'Au 40ᵉ coup', 'billes en ligne', 'remontées'].forEach(x => assert.strictEqual(t.indexOf(x), -1, 'francais oublie : ' + x));
     });
   } finally { if (avant === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avant); }
@@ -4075,4 +4075,148 @@ test('v2.64 adresses : branchées sur showPage, les fenêtres du menu et le chan
   assert.ok(src.indexOf('<li><b>Une adresse par page</b> : chaque entrée du menu a la sienne') > 0);
   assert.ok(src.indexOf('<li><b>One address per page</b>: every menu entry has its own') > 0);
   assert.ok(src.indexOf('<code>…/Abalassembly/#corpus</code>') > 0);
+});
+
+// ═══════════════════════════════════════════
+// 59. v2.65 : a quel coup tombent les billes (toutes, de la 1re a la derniere) ; graduations de l'echelle de couleurs
+// ═══════════════════════════════════════════
+test('v2.65 additions : le coup où tombe chaque bille, de la 1re à la 11e, et la dernière (la 6e du vainqueur)', async () => {
+  await _charger57();
+  const vrai = _r57('STATS_PARTIES'), C = Array.from(_r57('EMPREINTES_CHAMPS'));
+  const z = () => [0, 0, 0, 0, 0, 0, 0, 0];
+  const faux = { v: 1, sig: 'test', nb: [], etapes: [20, 40, 60], champs: C, dispos: ['belgian', 'standard'], p: [
+    [1, 30, 1, 0, [10, 1, 15, 120, 20, 9], z(), z(), 0],                                          // 3 billes, partie arretee avant 6
+    [2, 30, 1, 1, [5, 10, 9, 13, 12, 22, 14, 34, 20, 51, 22, 52, 25, 70, 30, 84], z(), z(), 0],   // 6-2 : 8 billes, la 6e noire au coup 30
+    [1, 4, 0, 0, [1, 1, 2, 3], z(), z(), 0],                                                      // commencee sur une position de probleme : jamais comptee
+    [0, 8, 1, 0, [3, 1], z(), z(), 0],                                                            // vainqueur inconnu : une bille
+    [3, 50, 1, 0, [], z(), z(), 0],                                                               // aucune bille
+    // 6-5 : 11 billes, une de chaque camp a tour de role ; la 6e blanche, la derniere, au coup 60
+    [1, 60, 1, 0, [4, 1, 8, 0, 12, 3, 16, 2, 20, 5, 24, 4, 28, 7, 32, 6, 36, 9, 40, 8, 60, 11], z(), z(), 0]
+  ] };
+  try {
+    _r57('STATS_PARTIES = ' + JSON.stringify(faux) + '; _sbCache = null;');
+    assert.strictEqual(_r57('(function(){ const v = _sbAgreger(); return v.quand === v.billes[0] && v.quandParDispo.belgian === v.billesParDispo.belgian[0]; })()'), true, 'la 1re bille : les listes d’avant');
+    const v = JSON.parse(JSON.stringify(ctx._sbAgreger()));
+    assert.deepStrictEqual(v.billes, [[3, 4, 5, 10], [8, 9, 15], [12, 12, 20], [14, 16], [20, 20], [22, 24], [25, 28], [30, 32], [36], [40], [60], [30, 60]]);
+    assert.deepStrictEqual(v.billesParDispo.belgian, [[3, 4, 10], [8, 15], [12, 20], [16], [20], [24], [28], [32], [36], [40], [60], [60]]);
+    assert.deepStrictEqual(v.billesParDispo.standard, [[5], [9], [12], [14], [20], [22], [25], [30], [], [], [], [30]]);
+    assert.deepStrictEqual(v.quandParDispo, { belgian: [3, 4, 10], standard: [5] });
+    assert.deepStrictEqual(v.finals, [0, 0, 1, 0, 0, 1], 'les deux parties gagnees 6-x sont celles de « la derniere »');
+    // les billes montrees : tombees dans au moins 50 parties (la 1re des qu'il y en a une)
+    assert.deepStrictEqual(Array.from(ctx._sbLignesBilles(ctx._sbAgreger())), [0]);
+  } finally {
+    require('vm').runInContext('STATS_PARTIES = __sbVrai; _sbCache = null;', Object.assign(ctx, { __sbVrai: vrai }));
+  }
+  // les vraies parties : chaque bille tombe plus tard que la precedente, dans moins de parties
+  const v = ctx._sbAgreger();
+  assert.deepStrictEqual(Array.from(ctx._sbLignesBilles(v)), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+  for (let k = 1; k <= 10; k++) {
+    assert.ok(v.billes[k].length <= v.billes[k - 1].length, 'moins de parties : bille ' + (k + 1));
+    assert.ok(ctx._sbMediane(v.billes[k]) > ctx._sbMediane(v.billes[k - 1]), 'plus tard : bille ' + (k + 1));
+  }
+  assert.ok(v.billes[11].length >= v.finals.reduce((a, b) => a + b, 0) && v.billes[11].length <= v.billes[5].length, 'la derniere : les parties gagnees en faisant tomber 6 billes');
+});
+
+test('v2.65 page Statistiques du jeu : une ligne par bille, la bille choisie en détail, les mêmes axes pour toutes', async () => {
+  await _charger57();
+  const v = ctx._sbAgreger(), med = k => ctx._sbMediane(v.billes[k]), avant = _r57('_sbBille'), nbAvant = _r57('JSON.stringify(STATS_PARTIES.nb)');
+  const boutons = h => [...h.matchAll(/<button type="button" class="sb-cad-l" id="sb-bille-(\d+)" aria-pressed="(true|false)"[\s\S]*?<\/button>/g)];
+  const histo = h => { const i = h.indexOf('<svg id="sb-histo"'); return h.slice(i, h.indexOf('</svg>', i)); };
+  const axes = h => [...histo(h).matchAll(/>([^<]*)<\/text>/g)].map(m => m[1]).filter(t => !/médiane|median|coup où|move on/.test(t));
+  try {
+    await _enFrancais54(() => _dom54(async els => {
+      _r57('_sbBille = 0');
+      const h = ctx._sbHtmlBilles(v), b = boutons(h);
+      assert.deepStrictEqual(b.map(m => Number(m[1])), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], 'la 1re a la 11e, puis la derniere');
+      b.forEach(m => assert.ok(m[0].indexOf('<span class="sb-cad-val">coup ' + med(Number(m[1])) + '</span>') > 0, 'mediane de la bille ' + m[1]));
+      assert.deepStrictEqual(b.filter(m => m[2] === 'true').map(m => Number(m[1])), [0]);
+      ['1ʳᵉ', '2ᵉ', '11ᵉ', 'Dernière'].forEach(t => assert.ok(h.indexOf('<span class="sb-cad-nom">' + t + '</span>') > 0, t));
+      assert.ok(h.indexOf('La 1ʳᵉ bille tombe vers le <b>coup ' + med(0) + '</b> (médiane), puis il en tombe une autre à peu près tous les ' + Math.round((med(10) - med(0)) / 10)
+        + ' coups : la 6ᵉ vers le coup ' + med(5) + ', la 11ᵉ vers le coup ' + med(10) + '. La dernière, la 6ᵉ du vainqueur, celle qui finit la partie, tombe vers le <b>coup ' + med(11) + '</b>.') > 0, 'la phrase d’ensemble');
+      assert.ok(h.indexOf('La 1ʳᵉ bille en détail') > 0 && h.indexOf('La moitié des parties ont leur première éjection avant le <b>coup ' + med(0) + '</b>') > 0);
+      assert.ok(h.indexOf(ctx._dimNb(v.billes[0].length) + ' pour la 1ʳᵉ, ' + ctx._dimNb(v.billes[10].length) + ' pour la 11ᵉ') > 0, 'la note : combien de parties');
+      // choisir la 5e : son detail ; l'alerte des parties pas encore comptees reste apres le choix
+      _r57('STATS_PARTIES.nb = [0, 0, 0, 0]');
+      ctx._sbChoisirBille(4);
+      const h5 = els['billes-section'].innerHTML;
+      assert.strictEqual(_r57('_sbBille'), 4);
+      assert.deepStrictEqual(boutons(h5).filter(m => m[2] === 'true').map(m => Number(m[1])), [4]);
+      assert.ok(h5.indexOf('La 5ᵉ bille en détail') > 0);
+      assert.ok(h5.indexOf('Dans les ' + ctx._dimNb(v.billes[4].length) + ' parties où au moins 5 billes sont tombées, la 5ᵉ tombe avant le <b>coup ' + med(4) + '</b> une fois sur deux') > 0);
+      assert.ok(histo(h5).indexOf('médiane : coup ' + med(4)) > 0 && histo(h5).indexOf('>coup où tombe la 5ᵉ bille<') > 0);
+      assert.ok(h5.indexOf('pas encore comptées') > 0, 'l’alerte reste apres un choix');
+      // la derniere
+      ctx._sbChoisirBille(11);
+      const hD = els['billes-section'].innerHTML;
+      assert.ok(hD.indexOf('La dernière bille en détail') > 0);
+      assert.ok(hD.indexOf('Dans les ' + ctx._dimNb(v.billes[11].length) + ' parties gagnées en faisant tomber 6 billes, la dernière, celle qui fait gagner, tombe avant le <b>coup ' + med(11) + '</b>') > 0);
+      // les memes axes pour toutes les billes : memes graduations en %, meme axe des coups
+      assert.deepStrictEqual(axes(h5), axes(h)); assert.deepStrictEqual(axes(hD), axes(h));
+      ['0 %', '0', '50', '100', '150', '200', '231+'].forEach(t => assert.ok(axes(h).includes(t), t));
+      [h, h5, hD].forEach(x => assert.doesNotMatch(x, /NaN|undefined|Infinity/));
+    }));
+    // en anglais
+    const avantL = ctx.localStorage.getItem('abalone_lang');
+    ctx.localStorage.setItem('abalone_lang', 'EN');
+    try {
+      await _dom54(async () => {
+        _r57('_sbBille = 2');
+        const h = ctx._sbHtmlBilles(v), c = h.slice(h.indexOf('id="sb-carte-quand"'), h.indexOf('The comeback table'));
+        ['When the marbles fall', '>1st<', '>2nd<', '>3rd<', '>4th<', '>11th<', '>Last<', 'The 3rd marble in detail', '>move on which the 3rd marble falls<',
+          'In the ' + ctx._dimNb(v.billes[2].length) + ' games in which at least 3 marbles fell, the 3rd falls before <b>move ' + med(2) + '</b>'].forEach(t => assert.ok(c.indexOf(t) > 0, t));
+        // le texte vu et lu (pas les id ni les onclick, qui gardent leurs noms francais)
+        const lu = c.replace(/<[^>]*>/g, ' ') + [...c.matchAll(/(?:aria-label|title)="([^"]*)"/g)].map(m => m[1]).join(' ');
+        assert.doesNotMatch(lu, /bille|coup |Dernière|médiane|parties|détail/);
+      });
+    } finally { if (avantL === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avantL); }
+  } finally { _r57('_sbBille = ' + avant + '; STATS_PARTIES.nb = ' + nbAvant); }
+});
+
+test('v2.65 carte des éjections : sous l’échelle de couleurs, des traits et leurs nombres, de 0 au maximum, placés comme les couleurs', async () => {
+  const G = m => Array.from(ctx._sbGraduations(m));
+  assert.deepStrictEqual(G(0), [0]);
+  assert.deepStrictEqual(G(1), [0, 1]);
+  assert.deepStrictEqual(G(4), [0, 1, 2, 3, 4]);
+  assert.deepStrictEqual(G(6), [0, 1, 2, 3, 4, 5, 6]);
+  assert.deepStrictEqual(G(1767), [0, 200, 500, 1000, 1767], 'la carte « Toutes » du corpus');
+  assert.deepStrictEqual(G(1274), [0, 100, 500, 800, 1274], 'Belgian Daisy : 1 000 toucherait le maximum, 800 le remplace');
+  assert.deepStrictEqual(G(223), [0, 20, 50, 100, 223], 'Standard');
+  for (let m = 1; m <= 5000; m++) {
+    const g = G(m);
+    assert.ok(g[0] === 0 && g[g.length - 1] === m && g.length >= Math.min(m + 1, 4) && g.length <= 7, m + ' : ' + g.join(' '));
+    for (let i = 1; i < g.length; i++) assert.ok(Number.isInteger(g[i]) && g[i] > g[i - 1], m + ' : ' + g.join(' '));
+  }
+  // chaque trait est la ou heatColor met la couleur de son nombre : la legende et la carte disent la meme chose
+  const S = Array.from(_r57('HEATMAP_SCALE')).map(c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16)));
+  const couleurEn = p => { const x = p * (S.length - 1), i = Math.min(S.length - 2, Math.floor(x)), f = x - i; return 'rgb(' + [0, 1, 2].map(k => Math.round(S[i][k] + (S[i + 1][k] - S[i][k]) * f)).join(',') + ')'; };
+  [1, 7, 200, 500, 1000, 1767].forEach(c => assert.strictEqual(ctx.heatColor(c / 1767), couleurEn(ctx._sbPosEchelle(c, 1767)), 'couleur de ' + c));
+  await _enFrancais54(async () => {
+    const L = ctx._sbLegendeCarte(1767);
+    const nbs = [...L.matchAll(/<span class="sb-leg-nb" style="([^"]*)">([^<]*)<\/span>/g)];
+    assert.deepStrictEqual(nbs.map(m => m[2]), ['0', '200', '500', ctx._dimNb(1000), ctx._dimNb(1767)]);
+    assert.strictEqual((L.match(/class="sb-leg-trait"/g) || []).length, 5);
+    assert.ok(nbs[0][1].startsWith('left:0.00%'), 'le 0 a gauche');
+    [200, 500, 1000].forEach((c, i) => assert.ok(nbs[i + 1][1].startsWith('left:' + (Math.pow(c / 1767, 0.6) * 100).toFixed(2) + '%;transform:translateX(-50%)'), 'place de ' + c));
+    assert.ok(nbs[4][1].startsWith('right:0'), 'le maximum a droite');
+    assert.ok(L.indexOf('linear-gradient(90deg,#0d0d14 0%,#1b1b2f 0.00%,#3b5bb5 14.29%,') > 0 && L.indexOf('#ffffff 100.00%)') > 0, 'le degrade : les couleurs de heatColor, aux memes places');
+    assert.ok(L.indexOf('billes tombées de la case') > 0 && L.indexOf('aria-label="Échelle des couleurs : de 0 à ' + ctx._dimNb(1767) + ' billes tombées d’une même case"') > 0);
+    // la carte du corpus : les nombres de l'onglet montre
+    const v = (await _charger57(), ctx._sbAgreger());
+    await _dom54(async () => {
+      const h = ctx._sbHtmlBilles(v), max = Math.max(...v.cartes[_r57('_sbOngletCarte')]);
+      const vus = [...h.slice(h.indexOf('id="sb-carte-carte"')).matchAll(/<span class="sb-leg-nb"[^>]*>([^<]*)<\/span>/g)].map(m => m[1]);
+      assert.deepStrictEqual(vus, G(max).map(c => ctx._dimNb(c)));
+    });
+    // et la carte « Où tombent tes billes » de Mes statistiques
+    const carte = new Array(61).fill(0); carte[56] = 3; carte[50] = 1; carte[4] = 2;
+    const p = ctx._sbHtmlPerso({ carteSubies: carte, premiere: { perdue: { n: 0, g: 0 }, faite: { n: 0, g: 0 } }, sortes: [0, 0, 0, 0, 0, 0, 0, 0], byPhase: { ouverture: 0, milieu: 0, finale: 0 }, parPartie: 0 });
+    assert.deepStrictEqual([...p.matchAll(/<span class="sb-leg-nb"[^>]*>([^<]*)<\/span>/g)].map(m => m[1]), ['0', '1', '2', '3']);
+  });
+  const avantL = ctx.localStorage.getItem('abalone_lang');
+  ctx.localStorage.setItem('abalone_lang', 'EN');
+  try {
+    const L = ctx._sbLegendeCarte(3);
+    assert.ok(L.indexOf('marbles pushed off from the spot') > 0 && L.indexOf('aria-label="Color scale: from 0 to 3 marbles pushed off from one spot"') > 0);
+    assert.doesNotMatch(L, /bille|case|Échelle/);
+  } finally { if (avantL === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avantL); }
 });
