@@ -2150,6 +2150,36 @@ table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset
 .sb-cmp-l span:not(:first-child) { text-align:right; font-variant-numeric:tabular-nums; }
 .sb-cmp-l span:nth-child(2) { font-weight:700; color:var(--gold); }
 .sb-cmp-ent span { color:var(--muted) !important; font-weight:400 !important; font-size:11px; }
+/* v2.65 : a quel coup tombent les billes (une ligne par bille, cliquable) et graduations de l'echelle de couleurs */
+.sb-cad { display:flex; flex-direction:column; gap:1px; margin:6px 0 4px; }
+.sb-cad-l, .sb-cad-axe { display:grid; grid-template-columns:64px minmax(0,1fr) 66px; gap:10px; align-items:center; }
+.sb-cad-l { width:100%; min-height:26px; padding:4px 6px; background:none; border:0; border-radius:6px; cursor:pointer; color:var(--text); font-family:'DM Sans',sans-serif; font-size:12px; text-align:left; }
+@media (hover: hover) { .sb-cad-l:hover { background:rgba(255,255,255,0.035); } }
+.sb-cad-l:focus-visible { outline:2px solid var(--gold); outline-offset:0; }
+.sb-cad-l[aria-pressed="true"] { background:rgba(200,168,75,0.10); }
+.sb-cad-nom { white-space:nowrap; }
+.sb-cad-val { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.sb-cad-l[aria-pressed="true"] .sb-cad-nom, .sb-cad-l[aria-pressed="true"] .sb-cad-val { color:var(--gold); font-weight:700; }
+.sb-cad-piste { position:relative; height:12px; }
+.sb-cad-trait { position:absolute; top:4px; height:4px; border-radius:2px; background:var(--muted); }
+.sb-cad-point { position:absolute; top:1px; width:10px; height:10px; margin-left:-5px; border-radius:50%; background:var(--text); }
+.sb-cad-l[aria-pressed="true"] .sb-cad-trait { background:var(--gold-dim); }
+.sb-cad-l[aria-pressed="true"] .sb-cad-point { background:var(--gold); }
+.sb-cad-sep { height:1px; background:var(--border); margin:4px 6px; }
+.sb-cad-axe { padding:0 6px; font-size:10.5px; color:var(--muted); }
+.sb-cad-axe .sb-cad-piste { height:14px; }
+.sb-cad-axe i { position:absolute; top:0; transform:translateX(-50%); font-style:normal; font-variant-numeric:tabular-nums; }
+.sb-cad-leg { display:flex; flex-wrap:wrap; align-items:center; gap:4px 14px; font-size:11px; color:var(--muted); margin:6px 6px 0; }
+.sb-cad-leg span { display:inline-flex; align-items:center; gap:5px; }
+.sb-cad-leg-point { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--text); }
+.sb-cad-leg-trait { display:inline-block; width:18px; height:4px; border-radius:2px; background:var(--muted); }
+.sb-quand-titre { margin-top:18px; }
+.sb-leg { max-width:280px; margin:8px auto 0; }
+.sb-leg-barre { height:10px; border-radius:5px; border:1px solid var(--border); }
+.sb-leg-reperes { position:relative; height:20px; margin:0 1px; }
+.sb-leg-trait { position:absolute; top:0; width:1px; height:6px; background:var(--text); opacity:0.6; }
+.sb-leg-nb { position:absolute; top:7px; font-size:10.5px; line-height:12px; color:var(--muted); white-space:nowrap; font-variant-numeric:tabular-nums; }
+.sb-leg-titre { text-align:center; font-size:10.5px; color:var(--muted); }
 .win-repere { max-width:440px; margin:10px auto 0; font-size:13px; line-height:1.55; color:var(--text); background:rgba(200,168,75,0.08); border:1px solid rgba(200,168,75,0.25); border-radius:10px; padding:9px 14px; }
 .win-repere:empty { display:none; }
 
@@ -8343,7 +8373,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.64';
+const APP_VERSION = 'v2.65';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -39420,10 +39450,19 @@ function renderPlateauPage() {
    echantillon de parties et compare au fichier, et verifie la signature des
    parties : une partie ajoutee ou modifiee sans relancer l'outil le fait echouer.
    La page n'a plus qu'a additionner (quelques millisecondes).
+
+   v2.65, demande d'Olivier : « fais-le pour toutes les billes ». La carte
+   « a quel coup tombe la premiere bille » devient « a quel coup tombent les
+   billes » : de la 1re a la 11e bille de la partie, plus la derniere (la 6e
+   du vainqueur, celle qui finit la partie). Rien a recalculer hors ligne : le
+   demi-coup de chaque ejection est deja dans les donnees embarquees. Et
+   l'echelle de couleurs de la carte des ejections recoit ses graduations
+   chiffrees, de 0 au maximum.
 ═══════════════════════════════════════════ */
 
 const _SB_ETAPES = [20, 40, 60];      // demi-coups ou l'on compare les 12 dimensions des deux camps
 const _SB_SOURCES = ['MIGS', 'AO', 'PS', 'REF'];
+const _SB_DERNIERE = 11;              // dans les listes « billes » : 0..10 = la 1re..11e bille de la partie, 11 = la derniere (6e du vainqueur)
 
 function _sbBanques(){
   return [
@@ -39567,11 +39606,14 @@ function _sbAgreger(){
   const D = STATS_PARTIES;
   if (!D) return null;
   if (_sbCache && _sbCache.d === D) return _sbCache.v;
-  const nDims = D.champs.length, cartes = {}, quandParDispo = {};
+  const nDims = D.champs.length, cartes = {}, quandParDispo = {}, billesParDispo = {};
+  const billes = []; for (let k = 0; k <= _SB_DERNIERE; k++) billes.push([]);
   const v = {
     nParties: D.p.length, nComplets: 0, nDecides: 0, nAvecEj: 0,
     premiere: { n: 0, gagne: 0 },              // le camp qui fait tomber la premiere bille gagne
-    quand: [],                                 // demi-coup de la premiere ejection de chaque partie
+    quand: billes[0],                          // demi-coup de la premiere ejection de chaque partie
+    billes: billes,                            // billes[k] : demi-coups ou tombe la (k+1)e bille de la partie (k = 0..10) ; billes[11] : la derniere, la 6e du vainqueur
+    billesParDispo: billesParDispo,            // dispo -> les memes 12 listes, pour les parties de cette disposition
     remontees: {},                             // 'a-b' (a > b, a < 6) -> { n, g } : le camp qui mene a-b gagne g fois sur n
     finals: [0, 0, 0, 0, 0, 0],                // parties gagnees 6-x : x = 0..5
     types: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -39589,13 +39631,17 @@ function _sbAgreger(){
     for (let k = 0; k < 8; k++) v.types[k] += p[5][k] + p[6][k];
     v.camp.camps += 2; v.camp.ej += ej.length / 2;
     const carte = cartes[dispo] || (cartes[dispo] = new Array(61).fill(0));
-    let nb = 0, nw = 0, premN = 0, premB = 0;
+    const parDispo = billesParDispo[dispo] || (billesParDispo[dispo] = billes.map(function(){ return []; }));
+    let nb = 0, nw = 0, premN = 0, premB = 0, fin = 0;
     for (let i = 0; i < ej.length; i += 2) {
       const ply = ej[i], code = ej[i + 1], blancheTombe = code & 1, idx = code >> 1;
       // phase AVANT ce coup, meme regle que la carte Ejections de Mes statistiques
       const phase = (nb === 0 && nw === 0) ? 'ouverture' : (Math.max(nb, nw) >= 3 ? 'finale' : 'milieu');
       v.camp.phases[phase]++;
       if (blancheTombe) { nb++; if (!premN) premN = ply; } else { nw++; if (!premB) premB = ply; }
+      // la (i/2 + 1)e bille de la partie, et la 6e d'un camp : celle qui finit la partie
+      if (i / 2 < _SB_DERNIERE) { billes[i / 2].push(ply); parDispo[i / 2].push(ply); }
+      if (!fin && (nb === 6 || nw === 6)) fin = ply;
       // la carte : vue du joueur qui perd la bille, comme sur son ecran (plateau retourne pour les Blancs, boardRotation = 180)
       if (idx < 61) carte[blancheTombe ? 60 - idx : idx]++;
       if (decide && nb !== nw && Math.max(nb, nw) < 6) {
@@ -39605,10 +39651,10 @@ function _sbAgreger(){
     }
     if (premN) { v.camp.premiereSomme += premN; v.camp.premiereN++; }
     if (premB) { v.camp.premiereSomme += premB; v.camp.premiereN++; }
+    if (fin) { billes[_SB_DERNIERE].push(fin); parDispo[_SB_DERNIERE].push(fin); }
     if (ej.length) {
       v.nAvecEj++;
-      v.quand.push(ej[0]);
-      (quandParDispo[dispo] || (quandParDispo[dispo] = [])).push(ej[0]);
+      quandParDispo[dispo] = parDispo[0];
       if (decide) { v.premiere.n++; if (((ej[1] & 1) ? 1 : 2) === gagnant) v.premiere.gagne++; }
     }
     if (decide && Math.max(nb, nw) === 6) v.finals[Math.min(nb, nw)]++;
@@ -39626,8 +39672,9 @@ function _sbAgreger(){
       }
     }
   });
-  v.quand.sort(function(a, b){ return a - b; });
-  Object.keys(quandParDispo).forEach(function(k){ quandParDispo[k].sort(function(a, b){ return a - b; }); });
+  const trier = function(t){ t.sort(function(a, b){ return a - b; }); };
+  billes.forEach(trier);                      // v.quand et quandParDispo sont les premieres de ces listes : triees du meme coup
+  Object.keys(billesParDispo).forEach(function(d){ billesParDispo[d].forEach(trier); });
   const tous = new Array(61).fill(0);
   Object.keys(cartes).forEach(function(k){ cartes[k].forEach(function(x, i){ tous[i] += x; }); });
   cartes['*'] = tous;
@@ -39655,7 +39702,8 @@ function _sbQuantile(t, q){ return t.length ? t[Math.min(t.length - 1, Math.floo
 const _SB_VERT = '#2f9e7f', _SB_ORANGE = '#d9773f';
 const _SB_COINS = [0, 4, 26, 34, 56, 60];          // rangs des 6 cases de coin
 const _SB_NOMS_AO = { german_daisy: 'german', swiss_daisy: 'swiss', dutch_daisy: 'dutch', centrifugeuse: 'centrifuge' };
-let _sbOngletCarte = 'belgian', _sbEtape = 1, _sbEtroitRendu = null;
+const _SB_HISTO_L = 10, _SB_HISTO_NB = 24;         // histogramme des billes : tranches de 10 coups, la derniere ouverte (231 et plus)
+let _sbOngletCarte = 'belgian', _sbEtape = 1, _sbEtroitRendu = null, _sbBille = 0;
 
 function _sbNomDispo(d){
   if (d === '*') return _tr('Toutes', 'All');
@@ -39678,35 +39726,44 @@ function _sbBarre(x, y, w, h, style, titre){
   return '<path d="' + d + '" style="' + style + '" tabindex="0">' + (titre ? '<title>' + titre + '</title>' : '') + '</path>';
 }
 
-/* Histogramme du demi-coup de la premiere ejection : tranches de 5 coups, la derniere ouverte (81 et plus) */
-function _sbHistoSVG(t, etroit){
-  const L = 5, NB = 17, bins = new Array(NB).fill(0);
-  t.forEach(function(x){ bins[Math.min(NB - 1, Math.floor((x - 1) / L))]++; });
+/* Histogramme du coup ou tombe une bille : tranches de 10 coups, la derniere ouverte (231 et plus).
+   Memes axes pour toutes les billes (o.pctMax, commun) : d'une bille a la suivante, on voit la
+   bosse glisser vers la droite et s'etaler. o.axe : titre de l'axe ; o.aria : description. */
+function _sbHistoBins(t){
+  const L = _SB_HISTO_L, NB = _SB_HISTO_NB, bins = new Array(NB).fill(0);
+  t.forEach(function(x){ bins[Math.max(0, Math.min(NB - 1, Math.floor((x - 1) / L)))]++; });
+  return bins;
+}
+function _sbHistoSVG(t, etroit, o){
+  o = o || {};
+  const L = _SB_HISTO_L, NB = _SB_HISTO_NB, bins = _sbHistoBins(t);
   const W = etroit ? 360 : 560, H = 196, g = etroit ? 30 : 38, d = 8, haut = 30, bas = 30;
-  const lw = W - g - d, lh = H - haut - bas, pas = lw / NB, bw = Math.min(24, pas - 3), n = t.length || 1;
-  const max = Math.max.apply(null, bins) || 1, pctMax = max / n * 100;
+  const lw = W - g - d, lh = H - haut - bas, pas = lw / NB, bw = Math.max(2, Math.min(18, pas - 3)), n = t.length || 1;
+  const pctMax = Math.max(o.pctMax || 0, (Math.max.apply(null, bins) || 1) / n * 100);
   const pasGrad = pctMax > 12 ? 5 : (pctMax > 6 ? 2 : 1);
-  let s = '<svg id="sb-histo" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + _tr('Histogramme du coup de la première éjection', 'Histogram of the move of the first ejection') + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;font-family:\'DM Sans\',sans-serif">';
+  let s = '<svg id="sb-histo" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + (o.aria || _tr('Histogramme du coup où tombe la bille', 'Histogram of the move on which the marble falls')) + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;font-family:\'DM Sans\',sans-serif">';
   for (let v = 0; v <= pctMax + 1e-9; v += pasGrad) {     // graduations en % des parties
-    const y = haut + lh - (v / 100 * n) / max * lh;
+    const y = haut + lh - v / pctMax * lh;
     s += '<line x1="' + g + '" x2="' + (W - d) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" style="stroke:var(--border)" stroke-width="1"/>'
       + '<text x="' + (g - 5) + '" y="' + (y + 3.5).toFixed(1) + '" text-anchor="end" font-size="10" style="fill:var(--muted)">' + v + ' %</text>';
   }
   bins.forEach(function(b, i){
-    const h = b / max * lh, x = g + i * pas + (pas - bw) / 2, de = i * L + 1, a = (i === NB - 1) ? null : (i + 1) * L;
+    const h = (b / n * 100) / pctMax * lh, x = g + i * pas + (pas - bw) / 2, de = i * L + 1, a = (i === NB - 1) ? null : (i + 1) * L;
     const titre = (a ? _tr('Coups ' + de + ' à ' + a, 'Moves ' + de + ' to ' + a) : _tr('Coup ' + de + ' et plus', 'Move ' + de + ' and later')) + _dimDp()
       + _dimNb(b) + ' ' + _tr('partie' + _sbS(b), 'game' + _sbS(b)) + ' (' + _sbPct(b / n * 100) + ')';
     s += _sbBarre(x, haut + lh - h, bw, h, 'fill:var(--gold)', titre);
   });
-  [0, 4, 8, 12, 16].forEach(function(i){
-    s += '<text x="' + (g + i * pas + pas / 2).toFixed(1) + '" y="' + (haut + lh + 15) + '" text-anchor="middle" font-size="10.5" style="fill:var(--muted)">' + (i === NB - 1 ? (i * L + 1) + '+' : (i * L + 1)) + '</text>';
+  // l'axe : les bords de tranche 0, 50, 100, 150, 200 ; la derniere tranche, ouverte, sous son milieu
+  [0, 50, 100, 150, 200].forEach(function(c){
+    s += '<text x="' + (g + c / L * pas).toFixed(1) + '" y="' + (haut + lh + 15) + '" text-anchor="middle" font-size="10.5" style="fill:var(--muted)">' + c + '</text>';
   });
-  s += '<text x="' + (W - d) + '" y="' + (H - 2) + '" text-anchor="end" font-size="10.5" style="fill:var(--muted)">' + _tr('coup de la première éjection', 'move of the first ejection') + '</text>';
+  s += '<text x="' + (g + (NB - 0.5) * pas).toFixed(1) + '" y="' + (haut + lh + 15) + '" text-anchor="middle" font-size="10.5" style="fill:var(--muted)">' + ((NB - 1) * L + 1) + '+</text>';
+  s += '<text x="' + (W - d) + '" y="' + (H - 2) + '" text-anchor="end" font-size="10.5" style="fill:var(--muted)">' + (o.axe || _tr('coup où tombe la bille', 'move on which the marble falls')) + '</text>';
   const med = _sbMediane(t);
   if (med) {
-    const xm = g + Math.min(NB, (med - 1) / L + 0.5) * pas;
+    const xm = g + Math.min(NB, (med - 0.5) / L) * pas, aGauche = xm > g + lw * 0.62;   // trop a droite : l'etiquette passe a gauche du trait
     s += '<line x1="' + xm.toFixed(1) + '" x2="' + xm.toFixed(1) + '" y1="' + (haut - 8) + '" y2="' + (haut + lh) + '" style="stroke:var(--text)" stroke-width="1.5"/>'
-      + '<text x="' + (xm + 5).toFixed(1) + '" y="' + (haut - 12) + '" font-size="11" font-weight="700" style="fill:var(--text)">' + _tr('médiane : coup ', 'median: move ') + med + '</text>';
+      + '<text x="' + (aGauche ? xm - 5 : xm + 5).toFixed(1) + '" y="' + (haut - 12) + '"' + (aGauche ? ' text-anchor="end"' : '') + ' font-size="11" font-weight="700" style="fill:var(--text)">' + _tr('médiane : coup ', 'median: move ') + med + '</text>';
   }
   return s + '</svg>';
 }
@@ -39745,10 +39802,62 @@ function _sbCarteSVG(cnt, nombres, aria){
   const m = R + 3, vw = x1 - x0 + 2 * m, vh = y1 - y0 + 2 * m;
   return '<svg viewBox="' + (x0 - m).toFixed(1) + ' ' + (y0 - m).toFixed(1) + ' ' + vw.toFixed(1) + ' ' + vh.toFixed(1) + '" role="img" aria-label="' + aria + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:' + Math.round(vw) + 'px;height:auto;display:block;margin:0 auto">' + s + '</svg>';
 }
+/* Les graduations de l'echelle de couleurs (v2.65, demande d'Olivier) : 0, quelques valeurs
+   rondes, le maximum. Placees la ou heatColor met leur couleur : le nombre c est a (c / max)^0,6
+   de la largeur (le meme gamma 0,6 qui etale le bas de l'echelle). Jusqu'a 6, chaque nombre ;
+   au-dela, trois valeurs au plus, visees au quart, a la moitie et aux trois quarts de la barre :
+   pour chacune, la valeur ronde la plus proche (1, 2, 2,5 ou 5 fois une puissance de 10 ; a
+   defaut 1,5, 3, 4, 6, 7,5 ou 8) qui laisse ses chiffres a l'ecart de leurs voisins sur une
+   legende etroite (250 px, celle d'un petit telephone). */
+function _sbPosEchelle(c, max){ return max > 0 ? Math.pow(Math.max(0, Math.min(1, c / max)), 0.6) : 0; }
+function _sbGraduations(max){
+  max = Math.max(0, Math.round(max || 0));
+  const t = [0];
+  if (!max) return t;
+  if (max <= 6) { for (let c = 1; c <= max; c++) t.push(c); return t; }
+  const L = 250, chiffre = 6.2, marge = 8;   // largeur prudente de la legende, d'un caractere, ecart minimum entre deux nombres (px)
+  const larg = function(c){ return String(_dimNb(c)).length * chiffre; };
+  // le 0 est aligne a gauche, le maximum a droite, les autres centres sous leur trait
+  const gauche = function(c){ return c === max ? L - larg(c) : _sbPosEchelle(c, max) * L - larg(c) / 2; };
+  const droite = function(c){ return c === 0 ? larg(c) : _sbPosEchelle(c, max) * L + larg(c) / 2; };
+  const ecart = function(a, b){ return _sbPosEchelle(b, max) - _sbPosEchelle(a, max) >= 0.12; };   // traits pas trop serres
+  // les valeurs a essayer pres de x, les plus rondes d'abord, chaque groupe de la plus proche a la plus lointaine
+  const candidats = function(x){
+    const proche = function(a, b){ return Math.abs(a - x) - Math.abs(b - x); };
+    if (x < 10 && max < 50) return [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(proche);
+    let e = 1; while (e * 10 <= x) e *= 10;
+    const groupe = function(ms){
+      const g = [];
+      ms.forEach(function(m){ [e / 10, e, e * 10].forEach(function(p){ const c = Math.round(m * p * 1000) / 1000; if (Number.isInteger(c) && c >= 1 && Math.abs(c - x) <= x / 2) g.push(c); }); });
+      return g.sort(proche);
+    };
+    return groupe([1, 2, 2.5, 5]).concat(groupe([1.5, 3, 4, 6, 7.5, 8]));
+  };
+  [0.25, 0.5, 0.75].forEach(function(p){
+    const der = t[t.length - 1];
+    const c = candidats(max * Math.pow(p, 1 / 0.6)).filter(function(c){
+      return c > der && c < max && ecart(der, c) && ecart(c, max) && gauche(c) - droite(der) >= marge && gauche(max) - droite(c) >= marge;
+    })[0];
+    if (c) t.push(c);
+  });
+  t.push(max);
+  return t;
+}
 function _sbLegendeCarte(max){
-  const stops = HEATMAP_SCALE.map(function(c, i){ return c + ' ' + Math.round(i / (HEATMAP_SCALE.length - 1) * 100) + '%'; }).join(',');
-  return '<div style="max-width:280px;margin:8px auto 0"><div style="height:10px;border-radius:5px;border:1px solid var(--border);background:linear-gradient(90deg,' + HEATMAP_EMPTY + ' 0%,' + stops + ')"></div>'
-    + '<div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);margin-top:3px"><span>' + _tr('aucune bille', 'no marble') + '</span><span>' + _dimNb(max) + ' ' + _tr('billes', 'marbles') + '</span></div></div>';
+  const n = HEATMAP_SCALE.length - 1, grad = _sbGraduations(max);
+  const stops = HEATMAP_SCALE.map(function(c, i){ return c + ' ' + (i / n * 100).toFixed(2) + '%'; }).join(',');
+  let reperes = '';
+  grad.forEach(function(c, i){
+    const p = (_sbPosEchelle(c, max) * 100).toFixed(2), dernier = i === grad.length - 1 && i > 0;
+    // les deux bouts restent dans la barre : le 0 aligne a gauche, le maximum a droite
+    const ou = dernier ? 'right:0' : 'left:' + p + '%';
+    reperes += '<span class="sb-leg-trait" style="' + ou + '"></span>'
+      + '<span class="sb-leg-nb" style="' + ou + (i === 0 || dernier ? '' : ';transform:translateX(-50%)') + '">' + _dimNb(c) + '</span>';
+  });
+  return '<div class="sb-leg" role="img" aria-label="' + _tr('Échelle des couleurs : de 0 à ' + _dimNb(max) + ' bille' + _sbS(max) + ' tombée' + _sbS(max) + ' d’une même case', 'Color scale: from 0 to ' + _dimNb(max) + ' marble' + _sbS(max) + ' pushed off from one spot') + '">'
+    + '<div class="sb-leg-barre" style="background:linear-gradient(90deg,' + HEATMAP_EMPTY + ' 0%,' + stops + ')"></div>'
+    + '<div class="sb-leg-reperes" aria-hidden="true">' + reperes + '</div>'
+    + '<div class="sb-leg-titre" aria-hidden="true">' + _tr('billes tombées de la case', 'marbles pushed off from the spot') + '</div></div>';
 }
 // Ce que la carte dit en clair : moitie du plateau du joueur (en bas, comme sur son ecran), moitie d'en face, coins
 function _sbLireCarte(cnt){
@@ -39758,6 +39867,95 @@ function _sbLireCarte(cnt){
   for (let i = 0; i < 61; i++) { const r = _sbCase(i).r; if (r > 4) bas += cnt[i]; else if (r < 4) haut += cnt[i]; }
   const coins = _SB_COINS.reduce(function(a, i){ return a + cnt[i]; }, 0);
   return { tot: tot, basPct: bas / tot * 100, hautPct: haut / tot * 100, coinsPct: coins / tot * 100 };
+}
+
+/* ─── A quel coup tombent les billes (v2.65) ───
+   Une ligne par bille, de la 1re a la 11e, puis la derniere : la mediane (le
+   point) et 8 parties sur 10 (le trait, du 10e au 90e centile), toutes sur la
+   meme echelle de coups. Choisir une ligne montre en dessous le detail de
+   cette bille : sa phrase, son histogramme (memes axes pour toutes) et ses
+   medianes selon la disposition de depart. */
+// Les billes montrees : celles tombees dans au moins 50 parties (la 1re des qu'il y en a une)
+function _sbLignesBilles(v){
+  const t = [];
+  for (let k = 0; k <= _SB_DERNIERE; k++) { const n = v.billes[k].length; if (n >= 50 || (k === 0 && n > 0)) t.push(k); }
+  return t;
+}
+// « 1ʳᵉ », « 5ᵉ », « Dernière » ; en anglais « 1st », « 5th », « Last »
+function _sbNomBille(k){
+  if (k === _SB_DERNIERE) return _tr('Dernière', 'Last');
+  const n = k + 1, u = n % 10, d = n % 100;
+  return _tr(n === 1 ? '1ʳᵉ' : n + 'ᵉ', n + ((u === 1 && d !== 11) ? 'st' : (u === 2 && d !== 12) ? 'nd' : (u === 3 && d !== 13) ? 'rd' : 'th'));
+}
+// « la 5ᵉ bille », « la dernière bille » ; « the 5th marble », « the last marble »
+function _sbLaBille(k){ return k === _SB_DERNIERE ? _tr('la dernière bille', 'the last marble') : _tr('la ' + _sbNomBille(k) + ' bille', 'the ' + _sbNomBille(k) + ' marble'); }
+function _sbPhraseBille(k, t){
+  const med = _sbMediane(t), a = _sbQuantile(t, 0.1), b = _sbQuantile(t, 0.9), n = _dimNb(t.length);
+  if (k === 0) return _tr('La moitié des parties ont leur première éjection avant le <b>coup ' + med + '</b> ; dans 8 parties sur 10, elle arrive entre le coup ' + a + ' et le coup ' + b + '.',
+                          'Half of all games see their first ejection before <b>move ' + med + '</b>; in 8 games out of 10 it comes between move ' + a + ' and move ' + b + '.');
+  if (k === _SB_DERNIERE) return _tr('Dans les ' + n + ' parties gagnées en faisant tomber 6 billes, la dernière, celle qui fait gagner, tombe avant le <b>coup ' + med + '</b> une fois sur deux ; dans 8 parties sur 10, entre le coup ' + a + ' et le coup ' + b + '.',
+                                     'In the ' + n + ' games won by pushing off 6 marbles, the last one, the marble that wins, falls before <b>move ' + med + '</b> half the time; in 8 games out of 10, between move ' + a + ' and move ' + b + '.');
+  return _tr('Dans les ' + n + ' parties où au moins ' + (k + 1) + ' billes sont tombées, la ' + _sbNomBille(k) + ' tombe avant le <b>coup ' + med + '</b> une fois sur deux ; dans 8 parties sur 10, entre le coup ' + a + ' et le coup ' + b + '.',
+             'In the ' + n + ' games in which at least ' + (k + 1) + ' marbles fell, the ' + _sbNomBille(k) + ' falls before <b>move ' + med + '</b> half the time; in 8 games out of 10, between move ' + a + ' and move ' + b + '.');
+}
+function _sbHtmlQuand(v, lignes, etroit){
+  const k = _sbBille, t = v.billes[k], X = _SB_HISTO_L * _SB_HISTO_NB;
+  const num = lignes.filter(function(j){ return j !== _SB_DERNIERE; }), aDerniere = lignes.indexOf(_SB_DERNIERE) >= 0;
+  const med = function(j){ return _sbMediane(v.billes[j]); };
+  // 1. la phrase d'ensemble : la 1re, le rythme, quelques reperes, la derniere
+  const k0 = num[0], kz = num[num.length - 1];
+  let fr = 'La ' + _sbNomBille(k0) + ' bille tombe vers le <b>coup ' + med(k0) + '</b> (médiane)', en = 'The ' + _sbNomBille(k0) + ' marble falls around <b>move ' + med(k0) + '</b> (median)';
+  if (kz > k0) {
+    const ecart = Math.max(1, Math.round((med(kz) - med(k0)) / (kz - k0)));
+    const ex = [5, kz].filter(function(j, i, a){ return j > k0 && num.indexOf(j) >= 0 && a.indexOf(j) === i; });
+    fr += ', puis il en tombe une autre à peu près tous les ' + ecart + ' coups' + (ex.length ? ' : ' + ex.map(function(j){ return 'la ' + _sbNomBille(j) + ' vers le coup ' + med(j); }).join(', ') : '');
+    en += ', then another one falls roughly every ' + ecart + ' moves' + (ex.length ? ': ' + ex.map(function(j){ return 'the ' + _sbNomBille(j) + ' around move ' + med(j); }).join(', ') : '');
+  }
+  fr += '.'; en += '.';
+  if (aDerniere) {
+    fr += ' La dernière, la 6ᵉ du vainqueur, celle qui finit la partie, tombe vers le <b>coup ' + med(_SB_DERNIERE) + '</b>.';
+    en += ' The last one, the winner’s 6th, which ends the game, falls around <b>move ' + med(_SB_DERNIERE) + '</b>.';
+  }
+  // 2. une ligne par bille, sur la meme echelle de coups que l'histogramme (0 a 240)
+  const pos = function(c){ return Math.max(0, Math.min(X, c)) / X * 100; };
+  let liste = '<div class="sb-cad" role="group" aria-label="' + _tr('Les billes, de la première à la dernière', 'The marbles, from the first to the last') + '">';
+  lignes.forEach(function(j){
+    const tj = v.billes[j], m = _sbMediane(tj), a = _sbQuantile(tj, 0.1), b = _sbQuantile(tj, 0.9);
+    const desc = _tr(_sbNomBille(j) + ' bille : vers le coup ' + m + ' (médiane), 8 parties sur 10 entre le coup ' + a + ' et le coup ' + b + ', sur ' + _dimNb(tj.length) + ' parties',
+                     _sbNomBille(j) + ' marble: around move ' + m + ' (median), 8 games out of 10 between move ' + a + ' and move ' + b + ', over ' + _dimNb(tj.length) + ' games');
+    if (j === _SB_DERNIERE) liste += '<div class="sb-cad-sep" aria-hidden="true"></div>';
+    liste += '<button type="button" class="sb-cad-l" id="sb-bille-' + j + '" aria-pressed="' + (j === k) + '" aria-label="' + desc + '" title="' + desc + '" onclick="_sbChoisirBille(' + j + ')">'
+      + '<span class="sb-cad-nom">' + _sbNomBille(j) + '</span>'
+      + '<span class="sb-cad-piste"><span class="sb-cad-trait" style="left:' + pos(a).toFixed(2) + '%;width:' + (pos(b) - pos(a)).toFixed(2) + '%"></span><span class="sb-cad-point" style="left:' + pos(m).toFixed(2) + '%"></span></span>'
+      + '<span class="sb-cad-val">' + _tr('coup ', 'move ') + m + '</span></button>';
+  });
+  liste += '<div class="sb-cad-axe" aria-hidden="true"><span></span><span class="sb-cad-piste">' + [0, 50, 100, 150, 200].map(function(c){ return '<i style="left:' + pos(c).toFixed(2) + '%">' + c + '</i>'; }).join('') + '</span><span></span></div>'
+    + '<div class="sb-cad-leg"><span><i class="sb-cad-leg-point"></i>' + _tr('médiane', 'median') + '</span><span><i class="sb-cad-leg-trait"></i>' + _tr('8 parties sur 10', '8 games out of 10') + '</span><span>' + _tr('Choisir une ligne pour voir son détail plus bas.', 'Pick a row to see its details below.') + '</span></div></div>';
+  // 3. le detail de la bille choisie : histogramme aux axes communs, medianes par disposition
+  const pctMax = Math.max.apply(null, lignes.map(function(j){ const tj = v.billes[j]; return tj.length ? Math.max.apply(null, _sbHistoBins(tj)) / tj.length * 100 : 0; }));
+  const parD = Object.keys(v.billesParDispo).map(function(d){ return [d, v.billesParDispo[d][k]]; }).filter(function(x){ return x[1].length >= 50; })
+    .sort(function(a, b){ return b[1].length - a[1].length; });
+  let tab = '';
+  if (parD.length) {
+    tab = '<div class="sb-tab-titre">' + _tr('Selon la disposition de départ', 'By starting layout') + '</div>'
+      + '<div class="sb-tab"><div class="sb-tab-l sb-tab-ent"><span>' + _tr('Disposition', 'Layout') + '</span><span>' + _tr('Parties', 'Games') + '</span><span>' + _tr('Médiane', 'Median') + '</span></div>';
+    parD.forEach(function(x){ tab += '<div class="sb-tab-l"><span>' + _sbNomDispo(x[0]) + '</span><span>' + _dimNb(x[1].length) + '</span><span>' + _tr('coup ', 'move ') + _sbMediane(x[1]) + '</span></div>'; });
+    tab += '</div>';
+  }
+  const la = _sbLaBille(k), La = la.charAt(0).toUpperCase() + la.slice(1);
+  return '<div class="sb-phrase">' + _tr(fr, en) + '</div>' + liste
+    + '<div class="sb-tab-titre sb-quand-titre" id="sb-quand-detail">' + La + _tr(' en détail', ' in detail') + '</div>'
+    + '<div class="sb-phrase">' + _sbPhraseBille(k, t) + '</div>'
+    + _sbHistoSVG(t, etroit, { pctMax: pctMax, axe: _tr('coup où tombe ' + la, 'move on which ' + la + ' falls'), aria: _tr('Histogramme du coup où tombe ' + la, 'Histogram of the move on which ' + la + ' falls') })
+    + tab;
+}
+function _sbNoteQuand(v, lignes){
+  const num = lignes.filter(function(j){ return j !== _SB_DERNIERE; }), a = num[0], z = num[num.length - 1];
+  const nA = _dimNb(v.billes[a].length), nZ = _dimNb(v.billes[z].length), nD = lignes.indexOf(_SB_DERNIERE) >= 0 ? _dimNb(v.billes[_SB_DERNIERE].length) : null;
+  return _tr('Un coup = le coup d’un joueur, comme pour la durée des parties. Chaque bille ne compte que les parties où elle est tombée : ' + nA + ' pour la ' + _sbNomBille(a) + (z > a ? ', ' + nZ + ' pour la ' + _sbNomBille(z) : '') + '.'
+               + (nD ? ' La dernière : la 6ᵉ bille du vainqueur, dans les ' + nD + ' parties gagnées en faisant tomber 6 billes.' : '') + ' L’histogramme garde la même échelle d’une bille à l’autre ; tableau : dispositions jouées au moins 50 fois.',
+             'One move = one player’s move, as for game length. Each marble only counts the games in which it fell: ' + nA + ' for the ' + _sbNomBille(a) + (z > a ? ', ' + nZ + ' for the ' + _sbNomBille(z) : '') + '.'
+               + (nD ? ' The last one: the winner’s 6th marble, in the ' + nD + ' games won by pushing off 6 marbles.' : '') + ' The histogram keeps the same scale from one marble to the next; table: layouts played at least 50 times.');
 }
 
 /* ─── Les sections de la page ─── */
@@ -39773,20 +39971,11 @@ function _sbHtmlBilles(v){
     '<div class="sb-hero"><span class="sb-hero-val">' + _sbGrosPct(pct) + '</span><span class="sb-hero-txt">' + _tr('des parties sont gagnées par le camp qui fait tomber la première bille.', 'of games are won by the side that pushes off the first marble.') + '</span></div>'
     + '<div class="sb-phrase">' + _tr('Celui qui perd la première bille gagne quand même <b>' + _sbPct(100 - pct) + '</b> des parties.', 'The side that loses the first marble still wins <b>' + _sbPct(100 - pct) + '</b> of games.') + '</div>',
     _tr('Sur ' + _dimNb(p.n) + ' parties dont on connaît le vainqueur et où au moins une bille est tombée.', 'Over ' + _dimNb(p.n) + ' games with a known winner in which at least one marble was pushed off.')));
-  // 2. a quel coup
-  if (v.quand.length) {
-    const lignes = Object.keys(v.quandParDispo).map(function(k){ return [k, v.quandParDispo[k]]; }).filter(function(x){ return x[1].length >= 50; })
-      .sort(function(a, b){ return b[1].length - a[1].length; });
-    let tab = '<div class="sb-tab-titre">' + _tr('Selon la disposition de départ', 'By starting layout') + '</div>'
-      + '<div class="sb-tab"><div class="sb-tab-l sb-tab-ent"><span>' + _tr('Disposition', 'Layout') + '</span><span>' + _tr('Parties', 'Games') + '</span><span>' + _tr('Médiane', 'Median') + '</span></div>';
-    lignes.forEach(function(x){ tab += '<div class="sb-tab-l"><span>' + _sbNomDispo(x[0]) + '</span><span>' + _dimNb(x[1].length) + '</span><span>' + _tr('coup ', 'move ') + _sbMediane(x[1]) + '</span></div>'; });
-    tab += '</div>';
-    h.push(_carteStats(_tr('À quel coup tombe la première bille', 'When the first marble falls'),
-      '<div class="sb-phrase">' + _tr('La moitié des parties ont leur première éjection avant le <b>coup ' + _sbMediane(v.quand) + '</b> ; dans 8 parties sur 10, elle arrive entre le coup ' + _sbQuantile(v.quand, 0.1) + ' et le coup ' + _sbQuantile(v.quand, 0.9) + '.',
-                                      'Half of all games see their first ejection before <b>move ' + _sbMediane(v.quand) + '</b>; in 8 games out of 10 it comes between move ' + _sbQuantile(v.quand, 0.1) + ' and move ' + _sbQuantile(v.quand, 0.9) + '.') + '</div>'
-      + _sbHistoSVG(v.quand, etroit) + tab,
-      _tr('Un coup = le coup d’un joueur, comme pour la durée des parties. Sur ' + _dimNb(v.quand.length) + ' parties où au moins une bille est tombée ; tableau : dispositions jouées au moins 50 fois.',
-          'One move = one player’s move, as for game length. Over ' + _dimNb(v.quand.length) + ' games in which at least one marble was pushed off; table: layouts played at least 50 times.')));
+  // 2. a quel coup tombe chaque bille
+  const lignesB = _sbLignesBilles(v);
+  if (lignesB.length) {
+    if (lignesB.indexOf(_sbBille) < 0) _sbBille = lignesB[0];
+    h.push('<div id="sb-carte-quand">' + _carteStats(_tr('À quel coup tombent les billes', 'When the marbles fall'), _sbHtmlQuand(v, lignesB, etroit), _sbNoteQuand(v, lignesB)) + '</div>');
   }
   // 3. les remontees
   const r = function(a, b){ const e = v.remontees[a + '-' + b]; return (e && e.n >= 30) ? e.g / e.n * 100 : null; };
@@ -39888,10 +40077,33 @@ function _sbHtmlJeu(v){
           'Over the ' + _dimNb(coups) + ' moves of the ' + _dimNb(v.nComplets) + ' games played from a starting position. “Sideways”: the line of marbles moves at an angle, each marble into an empty spot. Chance: a moment when at least one move could push a marble off; “taken” when a marble falls on that move.'));
 }
 
+// La section « Les billes qui tombent », avec l'alerte des parties pas encore comptees (gardee a chaque nouveau rendu)
+function _sbAlerteEcart(){
+  const B = _sbBanques(), nb = (STATS_PARTIES && STATS_PARTIES.nb) || [];
+  const ecart = B.every(function(b){ return b.length; }) ? B.reduce(function(a, b, i){ return a + Math.max(0, b.length - (nb[i] || 0)); }, 0) : 0;
+  return ecart ? '<div class="sb-alerte">⚠ ' + _tr(ecart + ' partie' + _sbS(ecart) + ' ajoutée' + _sbS(ecart) + ' depuis le dernier calcul n’' + (ecart > 1 ? 'y sont' : 'y est') + ' pas encore comptée' + _sbS(ecart) + '.', ecart + ' game' + _sbS(ecart) + ' added since the last computation ' + (ecart > 1 ? 'are' : 'is') + ' not counted yet.') + '</div>' : '';
+}
+function _sbRemplirBilles(host, v){ host.innerHTML = _sbHtmlBilles(v) + _sbAlerteEcart(); }
 function _sbChoisirCarte(k){
   _sbOngletCarte = k;
   const v = _sbAgreger(), host = document.getElementById('billes-section');
-  if (v && host) host.innerHTML = _sbHtmlBilles(v);
+  if (v && host) _sbRemplirBilles(host, v);
+}
+function _sbChoisirBille(k){
+  _sbBille = k;
+  const v = _sbAgreger(), host = document.getElementById('billes-section');
+  if (!v || !host) return;
+  _sbRemplirBilles(host, v);
+  // le bouton redessine garde le focus (clavier) ; sur telephone, le detail est sous la liste : on le fait entrer dans l'ecran
+  const b = document.getElementById('sb-bille-' + k), hi = document.getElementById('sb-histo');
+  if (b && typeof b.focus === 'function') { try { b.focus({ preventScroll: true }); } catch (e) {} }
+  if (hi && typeof hi.getBoundingClientRect === 'function' && typeof hi.scrollIntoView === 'function') {
+    const r = hi.getBoundingClientRect(), hEcran = window.innerHeight || 0;
+    if (hEcran && r.bottom > hEcran) {
+      const doux = !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      try { hi.scrollIntoView({ block: 'nearest', behavior: doux ? 'smooth' : 'auto' }); } catch (e) {}
+    }
+  }
 }
 function _sbChoisirEtape(k){
   _sbEtape = k;
@@ -39910,10 +40122,8 @@ async function _sbRendreCorpus(){
     if (hb) hb.innerHTML = _carteStats(_tr('Les billes qui tombent', 'Falling marbles'), '<div style="font-size:12px;color:var(--muted)">' + _tr('Ce navigateur ne sait pas lire les données compressées du site : ces statistiques ne peuvent pas s’afficher.', 'This browser cannot read the site’s compressed data: these statistics cannot be shown.') + '</div>');
     return;
   }
-  // parties ajoutees au site depuis le dernier calcul : dites, jamais comptees en silence
-  const B = _sbBanques(), nb = STATS_PARTIES.nb || [];
-  const ecart = B.every(function(b){ return b.length; }) ? B.reduce(function(a, b, i){ return a + Math.max(0, b.length - (nb[i] || 0)); }, 0) : 0;
-  if (hb) hb.innerHTML = _sbHtmlBilles(v) + (ecart ? '<div class="sb-alerte">⚠ ' + _tr(ecart + ' partie' + _sbS(ecart) + ' ajoutée' + _sbS(ecart) + ' depuis le dernier calcul n’' + (ecart > 1 ? 'y sont' : 'y est') + ' pas encore comptée' + _sbS(ecart) + '.', ecart + ' game' + _sbS(ecart) + ' added since the last computation ' + (ecart > 1 ? 'are' : 'is') + ' not counted yet.') + '</div>' : '');
+  // parties ajoutees au site depuis le dernier calcul : dites, jamais comptees en silence (_sbAlerteEcart)
+  if (hb) _sbRemplirBilles(hb, v);
   if (hg) hg.innerHTML = _sbHtmlGagner(v);
   if (hj) hj.innerHTML = _sbHtmlJeu(v);
 }
@@ -39921,7 +40131,7 @@ window.addEventListener('resize', function(){
   clearTimeout(_sbRendreCorpus._t);
   _sbRendreCorpus._t = setTimeout(function(){
     const host = document.getElementById('billes-section');
-    if (host && host.isConnected && host.innerHTML && STATS_PARTIES && _sbEtroit() !== _sbEtroitRendu) host.innerHTML = _sbHtmlBilles(_sbAgreger());
+    if (host && host.isConnected && host.innerHTML && STATS_PARTIES && _sbEtroit() !== _sbEtroitRendu) _sbRemplirBilles(host, _sbAgreger());
   }, 200);
 });
 
