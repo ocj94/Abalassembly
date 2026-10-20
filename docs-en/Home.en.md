@@ -14,7 +14,7 @@ A complete Abalone game in a single HTML file: zero dependencies, offline, GPL v
 - **[History](Historique.en.md)** — your past games, filterable and replayable.
 - **[Historical fingerprints](Empreintes-historiques.en.md)** — rarity, trajectory, correlations with winning.
 - **[Engine benchmark](Benchmark-moteur.en.md)** — methodology and actually measured figures.
-- **[Architecture](Architecture.en.md)** — three diagrams: engine, data, game modes.
+- **[Architecture](Architecture.en.md)** — four diagrams: engine, data, game modes, endgame tables.
 - **[Distributed computing](Calcul-distribue.en.md)** — why there's no volunteer computing grid.
 - **[Multi-worker engine](Moteur-multi-worker.en.md)** — what works, and a real unresolved limitation, documented honestly.
 - **[Variants](Variantes.en.md)** — playable versus documented only, across the three places on the site that describe them.

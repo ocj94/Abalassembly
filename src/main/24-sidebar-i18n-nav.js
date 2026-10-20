@@ -321,6 +321,7 @@ function setLanguage(code) {
   if (typeof filtrerAide === 'function') { const q = document.getElementById('aide-recherche'); filtrerAide(q ? q.value : ''); }
   // page ecrite par le code (v2.61) : redessinee dans la nouvelle langue si elle est affichee
   { const pp = document.getElementById('page-plateau'); if (pp && pp.classList.contains('active') && typeof renderPlateauPage === 'function') renderPlateauPage(); }
+  { const pa = document.getElementById('page-archi'); if (pa && pa.classList.contains('active') && typeof renderArchiPage === 'function') renderArchiPage(); }   // v2.66
   if (code === 'FR' || code === 'EN') {
     if (typeof showToast === 'function') showToast(sel.flag + ' ' + sel.name);
     return;

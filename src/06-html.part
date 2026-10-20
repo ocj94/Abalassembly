@@ -4232,12 +4232,14 @@
 </div>
 
 <!-- ══════════════════════════════════════════
-     PAGE: ARCHITECTURE -- trois schemas expliquant comment le site est
-     construit. Rendus en SVG NATIF, sans bibliotheque externe : charger
-     Mermaid (~2 Mo) casserait le fichier unique hors ligne.
-     ATTENTION : ces schemas sont ECRITS A LA MAIN et doivent etre mis a
+     PAGE: ARCHITECTURE -- quatre cartes expliquant comment le site est
+     construit, ecrites en HTML par renderArchiPage (module 34), en francais
+     et en anglais. Sans bibliotheque externe : charger Mermaid (~2 Mo)
+     casserait le fichier unique hors ligne.
+     ATTENTION : ces cartes sont ECRITES A LA MAIN et doivent etre mises a
      jour quand l'architecture change -- contrairement a la Fiche pour IA
-     qui compte tout a l'execution. Verifies contre le code en v2.39.
+     qui compte tout a l'execution. Verifiees contre le code en v2.66 ; un
+     test compare leurs chiffres aux donnees embarquees.
 ══════════════════════════════════════════ -->
 <div class="page" id="page-archi">
   <div class="page-header" style="padding-bottom:32px">
@@ -4245,7 +4247,6 @@
     <h2>Architecture</h2>
   </div>
   <div style="padding:0 60px 80px;max-width:760px">
-    <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Trois cartes pour comprendre le fonctionnement interne. Version détaillée et à jour : <a href="https://github.com/ocj94/Abalassembly/blob/main/docs/Architecture.md" target="_blank" rel="noopener noreferrer" style="color:var(--gold)">docs/Architecture.md</a> sur le dépôt.</div>
     <div id="archi-diagrams"></div>
   </div>
 </div>
