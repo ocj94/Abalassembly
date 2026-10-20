@@ -9,6 +9,43 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.66]
+
+### Fixed — the Architecture page, brought up to date
+- **It dated from v2.39** and no longer matched the code. It has been
+  re-checked against the code in v2.66:
+  - **how the AI picks its move**: the first question was missing — in
+    Discovery mode, at 4 marbles against 2, the AI plays perfectly from the
+    endgame table (since v2.49, except at level 1). Also added: the v2.60
+    rule, never a move that goes backwards. And level 1 does not draw among
+    the 4 *best* moves but among the first 4 of the list (ejections, then
+    pushes, then plain moves);
+  - **where the data comes from**: **4,579** games (not 4,479: the 93
+    PlayStrategy tournament games and the 7 reference games were missing),
+    **427,156** measured positions (not 418,595), and everything Game
+    statistics has gained since;
+  - **game modes and exchanges**: Discovery mode, the `?pos=` and `?defi=`
+    links, images to share, APGN import, a games file sent to the site; and
+    PlayStrategy, which does go through an outside server (read-only) — the
+    page said no exchange used one;
+  - **endgame tables**: the card said they were not wired into the AI and
+    that larger tables were out of reach; the **4 against 2** table has been
+    solved and proven since v2.49 (140,575,680 positions, the strong side
+    always wins) and the AI uses it.
+- **Readable on a phone**: the diagrams were 640-point-wide images whose text
+  shrank to about 7 points on a phone. They are now text cards that wrap;
+  each AI question has its "yes" answer beside it (indented below on a phone).
+- **In English**: the page stayed in French when the site was in English. It
+  now has its English version and switches language with the site.
+- **The link to the detailed version** led to a missing page
+  (`docs/Architecture.md`): it now points to `docs-fr/Architecture.fr.md` or
+  `docs-en/Architecture.en.md`, depending on the language. Both documents are
+  updated the same way (four Mermaid diagrams, checked by rendering them), as
+  are the links of the English recovery guide (`RECOVERY.en.md`).
+- **A test** now compares every figure on the page and in the documents with
+  the embedded data, and the order of the AI's questions with the code's: one
+  more game or a question moved, and it asks for the update.
+
 ## [v2.65]
 
 ### Added — when the marbles fall, every marble

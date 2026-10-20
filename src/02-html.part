@@ -2051,6 +2051,52 @@ table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset
 .sb-leg-trait { position:absolute; top:0; width:1px; height:6px; background:var(--text); opacity:0.6; }
 .sb-leg-nb { position:absolute; top:7px; font-size:10.5px; line-height:12px; color:var(--muted); white-space:nowrap; font-variant-numeric:tabular-nums; }
 .sb-leg-titre { text-align:center; font-size:10.5px; color:var(--muted); }
+
+/* ─── PAGE ARCHITECTURE (v2.66) : des cartes en HTML, lisibles sur telephone (avant : SVG dont le texte tombait a ~7 px) ─── */
+.archi-intro { font-size:13px; color:var(--muted); line-height:1.6; margin:0 0 20px; }
+.archi-intro a { color:var(--gold); }
+.archi-carte { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 20px; margin-bottom:20px; }
+.archi-titre { font-family:'DM Sans',sans-serif; font-size:13px; font-weight:700; color:var(--white); text-transform:uppercase; letter-spacing:1px; margin:0 0 6px; }
+.archi-note { font-size:12.5px; color:var(--muted); line-height:1.55; margin:0 0 14px; }
+.archi-boite { border-radius:8px; padding:9px 12px; font-size:13px; line-height:1.45; color:var(--text); border:1.5px solid var(--border); background:#232625; overflow-wrap:anywhere; }
+.archi-boite code { font-family:'DM Mono',monospace; font-size:12px; color:var(--gold-light); white-space:nowrap; }
+.archi-q { background:#1a2f2f; border-color:var(--gold-dim); }
+.archi-r { background:#33300f; border-color:var(--gold); }
+.archi-c { background:#1c2d33; border-color:#4a7a8a; }
+.archi-dest { background:transparent; }
+.archi-ext { background:#2e2219; border-color:#d9773f; }
+.archi-depart, .archi-centre { text-align:center; }
+.archi-depart { font-weight:700; }
+.archi-chiffre { color:var(--gold-light); font-weight:700; font-variant-numeric:tabular-nums; }
+.archi-num { display:inline-block; min-width:18px; height:18px; line-height:18px; border-radius:9px; background:var(--gold-dim); color:#0d0f0e; font-size:11px; font-weight:800; text-align:center; margin-right:7px; vertical-align:1px; }
+.archi-fleche { text-align:center; color:var(--muted); font-size:14px; line-height:1; padding:5px 0; }
+.archi-etape, .archi-non, .archi-usage { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); align-items:center; }
+.archi-branche { display:grid; grid-template-columns:54px minmax(0,1fr); align-items:center; }
+.archi-oui { text-align:center; font-size:11.5px; font-weight:700; color:var(--gold); white-space:nowrap; }
+.archi-usage .archi-oui { color:var(--muted); }
+.archi-non > span { grid-column:1; text-align:center; font-size:11.5px; color:var(--muted); padding:4px 0; }
+.archi-usage { margin-bottom:8px; }
+.archi-etroit { display:none; }
+.archi-puces { display:flex; flex-wrap:wrap; gap:8px; }
+.archi-puces .archi-boite { flex:1 1 130px; text-align:center; }
+.archi-groupe { margin-top:12px; }
+.archi-groupe-titre { font-size:12px; font-weight:700; color:var(--text); margin:0 0 6px; }
+.archi-liste { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:6px; }
+.archi-regle { font-size:12.5px; line-height:1.5; color:var(--text); background:rgba(200,168,75,0.07); border:1px solid rgba(200,168,75,0.25); border-radius:8px; padding:8px 12px; margin:12px 0 0; }
+.archi-tables { display:flex; flex-direction:column; gap:10px; }
+.archi-table { display:grid; grid-template-columns:150px minmax(0,1fr); gap:12px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+.archi-table:last-child { border-bottom:0; padding-bottom:0; }
+.archi-table-nom { font-size:13px; font-weight:700; color:var(--gold); }
+.archi-table-txt { font-size:13px; line-height:1.55; color:var(--text); }
+@media (max-width: 560px) {
+  .archi-carte { padding:16px 14px; }
+  .archi-etape, .archi-usage, .archi-non { grid-template-columns:1fr; }
+  .archi-branche { grid-template-columns:auto minmax(0,1fr); gap:8px; margin:6px 0 0 12px; }
+  .archi-oui { text-align:left; }
+  .archi-large { display:none; }
+  .archi-etroit { display:inline; }
+  .archi-table { grid-template-columns:1fr; gap:4px; }
+}
 .win-repere { max-width:440px; margin:10px auto 0; font-size:13px; line-height:1.55; color:var(--text); background:rgba(200,168,75,0.08); border:1px solid rgba(200,168,75,0.25); border-radius:10px; padding:9px 14px; }
 .win-repere:empty { display:none; }
 

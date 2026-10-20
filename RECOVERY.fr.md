@@ -12,7 +12,7 @@ vraiment tranché, et ce qui ne l'est pas.
 
 1. [`README.md`](README.fr.md) — la vue d'ensemble
 2. [`docs-fr/Home.fr.md`](docs-fr/Home.fr.md) — le sommaire du wiki, toutes les pages
-3. [`docs-fr/Architecture.fr.md`](docs-fr/Architecture.fr.md) — les 3 schémas (moteur, données, modes de jeu)
+3. [`docs-fr/Architecture.fr.md`](docs-fr/Architecture.fr.md) — les 4 schémas (moteur, données, modes de jeu, tables de finale)
 4. [`src/README.md`](src/README.md) — comment le code source est organisé
 
 Tout le wiki existe en français et en anglais (lien de bascule en tête de

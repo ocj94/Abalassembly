@@ -4220,3 +4220,73 @@ test('v2.65 carte des éjections : sous l’échelle de couleurs, des traits et 
     assert.doesNotMatch(L, /bille|case|Échelle/);
   } finally { if (avantL === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avantL); }
 });
+
+// ═══════════════════════════════════════════
+// 60. v2.66 : la page Architecture, a jour (elle datait de la v2.39), en francais et en anglais
+// ═══════════════════════════════════════════
+const _r60 = code => require('vm').runInContext(code, ctx);
+
+test('v2.66 Architecture : chaque chiffre écrit à la main est celui des données embarquées (sinon : mettre à jour ARCHI_CHIFFRES et docs-*/Architecture.*.md)', async () => {
+  assert.ok(await ctx.ensureGameBanks()); assert.ok(await ctx.ensureEmpreintesHistoriques());
+  assert.strictEqual(await _r60('ensureEmpreintesComplement()'), true);
+  const A = JSON.parse(JSON.stringify(_r60('ARCHI_CHIFFRES'))), B = ctx._sbBanques();
+  assert.deepStrictEqual([A.migs, A.ao, A.ps, A.ref], Array.from(B, b => b.length), 'parties de chaque source');
+  assert.strictEqual(A.empreintes, _r60('EMPREINTES_HISTORIQUES.length + EMPREINTES_COMPLEMENT.n'), 'positions mesurees');
+  assert.strictEqual(A.dispositionsLivre, _r60('Object.keys(OPENING_TREES).length'), 'dispositions du livre');
+  assert.strictEqual(A.puzzles, _r60('PUZZLES.length'), 'problemes');
+  assert.strictEqual(A.historique, _r60('HIST_MAX'), 'historique local');
+  const R = require('fs').readFileSync(require('path').join(__dirname, '..', 'tablebase', 'RESULTS.md'), 'utf8');
+  assert.ok(R.indexOf(A.positions4v2.toLocaleString('fr-FR').replace(/\s/g, ' ') + ' positions légales') >= 0, 'positions 4 contre 2');
+  assert.ok(R.indexOf('**' + A.demiCoups4v2 + ' demi-coups au plus**') >= 0, 'demi-coups 4 contre 2');
+  // les documents du depot disent les memes chiffres
+  const lire = f => require('fs').readFileSync(require('path').join(__dirname, '..', f), 'utf8');
+  const total = A.migs + A.ao + A.ps + A.ref, fr = lire('docs-fr/Architecture.fr.md'), en = lire('docs-en/Architecture.en.md');
+  const nFr = x => x.toLocaleString('fr-FR').replace(/\s/g, ' '), nEn = x => x.toLocaleString('en-US');
+  [A.migs, A.ao, A.ps, A.ref, total, A.empreintes, A.positions4v2].forEach(x => {
+    assert.ok(fr.indexOf(nFr(x)) >= 0, 'docs-fr : ' + nFr(x));
+    assert.ok(en.indexOf(nEn(x)) >= 0, 'docs-en : ' + nEn(x));
+  });
+});
+
+test('v2.66 Architecture : les questions de l’IA dans l’ordre de aiMove(), la page en français et en anglais, ses liens vers des fichiers qui existent', async () => {
+  // l'ordre des questions de la carte 1 est celui du code : table 4 contre 2, livre, parties reelles, livre statique, niveau 1, recherche
+  const src = ctx.aiMove.toString();
+  const reperes = ['_tb42Applicable()', '_bookNode && _bookNode.k', 'boardSnapshots.length < 20', 'boardSnapshots.length < 16', "_niveauIA() === 1", 'requestAIMovePooled'];
+  const places = reperes.map(r => src.indexOf(r));
+  places.forEach((p, i) => assert.ok(p > 0, 'aiMove : ' + reperes[i]));
+  for (let i = 1; i < places.length; i++) assert.ok(places[i] > places[i - 1], 'ordre : ' + reperes[i - 1] + ' puis ' + reperes[i]);
+  const existe = f => require('fs').existsSync(require('path').join(__dirname, '..', f));
+  await _enFrancais54(() => _dom54(async els => {
+    ctx.renderArchiPage();
+    const h = els['archi-diagrams'].innerHTML;
+    ['Comment l’IA choisit son coup', 'D’où viennent les données', 'Les modes de jeu et les échanges', 'Les tables de finale'].forEach(t => assert.ok(h.indexOf('<h3 class="archi-titre">' + t + '</h3>') >= 0, t));
+    assert.strictEqual((h.match(/class="archi-num"/g) || []).length, 5, 'cinq questions');
+    assert.ok(h.indexOf('Partie de Découverte arrivée à 4 billes contre 2') > 0 && h.indexOf('table de finale 4 contre 2') > 0);
+    assert.ok(h.indexOf('Corpus : <b class="archi-chiffre">' + ctx._dimNb(4579) + '</b> parties réelles') > 0);
+    assert.ok(h.indexOf('PlayStrategy') > 0 && h.indexOf('en lecture seule') > 0, 'le serveur exterieur, dit');
+    const liens = [...h.matchAll(/href="https:\/\/github\.com\/ocj94\/Abalassembly\/blob\/main\/([^"]+)"/g)].map(m => m[1]);
+    assert.deepStrictEqual(liens, ['docs-fr/Architecture.fr.md']);
+    liens.forEach(f => assert.ok(existe(f), f));
+    assert.doesNotMatch(h, /NaN|undefined|docs\/Architecture/);
+  }));
+  const avantL = ctx.localStorage.getItem('abalone_lang');
+  ctx.localStorage.setItem('abalone_lang', 'EN');
+  try {
+    await _dom54(async els => {
+      ctx.renderArchiPage();
+      const h = els['archi-diagrams'].innerHTML;
+      ['How the AI picks its move', 'Where the data comes from', 'Game modes and exchanges', 'Endgame tables'].forEach(t => assert.ok(h.indexOf('<h3 class="archi-titre">' + t + '</h3>') >= 0, t));
+      assert.ok(h.indexOf('Corpus: <b class="archi-chiffre">' + ctx._dimNb(4579) + '</b> real games') > 0);
+      const liens = [...h.matchAll(/href="https:\/\/github\.com\/ocj94\/Abalassembly\/blob\/main\/([^"]+)"/g)].map(m => m[1]);
+      assert.deepStrictEqual(liens, ['docs-en/Architecture.en.md']);
+      liens.forEach(f => assert.ok(existe(f), f));
+      const lu = h.replace(/<code>[^<]*<\/code>/g, ' ').replace(/<[^>]*>/g, ' ');   // les liens ?partie= gardent leur nom
+      assert.doesNotMatch(lu, /\b(partie|parties|billes|coup|données|nulles|Sinon|niveau|oui|non)\b/, 'francais oublie');
+    });
+  } finally { if (avantL === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avantL); }
+  // redessinee au changement de langue ; l'en-tete statique a sa traduction
+  const site = _SRC();
+  assert.ok(site.indexOf("const pa = document.getElementById('page-archi'); if (pa && pa.classList.contains('active') && typeof renderArchiPage === 'function') renderArchiPage();") > 0);
+  assert.strictEqual(_r60("I18N_EN[\"Comment c'est construit\"]"), 'How it’s built');
+  assert.strictEqual(site.indexOf('docs/Architecture.md'), -1, 'plus de lien vers un fichier qui n’existe pas');
+});

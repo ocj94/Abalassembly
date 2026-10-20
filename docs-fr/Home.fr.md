@@ -14,7 +14,7 @@ Un jeu d'Abalone complet dans un seul fichier HTML : zéro dépendance, hors-lig
 - **[Historique](Historique.fr.md)** — tes parties passées, filtrables et rejouables.
 - **[Empreintes historiques](Empreintes-historiques.fr.md)** — rareté, trajectoire, corrélations avec la victoire.
 - **[Benchmark moteur](Benchmark-moteur.fr.md)** — méthodologie et chiffres réellement mesurés.
-- **[Architecture](Architecture.fr.md)** — trois schémas : moteur, données, modes de jeu.
+- **[Architecture](Architecture.fr.md)** — quatre schémas : moteur, données, modes de jeu, tables de finale.
 - **[Calcul distribué](Calcul-distribue.fr.md)** — pourquoi il n'y a pas de grille de calcul volontaire.
 - **[Moteur multi-worker](Moteur-multi-worker.fr.md)** — ce qui marche, et une vraie limite non résolue, documentée honnêtement.
 - **[Variantes](Variantes.fr.md)** — jouables contre documentées seulement, à travers les trois endroits du site qui en parlent.

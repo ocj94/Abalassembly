@@ -11,9 +11,9 @@ settled, and what isn't.
 ## Where to start
 
 1. [`README.md`](README.en.md) — the overview
-2. [`docs/Home.md`](docs/Home.en.md) — the wiki's table of contents, every page
-3. [`docs/Architecture.md`](docs/Architecture.en.md) — the 3 diagrams (engine, data, game modes)
-4. [`src/README.md`](src/README.en.md) — how the source is organized
+2. [`docs-en/Home.en.md`](docs-en/Home.en.md) — the wiki's table of contents, every page
+3. [`docs-en/Architecture.en.md`](docs-en/Architecture.en.md) — the 4 diagrams (engine, data, game modes, endgame tables)
+4. [`src/README.md`](src/README.md) — how the source is organized (in French)
 
 The whole wiki exists in both French and English (a switcher link at the
 top of every page).

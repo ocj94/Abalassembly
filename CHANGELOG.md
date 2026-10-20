@@ -9,6 +9,46 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.66]
+
+### Corrigé — la page Architecture, remise à jour
+- **Elle datait de la v2.39** et ne correspondait plus au code. Elle est
+  revérifiée contre le code en v2.66 :
+  - **comment l'IA choisit son coup** : la première question manquait — en
+    mode Découverte, à 4 billes contre 2, l'IA joue parfaitement grâce à la
+    table de finale (depuis la v2.49, sauf au niveau 1). Ajoutée aussi : la
+    règle de la v2.60, jamais un coup qui revient en arrière. Et le niveau 1
+    ne tire pas parmi les 4 *meilleurs* coups, mais parmi les 4 premiers de
+    la liste (éjections, puis poussées, puis déplacements) ;
+  - **d'où viennent les données** : **4 579** parties (et non 4 479 : il
+    manquait les 93 parties du tournoi PlayStrategy et les 7 parties de
+    référence), **427 156** positions mesurées (et non 418 595), et tout ce
+    que les Statistiques du jeu ont gagné depuis ;
+  - **les modes de jeu et les échanges** : le mode Découverte, les liens
+    `?pos=` et `?defi=`, les images à partager, l'import APGN, le fichier de
+    parties envoyé vers le site ; et PlayStrategy, qui passe, lui, par un
+    serveur extérieur (en lecture seule) — la page disait qu'aucun échange
+    n'en utilisait ;
+  - **les tables de finale** : la carte disait qu'elles n'étaient pas
+    branchées sur l'IA et que les tables plus grandes étaient hors de
+    portée ; la table **4 contre 2** est résolue et prouvée depuis la v2.49
+    (140 575 680 positions, le camp fort gagne toujours) et l'IA s'en sert.
+- **Lisible sur téléphone** : les schémas étaient des images de 640 points de
+  large, dont le texte tombait à 7 points environ sur un téléphone. Ce sont
+  maintenant des cartes en texte, qui passent à la ligne ; chaque question de
+  l'IA a sa réponse « oui » à côté (en retrait dessous sur téléphone).
+- **En anglais** : la page restait en français quand le site était en
+  anglais. Elle a maintenant sa version anglaise, et elle change de langue
+  avec le site.
+- **Le lien vers la version détaillée** menait à une page introuvable
+  (`docs/Architecture.md`) : il pointe vers `docs-fr/Architecture.fr.md` ou
+  `docs-en/Architecture.en.md`, selon la langue. Ces deux documents sont mis
+  à jour de la même façon (quatre schémas Mermaid, vérifiés au rendu), comme
+  les liens du guide de reprise anglais (`RECOVERY.en.md`).
+- **Un test** compare désormais chaque chiffre de la page et des documents
+  aux données embarquées, et l'ordre des questions de l'IA à celui du code :
+  une partie de plus ou une question déplacée, et il demande la mise à jour.
+
 ## [v2.65]
 
 ### Ajouté — à quel coup tombent les billes, toutes les billes

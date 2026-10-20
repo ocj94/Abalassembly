@@ -2,7 +2,7 @@
    VARIANTS — 20 variantes officielles (galerie jouable du site : inclut les
    modes a plusieurs joueurs et les variantes de regles qui ne font pas
    partie du corpus historique — different des 13/18/19 lies aux parties
-   AbalOnline/MIGS, voir docs/Architecture.md)
+   AbalOnline/MIGS, voir docs-fr/Architecture.fr.md)
    Sources: 3-2-one.com · Notice Asmodee · ABA-PRO
 ═══════════════════════════════════════════ */
 const variantsData = [

@@ -2180,6 +2180,52 @@ table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset
 .sb-leg-trait { position:absolute; top:0; width:1px; height:6px; background:var(--text); opacity:0.6; }
 .sb-leg-nb { position:absolute; top:7px; font-size:10.5px; line-height:12px; color:var(--muted); white-space:nowrap; font-variant-numeric:tabular-nums; }
 .sb-leg-titre { text-align:center; font-size:10.5px; color:var(--muted); }
+
+/* ─── PAGE ARCHITECTURE (v2.66) : des cartes en HTML, lisibles sur telephone (avant : SVG dont le texte tombait a ~7 px) ─── */
+.archi-intro { font-size:13px; color:var(--muted); line-height:1.6; margin:0 0 20px; }
+.archi-intro a { color:var(--gold); }
+.archi-carte { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 20px; margin-bottom:20px; }
+.archi-titre { font-family:'DM Sans',sans-serif; font-size:13px; font-weight:700; color:var(--white); text-transform:uppercase; letter-spacing:1px; margin:0 0 6px; }
+.archi-note { font-size:12.5px; color:var(--muted); line-height:1.55; margin:0 0 14px; }
+.archi-boite { border-radius:8px; padding:9px 12px; font-size:13px; line-height:1.45; color:var(--text); border:1.5px solid var(--border); background:#232625; overflow-wrap:anywhere; }
+.archi-boite code { font-family:'DM Mono',monospace; font-size:12px; color:var(--gold-light); white-space:nowrap; }
+.archi-q { background:#1a2f2f; border-color:var(--gold-dim); }
+.archi-r { background:#33300f; border-color:var(--gold); }
+.archi-c { background:#1c2d33; border-color:#4a7a8a; }
+.archi-dest { background:transparent; }
+.archi-ext { background:#2e2219; border-color:#d9773f; }
+.archi-depart, .archi-centre { text-align:center; }
+.archi-depart { font-weight:700; }
+.archi-chiffre { color:var(--gold-light); font-weight:700; font-variant-numeric:tabular-nums; }
+.archi-num { display:inline-block; min-width:18px; height:18px; line-height:18px; border-radius:9px; background:var(--gold-dim); color:#0d0f0e; font-size:11px; font-weight:800; text-align:center; margin-right:7px; vertical-align:1px; }
+.archi-fleche { text-align:center; color:var(--muted); font-size:14px; line-height:1; padding:5px 0; }
+.archi-etape, .archi-non, .archi-usage { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); align-items:center; }
+.archi-branche { display:grid; grid-template-columns:54px minmax(0,1fr); align-items:center; }
+.archi-oui { text-align:center; font-size:11.5px; font-weight:700; color:var(--gold); white-space:nowrap; }
+.archi-usage .archi-oui { color:var(--muted); }
+.archi-non > span { grid-column:1; text-align:center; font-size:11.5px; color:var(--muted); padding:4px 0; }
+.archi-usage { margin-bottom:8px; }
+.archi-etroit { display:none; }
+.archi-puces { display:flex; flex-wrap:wrap; gap:8px; }
+.archi-puces .archi-boite { flex:1 1 130px; text-align:center; }
+.archi-groupe { margin-top:12px; }
+.archi-groupe-titre { font-size:12px; font-weight:700; color:var(--text); margin:0 0 6px; }
+.archi-liste { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:6px; }
+.archi-regle { font-size:12.5px; line-height:1.5; color:var(--text); background:rgba(200,168,75,0.07); border:1px solid rgba(200,168,75,0.25); border-radius:8px; padding:8px 12px; margin:12px 0 0; }
+.archi-tables { display:flex; flex-direction:column; gap:10px; }
+.archi-table { display:grid; grid-template-columns:150px minmax(0,1fr); gap:12px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+.archi-table:last-child { border-bottom:0; padding-bottom:0; }
+.archi-table-nom { font-size:13px; font-weight:700; color:var(--gold); }
+.archi-table-txt { font-size:13px; line-height:1.55; color:var(--text); }
+@media (max-width: 560px) {
+  .archi-carte { padding:16px 14px; }
+  .archi-etape, .archi-usage, .archi-non { grid-template-columns:1fr; }
+  .archi-branche { grid-template-columns:auto minmax(0,1fr); gap:8px; margin:6px 0 0 12px; }
+  .archi-oui { text-align:left; }
+  .archi-large { display:none; }
+  .archi-etroit { display:inline; }
+  .archi-table { grid-template-columns:1fr; gap:4px; }
+}
 .win-repere { max-width:440px; margin:10px auto 0; font-size:13px; line-height:1.55; color:var(--text); background:rgba(200,168,75,0.08); border:1px solid rgba(200,168,75,0.25); border-radius:10px; padding:9px 14px; }
 .win-repere:empty { display:none; }
 
@@ -2646,6 +2692,7 @@ const I18N_EN = {
   'Ouvertures': 'Openings', 'Analyse': 'Analysis', 'Mes statistiques': 'My statistics',
   'Sur un vrai plateau': 'On a real board', 'Apprendre sur un vrai plateau': 'Learning on a real board', 'À partir de 3 ans · en famille, sans écran': 'From age 3 · as a family, screen-free',
   'Gym Cerveau': 'Brain Gym', 'Formation Formateurs': 'Trainer course', '🧪 Explorer': '🧪 Explore', 'Labo IA': 'AI Lab',
+  "Comment c'est construit": 'How it’s built',   // page Architecture (v2.66) : le reste est ecrit par renderArchiPage, en francais ou en anglais
   'Bibliothèque de parties': 'Game library', 'Tables de finale': 'Endgame tables', 'Détection photo / plateau': 'Photo / board detection',
   'Insights GitHub': 'GitHub insights', 'Fiche pour IA': 'Sheet for AIs', 'Musée': 'Museum', 'Pionniers': 'Pioneers', 'Trombinoscope': 'Members',
   '🌐 En ligne (bientôt)': '🌐 Online (coming soon)', 'Classement': 'Leaderboard', 'Observer': 'Watch', 'Communauté': 'Community', 'Tournoi': 'Tournament',
@@ -7514,12 +7561,14 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
 </div>
 
 <!-- ══════════════════════════════════════════
-     PAGE: ARCHITECTURE -- trois schemas expliquant comment le site est
-     construit. Rendus en SVG NATIF, sans bibliotheque externe : charger
-     Mermaid (~2 Mo) casserait le fichier unique hors ligne.
-     ATTENTION : ces schemas sont ECRITS A LA MAIN et doivent etre mis a
+     PAGE: ARCHITECTURE -- quatre cartes expliquant comment le site est
+     construit, ecrites en HTML par renderArchiPage (module 34), en francais
+     et en anglais. Sans bibliotheque externe : charger Mermaid (~2 Mo)
+     casserait le fichier unique hors ligne.
+     ATTENTION : ces cartes sont ECRITES A LA MAIN et doivent etre mises a
      jour quand l'architecture change -- contrairement a la Fiche pour IA
-     qui compte tout a l'execution. Verifies contre le code en v2.39.
+     qui compte tout a l'execution. Verifiees contre le code en v2.66 ; un
+     test compare leurs chiffres aux donnees embarquees.
 ══════════════════════════════════════════ -->
 <div class="page" id="page-archi">
   <div class="page-header" style="padding-bottom:32px">
@@ -7527,7 +7576,6 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
     <h2>Architecture</h2>
   </div>
   <div style="padding:0 60px 80px;max-width:760px">
-    <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Trois cartes pour comprendre le fonctionnement interne. Version détaillée et à jour : <a href="https://github.com/ocj94/Abalassembly/blob/main/docs/Architecture.md" target="_blank" rel="noopener noreferrer" style="color:var(--gold)">docs/Architecture.md</a> sur le dépôt.</div>
     <div id="archi-diagrams"></div>
   </div>
 </div>
@@ -8373,7 +8421,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.65';
+const APP_VERSION = 'v2.66';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -29191,7 +29239,7 @@ function renderStreak() {
    VARIANTS — 20 variantes officielles (galerie jouable du site : inclut les
    modes a plusieurs joueurs et les variantes de regles qui ne font pas
    partie du corpus historique — different des 13/18/19 lies aux parties
-   AbalOnline/MIGS, voir docs/Architecture.md)
+   AbalOnline/MIGS, voir docs-fr/Architecture.fr.md)
    Sources: 3-2-one.com · Notice Asmodee · ABA-PRO
 ═══════════════════════════════════════════ */
 const variantsData = [
@@ -31334,6 +31382,7 @@ function setLanguage(code) {
   if (typeof filtrerAide === 'function') { const q = document.getElementById('aide-recherche'); filtrerAide(q ? q.value : ''); }
   // page ecrite par le code (v2.61) : redessinee dans la nouvelle langue si elle est affichee
   { const pp = document.getElementById('page-plateau'); if (pp && pp.classList.contains('active') && typeof renderPlateauPage === 'function') renderPlateauPage(); }
+  { const pa = document.getElementById('page-archi'); if (pa && pa.classList.contains('active') && typeof renderArchiPage === 'function') renderArchiPage(); }   // v2.66
   if (code === 'FR' || code === 'EN') {
     if (typeof showToast === 'function') showToast(sel.flag + ' ' + sel.name);
     return;
@@ -36849,109 +36898,157 @@ function _historySetFilter(key, value){
    mis en cache ensuite -- voir ensureMigsWinners). Affiche une
    progression honnete pendant ce calcul plutot que de figer la page. */
 /* ═══════════════════════════════════════════
-   SCHEMAS D'ARCHITECTURE — rendus en SVG NATIF.
-   Pas de bibliotheque externe : Mermaid pese ~2 Mo et casserait le
-   fichier unique hors ligne. Meme approche que la courbe d'evaluation
-   et la heatmap d'activite, deja en SVG natif.
+   PAGE ARCHITECTURE — quatre cartes ecrites en HTML (v2.66)
+   Demande d'Olivier : « la partie Architecture correspond toujours ? ».
+   Non : verifiee pour la derniere fois en v2.39, elle ignorait la table de
+   finale 4 contre 2 (branchee sur l'IA depuis la v2.49), les parties
+   PlayStrategy et de reference, les statistiques des v2.63-v2.65, les liens
+   ?defi= et ?pos=, PlayStrategy (qui passe par un serveur), et son lien vers
+   la documentation menait a une page introuvable (le fichier vit dans docs-fr/
+   et docs-en/). Ses schemas etaient des
+   SVG de 640 px dont le texte tombait a ~7 px sur un telephone, et la suite
+   de boites laissait croire que chaque reponse menait a la question suivante.
+   Maintenant : du HTML qui passe a la ligne, chaque question de l'IA avec sa
+   branche « oui », une version anglaise, et le lien vers docs-fr / docs-en.
 
-   ATTENTION — CONTENU ECRIT A LA MAIN : contrairement a la Fiche pour
-   IA (openSiteBriefing), qui compte tout a l'execution, un schema
-   d'architecture ne peut pas se deduire du code. Il doit etre mis a
-   jour A LA MAIN quand l'architecture change, au meme titre que
-   APP_VERSION. Verifie contre le code en v2.39.
+   ATTENTION — CONTENU ECRIT A LA MAIN : contrairement a la Fiche pour IA
+   (openSiteBriefing), qui compte tout a l'execution, ces cartes ne se
+   deduisent pas du code. Verifiees contre le code en v2.66. Les CHIFFRES sont
+   regroupes dans ARCHI_CHIFFRES, et un test les compare aux donnees
+   embarquees : une partie ou un probleme de plus, et le test demande la mise
+   a jour. Le reste (l'ordre des questions de l'IA, les echanges) se relit a
+   la main a chaque changement d'architecture, avec docs-fr/Architecture.fr.md
+   et docs-en/Architecture.en.md.
 ═══════════════════════════════════════════ */
-const ARCHI_DIAGRAMS = [
-  {
-    titre: 'Comment l\u2019IA choisit son coup',
-    note: 'L\u2019ordre compte : chaque étape n\u2019est atteinte que si la précédente n\u2019a rien donné.',
-    noeuds: [
-      { t:'Tour de l\u2019IA', c:'neutre' },
-      { t:'Le livre d\u2019ouvertures couvre-t-il la position ?', c:'test' },
-      { t:'Coup tiré au sort, pondéré fréquence × taux de victoire', c:'sortie' },
-      { t:'Moins de 20 coups, et la même position existe dans une partie réelle (vérifiée en la rejouant) ?', c:'test' },
-      { t:'Coup joué depuis cette position dans les parties réelles', c:'sortie' },
-      { t:'Moins de 16 coups, et le livre statique connaît la position ?', c:'test' },
-      { t:'Coup du livre statique', c:'sortie' },
-      { t:'Niveau 1 ?', c:'test' },
-      { t:'Coup au hasard parmi les 4 meilleurs', c:'sortie' },
-      { t:'Recherche alpha-bêta, répartie sur plusieurs cœurs si disponibles', c:'calcul' }
-    ]
-  },
-  {
-    titre: 'D\u2019où viennent les données',
-    note: 'Le corpus ne sert pas qu\u2019à consulter : il alimente directement le jeu de l\u2019IA.',
-    noeuds: [
-      { t:'MIGS — 2 589 parties  +  AbalOnline — 1 890 parties', c:'neutre' },
-      { t:'Corpus de 4 479 parties réelles', c:'sortie' },
-      { t:'Livres d\u2019ouvertures — 13 variantes (avec arbre statistique)', c:'calcul' },
-      { t:'Empreintes historiques — 418 595 positions × 12 dimensions', c:'calcul' },
-      { t:'Puzzles — 138, chacun sourcé vers sa partie', c:'calcul' },
-      { t:'Statistiques du jeu — avantage du 1er joueur, durées', c:'calcul' }
-    ]
-  },
-  {
-    titre: 'Les modes de jeu et les échanges',
-    note: 'Aucun échange ne passe par un serveur de jeu. Les deux marchent même sans réseau — juste un texte ou une URL à transmettre.',
-    noeuds: [
-      { t:'Contre l\u2019IA  ·  Deux joueurs  ·  Partie en direct 🧪', c:'neutre' },
-      { t:'Partie en cours', c:'sortie' },
-      { t:'Partie par code — texte à copier-coller', c:'calcul' },
-      { t:'Lien de partie — ?partie= dans l\u2019URL, ouverture en un clic', c:'calcul' },
-      { t:'Export / import Aba-Pro — standard communautaire', c:'calcul' },
-      { t:'Duel moteur externe — relais manuel', c:'calcul' },
-      { t:'Historique local — 200 parties rejouables', c:'calcul' }
-    ]
-  }
-];
-
-function _archiSVG(d){
-  const W = 640, hN = 46, gap = 18;
-  const H = d.noeuds.length * (hN + gap) + 10;
-  const couleurs = {
-    neutre: { f:'#2a2a2a', s:'var(--border)' },
-    test:   { f:'#1a2f2f', s:'var(--gold-dim)' },
-    sortie: { f:'#33300f', s:'var(--gold)' },
-    calcul: { f:'#1c2d33', s:'#4a7a8a' }
-  };
-  let svg = '<svg width="100%" viewBox="0 0 '+W+' '+H+'" style="display:block;max-width:100%">';
-  d.noeuds.forEach(function(n, i){
-    const y = i * (hN + gap) + 4;
-    const col = couleurs[n.c] || couleurs.neutre;
-    if (i > 0) {
-      const yp = y - gap;
-      svg += '<line x1="'+(W/2)+'" y1="'+yp+'" x2="'+(W/2)+'" y2="'+y+'" stroke="var(--border)" stroke-width="2"/>'
-           + '<polygon points="'+(W/2-4)+','+(y-6)+' '+(W/2+4)+','+(y-6)+' '+(W/2)+','+y+'" fill="var(--border)"/>';
-    }
-    svg += '<rect x="10" y="'+y+'" width="'+(W-20)+'" height="'+hN+'" rx="8" fill="'+col.f+'" stroke="'+col.s+'" stroke-width="1.5"/>';
-    // texte coupe en deux lignes si trop long
-    const txt = n.t;
-    if (txt.length > 52) {
-      let cut = txt.lastIndexOf(' ', 52); if (cut < 20) cut = 52;
-      svg += '<text x="'+(W/2)+'" y="'+(y+19)+'" text-anchor="middle" fill="var(--text)" font-size="13">'+_esc(txt.slice(0,cut))+'</text>'
-           + '<text x="'+(W/2)+'" y="'+(y+35)+'" text-anchor="middle" fill="var(--text)" font-size="13">'+_esc(txt.slice(cut+1))+'</text>';
-    } else {
-      svg += '<text x="'+(W/2)+'" y="'+(y+28)+'" text-anchor="middle" fill="var(--text)" font-size="13">'+_esc(txt)+'</text>';
-    }
-  });
-  svg += '</svg>';
-  return svg;
+const ARCHI_CHIFFRES = {
+  migs: 2589, ao: 1890, ps: 93, ref: 7,        // parties de chaque source (_sbBanques)
+  empreintes: 427156,                           // positions mesurees : EMPREINTES_HISTORIQUES + EMPREINTES_COMPLEMENT
+  dispositionsLivre: 13,                        // dispositions de l'arbre d'ouvertures (OPENING_TREES)
+  puzzles: 138,                                 // PUZZLES
+  historique: 200,                              // HIST_MAX
+  positions4v2: 140575680, demiCoups4v2: 97     // tablebase/RESULTS.md
+};
+function _archiN(x){ return '<b class="archi-chiffre">' + _dimNb(x) + '</b>'; }
+function _archiFleche(){ return '<div class="archi-fleche" aria-hidden="true">↓</div>'; }
+// la branche d'une boite : a droite sur ordinateur (« oui → »), en retrait dessous sur telephone (« ↳ oui »)
+function _archiBranche(mot, cible, classe){
+  return '<div class="archi-branche"><div class="archi-oui"><span class="archi-etroit" aria-hidden="true">↳ </span>' + mot + '<span class="archi-large" aria-hidden="true"> →</span></div>'
+    + '<div class="archi-boite ' + classe + '">' + cible + '</div></div>';
 }
-function _esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function _archiCarte(titre, note, corps){
+  return '<section class="archi-carte"><h3 class="archi-titre">' + titre + '</h3>' + (note ? '<p class="archi-note">' + note + '</p>' : '') + corps + '</section>';
+}
+
+/* 1. Comment l'IA choisit son coup -- l'ordre de aiMove() */
+function _archiCarteIA(){
+  const etapes = [
+    [_tr('Partie de Découverte arrivée à 4 billes contre 2, hors niveau 1 ?', 'A Discovery game down to 4 marbles against 2, not at level 1?'),
+     _tr('Coup parfait, lu dans la table de finale 4 contre 2 : gagner au plus vite, sinon tenir la nulle, sinon résister le plus longtemps', 'Perfect move, read from the 4-against-2 endgame table: win as fast as possible, otherwise hold the draw, otherwise resist as long as possible')],
+    [_tr('Le livre d’ouvertures suit-il encore la partie ?', 'Is the opening book still following the game?'),
+     _tr('Coup tiré au sort parmi ceux des vraies parties, pondéré par fréquence × taux de victoire', 'A move drawn from those of real games, weighted by frequency × win rate')],
+    [_tr('Moins de 20 coups joués, et la même position existe dans une vraie partie MIGS ou AbalOnline, vérifiée en la rejouant ?', 'Fewer than 20 moves played, and the same position exists in a real MIGS or AbalOnline game, checked by replaying it?'),
+     _tr('Le coup joué ensuite dans cette partie', 'The move played next in that game')],
+    [_tr('Moins de 16 coups, et le livre statique connaît la position (à défaut, celui appris au Labo IA) ?', 'Fewer than 16 moves, and the static book knows the position (failing that, the one learned in the AI Lab)?'),
+     _tr('Coup du livre', 'Book move')],
+    [_tr('Niveau 1 ?', 'Level 1?'),
+     _tr('Un coup au hasard parmi les 4 premiers de la liste : éjections, puis poussées, puis déplacements', 'A random move among the first 4 of the list: ejections, then pushes, then plain moves')]
+  ];
+  let h = '<div class="archi-flux"><div class="archi-boite archi-depart">' + _tr('Tour de l’IA', 'The AI’s turn') + '</div>' + _archiFleche();
+  etapes.forEach(function(e, i){
+    h += '<div class="archi-etape">'
+      + '<div class="archi-boite archi-q"><span class="archi-num">' + (i + 1) + '</span>' + e[0] + '</div>'
+      + _archiBranche(_tr('oui', 'yes'), e[1], 'archi-r') + '</div>'
+      + '<div class="archi-non"><span>' + _tr('non', 'no') + ' <span aria-hidden="true">↓</span></span></div>';
+  });
+  h += '<div class="archi-boite archi-c">' + _tr('Sinon : recherche alpha-bêta, avec les poids du style de l’IA (choisi, ou déduit de ta façon de jouer), répartie sur plusieurs cœurs si l’appareil en a',
+                                                 'Otherwise: alpha-beta search, with the weights of the AI’s style (chosen, or deduced from how you play), spread over several cores if the device has them') + '</div></div>'
+    + '<p class="archi-regle">' + _tr('Aux questions 2 à 4, jamais un coup qui revient en arrière (une position déjà vue, un aller-retour) ; au niveau 1, seulement s’il n’y a pas d’autre choix. Depuis la v2.60.',
+                                      'For questions 2 to 4, never a move that goes backwards (a position already seen, a back-and-forth); at level 1, only when there is no other choice. Since v2.60.') + '</p>';
+  return _archiCarte(_tr('Comment l’IA choisit son coup', 'How the AI picks its move'),
+    _tr('Les questions sont posées dans l’ordre : dès qu’une réponse est oui, l’IA joue le coup trouvé ; sinon, elle passe à la suivante.', 'The questions are asked in order: as soon as an answer is yes, the AI plays the move found; otherwise it moves on to the next one.'), h);
+}
+
+/* 2. D'ou viennent les donnees */
+function _archiCarteDonnees(){
+  const C = ARCHI_CHIFFRES, total = C.migs + C.ao + C.ps + C.ref;
+  const sources = [['MIGS', C.migs], ['AbalOnline', C.ao], [_tr('Tournoi PlayStrategy 2026', 'PlayStrategy tournament 2026'), C.ps], [_tr('Parties de référence', 'Reference games'), C.ref]];
+  let h = '<div class="archi-puces">' + sources.map(function(s){ return '<div class="archi-boite">' + s[0] + '<br>' + _archiN(s[1]) + ' ' + _tr('parties', 'games') + '</div>'; }).join('') + '</div>'
+    + _archiFleche()
+    + '<div class="archi-boite archi-r archi-centre">' + _tr('Corpus : ' + _archiN(total) + ' parties réelles, embarquées dans le fichier', 'Corpus: ' + _archiN(total) + ' real games, embedded in the file') + '</div>'
+    + _archiFleche();
+  const usages = [
+    [_tr('Livres d’ouvertures : l’arbre de ' + _archiN(C.dispositionsLivre) + ' dispositions et le livre statique, tirés des parties MIGS et AbalOnline', 'Opening books: the tree of ' + _archiN(C.dispositionsLivre) + ' layouts and the static book, drawn from the MIGS and AbalOnline games'),
+     _tr('L’IA, questions 2 et 4', 'The AI, questions 2 and 4')],
+    [_tr('Empreintes : ' + _archiN(C.empreintes) + ' positions mesurées sur 12 dimensions', 'Fingerprints: ' + _archiN(C.empreintes) + ' positions measured on 12 dimensions'),
+     _tr('L’IA (question 3), l’analyse de partie, les 12 dimensions des Statistiques du jeu', 'The AI (question 3), game analysis, the 12 dimensions of Game statistics')],
+    [_tr('Chaque partie rejouée coup par coup, hors ligne : billes tombées, sortes de coups, camps comparés', 'Every game replayed move by move, offline: marbles pushed off, kinds of moves, sides compared'),
+     _tr('Statistiques du jeu, Mes statistiques, l’écran de fin de partie', 'Game statistics, My statistics, the end-of-game screen')],
+    [_tr(_archiN(C.puzzles) + ' problèmes, chacun avec sa partie d’origine', _archiN(C.puzzles) + ' puzzles, each with the game it comes from'),
+     _tr('Problèmes, Défi du jour', 'Puzzles, Daily puzzle')],
+    [_tr('Les parties elles-mêmes', 'The games themselves'),
+     _tr('Bibliothèque de parties : rejouer, filtrer', 'Game library: replay, filter')]
+  ];
+  h += '<div class="archi-usages">' + usages.map(function(u){
+    return '<div class="archi-usage"><div class="archi-boite archi-c">' + u[0] + '</div>' + _archiBranche('', u[1], 'archi-dest') + '</div>';
+  }).join('') + '</div>';
+  return _archiCarte(_tr('D’où viennent les données', 'Where the data comes from'),
+    _tr('Tout part des vraies parties embarquées dans le fichier : elles ne servent pas qu’à être consultées, elles nourrissent l’IA, l’analyse et les statistiques.', 'Everything starts from the real games embedded in the file: they are not only there to be browsed, they feed the AI, the analysis and the statistics.'), h);
+}
+
+/* 3. Les modes de jeu et les echanges */
+function _archiCarteEchanges(){
+  const modes = [_tr('Contre l’IA', 'Against the AI'), _tr('Deux joueurs, même appareil', 'Two players, same device'), _tr('Partie en direct, deux appareils 🧪', 'Live game, two devices 🧪'), _tr('Découverte : 7 billes par camp', 'Discovery: 7 marbles a side')];
+  const libres = [
+    _tr('Code de partie : un texte à copier-coller', 'Game code: a text to copy and paste'),
+    _tr('Liens : <code>?partie=</code> une partie, <code>?pos=</code> une position, <code>?defi=</code> un défi', 'Links: <code>?partie=</code> a game, <code>?pos=</code> a position, <code>?defi=</code> a puzzle of the day'),
+    _tr('Image à partager, dessinée sur l’appareil', 'Image to share, drawn on the device'),
+    _tr('Export et import Aba-Pro, import APGN : les formats de la communauté', 'Aba-Pro export and import, APGN import: the community formats'),
+    _tr('Fichier de parties envoyé vers le site (Android : Partager ; ordinateur : Ouvrir avec)', 'Games file sent to the site (Android: Share; computer: Open with)'),
+    _tr('Historique local : ' + _archiN(ARCHI_CHIFFRES.historique) + ' parties, rejouables, exportables en fichier', 'Local history: ' + _archiN(ARCHI_CHIFFRES.historique) + ' games, replayable, exportable as a file'),
+    _tr('Duel contre un moteur externe : coups relayés à la main', 'Duel against an outside engine: moves relayed by hand')
+  ];
+  let h = '<div class="archi-puces">' + modes.map(function(m){ return '<div class="archi-boite">' + m + '</div>'; }).join('') + '</div>'
+    + _archiFleche()
+    + '<div class="archi-boite archi-r archi-centre">' + _tr('Partie en cours', 'Game in progress') + '</div>'
+    + _archiFleche()
+    + '<div class="archi-groupe"><div class="archi-groupe-titre">' + _tr('Sans aucun serveur', 'Without any server') + '</div>'
+    + '<div class="archi-liste">' + libres.map(function(t){ return '<div class="archi-boite archi-c">' + t + '</div>'; }).join('') + '</div></div>'
+    + '<div class="archi-groupe"><div class="archi-groupe-titre">' + _tr('Partie en direct', 'Live game') + '</div>'
+    + '<div class="archi-boite archi-c">' + _tr('Connexion directe entre les deux navigateurs (WebRTC). Les codes de connexion s’échangent à la main ; un serveur public (STUN) aide seulement les deux appareils à se trouver.',
+                                               'Direct connection between the two browsers (WebRTC). The connection codes are exchanged by hand; a public server (STUN) only helps the two devices find each other.') + '</div></div>'
+    + '<div class="archi-groupe"><div class="archi-groupe-titre">' + _tr('Avec un serveur extérieur, en lecture seule', 'With an outside server, read-only') + '</div>'
+    + '<div class="archi-boite archi-ext">' + _tr('PlayStrategy : suivre une partie en direct, voir les tournois, en importer un. Le site lit les parties, il n’envoie rien d’autre qu’un pseudo ou un lien.',
+                                                 'PlayStrategy: follow a game live, see the tournaments, import one. The site reads the games; it sends nothing but a username or a link.') + '</div></div>';
+  return _archiCarte(_tr('Les modes de jeu et les échanges', 'Game modes and exchanges'),
+    _tr('Le site n’a pas de serveur de jeu : une partie se transmet par un texte, une adresse, une image ou un fichier, que tu envoies toi-même.', 'The site has no game server: a game travels as a text, an address, an image or a file, which you send yourself.'), h);
+}
+
+/* 4. Les tables de finale */
+function _archiCarteTables(){
+  const C = ARCHI_CHIFFRES;
+  const lignes = [
+    [_tr('2 contre 2 et 3 contre 2', '2 against 2 and 3 against 2'),
+     _tr('99,9 % de nulles. Elles servent en Découverte, sur la page Tables de finale et au trainer « Finale prouvée » (des positions où le gain est démontré, pas estimé).', '99.9 % draws. They are used in Discovery, on the Endgame tables page and by the “Proven endgame” trainer (positions where the win is proven, not estimated).')],
+    [_tr('4 contre 2', '4 against 2'),
+     _tr('Résolue et prouvée en v2.49 : ' + _archiN(C.positions4v2) + ' positions, toutes recontrôlées. Avec le trait, le camp fort gagne toujours, en ' + C.demiCoups4v2 + ' demi-coups au plus. En Découverte, l’IA y joue parfaitement (question 1) et le verdict s’affiche. La table est chargée par morceaux depuis le site, au besoin, chacun vérifié ; sans réseau, l’IA habituelle prend le relais.',
+         'Solved and proven in v2.49: ' + _archiN(C.positions4v2) + ' positions, all re-checked. With the move, the strong side always wins, in ' + C.demiCoups4v2 + ' plies at most. In Discovery, the AI plays it perfectly (question 1) and the verdict is shown. The table is loaded piece by piece from the site when needed, each piece checked; without a network, the usual AI takes over.')],
+    [_tr('3 contre 3 et au-delà', '3 against 3 and beyond'),
+     _tr('3 contre 3 a été calculée : 2 positions gagnantes sur 224 millions, elle n’est donc pas mise en ligne. Les tables plus grandes sont hors de portée d’un site en un seul fichier.', '3 against 3 was computed: 2 winning positions out of 224 million, so it is not put online. Larger tables are out of reach for a single-file site.')]
+  ];
+  const h = '<div class="archi-tables">' + lignes.map(function(l){ return '<div class="archi-table"><div class="archi-table-nom">' + l[0] + '</div><div class="archi-table-txt">' + l[1] + '</div></div>'; }).join('') + '</div>';
+  return _archiCarte(_tr('Les tables de finale', 'Endgame tables'),
+    _tr('Une partie normale (14 billes par camp) n’arrive jamais à ces finales : elle s’arrête dès qu’un camp a perdu 6 billes. Elles servent au mode Découverte, où l’on joue avec 7 billes.', 'A normal game (14 marbles a side) never reaches these endgames: it stops as soon as one side has lost 6 marbles. They serve the Discovery mode, played with 7 marbles.'), h);
+}
 
 function renderArchiPage(){
   const host = document.getElementById('archi-diagrams');
   if (!host) return;
-  host.innerHTML = ARCHI_DIAGRAMS.map(function(d){
-    return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:20px">'
-      + '<div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">'+d.titre+'</div>'
-      + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">'+d.note+'</div>'
-      + _archiSVG(d)
-      + '</div>';
-  }).join('')
-  + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px">'
-    + '<div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">À part : les tables de finale</div>'
-    + '<div style="font-size:12px;color:var(--muted);line-height:1.6">Les tables 2 contre 2 et 3 contre 2 ne sont pas branchées sur le moteur principal : elles servent au mode Découverte, et depuis peu au trainer de puzzles « Finale prouvée » (les positions où le gain est démontré, pas estimé). Leur résultat le plus notable reste un constat plutôt qu\u2019un gain de force pour l\u2019IA — <strong style="color:var(--gold)">99,9 % de ces positions sont des nulles</strong>. Les classes supérieures sont hors de portée.</div>'
-  + '</div>';
+  const lien = currentLang() === 'EN'
+    ? '<a href="https://github.com/ocj94/Abalassembly/blob/main/docs-en/Architecture.en.md" target="_blank" rel="noopener noreferrer">docs-en/Architecture.en.md</a>'
+    : '<a href="https://github.com/ocj94/Abalassembly/blob/main/docs-fr/Architecture.fr.md" target="_blank" rel="noopener noreferrer">docs-fr/Architecture.fr.md</a>';
+  host.innerHTML = '<p class="archi-intro">' + _tr('Quatre cartes pour comprendre le fonctionnement interne, vérifiées contre le code en v2.66. Version détaillée, avec les schémas : ' + lien + ' sur le dépôt.',
+                                                  'Four cards to understand how it works inside, checked against the code in v2.66. Detailed version, with the diagrams: ' + lien + ' in the repository.') + '</p>'
+    + _archiCarteIA() + _archiCarteDonnees() + _archiCarteEchanges() + _archiCarteTables();
 }
 
 /* ═══ REFLEXION DE L'IA : PROFONDEUR ATTEINTE SELON LE TEMPS ═══
