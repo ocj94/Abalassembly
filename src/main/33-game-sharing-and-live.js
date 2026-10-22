@@ -767,17 +767,21 @@ function renderEngineStats(){
 }
 
 function _historyResultBadge(e){
-  if (e.mode !== 'ai') return '<span style="color:var(--muted)">—</span>';
-  if (!e.winner) return '<span style="color:var(--muted)">Nulle</span>';
-  const won = e.winner === e.humanColor;
-  return won ? '<span style="color:var(--accent-green-light)">Victoire</span>' : '<span style="color:#e05c4b">Défaite</span>';
+  const r = _histMonResultat(e);   // v2.68 : aussi les parties importees ou l'on sait ton camp et le vainqueur
+  if (r === 'victoire') return '<span style="color:var(--accent-green-light)">Victoire</span>';
+  if (r === 'defaite') return '<span style="color:#e05c4b">Défaite</span>';
+  if (r === 'nulle') return '<span style="color:var(--muted)">Nulle</span>';
+  return '<span style="color:var(--muted)">—</span>';
 }
 
-function _historyDateLabel(iso){
+function _historyDateLabel(iso, e){
   try {
+    // v2.68 : sans heure connue (partie importee avec une date seule), la date seule -- jamais une heure inventee
+    const t = e ? _histJour(e) : null;
+    if (t && t.sansHeure) { const z = function(n){ return (n < 10 ? '0' : '') + n; }; return z(t.j) + '/' + z(t.m) + '/' + String(t.a).slice(2); }
     const d = new Date(iso);
     return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'2-digit' }) + ' ' + d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
-  } catch(e) { return iso; }
+  } catch(err) { return iso; }
 }
 
 function _renderHistoryList(){
@@ -792,7 +796,7 @@ function _renderHistoryList(){
     const label = (typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[e.variant]) ? HEAT_VARIANT_LABEL[e.variant] : e.variant;
     return '<div style="display:flex;align-items:center;gap:10px;padding:10px 8px;border-bottom:1px solid var(--border);font-size:13px">'
       + '<div style="flex:1;min-width:0">'
-        + '<div style="color:var(--text)">' + _historyDateLabel(e.date) + ' · ' + label + '</div>'
+        + '<div style="color:var(--text)">' + _historyDateLabel(e.date, e) + ' · ' + label + '</div>'
         + '<div style="color:var(--muted);font-size:12px">' + _historyOpponentLabel(e) + ' · ' + e.moveCount + ' coups</div>'
       + '</div>'
       + '<div style="width:70px;text-align:right;font-size:12px">' + _historyResultBadge(e) + '</div>'
