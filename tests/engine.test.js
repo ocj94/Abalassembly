@@ -4098,7 +4098,7 @@ test('v2.64 adresses : branchées sur showPage, les fenêtres du menu et le chan
   assert.ok(src.indexOf("showPage = function(){ const r = precedent.apply(this, arguments); _adrSuivre(false); return r; };") > 0);
   assert.ok(src.indexOf("window[nom] = function(){ const r = avant.apply(this, arguments); _adrFenetreSuivie(cle); return r; };") > 0);
   assert.ok(src.indexOf("setLanguage = function(){ const r = avantLangue.apply(this, arguments); _adrSuivre(true); return r; };") > 0);
-  assert.deepStrictEqual(Object.keys(_r58('_ADR_OUVREURS')).sort(), ['briefing', 'import', 'library']);
+  assert.deepStrictEqual(Object.keys(_r58('_ADR_OUVREURS')).sort(), ['briefing', 'import', 'library', 'synchro']);
   ['openApgnImportModal', 'openMigsBrowser', 'openSiteBriefing'].forEach(f => assert.strictEqual(typeof ctx[f], 'function', f));
   assert.ok(src.indexOf('<li><b>Une adresse par page</b> : chaque entrée du menu a la sienne') > 0);
   assert.ok(src.indexOf('<li><b>One address per page</b>: every menu entry has its own') > 0);
@@ -4380,4 +4380,191 @@ test('v2.68 historique : la date d’une partie importée est celle de l’en-t�
     if (avant === null) ctx.localStorage.removeItem(ctx.GAME_HISTORY_KEY); else ctx.localStorage.setItem(ctx.GAME_HISTORY_KEY, avant);
     if (pseudo === null) ctx.localStorage.removeItem('abaGcMyName'); else ctx.localStorage.setItem('abaGcMyName', pseudo);
   }
+});
+
+// ═══════════════════════════════════════════
+// 62. v2.69 : synchroniser mes appareils -- la fusion, simulee sur plusieurs « appareils » (des stocks separes)
+// ═══════════════════════════════════════════
+const _app62 = (id, donnees) => {        // un appareil : son propre stockage
+  const m = new Map(), ls = { getItem: k => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: k => m.delete(k) };
+  ls.setItem('abaSyncAppareil', id);
+  Object.keys(donnees || {}).forEach(k => ls.setItem(k, typeof donnees[k] === 'string' ? donnees[k] : JSON.stringify(donnees[k])));
+  const st = ctx._syncStock(ls);
+  return { ls, st, lire: k => { const t = ls.getItem(k); try { return JSON.parse(t); } catch (e) { return t; } } };
+};
+// une synchro « en direct » : l'hote fusionne avec le paquet de l'invite, les deux appliquent la meme fusion
+const _sync62 = (hote, invite) => {
+  const pH = JSON.parse(JSON.stringify(ctx._syncPaquet(hote.st))), pI = JSON.parse(JSON.stringify(ctx._syncPaquet(invite.st)));
+  const f = JSON.parse(JSON.stringify(ctx._syncFusionner(pH, pI)));
+  ctx._syncAppliquer(invite.st, f, pH.appareil); ctx._syncAppliquer(hote.st, f, pI.appareil);
+  return f;
+};
+const _partie62 = (code, extra) => Object.assign({ id: 'id-' + code, code, date: '2026-10-1' + code.length + 'T10:00:00.000Z', mode: 'ai', variant: 'belgian', humanColor: 'black', winner: 'black', moveCount: 40 }, extra || {});
+const _prog62 = o => Object.assign({ xp: 0, gamesPlayed: 0, gamesWon: 0, heatmaps: {}, badges: {}, history: [], eloHistory: [], elo: 1000, streak: 0, bestStreak: 0, lastActive: null }, o);
+
+test('v2.69 synchro : deux appareils fusionnent sans rien écraser ni compter deux fois ; refaire la synchro ne change rien', () => {
+  const A = _app62('app-A', {
+    abaGameHistory: [_partie62('A1')], abaPuzzleSolved: '4', abaBadges: ['premier'], abaGcMyName: 'ocj94', abalone_sound: '1', abaLabState: '{"x":1}',
+    abalone_progress: _prog62({ xp: 100, gamesPlayed: 5, gamesWon: 3, heatmaps: { me_black: { '4,4': 3 } }, lastActive: '2026-10-20', elo: 1050, badges: { b1: '2026-10-01' }, streak: 1, bestStreak: 2, kidsMode: false })
+  });
+  const B = _app62('app-B', {
+    abaGameHistory: [_partie62('B1x')], abaPuzzleSolved: '1', abaBadges: ['second'], abalone_sound: '0', abaLabState: '{"y":2}',
+    abalone_progress: _prog62({ xp: 40, gamesPlayed: 2, gamesWon: 1, heatmaps: { me_black: { '4,4': 1, '3,3': 2 } }, lastActive: '2026-10-21', elo: 990, badges: { b1: '2026-09-15', b2: '2026-10-05' }, streak: 3, bestStreak: 3, kidsMode: true })
+  });
+  const f = _sync62(A, B);
+  assert.strictEqual(f.copie, false, 'pas de partie commune : ce ne sont pas des copies');
+  for (const X of [A, B]) {
+    const p = X.lire('abalone_progress');
+    assert.strictEqual(p.xp, 140); assert.strictEqual(p.gamesPlayed, 7); assert.strictEqual(p.gamesWon, 4);
+    assert.deepStrictEqual(p.heatmaps, { me_black: { '4,4': 4, '3,3': 2 } });
+    assert.strictEqual(p.level, ctx.levelFromXp(140), 'niveau tire de l’XP');
+    assert.strictEqual(p.elo, 990, 'ELO du cote le plus recemment actif'); assert.strictEqual(p.streak, 3); assert.strictEqual(p.bestStreak, 3);
+    assert.deepStrictEqual(p.badges, { b1: '2026-09-15', b2: '2026-10-05' }, 'badges : l’union, obtenus le plus tot');
+    assert.deepStrictEqual(X.lire('abaGameHistory').map(e => e.code).sort(), ['A1', 'B1x']);
+    assert.strictEqual(X.lire('abaPuzzleSolved'), 5);
+    assert.deepStrictEqual(X.lire('abaBadges').sort(), ['premier', 'second']);
+    assert.strictEqual(X.lire('abaGcMyName'), 'ocj94');
+  }
+  // ce qui est propre a chaque appareil n'a pas bouge
+  assert.strictEqual(A.lire('abalone_progress').kidsMode, false); assert.strictEqual(B.lire('abalone_progress').kidsMode, true);
+  assert.strictEqual(A.ls.getItem('abalone_sound'), '1'); assert.strictEqual(B.ls.getItem('abalone_sound'), '0');
+  assert.strictEqual(A.ls.getItem('abaLabState'), '{"x":1}'); assert.strictEqual(B.ls.getItem('abaLabState'), '{"y":2}');
+  assert.strictEqual(A.ls.getItem('abaSyncAppareil'), 'app-A'); assert.strictEqual(B.ls.getItem('abaSyncAppareil'), 'app-B');
+  // refaire la synchro : rien ne change
+  const avant = [A.ls.getItem('abalone_progress'), B.ls.getItem('abalone_progress')];
+  _sync62(B, A);
+  assert.strictEqual(A.lire('abalone_progress').xp, 140); assert.strictEqual(B.lire('abalone_progress').xp, 140);
+  assert.deepStrictEqual(A.lire('abalone_progress').heatmaps, JSON.parse(avant[0]).heatmaps);
+  // on joue des deux cotes, puis synchro : tout s'additionne, juste
+  const jouer = (X, xp, cell) => { const p = X.lire('abalone_progress'); p.xp += xp; p.gamesPlayed += 1; p.heatmaps.me_black[cell] = (p.heatmaps.me_black[cell] || 0) + 1; X.ls.setItem('abalone_progress', JSON.stringify(p)); };
+  jouer(A, 30, '5,5'); jouer(B, 20, '4,4');
+  _sync62(A, B);
+  for (const X of [A, B]) {
+    const p = X.lire('abalone_progress');
+    assert.strictEqual(p.xp, 190); assert.strictEqual(p.gamesPlayed, 9);
+    assert.deepStrictEqual(p.heatmaps.me_black, { '4,4': 5, '3,3': 2, '5,5': 1 });
+  }
+});
+
+test('v2.69 synchro : trois appareils synchronisés deux à deux tombent juste ; une copie de l’ancien export n’est pas comptée deux fois', () => {
+  const xp = X => X.lire('abalone_progress').xp;
+  const A = _app62('app-A', { abalone_progress: _prog62({ xp: 100, lastActive: '2026-10-20' }), abaGameHistory: [_partie62('A1')] });
+  const B = _app62('app-B', { abalone_progress: _prog62({ xp: 50, lastActive: '2026-10-20' }), abaGameHistory: [_partie62('B1')] });
+  const C = _app62('app-C', { abalone_progress: _prog62({ xp: 7, lastActive: '2026-10-20' }), abaGameHistory: [_partie62('C1')] });
+  _sync62(A, B);                 // 150
+  _sync62(C, A);                 // 157 (A connait A et B ; C ne connait personne, mais A oui : on additionne)
+  assert.strictEqual(xp(A), 157); assert.strictEqual(xp(C), 157);
+  _sync62(B, C);                 // B avait 150 : il rattrape, rien de compte deux fois
+  assert.strictEqual(xp(B), 157); assert.strictEqual(xp(C), 157);
+  const p = B.lire('abalone_progress'); p.xp += 3; B.ls.setItem('abalone_progress', JSON.stringify(p));
+  _sync62(A, B); _sync62(C, B);
+  [A, B, C].forEach(X => assert.strictEqual(xp(X), 160));
+  // D : une copie de A faite avec l'ancien export JSON (memes parties jouees, aucune synchro), plus 2 XP joues ensuite
+  const E = _app62('app-E', { abalone_progress: _prog62({ xp: 300, lastActive: '2026-10-20' }), abaGameHistory: [_partie62('E1'), _partie62('E2')] });
+  const D = _app62('app-D', { abalone_progress: _prog62({ xp: 302, lastActive: '2026-10-21' }), abaGameHistory: [_partie62('E1'), _partie62('E2'), _partie62('D1')] });
+  const f = _sync62(E, D);
+  assert.strictEqual(f.copie, true);
+  assert.strictEqual(xp(E), 302, 'le plus grand des deux, pas 602'); assert.strictEqual(xp(D), 302);
+  const q = E.lire('abalone_progress'); q.xp += 10; E.ls.setItem('abalone_progress', JSON.stringify(q));
+  _sync62(D, E);
+  assert.strictEqual(xp(D), 312, 'ensuite, tout s’additionne normalement'); assert.strictEqual(xp(E), 312);
+});
+
+test('v2.69 synchro : suppressions, défis, carnet, défis de la semaine, fichier et export JSON', async () => {
+  // une partie supprimee sur un appareil l'est aussi sur l'autre ; reimportee, elle revient
+  // G1 et G2 : la meme partie KAAH importee des deux cotes (des parties importees ne font pas des deux appareils des copies)
+  const G = c => _partie62(c, { mode: 'import' });
+  const A = _app62('app-A', { abaGameHistory: [G('G1'), G('G2')], abalone_progress: _prog62({ xp: 10, gamesWon: 3, lastActive: '2026-10-20',
+    weekly: { week: '2026-W43', id: 'w', startWins: 2, startGames: 0, startPuzzles: 0, claimed: false },
+    defis: { 10: { e: 'xv', f: 'v', j: 10, ms: 5000 }, 11: { e: 'x', ms: 100 } } }),
+    abaPlateauCarnet: { enfants: [{ nom: 'Alex', acquis: { 2: '2026-10-17' } }] } });
+  const B = _app62('app-B', { abaGameHistory: [G('G1'), G('G2')], abalone_progress: _prog62({ xp: 0, gamesWon: 1, lastActive: '2026-10-19',
+    defis: { 10: { e: 'v', f: 'v', j: 10, ms: 9000 }, 11: { e: 'xxiv', f: 'v', j: 12, ms: 300 }, 12: { e: 's', f: 's', j: 12, ms: 1 } } }),
+    abaPlateauCarnet: { enfants: [{ nom: 'alex', acquis: { 2: '2026-10-18', 9: '2026-10-19' } }, { nom: 'Bob', acquis: {} }] } });
+  ctx._syncNoterSuppression(['G2'], A.st);
+  A.ls.setItem('abaGameHistory', JSON.stringify([G('G1')]));
+  _sync62(A, B);
+  for (const X of [A, B]) {
+    assert.deepStrictEqual(X.lire('abaGameHistory').map(e => e.code), ['G1'], 'G2 supprimee des deux cotes');
+    const p = X.lire('abalone_progress');
+    assert.strictEqual(p.gamesWon, 4);
+    // defi de la semaine : ce qui vient de l'autre appareil ne compte pas pour la semaine en cours
+    assert.strictEqual(p.gamesWon - p.weekly.startWins, 1);
+    assert.strictEqual(p.defis[10].e, 'xv', 'trouve des deux cotes le meme jour : la fiche d’ici');
+    assert.strictEqual(p.defis[10].ms, 9000);
+    assert.strictEqual(p.defis[11].f, 'v', 'le plus avance : trouve');
+    assert.ok(p.defis[12]);
+    const c = X.lire('abaPlateauCarnet');
+    assert.deepStrictEqual(c.enfants.map(e => e.nom), ['Alex', 'Bob']);
+    assert.deepStrictEqual(c.enfants[0].acquis, { 2: '2026-10-17', 9: '2026-10-19' }, 'acquis : l’union, au plus tot');
+  }
+  // reimporter G2 volontairement la fait revenir (plus « supprimee »)
+  ctx._syncOublierSuppression('G2', A.st);
+  A.ls.setItem('abaGameHistory', JSON.stringify([G('G2'), G('G1')]));
+  _sync62(A, B);
+  assert.deepStrictEqual(B.lire('abaGameHistory').map(e => e.code).sort(), ['G1', 'G2']);
+  // par fichier : le fichier de B fusionne sur cet appareil (le vrai localStorage du harnais)
+  const sauve = {}; ['abalone_progress', 'abaGameHistory', 'abaSyncAppareil', 'abaSyncCompteurs', 'abaSyncSupprimees', 'abaSyncDerniere'].forEach(k => { sauve[k] = ctx.localStorage.getItem(k); });
+  try {
+    ['abalone_progress', 'abaGameHistory', 'abaSyncCompteurs', 'abaSyncSupprimees'].forEach(k => ctx.localStorage.removeItem(k));
+    ctx.localStorage.setItem('abaSyncAppareil', 'app-ICI');
+    ctx.localStorage.setItem('abalone_progress', JSON.stringify(_prog62({ xp: 5, lastActive: '2026-10-22' })));
+    ctx.localStorage.setItem('abaGameHistory', JSON.stringify([_partie62('ICI1')]));
+    const fichier = JSON.stringify(ctx._syncPaquet(B.st));
+    const bilan = JSON.parse(JSON.stringify(ctx.syncFusionnerTexte(fichier)));
+    assert.deepStrictEqual(bilan.avant.parties, 1); assert.deepStrictEqual(bilan.apres.parties, 3);
+    assert.strictEqual(JSON.parse(ctx.localStorage.getItem('abalone_progress')).xp, 15);
+    assert.throws(() => ctx.syncFusionnerTexte(JSON.stringify(ctx._syncPaquet(ctx._syncStock()))), /cet appareil-ci|this device/);
+    assert.throws(() => ctx.syncFusionnerTexte('{"format":"autre"}'), /fichier de synchro|sync file/);
+    // export JSON (« Exporter mes donnees ») : l'identite de l'appareil n'y est pas, la part de chacun y est
+    let blob = null;
+    const origBlob = ctx.Blob, origURL = ctx.URL;
+    ctx.Blob = function(parts){ blob = parts.join(''); }; ctx.URL = { createObjectURL: () => 'blob:x', revokeObjectURL: () => {} };
+    try { await _dom54(async () => { ctx.document.createElement = () => ({ click() {} }); ctx.document.body = { appendChild() {}, removeChild() {} }; await ctx.exportMyData(); }); }
+    finally { ctx.Blob = origBlob; ctx.URL = origURL; }
+    const ex = JSON.parse(blob);
+    assert.strictEqual(ex.appareil, 'app-ICI');
+    assert.ok(!('abaSyncAppareil' in ex.data) && !('abaSyncDerniere' in ex.data));
+    assert.ok(ex.data.abaSyncCompteurs && ex.data.abaSyncCompteurs['app-ICI'], 'la part de cet appareil');
+    // la copie importee ailleurs (remplacement), puis 4 XP joues la-bas, puis synchro : rien de compte deux fois
+    const copie = _app62('app-COPIE', ex.data);
+    const p = copie.lire('abalone_progress'); p.xp += 4; copie.ls.setItem('abalone_progress', JSON.stringify(p));
+    const ici = { ls: ctx.localStorage, st: ctx._syncStock(), lire: k => JSON.parse(ctx.localStorage.getItem(k)) };
+    _sync62(ici, copie);
+    assert.strictEqual(ici.lire('abalone_progress').xp, 19); assert.strictEqual(copie.lire('abalone_progress').xp, 19);
+  } finally {
+    Object.keys(sauve).forEach(k => { if (sauve[k] === null) ctx.localStorage.removeItem(k); else ctx.localStorage.setItem(k, sauve[k]); });
+  }
+});
+
+test('v2.69 synchro : messages découpés et recollés, fenêtre en français et en anglais, adresse #synchroniser', async () => {
+  const gros = { t: 'paquet', x: 'é'.repeat(50000) + '\u001f' };
+  const morceaux = Array.from(ctx._syncDecouper(gros));
+  assert.ok(morceaux.length >= 4);
+  const etat = {};
+  let fin = null;
+  morceaux.forEach((m, i) => { const r = ctx._syncRecoller(etat, m); if (i < morceaux.length - 1) assert.strictEqual(r, null); else fin = r; });
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(fin)), gros);
+  // la fenetre
+  const els = {}, fenetre = { remove() {} };
+  const avantGet = ctx.document.getElementById, avantCreate = ctx.document.createElement, avantBody = ctx.document.body;
+  let cree = null;
+  ctx.document.createElement = () => (cree = { setAttribute() {}, addEventListener() {}, querySelector() { return null; }, innerHTML: '' });
+  ctx.document.body = { appendChild() {} };
+  ctx.document.getElementById = id => els[id] || null;
+  try {
+    await _enFrancais54(async () => { ctx.openSyncModal(); });
+    assert.match(cree.innerHTML, /🔄 Synchroniser mes appareils/);
+    ['Créer un code', 'J’ai reçu un code', '📤 Créer mon fichier de synchro', '📥 Fusionner un fichier de synchro', 'Restent sur chaque appareil'].forEach(t => assert.ok(cree.innerHTML.indexOf(t) > 0, t));
+    const avantL = ctx.localStorage.getItem('abalone_lang');
+    ctx.localStorage.setItem('abalone_lang', 'EN');
+    try { ctx.openSyncModal(); } finally { if (avantL === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avantL); }
+    assert.match(cree.innerHTML, /🔄 Sync my devices/);
+    assert.doesNotMatch(cree.innerHTML.replace(/<[^>]*>/g, ' '), /Synchroniser|appareil|Fusionner|Créer/);
+  } finally { ctx.document.getElementById = avantGet; ctx.document.createElement = avantCreate; ctx.document.body = avantBody; }
+  // l'adresse, les boutons, l'aide
+  assert.deepStrictEqual(Object.keys(_r58('_ADR_OUVREURS')).sort(), ['briefing', 'import', 'library', 'synchro']);
+  const site = _SRC();
+  assert.strictEqual((site.match(/onclick="openSyncModal\(\)"/g) || []).length, 2, 'Parametres et Historique');
+  assert.ok(site.indexOf('<li><b>🔄 Synchroniser mes appareils</b>') > 0 && site.indexOf('<li><b>🔄 Sync my devices</b>') > 0);
 });

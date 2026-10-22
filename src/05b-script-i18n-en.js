@@ -505,7 +505,7 @@ const I18N_EN = {
   // ── aide (en-tete) et classement ──
   "Comment utiliser Abalassembly. Touche une rubrique pour l'ouvrir, ou cherche un mot.": 'How to use Abalassembly. Tap a topic to open it, or search for a word.',
   'Rechercher (ex. importer, nulle, hors ligne…)': 'Search (e.g. import, draw, offline…)', 'Aucune rubrique ne contient ce mot.': 'No topic contains this word.',
-  '📤 Exporter tout (Aba-Pro)': '📤 Export all (Aba-Pro)', '📥 Importer': '📥 Import', '📦 Exporter mes données (JSON)': '📦 Export my data (JSON)', '📥 Importer mes données (JSON)': '📥 Import my data (JSON)',
+  '📤 Exporter tout (Aba-Pro)': '📤 Export all (Aba-Pro)', '📥 Importer': '📥 Import', '📦 Exporter mes données (JSON)': '📦 Export my data (JSON)', '🔄 Synchroniser mes appareils': '🔄 Sync my devices', 'Fusionne ton historique et ta progression avec un autre appareil ou un autre navigateur': 'Merges your history and progress with another device or another browser', '📥 Importer mes données (JSON)': '📥 Import my data (JSON)',
   'Pas encore de classement': 'No leaderboard yet', 'entre joueurs': 'between players'
 };
 function _i18nCle(s) { const t = String(s).trim(); return /\s\s|[\t\n\r\u00a0\u202f]/.test(t) ? t.replace(/\s+/g, ' ') : t; }

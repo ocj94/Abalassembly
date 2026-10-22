@@ -304,14 +304,18 @@ async function exportMyData() {
   }
   if (!bundle) {
     // Hors-ligne : rassemble tout le localStorage de l'application
+    // v2.69 : la part de chaque appareil dans les compteurs est mise a jour avant, pour que la
+    // copie sache ce qui vient d'ici (une synchro plus tard ne comptera rien deux fois)
+    if (typeof _syncMajConnaissance === 'function') { try { _syncMajConnaissance(); } catch(e){} }
     const data = {};
     for (let i=0;i<localStorage.length;i++){
       const k=localStorage.key(i);
+      if (k === 'abaSyncAppareil' || k === 'abaSyncDerniere') continue;   // l'identite de CET appareil ne voyage pas
       if (k && (k.indexOf('aba')===0 || k.indexOf('abalone')===0)) {
         try { data[k]=JSON.parse(localStorage.getItem(k)); } catch(e){ data[k]=localStorage.getItem(k); }
       }
     }
-    bundle = { exportedAt:new Date().toISOString(), format:'abalassembly-local-export-v1', source:'localStorage', data };
+    bundle = { exportedAt:new Date().toISOString(), format:'abalassembly-local-export-v1', source:'localStorage', appareil: (typeof _syncIdentite === 'function' ? _syncIdentite(_syncStock()) : undefined), data };
   }
   try {
     const blob=new Blob([JSON.stringify(bundle,null,2)],{type:'application/json'});
@@ -345,6 +349,7 @@ function importMyData() {
         return;
       }
       const keys = Object.keys(bundle.data).filter(function(k){
+        if (k === 'abaSyncAppareil' || k === 'abaSyncDerniere') return false;   // v2.69 : cet appareil garde son identite
         return k.indexOf('aba') === 0 || k.indexOf('abalone') === 0;
       });
       if (!keys.length) { showToast('⚠️ Fichier vide, rien à importer'); return; }

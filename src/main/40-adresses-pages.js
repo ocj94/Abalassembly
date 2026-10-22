@@ -32,7 +32,7 @@ const ADRESSES_PAGES = [
   ['briefing', 'fiche-ia', 'ai-sheet'], ['museum', 'musee', 'museum'], ['pioneers', 'pionniers', 'pioneers'],
   ['trombi', 'trombinoscope', 'members'], ['leaderboard', 'classement', 'leaderboard'], ['observe', 'observer', 'watch'],
   ['community', 'communaute', 'community'], ['tournament', 'tournoi', 'tournament'], ['compare', 'comparer', 'compare'],
-  ['friends', 'amis', 'friends'], ['profile', 'profil', 'profile'], ['settings', 'parametres', 'settings'],
+  ['friends', 'amis', 'friends'], ['profile', 'profil', 'profile'], ['settings', 'parametres', 'settings'], ['synchro', 'synchroniser', 'sync'],
   ['mentions', 'mentions', 'legal'], ['privacy', 'confidentialite', 'privacy']
 ];
 // les noms complets du menu, tapes a la main, menent aussi a la bonne page
@@ -47,9 +47,10 @@ const _ADR_AUTRES = {
 const _ADR_FENETRES = {
   import:   { id: 'apgn-import-modal', ouvrir: function(){ openApgnImportModal(); }, fermer: function(el){ el.remove(); } },
   library:  { id: 'migs-modal',        ouvrir: function(){ openMigsBrowser(); },     fermer: function(){ closeMigsBrowser(); } },
-  briefing: { id: 'briefing-modal',    ouvrir: function(){ openSiteBriefing(); },    fermer: function(el){ el.remove(); } }
+  briefing: { id: 'briefing-modal',    ouvrir: function(){ openSiteBriefing(); },    fermer: function(el){ el.remove(); } },
+  synchro:  { id: 'sync-modal',        ouvrir: function(){ openSyncModal(); },       fermer: function(){ closeSyncModal(); } }   // v2.69
 };
-const _ADR_OUVREURS = { import: 'openApgnImportModal', library: 'openMigsBrowser', briefing: 'openSiteBriefing' };
+const _ADR_OUVREURS = { import: 'openApgnImportModal', library: 'openMigsBrowser', briefing: 'openSiteBriefing', synchro: 'openSyncModal' };
 
 let _adrMode = null;          // null : l'utilisateur navigue (nouvelle entree d'historique) ; 'adresse' : on suit la barre d'adresse (on corrige sans empiler)
 let _adrPret = false;         // rien n'est ecrit dans l'adresse avant d'avoir lu celle d'arrivee
@@ -205,5 +206,3 @@ function _adrAuChargement(){
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
   }
 })();
-
-</script>

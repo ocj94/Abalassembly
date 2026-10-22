@@ -113,6 +113,7 @@ Every menu entry has its own address, to bookmark or send: for example <https://
 | Friends | `#friends` | `#amis` |
 | Profile | `#profile` | `#profil` |
 | Settings | `#settings` | `#parametres` |
+| Sync my devices | `#sync` | `#synchroniser` |
 | Legal notice | `#legal` | `#mentions` |
 | Privacy | `#privacy` | `#confidentialite` |
 
@@ -121,6 +122,7 @@ Every menu entry has its own address, to bookmark or send: for example <https://
 **Play**
 - Games against the AI (several levels, alpha-beta + PVS + quiescence engine running in a Web Worker — the interface never freezes; the 2v2/3v2 endgame tablebase is consulted during search, giving an exact result the moment a solved ending is reached)
 - Two-player mode on the same screen
+- **Sync my devices**: history, progress, puzzles, heat maps… merged between two devices or two browsers, live (one code each way, direct connection) or with a file. No account, no server; nothing is overwritten, nothing is counted twice
 - **List and Comments**, as in Uncle Lolo's Abalone: the moves in a Move | Black | White table with the score after each ejection, and a move-by-move log (the AI's expected continuation and evaluation, distance to centre, cohesion, marbles in danger). Both can be copied; ULA's list and log can be imported as they are
 - 18 starting-position variants recorded in the AbalOnline library (Belgian Daisy, German Daisy, The Wall, Star…)
 - Optional real chess clock: 5+3, 10+5, 20+10 time controls with increment and loss on time (untimed by default)
