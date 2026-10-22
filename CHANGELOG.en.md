@@ -9,6 +9,21 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.67]
+
+### Added
+- **Corpus**: 6th KAAH game checked against three sources — 22/10/2026,
+  against KAI++ level 8 (Normal v5El10 profile, 60 s), **White wins 6-2** in
+  58 moves. The Aba-Pro notation (116 plies, a single possible reading at
+  every move), the Nacre notation (116 identical positions) and the five
+  position codes shown by KAAH (start, moves 26, 55 and 82, end) match
+  character for character; the 58 moves in the reflection table of KAAH's AI
+  are indeed the game's. **4,580 games**.
+- Its statistics (falling marbles, what wins games, kinds of moves) and its
+  fingerprints are computed like the others: it counts in Game statistics,
+  and the Architecture page moves to 8 reference games and 427,272 measured
+  positions.
+
 ## [v2.66]
 
 ### Fixed — the Architecture page, brought up to date

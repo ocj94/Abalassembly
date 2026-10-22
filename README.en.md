@@ -145,7 +145,7 @@ Every menu entry has its own address, to bookmark or send: for example <https://
 - Real-game recorder: photograph the board after each move, moves are reconstructed automatically by the engine, verified, then saved with players, date and variant — and replayable in the library
 
 **Library**
-- 4,579 real games embedded (MIGS, AbalOnline, tournaments and reference games), replayable move by move
+- 4,580 real games embedded (MIGS, AbalOnline, tournaments and reference games), replayable move by move
 - Opening book mined from these games
 - **Game statistics**: what these games say (first-player advantage, length, endings) and the 12 fingerprint dimensions measured over all their positions, with an explanation of percentiles, one chart for both sides, one for Black, one for White, and a slider to place a value. Then **falling marbles** (does the side that pushes off the first marble win, when each marble falls, from the 1st to the last, the 1-0 … 5-4 comeback table, the final score, the map of the spots marbles fall from, with its graduated scale), **what wins games** (the 12 dimensions side against side at moves 20, 40 and 60) and **how real players play** (kinds of moves, pushes, ejection chances taken) — every game replayed move by move offline by `tools/stats-parties.js`, checked by a test. Everything is computed from the loaded games: the numbers follow when the corpus grows
 - **My statistics, Ejections card**: your comebacks, where your marbles fall, and you against real players, with the same definitions; at the end of a game, one line drawn from real games (“you were behind 1 to 3: the side trailing 1 to 3 wins only 21 % of the time”)
@@ -171,7 +171,7 @@ Every menu entry has its own address, to bookmark or send: for example <https://
 |---|---|
 | **A single HTML file** | Trivial distribution: one file is the whole site. Works over `file://`, on GitHub Pages, from a USB stick. |
 | **Zero dependencies** | Nothing to install, nothing to break, nothing third-party to audit. (Only the 3D view loads Three.js, on demand.) |
-| **Compressed data banks** | The 4,579 games, the opening book and the sounds are embedded as deflate + base64, decompressed natively on load (`DecompressionStream`). File size ≈ 7.1 MB (grew with the addition of historical fingerprints, endgame tables and the position graph). On an older browser, the game still works — only the library, book and sounds are missing. |
+| **Compressed data banks** | The 4,580 games, the opening book and the sounds are embedded as deflate + base64, decompressed natively on load (`DecompressionStream`). File size ≈ 7.1 MB (grew with the addition of historical fingerprints, endgame tables and the position graph). On an older browser, the game still works — only the library, book and sounds are missing. |
 | **Offline-first** | No network request required. Progress, settings and solved puzzles live in `localStorage`. |
 | **AI in a Worker** | Search runs on a separate thread; the interface stays smooth while it thinks. |
 | **Adaptive multi-worker search** | On a multi-core device, search is split across several Workers (root moves partitioned, each with its own transposition table — no shared memory, since GitHub Pages doesn't set the headers `SharedArrayBuffer` needs). Adapts via `navigator.hardwareConcurrency`: up to 4 workers on a multi-core PC, a single one (same behavior as before) on a constrained phone. |

@@ -693,24 +693,24 @@ test('equipes : triees par membres, 8 au plus ; reseau coupe -> null sans except
 
 /* ─── 18. Stats du corpus : le tournoi PlayStrategy compte, toutes parties ─── */
 
-test('corpus : MIGS + AbalOnline + 93 parties du tournoi + 7 de reference = 4 579', async () => {
+test('corpus : MIGS + AbalOnline + 93 parties du tournoi + 8 de reference = 4 580', async () => {
   assert.ok(await ctx.ensureGameBanks());
   const s = await ctx.computeCorpusStats(() => {});
   assert.strictEqual(s.nMigs, 2589); assert.strictEqual(s.nAo, 1890);
   assert.strictEqual(s.nPs, 93); assert.strictEqual(s.nPsSansCoup, 3);
-  assert.strictEqual(s.totalGames, 4579);
+  assert.strictEqual(s.totalGames, 4580);
   // la duree ne compte que les parties jouees : pas de partie "a 0 coup"
-  assert.strictEqual(s.nLens, 2589 + 90 + 7);
+  assert.strictEqual(s.nLens, 2589 + 90 + 8);
   assert.ok(s.lenMin > 0);
   const bel = s.topVariants.find(v => v[0] === 'belgian');
-  assert.ok(bel && bel[1] === 98, 'Belgian Daisy : les 93 parties du tournoi + les 5 parties KAAH');
+  assert.ok(bel && bel[1] === 99, 'Belgian Daisy : les 93 parties du tournoi + les 6 parties KAAH');
 });
 
 test("corpus : les parties importees a la volee n'y entrent pas (meme corpus pour tous)", async () => {
   ctx.PS_GAMES.push(['vol00001', '2026-09-01', 'X', 'Y', 'X gagne', 'a1b2 i5h5']);
   const s = await ctx.computeCorpusStats(() => {});
   ctx.PS_GAMES.pop();
-  assert.strictEqual(s.totalGames, 4579);
+  assert.strictEqual(s.totalGames, 4580);
 });
 
 test('bibliotheque : une partie sans coup est annoncee, jamais chargee comme une partie jouee', () => {
@@ -767,7 +767,7 @@ test('bibliotheque : la partie Pyramide s ouvre et se rejoue jusqu au dernier co
   assert.strictEqual(ctx.CapturedByWhite.get(), 3);
 });
 
-test('bibliotheque : listee avec sa source, filtrable, et en-tete calcule (4 486 parties, 21 variantes)', async () => {
+test('bibliotheque : listee avec sa source, filtrable, et en-tete calcule (4 487 parties, 21 variantes)', async () => {
   assert.ok(await ctx.ensureGameBanks());
   const els = {}, opts = [{ value: '' }];
   const origine = ctx.document.getElementById, origineCreate = ctx.document.createElement;
@@ -782,7 +782,7 @@ test('bibliotheque : listee avec sa source, filtrable, et en-tete calcule (4 486
   assert.match(els['migs-list'].innerHTML, /onlineabalone\.wordpress\.com/, 'la source est indiquee');
   assert.doesNotMatch(els['migs-list'].innerHTML, /loadAOGame|loadMigsGame/, 'jamais presentee comme AbalOnline ou MIGS');
   assert.ok(opts.some(o => o.value === 'pyramide'));
-  assert.match(els['migs-entete'].textContent, /^4\u202f?486 parties · 21 variantes/);
+  assert.match(els['migs-entete'].textContent, /^4\u202f?487 parties · 21 variantes/);
 });
 
 /* ─── 21. Marguerite francaise : variante desequilibree ─── */
@@ -2169,6 +2169,34 @@ test('KAAH 08/10/2026 : se rejoue en entier (172 demi-coups), Blancs 6 a 2, code
   const code = s => ctx.codePosition(s.board, s.capturedByWhite, s.capturedByBlack);
   assert.strictEqual(code(ctx.boardSnapshots[0]), '0a2b123c23d4g78h789i89_0a45b456c56g45h456i56');
   assert.strictEqual(code(ctx.boardSnapshots[171]), '6a5b3c67d678h7_2a1b24c125d345e467');
+});
+
+/* ─── 45 bis. Sixieme partie KAAH (22/10/2026, v2.67) ─── */
+test('KAAH 22/10/2026 : se rejoue en entier (116 demi-coups), Blancs 6 a 2, les cinq codes affiches par KAAH = ceux d’Abalassembly', () => {
+  ['drawBoard','updateStatus','showToast','rebuildMoveListLabels','loadSnapshot','closeMigsBrowser','resetGutterPositions','showPage'].forEach(n => { ctx[n] = () => {}; });
+  const i = ctx.PARTIES_REFERENCE.findIndex(g => /KAAH/.test(g[5]) && g[0] === '2026-10-22');
+  assert.ok(i >= 0);
+  ctx.loadRefGame(i);
+  assert.strictEqual(ctx.boardSnapshots.length, 116);
+  assert.strictEqual(ctx.CapturedByWhite.get(), 6); assert.strictEqual(ctx.CapturedByBlack.get(), 2);
+  const code = s => ctx.codePosition(s.board, s.capturedByWhite, s.capturedByBlack);
+  // codes lus sur les captures d'ecran de KAAH : depart (tour 1), coups 26, 55 et 82, fin
+  assert.strictEqual(ctx.codePosition(require('vm').runInContext('_replayStartBoard', ctx), 0, 0), '0a12b123c23g78h789i89_0a45b456c56g45h456i56');
+  assert.strictEqual(code(ctx.boardSnapshots[25]), '0b234c345d47e78f789i8_0b6c67d568e456f456g45');
+  assert.strictEqual(code(ctx.boardSnapshots[54]), '0b346c37d3478e9f5h89i8_2b5c456d56e567f78g5');
+  assert.strictEqual(code(ctx.boardSnapshots[81]), '4a4b2c23d3e3f4h7i78_2c4d56e46789f578g6');
+  assert.strictEqual(code(ctx.boardSnapshots[115]), '6a1b125g3h56i8_2c3d126e2346f245g6');
+  // une seule lecture possible a chaque demi-coup (des lectures differentes donneraient des positions differentes)
+  const toks = ctx.PARTIES_REFERENCE[i][6].replace(/\d+\./g, ' ').trim().split(/\s+/);
+  require('vm').runInContext("currentLayout = 'belgian'", ctx); ctx.initBoardState(); ctx.CapturedByBlack.set(0); ctx.CapturedByWhite.set(0);
+  let couleur = 'black';
+  toks.forEach((t, k) => {
+    const ok = ctx.getAllMovesForColor(couleur).filter(m => ctx.abaproOfficialLabels(m).indexOf(t) >= 0);
+    const issues = new Set(ok.map(m => { const u = ctx.applyMove(m, couleur); const c = ctx.codePosition(require('vm').runInContext('board', ctx), 0, 0); ctx.undoMove(u); return c; }));
+    assert.strictEqual(issues.size, 1, 'demi-coup ' + (k + 1) + ' (' + t + ')');
+    ctx.applyMove(ok.sort((x, y) => y.cells.length - x.cells.length)[0], couleur);
+    couleur = couleur === 'black' ? 'white' : 'black';
+  });
 });
 
 /* ─── 46. Page Aide : comment utiliser le site ─── */
@@ -4262,7 +4290,7 @@ test('v2.66 Architecture : les questions de l’IA dans l’ordre de aiMove(), l
     ['Comment l’IA choisit son coup', 'D’où viennent les données', 'Les modes de jeu et les échanges', 'Les tables de finale'].forEach(t => assert.ok(h.indexOf('<h3 class="archi-titre">' + t + '</h3>') >= 0, t));
     assert.strictEqual((h.match(/class="archi-num"/g) || []).length, 5, 'cinq questions');
     assert.ok(h.indexOf('Partie de Découverte arrivée à 4 billes contre 2') > 0 && h.indexOf('table de finale 4 contre 2') > 0);
-    assert.ok(h.indexOf('Corpus : <b class="archi-chiffre">' + ctx._dimNb(4579) + '</b> parties réelles') > 0);
+    assert.ok(h.indexOf('Corpus : <b class="archi-chiffre">' + ctx._dimNb(4580) + '</b> parties réelles') > 0);
     assert.ok(h.indexOf('PlayStrategy') > 0 && h.indexOf('en lecture seule') > 0, 'le serveur exterieur, dit');
     const liens = [...h.matchAll(/href="https:\/\/github\.com\/ocj94\/Abalassembly\/blob\/main\/([^"]+)"/g)].map(m => m[1]);
     assert.deepStrictEqual(liens, ['docs-fr/Architecture.fr.md']);
@@ -4276,7 +4304,7 @@ test('v2.66 Architecture : les questions de l’IA dans l’ordre de aiMove(), l
       ctx.renderArchiPage();
       const h = els['archi-diagrams'].innerHTML;
       ['How the AI picks its move', 'Where the data comes from', 'Game modes and exchanges', 'Endgame tables'].forEach(t => assert.ok(h.indexOf('<h3 class="archi-titre">' + t + '</h3>') >= 0, t));
-      assert.ok(h.indexOf('Corpus: <b class="archi-chiffre">' + ctx._dimNb(4579) + '</b> real games') > 0);
+      assert.ok(h.indexOf('Corpus: <b class="archi-chiffre">' + ctx._dimNb(4580) + '</b> real games') > 0);
       const liens = [...h.matchAll(/href="https:\/\/github\.com\/ocj94\/Abalassembly\/blob\/main\/([^"]+)"/g)].map(m => m[1]);
       assert.deepStrictEqual(liens, ['docs-en/Architecture.en.md']);
       liens.forEach(f => assert.ok(existe(f), f));

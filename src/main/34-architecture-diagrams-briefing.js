@@ -22,8 +22,8 @@
    et docs-en/Architecture.en.md.
 ═══════════════════════════════════════════ */
 const ARCHI_CHIFFRES = {
-  migs: 2589, ao: 1890, ps: 93, ref: 7,        // parties de chaque source (_sbBanques)
-  empreintes: 427156,                           // positions mesurees : EMPREINTES_HISTORIQUES + EMPREINTES_COMPLEMENT
+  migs: 2589, ao: 1890, ps: 93, ref: 8,        // parties de chaque source (_sbBanques)
+  empreintes: 427272,                           // positions mesurees : EMPREINTES_HISTORIQUES + EMPREINTES_COMPLEMENT
   dispositionsLivre: 13,                        // dispositions de l'arbre d'ouvertures (OPENING_TREES)
   puzzles: 138,                                 // PUZZLES
   historique: 200,                              // HIST_MAX

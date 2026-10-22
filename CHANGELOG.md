@@ -9,6 +9,21 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.67]
+
+### Ajouté
+- **Corpus** : 6ᵉ partie KAAH vérifiée par trois sources — 22/10/2026, contre
+  KAI++ niveau 8 (profil Normal v5El10, 60 s), **Blancs 6 à 2** en 58 coups.
+  La notation Aba-Pro (116 demi-coups, une seule lecture possible à chaque
+  coup), la notation Nacre (116 positions identiques) et les cinq codes de
+  position affichés par KAAH (départ, coups 26, 55 et 82, fin) concordent au
+  caractère près ; les 58 coups du tableau de réflexion de l'IA de KAAH sont
+  bien ceux de la partie. **4 580 parties**.
+- Ses statistiques (billes qui tombent, ce qui fait gagner, sortes de coups)
+  et ses empreintes sont calculées comme pour les autres : elle compte dans
+  les Statistiques du jeu, et la page Architecture passe à 8 parties de
+  référence et 427 272 positions mesurées.
+
 ## [v2.66]
 
 ### Corrigé — la page Architecture, remise à jour

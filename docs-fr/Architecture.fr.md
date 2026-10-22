@@ -59,13 +59,13 @@ Tout part des vraies parties embarquées dans le fichier.
 
 ```mermaid
 flowchart LR
-    S1[MIGS<br/>2 589 parties<br/>Belgian Daisy] --> C[Corpus<br/>4 579 parties réelles]
+    S1[MIGS<br/>2 589 parties<br/>Belgian Daisy] --> C[Corpus<br/>4 580 parties réelles]
     S2[AbalOnline<br/>1 890 parties<br/>18 dispositions] --> C
     S3[Tournoi PlayStrategy 2026<br/>93 parties] --> C
-    S4[Parties de référence<br/>7 parties] --> C
+    S4[Parties de référence<br/>8 parties] --> C
 
     C --> O[Livres d'ouvertures<br/>arbre de 13 dispositions<br/>et livre statique]
-    C --> E[Empreintes<br/>427 156 positions × 12 dimensions]
+    C --> E[Empreintes<br/>427 272 positions × 12 dimensions]
     C --> R[Chaque partie rejouée<br/>coup par coup, hors ligne]
     C --> P[Problèmes<br/>138, chacun sourcé]
     C --> L[Bibliothèque de parties]
@@ -84,8 +84,8 @@ flowchart LR
 
 **Précisions :**
 
-- Les **livres d'ouvertures** et le repli de l'IA (question 3) ne lisent que les parties MIGS et AbalOnline (418 595 positions). Les 8 561 positions des parties PlayStrategy et de référence s'y ajoutent pour les 12 dimensions des Statistiques du jeu (v2.59), d'où 427 156.
-- **Chaque partie rejouée** : `tools/stats-parties.js` rejoue hors ligne, avec le vrai moteur, les 4 579 parties (éjections, sortes de coups, occasions, les 12 dimensions des deux camps aux 20ᵉ, 40ᵉ et 60ᵉ coups) ; le résultat est embarqué compressé. Il nourrit la page Statistiques du jeu (les billes qui tombent, ce qui fait gagner, comment jouent les vrais joueurs — v2.63 à v2.65), les comparaisons de Mes statistiques et la ligne de l'écran de fin de partie. Un test rejoue un échantillon et compare.
+- Les **livres d'ouvertures** et le repli de l'IA (question 3) ne lisent que les parties MIGS et AbalOnline (418 595 positions). Les 8 677 positions des parties PlayStrategy et de référence s'y ajoutent pour les 12 dimensions des Statistiques du jeu (v2.59), d'où 427 272.
+- **Chaque partie rejouée** : `tools/stats-parties.js` rejoue hors ligne, avec le vrai moteur, les 4 580 parties (éjections, sortes de coups, occasions, les 12 dimensions des deux camps aux 20ᵉ, 40ᵉ et 60ᵉ coups) ; le résultat est embarqué compressé. Il nourrit la page Statistiques du jeu (les billes qui tombent, ce qui fait gagner, comment jouent les vrais joueurs — v2.63 à v2.65), les comparaisons de Mes statistiques et la ligne de l'écran de fin de partie. Un test rejoue un échantillon et compare.
 
 Le corpus n'est pas seulement une bibliothèque à consulter : il alimente directement le jeu de l'IA, l'analyse et les statistiques.
 
