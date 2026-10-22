@@ -9,6 +9,63 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.70]
+
+### Added — the AI Lab, six more tools
+Olivier's request: "improve the Lab", then "all 6". The AI Lab page now has
+**tabs**, one per tool.
+- **📐 Texel method**: over 18,855 positions from real games whose winner is
+  known, the weights for which the AI's evaluation **best guesses who will
+  win** (the method of chess engines). A few seconds of computing. Games
+  whose number ends in 0 or 5 are kept for checking only: right winner
+  guessed 73.1% → 75.8%, error −5%. Nothing is adopted on this alone:
+  "Check in duels" sends the weights to the Lab, which pits them against the
+  champion. First trial, outside the site with the same engine and rules (24
+  pairs from real positions, depth 2 like the Lab): the Texel weights score
+  42 points out of 48 against the champion (+338 Elo ± 145). The AI's default
+  weights do not change for all that.
+- **🏆 Style tournament**: Balanced, Aggressive, Defensive, Divide, KAAH (and
+  Texel, Human-like if they exist) play each other, in pairs; Elo ranking.
+- **📶 Levels**: each level against the next one, with its real depth and
+  thinking time (level 1 draws at random, as in a game); the height of each
+  step in Elo, and the scale from level 1. Up to level 8 (9 and 10 would take
+  days).
+- **🧑 Like humans**: how often each level plays the player's move (measured:
+  level 1 13%, level 2 26%, level 3 28%); and **"human" weights**, the ones
+  that make the move actually played most likely (move guessed 17% → 30% on
+  control games). They become the **"Human-like (Lab)"** style of the game
+  setup.
+- **🎯 Against you**: your **clone**, the same tuning on your moves (your
+  history, imported games included, at least 120 moves); then every style
+  plays your clone, and the best one can become the **"Against me (Lab)"**
+  style.
+- **📖 Openings**: the Belgian Daisy openings of the book, played by the AI
+  from positions a little further on (what real players played next),
+  compared with the humans' score. A checkbox makes the AI's book mix humans
+  and duels.
+- The test benches (tournament, levels, against you, openings) play on the
+  Lab's threads, several games at a time, with throughput and time left;
+  they resume after a reload. One at a time, never together with the Lab.
+
+### Changed — Lab games that look like real ones
+- **Start**: real **Belgian Daisy** positions taken from the corpus (between
+  plies 8 and 16, at 0-0), instead of the Standard layout and 6 random moves.
+  2,688 of the corpus's 4,580 games are Belgian Daisy, 384 Standard. Options:
+  every layout of the corpus, or the old start. Both games of a pair start
+  from the same position; "▶ replay" replays it.
+- **Adjudication** at the move limit: in real games, the side one marble
+  ahead at ply 66 wins only 66% of the time (two marbles: 78%, three: 94%). A
+  one-marble lead now counts as a win only if both evaluations, marbles
+  aside, do not see the other side better placed; otherwise, a draw.
+- The Lab's current test restarts under these rules (the champion, history
+  and measurements stay). The KAAH criteria test too, when restarted.
+- A more readable page: weights in French words, an explanation without
+  jargon, the phone layout fixed.
+- New embedded data: `tools/labo-positions.js` (replays the corpus offline,
+  about 3 minutes) writes 25,204 quiet positions and 3,866 starting positions.
+  To be rerun when an embedded game changes: a test asks for it.
+- 9 new tests (259 in all).
+
 ## [v2.69]
 
 ### Added — sync my devices

@@ -886,6 +886,10 @@ function _dA2rc(cc){var r=8-_AB.indexOf(cc[0]);var off=r<4?4-r:0;return{r:r,c:pa
 function _duelSetup(){board={};capturedByBlack=0;capturedByWhite=0;
  var parts='0a1a2a3a4a5b1b2b3b4b5b6c3c4c5,0g5g6g7h4h5h6h7h8h9i5i6i7i8i9'.split(',');
  for(var i=0;i<2;i++){var cells=parts[i].slice(1).match(/[a-i][1-9]/g)||[];for(var j=0;j<cells.length;j++){var x=_dA2rc(cells[j]);board[x.r+','+x.c]=(i?'white':'black');}}}
+/* v2.70 : depart depuis une vraie position du corpus (42-labo-positions.js) :
+   { s : 61 caracteres '.', 'b', 'w' rang par rang, t : camp au trait, cb, cw } */
+function _duelDepart(dep){board={};var i=0;for(var r=0;r<9;r++)for(var c=0;c<ROWS[r];c++,i++){var x=dep.s.charAt(i);if(x==='b')board[r+','+c]='black';else if(x==='w')board[r+','+c]='white';}
+ capturedByBlack=dep.cb|0;capturedByWhite=dep.cw|0;}
 function _snapCompact(){ var b={}; for(var k in board){ b[k]=(board[k]==='black'?'b':'w'); } return {b:b,cb:capturedByBlack,cw:capturedByWhite}; }
 /* Rejeu d'une partie du Labo. Les coups enregistres CONTIENNENT l'ouverture tiree au
    sort (ajoutee pour le book du Labo) : on rejoue donc tout depuis la position de
@@ -894,9 +898,9 @@ function _snapCompact(){ var b={}; for(var k in board){ b[k]=(board[k]==='black'
    sautes en silence, captures differentes de la vraie partie (trouve en comparant la
    position finale du rejeu a celle de la partie). Les entrees plus anciennes, sans
    l'ouverture, se rejouent encore comme avant (repli si un coup est illegal). */
-function _rejouerCoups(moves, seed, avecTirage){
+function _rejouerCoups(moves, seed, avecTirage, depart){
   var col='black', i, m, frames=[];
-  _duelSetup();
+  if(depart){ _duelDepart(depart); col=depart.t||'black'; avecTirage=false; } else _duelSetup();
   if(avecTirage){ var rnd=_mb32(seed||1);
     for(i=0;i<6;i++){ var ms=getAllMovesForColor(col).filter(function(x){return !x.eject;}); if(!ms.length)break;
       m=ms[Math.floor(rnd()*ms.length)]; applyMove(m,col); col=(col==='black'?'white':'black'); } }
@@ -910,19 +914,48 @@ function _rejouerCoups(moves, seed, avecTirage){
   }
   return frames;
 }
-function replayFromMoves(colorA, seed, moves){
-  var frames=_rejouerCoups(moves, seed, false) || _rejouerCoups(moves, seed, true);
+function replayFromMoves(colorA, seed, moves, depart){
+  var frames=depart ? _rejouerCoups(moves, seed, false, depart) : (_rejouerCoups(moves, seed, false) || _rejouerCoups(moves, seed, true));
   if(!frames) throw new Error('partie impossible a rejouer');
   return {frames:frames};
 }
 var _recMoves=null;
-function playDuelGame(wA,wB,colorA,seed,msPerMove,maxPlies,drawWin,ouverture,equilibre){
+/* v2.70 : chaque camp peut avoir sa propre facon de jouer (cfgA, cfgB) :
+     absent            -> recherche de profondeur 2, msPerMove par coup (le Labo, comme avant) ;
+     {depth, ms}       -> recherche de cette profondeur et de ce temps (les niveaux 2 a 10) ;
+     {mode:'hasard'}   -> le niveau 1 : tire au sort parmi les 4 premiers coups classes par sorte
+                          (ejections, poussees, deplacements) ;
+     {mode:'clone', beta} -> joue comme un modele de joueur : un coup tire au sort, d'autant plus
+                          souvent que son evaluation a un coup est bonne (« comme les humains »). */
+function _duelChoisir(col,cfg,msDefaut,hist,rnd){
+  if(!cfg) return searchBestMove(col,2,msDefaut||400,hist.slice(-60));
+  if(cfg.mode==='hasard'||cfg.mode==='clone'){
+    var ms=getAllMovesForColor(col); if(!ms.length) return null;
+    if(cfg.mode==='hasard'){ ms.sort(function(a,b){return (a.code||9)-(b.code||9);}); var L=ms.slice(0,4); return L[Math.floor(rnd()*L.length)]; }
+    var sc=[],mx=-Infinity,k,u;
+    for(k=0;k<ms.length;k++){ u=applyMove(ms[k],col); sc.push(evaluateBoard(col)); undoMove(u); if(sc[k]>mx) mx=sc[k]; }
+    var tot=0,b=(typeof cfg.beta==='number'&&cfg.beta>0)?cfg.beta:0.002;
+    for(k=0;k<ms.length;k++){ sc[k]=Math.exp(b*(sc[k]-mx)); tot+=sc[k]; }
+    var x=rnd()*tot; for(k=0;k<ms.length;k++){ x-=sc[k]; if(x<=0) return ms[k]; }
+    return ms[ms.length-1];
+  }
+  return searchBestMove(col,cfg.depth||2,cfg.ms||msDefaut||400,hist.slice(-60));
+}
+// ecart de billes (sur le plateau et ejectees) vu du camp color, en points d'evaluation : la part « materielle » de evaluateBoard
+function _materiel(color){var me=0,en=0;for(var k in board){var v=board[k];if(!v)continue;if(v===color)me++;else en++;}
+  var cap=color==='white'?(capturedByWhite-capturedByBlack):(capturedByBlack-capturedByWhite);return (me-en)*1000+cap*1000;}
+function playDuelGame(wA,wB,colorA,seed,msPerMove,maxPlies,drawWin,ouverture,equilibre,opts){
+  opts=opts||{};
   msPerMove=msPerMove||400; maxPlies=(typeof maxPlies==='number' && maxPlies>=0)?maxPlies:60; drawWin=(typeof drawWin==='number')?drawWin:400;
   // reglages du Labo « Ouverture : demi-coups » et « fenetre d'equilibre » : affiches depuis
   // longtemps, mais jamais transmis au moteur (6 et 600 etaient ecrits en dur) -- branches
   var nOuv=(typeof ouverture==='number' && ouverture>=0) ? Math.min(20, ouverture|0) : 6;
   var fen=(typeof equilibre==='number' && equilibre>0) ? equilibre : 600;
   var hist=[], col='black', plies=0, i, m, t, balanced=false, openingMoves=[];
+  if(opts.depart){
+    // v2.70 : une vraie position du corpus, jouee telle quelle (les deux parties d'une paire en partent)
+    _duelDepart(opts.depart); col=opts.depart.t||'black'; hist=[_repKeyOf(board)]; balanced=true;
+  } else
   // Ouverture equilibree : re-tire la graine tant que la position de depart est deja gagnee/perdue
   for(t=0;t<10;t++){
     _duelSetup(); hist=[]; col='black'; plies=0;
@@ -938,9 +971,10 @@ function playDuelGame(wA,wB,colorA,seed,msPerMove,maxPlies,drawWin,ouverture,equ
   // l'ouverture jouee est enregistree meme si aucune des 10 tentatives n'etait equilibree :
   // avant, la partie partait alors d'une ouverture absente de l'enregistrement (rejeu faux)
   if(_recMoves){ for(var oi=0;oi<openingMoves.length;oi++) _recMoves.push(openingMoves[oi]); }
+  var rndJeu=_mb32(((seed||1)*2654435761+(colorA==='white'?7:3))|0);
   for(i=0;i<maxPlies;i++){
     EVAL_W = (col===colorA)? wA : wB;
-    m=searchBestMove(col,2,msPerMove||400,hist.slice(-60));
+    m=_duelChoisir(col,(col===colorA)?opts.cfgA:opts.cfgB,msPerMove,hist,rndJeu);
     if(!m) return {winner:(col===colorA?'B':'A'),plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'noMove'};
     if(_recMoves) _recMoves.push({cells:m.cells.map(function(x){return {r:x.r,c:x.c};}),dir:{q:m.dir.q,r:m.dir.r},col:col});
     applyMove(m,col); hist.push(_repKeyOf(board)); plies++;
@@ -951,6 +985,16 @@ function playDuelGame(wA,wB,colorA,seed,msPerMove,maxPlies,drawWin,ouverture,equ
     col=(col==='black'?'white':'black');
   }
   var d2=capturedByBlack-capturedByWhite;
+  /* v2.70 (arbitrage 2) : dans les 4 580 vraies parties, le camp qui mene d'UNE bille au
+     66e demi-coup ne gagne que 66 % du temps (deux billes : 78 %, trois : 94 %). Une bille
+     d'avance ne suffit donc plus : elle ne compte que si les deux evaluations, billes mises
+     a part, ne voient pas l'autre camp mieux place ; sinon, nulle. */
+  if(opts.arbitrage===2 && (d2===1||d2===-1)){
+    var mene=(d2>0?'black':'white');
+    EVAL_W=wA; var pA=evaluateBoard(mene)-_materiel(mene); EVAL_W=wB; var pB=evaluateBoard(mene)-_materiel(mene);
+    if(pA>=0 && pB>=0) return {winner:(mene===colorA?'A':'B'),plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjCap1'};
+    return {winner:'D',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'draw1'};
+  }
   if(d2!==0){ var w2=(d2>0?'black':'white'); return {winner:(w2===colorA?'A':'B'),plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjCap'}; }
   /* Arbitrage par CONSENSUS (comme les bancs d'essai des moteurs d'echecs) : chaque camp
      evalue la position avec SES poids, du point de vue de A ; la victoire n'est donnee que
@@ -961,4 +1005,45 @@ function playDuelGame(wA,wB,colorA,seed,msPerMove,maxPlies,drawWin,ouverture,equ
   if(evA>drawWin && evB>drawWin) return {winner:'A',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjEval'};
   if(evA<-drawWin && evB<-drawWin) return {winner:'B',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjEval'};
   return {winner:'D',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'draw'};
+}
+/* ── v2.70 : les termes de l'evaluation, pour la methode Texel et « comme les humains » ──
+   evaluateBoard est lineaire en ses poids : materiel + somme des poids x termes. Avec un
+   poids de 1 sur chaque critere, evalDetail donne donc chaque terme tel quel. */
+var _TX_TERMES={center:function(d){return d.centre;},cohesion:function(d){return d.coh;},edge:function(d){return d.bordM+d.bordA;},
+  mob:function(d){return d.mob;},iso:function(d){return d.iso;},dng:function(d){return d.dng;},chain:function(d){return d.chaine;},fortress:function(d){return d.fort;},
+  scGain:function(d){return d.scGain;},scPerte:function(d){return d.scPerte;},cases:function(d){return d.cases;},compac:function(d){return d.compac;},
+  sumito:function(d){return d.sumito;},menace:function(d){return d.menace;},fourch:function(d){return d.fourch;},piege:function(d){return d.piege;}};
+function _txPoidsUn(cles){var w={center:0,cohesion:0,edge:0,mob:0,iso:0,dng:0,chain:0,fortress:0};for(var i=0;i<cles.length;i++)w[cles[i]]=1;return w;}
+function _txTermes(color,cles,f,o){var d=evalDetail(color);for(var j=0;j<cles.length;j++)f[o+j]=_TX_TERMES[cles[j]](d);return d.gain+d.perte+d.base;}
+// pour chaque position : les termes vus du camp au trait, et l'ecart materiel
+function texelTermes(positions,cles){
+  var K=cles.length,n=positions.length,f=new Float32Array(n*K),mat=new Float32Array(n);
+  EVAL_W=_txPoidsUn(cles);
+  for(var i=0;i<n;i++){_duelDepart(positions[i]);mat[i]=_txTermes(positions[i].t,cles,f,i*K);}
+  return {f:f,m:mat};
+}
+// pour chaque position : chaque coup legal, les termes APRES le coup vus du joueur, et le rang du coup joue
+function coupsTermes(positions,coups,cles){
+  var K=cles.length,nb=[],joue=[],F=[],M=[];
+  EVAL_W=_txPoidsUn(cles);
+  for(var i=0;i<positions.length;i++){
+    _duelDepart(positions[i]);var col=positions[i].t,ms=getAllMovesForColor(col),r=-1;
+    for(var k=0;k<ms.length;k++){
+      if(_coupCode(ms[k])===coups[i]) r=k;
+      var u=applyMove(ms[k],col),f=new Float32Array(K);M.push(_txTermes(col,cles,f,0));undoMove(u);F.push(f);
+    }
+    nb.push(ms.length);joue.push(r);
+  }
+  var tout=new Float32Array(F.length*K);for(var q=0;q<F.length;q++)tout.set(F[q],q*K);
+  return {nb:nb,joue:joue,f:tout,m:new Float32Array(M)};
+}
+// code d'un coup (42-labo-positions.js) : premiere case, derniere case, direction
+var _CP_DIRS=[[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]],_CP_IDX=(function(){var t={},i=0;for(var r=0;r<9;r++)for(var c=0;c<ROWS[r];c++)t[r+','+c]=i++;return t;})();
+function _coupCode(m){var a=m.cells.map(function(x){return _CP_IDX[x.r+','+x.c];}).sort(function(p,q){return p-q;});var d=-1;
+  for(var j=0;j<6;j++)if(_CP_DIRS[j][0]===m.dir.q&&_CP_DIRS[j][1]===m.dir.r)d=j;return a[0]|(a[a.length-1]<<6)|((d<0?7:d)<<12);}
+// le coup que choisirait une facon de jouer (niveau, poids) sur chaque position
+function choixCoups(positions,w,cfg,seed){
+  var out=[],rnd=_mb32(seed||1);
+  for(var i=0;i<positions.length;i++){_duelDepart(positions[i]);EVAL_W=w;var m=_duelChoisir(positions[i].t,cfg,(cfg&&cfg.ms)||300,[_repKeyOf(board)],rnd);out.push(m?_coupCode(m):-1);}
+  return out;
 }

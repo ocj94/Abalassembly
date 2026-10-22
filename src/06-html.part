@@ -834,6 +834,8 @@
         <button onclick="setupPick('style','divide',this)" class="setup-opt">Division</button>
         <button onclick="setupPick('style','balanced',this)" class="setup-opt">Équilibré</button>
         <button onclick="setupPick('style','kaah',this)" class="setup-opt" title="Les critères d'évaluation de KAAH (sumito, menace, fourchette, piège, compacité…) ajoutés au moteur — expérimental, en cours de test au Labo">KAAH (expérimental)</button>
+        <button id="setup-style-humain" onclick="setupPick('style','humain',this)" class="setup-opt" style="display:none" title="Les priorités des vrais joueurs, réglées au Labo (Comme les humains)">Humain (Labo)</button>
+        <button id="setup-style-contremoi" onclick="setupPick('style','contremoi',this)" class="setup-opt" style="display:none" title="Le style qui bat le mieux ton clone, choisi au Labo (Contre toi)">Contre moi (Labo)</button>
       </div>
       <div class="setup-row-lbl" style="margin-top:14px">Niveau</div>
       <div style="display:flex;gap:5px;flex-wrap:wrap" id="setup-diff">
@@ -3630,12 +3632,15 @@
 
 
 <!-- PAGE: LABO IA -->
+<!-- v2.70 (demande d'Olivier : « amelioration du Labo », puis « les 6 ») : sept outils en onglets.
+     Chaque onglet est rempli par son module : 17 (auto-amelioration), 43 (Texel), 44 (tournoi des
+     styles, niveaux, ouvertures), 45 (comme les humains, contre toi). -->
 <div class="page" id="page-lab">
   <div style="padding-top:64px">
     <div class="page-header" style="padding:40px 60px 0">
       <div class="section-label">Moteur</div>
-      <h2>Labo d'auto-amélioration récursive</h2>
-      <p style="color:var(--muted);font-size:14px;max-width:680px">Duels réels moteur contre moteur, plusieurs à la fois sur des fils de calcul dédiés — tu peux continuer à jouer pendant. Chaque ouverture est jouée deux fois, couleurs inversées, et rien n'est adopté sans verdict statistique.</p>
+      <h2>Labo IA</h2>
+      <p style="color:var(--muted);font-size:14px;max-width:680px">Des outils pour rendre l’IA plus forte et la comprendre, à partir des 4 580 vraies parties du corpus. Tout tourne sur ton appareil, plusieurs parties à la fois, et tu peux jouer pendant. Rien ne change l’IA sans un verdict en duels.</p>
       <button class="tech-toggle-btn btn" style="margin-top:10px;font-size:12px;padding:6px 12px" onclick="toggleTechMode()">🔬 Voir le détail technique</button>
       <div class="tech-detail" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-top:16px;max-width:680px">
         <h3 style="margin:0 0 10px;color:var(--white);font-size:16px">Deux méthodes, deux logiques</h3>
@@ -3644,15 +3649,53 @@
         <p style="margin:0;font-size:13px;color:var(--muted);line-height:1.7">Les 8 poids (centre, cohésion, bord, mobilité, isolement, danger, alignements, forteresse) et les 8 critères de KAAH (sumito, menace, fourchette, piège, compacité, cases, gain et perte selon le score) sont partagés entre les deux méthodes et avec le moteur de jeu réel — un changement validé par le Labo s'applique directement à l'IA que tu affrontes. Les parties trop longues sont arbitrées par consensus : la victoire n'est donnée que si les deux évaluations sont d'accord.</p>
       </div>
     </div>
-    <div id="page-lab-host" style="padding:24px 60px 60px;max-width:900px"></div>
-    <div id="test-kaah-host" style="padding:0 60px 60px;max-width:900px"></div>
-
-    <!-- Benchmark moteur — mesure reelle avant toute promesse de gain -->
-    <div style="padding:0 60px 60px;max-width:680px">
+    <div class="lab-onglets" id="lab-onglets" role="tablist" aria-label="Outils du Labo">
+      <button data-onglet="auto" onclick="laboOnglet('auto')">🔁 Auto-amélioration</button>
+      <button data-onglet="texel" onclick="laboOnglet('texel')">📐 Méthode Texel</button>
+      <button data-onglet="styles" onclick="laboOnglet('styles')">🏆 Tournoi des styles</button>
+      <button data-onglet="niveaux" onclick="laboOnglet('niveaux')">📶 Niveaux</button>
+      <button data-onglet="humains" onclick="laboOnglet('humains')">🧑 Comme les humains</button>
+      <button data-onglet="contretoi" onclick="laboOnglet('contretoi')">🎯 Contre toi</button>
+      <button data-onglet="ouvertures" onclick="laboOnglet('ouvertures')">📖 Ouvertures</button>
+      <button data-onglet="outils" onclick="laboOnglet('outils')">🧰 Autres outils</button>
+    </div>
+    <section class="lab-zone" data-onglet="auto">
+      <h3>🔁 Auto-amélioration</h3>
+      <div id="page-lab-host"></div>
+    </section>
+    <section class="lab-zone" data-onglet="texel" hidden>
+      <h3>📐 Méthode Texel : régler l’IA sur les vraies parties</h3>
+      <div id="lab-texel-host"></div>
+    </section>
+    <section class="lab-zone" data-onglet="styles" hidden>
+      <h3>🏆 Tournoi entre les styles</h3>
+      <div id="lab-styles-host"></div>
+    </section>
+    <section class="lab-zone" data-onglet="niveaux" hidden>
+      <h3>📶 Les niveaux 1 à 10</h3>
+      <div id="lab-niveaux-host"></div>
+    </section>
+    <section class="lab-zone" data-onglet="humains" hidden>
+      <h3>🧑 Comme les humains</h3>
+      <div id="lab-humains-host"></div>
+    </section>
+    <section class="lab-zone" data-onglet="contretoi" hidden>
+      <h3>🎯 Une IA réglée contre toi</h3>
+      <div id="lab-contretoi-host"></div>
+    </section>
+    <section class="lab-zone" data-onglet="ouvertures" hidden>
+      <h3>📖 Les ouvertures de la Marguerite belge</h3>
+      <div id="lab-ouvertures-host"></div>
+    </section>
+    <section class="lab-zone" data-onglet="outils" hidden>
+      <h3>🧰 Autres outils</h3>
+      <div id="test-kaah-host" class="lab-carte-interne"></div>
+<!-- Benchmark moteur — mesure reelle avant toute promesse de gain -->
+    <div class="lab-carte-interne">
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px">
         <h3 style="margin:0 0 8px;color:var(--white);font-size:16px">🧪 Benchmark moteur</h3>
         <p style="margin:0 0 14px;font-size:13px;color:var(--muted);line-height:1.7">
-          Mesure ce que ton appareil fait vraiment, sur la position de départ standard (Belgian Daisy) :
+          Mesure ce que ton appareil fait vraiment, sur la position de départ de la Marguerite belge :
           nœuds/seconde avec 1 worker, puis avec le nombre de workers réellement utilisés par le site,
           et l'efficacité réelle du parallélisme (gain observé vs gain idéal). Aucune donnée envoyée —
           tout tourne dans ton navigateur.
@@ -3689,9 +3732,8 @@
         </div>
       </div>
     </div>
-
-    <!-- Moteur experimental NNUE -- honnetement etiquete, resultats reels affiches -->
-    <div style="padding:0 60px 60px;max-width:680px">
+<!-- Moteur experimental NNUE -- honnetement etiquete, resultats reels affiches -->
+    <div class="lab-carte-interne">
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px">
         <h3 style="margin:0 0 8px;color:var(--white);font-size:16px">🧠 Moteur expérimental (NNUE)</h3>
         <p style="margin:0 0 14px;font-size:13px;color:var(--muted);line-height:1.7">
@@ -3706,6 +3748,7 @@
         </div>
       </div>
     </div>
+    </section>
   </div>
 </div>
 
@@ -3796,7 +3839,7 @@
 <li><b>Bibliothèque de parties</b> : des milliers de vraies parties (MIGS, AbalOnline, tournois, KAAH), à rejouer et filtrer.</li>
 <li><b>Stats du corpus</b> : les chiffres de ces parties — dont les billes qui tombent (qui fait tomber la première bille gagne-t-il, le tableau des remontées, le score final, la carte des éjections), ce qui fait gagner et comment jouent les vrais joueurs —, et la <b>profondeur de l'IA selon le temps de réflexion</b>, mesurée sur ton appareil et relevée pendant tes parties.</li>
 <li><b>Tables de finale</b> : les finales résolues exactement (2 contre 2, 3 contre 2, 4 contre 2), avec un entraînement.</li>
-<li><b>Labo IA</b> : l'IA s'améliore en jouant contre elle-même, plusieurs parties à la fois. Chaque changement de ses poids (y compris les critères de KAAH) est joué par paires d'ouvertures et n'est adopté qu'après un verdict statistique ; le « gain réel mesuré » compare ensuite le champion aux poids d'origine. En bas de page : le test des critères de KAAH.</li>
+<li><b>Labo IA</b> : des outils pour rendre l'IA plus forte et la comprendre, en onglets. <i>Auto-amélioration</i> : l'IA essaie de petits changements de ses poids contre son réglage actuel, par paires depuis de vraies positions de Marguerite belge, et n'adopte qu'après un verdict statistique. <i>Méthode Texel</i> : des réglages qui devinent le mieux le gagnant des vraies parties, à vérifier en duels. <i>Tournoi des styles</i>, <i>Niveaux</i> (la hauteur de chaque marche, en Elo), <i>Comme les humains</i> (combien de fois l'IA joue le coup du joueur ; un style « Humain »), <i>Contre toi</i> (ton clone à partir de ton historique, et le style qui le bat le mieux), <i>Ouvertures</i> (les débuts de la Marguerite belge joués par l'IA). Dans <i>Autres outils</i> : le test des critères de KAAH, le benchmark, le NNUE.</li>
 <li><b>Détection photo / plateau</b> : photographie un vrai plateau pour le reproduire.</li>
 <li><b>Observer</b> : suivre une partie PlayStrategy en direct. <b>Tournoi</b> : un tournoi contre des IA.</li>
 <li><b>Variantes</b> et <b>Éditeur</b> : d'autres règles et dispositions, ou ta propre position.</li>
@@ -3903,7 +3946,7 @@
 <li><b>Game library</b>: thousands of real games (MIGS, AbalOnline, tournaments, KAAH) to replay and filter.</li>
 <li><b>Corpus stats</b>: the numbers behind these games — including falling marbles (does the first to push a marble off win, the comeback table, the final score, the ejection map), what wins games and how real players play — and the <b>AI’s depth by thinking time</b>, measured on your device and recorded during your games.</li>
 <li><b>Endgame tables</b>: endgames solved exactly (2 vs 2, 3 vs 2, 4 vs 2), with training.</li>
-<li><b>AI Lab</b>: the AI improves by playing against itself, several games at a time. Each change to its weights (KAAH’s criteria included) is played in pairs of openings and adopted only after a statistical verdict; the “measured real gain” then compares the champion with the original weights. At the bottom of the page: the test of KAAH’s criteria.</li>
+<li><b>AI Lab</b> (in French): tools to make the AI stronger and understand it, in tabs. <i>Self-improvement</i>: the AI tries small changes to its weights against its current setting, in pairs from real Belgian Daisy positions, and adopts one only after a statistical verdict. <i>Texel method</i>: settings that best guess the winner of real games, to be checked in duels. <i>Style tournament</i>, <i>Levels</i> (the height of each step, in Elo), <i>Like humans</i> (how often the AI plays the player’s move; a “Human-like” style), <i>Against you</i> (your clone from your history, and the style that beats it best), <i>Openings</i> (the Belgian Daisy openings played by the AI). Under <i>Other tools</i>: the test of KAAH’s criteria, the benchmark, the NNUE.</li>
 <li><b>Photo / board detection</b>: photograph a real board to reproduce it.</li>
 <li><b>Watch</b>: follow a PlayStrategy game live. <b>Tournament</b>: a tournament against AIs.</li>
 <li><b>Variants</b> and <b>Editor</b>: other rules and layouts, or your own position.</li>

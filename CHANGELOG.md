@@ -9,6 +9,71 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.70]
+
+### Ajouté — le Labo IA, six outils de plus
+Demande d'Olivier : « amélioration du Labo », puis « les 6 ». La page Labo IA
+passe en **onglets**, un par outil.
+- **📐 Méthode Texel** : sur 18 855 positions de vraies parties dont on
+  connaît le gagnant, les poids pour lesquels l'évaluation de l'IA **devine
+  le mieux qui va gagner** (la méthode des moteurs d'échecs). Quelques
+  secondes de calcul. Les parties dont le numéro finit par 0 ou 5 ne servent
+  qu'à vérifier : bon gagnant deviné 73,1 % → 75,8 %, erreur −5 %. Rien
+  n'est adopté sur ce seul critère : « Vérifier en duels » envoie les poids
+  au Labo, qui les confronte au champion. Premier essai, hors du site avec le
+  même moteur et les mêmes règles (24 paires depuis de vraies positions,
+  profondeur 2 comme le Labo) : les poids Texel marquent 42 points sur 48
+  contre le champion (+338 Elo ± 145). Les poids par défaut de l'IA ne
+  changent pas pour autant.
+- **🏆 Tournoi des styles** : Équilibré, Agressif, Défensif, Division, KAAH
+  (et Texel, Humain s'ils existent) s'affrontent deux à deux, par paires ;
+  classement Elo.
+- **📶 Niveaux** : chaque niveau contre le suivant, avec sa vraie profondeur
+  et son vrai temps (le niveau 1 tire au sort, comme en partie) ; la hauteur
+  de chaque marche en Elo, et l'échelle depuis le niveau 1. Jusqu'au
+  niveau 8 (9 et 10 demanderaient des jours).
+- **🧑 Comme les humains** : combien de fois chaque niveau joue le coup du
+  joueur (mesuré : niveau 1 13 %, niveau 2 26 %, niveau 3 28 %) ; et des
+  **poids « humains »**, ceux qui rendent le coup réellement joué le plus
+  probable (coup deviné 17 % → 30 % sur des parties de contrôle). Ils
+  deviennent le style **« Humain (Labo) »** de la configuration de partie.
+- **🎯 Contre toi** : ton **clone**, le même réglage sur tes coups (ton
+  historique, parties importées comprises, 120 coups au moins) ; puis chaque
+  style affronte ton clone, et le meilleur peut devenir le style **« Contre
+  moi (Labo) »**.
+- **📖 Ouvertures** : les débuts de la Marguerite belge du livre, joués par
+  l'IA depuis des positions un peu plus loin (ce que les vrais joueurs ont
+  joué ensuite), comparés au score des humains. Case à cocher : le livre de
+  l'IA mélange alors humains et duels.
+- Les bancs d'essai (tournoi, niveaux, contre toi, ouvertures) jouent sur
+  les fils de calcul du Labo, plusieurs parties à la fois, avec débit et
+  temps restant ; ils reprennent après un rechargement. Un seul à la fois,
+  jamais en même temps que le Labo.
+
+### Modifié — des parties du Labo qui ressemblent aux vraies
+- **Départ** : de vraies positions de **Marguerite belge** tirées du corpus
+  (entre le 8ᵉ et le 16ᵉ demi-coup, à 0-0), au lieu de la disposition
+  Standard et de 6 coups au hasard. 2 688 des 4 580 parties du corpus sont
+  en Marguerite belge, 384 en Standard. Au choix : toutes les dispositions
+  du corpus, ou l'ancien départ. Les deux parties d'une paire partent de la
+  même position ; « ▶ revoir » la rejoue.
+- **Arbitrage** à la limite de coups : dans les vraies parties, le camp qui
+  mène d'une bille au 66ᵉ demi-coup ne gagne que 66 % du temps (deux
+  billes : 78 %, trois : 94 %). Une bille d'avance ne compte plus comme une
+  victoire que si les deux évaluations, billes mises à part, ne voient pas
+  l'autre camp mieux placé ; sinon, nulle.
+- Le test en cours au Labo repart sur ces règles (le champion, l'historique
+  et les mesures restent). Le test des critères de KAAH aussi, quand on le
+  relance.
+- Page plus lisible : les poids en français (« centre 6 · cohésion 4 »,
+  avant « center 6 · cohesion 4 »), une explication sans jargon, la mise en
+  page corrigée sur téléphone.
+- Nouvelles données embarquées : `tools/labo-positions.js` (rejoue le corpus
+  hors ligne, environ 3 minutes) écrit 25 204 positions calmes et 3 866
+  positions de départ. À relancer quand une partie embarquée change : un
+  test le réclame.
+- 9 tests nouveaux (259 au total).
+
 ## [v2.69]
 
 ### Ajouté — synchroniser mes appareils

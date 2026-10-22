@@ -38,6 +38,8 @@ main/data/15-empreintes-complement.b64
 main/data/15-code-08.js
 main/data/15-stats-parties.b64
 main/data/15-code-09.js
+main/data/15-labo-positions.b64
+main/data/15-code-10.js
 main/16-corpus-data-tools.js
 main/17-profil-faiblesse-a.js
 main/data/17-puzzles.json
@@ -70,6 +72,10 @@ main/38-apprendre-vrai-plateau.js
 main/39-statistiques-billes.js
 main/40-adresses-pages.js
 main/41-synchro-appareils.js
+main/42-labo-positions.js
+main/43-labo-texel.js
+main/44-labo-bancs.js
+main/45-labo-humains.js
 08-html.part
 09-script-tablebase.js
 10-html.part

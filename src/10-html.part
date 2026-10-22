@@ -145,7 +145,7 @@
       <span style="font-weight:800;color:var(--gold)">🧪 Labo d'auto-amélioration récursive</span>
       <button class="ctrl-btn" onclick="closeLabModal()" style="width:auto;padding:2px 10px">✕</button>
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Duels réels moteur contre moteur (plusieurs fils de calcul — tu peux jouer pendant). v4 : paires d'ouvertures, verdict SPRT par paires, arbitrage par consensus, SPSA vérifié avant adoption, gain réel mesuré, critères de KAAH réglables. Reprend tout seul au chargement si laissé démarré.</div>
+    <div class="lab-intro">Le Labo essaie de petits changements des réglages de l’IA (les « mutants ») contre le réglage actuel (le « champion »), plusieurs parties à la fois. Chaque position est jouée deux fois, couleurs inversées, et un changement n’est adopté qu’après un verdict statistique ; l’IA que tu affrontes l’utilise alors. Il reprend tout seul au chargement s’il était lancé.</div>
     <div style="display:flex;gap:8px;margin-bottom:8px">
       <button id="lab-start" class="ctrl-btn" onclick="_labRunning?pauseLab():startLab()" style="width:auto;padding:6px 14px">▶ Démarrer</button>
       <button class="ctrl-btn" onclick="resetLab()" style="width:auto;padding:6px 14px">🔄 Réinitialiser</button>

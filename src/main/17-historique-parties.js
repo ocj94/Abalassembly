@@ -14,7 +14,7 @@ function _historyOpponentLabel(entry){
   if (entry.spectateur) return 'Partie consultée — ' + (entry.blackName||'?') + ' vs ' + (entry.whiteName||'?');
   if (entry.mode === 'import') return 'Partie importée' + ((entry.blackName || entry.whiteName) ? ' — ' + (entry.blackName||'?') + ' vs ' + (entry.whiteName||'?') : '');
   if (entry.mode === 'local') return (entry.blackName || entry.whiteName) ? 'Partie par code/direct' : 'Local (même écran)';
-  const styleLabels = { auto:'Auto', aggressive:'Agressif', defensive:'Défensif', divide:'Division', balanced:'Équilibré' };
+  const styleLabels = { auto:'Auto', aggressive:'Agressif', defensive:'Défensif', divide:'Division', balanced:'Équilibré', kaah:'KAAH', humain:'Humain (Labo)', contremoi:'Contre moi (Labo)' };
   const style = styleLabels[entry.aiStyle] || entry.aiStyle || '?';
   // anciennes parties ("hard"...) affichees avec leur numero : meme niveau, renomme
   const _n = _niveauIA(entry.aiDiff);

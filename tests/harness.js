@@ -183,6 +183,10 @@ const PASSERELLE = `
   if (typeof _labEnVol !== 'undefined') relier('_labEnVol', function(){return _labEnVol;}, function(v){_labEnVol=v;});
   if (typeof _spsaVol !== 'undefined') relier('_spsaVol', function(){return _spsaVol;}, function(v){_spsaVol=v;});
   if (typeof _labPingOk !== 'undefined') relier('_labPingOk', function(){return _labPingOk;}, function(v){_labPingOk=v;});
+  // Labo v2.70 : bancs d'essai, methode Texel
+  if (typeof _bancActif !== 'undefined') relier('_bancActif', function(){return _bancActif;}, function(v){_bancActif=v;});
+  if (typeof _bancPlanifier !== 'undefined') relier('_bancPlanifier', function(){return _bancPlanifier;}, function(v){_bancPlanifier=v;});
+  if (typeof _txCreerFil !== 'undefined') relier('_txCreerFil', function(){return _txCreerFil;}, function(v){_txCreerFil=v;});
   if (typeof PUZZLES !== 'undefined') relier('PUZZLES', function(){return PUZZLES;});
   if (typeof friendsData !== 'undefined') relier('friendsData', function(){return friendsData;});
   if (typeof compareProfiles !== 'undefined') relier('compareProfiles', function(){return compareProfiles;});

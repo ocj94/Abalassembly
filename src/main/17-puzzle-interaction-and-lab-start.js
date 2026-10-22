@@ -150,6 +150,10 @@ const LAB_CFG_DEFAULT={
   bilanPaires:25, threads:0, kaah:1,
   openingPlies:6, balanceWindow:600, maxGen:20, adaptive:1,
   mode:'sprt',                 // 'sprt' (test A/B a seuil) ou 'spsa' (optimisation continue, verifiee avant adoption)
+  // v2.70 : d'ou partent les parties ('belgian' : vraies positions de Marguerite belge du corpus ;
+  // 'corpus' : toutes ses dispositions ; 'hasard' : l'ancien depart, Standard + coups au hasard)
+  // et l'arbitrage a la limite de coups (2 : une bille d'avance ne suffit plus, voir playDuelGame)
+  depart:'belgian', arbitrage:2,
   spsaA:60, spsaC:1.2, spsaAlpha:0.602, spsaGamma:0.101, spsaPairs:1, spsaIters:200, spsaVerif:50
 };
 let LAB_CFG=Object.assign({}, LAB_CFG_DEFAULT);
@@ -251,7 +255,8 @@ function _labFilLancer(f, t, surFin){
     surFin(t, { duelGame:true, timeout:true });
   }, delai);
   f.w.postMessage({ duelGame:true, wA:t.wA, wB:t.wB, colorA:t.colorA, seed:t.seed, msPerMove:t.ms, maxPlies:t.plies, drawWin:t.draw,
-    ouverture:LAB_CFG.openingPlies, equilibre:LAB_CFG.balanceWindow, id:Date.now() });
+    ouverture:LAB_CFG.openingPlies, equilibre:LAB_CFG.balanceWindow, depart:t.depart||null, cfgA:t.cfgA||null, cfgB:t.cfgB||null,
+    arbitrage:(t.arbitrage!=null ? t.arbitrage : (LAB_CFG.arbitrage|0)||1), id:Date.now() });
 }
 
 // ── Mutants (mode SPRT) ──
@@ -339,7 +344,7 @@ function _spsaUpdate(sp, pert, score){
 function _labPhasePrincipale(){ return LAB_CFG.mode==='spsa' ? 'spsa' : 'screen'; }
 function _labDefaultState(){
   const champ=_labComplet(LAB_ORIGINE);
-  return { v:4, gen:2, epoch:1, champion:champ, championGen:1, phase:_labPhasePrincipale(), cands:labMutants(champ,2,null), candsGen:2,
+  return { v:5, gen:2, epoch:1, champion:champ, championGen:1, phase:_labPhasePrincipale(), departMode:LAB_CFG.depart||'belgian', cands:labMutants(champ,2,null), candsGen:2,
     confirm:null, bilan:null, totalGames:0, gameLog:[], lastGood:null, spsa:_spsaInit(champ), mesures:[],
     history:[{gen:1,type:'banc externe',name:'iso26/dng20/center9/cohesion6 testés — finaliste cohesion 6 : 17,5/32 (54,7 %) < seuil',score:null,games:60}] };
 }
@@ -363,10 +368,22 @@ function _labMigrer(s){
   st.phase=(s.phase==='done') ? 'done' : _labPhasePrincipale();
   labSave(st); return st;
 }
+/* v2.70 : les parties partent de vraies positions et sont arbitrees autrement. Le champion,
+   l'historique et les mesures restent ; le test en cours repart sur les nouvelles regles
+   (ses parties ne se melangent pas avec les anciennes). */
+function _labMigrerV5(s){
+  s.v=5; s.epoch=(s.epoch||1)+1; s.departMode=LAB_CFG.depart||'belgian';
+  (s.cands||[]).forEach(function(c){ c.penta=_labPentaVide(); c.half={}; c.fait={}; c.stop=false; });
+  if(s.confirm){ s.confirm.penta=_labPentaVide(); s.confirm.half={}; s.confirm.fait={}; s.confirm.llr=0; }
+  if(s.bilan){ s.bilan.penta=_labPentaVide(); s.bilan.half={}; s.bilan.fait={}; }
+  s.history=s.history||[];
+  s.history.unshift({gen:s.gen||2, type:'⚙ v5', name:'parties depuis de vraies positions du corpus (Marguerite belge), une bille d’avance ne suffit plus à gagner ; le test en cours repart', score:null, games:0});
+  labSave(s); return s;
+}
 function labLoad(){
   try{
     const s=JSON.parse(localStorage.getItem('abaLabState')||'null');
-    if(s && s.champion && s.phase){ if(s.v===4) return s; return _labMigrer(s); }
+    if(s && s.champion && s.phase){ if(s.v===5) return s; if(s.v===4) return _labMigrerV5(s); return _labMigrerV5(_labMigrer(s)); }
   }catch(e){}
   return _labDefaultState();
 }
@@ -390,15 +407,23 @@ function _labHBstop(){ clearInterval(_labHB); _labHB=null; }
 let _labEnVol={};   // parties lancees, pas encore revenues (en memoire : perdues au rechargement, donc relancees)
 let _spsaVol=[];    // iterations SPSA en cours (en memoire)
 
+/* v2.70 : les positions du corpus sont chargees AVANT la premiere partie -- sinon les deux
+   parties d'une paire pourraient partir de positions differentes. Chargement impossible
+   (navigateur trop ancien) : l'ancien depart, Standard + coups au hasard. */
+function _labPositionsPuis(suite){
+  if(LAB_CFG.depart==='hasard' || typeof ensureLaboPositions!=='function' || (typeof LABO_POS!=='undefined' && LABO_POS)){ suite(); return; }
+  ensureLaboPositions().then(function(ok){ if(!ok) _labStatus('⚠️ Positions du corpus illisibles ici : départ Standard + coups au hasard'); suite(); });
+}
 function startLab(){
   if(typeof _testKaahEnCours!=='undefined' && _testKaahEnCours){ showToast('Le test des critères de KAAH tourne : mets-le en pause d’abord'); return; }
+  if(typeof _bancActif!=='undefined' && _bancActif){ showToast('Un banc d’essai du Labo tourne : mets-le en pause d’abord'); return; }
   const n=_labFilsAssurer(_labNbFils());
   if(!n){ renderLab(); _labStatus('❌ Fil de calcul refusé par ce navigateur/lecteur — ouvre le site dans Chrome ou Firefox, ou via le site en ligne',true); showToast('⚠️ Fil de calcul indisponible — Labo impossible ici'); return; }
   _labRunning=true; _labRetries=0; _labEnVol={}; _spsaVol=[]; try{localStorage.setItem('abaLabAutoRun','1');}catch(e){}
   renderLab(); _labStatus('⏳ Test des fils de calcul…');
   _labPingOk=false;
   const f=_labFils[0];
-  f.w.onmessage=function(e){ if(e.data && e.data.pong && !_labPingOk){ _labPingOk=true; if(_labRunning){ _labStatus('✅ '+_labFils.length+' fil'+(_labFils.length>1?'s':'')+' de calcul prêt'+(_labFils.length>1?'s':'')+' — lancement des parties…'); _labHBstart(); _labPomper(); } } };
+  f.w.onmessage=function(e){ if(e.data && e.data.pong && !_labPingOk){ _labPingOk=true; if(_labRunning){ _labStatus('✅ '+_labFils.length+' fil'+(_labFils.length>1?'s':'')+' de calcul prêt'+(_labFils.length>1?'s':'')+' — lancement des parties…'); _labPositionsPuis(function(){ if(_labRunning){ _labHBstart(); _labPomper(); } }); } } };
   try{ f.w.postMessage({ping:1}); }
   catch(err){ pauseLab(); _labStatus('❌ postMessage a échoué : '+err.message,true); return; }
   _labPlanifier(function(){
@@ -427,9 +452,14 @@ function labToggleUse(el){
 // ── Ordonnanceur ──
 function _labRegime(phase){ return phase==='screen' ? {ms:LAB_CFG.screenMs, plies:LAB_CFG.screenPlies, draw:LAB_CFG.screenDraw} : {ms:LAB_CFG.confMs, plies:LAB_CFG.confPlies, draw:LAB_CFG.confDraw}; }
 function _labPairesTri(){ return Math.max(1, Math.ceil((LAB_CFG.screenTarget||6)/2)); }
+// v2.70 : la position de depart d'une partie (null : l'ancien depart, Standard + coups au hasard)
+function _labDepart(mode, seed){
+  if(mode==='hasard' || typeof _lpDepartPour!=='function' || typeof LABO_POS==='undefined' || !LABO_POS) return null;
+  return _lpDepartPour(seed, mode);
+}
 function _labTache(st, job, idx, nx, wA, wB, seed, R, nom){
   return { cle:nx.cle, epoch:st.epoch, job:job, idx:idx, p:nx.p, g:nx.g, wA:wA, wB:wB, colorA:(nx.g===0?'black':'white'),
-    seed:seed, ms:R.ms, plies:R.plies, draw:R.draw, nom:nom };
+    seed:seed, ms:R.ms, plies:R.plies, draw:R.draw, nom:nom, depart:_labDepart(st.departMode||LAB_CFG.depart, seed) };
 }
 function _labVolPour(prefixe){ let n=0; for(const k in _labEnVol){ if(k.indexOf(prefixe+'|')===0) n++; } return n; }
 function _labDemi(job){ let n=0; for(const p in (job.half||{})){ const h=job.half[p]; if(h[0]!==null) n++; if(h[1]!==null) n++; } return n; }
@@ -462,8 +492,9 @@ function _labTacheSuivante(st){
 }
 function _spsaTache(st, it, g){
   const R=_labRegime('confirm');
+  const seed=5000000+it.id*101+Math.floor(g/2);
   return { cle:'e'+st.epoch+'|s'+it.id+'|'+g, epoch:st.epoch, job:'spsa', idx:it.id, p:Math.floor(g/2), g:g%2, wA:it.pert.plus, wB:it.pert.minus,
-    colorA:(g%2===0?'black':'white'), seed:5000000+it.id*101+Math.floor(g/2), ms:R.ms, plies:R.plies, draw:R.draw, nom:'SPSA θ+ contre θ−' };
+    colorA:(g%2===0?'black':'white'), seed:seed, ms:R.ms, plies:R.plies, draw:R.draw, nom:'SPSA θ+ contre θ−', depart:_labDepart(st.departMode||LAB_CFG.depart, seed) };
 }
 // SPSA asynchrone (comme les regleurs distribues) : chaque iteration part du θ du moment,
 // et sa mise a jour s'applique des que ses parties sont revenues
@@ -479,7 +510,7 @@ function _spsaTacheSuivante(st){
   return _spsaTache(st, it, it.aLancer.shift());
 }
 function _labNouvellePhase(st, phase){
-  st.phase=phase; st.epoch=(st.epoch||1)+1;
+  st.phase=phase; st.epoch=(st.epoch||1)+1; st.departMode=LAB_CFG.depart||'belgian';
   _spsaVol=_spsaVol.filter(function(it){ return it.epoch===st.epoch; });
 }
 function _labRetourPrincipal(st){
@@ -617,11 +648,13 @@ function _labJournal(st, t, r, moves){
     : (t.job==='bilan' ? (r.winner==='A'?'champion':(r.winner==='D'?'nulle':'origine'))
     : (r.winner==='A'?'mutant':(r.winner==='D'?'nulle':'champion')));
   st.gameLog=st.gameLog||[];
-  st.gameLog.unshift({ phase:t.job, name:t.nom, w:qui, res:r.winner, why:r.why||'?', plies:r.plies||0, seed:t.seed, colorA:t.colorA, moves:(moves && moves.length<=200) ? moves : null });
+  st.gameLog.unshift({ phase:t.job, name:t.nom, w:qui, res:r.winner, why:r.why||'?', plies:r.plies||0, seed:t.seed, colorA:t.colorA, moves:(moves && moves.length<=200) ? moves : null,
+    depart:t.depart ? { s:t.depart.s, t:t.depart.t, cb:t.depart.cb, cw:t.depart.cw, ref:t.depart.ref||'' } : null });
   if(st.gameLog.length>12) st.gameLog.length=12;
-  if(moves && moves.length) _labMineBook(moves);
+  if(moves && moves.length && !t.depart) _labMineBook(moves);   // le book du Labo part de la position Standard : seulement l'ancien depart
   _labDataPush({ t:Date.now(), gen:st.gen, phase:t.job, mutant:t.nom, mutKey:(t.job==='cand' && st.cands && st.cands[t.idx] && st.cands[t.idx].key) || '',
-    winner:r.winner, why:r.why||'?', plies:r.plies||0, cb:r.cb!=null?r.cb:'', cw:r.cw!=null?r.cw:'', colorA:t.colorA, seed:t.seed, paire:t.p, wA:_labSansZeros(t.wA), wB:_labSansZeros(t.wB) });
+    winner:r.winner, why:r.why||'?', plies:r.plies||0, cb:r.cb!=null?r.cb:'', cw:r.cw!=null?r.cw:'', colorA:t.colorA, seed:t.seed, paire:t.p, wA:_labSansZeros(t.wA), wB:_labSansZeros(t.wB),
+    depart:t.depart ? (t.depart.ref||'corpus') : 'hasard' });
 }
 // mesure du gain reel a la demande : le champion contre les poids d'origine
 function labMesurerGain(){
@@ -708,7 +741,8 @@ function openLabModal(){
   if (typeof kidsMode !== 'undefined' && kidsMode) { showToast('🧒 Le Labo IA n\'est pas disponible en mode Enfant'); return; }
   _labMigrateToPage();
   if (typeof showPage === 'function') showPage('lab');
-  if (typeof renderLab === 'function') renderLab();
+  if (typeof laboOnglet === 'function') laboOnglet(_laboOngletMemo());   // v2.70 : le dernier onglet ouvert
+  else if (typeof renderLab === 'function') renderLab();
 }
 /* Conservee pour les appels existants : il n'y a plus de fenetre a fermer,
    on revient simplement a l'accueil. */
@@ -919,7 +953,7 @@ function renderLabAdvanced(){
     const sp=st.spsa;
     h+='<div style="background:var(--surface);border-radius:8px;padding:8px;margin-bottom:8px">';
     h+='<div style="font-size:12px;font-weight:700">\ud83e\uddec It\u00e9ration '+sp.iter+' / '+c.spsaIters+' \u00b7 prochaine v\u00e9rification : '+Math.min(c.spsaIters, sp.prochVerif||c.spsaIters)+'</div>';
-    h+='<div style="font-size:11px;color:var(--muted);margin:4px 0">\u03b8 courant : <code>'+_labPoidsTexte(sp.theta)+'</code></div>';
+    h+='<div style="font-size:11px;color:var(--muted);margin:4px 0">\u03b8 courant : '+_labPoidsTexte(sp.theta)+'</div>';
     // mini-graphe : évolution d'un poids représentatif (cohesion) au fil des itérations
     const H=sp.thetaHist||[];
     if(H.length>=2){
@@ -1022,7 +1056,7 @@ function renderLabAdvanced(){
     h+='<div style="font-size:11px;margin-top:8px"><b>Longueur (demi-coups)</b> : min '+S.pliesMin+' \u00b7 m\u00e9diane '+S.pliesMed+' \u00b7 moy '+S.pliesMean.toFixed(1)+' \u00b7 max '+S.pliesMax+'</div>';
     // Histogramme raisons de fin
     h+='<div style="font-size:11px;margin-top:8px"><b>Raisons de fin</b></div>';
-    const whyLabels={'6capt':'6 captures','adj3':'\u00e9cart 3','adjCap':'captures (cap)','adjEval':'\u00e9val (cap)','draw':'nulle','noMove':'bloqu\u00e9','time':'temps'};
+    const whyLabels={'6capt':'6 captures','adj3':'\u00e9cart 3','adjCap':'captures (cap)','adjCap1':'1 bille, mieux plac\u00e9 (cap)','adjEval':'\u00e9val (cap)','draw':'nulle','draw1':'nulle, 1 bille (cap)','noMove':'bloqu\u00e9','time':'temps'};
     Object.keys(S.whyCount).sort(function(a,b){return S.whyCount[b]-S.whyCount[a];}).forEach(function(k){
       const c=S.whyCount[k], p=pct(c,S.n);
       h+='<div style="display:flex;align-items:center;gap:6px;margin:2px 0;font-size:10px"><span style="width:90px;color:var(--muted)">'+(whyLabels[k]||k)+'</span>'
@@ -1062,7 +1096,7 @@ function labReplay(logIdx){
         _labReplayRender();
       };
     }
-    _labReplayWorker.postMessage({replayGame:true, colorA:g.colorA, seed:g.seed, moves:g.moves,
+    _labReplayWorker.postMessage({replayGame:true, colorA:g.colorA, seed:g.seed, moves:g.moves, depart:g.depart||null,
       result:{winner:(g.res||(g.w==='mutant'?'A':(g.w==='nulle'?'D':'B'))),plies:g.plies,why:g.why}, id:Date.now()});
   }catch(e){ if(info) info.textContent='❌ Replay indisponible sur ce navigateur'; }
 }
@@ -1178,7 +1212,7 @@ const TEST_KAAH_KEY = 'abaTestKaah', TEST_KAAH_MAX_PAIRES = 200, TEST_KAAH_MIN_P
 const KAAH_POIDS = { scGain: 200, scPerte: 200, cases: 1, compac: 20, sumito: 20, menace: 120, fourch: 60, piege: 40 };
 let _testKaahEnCours = false, _testKaahEnVol = {};
 let _testKaahPlanifier = function(f, ms){ return setTimeout(f, ms); };   // remplacable par les tests
-function _testKaahVide() { return { v: 2, penta: _labPentaVide(), half: {}, fait: {}, W: 0, D: 0, L: 0, n: 0, fini: null, log: [] }; }
+function _testKaahVide() { return { v: 2, penta: _labPentaVide(), half: {}, fait: {}, W: 0, D: 0, L: 0, n: 0, fini: null, log: [], depart: LAB_CFG.depart || 'belgian', arbitrage: LAB_CFG.arbitrage || 1 }; }
 // l'ancien format (cycles de 4 parties, roles alternes) ne se convertit pas en paires : le test repart
 function _testKaahEtat() { try { const s = JSON.parse(localStorage.getItem(TEST_KAAH_KEY) || 'null'); if (s && s.v === 2) return s; } catch (e) {} return _testKaahVide(); }
 function _testKaahSauver(s) { try { localStorage.setItem(TEST_KAAH_KEY, JSON.stringify(s)); } catch (e) {} }
@@ -1189,9 +1223,11 @@ function _testKaahArreter() { _testKaahEnCours = false; _labFilsArreter(); _test
 function lancerTestKaah() {
   if (_testKaahEnCours) { _testKaahArreter(); renderTestKaah('En pause.'); return; }
   if (typeof _labRunning !== 'undefined' && _labRunning) { if (typeof showToast === 'function') showToast('Le Labo tourne déjà : mets-le en pause d’abord'); return; }
+  if (typeof _bancActif !== 'undefined' && _bancActif) { if (typeof showToast === 'function') showToast('Un banc d’essai du Labo tourne : mets-le en pause d’abord'); return; }
   if (_testKaahEtat().fini) _testKaahSauver(_testKaahVide());
   if (!_labFilsAssurer(_labNbFils())) { renderTestKaah('Fil de calcul indisponible sur cet appareil.'); return; }
-  _testKaahEnCours = true; _testKaahEnVol = {}; renderTestKaah(); _testKaahPomper();
+  _testKaahEnCours = true; _testKaahEnVol = {}; renderTestKaah();
+  _labPositionsPuis(function(){ if (_testKaahEnCours) _testKaahPomper(); });
 }
 function _testKaahPomper() {
   if (!_testKaahEnCours) return;
@@ -1200,8 +1236,9 @@ function _testKaahPomper() {
     const f = _labFils[i]; if (f.tache) continue;
     const nx = _labPartieSuivante(s, TEST_KAAH_MAX_PAIRES, 'k', _testKaahEnVol); if (!nx) break;
     _testKaahEnVol[nx.cle] = 1;
+    const graine = 10007 * nx.p + 13;
     _labFilLancer(f, { cle: nx.cle, job: 'kaah', p: nx.p, g: nx.g, wA: P.kaah, wB: P.base, colorA: nx.g === 0 ? 'black' : 'white',
-      seed: 10007 * nx.p + 13, ms: LAB_CFG.confMs, plies: LAB_CFG.confPlies, draw: LAB_CFG.confDraw }, _testKaahFin);
+      seed: graine, ms: LAB_CFG.confMs, plies: LAB_CFG.confPlies, draw: LAB_CFG.confDraw, depart: _labDepart(s.depart || 'hasard', graine), arbitrage: s.arbitrage || 1 }, _testKaahFin);
   }
   renderTestKaah();
 }
@@ -1246,10 +1283,18 @@ function renderTestKaah(msg) {
     + (_testKaahEnCours ? ' <span style="font-size:11px;color:var(--muted)">' + enCours + ' partie' + (enCours > 1 ? 's' : '') + ' en cours sur ' + _labFils.length + ' fil' + (_labFils.length > 1 ? 's' : '') + ' de calcul…</span>' : '')
     + '</div>';
 }
+// v2.70 : les noms en francais (avant : « center 6 · cohesion 4 », les cles du code)
 function _labPoidsTexte(w){
-  const ch=_labComplet(w);
-  return LAB_CLES_BASE.map(function(k){ return k+' '+(Math.round(ch[k]*10)/10); }).join(' · ')
-    + LAB_CLES_KAAH.filter(function(k){ return ch[k]; }).map(function(k){ return ' · '+k+' '+(Math.round(ch[k]*10)/10); }).join('');
+  const ch=_labComplet(w), v=function(k){ return (LAB_NOMS[k]||k)+' '+String(Math.round(ch[k]*10)/10).replace('.',','); };
+  return LAB_CLES_BASE.map(v).join(' · ') + LAB_CLES_KAAH.filter(function(k){ return ch[k]; }).map(function(k){ return ' · '+v(k); }).join('');
+}
+// d'ou partent les parties (v2.70) : le choix s'applique au test suivant
+const LAB_DEPARTS={ belgian:'Vraies positions de Marguerite belge (recommandé)', corpus:'Vraies positions, toutes les dispositions du corpus', hasard:'Ancien départ : Standard + 6 coups au hasard' };
+function labDepartSet(v){
+  if(!LAB_DEPARTS[v]) return;
+  LAB_CFG.depart=v; labCfgSave();
+  showToast('Départ des parties : '+LAB_DEPARTS[v].toLowerCase()+' — à partir du prochain test');
+  renderLab();
 }
 // courbe du gain reel mesure (champion contre les poids d'origine), avec la marge a 95 %
 function _labCourbeMesures(M){
@@ -1275,7 +1320,10 @@ function renderLab(){
   h+='<span style="font-weight:700">'+(_labRunning?'🔄 En cours':'⏸ En pause')+' · Génération '+st.gen+' · '+phaseNom+'</span>';
   h+='<span style="font-size:11px;color:var(--muted)">'+st.totalGames+' parties · '+_labNbFils()+' fil'+(_labNbFils()>1?'s':'')+' de calcul'+((LAB_CFG.threads|0)>0?'':' (auto)')+'</span></div>';
   h+='<div id="lab-live" style="font-size:11px;margin-top:6px;color:var(--muted)"></div>';
-  h+='<div style="margin:8px 0;font-size:12px">Champion actuel : <code>'+_labPoidsTexte(ch)+'</code></div>';
+  h+='<div style="margin:8px 0;font-size:12px">Champion actuel : '+_labPoidsTexte(ch)+'</div>';
+  h+='<label class="lab-options" style="margin:4px 0 10px">Les parties partent de <select onchange="labDepartSet(this.value)">'
+    +Object.keys(LAB_DEPARTS).map(function(k){ return '<option value="'+k+'"'+((LAB_CFG.depart||'belgian')===k?' selected':'')+'>'+LAB_DEPARTS[k]+'</option>'; }).join('')+'</select></label>';
+  if((st.departMode||'belgian')!==(LAB_CFG.depart||'belgian')) h+='<div class="lab-note">Le test en cours garde son départ ('+(LAB_DEPARTS[st.departMode||'belgian']||'').toLowerCase()+') jusqu’à son verdict.</div>';
   function bar(name, pts, n, target, note){
     const pct=target?Math.round(100*n/target):0, wr=n?Math.round(100*pts/(2*n)):0;
     return '<div style="margin:6px 0"><div style="display:flex;justify-content:space-between;gap:8px;font-size:12px"><span>'+name+(note||'')+'</span><span style="white-space:nowrap">'+(n?wr+' % · ':'')+n+'/'+target+' paires</span></div>'
@@ -1300,7 +1348,7 @@ function renderLab(){
   } else if(st.phase==='spsa' && st.spsa){
     const sp=st.spsa;
     h+='<div style="font-size:12px;margin:6px 0">🧬 SPSA : itération '+sp.iter+' / '+LAB_CFG.spsaIters+' · vérification contre le champion à l’itération '+Math.min(LAB_CFG.spsaIters, sp.prochVerif||LAB_CFG.spsaIters)+'</div>';
-    h+='<div style="font-size:11px;color:var(--muted)">θ en cours (pas encore utilisé par l’IA) : <code>'+_labPoidsTexte(sp.theta)+'</code></div>';
+    h+='<div style="font-size:11px;color:var(--muted)">θ en cours (pas encore utilisé par l’IA) : '+_labPoidsTexte(sp.theta)+'</div>';
   }
   // ── Gain reel mesure ──
   const M=(st.mesures||[]).filter(function(m){ return m && typeof m.elo==='number'; });
@@ -1320,7 +1368,7 @@ function renderLab(){
     st.gameLog.slice(0,6).forEach(function(g,gi){
       const res=g.res || (g.w==='mutant'||g.w==='θ+' ? 'A' : (g.w==='nulle' ? 'D' : 'B'));
       const icon = res==='A' ? '🟢' : (res==='D' ? '⚪' : '🔴');
-      const whyLabel = {'6capt':'6 captures','adj3':'écart 3','adjCap':'captures','adjEval':'éval (les deux d’accord)','time':'temps','noMove':'bloqué','draw':'nulle'}[g.why]||g.why;
+      const whyLabel = {'6capt':'6 captures','adj3':'écart 3','adjCap':'captures','adjCap1':'une bille d’avance, mieux placé','adjEval':'éval (les deux d’accord)','time':'temps','noMove':'bloqué','draw':'nulle','draw1':'nulle : une bille d’avance, pas mieux placé'}[g.why]||g.why;
       const btn = g.moves ? '<button onclick="labReplay('+gi+')" style="background:none;border:1px solid var(--gold);color:var(--gold);border-radius:5px;font-size:10px;padding:0 6px;cursor:pointer;margin-left:6px;white-space:nowrap;flex-shrink:0">▶ revoir</button>' : '';
       h+='<div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--muted);margin:3px 0"><span>'+icon+' '+g.name+' · '+g.w+' ('+whyLabel+', '+g.plies+' coups)</span>'+btn+'</div>';
     });
