@@ -68,6 +68,7 @@ flowchart LR
     C --> E[Empreintes<br/>427 272 positions × 12 dimensions]
     C --> R[Chaque partie rejouée<br/>coup par coup, hors ligne]
     C --> P[Problèmes<br/>138, chacun sourcé]
+    C --> LP[Positions du Labo<br/>25 204 calmes + 3 866 départs]
     C --> L[Bibliothèque de parties]
 
     O --> AI[IA]
@@ -77,6 +78,7 @@ flowchart LR
     R --> ST
     R --> MS[Mes statistiques,<br/>écran de fin de partie]
     P --> PB[Problèmes,<br/>Défi du jour]
+    LP --> LAB[Labo IA : duels,<br/>Texel, comme les humains]
 
     style C fill:#3a3a1a,color:#f0ead6
     style AI fill:#1a3a3a,color:#f0ead6
@@ -86,6 +88,8 @@ flowchart LR
 
 - Les **livres d'ouvertures** et le repli de l'IA (question 3) ne lisent que les parties MIGS et AbalOnline (418 595 positions). Les 8 677 positions des parties PlayStrategy et de référence s'y ajoutent pour les 12 dimensions des Statistiques du jeu (v2.59), d'où 427 272.
 - **Chaque partie rejouée** : `tools/stats-parties.js` rejoue hors ligne, avec le vrai moteur, les 4 580 parties (éjections, sortes de coups, occasions, les 12 dimensions des deux camps aux 20ᵉ, 40ᵉ et 60ᵉ coups) ; le résultat est embarqué compressé. Il nourrit la page Statistiques du jeu (les billes qui tombent, ce qui fait gagner, comment jouent les vrais joueurs — v2.63 à v2.65), les comparaisons de Mes statistiques et la ligne de l'écran de fin de partie. Un test rejoue un échantillon et compare.
+
+- **Positions du Labo** (v2.70) : `tools/labo-positions.js` rejoue hors ligne les parties complètes et garde, pour chacune, jusqu'à 6 positions calmes (aucune éjection possible pour le camp au trait), avec le coup joué et le résultat, et une position de départ entre le 8ᵉ et le 16ᵉ demi-coup, à 0-0. Les duels du Labo partent de ces positions (Marguerite belge par défaut) ; la méthode Texel règle les poids sur les résultats ; « Comme les humains » et « Contre toi » sur les coups joués. Un test vérifie qu'elles suivent le corpus.
 
 Le corpus n'est pas seulement une bibliothèque à consulter : il alimente directement le jeu de l'IA, l'analyse et les statistiques.
 

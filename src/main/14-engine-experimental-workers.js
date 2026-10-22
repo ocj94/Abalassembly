@@ -91,12 +91,26 @@ self.onmessage=function(e){
   const d=e.data;
   if(d.ping){ self.postMessage({pong:1}); return; }
   if(d.replayGame){
-    try{ var rr=replayFromMoves(d.colorA,d.seed,d.moves||[]); self.postMessage({replayGame:true,id:d.id,frames:rr.frames,result:d.result||null}); }
+    try{ var rr=replayFromMoves(d.colorA,d.seed,d.moves||[],d.depart||null); self.postMessage({replayGame:true,id:d.id,frames:rr.frames,result:d.result||null}); }
     catch(err){ self.postMessage({replayGame:true,id:d.id,error:String(err&&err.message||err)}); }
     return; }
   if(d.duelGame){
-    try{ _recMoves=[]; var r=playDuelGame(d.wA,d.wB,d.colorA,d.seed,d.msPerMove,d.maxPlies,d.drawWin,d.ouverture,d.equilibre); var mv=_recMoves; _recMoves=null; self.postMessage({duelGame:true,id:d.id,result:r,moves:mv}); }
+    try{ _recMoves=[]; var r=playDuelGame(d.wA,d.wB,d.colorA,d.seed,d.msPerMove,d.maxPlies,d.drawWin,d.ouverture,d.equilibre,
+          {depart:d.depart||null,cfgA:d.cfgA||null,cfgB:d.cfgB||null,arbitrage:d.arbitrage||1}); var mv=_recMoves; _recMoves=null; self.postMessage({duelGame:true,id:d.id,result:r,moves:mv}); }
     catch(err){ _recMoves=null; self.postMessage({duelGame:true,id:d.id,error:String(err&&err.message||err)}); }
+    return; }
+  // v2.70, outils du Labo : termes d'evaluation (Texel, comme les humains) et choix de coups (niveaux)
+  if(d.texelTermes){
+    try{ var tx=texelTermes(d.positions,d.cles); self.postMessage({texelTermes:true,id:d.id,f:tx.f,m:tx.m},[tx.f.buffer,tx.m.buffer]); }
+    catch(err){ self.postMessage({texelTermes:true,id:d.id,error:String(err&&err.message||err)}); }
+    return; }
+  if(d.coupsTermes){
+    try{ var ct=coupsTermes(d.positions,d.coups,d.cles); self.postMessage({coupsTermes:true,id:d.id,nb:ct.nb,joue:ct.joue,f:ct.f,m:ct.m},[ct.f.buffer,ct.m.buffer]); }
+    catch(err){ self.postMessage({coupsTermes:true,id:d.id,error:String(err&&err.message||err)}); }
+    return; }
+  if(d.choixCoups){
+    try{ self.postMessage({choixCoups:true,id:d.id,coups:choixCoups(d.positions,d.w,d.cfg||null,d.seed)}); }
+    catch(err){ self.postMessage({choixCoups:true,id:d.id,error:String(err&&err.message||err)}); }
     return; }
   board=d.board;capturedByWhite=d.capturedByWhite;capturedByBlack=d.capturedByBlack;
   if(d.weights)EVAL_W=d.weights;

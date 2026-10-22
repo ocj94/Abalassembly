@@ -2107,6 +2107,52 @@ table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset
 .sync-code { width:100%; min-height:64px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); padding:8px; font-family:'DM Mono',monospace; font-size:11px; word-break:break-all; }
 .sync-ok { font-size:14px; font-weight:700; color:var(--accent-green-light); margin:6px 0 4px; }
 .sync-liste { font-size:13px; color:var(--text); line-height:1.7; margin:0 0 6px 18px; padding:0; }
+/* ─── LABO IA (v2.70) : sept outils en onglets, chacun dans sa carte ─── */
+.lab-onglets { display:flex; flex-wrap:wrap; gap:6px; padding:18px 60px 14px; max-width:1020px; }
+.lab-onglets button { flex:0 0 auto; background:var(--surface); border:1px solid var(--border); color:var(--text); border-radius:18px; padding:7px 13px; font-size:13px; cursor:pointer; white-space:nowrap; font-family:inherit; }
+.lab-onglets button.actif { border-color:var(--gold); color:var(--gold); background:rgba(200,168,75,0.08); }
+.lab-zone { max-width:900px; margin:0 60px 40px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px 22px; }
+.lab-zone[hidden] { display:none; }
+.lab-zone > h3 { font-family:'DM Sans',sans-serif; font-size:13px; font-weight:700; color:var(--white); text-transform:uppercase; letter-spacing:1px; margin:0 0 10px; }
+.lab-zone .lab-carte-interne { background:transparent; border:0; padding:0; margin:0 0 22px; }
+.lab-intro { font-size:13px; color:var(--muted); line-height:1.6; margin:0 0 12px; }
+.lab-intro b { color:var(--text); }
+.lab-sous { font-size:14px; color:var(--white); margin:18px 0 8px; }
+.lab-sous:first-child { margin-top:0; }
+.lab-actions { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0; }
+.lab-actions .ctrl-btn { width:auto; padding:8px 14px; }
+.lab-discret { opacity:0.75; }
+.lab-options { display:flex; gap:14px; flex-wrap:wrap; align-items:center; font-size:12.5px; color:var(--muted); margin:6px 0; }
+.lab-options select { max-width:100%; margin-left:6px; padding:4px 8px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:13px; }
+.lab-etat { font-size:12.5px; color:var(--gold); line-height:1.5; margin:6px 0 10px; }
+.lab-note { font-size:11.5px; color:var(--muted); line-height:1.5; margin:6px 0 12px; }
+.lab-chiffres { display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:10px; margin:10px 0 14px; }
+.lab-chiffres > div { background:var(--surface2, #1a1d1c); border-radius:8px; padding:10px 12px; }
+.lab-chiffres span { display:block; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; }
+.lab-chiffres b { display:block; font-size:18px; color:var(--gold); margin:3px 0; font-variant-numeric:tabular-nums; }
+.lab-chiffres small { font-size:11px; color:var(--muted); }
+.lab-poids { width:100%; border-collapse:collapse; font-size:12.5px; margin:6px 0; display:table !important; }   /* pas le « table { display:block } » des telephones : colonnes courtes */
+.lab-poids th { text-align:left; font-size:11px; color:var(--muted); font-weight:600; padding:4px 6px; border-bottom:1px solid var(--border); }
+.lab-poids td { padding:5px 6px; border-bottom:1px solid rgba(255,255,255,0.05); color:var(--text); font-variant-numeric:tabular-nums; vertical-align:middle; }
+.lab-poids td small { color:var(--muted); font-size:11px; }
+.lab-poids td.lab-change { color:var(--gold); font-weight:700; }
+.lab-barres { width:34%; }
+.lab-barres span { display:block; height:5px; border-radius:3px; background:var(--muted); opacity:0.55; margin:2px 0; max-width:100%; }
+.lab-barres span.b { background:var(--gold); opacity:1; }
+.lab-marche { position:relative; width:30%; }
+.lab-marche::before { content:''; position:absolute; left:50%; top:3px; bottom:3px; width:1px; background:var(--border); }
+.lab-marche span { position:absolute; top:50%; height:8px; margin-top:-4px; background:var(--gold); border-radius:3px; }
+.lab-classement td:first-child { width:28px; color:var(--muted); }
+.lab-journal { font-size:11.5px; color:var(--muted); line-height:1.6; margin-top:10px; }
+.lab-details { font-size:12.5px; color:var(--text); margin:8px 0; }
+.lab-details summary { cursor:pointer; color:var(--gold); }
+.lab-case { display:flex; gap:8px; align-items:flex-start; font-size:12.5px; color:var(--text); line-height:1.5; margin:10px 0; }
+#page-lab-host { padding:0 !important; max-width:none !important; }
+@media (max-width: 700px) {
+  .lab-onglets { flex-wrap:nowrap; overflow-x:auto; padding:14px 12px 10px; scrollbar-width:thin; }
+  .lab-zone { margin:0 12px 28px; padding:16px 14px; }
+  .lab-barres { width:28%; }
+}
 @media (max-width: 560px) {
   .archi-carte { padding:16px 14px; }
   .archi-etape, .archi-usage, .archi-non { grid-template-columns:1fr; }

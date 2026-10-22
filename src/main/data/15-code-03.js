@@ -37,7 +37,8 @@ function pickBookMove(node, legalMoves){
   // jamais choisi) : meme un coup rare avec un mauvais historique garde une
   // petite chance d'etre tire, pondere par sa frequence relle (n.c).
   function weight(n){
-    const wr = (n.wg > 0) ? (n.w / n.wg) : 0.5;   // taux de victoire, 0.5 si inconnu
+    // taux de victoire, 0.5 si inconnu ; v2.70 : _ouvTaux y melange les duels du Labo (Ouvertures), si la case est cochee
+    const wr = (typeof _ouvTaux === 'function') ? _ouvTaux(n) : ((n.wg > 0) ? (n.w / n.wg) : 0.5);
     return n.c * (0.5 + wr);
   }
   // Tirage pondere classique : chaque candidat occupe une "tranche" proportionnelle

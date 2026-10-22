@@ -156,7 +156,10 @@ const I18N_EN = {
   '⚪ Non connecté': '⚪ Not connected', 'Créer une partie': 'Create a game', 'Rejoindre': 'Join', 'Utiliser « Partie par code » à la place': 'Use “Game by code” instead',
   'Qui commence ?': 'Who starts?', 'Moi': 'Me',
   "Style de l'IA": 'AI style', 'Auto': 'Auto', 'Agressif': 'Aggressive', 'Défensif': 'Defensive', 'Division': 'Divide', 'Équilibré': 'Balanced',
-  'KAAH (expérimental)': 'KAAH (experimental)', 'Réflexion max (s)': 'Max thinking time (s)', 'sans limite': 'no limit', 'Moteur': 'Engine', '(expérimental)': '(experimental)',
+  'KAAH (expérimental)': 'KAAH (experimental)', 'Humain (Labo)': 'Human-like (Lab)', 'Contre moi (Labo)': 'Against me (Lab)',
+  'Les priorités des vrais joueurs, réglées au Labo (Comme les humains)': 'The priorities of real players, tuned in the AI Lab (Like humans)',
+  'Le style qui bat le mieux ton clone, choisi au Labo (Contre toi)': 'The style that beats your clone best, chosen in the AI Lab (Against you)',
+  'Réflexion max (s)': 'Max thinking time (s)', 'sans limite': 'no limit', 'Moteur': 'Engine', '(expérimental)': '(experimental)',
   "vide = l'IA réfléchit jusqu'à trouver": 'empty = the AI thinks until it finds a move',
   "Les critères d'évaluation de KAAH (sumito, menace, fourchette, piège, compacité…) ajoutés au moteur — expérimental, en cours de test au Labo":
     'KAAH’s evaluation criteria (sumito, threat, fork, trap, compactness…) added to the engine — experimental, being tested in the AI Lab',
@@ -567,8 +570,8 @@ const I18N_EN_MOTIFS = [
   [/^🟢 Connecté(?: à (.+))? — coups en temps réel$/, function (_, n) { return '🟢 Connected' + (n ? ' to ' + n : '') + ' — moves in real time'; }, '🟢 Connecté'],
   // v2.57 : statistiques de l'accueil, historique des parties
   [/^⚫ (\d+) parties terminées · 🧩 (\d+) puzzles résolus — sur cet appareil$/, '⚫ $1 games finished · 🧩 $2 puzzles solved — on this device', 'parties terminées'],
-  [/^IA (Auto|Agressif|Défensif|Division|Équilibré) — (?:Niveau (\d+)|(.+))$/, function (_, s, n, autre) {
-    return 'AI ' + ({ Auto: 'Auto', Agressif: 'Aggressive', 'Défensif': 'Defensive', Division: 'Divide', 'Équilibré': 'Balanced' })[s] + ' — ' + (n ? 'Level ' + n : autre); }, 'IA '],
+  [/^IA (Auto|Agressif|Défensif|Division|Équilibré|KAAH|Humain \(Labo\)|Contre moi \(Labo\)) — (?:Niveau (\d+)|(.+))$/, function (_, s, n, autre) {
+    return 'AI ' + ({ Auto: 'Auto', Agressif: 'Aggressive', 'Défensif': 'Defensive', Division: 'Divide', 'Équilibré': 'Balanced', KAAH: 'KAAH', 'Humain (Labo)': 'Human-like (Lab)', 'Contre moi (Labo)': 'Against me (Lab)' })[s] + ' — ' + (n ? 'Level ' + n : autre); }, 'IA '],
   [/^Local \(même écran\)$/, 'Local (same screen)', 'Local (même écran)'],
   [/^✅ Partie importée : (\d+) coups?$/, function (_, n) { return '✅ Game imported: ' + n + (n === '1' ? ' move' : ' moves'); }, 'Partie importée']
 ];

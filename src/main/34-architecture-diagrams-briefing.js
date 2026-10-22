@@ -84,6 +84,8 @@ function _archiCarteDonnees(){
      _tr('L’IA (question 3), l’analyse de partie, les 12 dimensions des Statistiques du jeu', 'The AI (question 3), game analysis, the 12 dimensions of Game statistics')],
     [_tr('Chaque partie rejouée coup par coup, hors ligne : billes tombées, sortes de coups, camps comparés', 'Every game replayed move by move, offline: marbles pushed off, kinds of moves, sides compared'),
      _tr('Statistiques du jeu, Mes statistiques, l’écran de fin de partie', 'Game statistics, My statistics, the end-of-game screen')],
+    [_tr('Positions du Labo : des positions calmes avec le coup joué et le résultat, et des positions de départ pour les duels', 'Lab positions: quiet positions with the move played and the result, and starting positions for the duels'),
+     _tr('Labo IA : duels, méthode Texel, comme les humains', 'AI Lab: duels, Texel method, like humans')],
     [_tr(_archiN(C.puzzles) + ' problèmes, chacun avec sa partie d’origine', _archiN(C.puzzles) + ' puzzles, each with the game it comes from'),
      _tr('Problèmes, Défi du jour', 'Puzzles, Daily puzzle')],
     [_tr('Les parties elles-mêmes', 'The games themselves'),

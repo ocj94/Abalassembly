@@ -2380,21 +2380,26 @@ function _laboBac(fn){
   ctx._labPlanifier = (f, ms) => { (ms < 1000 ? file : longs).push(f); return 0; };
   ctx._testKaahPlanifier = (f, ms) => { if (ms < 1000) file.push(f); return 0; };
   ['abaLabState', 'abaLabChampion', 'abaLabCfg', 'abaLabAutoRun', 'abaLabUse', 'abaTestKaah', 'abaLabDataLog', 'abaLabBookLearned'].forEach(k => ctx.localStorage.removeItem(k));
-  ctx.LAB_CFG = Object.assign({}, ctx.LAB_CFG_DEFAULT);
+  ctx.LAB_CFG = Object.assign({}, ctx.LAB_CFG_DEFAULT, { depart: 'hasard' });   // v2.70 : depart des vraies positions teste a part (section 63)
   ctx._labRunning = false; ctx._labPingOk = false; ctx._labFils = []; ctx._labEnVol = {}; ctx._spsaVol = []; ctx._testKaahEnCours = false; ctx._testKaahEnVol = {};
   const vider = () => { let n = 0; while (file.length && n++ < 10000) file.shift()(); };
   // repond a une partie en attente : r = 'A' (A gagne), 'B' ou 'D', ou un objet resultat complet
   const repondre = (e, r) => { e.fini = true; e.w.onmessage({ data: { duelGame: true, result: typeof r === 'string' ? { winner: r, why: r === 'D' ? 'draw' : '6capt', plies: 40 } : r, moves: [] } }); };
   const attente = () => envois.filter(e => !e.fini && !e.w.mort);
   const demarrer = () => { ctx.startLab(); longs.length = 0; fils[0].onmessage({ data: { pong: 1 } }); vider(); };   // (le minuteur de 4 s du test des fils est ecarte)
-  try { return fn({ els, fils, envois, file, longs, vider, repondre, attente, demarrer }); }
-  finally {
+  const nettoyer = () => {
     try { ctx._testKaahEnCours = false; ctx._labRunning = false; ctx._labFils = []; ctx._labEnVol = {}; ctx._spsaVol = []; } catch (e) {}
     ctx.document.getElementById = sG; ctx.showToast = sTo; ctx.confirm = sCf;
     ctx._labCreerFil = sCreer; ctx._labPlanifier = sPlan; ctx._testKaahPlanifier = sTk; ctx.LAB_CFG = sCfg;
     Object.keys(ctx.AI_WEIGHT_PRESETS.balanced).forEach(k => { delete ctx.AI_WEIGHT_PRESETS.balanced[k]; }); Object.assign(ctx.AI_WEIGHT_PRESETS.balanced, sBal);
     ['abaLabState', 'abaLabChampion', 'abaLabCfg', 'abaLabAutoRun', 'abaLabUse', 'abaTestKaah', 'abaLabDataLog', 'abaLabBookLearned'].forEach(k => ctx.localStorage.removeItem(k));
-  }
+  };
+  // v2.70 : les tests asynchrones (positions du corpus a charger) gardent le bac jusqu'a leur fin
+  let r;
+  try { r = fn({ els, fils, envois, file, longs, vider, repondre, attente, demarrer }); }
+  catch (e) { nettoyer(); throw e; }
+  if (r && typeof r.then === 'function') return r.finally(nettoyer);
+  nettoyer(); return r;
 }
 
 test('labo : verdict par paires -- pas de conclusion sur une courte serie chanceuse, marge jamais nulle', () => {
@@ -2548,14 +2553,14 @@ test('labo : un etat de l ancien Labo (v3) est repris -- champion, historique, S
     history: [{ gen: 5, type: '✅ adopté (SPRT)', name: 'cohesion 4→6', score: 7, games: 8, elo: '+240 Elo ± 0' }],
     spsa: { iter: 12, k: 12, theta: { center: 6.5, cohesion: 5, edge: 8, mob: 2, iso: 18, dng: 14, chain: 10, fortress: 20 }, thetaHist: [], wins: 5, draws: 1, losses: 6 } }));
   const st = ctx.labLoad();
-  assert.strictEqual(st.v, 4); assert.strictEqual(st.gen, 7); assert.strictEqual(st.totalGames, 321);
+  assert.strictEqual(st.v, 5, 'v3 -> v4 -> v5 (v2.70)'); assert.strictEqual(st.gen, 7); assert.strictEqual(st.totalGames, 321);
   assert.strictEqual(st.champion.cohesion, 6); assert.strictEqual(st.champion.sumito, 0);
   assert.strictEqual(st.phase, 'screen', 'le test en cours repart sur les nouvelles regles');
   assert.ok(st.cands.every(c => Array.isArray(c.penta)));
   assert.strictEqual(st.ancienCumul, 88);
-  assert.match(st.history[0].type, /v4/); assert.strictEqual(st.history[1].name, 'cohesion 4→6');
+  assert.match(st.history[0].type, /v5/); assert.match(st.history[1].type, /v4/); assert.strictEqual(st.history[2].name, 'cohesion 4→6');
   assert.strictEqual(st.spsa.iter, 12); assert.strictEqual(st.spsa.theta.center, 6.5);
-  assert.strictEqual(JSON.parse(ctx.localStorage.getItem('abaLabState')).v, 4, 'migration enregistree');
+  assert.strictEqual(JSON.parse(ctx.localStorage.getItem('abaLabState')).v, 5, 'migration enregistree');
 }));
 
 test('labo : partie trop longue -> fil remplace, partie relancee ; 3 fois de suite -> pause', () => _laboBac(({ fils, longs, attente, demarrer, vider }) => {
@@ -4567,4 +4572,212 @@ test('v2.69 synchro : messages découpés et recollés, fenêtre en français et
   const site = _SRC();
   assert.strictEqual((site.match(/onclick="openSyncModal\(\)"/g) || []).length, 2, 'Parametres et Historique');
   assert.ok(site.indexOf('<li><b>🔄 Synchroniser mes appareils</b>') > 0 && site.indexOf('<li><b>🔄 Sync my devices</b>') > 0);
+});
+
+// ═══════════════════════════════════════════
+// 63. v2.70 : le Labo, six outils -- vraies positions, arbitrage, Texel, bancs d'essai, comme les humains, contre toi
+// ═══════════════════════════════════════════
+const _r63 = code => require('vm').runInContext(code, ctx);
+async function _pos63(){ assert.strictEqual(await ctx.ensureLaboPositions(), true, 'positions du corpus lisibles'); }
+
+test('labo v2.70 : les positions du corpus -- a jour, decodees, coups legaux, departs a 0-0', async () => {
+  await _pos63(); await ctx.ensureGameBanks();
+  const h = _r63('LABO_POS.h');
+  assert.strictEqual(h.sig, ctx._sbSignature(), 'positions a jour du corpus (sinon : node tools/labo-positions.js)');
+  assert.strictEqual(ctx._lpN(), h.n);
+  assert.ok(h.bilan.calmes > 20000 && h.bilan.departs > 3000 && h.bilan.resultatConnu > 15000, JSON.stringify(h.bilan));
+  const ok = _r63(`(function(){ const sv=board; let legaux=0, vus=0, departs=0, d28=0, belges=0;
+    for(let i=0;i<LABO_POS.n;i+=97){ vus++; board=_lpPlateau(i); const c=_lpCoup(i);
+      if(getAllMovesForColor(_lpTrait(i)).some(m=>_lpCoderCoup(m)===(c.a|(c.b<<6)|(c.d<<12)))) legaux++;
+      if(_lpEstDepart(i)){ departs++; if(Object.keys(board).length===28 && _lpCb(i)===0 && _lpCw(i)===0) d28++; if(_lpDispo(i)==='belgian') belges++; }
+      // une position calme : le camp au trait ne peut ejecter aucune bille
+      else if(getAllMovesForColor(_lpTrait(i)).some(m=>m.info&&m.info.type==='push'&&m.info.ejection)) return 'pas calme : '+i; }
+    board=sv; return {legaux, vus, departs, d28, belges}; })()`);
+  assert.strictEqual(typeof ok, 'object', ok);
+  assert.strictEqual(ok.legaux, ok.vus, 'le coup joue est legal dans sa position');
+  assert.ok(ok.departs > 0 && ok.d28 >= ok.departs * 0.9, 'les departs : 0-0, souvent 14 contre 14');
+  assert.ok(_r63('_lpDeparts("belgian").length') > 2000);
+  // la meme graine : la meme position (les deux parties d'une paire)
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(ctx._lpDepartPour(42, 'belgian'))), JSON.parse(JSON.stringify(ctx._lpDepartPour(42, 'belgian'))));
+  assert.notStrictEqual(ctx._lpDepartPour(42, 'belgian').s, ctx._lpDepartPour(43, 'belgian').s);
+});
+
+test('labo v2.70, cote moteur : partie depuis une vraie position, rejeu identique, arbitrage 2', async () => {
+  await _pos63();
+  const { w, ev } = _filKaah();
+  const dep = JSON.parse(JSON.stringify(ctx._lpDepartPour(7, 'belgian')));
+  let msg = null; w.postMessage = m => { msg = m; };
+  const base = { center: 6, cohesion: 4, edge: 8, mob: 2, iso: 18, dng: 14, chain: 10, fortress: 20 };
+  w.self.onmessage({ data: { duelGame: true, wA: base, wB: base, colorA: 'white', seed: 7, msPerMove: 20, maxPlies: 10, drawWin: 300, depart: dep, arbitrage: 2, id: 1 } });
+  const coups = msg.moves, r = msg.result;
+  assert.strictEqual(coups.length, r.plies, 'aucun coup d ouverture au hasard : seulement les coups joues');
+  assert.strictEqual(coups[0].col, dep.t, 'le camp au trait de la vraie position joue le premier');
+  const fin = ev('JSON.stringify(Object.keys(board).sort().map(function(k){ return k + board[k]; }))');
+  w.self.onmessage({ data: { replayGame: true, colorA: 'white', seed: 7, moves: coups, depart: dep, id: 2 } });
+  const f0 = msg.frames[0], der = msg.frames[msg.frames.length - 1];
+  assert.strictEqual(Object.keys(f0.b).map(k => k + f0.b[k]).sort().join(), Object.keys(ctx._lpPlateauDeChaine(dep.s)).map(k => k + (ctx._lpPlateauDeChaine(dep.s)[k] === 'black' ? 'b' : 'w')).sort().join(), 'le rejeu part de la vraie position');
+  assert.strictEqual(JSON.stringify(Object.keys(der.b).sort().map(k => k + (der.b[k] === 'b' ? 'black' : 'white'))), fin, 'et finit au meme endroit');
+  // arbitrage 2, a la limite de coups : une bille d'avance ne suffit que si les deux evaluations (billes a part) sont d'accord
+  const S = c => '.'.repeat(61).split('').map((x, i) => c[i] || '.').join('');
+  const pos = {}; [30, 31, 39].forEach(i => pos[i] = 'b'); [0, 4, 56].forEach(i => pos[i] = 'w');   // Noirs au centre, Blancs dans les coins
+  const d1 = { s: S(pos), t: 'black', cb: 1, cw: 0 };
+  const r1 = w.playDuelGame(base, base, 'black', 1, 20, 0, 300, 0, 600, { depart: d1, arbitrage: 2 });
+  assert.deepStrictEqual([r1.winner, r1.why], ['A', 'adjCap1'], 'une bille d avance ET mieux places : victoire');
+  const pos2 = {}; [0, 4, 56].forEach(i => pos2[i] = 'b'); [30, 31, 39].forEach(i => pos2[i] = 'w');
+  const r2 = w.playDuelGame(base, base, 'black', 1, 20, 0, 300, 0, 600, { depart: { s: S(pos2), t: 'black', cb: 1, cw: 0 }, arbitrage: 2 });
+  assert.deepStrictEqual([r2.winner, r2.why], ['D', 'draw1'], 'une bille d avance mais moins bien places : nulle');
+  const r3 = w.playDuelGame(base, base, 'black', 1, 20, 0, 300, 0, 600, { depart: { s: S(pos2), t: 'black', cb: 1, cw: 0 }, arbitrage: 1 });
+  assert.deepStrictEqual([r3.winner, r3.why], ['A', 'adjCap'], 'l ancien arbitrage (1) : une bille suffit');
+  const r4 = w.playDuelGame(base, base, 'black', 1, 20, 0, 300, 0, 600, { depart: { s: S(pos2), t: 'black', cb: 2, cw: 0 }, arbitrage: 2 });
+  assert.deepStrictEqual([r4.winner, r4.why], ['A', 'adjCap'], 'deux billes d avance : victoire');
+  // niveau 1 (hasard) et choix de coups
+  const c1 = w.choixCoups([dep], base, { mode: 'hasard' }, 3), c2 = w.choixCoups([dep], base, { depth: 1, ms: 200 }, 3);
+  assert.ok(c1[0] >= 0 && c2[0] >= 0);
+});
+
+test('labo v2.70 : les parties du Labo partent de vraies positions -- la meme pour les deux parties d une paire', async () => {
+  await _pos63();
+  await _laboBac(async ({ attente, demarrer, repondre, vider }) => {
+    ctx.LAB_CFG.depart = 'belgian'; ctx.LAB_CFG.threads = 6;
+    ctx.localStorage.removeItem('abaLabState');
+    demarrer(); await new Promise(r => setTimeout(r, 0)); vider();
+    const E = attente();
+    assert.strictEqual(E.length, 6, 'trois mutants, une paire chacun');
+    E.forEach(e => { assert.ok(e.m.depart && e.m.depart.s.length === 61, 'chaque partie recoit sa position de depart'); assert.strictEqual(e.m.arbitrage, 2); });
+    const parMutant = {}; E.forEach(e => { const k = JSON.stringify(e.m.wA); (parMutant[k] = parMutant[k] || []).push(e); });
+    Object.values(parMutant).forEach(([x, y]) => { assert.strictEqual(x.m.depart.s, y.m.depart.s, 'meme paire : meme position'); assert.notStrictEqual(x.m.colorA, y.m.colorA, 'couleurs inversees'); });
+    assert.strictEqual(new Set(E.map(e => e.m.depart.s)).size, 1, 'les mutants jouent les memes positions (comparaison plus juste)');
+    const a = E[0];
+    repondre(a, 'A'); vider();
+    const st = ctx.labLoad();
+    assert.strictEqual(st.v, 5); assert.strictEqual(st.departMode, 'belgian');
+    assert.ok(st.gameLog[0].depart && st.gameLog[0].depart.s === a.m.depart.s, 'le journal garde la position (rejeu)');
+    assert.match(JSON.parse(ctx.localStorage.getItem('abaLabDataLog')).pop().depart, /^\d+@\d+$/, 'journal data : la partie du corpus et le demi-coup');
+  });
+});
+
+test('labo v2.70 : methode Texel -- les termes reconstruisent exactement l evaluation, le reglage reduit l erreur', async () => {
+  await _pos63();
+  const { w, ev } = _filKaah();
+  const I = ctx._lpTexelIndices();
+  assert.ok(I.app.length > 10000 && I.ctl.length > 2500);
+  assert.ok(I.ctl.every(i => ctx._lpPartie(i) % 5 === 0) && I.app.every(i => ctx._lpPartie(i) % 5 !== 0), 'controle : jamais dans l apprentissage');
+  const cles = ['center', 'cohesion', 'edge', 'mob', 'iso', 'dng', 'chain', 'fortress', 'scGain', 'scPerte', 'cases', 'compac', 'sumito', 'menace', 'fourch', 'piege'];
+  const L = I.app.filter((x, j) => j % 40 === 0), P = L.map(i => JSON.parse(JSON.stringify(ctx._lpPourFil(i))));
+  const T = w.texelTermes(P, cles);
+  const poids = { center: 7, cohesion: 3, edge: 9, mob: 1, iso: 20, dng: 11, chain: 8, fortress: 15, scGain: 50, scPerte: 30, cases: 1.5, compac: 12, sumito: 9, menace: 40, fourch: 7, piege: 22 };
+  const wv = cles.map(k => poids[k]);
+  P.forEach((p, i) => {
+    ev('EVAL_W=' + JSON.stringify(poids)); w._duelDepart(p);
+    const vrai = w.evaluateBoard(p.t), lin = ctx._txEval(T, i, wv);
+    assert.ok(Math.abs(vrai - lin) < 1e-3 * Math.max(1, Math.abs(vrai)), 'position ' + i + ' : ' + vrai + ' / ' + lin);
+  });
+  // le reglage, sur ce petit echantillon : l'erreur d'apprentissage baisse, les poids restent dans leurs bornes
+  const R = L.map(ctx._txResultatPour), w0 = cles.map(k => (k in ctx.LAB_ORIGINE ? ctx.LAB_ORIGINE[k] : 0));
+  const s = ctx._txEchelle(T, R, w0);
+  const st = { w: w0.slice(), m: new Array(16).fill(0), v: new Array(16).fill(0), t: 0, min: cles.map(k => _r63('SPSA_MIN')[k]), max: cles.map(k => _r63('SPSA_MAX')[k]), pas: cles.map(k => (_r63('SPSA_MAX')[k] - _r63('SPSA_MIN')[k]) / 400) };
+  const avant = ctx._txErreur(T, R, w0, s);
+  for (let k = 0; k < 150; k++) ctx._txEtape(T, R, s, st);
+  assert.ok(ctx._txErreur(T, R, st.w, s) < avant, 'erreur ' + avant + ' -> ' + ctx._txErreur(T, R, st.w, s));
+  st.w.forEach((x, k) => assert.ok(x >= st.min[k] && x <= st.max[k]));
+  const j = ctx._txJuste(T, R, w0); assert.ok(j > 0.5 && j < 1);
+});
+
+test('labo v2.70 : comme les humains -- le coup joue retrouve, le modele le rend plus probable', async () => {
+  await _pos63();
+  const { w } = _filKaah();
+  const cles = ['center', 'cohesion', 'edge', 'mob', 'iso', 'dng', 'chain', 'fortress'];
+  const L = []; for (let i = 0; i < ctx._lpN() && L.length < 120; i += 61) if (!ctx._lpEstDepart(i)) L.push(i);
+  const D0 = w.coupsTermes(L.map(i => JSON.parse(JSON.stringify(ctx._lpPourFil(i)))), L.map(i => { const c = ctx._lpCoup(i); return c.a | (c.b << 6) | (c.d << 12); }), cles);
+  const D = { nb: Array.from(D0.nb), joue: Array.from(D0.joue), f: D0.f, m: D0.m };
+  assert.ok(D.joue.every(j => j >= 0), 'le coup joue est toujours parmi les coups legaux');
+  const w0 = cles.map(k => ctx.LAB_ORIGINE[k]);
+  const avant = ctx._huMesures(D, w0, ctx._huBetaDepart(D, w0));
+  const R = await ctx._huAjuster(D, cles, w0);
+  const apres = ctx._huMesures(D, R.w, R.beta);
+  assert.ok(apres.nll < avant.nll, 'vraisemblance ' + avant.nll + ' -> ' + apres.nll);
+  assert.strictEqual(R.beta, R.beta0, 'beta fixe (sinon beta et poids derivent ensemble)');
+  assert.ok(R.lambda > 0.2, 'peu de positions : rappel plus fort vers le champion');
+});
+
+test('labo v2.70 : contre toi -- tes coups dans ton historique, et seulement les tiens', async () => {
+  await ctx.ensureGameBanks();
+  const avant = ctx.localStorage.getItem('abaGameHistory');
+  try {
+    const code = _r63(`(function(){ const B=_sbBanques(), g=B[0][3], dep=_sbDepart(0,g), J=_sbJetons(0,g); const sv=board; board=Object.assign({},dep.board); let col='black', body='';
+      for(let k=0;k<J.length;k++){ const mv=resolveAbaProToken(J[k],col,getAllMovesForColor(col)); if(!mv) break; body+=mv.cells.length+mv.cells.map(c=>coordToABAPRO(c.r,c.c)).join('')+_gcDirIndex(mv.dir); abApplyMove(mv.cells,mv.dir,col,mv.info); col=col==='black'?'white':'black'; }
+      board=sv; return 'ABAL1:belgian:Alex|Bob:'+body; })()`);
+    ctx.localStorage.setItem('abaGameHistory', JSON.stringify([
+      { id: 'a', mode: 'import', humanColor: 'white', variant: 'belgian', code: code },
+      { id: 'b', mode: 'import', humanColor: 'white', variant: 'belgian', code: code, spectateur: true },   // consultee : pas a toi
+      { id: 'c', mode: 'local', humanColor: 'black', variant: 'belgian', code: code }                      // deux joueurs sur le meme ecran : ni l un ni l autre
+    ]));
+    const M = ctx._huMesCoups();
+    assert.strictEqual(M.parties, 1);
+    assert.ok(M.positions.length > 10 && M.positions.every(p => p.t === 'white'), 'seulement les coups des Blancs (toi)');
+    const sv = _r63('board');
+    M.positions.forEach((p, i) => { _r63('board=_lpPlateauDeChaine(' + JSON.stringify(p.s) + ')'); assert.ok(_r63('getAllMovesForColor("white")').some(m => ctx._lpCoderCoup(m) === M.coups[i])); });
+    require('vm').runInContext('board=' + JSON.stringify(sv), ctx);
+  } finally { if (avant === null) ctx.localStorage.removeItem('abaGameHistory'); else ctx.localStorage.setItem('abaGameHistory', avant); }
+});
+
+test('labo v2.70 : les bancs d essai -- tournoi des styles par paires, niveaux, Elo, un seul a la fois', async () => {
+  await _pos63();
+  await _laboBac(async ({ attente, repondre, vider, file }) => {
+    const sPl = ctx._bancPlanifier; ctx._bancPlanifier = (f, ms) => { file.push(f); return 0; };
+    try {
+      ctx.LAB_CFG.depart = 'belgian'; ctx.LAB_CFG.threads = 3;
+      ctx.localStorage.removeItem('abaLabTournoiStyles');
+      ctx.bancLancer('styles', { paires: 1 });
+      await new Promise(r => setTimeout(r, 0)); vider();
+      assert.strictEqual(ctx._bancActif, 'styles');
+      ctx.startLab(); assert.strictEqual(ctx._labRunning, false, 'le Labo attend : un banc tourne');
+      const s0 = ctx.bancEtat('styles'), k = s0.plan.noms.length;
+      assert.ok(k >= 5 && s0.plan.matchs.length === k * (k - 1) / 2);
+      let garde = 0;
+      while (ctx._bancActif && garde++ < 200) {
+        const e = attente()[0]; if (!e) break;
+        assert.ok(e.m.depart && e.m.arbitrage === 2);
+        // Agressif gagne tout, contre tout le monde
+        const mA = e.m.wA, nomA = s0.plan.matchs.find(m => JSON.stringify(m.a.w) === JSON.stringify(mA));
+        repondre(e, JSON.stringify(mA) === JSON.stringify(ctx._labComplet(ctx.AI_WEIGHT_PRESETS.aggressive)) ? 'A' : (JSON.stringify(e.m.wB) === JSON.stringify(ctx._labComplet(ctx.AI_WEIGHT_PRESETS.aggressive)) ? 'B' : 'D'));
+        vider();
+      }
+      const s = ctx.bancEtat('styles');
+      assert.ok(s.fini, 'tournoi termine');
+      const elo = ctx._bancElo(s.plan.noms, s.plan.matchs, s.res);
+      const iA = s.plan.noms.indexOf('Agressif');
+      assert.ok(elo.every((e, i) => i === iA || e < elo[iA]), 'Agressif premier : ' + elo);
+      assert.strictEqual(elo[0], 0, 'Equilibre a 0');
+      // les niveaux : vraie profondeur et vrai temps, niveau 1 au hasard
+      const plan = BANCS_construire('niveaux', { jusqua: 4, paires: 2 });
+      assert.deepStrictEqual(JSON.parse(JSON.stringify(plan.matchs.map(m => [m.a.cfg, m.b.cfg]))), [[{ depth: 1, ms: 300 }, { mode: 'hasard' }], [{ depth: 2, ms: 600 }, { depth: 1, ms: 300 }], [{ depth: 3, ms: 1200 }, { depth: 2, ms: 600 }]]);
+    } finally { ctx._bancPlanifier = sPl; try { ctx.bancPause(); } catch (e) {} ['abaLabTournoiStyles', 'abaBancAuto'].forEach(x => ctx.localStorage.removeItem(x)); }
+  });
+});
+function BANCS_construire(nom, o){ return _r63('BANCS')[nom].construire(o); }
+
+test('labo v2.70 : les ouvertures -- lignes du livre, positions plus loin, le livre peut en tenir compte', async () => {
+  await ctx.ensureGameBanks();
+  const L = ctx._ouvLignes();
+  assert.ok(L.length >= 6, L.length + ' lignes');
+  assert.strictEqual(ctx._ouvNom(L[0].chemin), 'a1b2', 'le coup principal de la Marguerite belge, en notation Aba-Pro');
+  const P = ctx._ouvPositions(L[0], 6);
+  assert.ok(P.length >= 4 && P.every(p => p.s.length === 61 && (p.t === 'black' || p.t === 'white')));
+  assert.ok(new Set(P.map(p => p.s + p.t)).size === P.length, 'positions toutes differentes');
+  // le taux de victoire d'un coup : humains seuls, puis humains et duels melanges
+  const n = { c: 10, wg: 10, w: 5 };
+  assert.strictEqual(ctx._ouvTaux(n), 0.5);
+  n.lab = { n: 10, pts: 9 };
+  assert.strictEqual(ctx._ouvTaux(n), 0.7);
+  assert.match(_SRC(), /const wr = \(typeof _ouvTaux === 'function'\) \? _ouvTaux\(n\)/, 'pickBookMove passe par _ouvTaux');
+});
+
+test('labo v2.70 : la page -- sept onglets, les styles Humain et Contre moi, en anglais dans la configuration', () => {
+  const site = _SRC();
+  ['auto', 'texel', 'styles', 'niveaux', 'humains', 'contretoi', 'ouvertures', 'outils'].forEach(o => assert.ok(site.indexOf('data-onglet="' + o + '" onclick="laboOnglet(\'' + o + '\')"') > 0, o));
+  ['lab-texel-host', 'lab-styles-host', 'lab-niveaux-host', 'lab-humains-host', 'lab-contretoi-host', 'lab-ouvertures-host', 'page-lab-host', 'test-kaah-host'].forEach(id => assert.strictEqual((site.match(new RegExp('id="' + id + '"', 'g')) || []).length, 1, id));
+  assert.ok(/id="setup-style-humain"[^>]*style="display:none"/.test(site) && /id="setup-style-contremoi"[^>]*style="display:none"/.test(site), 'caches tant que le Labo ne les a pas faits');
+  ['Humain (Labo)', 'Contre moi (Labo)'].forEach(t => assert.ok(ctx.I18N_EN[t], t));
+  assert.strictEqual(_r63('LAB_CFG_DEFAULT').depart, 'belgian'); assert.strictEqual(_r63('LAB_CFG_DEFAULT').arbitrage, 2);
 });

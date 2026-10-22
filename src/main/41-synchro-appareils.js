@@ -611,4 +611,3 @@ function openSyncModal(){
   document.body.appendChild(modal);
   const t = modal.querySelector('button'); if (t) try { t.focus(); } catch (e) {}
 }
-</script>
