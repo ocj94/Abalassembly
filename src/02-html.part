@@ -2088,6 +2088,25 @@ table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset
 .archi-table:last-child { border-bottom:0; padding-bottom:0; }
 .archi-table-nom { font-size:13px; font-weight:700; color:var(--gold); }
 .archi-table-txt { font-size:13px; line-height:1.55; color:var(--text); }
+
+/* ─── SYNCHRONISER MES APPAREILS (v2.69) ─── */
+.sync-fond { position:fixed; inset:0; z-index:3500; background:rgba(13,15,14,0.92); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:20px; }
+.sync-boite { max-width:540px; width:100%; background:var(--surface); border:1px solid var(--gold-dim); border-radius:14px; padding:22px; max-height:90vh; overflow-y:auto; }
+.sync-titre { font-family:'Playfair Display',serif; color:var(--white); margin:0 0 6px; font-size:20px; }
+.sync-sous { font-size:12px; font-weight:700; color:var(--white); text-transform:uppercase; letter-spacing:1px; margin:18px 0 8px; }
+.sync-note { font-size:12.5px; color:var(--muted); line-height:1.55; margin:0 0 10px; }
+.sync-quoi { font-size:12.5px; color:var(--text); margin:0 0 10px; }
+.sync-quoi summary { cursor:pointer; color:var(--gold); }
+.sync-quoi p { line-height:1.55; margin:6px 0 0; }
+.sync-etat { font-size:13px; color:var(--gold); min-height:18px; margin:4px 0 6px; }
+.sync-rang { display:flex; gap:8px; flex-wrap:wrap; margin:6px 0; }
+.sync-rang .ctrl-btn { flex:1 1 180px; width:auto; }
+.sync-petit { flex:0 0 auto !important; padding:6px 12px !important; font-size:12px !important; }
+.sync-fin { justify-content:flex-end; margin-top:16px; }
+.sync-etape { font-size:12.5px; color:var(--text); line-height:1.5; margin:10px 0 6px; }
+.sync-code { width:100%; min-height:64px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); padding:8px; font-family:'DM Mono',monospace; font-size:11px; word-break:break-all; }
+.sync-ok { font-size:14px; font-weight:700; color:var(--accent-green-light); margin:6px 0 4px; }
+.sync-liste { font-size:13px; color:var(--text); line-height:1.7; margin:0 0 6px 18px; padding:0; }
 @media (max-width: 560px) {
   .archi-carte { padding:16px 14px; }
   .archi-etape, .archi-usage, .archi-non { grid-template-columns:1fr; }

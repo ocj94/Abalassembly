@@ -276,6 +276,7 @@ function _doBulkHistoryImport(){
     // historique plein = elle n'est pas importee (et c'est dit).
     if (r.entry.spectateur && history.length >= HIST_MAX){ plein++; return; }
     existingCodes.add(r.entry.code);
+    if (typeof _syncOublierSuppression === 'function') _syncOublierSuppression(r.entry.code);   // reimportee volontairement : plus « supprimee »
     history.unshift(r.entry);
     added++;
     if (_chaleurDepuisImport(r.entry)) chauffees++;

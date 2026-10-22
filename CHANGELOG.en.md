@@ -9,6 +9,35 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.69]
+
+### Added — sync my devices
+- **🔄 Sync my devices** (History or Settings, address `#sync`): two devices,
+  or two browsers, **merge** their game data. Olivier's request: "how do I get
+  the same data in every browser?".
+  - **Live**: both open, one code each way (Copy or Share), then a direct
+    connection between the browsers, like the live game. No account, no
+    server.
+  - **With a file**, if the direct connection does not work: a sync file to
+    open on the other device with "Merge".
+- **What travels**: game history, progress (XP, level, ELO, badges, streaks),
+  statistics, heat maps, puzzles and daily puzzles, Brain Gym, Trainer
+  course, real-board notebook, username. **What stays on each device**:
+  display and sound settings, local account, AI Lab, game in progress.
+- **Nothing is overwritten, nothing is counted twice**: games are added
+  without duplicates, a game deleted on one device is deleted on the other
+  (and comes back if you import it again). Each counter keeps every device's
+  share: syncing twice changes nothing, and three devices synced in pairs add
+  up exactly. One precaution: two devices where one is a copy of the other
+  (old JSON export) keep the larger total instead of adding them.
+- After the sync, a summary (games, XP, games played, puzzles), then the page
+  reloads.
+- **"My data (JSON)" export / import**: the device identity no longer travels
+  with it, and the export records each device's share — a copy synced later
+  counts nothing twice.
+- Checked end to end: two real browsers connected live, identical merge on
+  both sides. 4 new tests (250 in all).
+
 ## [v2.68]
 
 ### Fixed — games imported into the history

@@ -14,7 +14,7 @@
 
    ATTENTION — CONTENU ECRIT A LA MAIN : contrairement a la Fiche pour IA
    (openSiteBriefing), qui compte tout a l'execution, ces cartes ne se
-   deduisent pas du code. Verifiees contre le code en v2.66. Les CHIFFRES sont
+   deduisent pas du code. Verifiees contre le code en v2.66 (synchro ajoutee en v2.69). Les CHIFFRES sont
    regroupes dans ARCHI_CHIFFRES, et un test les compare aux donnees
    embarquees : une partie ou un probleme de plus, et le test demande la mise
    a jour. Le reste (l'ordre des questions de l'IA, les echanges) se relit a
@@ -106,7 +106,8 @@ function _archiCarteEchanges(){
     _tr('Export et import Aba-Pro, import APGN : les formats de la communauté', 'Aba-Pro export and import, APGN import: the community formats'),
     _tr('Fichier de parties envoyé vers le site (Android : Partager ; ordinateur : Ouvrir avec)', 'Games file sent to the site (Android: Share; computer: Open with)'),
     _tr('Historique local : ' + _archiN(ARCHI_CHIFFRES.historique) + ' parties, rejouables, exportables en fichier', 'Local history: ' + _archiN(ARCHI_CHIFFRES.historique) + ' games, replayable, exportable as a file'),
-    _tr('Duel contre un moteur externe : coups relayés à la main', 'Duel against an outside engine: moves relayed by hand')
+    _tr('Duel contre un moteur externe : coups relayés à la main', 'Duel against an outside engine: moves relayed by hand'),
+    _tr('Synchroniser mes appareils par fichier : historique et progression fusionnés, rien compté deux fois', 'Sync my devices with a file: history and progress merged, nothing counted twice')
   ];
   let h = '<div class="archi-puces">' + modes.map(function(m){ return '<div class="archi-boite">' + m + '</div>'; }).join('') + '</div>'
     + _archiFleche()
@@ -115,8 +116,8 @@ function _archiCarteEchanges(){
     + '<div class="archi-groupe"><div class="archi-groupe-titre">' + _tr('Sans aucun serveur', 'Without any server') + '</div>'
     + '<div class="archi-liste">' + libres.map(function(t){ return '<div class="archi-boite archi-c">' + t + '</div>'; }).join('') + '</div></div>'
     + '<div class="archi-groupe"><div class="archi-groupe-titre">' + _tr('Partie en direct', 'Live game') + '</div>'
-    + '<div class="archi-boite archi-c">' + _tr('Connexion directe entre les deux navigateurs (WebRTC). Les codes de connexion s’échangent à la main ; un serveur public (STUN) aide seulement les deux appareils à se trouver.',
-                                               'Direct connection between the two browsers (WebRTC). The connection codes are exchanged by hand; a public server (STUN) only helps the two devices find each other.') + '</div></div>'
+    + '<div class="archi-boite archi-c">' + _tr('Connexion directe entre les deux navigateurs (WebRTC). Les codes de connexion s’échangent à la main ; un serveur public (STUN) aide seulement les deux appareils à se trouver. La synchro en direct de tes appareils passe par le même chemin.',
+                                               'Direct connection between the two browsers (WebRTC). The connection codes are exchanged by hand; a public server (STUN) only helps the two devices find each other. Syncing your devices live takes the same path.') + '</div></div>'
     + '<div class="archi-groupe"><div class="archi-groupe-titre">' + _tr('Avec un serveur extérieur, en lecture seule', 'With an outside server, read-only') + '</div>'
     + '<div class="archi-boite archi-ext">' + _tr('PlayStrategy : suivre une partie en direct, voir les tournois, en importer un. Le site lit les parties, il n’envoie rien d’autre qu’un pseudo ou un lien.',
                                                  'PlayStrategy: follow a game live, see the tournaments, import one. The site reads the games; it sends nothing but a username or a link.') + '</div></div>';

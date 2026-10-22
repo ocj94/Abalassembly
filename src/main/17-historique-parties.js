@@ -107,12 +107,16 @@ function _histDateTexte(e){
 
 function deleteGameHistoryEntry(id){
   try {
-    const list = getGameHistory().filter(function(e){ return e.id !== id; });
+    const h = getGameHistory();
+    // v2.69 : supprimee ici, elle le sera aussi sur tes autres appareils a la prochaine synchro
+    if (typeof _syncNoterSuppression === 'function') _syncNoterSuppression(h.filter(function(e){ return e.id === id; }).map(function(e){ return e.code; }));
+    const list = h.filter(function(e){ return e.id !== id; });
     localStorage.setItem(GAME_HISTORY_KEY, JSON.stringify(list));
   } catch(e){}
 }
 
 function clearGameHistory(){
+  try { if (typeof _syncNoterSuppression === 'function') _syncNoterSuppression(getGameHistory().map(function(e){ return e.code; })); } catch(e){}
   try { localStorage.removeItem(GAME_HISTORY_KEY); } catch(e){}
 }
 

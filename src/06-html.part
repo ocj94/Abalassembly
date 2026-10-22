@@ -2486,6 +2486,7 @@
         <button onclick="logout()" style="width:100%;padding:10px 14px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.25);color:#e05c4b;border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;text-align:left">Deconnexion</button>
         <button onclick="exportMyData()" style="width:100%;margin-top:8px;padding:10px 14px;background:rgba(74,148,99,0.05);border:1px solid rgba(74,148,99,0.4);color:var(--accent-green-light);border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;text-align:left">📦 Exporter mes données (JSON)</button>
         <button onclick="importMyData()" style="width:100%;margin-top:8px;padding:10px 14px;background:rgba(200,168,75,0.05);border:1px solid rgba(200,168,75,0.4);color:var(--gold);border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;text-align:left" title="Restaure une progression exportée sur cet appareil ou un autre">📥 Importer mes données (JSON)</button>
+        <button onclick="openSyncModal()" style="width:100%;margin-top:8px;padding:10px 14px;background:rgba(200,168,75,0.05);border:1px solid rgba(200,168,75,0.4);color:var(--gold);border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;text-align:left">🔄 Synchroniser mes appareils</button>
         <button onclick="resetAllData()" style="width:100%;margin-top:8px;padding:10px 14px;background:rgba(192,57,43,0.04);border:1px solid rgba(192,57,43,0.4);color:#e05c4b;border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;text-align:left">🗑️ Réinitialiser toutes mes données</button>
       </div>
     </div>
@@ -3769,6 +3770,7 @@
 <li><b>📥 Importer</b> : remet un historique sauvegardé, ou ajoute des parties jouées ailleurs (KAAH, Aba-Pro…). Choisis le fichier ou colle le texte, puis indique <b>ton pseudo dans ces parties</b> : c'est lui qui dit quelles parties sont les tiennes. Une partie déjà présente n'est jamais ajoutée deux fois.</li>
 <li><b>Sur Android</b>, avec l'application installée : appui long sur un fichier de parties → <b>Partager</b> → <b>Abalassembly</b>. L'import s'ouvre déjà rempli.</li>
 <li><b>Changer de téléphone</b> : sur l'ancien, Paramètres → <b>📦 Exporter mes données (JSON)</b> (tout) ou Historique → <b>📤 Exporter tout</b> (les parties) ; sur le nouveau, l'import correspondant.</li>
+<li><b>🔄 Synchroniser mes appareils</b> (Historique ou Paramètres) : tes parties, ta progression, tes problèmes et défis, ta carte de chaleur… fusionnés entre deux appareils ou deux navigateurs. En direct, un code dans chaque sens ; sinon par fichier. Rien n'est écrasé, rien n'est compté deux fois.</li>
 </ul>
 <button class="ctrl-btn aide-aller" onclick="showPage('historique')">Ouvrir l’Historique →</button></div></details>
 <details class="aide-rub"><summary>👥 Jouer à deux</summary><div class="aide-corps">
@@ -3875,6 +3877,7 @@
 <li><b>📥 Import</b>: restores a saved history, or adds games played elsewhere (KAAH, Aba-Pro…). Pick the file or paste the text, then give <b>your nickname in those games</b>: it tells which games are yours. A game that is already there is never added twice.</li>
 <li><b>On Android</b>, with the app installed: long-press a game file → <b>Share</b> → <b>Abalassembly</b>. The import opens already filled in.</li>
 <li><b>Changing phones</b>: on the old one, Settings → <b>📦 Export my data (JSON)</b> (everything) or History → <b>📤 Export all (Aba-Pro)</b> (the games); on the new one, the matching import.</li>
+<li><b>🔄 Sync my devices</b> (History or Settings): your games, progress, puzzles and daily puzzles, heat map… merged between two devices or two browsers. Live, with one code each way; otherwise with a file. Nothing is overwritten, nothing is counted twice.</li>
 </ul>
 <button class="ctrl-btn aide-aller" onclick="showPage('historique')">Open History →</button></div></details>
 <details class="aide-rub"><summary>👥 Playing a friend</summary><div class="aide-corps">
@@ -4285,6 +4288,7 @@
     <div style="display:flex;gap:8px;margin-top:20px;flex-wrap:wrap">
       <button onclick="if(confirm('Effacer tout l\'historique de parties ? Irréversible.')){clearGameHistory();_renderHistoryList();}" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer">Vider l'historique</button>
       <button onclick="exportFullHistoryAbaPro()" style="background:none;border:1px solid var(--gold-dim);color:var(--gold);border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer" title="Un fichier texte en notation Aba-Pro, une partie par bloc, avec date/variante/résultat en en-tête — lisible par tout outil qui comprend cette notation">📤 Exporter tout (Aba-Pro)</button>
+      <button onclick="openSyncModal()" style="background:none;border:1px solid var(--gold-dim);color:var(--gold);border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer" title="Fusionne ton historique et ta progression avec un autre appareil ou un autre navigateur">🔄 Synchroniser mes appareils</button>
       <button onclick="openBulkHistoryImportModal()" style="background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer" title="Réimporte un fichier exporté depuis cet appareil ou un autre — les parties déjà présentes ne sont pas dupliquées">📥 Importer</button>
     </div>
   </div>

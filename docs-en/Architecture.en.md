@@ -111,6 +111,7 @@ flowchart TD
     G --> X2b[Games file<br/>sent to the site]
     G --> X3[Duel with an outside engine<br/>moves relayed by hand]
     G --> X4[Local history<br/>200 games, exportable]
+    X4 -.->|sync, v2.69| P3[Your other devices<br/>merged, nothing counted twice]
 
     X2 -.->|no server| EXT[Another Abalone<br/>program]
     A3 -.->|direct connection| P2[Another device]
@@ -123,9 +124,10 @@ flowchart TD
 
 The site has no game server. The game code, the links, the image, the exports and the history file work even with no network: all it takes is passing on a text, an address, an image or a file. The `?partie=` link encodes the same code as "Game by code", just carried by the address; `?pos=` carries a position, `?defi=` a daily puzzle.
 
-**Two exceptions, stated as they are:**
+**Three things to know:**
 
 - **The live game** connects the two browsers directly (WebRTC). The connection codes are exchanged by hand; a public server (STUN) only helps the two devices find each other.
+- **Sync my devices** (v2.69): the same direct connection as the live game, or a file. Both devices merge their game data (history, progress, puzzles, heat maps…): games are added without duplicates, a deletion spreads, and each counter keeps every device's share (a "G-counter") so nothing is counted twice. Settings, the Lab and the game in progress stay on each device.
 - **PlayStrategy** (v2.48): follow a game live, see the tournaments, import one. The site queries PlayStrategy's server read-only; it sends nothing but a username or a link.
 
 ---

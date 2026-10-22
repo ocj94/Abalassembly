@@ -111,6 +111,7 @@ flowchart TD
     G --> X2b[Fichier de parties<br/>envoyé vers le site]
     G --> X3[Duel moteur externe<br/>relais manuel des coups]
     G --> X4[Historique local<br/>200 parties, exportables]
+    X4 -.->|synchro, v2.69| P3[Tes autres appareils<br/>fusion, rien compté deux fois]
 
     X2 -.->|aucun serveur| EXT[Autre programme<br/>d'Abalone]
     A3 -.->|connexion directe| P2[Autre appareil]
@@ -123,9 +124,10 @@ flowchart TD
 
 Le site n'a pas de serveur de jeu. Le code de partie, les liens, l'image, les exports et le fichier d'historique marchent même sans réseau : il suffit de transmettre un texte, une adresse, une image ou un fichier. Le lien `?partie=` encode le même code que « Partie par code », juste porté par l'adresse ; `?pos=` porte une position, `?defi=` un défi du jour.
 
-**Deux exceptions, dites telles quelles :**
+**Trois choses à savoir :**
 
 - **La partie en direct** relie les deux navigateurs directement (WebRTC). Les codes de connexion s'échangent à la main ; un serveur public (STUN) aide seulement les deux appareils à se trouver.
+- **Synchroniser mes appareils** (v2.69) : la même connexion directe que la partie en direct, ou un fichier. Les deux appareils fusionnent leurs données de jeu (historique, progression, problèmes, cartes de chaleur…) : les parties s'ajoutent sans doublon, une suppression se propage, et chaque compteur garde la part de chaque appareil (un compteur « G-counter ») pour que rien ne soit compté deux fois. Les réglages, le Labo et la partie en cours restent sur chaque appareil.
 - **PlayStrategy** (v2.48) : suivre une partie en direct, voir les tournois, en importer un. Le site interroge le serveur de PlayStrategy en lecture seule ; il n'envoie rien d'autre qu'un pseudo ou un lien.
 
 ---

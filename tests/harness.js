@@ -74,7 +74,10 @@ function contexteFactice() {
     getItem: k => (k in store ? store[k] : null),
     setItem: (k, v) => { store[k] = String(v); },
     removeItem: k => { delete store[k]; },
-    clear: () => { for (const k in store) delete store[k]; }
+    clear: () => { for (const k in store) delete store[k]; },
+    // comme un vrai navigateur : parcourir les cles (l'export « Mes donnees » le fait, v2.69)
+    get length() { return Object.keys(store).length; },
+    key: i => { const k = Object.keys(store)[i]; return k === undefined ? null : k; }
   };
   ctx.sessionStorage = ctx.localStorage;
   ctx.fetch = () => Promise.reject(new Error('reseau indisponible en test'));

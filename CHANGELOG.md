@@ -9,6 +9,38 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.69]
+
+### Ajouté — synchroniser mes appareils
+- **🔄 Synchroniser mes appareils** (Historique ou Paramètres, adresse
+  `#synchroniser`) : deux appareils, ou deux navigateurs, **fusionnent**
+  leurs données de jeu. Demande d'Olivier : « comment faire pour que tous les
+  navigateurs aient les mêmes données ? ».
+  - **En direct** : les deux ouverts, un code dans chaque sens (Copier ou
+    Partager), puis une connexion directe entre les navigateurs, comme la
+    Partie en direct. Aucun compte, aucun serveur.
+  - **Par fichier**, si la connexion directe ne passe pas : un fichier de
+    synchro à ouvrir sur l'autre appareil avec « Fusionner ».
+- **Ce qui voyage** : historique des parties, progression (XP, niveau, ELO,
+  badges, séries), statistiques, cartes de chaleur, problèmes et défis du
+  jour, Gym Cerveau, Formation Formateurs, carnet du plateau, pseudo. **Ce qui
+  reste sur chaque appareil** : réglages d'affichage et de son, compte local,
+  Labo IA, partie en cours.
+- **Rien n'est écrasé, rien n'est compté deux fois** : les parties
+  s'ajoutent sans doublon, une partie supprimée sur un appareil l'est aussi
+  sur l'autre (et revient si tu la réimportes). Chaque compteur garde la part
+  de chaque appareil : synchroniser deux fois ne change rien, et trois
+  appareils synchronisés deux à deux tombent juste. Seule prudence : deux
+  appareils dont l'un est la copie de l'autre (ancien export JSON) gardent le
+  plus grand total au lieu de l'additionner.
+- Après la synchro, un récapitulatif (parties, XP, parties jouées,
+  problèmes) puis la page se recharge.
+- **Export / import « Mes données (JSON) »** : l'identité de l'appareil ne
+  voyage plus avec, et l'export dit la part de chaque appareil — une copie
+  synchronisée plus tard ne compte rien deux fois.
+- Vérifié de bout en bout : deux navigateurs réels connectés en direct,
+  fusion identique des deux côtés. 4 tests nouveaux (250 au total).
+
 ## [v2.68]
 
 ### Corrigé — les parties importées dans l'historique
