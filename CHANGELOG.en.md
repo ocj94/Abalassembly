@@ -9,6 +9,23 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.68]
+
+### Fixed — games imported into the history
+- **The result**: an imported game where it is known which side you played
+  and who won (a KAAH game, for example) showed "—" instead of **Win** or
+  **Loss**. It now shows it, and the history page's result filter files it
+  correctly. A game you only watched (played by others) or with an unknown
+  result keeps "—".
+- **The time**: a game imported with a date but no time was stored at
+  midnight UTC, so it showed **"02:00"** in Paris — an invented time. It now
+  shows the date only. The import header also accepts the time
+  (`# 2026-10-22 06:41 · …`), read as local time; re-importing a game that is
+  already there, this time with its time, completes it without creating a
+  duplicate. Games imported earlier are recognised and show their date only.
+- **The history export** writes the local date and time (before: the UTC day —
+  a game played at 1 a.m. in Paris left dated the day before).
+
 ## [v2.67]
 
 ### Added

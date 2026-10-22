@@ -4318,3 +4318,66 @@ test('v2.66 Architecture : les questions de l’IA dans l’ordre de aiMove(), l
   assert.strictEqual(_r60("I18N_EN[\"Comment c'est construit\"]"), 'How it’s built');
   assert.strictEqual(site.indexOf('docs/Architecture.md'), -1, 'plus de lien vers un fichier qui n’existe pas');
 });
+
+// ═══════════════════════════════════════════
+// 61. v2.68 : une partie importee affiche son resultat (Victoire / Defaite) et sa vraie date, sans heure inventee
+// ═══════════════════════════════════════════
+test('v2.68 historique : une partie importée où l’on sait ton camp affiche Victoire ou Défaite, et le filtre suit', () => {
+  const T = '# 2026-10-22 · Belgian Daisy · Blanc gagne (6 éjections) · KAI vs ocj94\n1.a1b2 i5h5 2.a2b3 i6h6';
+  const [r] = ctx._parseBulkHistoryText(T, 'ocj94');
+  assert.ok(r.ok && r.entry.humanColor === 'white' && r.entry.winner === 'white');
+  const badge = e => ctx._historyResultBadge(e).replace(/<[^>]*>/g, '');
+  assert.strictEqual(badge(r.entry), 'Victoire');
+  assert.strictEqual(badge(Object.assign({}, r.entry, { humanColor: 'black' })), 'Défaite');
+  assert.strictEqual(badge(Object.assign({}, r.entry, { spectateur: true, humanColor: null })), '—', 'partie consultee : pas la tienne');
+  const [n] = ctx._parseBulkHistoryText(T.replace('Blanc gagne (6 éjections)', 'Nulle'), 'ocj94');
+  assert.strictEqual(badge(n.entry), 'Nulle');
+  const [inconnu] = ctx._parseBulkHistoryText(T.replace(' · Blanc gagne (6 éjections)', ' · ?'), 'ocj94');
+  assert.strictEqual(badge(inconnu.entry), '—', 'resultat inconnu : rien d’invente');
+  // contre l'IA et a deux sur le meme ecran : comme avant
+  assert.strictEqual(badge({ mode: 'ai', winner: 'black', humanColor: 'black' }), 'Victoire');
+  assert.strictEqual(badge({ mode: 'ai', winner: null, humanColor: 'black' }), 'Nulle');
+  assert.strictEqual(badge({ mode: 'local', winner: 'black', humanColor: 'black' }), '—');
+  // le filtre Victoire / Defaite de la page Historique
+  const avant = ctx.localStorage.getItem(ctx.GAME_HISTORY_KEY);
+  try {
+    ctx.localStorage.setItem(ctx.GAME_HISTORY_KEY, JSON.stringify([r.entry, Object.assign({}, r.entry, { id: 'x2', winner: 'black' }), { id: 'x3', mode: 'local', winner: null, code: 'c' }]));
+    const ids = res => Array.from(ctx.filterGameHistory({ result: res }), e => e.id);
+    assert.deepStrictEqual(ids('victoire'), [r.entry.id]);
+    assert.deepStrictEqual(ids('defaite'), ['x2']);
+    assert.deepStrictEqual(ids('nulle'), ['x3'], 'une partie a deux sans vainqueur reste une nulle, comme avant');
+  } finally { if (avant === null) ctx.localStorage.removeItem(ctx.GAME_HISTORY_KEY); else ctx.localStorage.setItem(ctx.GAME_HISTORY_KEY, avant); }
+});
+
+test('v2.68 historique : la date d’une partie importée est celle de l’en-tête, heure comprise si elle y est, jamais « 02:00 » inventé', async () => {
+  const T = h => '# ' + h + ' · Belgian Daisy · Blanc gagne (6 éjections) · KAI vs ocj94\n1.a1b2 i5h5 2.a2b3 i6h6';
+  const [sans] = ctx._parseBulkHistoryText(T('2026-10-22'), 'ocj94'), [avec] = ctx._parseBulkHistoryText(T('2026-10-22 06:41'), 'ocj94');
+  assert.strictEqual(sans.entry.heureInconnue, true); assert.strictEqual(avec.entry.heureInconnue, false);
+  assert.strictEqual(new Date(avec.entry.date).getTime(), new Date(2026, 9, 22, 6, 41).getTime(), 'heure locale de l’en-tete');
+  assert.strictEqual(ctx._historyDateLabel(sans.entry.date, sans.entry), '22/10/26', 'la date seule');
+  const lab = ctx._historyDateLabel(avec.entry.date, avec.entry);
+  assert.ok(lab.indexOf('22/10/26') === 0 && lab.indexOf('06:41') > 0, lab);
+  // une partie importee avant la v2.68 (minuit UTC) : la date seule, son jour d'origine
+  assert.strictEqual(ctx._historyDateLabel('2026-10-22T00:00:00.000Z', { mode: 'import', date: '2026-10-22T00:00:00.000Z' }), '22/10/26');
+  // l'export ecrit la date locale, avec l'heure quand on la connait : un nouvel import la retrouve
+  assert.strictEqual(ctx._histDateTexte(avec.entry), '2026-10-22 06:41');
+  assert.strictEqual(ctx._histDateTexte(sans.entry), '2026-10-22');
+  assert.strictEqual(ctx._histDateTexte({ mode: 'import', date: '2026-10-22T00:00:00.000Z' }), '2026-10-22');
+  // reimporter la meme partie, cette fois avec l'heure : l'heure est reprise, pas de doublon
+  const avant = ctx.localStorage.getItem(ctx.GAME_HISTORY_KEY), pseudo = ctx.localStorage.getItem('abaGcMyName');
+  try {
+    ctx.localStorage.setItem(ctx.GAME_HISTORY_KEY, JSON.stringify([Object.assign({}, sans.entry, { heureInconnue: undefined, date: '2026-10-22T00:00:00.000Z' })]));
+    await _dom54(async els => {
+      ctx.document.getElementById('bulk-history-text').value = T('2026-10-22 06:41'); ctx.document.getElementById('bulk-history-pseudo').value = 'ocj94';
+      ctx._doBulkHistoryImport();
+      assert.match(els['bulk-history-status'].textContent, /1 déjà présente.*heure ajoutée à 1 partie déjà présente/);
+    });
+    const h = JSON.parse(ctx.localStorage.getItem(ctx.GAME_HISTORY_KEY));
+    assert.strictEqual(h.length, 1);
+    assert.strictEqual(h[0].heureInconnue, false);
+    assert.strictEqual(new Date(h[0].date).getTime(), new Date(2026, 9, 22, 6, 41).getTime());
+  } finally {
+    if (avant === null) ctx.localStorage.removeItem(ctx.GAME_HISTORY_KEY); else ctx.localStorage.setItem(ctx.GAME_HISTORY_KEY, avant);
+    if (pseudo === null) ctx.localStorage.removeItem('abaGcMyName'); else ctx.localStorage.setItem('abaGcMyName', pseudo);
+  }
+});

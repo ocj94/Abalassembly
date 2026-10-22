@@ -9,6 +9,25 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.68]
+
+### Corrigé — les parties importées dans l'historique
+- **Le résultat** : une partie importée dont on sait quel camp tu tenais et
+  qui a gagné (une partie KAAH, par exemple) affichait « — » au lieu de
+  **Victoire** ou **Défaite**. Elle l'affiche maintenant, et le filtre
+  « Tout résultat » de la page Historique la range au bon endroit. Une partie
+  consultée (jouée par d'autres) ou au résultat inconnu garde « — ».
+- **L'heure** : une partie importée avec une date sans heure était
+  enregistrée à minuit UTC, donc affichée **« 02:00 »** à Paris — une heure
+  inventée. Elle affiche maintenant la date seule. L'en-tête d'import accepte
+  aussi l'heure (`# 2026-10-22 06:41 · …`), lue en heure locale ; réimporter
+  une partie déjà présente, cette fois avec son heure, la complète sans
+  créer de doublon. Les parties déjà importées sont reconnues et affichent
+  leur date seule.
+- **L'export** de l'historique écrit la date et l'heure locales (avant : le
+  jour UTC — une partie jouée à 1 h du matin, à Paris, partait datée de la
+  veille).
+
 ## [v2.67]
 
 ### Ajouté

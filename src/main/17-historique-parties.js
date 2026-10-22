@@ -68,6 +68,43 @@ function getGameHistory(){
 function estMaPartie(e){ return !(e && e.spectateur); }
 function getMesParties(){ return getGameHistory().filter(estMaPartie); }
 
+/* Le resultat de TA partie (v2.68) : 'victoire', 'defaite', 'nulle', ou null
+   (partie consultee, partie a deux sur le meme ecran, resultat inconnu).
+   Avant, seules les parties contre l'IA en avaient un : une partie importee
+   ou l'on sait quel camp tu tenais et qui a gagne (KAAH...) affichait « — ».
+   Signale par Olivier, capture a l'appui. */
+function _histMonResultat(e){
+  if (!e || e.spectateur) return null;
+  if (e.mode === 'ai') return !e.winner ? 'nulle' : (e.winner === e.humanColor ? 'victoire' : 'defaite');
+  if (e.mode === 'import' && (e.humanColor === 'black' || e.humanColor === 'white')) {
+    if (e.winner === 'black' || e.winner === 'white') return e.winner === e.humanColor ? 'victoire' : 'defaite';
+    return e.nulle ? 'nulle' : null;
+  }
+  return null;
+}
+/* La date d'une partie, lue en heure LOCALE (v2.68). Une partie importee avec
+   une date sans heure (« # 2026-10-22 · ... ») etait enregistree a minuit UTC,
+   donc affichee « 02:00 » a Paris -- une heure inventee. Maintenant : l'heure
+   de l'en-tete si elle y est (« 2026-10-22 06:41 »), sinon la date seule.
+   Les parties importees avant la v2.68 (minuit UTC pile, sans le champ
+   heureInconnue) sont reconnues et gardent leur jour d'origine. */
+function _histSansHeure(e){
+  return !!e && (e.heureInconnue === true || (e.heureInconnue === undefined && e.mode === 'import' && /T00:00:00\.000Z$/.test(String(e.date))));
+}
+function _histJour(e){
+  const d = new Date(e && e.date);
+  if (isNaN(d.getTime())) return null;
+  const ancien = e.heureInconnue === undefined && _histSansHeure(e);   // jour lu en UTC, comme il avait ete ecrit
+  return { a: ancien ? d.getUTCFullYear() : d.getFullYear(), m: (ancien ? d.getUTCMonth() : d.getMonth()) + 1, j: ancien ? d.getUTCDate() : d.getDate(),
+           h: d.getHours(), mn: d.getMinutes(), sansHeure: _histSansHeure(e) };
+}
+// « 2026-10-22 06:41 », ou « 2026-10-22 » si l'heure n'est pas connue (en-tete d'export)
+function _histDateTexte(e){
+  const t = _histJour(e); if (!t) return '';
+  const z = function(n){ return (n < 10 ? '0' : '') + n; };
+  return t.a + '-' + z(t.m) + '-' + z(t.j) + (t.sansHeure ? '' : ' ' + z(t.h) + ':' + z(t.mn));
+}
+
 function deleteGameHistoryEntry(id){
   try {
     const list = getGameHistory().filter(function(e){ return e.id !== id; });
@@ -87,10 +124,10 @@ function filterGameHistory(opts){
     if (opts.variant && opts.variant !== 'all' && e.variant !== opts.variant) return false;
     if (opts.mode && opts.mode !== 'all' && e.mode !== opts.mode) return false;
     if (opts.result && opts.result !== 'all') {
-      const isAI = e.mode === 'ai';
-      const won = isAI && e.winner === e.humanColor;
-      const lost = isAI && e.winner && e.winner !== e.humanColor;
-      const draw = !e.winner;
+      const r = _histMonResultat(e);   // v2.68 : les parties importees ou l'on sait ton camp comptent aussi
+      const won = r === 'victoire';
+      const lost = r === 'defaite';
+      const draw = r === 'nulle' || (r === null && e.mode !== 'import' && !e.winner);
       if (opts.result === 'victoire' && !won) return false;
       if (opts.result === 'defaite' && !lost) return false;
       if (opts.result === 'nulle' && !draw) return false;

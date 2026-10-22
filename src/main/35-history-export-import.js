@@ -43,7 +43,7 @@ function exportFullHistoryAbaPro(){
     if (!tokens.length) { skipped++; return; }
     const label = (typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[parsed.layout]) ? HEAT_VARIANT_LABEL[parsed.layout] : parsed.layout;
     const joueurs = (parsed.blackName || parsed.whiteName) ? (parsed.blackName||'?') + ' vs ' + (parsed.whiteName||'?') : '';
-    const dateStr = entry.date ? entry.date.slice(0,10) : '';
+    const dateStr = entry.date ? _histDateTexte(entry) : '';   // v2.68 : jour et heure LOCAUX (avant : le jour UTC -- une partie jouee a 1 h du matin, a Paris, partait datee de la veille)
     const head = '# ' + [dateStr, label, _bulkResultLabel(entry)].concat(joueurs?[joueurs]:[]).filter(Boolean).join(' · ');
     const body = tokens.map(function(t,i){ return (i%2===0 ? (Math.floor(i/2)+1)+'.' : '') + t; }).join(' ');
     blocks.push(head + '\n' + body);
@@ -156,7 +156,8 @@ function _parseBulkHistoryText(text, monPseudo){
     // champs manquants ou en trop ne bloquent pas l'import, ils sont juste
     // absents du resultat.
     const parts = headLine.replace(/^#\s*/, '').split('·').map(function(s){ return s.trim(); });
-    const dateStr = (parts[0] && /^\d{4}-\d{2}-\d{2}/.test(parts[0])) ? parts[0] : null;
+    // « 2026-10-22 » ou « 2026-10-22 06:41 » : lue en heure LOCALE (v2.68 ; avant, minuit UTC -- « 02:00 » a Paris)
+    const md = parts[0] ? /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/.exec(parts[0]) : null;
     let variantLabel = parts[1] || null;
     const resultLabel = parts[2] || null;
     const joueursLabel = parts[3] || null;
@@ -204,7 +205,9 @@ function _parseBulkHistoryText(text, monPseudo){
       ok: true, partial: played < tokens.length,
       entry: {
         id: 'import_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
-        date: dateStr ? new Date(dateStr).toISOString() : new Date().toISOString(),
+        date: md ? new Date(+md[1], +md[2] - 1, +md[3], md[4] ? +md[4] : 0, md[5] ? +md[5] : 0).toISOString() : new Date().toISOString(),
+        heureInconnue: !!md && !md[4],
+        nulle: resultLabel === 'Nulle',
         variant: layout, mode: 'import',
         // Partie consultee seulement si l'en-tete NOMME des joueurs et qu'aucun
         // n'est toi. Sans noms (tes parties contre l'IA, re-importees depuis un
@@ -257,13 +260,15 @@ function _doBulkHistoryImport(){
 
   let history = (typeof getGameHistory === 'function') ? getGameHistory() : [];
   const existingCodes = new Set(history.map(function(e){ return e.code; }));
-  let added = 0, dupes = 0, partial = 0, failed = 0, consultees = 0, plein = 0, chauffees = 0;
+  let added = 0, dupes = 0, partial = 0, failed = 0, consultees = 0, plein = 0, chauffees = 0, heures = 0;
   results.forEach(function(r){
     if (!r.ok){ failed++; return; }
     if (existingCodes.has(r.entry.code)){
       dupes++;
       // deja importee AVANT que l'import alimente la carte : comptee une seule fois maintenant
       const deja = history.find(function(h){ return h.code === r.entry.code; });
+      // v2.68 : la meme partie, cette fois avec son heure -- l'heure est reprise, rien d'autre ne change
+      if (deja && !r.entry.heureInconnue && _histSansHeure(deja)) { deja.date = r.entry.date; deja.heureInconnue = false; heures++; }
       if (deja && _chaleurDepuisImport(deja)) chauffees++;
       return;
     }
@@ -282,14 +287,15 @@ function _doBulkHistoryImport(){
     if (status){ status.style.color='#e05c4b'; status.textContent = 'Stockage indisponible ou plein.'; } return;
   }
   if (status){
-    status.style.color = (added || chauffees) ? 'var(--gold)' : '#e05c4b';
+    status.style.color = (added || chauffees || heures) ? 'var(--gold)' : '#e05c4b';
     status.textContent = added + ' partie' + (added>1?'s':'') + ' importée' + (added>1?'s':'')
       + (dupes?(', ' + dupes + ' déjà présente' + (dupes>1?'s':'')):'')
       + (partial?(', ' + partial + ' partielle' + (partial>1?'s':'') + ' (coup illisible en route)'):'')
       + (failed?(', ' + failed + ' illisible' + (failed>1?'s':'')):'')
       + (consultees?(' — dont ' + consultees + ' consultée' + (consultees>1?'s':'') + ', hors de tes statistiques'):'')
       + (plein?(' — ' + plein + ' non importée' + (plein>1?'s':'') + ' : historique plein (' + HIST_MAX + ' max), tes propres parties ont été préservées'):'')
-      + (chauffees?(' — ' + chauffees + ' ajoutée' + (chauffees>1?'s':'') + ' à ta carte de chaleur'):'');
+      + (chauffees?(' — ' + chauffees + ' ajoutée' + (chauffees>1?'s':'') + ' à ta carte de chaleur'):'')
+      + (heures?(' — heure ajoutée à ' + heures + ' partie' + (heures>1?'s':'') + ' déjà présente' + (heures>1?'s':'')):'');
   }
   if (typeof _renderHistoryList === 'function') _renderHistoryList();
 }
