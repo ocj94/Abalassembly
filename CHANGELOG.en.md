@@ -9,6 +9,33 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.74]
+
+### Fixed — the Game statistics page in English
+Reported by Olivier: "I'm on the corpus page. In English, but it stays in
+French".
+- **Everything is translated**: the page title and introduction, the cards
+  "The first player's advantage", "Length of a game", "How games end", "Most
+  played variants", the sources sentence and the "AI thinking" section
+  (measurement buttons and messages included). The MIGS end types, recorded
+  in French ("Au score", "Abandon", "Déco"…), have their translation.
+- **Layout names**: the filters and the variants card showed raw keys
+  (`swiss_daisy`, `custom`…); they now show "Swiss Daisy", "Custom layout"…,
+  like the falling marbles, and "French Daisy" rather than "Marguerite
+  française" in English.
+- **Numbers** follow the language (1,877 and 100.7 in English; 1 877 and
+  100,7 in French).
+- **Switching language on the page** redraws it at once (before, the cards
+  kept the old language until the next visit); the same for My statistics.
+- **A wrong sentence**: "the side that moves first wins 3.7 percentage points
+  more often than the other" — that is the gap to an even split (50 %); the
+  gap between the two sides is twice as large. The sentence now says so. The
+  introduction also lists every source (PlayStrategy and reference games
+  included).
+- **Tests**: the page rendered in English no longer holds a word of French
+  (title, cards, variants, AI thinking, filters), and switching language
+  redraws it.
+
 ## [v2.73]
 
 ### Added — My statistics and the Profile, filtered and in charts

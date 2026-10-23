@@ -262,40 +262,52 @@ async function mesurerProfondeurCorpus(opts) {
   return res;
 }
 function _tableauMesure(res) {
-  if (!res || !res.lignes || !res.lignes.length) return '<div style="font-size:12px;color:var(--muted)">Pas encore de mesure sur cet appareil.</div>';
-  const cell = function(s, ph){ const v = res.lignes.filter(function(l){ return l.s === s && (!ph || l.ph === ph); }).map(function(l){ return l.p; }); return v.length ? String(_mediane(v)).replace('.', ',') : '—'; };
-  const vitesse = function(s){ const v = res.lignes.filter(function(l){ return l.s === s; }); const k = v.reduce(function(a,l){ return a + l.k; }, 0), t = v.reduce(function(a,l){ return a + l.t; }, 0); return t ? Math.round(k / t * 1000).toLocaleString('fr-FR') : '—'; };
-  let h = '<table style="width:100%;font-size:12px;border-collapse:collapse"><tr style="color:var(--muted);text-align:left"><th>Temps</th><th>Ouverture</th><th>Milieu</th><th>Finale</th><th>Positions/s</th></tr>';
-  MESURE_BUDGETS_S.forEach(function(s){ h += '<tr><td>' + String(s).replace('.', ',') + ' s</td><td>' + cell(s, 'ouverture') + '</td><td>' + cell(s, 'milieu') + '</td><td>' + cell(s, 'finale') + '</td><td>' + vitesse(s) + '</td></tr>'; });
-  return h + '</table><div style="font-size:11px;color:var(--muted);margin-top:6px">Profondeur médiane atteinte (demi-coups), sur ' + res.positions + ' positions de vraies parties ; mesuré le '
-    + new Date(res.date).toLocaleDateString('fr-FR') + ' sur cet appareil (' + res.fils + ' fil' + (res.fils > 1 ? 's' : '') + ' de calcul), corpus MIGS de ' + res.corpus.toLocaleString('fr-FR') + ' parties.</div>';
+  if (!res || !res.lignes || !res.lignes.length) return '<div style="font-size:12px;color:var(--muted)">' + _tr('Pas encore de mesure sur cet appareil.', 'No measurement on this device yet.') + '</div>';
+  const cell = function(s, ph){ const v = res.lignes.filter(function(l){ return l.s === s && (!ph || l.ph === ph); }).map(function(l){ return l.p; }); return v.length ? _dimDec(_mediane(v), 1).replace(/[.,]0$/, '') : '—'; };
+  const vitesse = function(s){ const v = res.lignes.filter(function(l){ return l.s === s; }); const k = v.reduce(function(a,l){ return a + l.k; }, 0), t = v.reduce(function(a,l){ return a + l.t; }, 0); return t ? _dimNb(Math.round(k / t * 1000)) : '—'; };
+  let h = '<table style="width:100%;font-size:12px;border-collapse:collapse"><tr style="color:var(--muted);text-align:left"><th>' + _tr('Temps', 'Time') + '</th><th>' + _tr('Ouverture', 'Opening') + '</th><th>' + _tr('Milieu', 'Middlegame') + '</th><th>' + _tr('Finale', 'Endgame') + '</th><th>Positions/s</th></tr>';
+  MESURE_BUDGETS_S.forEach(function(s){ h += '<tr><td>' + _dimDec(s, 1).replace(/[.,]0$/, '') + ' s</td><td>' + cell(s, 'ouverture') + '</td><td>' + cell(s, 'milieu') + '</td><td>' + cell(s, 'finale') + '</td><td>' + vitesse(s) + '</td></tr>'; });
+  const quand = new Date(res.date).toLocaleDateString(currentLang() === 'EN' ? 'en-GB' : 'fr-FR');
+  return h + '</table><div style="font-size:11px;color:var(--muted);margin-top:6px">' + _tr(
+      'Profondeur médiane atteinte (demi-coups), sur ' + res.positions + ' positions de vraies parties ; mesuré le ' + quand + ' sur cet appareil (' + res.fils + ' fil' + (res.fils > 1 ? 's' : '') + ' de calcul), corpus MIGS de ' + _dimNb(res.corpus) + ' parties.',
+      'Median depth reached (plies), over ' + res.positions + ' positions from real games; measured on ' + quand + ' on this device (' + res.fils + ' thread' + (res.fils > 1 ? 's' : '') + '), MIGS corpus of ' + _dimNb(res.corpus) + ' games.') + '</div>';
 }
 function renderReflexionStats() {
   const host = document.getElementById('reflexion-stats-body'); if (!host) return;
   let l = []; try { l = JSON.parse(localStorage.getItem(STATS_REFLEXION_KEY) || '[]'); } catch (e) {}
   let mesure = null; try { mesure = JSON.parse(localStorage.getItem(MESURE_CORPUS_KEY) || 'null'); } catch (e) {}
-  const r = _statsReflexionResume(l), fmt = function(ms){ return ms >= 1000 ? (ms / 1000).toFixed(1).replace('.', ',') + ' s' : Math.round(ms) + ' ms'; };
-  let h = '<div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin:28px 0 10px">Réflexion de l\u2019IA : profondeur selon le temps</div>';
-  h += '<div style="font-size:12px;color:var(--white);margin:6px 0">Mesurée sur des positions du corpus</div>' + _tableauMesure(mesure);
-  h += '<div style="margin:8px 0 18px"><button class="ctrl-btn" id="mesure-btn" onclick="lancerMesureCorpus()" style="width:auto;padding:6px 12px;font-size:12px">' + (mesure ? 'Refaire la mesure' : 'Lancer la mesure') + ' (≈ 2 min)</button> <span id="mesure-progres" style="font-size:11px;color:var(--muted)"></span></div>';
-  h += '<div style="font-size:12px;color:var(--white);margin:6px 0">Relevée pendant tes parties contre l\u2019IA</div>';
-  if (!r.length) h += '<div style="font-size:12px;color:var(--muted)">Aucun coup relevé pour l\u2019instant : joue contre l\u2019IA, ses coups seront notés ici.</div>';
+  const r = _statsReflexionResume(l), fmt = function(ms){ return ms >= 1000 ? _dimDec(ms / 1000, 1) + ' s' : Math.round(ms) + ' ms'; };
+  let h = '<div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin:28px 0 10px">' + _tr('Réflexion de l\u2019IA : profondeur selon le temps', 'AI thinking: depth by time') + '</div>';
+  h += '<div style="font-size:12px;color:var(--white);margin:6px 0">' + _tr('Mesurée sur des positions du corpus', 'Measured on corpus positions') + '</div>' + _tableauMesure(mesure);
+  h += '<div style="margin:8px 0 18px"><button class="ctrl-btn" id="mesure-btn" onclick="lancerMesureCorpus()" style="width:auto;padding:6px 12px;font-size:12px">' + (mesure ? _tr('Refaire la mesure', 'Measure again') : _tr('Lancer la mesure', 'Start the measurement')) + ' (≈ 2 min)</button> <span id="mesure-progres" style="font-size:11px;color:var(--muted)"></span></div>';
+  h += '<div style="font-size:12px;color:var(--white);margin:6px 0">' + _tr('Relevée pendant tes parties contre l\u2019IA', 'Recorded during your games against the AI') + '</div>';
+  if (!r.length) h += '<div style="font-size:12px;color:var(--muted)">' + _tr('Aucun coup relevé pour l\u2019instant : joue contre l\u2019IA, ses coups seront notés ici.', 'No move recorded yet: play against the AI and its moves will be logged here.') + '</div>';
   else {
-    h += '<table style="width:100%;font-size:12px;border-collapse:collapse"><tr style="color:var(--muted);text-align:left"><th>Niveau</th><th>Coups</th><th>Temps médian</th><th>Profondeur médiane (max)</th><th>Positions/s</th></tr>';
-    r.forEach(function(x){ h += '<tr><td>' + x.niveau + '</td><td>' + x.coups + '</td><td>' + fmt(x.tempsMed) + '</td><td>' + String(x.profMed).replace('.', ',') + ' (' + x.profMax + ')</td><td>' + x.parSeconde.toLocaleString('fr-FR') + '</td></tr>'; });
-    h += '</table><div style="font-size:11px;color:var(--muted);margin-top:6px">' + l.length + ' coups relevés (les 3 000 derniers sont gardés). <a href="#" onclick="if(confirm(\'Effacer les coups relevés ?\')){localStorage.removeItem(STATS_REFLEXION_KEY);renderReflexionStats();}return false;" style="color:var(--muted)">Effacer</a></div>';
+    h += '<table style="width:100%;font-size:12px;border-collapse:collapse"><tr style="color:var(--muted);text-align:left"><th>' + _tr('Niveau', 'Level') + '</th><th>' + _tr('Coups', 'Moves') + '</th><th>' + _tr('Temps médian', 'Median time') + '</th><th>' + _tr('Profondeur médiane (max)', 'Median depth (max)') + '</th><th>Positions/s</th></tr>';
+    r.forEach(function(x){ h += '<tr><td>' + x.niveau + '</td><td>' + _dimNb(x.coups) + '</td><td>' + fmt(x.tempsMed) + '</td><td>' + _dimDec(x.profMed, 1).replace(/[.,]0$/, '') + ' (' + x.profMax + ')</td><td>' + _dimNb(x.parSeconde) + '</td></tr>'; });
+    h += '</table><div style="font-size:11px;color:var(--muted);margin-top:6px">' + _tr(_dimNb(l.length) + ' coups relevés (les 3 000 derniers sont gardés).', _dimNb(l.length) + ' moves recorded (the last 3,000 are kept).') + ' <a href="#" onclick="if(confirm(_tr(\'Effacer les coups relevés ?\',\'Delete the recorded moves?\'))){localStorage.removeItem(STATS_REFLEXION_KEY);renderReflexionStats();}return false;" style="color:var(--muted)">' + _tr('Effacer', 'Delete') + '</a></div>';
   }
   host.innerHTML = h;
 }
 async function lancerMesureCorpus() {
   const btn = document.getElementById('mesure-btn'), pr = document.getElementById('mesure-progres');
-  if (_mesureEnCours) { _mesureEnCours = null; if (pr) pr.textContent = 'Mesure annulée.'; if (btn) btn.textContent = 'Lancer la mesure (≈ 2 min)'; return; }
-  if (_iaReflechit) { if (pr) pr.textContent = 'L\u2019IA réfléchit dans ta partie : relance la mesure après son coup.'; return; }
-  if (btn) btn.textContent = 'Annuler la mesure';
-  const res = await mesurerProfondeurCorpus({ progres: function(f, t, ph, s){ if (pr) pr.textContent = 'Mesure ' + (f + 1) + '/' + t + ' — ' + ph + ', ' + String(s).replace('.', ',') + ' s…'; } });
+  if (_mesureEnCours) { _mesureEnCours = null; if (pr) pr.textContent = _tr('Mesure annulée.', 'Measurement cancelled.'); if (btn) btn.textContent = _tr('Lancer la mesure', 'Start the measurement') + ' (≈ 2 min)'; return; }
+  if (_iaReflechit) { if (pr) pr.textContent = _tr('L\u2019IA réfléchit dans ta partie : relance la mesure après son coup.', 'The AI is thinking in your game: start the measurement again after its move.'); return; }
+  if (btn) btn.textContent = _tr('Annuler la mesure', 'Cancel the measurement');
+  const PHASE_EN = { ouverture: 'opening', milieu: 'middlegame', finale: 'endgame' };
+  const res = await mesurerProfondeurCorpus({ progres: function(f, t, ph, s){ if (pr) pr.textContent = _tr('Mesure ', 'Measurement ') + (f + 1) + '/' + t + ' — ' + _tr(ph, PHASE_EN[ph] || ph) + ', ' + _dimDec(s, 1).replace(/[.,]0$/, '') + ' s…'; } });
   if (res) renderReflexionStats();
 }
 
+/* Les types de fin du corpus MIGS sont des libelles francais enregistres tels quels (« Au score »
+   = 6 billes ejectees) ; en anglais, leur traduction. Une valeur inconnue s'affiche telle quelle. */
+const FINS_MIGS_EN = { 'Au score': 'Six marbles off', 'Abandon': 'Resigned', 'Déco': 'Disconnected', 'Au temps': 'On time', 'Match nul': 'Draw' };
+function _nomFinMigs(k){ return currentLang() === 'EN' && FINS_MIGS_EN[k] ? FINS_MIGS_EN[k] : k; }
+// nom d'une disposition du corpus (cles AbalOnline, du site ou des parties de reference), dans la langue du site
+function _nomVarianteCorpus(d){
+  if (typeof _sbNomDispo === 'function') return _sbNomDispo(d);
+  return (typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[d]) ? HEAT_VARIANT_LABEL[d] : d;
+}
 async function renderCorpusStatsPage(){
   if (typeof renderReflexionStats === 'function') renderReflexionStats();
   const host = document.getElementById('corpus-stats-body');
@@ -307,7 +319,7 @@ async function renderCorpusStatsPage(){
      joueurs (a la fin). Hotes poses ici, remplis par 39-statistiques-billes.js sans attendre. */
   // v2.72 : les filtres et le resume en tete ; gagner selon l'avance, premiers coups, ou sont les billes apres les billes qui tombent (48-corpus-plus.js)
   host.innerHTML = '<div id="corpus-filtres"></div><div id="corpus-resume"></div>'
-    + '<div id="corpus-autres"><div style="font-size:13px;color:var(--muted);margin-bottom:16px" id="corpus-progress">Calcul en cours (première fois seulement — mis en cache ensuite)…</div></div>'
+    + '<div id="corpus-autres"><div style="font-size:13px;color:var(--muted);margin-bottom:16px" id="corpus-progress">' + _tr('Calcul en cours (première fois seulement — mis en cache ensuite)…', 'Computing (first time only — cached afterwards)…') + '</div></div>'
     + '<div id="billes-section"></div><div id="corpus-avance"></div><div id="corpus-ouvertures"></div><div id="corpus-occupation"></div><div id="corpus-variantes"></div>'
     + '<div id="dims-carte">' + _carteStats(_tr('Les 12 dimensions, mesurées sur tout le corpus', 'The 12 dimensions, measured over the whole corpus'),
       '<div style="font-size:12px;color:var(--muted)">' + _tr('Chargement des positions mesurées…', 'Loading the measured positions…') + '</div>') + '</div>'
@@ -324,10 +336,10 @@ async function renderCorpusStatsPage(){
 
   const s = await computeCorpusStats(function(done, total){
     const el = document.getElementById('corpus-progress');
-    if (el) el.textContent = 'Calcul en cours (première fois seulement) — ' + done + '/' + total + ' parties rejouées…';
+    if (el) el.textContent = _tr('Calcul en cours (première fois seulement) — ' + done + '/' + total + ' parties rejouées…', 'Computing (first time only) — ' + done + '/' + total + ' games replayed…');
   });
   if (!host.isConnected) return;
-  if (!s) { autres.innerHTML = '<div style="font-size:13px;color:var(--muted);margin-bottom:16px">Bibliothèque de parties pas encore chargée — réessaie dans un instant.</div>'; return; }
+  if (!s) { autres.innerHTML = '<div style="font-size:13px;color:var(--muted);margin-bottom:16px">' + _tr('Bibliothèque de parties pas encore chargée — réessaie dans un instant.', 'Game library not loaded yet — try again in a moment.') + '</div>'; return; }
 
   function card(title, body, note){
     return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:16px">'
@@ -343,47 +355,57 @@ async function renderCorpusStatsPage(){
 
   // Le titre suit le vrai total au lieu d'un nombre ecrit en dur.
   const titre = document.getElementById('corpus-stats-titre');
-  if (titre) titre.textContent = 'Ce que disent ' + s.totalGames.toLocaleString('fr-FR') + ' vraies parties';
+  if (titre) titre.textContent = _tr('Ce que disent ' + _dimNb(s.totalGames) + ' vraies parties', 'What ' + _dimNb(s.totalGames) + ' real games say');
 
-  const avantage = (s.blackPct != null) ? (s.blackPct - 50).toFixed(1) : null;
+  /* v2.74 : tout le texte de ces cartes en francais ou en anglais (signale par Olivier : en
+     anglais, la page restait en francais). Nombres a la mode de la langue (_dimNb, _dimDec). */
+  const nb = _dimNb, pc = function(p){ return p != null ? _dimDec(p, 1) + ' %' : '—'; };
+  const avantage = (s.blackPct != null) ? _dimDec(s.blackPct - 50, 1) : null;
   let html = '';
-  html += '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">Sources : MIGS (' + s.nMigs.toLocaleString('fr-FR') + ' parties), AbalOnline (' + s.nAo.toLocaleString('fr-FR') + ')'
-    + (s.nPs ? ', Yearly Abalone Arena de PlayStrategy (' + s.nPs + (s.nPsSansCoup ? ', dont ' + s.nPsSansCoup + ' abandonnées avant le premier coup' : '') + ')' : '') + (s.nRef ? ', parties de référence des variantes (' + s.nRef + ')' : '') + '. Toutes les parties comptent, même abandonnées.'
-    + (s.nPs ? ' Le livre d\u2019ouvertures reste calculé sur MIGS et AbalOnline (précalculé hors ligne).' : '') + '</div>';
+  html += '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">' + _tr(
+      'Sources : MIGS (' + nb(s.nMigs) + ' parties), AbalOnline (' + nb(s.nAo) + ')'
+      + (s.nPs ? ', Yearly Abalone Arena de PlayStrategy (' + s.nPs + (s.nPsSansCoup ? ', dont ' + s.nPsSansCoup + ' abandonnées avant le premier coup' : '') + ')' : '') + (s.nRef ? ', parties de référence des variantes (' + s.nRef + ')' : '') + '. Toutes les parties comptent, même abandonnées.'
+      + (s.nPs ? ' Le livre d’ouvertures reste calculé sur MIGS et AbalOnline (précalculé hors ligne).' : ''),
+      'Sources: MIGS (' + nb(s.nMigs) + ' games), AbalOnline (' + nb(s.nAo) + ')'
+      + (s.nPs ? ', PlayStrategy’s Yearly Abalone Arena (' + s.nPs + (s.nPsSansCoup ? ', including ' + s.nPsSansCoup + ' resigned before the first move' : '') + ')' : '') + (s.nRef ? ', reference games of the variants (' + s.nRef + ')' : '') + '. Every game counts, even resigned ones.'
+      + (s.nPs ? ' The opening book is still computed on MIGS and AbalOnline (precomputed offline).' : '')) + '</div>';
 
-  html += card('L\u2019avantage du premier joueur',
-    '<div style="display:flex;gap:10px;margin-bottom:8px">'
-    + '<div style="flex:1;text-align:center"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Noir (commence)</div>'
-      + '<div style="font-size:26px;font-weight:800;color:var(--text);font-family:\'DM Mono\',monospace">'+(s.blackPct!=null?s.blackPct+'%':'—')+'</div>'
-      + '<div style="font-size:11px;color:var(--muted)">'+s.black.toLocaleString('fr-FR')+' victoires</div></div>'
-    + '<div style="flex:1;text-align:center"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Blanc</div>'
-      + '<div style="font-size:26px;font-weight:800;color:var(--text);font-family:\'DM Mono\',monospace">'+(s.whitePct!=null?s.whitePct+'%':'—')+'</div>'
-      + '<div style="font-size:11px;color:var(--muted)">'+s.white.toLocaleString('fr-FR')+' victoires</div></div>'
-    + '</div>'
-    + (avantage!=null ? '<div style="font-size:12px;color:var(--text)">Celui qui commence gagne <strong style="color:var(--gold)">'+avantage+' points de pourcentage</strong> plus souvent que l\u2019autre.</div>' : ''),
-    'Sur '+s.decided.toLocaleString('fr-FR')+' parties dont le vainqueur est connu avec certitude. Les parties MIGS terminées par abandon ou fin de temps sont exclues : impossible de savoir qui a abandonné depuis les seules données.' + (s.nPs ? ' Les ' + s.nPs + ' parties du tournoi PlayStrategy comptent avec le résultat enregistré par le serveur, abandons compris.' : ''));
+  const camp = function(nom, pct, n){
+    return '<div style="flex:1;text-align:center"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">' + nom + '</div>'
+      + '<div style="font-size:26px;font-weight:800;color:var(--text);font-family:\'DM Mono\',monospace">' + pc(pct) + '</div>'
+      + '<div style="font-size:11px;color:var(--muted)">' + nb(n) + ' ' + _tr('victoires', 'wins') + '</div></div>';
+  };
+  html += card(_tr('L’avantage du premier joueur', 'The first player’s advantage'),
+    '<div style="display:flex;gap:10px;margin-bottom:8px">' + camp(_tr('Noir (commence)', 'Black (moves first)'), s.blackPct, s.black) + camp(_tr('Blanc', 'White'), s.whitePct, s.white) + '</div>'
+    // l'ecart a 50 %, pas l'ecart entre les deux camps (qui est le double) : « plus souvent que l'autre » le laissait croire
+    + (avantage != null ? '<div style="font-size:12px;color:var(--text)">' + _tr('Celui qui commence gagne <strong style="color:var(--gold)">' + avantage + ' points de pourcentage</strong> de plus qu’un partage égal (50 %).',
+                                                                              'The side that moves first wins <strong style="color:var(--gold)">' + avantage + ' percentage points</strong> more than an even split (50 %).') + '</div>' : ''),
+    _tr('Sur ' + nb(s.decided) + ' parties dont le vainqueur est connu avec certitude. Les parties MIGS terminées par abandon ou fin de temps sont exclues : impossible de savoir qui a abandonné depuis les seules données.' + (s.nPs ? ' Les ' + s.nPs + ' parties du tournoi PlayStrategy comptent avec le résultat enregistré par le serveur, abandons compris.' : ''),
+        'Over ' + nb(s.decided) + ' games whose winner is known for certain. MIGS games that ended by resignation or on time are left out: the data alone cannot tell who resigned.' + (s.nPs ? ' The ' + s.nPs + ' games of the PlayStrategy tournament count with the result recorded by the server, resignations included.' : '')));
 
-  html += card('Durée d\u2019une partie',
-    ligne('Médiane', s.lenMedian + ' coups')
-    + ligne('Moyenne', s.lenMean + ' coups')
-    + ligne('La plus courte', s.lenMin + ' coups')
-    + ligne('La plus longue', s.lenMax + ' coups'),
-    'Mesuré sur les '+s.nLens.toLocaleString('fr-FR')+' parties MIGS' + (s.nPs ? ', PlayStrategy' : '') + (s.nRef ? ' et de référence' : '') + ' (notation complète disponible). La médiane est plus représentative que la moyenne, tirée vers le haut par quelques parties très longues.');
+  const coups = function(n){ return n == null ? '—' : (typeof n === 'number' && n % 1 ? _dimDec(n, 1) : nb(n)) + ' ' + _tr('coups', 'moves'); };
+  html += card(_tr('Durée d’une partie', 'Length of a game'),
+    ligne(_tr('Médiane', 'Median'), coups(s.lenMedian))
+    + ligne(_tr('Moyenne', 'Mean'), coups(s.lenMean))
+    + ligne(_tr('La plus courte', 'Shortest'), coups(s.lenMin))
+    + ligne(_tr('La plus longue', 'Longest'), coups(s.lenMax)),
+    _tr('Mesuré sur les ' + nb(s.nLens) + ' parties MIGS' + (s.nPs ? ', PlayStrategy' : '') + (s.nRef ? ' et de référence' : '') + ' (notation complète disponible). La médiane est plus représentative que la moyenne, tirée vers le haut par quelques parties très longues.',
+        'Measured over the ' + nb(s.nLens) + ' MIGS' + (s.nPs ? ', PlayStrategy' : '') + (s.nRef ? ' and reference' : '') + ' games (full notation available). The median is more representative than the mean, which a few very long games pull upwards.'));
 
   const totalEnd = Object.values(s.endTypes).reduce(function(a,c){return a+c;},0);
-  html += card('Comment se terminent les parties',
+  html += card(_tr('Comment se terminent les parties', 'How games end'),
     Object.entries(s.endTypes).sort(function(a,b){return b[1]-a[1];}).map(function(e){
-      return ligne(e[0], e[1].toLocaleString('fr-FR') + ' (' + Math.round(e[1]/totalEnd*100) + '%)');
+      return ligne(_nomFinMigs(e[0]), nb(e[1]) + ' (' + Math.round(e[1]/totalEnd*100) + ' %)');
     }).join(''),
-    'Champ enregistré directement dans le corpus MIGS, pas déduit.');
+    _tr('Champ enregistré directement dans le corpus MIGS, pas déduit.', 'Field recorded directly in the MIGS corpus, not inferred.'));
 
   // v2.63 : apres les billes qui tombent, dans son propre hote
-  let htmlVariantes = card('Variantes les plus jouées',
+  let htmlVariantes = card(_tr('Variantes les plus jouées', 'Most played variants'),
     s.topVariants.map(function(v){
-      const label = (typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[v[0]]) ? HEAT_VARIANT_LABEL[v[0]] : v[0];
-      return ligne(label, v[1].toLocaleString('fr-FR') + ' parties');
+      return ligne(_nomVarianteCorpus(v[0]), nb(v[1]) + ' ' + _tr('parties', 'games'));
     }).join(''),
-    s.nVariants + ' variantes distinctes recensées dans le corpus AbalOnline ('+s.nAo.toLocaleString('fr-FR')+' parties)' + (s.nPs ? ', plus le Belgian Daisy du tournoi PlayStrategy (' + s.nPs + ' parties)' : '') + '.');
+    _tr(s.nVariants + ' variantes distinctes recensées dans le corpus AbalOnline (' + nb(s.nAo) + ' parties)' + (s.nPs ? ', plus le Belgian Daisy du tournoi PlayStrategy (' + s.nPs + ' parties)' : '') + '.',
+        s.nVariants + ' distinct variants recorded in the AbalOnline corpus (' + nb(s.nAo) + ' games)' + (s.nPs ? ', plus the Belgian Daisy of the PlayStrategy tournament (' + s.nPs + ' games)' : '') + '.'));
 
   // Les 12 dimensions et leur redondance suivent, dans leurs propres cartes (v2.59, voir _dimsPreparer)
   autres.innerHTML = html;

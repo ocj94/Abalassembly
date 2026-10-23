@@ -45,7 +45,7 @@ const I18N_EN = {
   'Aide': 'Help', 'Comment utiliser le site': 'How to use the site', 'Poser une question': 'Ask a question',
   'Inviter un ami': 'Invite a friend', 'Faire une suggestion': 'Make a suggestion', 'Signaler un bug': 'Report a bug',
   'Signaler un abus': 'Report abuse', 'Se connecter': 'Connect', 'Langue': 'Language', 'Changer de langue': 'Change language',
-  '🎮 Jouer': '🎮 Play', 'Accueil': 'Home', 'Jouer': 'Play', 'Historique': 'History', 'Stats du corpus': 'Corpus stats', 'Importer': 'Import',
+  '🎮 Jouer': '🎮 Play', 'Accueil': 'Home', 'Jouer': 'Play', 'Historique': 'History', 'Stats du corpus': 'Corpus stats', 'Statistiques du jeu': 'Game statistics', 'Importer': 'Import',
   'Problèmes': 'Puzzles', 'Éditeur': 'Editor', 'Variantes': 'Variants', '📖 Progresser': '📖 Improve', 'Règles du jeu': 'Game rules',
   'Ouvertures': 'Openings', 'Analyse': 'Analysis', 'Mes statistiques': 'My statistics',
   'Sur un vrai plateau': 'On a real board', 'Apprendre sur un vrai plateau': 'Learning on a real board', 'À partir de 3 ans · en famille, sans écran': 'From age 3 · as a family, screen-free',

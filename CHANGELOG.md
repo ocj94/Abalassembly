@@ -9,6 +9,35 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.74]
+
+### Corrigé — la page Statistiques du jeu en anglais
+Signalé par Olivier : « Je suis sur la partie corpus. En anglais mais cela
+reste en français ».
+- **Tout est traduit** : le titre et l'introduction de la page, les cartes
+  « L'avantage du premier joueur », « Durée d'une partie », « Comment se
+  terminent les parties », « Variantes les plus jouées », la phrase des
+  sources et la section « Réflexion de l'IA » (boutons et messages de la
+  mesure compris). Les types de fin du corpus MIGS, enregistrés en français
+  (« Au score », « Abandon », « Déco »…), ont leur traduction.
+- **Les noms des dispositions** : les filtres et la carte des variantes
+  affichaient des clés brutes (`swiss_daisy`, `custom`…) ; ils affichent
+  maintenant « Swiss Daisy », « Disposition libre »…, comme les billes qui
+  tombent, et en anglais « French Daisy », « Custom layout »…
+- **Les nombres** s'écrivent à la mode de la langue (1,877 et 100.7 en
+  anglais ; 1 877 et 100,7 en français).
+- **Changer de langue sur la page** la redessine aussitôt (avant, les cartes
+  gardaient l'ancienne langue jusqu'à la visite suivante) ; pareil pour Mes
+  statistiques.
+- **Une phrase fausse** : « celui qui commence gagne 3,7 points de
+  pourcentage plus souvent que l'autre » — c'est l'écart à un partage égal
+  (50 %), l'écart entre les deux camps étant le double. La phrase le dit
+  maintenant. L'introduction cite aussi toutes les sources (PlayStrategy et
+  parties de référence comprises).
+- **Tests** : la page rendue en anglais ne contient plus un mot de français
+  (titre, cartes, variantes, réflexion de l'IA, filtres), et le changement
+  de langue la redessine.
+
 ## [v2.73]
 
 ### Ajouté — Mes statistiques et le Profil, filtrés et en graphiques
