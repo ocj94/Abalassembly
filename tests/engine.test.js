@@ -4951,3 +4951,64 @@ test('mes statistiques v2.73 : centile au milieu des egalites -- des positions d
   assert.ok(milieu > strict, strict + ' -> ' + milieu);
   assert.ok(Math.abs(milieu - 50) < Math.abs(strict - 50) + 1e-9);
 });
+
+/* ─── 67. v2.74 : la page Statistiques du jeu entierement en anglais ─── */
+
+// Rendu de la page dans une langue, sans les sections qui se remplissent seules (billes, filtres, 12 dimensions) :
+// on regarde ce qu'ecrit renderCorpusStatsPage lui-meme (titre, cartes, variantes, reflexion de l'IA).
+async function _corpusPage74(langue) {
+  await ctx.ensureGameBanks();
+  const avant = ctx.localStorage.getItem('abalone_lang');
+  const sauve = { sb: ctx._sbRendreCorpus, cp: ctx.corpusPlusRendre, dp: ctx._dimsPreparer };
+  ctx.localStorage.setItem('abalone_lang', langue);
+  ctx._sbRendreCorpus = async () => {}; ctx.corpusPlusRendre = async () => {}; ctx._dimsPreparer = async () => {};
+  try {
+    return await _dom54(async els => {
+      await ctx.renderCorpusStatsPage();
+      return { titre: els['corpus-stats-titre'].textContent, cartes: els['corpus-autres'].innerHTML,
+               variantes: els['corpus-variantes'].innerHTML, reflexion: els['reflexion-stats-body'].innerHTML };
+    });
+  } finally {
+    ctx._sbRendreCorpus = sauve.sb; ctx.corpusPlusRendre = sauve.cp; ctx._dimsPreparer = sauve.dp;
+    if (avant === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avant);
+  }
+}
+
+test('corpus v2.74 : en anglais, plus un mot de francais dans les cartes, les variantes ni la reflexion de l IA', async () => {
+  const en = await _corpusPage74('EN');
+  assert.strictEqual(en.titre, 'What 4,580 real games say');
+  ['The first player’s advantage', 'Black (moves first)', 'Length of a game', 'How games end', 'Six marbles off', 'Resigned', 'Disconnected',
+   'Field recorded directly in the MIGS corpus', 'percentage points</strong> more than an even split'].forEach(t => assert.ok(en.cartes.indexOf(t) >= 0, t));
+  assert.match(en.cartes, /100\.7 moves/, 'decimales a l anglaise');
+  assert.match(en.cartes, /1,877 wins/, 'milliers a l anglaise');
+  assert.ok(en.variantes.indexOf('Most played variants') >= 0 && en.variantes.indexOf('Custom layout') >= 0 && en.variantes.indexOf('Swiss Daisy') >= 0);
+  assert.doesNotMatch(en.variantes, /swiss_daisy|german_daisy|>custom</, 'jamais les cles brutes');
+  assert.ok(en.reflexion.indexOf('AI thinking: depth by time') >= 0);
+  const francais = /Sources :|parties|coups|victoires|Médiane|Moyenne|Noir|Blanc|Abandon|Au score|Déco|Au temps|Match nul|Variantes|Réflexion|Mesurée|Aucun coup|Lancer la mesure|recensées|Champ enregistré/;
+  for (const k of ['titre', 'cartes', 'variantes', 'reflexion']) assert.doesNotMatch(en[k].replace(/<[^>]*>/g, ' '), francais, k);
+  // en francais, rien ne change de sens ; l'avantage est bien l'ecart a 50 %, pas l'ecart entre les camps
+  const fr = await _corpusPage74('FR');
+  assert.match(fr.titre, /^Ce que disent 4\s580 vraies parties$/);
+  ['L’avantage du premier joueur', 'Au score', 'de plus qu’un partage égal (50 %)', '100,7 coups'].forEach(t => assert.ok(fr.cartes.indexOf(t) >= 0, t));
+  const s = await ctx.computeCorpusStats(() => {});
+  assert.ok(fr.cartes.indexOf((s.blackPct - 50).toFixed(1).replace('.', ',') + ' points de pourcentage') >= 0);
+  assert.ok(fr.variantes.indexOf('Disposition libre') >= 0);
+});
+
+test('corpus v2.74 : filtres en anglais (sources, dispositions) et page redessinee au changement de langue', async () => {
+  assert.ok(await ctx.ensureStatsParties());
+  const avant = ctx.localStorage.getItem('abalone_lang');
+  ctx.localStorage.setItem('abalone_lang', 'EN');
+  try {
+    const b = ctx._cfBarre();
+    ['Reference games', 'Custom layout', 'Swiss Daisy', 'French Daisy', 'Layout', 'Length'].forEach(t => assert.ok(b.indexOf(t) >= 0, t));
+    assert.doesNotMatch(b.replace(/<[^>]*>/g, ' '), /Référence|Marguerite|swiss_daisy|\bcustom \(/, 'les textes affiches (les valeurs des options restent les cles)');
+  } finally { if (avant === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avant); }
+  assert.strictEqual(ctx._nomFinMigs('Au score'), 'Au score', 'en francais, le libelle MIGS tel quel');
+  // setLanguage redessine la page si elle est affichee (avant : elle gardait l'ancienne langue)
+  // (setLanguage est enveloppe plus loin par les adresses de pages : on lit sa definition dans la page)
+  const i = _SRC_INDEX.indexOf('function setLanguage(code) {'), corps = _SRC_INDEX.slice(i, _SRC_INDEX.indexOf('\n}\n', i));
+  assert.ok(i > 0);
+  assert.match(corps, /getElementById\('page-corpusstats'\)[^\n]*renderCorpusStatsPage\(\)/);
+  assert.match(corps, /getElementById\('page-stats'\)[^\n]*renderStats\(\)/);
+});

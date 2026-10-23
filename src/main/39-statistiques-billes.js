@@ -281,6 +281,7 @@ function _sbQuantile(t, q){ return t.length ? t[Math.min(t.length - 1, Math.floo
 const _SB_VERT = '#2f9e7f', _SB_ORANGE = '#d9773f';
 const _SB_COINS = [0, 4, 26, 34, 56, 60];          // rangs des 6 cases de coin
 const _SB_NOMS_AO = { german_daisy: 'german', swiss_daisy: 'swiss', dutch_daisy: 'dutch', centrifugeuse: 'centrifuge' };
+const _SB_NOMS_EN = { french: 'French Daisy', decouverte: 'Discovery', face_a_face: 'Face to face', centrifuge: 'Centrifuge', pyramide: 'Pyramid' };
 const _SB_HISTO_L = 10, _SB_HISTO_NB = 24;         // histogramme des billes : tranches de 10 coups, la derniere ouverte (231 et plus)
 let _sbOngletCarte = 'belgian', _sbEtape = 1, _sbEtroitRendu = null, _sbBille = 0;
 
@@ -288,6 +289,7 @@ function _sbNomDispo(d){
   if (d === '*') return _tr('Toutes', 'All');
   if (d === 'custom') return _tr('Disposition libre', 'Custom layout');
   const k = _SB_NOMS_AO[d] || d;
+  if (currentLang() === 'EN' && _SB_NOMS_EN[k]) return _SB_NOMS_EN[k];   // v2.74 : les noms francais, en anglais
   if (typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[k]) return HEAT_VARIANT_LABEL[k];
   return String(d).replace(/_/g, ' ').replace(/^./, function(c){ return c.toUpperCase(); });
 }

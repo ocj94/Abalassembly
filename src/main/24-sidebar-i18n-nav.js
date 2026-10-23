@@ -322,6 +322,9 @@ function setLanguage(code) {
   // page ecrite par le code (v2.61) : redessinee dans la nouvelle langue si elle est affichee
   { const pp = document.getElementById('page-plateau'); if (pp && pp.classList.contains('active') && typeof renderPlateauPage === 'function') renderPlateauPage(); }
   { const pa = document.getElementById('page-archi'); if (pa && pa.classList.contains('active') && typeof renderArchiPage === 'function') renderArchiPage(); }   // v2.66
+  // v2.74 : Statistiques du jeu et Mes statistiques, ecrites par le code (_tr) : sans ce rappel, elles restaient dans l'ancienne langue
+  { const pc = document.getElementById('page-corpusstats'); if (pc && pc.classList.contains('active') && typeof renderCorpusStatsPage === 'function') renderCorpusStatsPage(); }
+  { const ps = document.getElementById('page-stats'); if (ps && ps.classList.contains('active') && typeof renderStats === 'function') renderStats(); }
   if (code === 'FR' || code === 'EN') {
     if (typeof showToast === 'function') showToast(sel.flag + ' ' + sel.name);
     return;

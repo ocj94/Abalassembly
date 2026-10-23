@@ -13,6 +13,7 @@
    ligne) et les positions du Labo (LABO_POS). Rien d'ecrit a la main.
 ═══════════════════════════════════════════ */
 const CF_SOURCES = ['MIGS', 'AbalOnline', 'PlayStrategy', 'Référence'];
+function _cfNomSource(i){ return i === 3 ? _tr('Parties de référence', 'Reference games') : CF_SOURCES[i]; }
 const CF_LONGUEURS = { courte: [0, 60], moyenne: [60, 120], longue: [120, 1e9] };
 let _corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout' };
 try { const f = JSON.parse(localStorage.getItem('abaCorpusFiltre') || 'null'); if (f) _corpusFiltre = Object.assign(_corpusFiltre, f); } catch (e) {}
@@ -33,7 +34,8 @@ function corpusFiltrer(k, v){
   try { localStorage.setItem('abaCorpusFiltre', JSON.stringify(_corpusFiltre)); } catch (e) {}
   _cfRendreTout();
 }
-function _cfNomDispo(d){ return (typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[d]) ? HEAT_VARIANT_LABEL[d] : d; }
+// v2.74 : les memes noms que les billes qui tombent (« Disposition libre », « Swiss Daisy »…, en anglais en anglais) au lieu des cles brutes
+function _cfNomDispo(d){ return (typeof _sbNomDispo === 'function') ? _sbNomDispo(d) : ((typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[d]) ? HEAT_VARIANT_LABEL[d] : d); }
 function _cfMarque(){ return _cfActif() ? ' <span class="cf-marque">🔎 ' + _tr('filtré', 'filtered') + '</span>' : ''; }
 
 /* ─── La barre des filtres ─── */
@@ -44,7 +46,7 @@ function _cfBarre(){
   const dispos = Object.keys(n).sort(function(a, b){ return n[b] - n[a]; });
   const sel = function(k, O){ return '<select onchange="corpusFiltrer(\'' + k + '\',this.value)">' + O.map(function(o){ return '<option value="' + o[0] + '"' + (String(f[k]) === String(o[0]) ? ' selected' : '') + '>' + grEchapper(o[1]) + '</option>'; }).join('') + '</select>'; };
   let h = '<div class="gr-filtres cf-filtres">'
-    + '<label>' + _tr('Source', 'Source') + ' ' + sel('source', [['tout', _tr('toutes', 'all')]].concat(CF_SOURCES.map(function(s, i){ return [String(i), s]; }))) + '</label>'
+    + '<label>' + _tr('Source', 'Source') + ' ' + sel('source', [['tout', _tr('toutes', 'all')]].concat(CF_SOURCES.map(function(s, i){ return [String(i), _cfNomSource(i)]; }))) + '</label>'
     + '<label>' + _tr('Disposition', 'Layout') + ' ' + sel('dispo', [['tout', _tr('toutes', 'all')]].concat(dispos.map(function(d){ return [d, _cfNomDispo(d) + ' (' + n[d] + ')']; }))) + '</label>'
     + '<label>' + _tr('Longueur', 'Length') + ' ' + sel('longueur', [['tout', _tr('toutes', 'all')], ['courte', _tr('moins de 60 demi-coups', 'under 60 plies')], ['moyenne', _tr('60 à 119', '60 to 119')], ['longue', _tr('120 et plus', '120 and more')]]) + '</label>';
   if (_cfActif()) h += '<button class="ctrl-btn cf-tout" onclick="corpusFiltrer(\'source\',\'tout\');corpusFiltrer(\'dispo\',\'tout\');corpusFiltrer(\'longueur\',\'tout\')">' + _tr('Tout le corpus', 'Whole corpus') + '</button>';
