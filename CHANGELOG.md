@@ -9,6 +9,44 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.75]
+
+### Modifié — à partir du niveau 4, une IA réglée sur les vraies parties
+Choix d'Olivier (« Ok pour la 2 ») : les poids trouvés par la **méthode
+Texel** du Labo, seulement pour les niveaux 4 et plus.
+- **Ce qui change** : à partir du **niveau 4**, en style **Auto** ou
+  **Équilibré**, l'IA juge les positions avec les poids Texel. Ils misent
+  beaucoup plus sur le **centre** et la **compacité** (un critère venu de
+  KAAH), presque plus sur la défense passive (forteresse, danger). Sur les
+  positions de contrôle du corpus, ils devinent le gagnant dans 75,8 % des
+  cas, contre 73,1 % pour les anciens poids.
+- **Ce qui ne change pas** : les niveaux 1 à 3 ; un style choisi à la main
+  (Agressif, Défensif, Division, KAAH…) ; le **tournoi du mois** (même
+  difficulté pour tout le monde jusqu'à la fin du mois) ; un appareil où un
+  champion du Labo est adopté (il garde la main).
+- **Vérifié en duels** contre les anciens poids, par paires (la même vraie
+  position deux fois, couleurs inversées) :
+  - profondeur 2 : 42 points sur 48, environ +338 Elo (± 145) ;
+  - niveau 4 : 27,5 sur 32, +314 (± 198) ;
+  - niveau 5 : 29 sur 32, +394 (± 250) ;
+  - niveau 6 : 17,5 sur 20, +338 (± 278).
+  Ils battent aussi les styles que le mode Auto choisissait (profondeur 2) :
+  Défensif +338, Agressif +163, Division +163.
+- **La marche entre les niveaux 3 et 4** : avant, les deux niveaux étaient à
+  égalité (+17 ± 114 Elo) ; elle passe à environ **+382** (± 299). Les
+  marches voisines : 2 → 3 environ +191, 4 → 5 environ +127. La marche 3 → 4
+  est donc la plus haute ; elle reste telle quelle, car l'adoucir
+  reviendrait à déplacer le saut sur une autre marche.
+- **Un peu plus lent à calculer** : l'évaluation Texel examine environ 17 %
+  de positions de moins par seconde. À temps égal, elle voit souvent un coup
+  de moins loin, et gagne quand même. Le temps de réflexion ne change pas.
+- **Où le voir** : la phrase sous le choix du niveau, l'aide, et l'onglet
+  « Méthode Texel » du Labo (les duels et les marches). Les bancs du Labo
+  mesurent chaque niveau avec ses poids de partie. `tools/texel-poids.js`
+  refait le calcul et vérifie que les poids embarqués sont les bons.
+- **Tests** : 3 de plus (272) — quels niveaux et quels styles prennent les
+  poids Texel, le moteur qui joue avec, les textes de l'aide et du Labo.
+
 ## [v2.74]
 
 ### Corrigé — la page Statistiques du jeu en anglais

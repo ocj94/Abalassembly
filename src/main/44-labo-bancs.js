@@ -226,8 +226,11 @@ function _styleParticipants(){
   P.push({ nom: 'Division', w: w(pr.divide) });
   P.push({ nom: 'KAAH', w: w(pr.kaah) });
   if (pr.humain) P.push({ nom: 'Humain', w: w(pr.humain) });
+  // v2.75 : les poids Texel de l'IA (niveaux 4 et plus), puis ceux d'un calcul fait ici s'ils different
+  if (pr.texel) P.push({ nom: 'Texel (niveaux 4+)', w: w(pr.texel) });
   const tx = (typeof texelResultat === 'function') ? texelResultat() : null;
-  if (tx) { const t = _labComplet(pr.balanced); tx.cles.forEach(function(k, j){ t[k] = tx.w[j]; }); P.push({ nom: 'Texel', w: t }); }
+  if (tx) { const t = _labComplet(pr.balanced); tx.cles.forEach(function(k, j){ t[k] = tx.w[j]; });
+    if (!pr.texel || tx.cles.some(function(k){ return t[k] !== _labComplet(pr.texel)[k]; })) P.push({ nom: 'Texel (ton calcul)', w: t }); }
   return P;
 }
 BANCS.styles = {
@@ -287,8 +290,10 @@ function _niveauCfg(n){ const c = AI_DIFFICULTY_CONFIG[String(n)]; if (!c) retur
 BANCS.niveaux = {
   cle: 'abaLabNiveaux',
   construire: function(o){
-    const haut = Math.max(2, Math.min(NIVEAUX_MAX_MESURABLE, (o.jusqua | 0) || 6)), paires = Math.max(1, Math.min(20, (o.paires | 0) || 6)), w = _labComplet(AI_WEIGHT_PRESETS.balanced), matchs = [];
-    for (let n = 1; n < haut; n++) matchs.push({ id: 'n' + n, a: { nom: 'Niveau ' + (n + 1), w: w, cfg: _niveauCfg(n + 1) }, b: { nom: 'Niveau ' + n, w: w, cfg: _niveauCfg(n) }, paires: paires, bas: n });
+    const haut = Math.max(2, Math.min(NIVEAUX_MAX_MESURABLE, (o.jusqua | 0) || 6)), paires = Math.max(1, Math.min(20, (o.paires | 0) || 6)), matchs = [];
+    // v2.75 : chaque niveau avec ses poids de partie (Texel a partir du niveau 4, voir _aiPoidsNiveau)
+    const w = function(n){ return _labComplet(_aiPoidsNiveau(n)); };
+    for (let n = 1; n < haut; n++) matchs.push({ id: 'n' + n, a: { nom: 'Niveau ' + (n + 1), w: w(n + 1), cfg: _niveauCfg(n + 1) }, b: { nom: 'Niveau ' + n, w: w(n), cfg: _niveauCfg(n) }, paires: paires, bas: n });
     const R = _bancRegimeDe(o, 'niveaux');
     return { matchs: matchs, haut: haut, paires: paires, depart: o.depart || _bancReglagesLus('niveaux').depart, regime: { ms: 400, plies: R.plies, draw: LAB_CFG.confDraw || 300 } };
   },
