@@ -2335,6 +2335,10 @@ table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset
 .cf-marque { font-size:10.5px; font-weight:600; color:var(--gold); text-transform:none; letter-spacing:0; margin-left:6px; }
 .cf-filtres .cf-tout { width:auto; padding:5px 10px; font-size:12px; }
 .cf-plateaux { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:18px; }
+.ms-carte { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 20px; margin-top:24px; }
+.ms-carte-t { font-size:13px; font-weight:700; color:var(--white); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.ms-export { width:auto !important; padding:5px 10px !important; font-size:12px !important; margin-left:auto; }
+@media (max-width: 560px) { .ms-carte { padding:16px 14px; } }
 @media (max-width: 700px) {
   .lab-onglets { flex-wrap:nowrap; overflow-x:auto; padding:14px 12px 10px; scrollbar-width:thin; }
   .lab-zone { margin:0 12px 28px; padding:16px 14px; }
@@ -5621,6 +5625,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
       <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px">🔥 Carte de chaleur — où tu joues</div>
       <div id="heatmap-host"></div>
     </div>
+    <div id="profil-chiffres" style="margin-bottom:24px"></div>
     <div id="profile-progression" style="margin-bottom:24px"></div>
 
     <!-- THEME CUSTOMIZER -->
@@ -7289,7 +7294,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
 <li><b>Sur un vrai plateau</b> : apprendre Abalone aux enfants à partir de 3 ans, sans écran — la sécurité, les règles d’or, 8 petites étapes avec leurs schémas, un carnet de progrès et une fiche à imprimer.</li>
 <li><b>Problèmes</b> : des positions à résoudre, tirées de vraies parties.</li>
 <li><b>Ouvertures</b> : les débuts de partie, avec leurs taux de gain réels.</li>
-<li><b>Analyse</b> et <b>Mes statistiques</b> : ta progression, ton classement, ton style ; dans la carte Éjections, tes remontées, où tombent tes billes et toi face aux vrais joueurs.</li>
+<li><b>Analyse</b> et <b>Mes statistiques</b> : ta progression, ton classement, ton style ; filtres par période et par type de partie ; tes résultats par niveau, style, couleur, disposition et adversaire ; ta précision partie par partie ; tes 12 dimensions et tes ouvertures face aux vrais joueurs ; export CSV. Dans la carte Éjections, tes remontées, où tombent tes billes et toi face aux vrais joueurs.</li>
 <li><b>Gym Cerveau</b> : des exercices courts de vision du jeu. <b>⚔️ Duel Cerveau</b> : relie-toi à un ami (<i>Se connecter à un ami</i>, même code que pour jouer en direct), puis <i>Lancer un duel</i> — 3 manches de vitesse, la même position pour vous deux ; le meilleur score gagne la manche, à égalité le plus rapide. Une barre face à face, aux couleurs du thème de chacun, montre qui pousse qui : au front, 1 bille contre 1 à égalité, jusqu'à 3 contre 1 pour celui qui mène ; la pastille verte ✓ veut dire que l'autre a déjà répondu.</li>
 <li><b>Formation Formateurs</b> : pour animer des ateliers.</li>
 </ul>
@@ -7396,7 +7401,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
 <li><b>On a real board</b>: teaching Abalone to children from age 3, screen-free — safety, golden rules, 8 small steps with diagrams, a progress notebook and a printable guide.</li>
 <li><b>Puzzles</b>: positions to solve, taken from real games.</li>
 <li><b>Openings</b>: how games begin, with their real win rates.</li>
-<li><b>Analysis</b> and <b>My statistics</b>: your progress, your rating, your style; in the Ejections card, your comebacks, where your marbles fall and you against real players.</li>
+<li><b>Analysis</b> and <b>My statistics</b>: your progress, your rating, your style; filters by period and game type; your results by level, style, colour, layout and opponent; your accuracy game by game; your 12 dimensions and openings against real players; CSV export. In the Ejections card, your comebacks, where your marbles fall and you against real players.</li>
 <li><b>Brain Gym</b>: short board-vision exercises. <b>⚔️ Brain Duel</b>: link up with a friend (<i>Connect to a friend</i>, the same code as for live play), then <i>Start a duel</i> — 3 speed rounds, the same position for both of you; the best score wins the round, the fastest breaks a tie. A face-to-face bar, in each player’s theme colours, shows who is pushing whom: at the front, 1 marble against 1 when level, up to 3 against 1 for the leader; the green ✓ dot means the other player has already answered.</li>
 <li><b>Trainer course</b>: for running workshops.</li>
 </ul>
@@ -7631,6 +7636,8 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
       <button class="period-tab" onclick="setStatsPeriod(365,this)">1 an</button>
       <button class="period-tab active" onclick="setStatsPeriod(0,this)">Tout</button>
     </div>
+    <!-- v2.73 : le type de partie et l'export (49-mes-stats-plus.js) ; la periode ci-dessus filtre vraiment -->
+    <div id="ms-filtres"></div>
 
     <!-- Player summary -->
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">
@@ -7695,6 +7702,9 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
         <div style="font-size:11px;color:var(--muted);margin-top:3px">non suivi</div>
       </div>
     </div>
+
+    <!-- v2.73 : resultats detailles, ma progression, moi contre le corpus (49-mes-stats-plus.js) -->
+    <div id="ms-plus"></div>
 
     <!-- Statistiques par moteur -- general (benchmark connu) + personnel
          (calcule depuis l'historique de parties). -->
@@ -8599,7 +8609,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.72';
+const APP_VERSION = 'v2.73';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -12715,6 +12725,7 @@ function renderProfile() {
 
   renderProfileHistory();
   renderProfileEloCard();
+  if (typeof renderProfilChiffres === 'function') renderProfilChiffres();   // v2.73
 }
 
 /* Les 10 dernieres parties, tirees de l'historique local (abaGameHistory). Le texte d'avant
@@ -18326,6 +18337,7 @@ function computeEjectionStats(){
   const premiere = { perdue: { n: 0, g: 0 }, faite: { n: 0, g: 0 } };
   const carteSubies = new Array(61).fill(0), sortes = [0, 0, 0, 0, 0, 0, 0, 0];
   const avecSb = (typeof _sbClasser === 'function');
+  const parties = [];   // v2.73 : partie par partie (Ma progression, export CSV)
 
   history.forEach(function(entry){
     if (!entry.code) return;
@@ -18334,7 +18346,7 @@ function computeEjectionStats(){
     const humanC = entry.humanColor || 'black';
     currentLayout = parsed.layout || 'standard';
     initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
-    let turn = 'black', thisGameEj = 0, firstEjThisGame = null, ply = 0, premierCamp = null;
+    let turn = 'black', thisGameEj = 0, firstEjThisGame = null, ply = 0, premierCamp = null, subiesIci = 0;
     for (let i = 0; i < parsed.moves.length; i++) {
       const mv = parsed.moves[i];
       const v = validateMove(mv.cells, mv.dir, turn);
@@ -18357,7 +18369,7 @@ function computeEjectionStats(){
         }
       } else {
         if (v.ejection) {
-          subies++;
+          subies++; subiesIci++;
           const rc = avecSb ? _sbCaseEjectee(mv, v) : null;
           if (rc) { const idx = _sbIndex(rc.r, rc.c); carteSubies[humanC === 'white' ? 60 - idx : idx]++; }
         }
@@ -18366,7 +18378,7 @@ function computeEjectionStats(){
       applyMove({cells:mv.cells, dir:mv.dir, info:v}, turn);
       turn = (turn === 'black') ? 'white' : 'black';
     }
-    if (ply > 0) gamesWithData++;
+    if (ply > 0) { gamesWithData++; parties.push({ id: entry.id, date: entry.date, faites: thisGameEj, subies: subiesIci, plis: ply }); }
     if (thisGameEj > bestGame) bestGame = thisGameEj;
     if (firstEjThisGame !== null) firstEjPlies.push(firstEjThisGame);
     if (premierCamp && (entry.winner === 'black' || entry.winner === 'white')) {
@@ -18389,7 +18401,7 @@ function computeEjectionStats(){
     partiesAvecEjection: firstEjPlies.length,
     meilleurePartie: bestGame,
     byPhase: byPhase,
-    premiere: premiere, carteSubies: carteSubies, sortes: sortes
+    premiere: premiere, carteSubies: carteSubies, sortes: sortes, parties: parties
   };
 }
 
@@ -18650,6 +18662,7 @@ function computeDecisionProfile(){
   const saveLayout = currentLayout, saveBoard = board, saveCB = CapturedByBlack.get(), saveCW = CapturedByWhite.get();
   let totalMoves = 0, closeToBest = 0, brancheSum = 0;
   let easyCount = 0, easyFound = 0, hardCount = 0, hardFound = 0;
+  const parties = [];   // v2.73 : precision partie par partie (Ma progression, export CSV)
 
   history.forEach(function(entry){
     if (!entry.code) return;
@@ -18658,7 +18671,7 @@ function computeDecisionProfile(){
     const humanC = entry.humanColor || 'black';
     currentLayout = parsed.layout || 'standard';
     initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
-    let turn = 'black';
+    let turn = 'black', nIci = 0, prochesIci = 0;
     for (let i = 0; i < parsed.moves.length; i++) {
       const mv = parsed.moves[i];
       const v = validateMove(mv.cells, mv.dir, turn);
@@ -18676,8 +18689,8 @@ function computeDecisionProfile(){
           const best = Math.max.apply(null, scores), worst = Math.min.apply(null, scores);
           const scoreJoue = scores[idxJoue];
           const trouve = (best - scoreJoue) <= SEUIL_PROCHE_MEILLEUR;
-          totalMoves++; brancheSum += legal.length;
-          if (trouve) closeToBest++;
+          totalMoves++; brancheSum += legal.length; nIci++;
+          if (trouve) { closeToBest++; prochesIci++; }
           const gap = best - worst;
           if (gap > SEUIL_ECART_DECISION_DISPUTEE) { easyCount++; if (trouve) easyFound++; }
           else { hardCount++; if (trouve) hardFound++; }
@@ -18686,6 +18699,7 @@ function computeDecisionProfile(){
       applyMove({cells:mv.cells, dir:mv.dir, info:v}, turn);
       turn = (turn === 'black') ? 'white' : 'black';
     }
+    if (nIci) parties.push({ id: entry.id, date: entry.date, coups: nIci, proches: prochesIci });
   });
 
   currentLayout = saveLayout; board = saveBoard; CapturedByBlack.set(saveCB); CapturedByWhite.set(saveCW);
@@ -18696,7 +18710,8 @@ function computeDecisionProfile(){
     tauxProcheMeilleur: +(closeToBest/totalMoves*100).toFixed(1),
     brancheMoyenne: +(brancheSum/totalMoves).toFixed(1),
     easyCount: easyCount, easyFoundPct: easyCount ? +(easyFound/easyCount*100).toFixed(1) : null,
-    hardCount: hardCount, hardFoundPct: hardCount ? +(hardFound/hardCount*100).toFixed(1) : null
+    hardCount: hardCount, hardFoundPct: hardCount ? +(hardFound/hardCount*100).toFixed(1) : null,
+    parties: parties
   };
 }
 
@@ -25210,7 +25225,8 @@ function getGameHistory(){
    filtre, importer 85 parties d'un tournoi les comptait toutes comme les
    tiennes (ejections, noir/blanc, profil de decision, carte d'activite). */
 function estMaPartie(e){ return !(e && e.spectateur); }
-function getMesParties(){ return getGameHistory().filter(estMaPartie); }
+// v2.73 : pendant le rendu de Mes statistiques, la periode et le type de partie choisis (49-mes-stats-plus.js)
+function getMesParties(){ const L = getGameHistory().filter(estMaPartie); return (typeof _msFiltrer === 'function') ? _msFiltrer(L) : L; }
 
 /* Le resultat de TA partie (v2.68) : 'victoire', 'defaite', 'nulle', ou null
    (partie consultee, partie a deux sur le meme ecran, resultat inconnu).
@@ -32174,11 +32190,16 @@ function renderStats() {
   // par defaut (backend dormant). Trouve en testant : le reste de la
   // page reste bien a blanc sans utilisateur, mais les stats moteur
   // personnelles n'ont aucune raison de l'etre.
-  if (typeof renderEngineStats === 'function') renderEngineStats();
-  if (typeof renderDecisionProfile === 'function') renderDecisionProfile();
-  if (typeof renderActivityHeatmap === 'function') renderActivityHeatmap();
-  if (typeof renderEjectionStats === 'function') renderEjectionStats();
-  if (typeof renderColorStats === 'function') renderColorStats();
+  // v2.73 : la periode et le type de partie choisis s'appliquent a tout ce qui suit (49-mes-stats-plus.js)
+  _msFiltreApplique = true;
+  try {
+    if (typeof renderEngineStats === 'function') renderEngineStats();
+    if (typeof renderDecisionProfile === 'function') renderDecisionProfile();
+    if (typeof renderActivityHeatmap === 'function') renderActivityHeatmap();
+    if (typeof renderEjectionStats === 'function') renderEjectionStats();
+    if (typeof renderColorStats === 'function') renderColorStats();
+    if (typeof renderMesStatsPlus === 'function') renderMesStatsPlus();
+  } finally { _msFiltreApplique = false; }
   const u = currentUser;
   if (!u) return;
   const el = function(id,v) { const e=document.getElementById(id); if(e) e.textContent=v; };
@@ -32240,10 +32261,13 @@ function renderStats() {
   if (av) { av.textContent=(u.username||'?')[0].toUpperCase(); av.style.background=u.color||'#2d5a3d'; }
 }
 
+/* v2.73 : la periode filtre vraiment (avant : elle ne faisait qu'afficher un message) --
+   historique, resultats, precision, ejections, couleurs, moteurs. */
 function setStatsPeriod(days, btn) {
   document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  showToast('📊 Période : ' + (days===0 ? 'Tout le temps' : days+' jours'));
+  if (btn) btn.classList.add('active');
+  if (typeof msFiltrer === 'function') msFiltrer('periode', days);
+  else showToast('📊 Période : ' + (days===0 ? 'Tout le temps' : days+' jours'));
 }
 
 /* ═══════════════════════════════════════════
@@ -37063,7 +37087,8 @@ let _historyFilters = { variant:'all', mode:'all', result:'all', search:'' };
    enregistrees avant l'ajout de ce champ) est compte sous 'actuel', qui
    est la valeur par defaut reelle de _engineMode a cette epoque. */
 function computeEngineStats(){
-  const history = getGameHistory().filter(function(e){ return e.mode === 'ai'; });
+  let history = getGameHistory().filter(function(e){ return e.mode === 'ai'; });
+  if (typeof _msFiltrer === 'function') history = _msFiltrer(history);   // v2.73 : la periode choisie
   const stats = {};
   history.forEach(function(e){
     const eng = e.engine || 'actuel';
@@ -37122,6 +37147,7 @@ function renderEjectionStats(){
   const host = document.getElementById('ejection-stats-personal');
   if (!host) return;
   const s = computeEjectionStats();
+  if (typeof _msDernier === 'object' && _msDernier) _msDernier.ej = s;   // v2.73 : repris par Ma progression et l'export, sans refaire le rejeu
   if (!s) {
     host.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px 0">Aucune partie archivée pour l\u2019instant.</div>';
     return;
@@ -37201,6 +37227,7 @@ function renderDecisionProfile(){
   const host = document.getElementById('decision-profile-personal');
   if (!host) return;
   const profil = computeDecisionProfile();
+  if (typeof _msDernier === 'object' && _msDernier) _msDernier.profil = profil;   // v2.73 : repris par Ma progression et l'export
   if (!profil) {
     host.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px 0">Aucune partie archivée pour l\u2019instant.</div>';
     return;
@@ -43410,6 +43437,250 @@ async function corpusPlusRendre(){
   if (!(await ensureStatsParties())) return;
   if (typeof ensureGameBanks === 'function') { try { await ensureGameBanks(); } catch (e) {} }
   _cfRendreTout();
+}
+/* ═══════════════════════════════════════════
+   MES STATISTIQUES : FILTRES, RESULTATS DETAILLES, PROGRESSION, MOI CONTRE LE CORPUS (v2.73)
+   Demande d'Olivier : « plus de parametres, de graphiques, de metriques… pour
+   les profils ». Troisieme partie, apres le Labo (v2.71) et le corpus (v2.72).
+   - Les filtres : la periode (les onglets 7 jours… Tout, qui ne faisaient
+     qu'afficher un message) et le type de partie (contre l'IA, importees, a
+     deux). Ils s'appliquent a toute la page pendant son rendu (getMesParties).
+   - Resultats detailles : par niveau, style, couleur, disposition,
+     adversaire ; le taux de victoire glissant.
+   - Ma progression : precision, billes faites et perdues, longueur, partie
+     par partie ; quand tu joues (jours et heures).
+   - Moi contre le corpus : tes 12 dimensions face aux vrais joueurs, tes
+     ouvertures face au livre.
+   - Export CSV de tes parties, avec leurs chiffres.
+═══════════════════════════════════════════ */
+var _msFiltreApplique = false;            // vrai pendant le rendu de Mes statistiques (var : lisible avant meme ce module)
+var _msDernier = { ej: null, profil: null };
+const MS_TYPES = { tout: 'Toutes', ai: 'Contre l’IA', import: 'Importées', local: 'À deux' };
+let _msFiltre = { periode: 0, type: 'tout' };
+try { const f = JSON.parse(localStorage.getItem('abaMsFiltre') || 'null'); if (f) _msFiltre = Object.assign(_msFiltre, f); } catch (e) {}
+function _msGarder(e){
+  const f = _msFiltre;
+  if (f.type !== 'tout' && e.mode !== f.type) return false;
+  if (f.periode) { const t = Date.parse(e.date); if (!(t >= Date.now() - f.periode * 86400000)) return false; }
+  return true;
+}
+function _msFiltrer(L){ return _msFiltreApplique ? L.filter(_msGarder) : L; }
+function msFiltrer(k, v){
+  _msFiltre[k] = (k === 'periode') ? +v : v;
+  try { localStorage.setItem('abaMsFiltre', JSON.stringify(_msFiltre)); } catch (e) {}
+  if (typeof renderStats === 'function') renderStats();
+}
+// mes parties retenues, de la plus ancienne a la plus recente
+function _msParties(){ const L = getGameHistory().filter(estMaPartie).filter(_msGarder); return L.slice().sort(function(a, b){ return Date.parse(a.date) - Date.parse(b.date); }); }
+function _msResultat(e){ return (typeof _histMonResultat === 'function') ? _histMonResultat(e) : null; }
+function _msScore(L){ let p = 0, n = 0, v = 0, d = 0, nl = 0; L.forEach(function(e){ const r = _msResultat(e); if (!r) return; n++; if (r === 'victoire') { p++; v++; } else if (r === 'nulle') { p += 0.5; nl++; } else d++; }); return { p: p, n: n, v: v, d: d, nl: nl }; }
+function _msAdversaire(e){
+  if (e.mode === 'ai') return null;
+  const nom = e.humanColor === 'black' ? e.whiteName : (e.humanColor === 'white' ? e.blackName : '');
+  return nom ? String(nom).trim() : null;
+}
+// barres « score par groupe » : groupe(e) -> nom ou null
+function _msParGroupe(L, groupe, ordre){
+  const G = {};
+  L.forEach(function(e){ const g = groupe(e); if (g == null || g === '') return; (G[g] = G[g] || []).push(e); });
+  let cles = Object.keys(G).filter(function(g){ return _msScore(G[g]).n; });
+  cles = ordre ? cles.sort(ordre) : cles.sort(function(a, b){ return G[b].length - G[a].length; });
+  return cles.map(function(g){ const s = _msScore(G[g]); return { lab: g, v: s.p / s.n, ref: 0.5, txt: grPct(s.p / s.n) + ' · ' + s.n + _tr(' partie', ' game') + (s.n > 1 ? 's' : ''), tip: g + _dimDp() + s.v + _tr(' V, ', ' W, ') + s.nl + _tr(' N, ', ' D, ') + s.d + _tr(' D', ' L') + ' (' + grPct(s.p / s.n) + ')' }; });
+}
+
+/* ─── La barre des filtres et l'export ─── */
+function _msHtmlFiltres(n){
+  const f = _msFiltre;
+  return '<div class="gr-filtres"><label>' + _tr('Parties', 'Games') + ' <select onchange="msFiltrer(\'type\',this.value)">' + Object.keys(MS_TYPES).map(function(k){ return '<option value="' + k + '"' + (f.type === k ? ' selected' : '') + '>' + _tr(MS_TYPES[k], { tout: 'All', ai: 'Against the AI', import: 'Imported', local: 'Two players' }[k]) + '</option>'; }).join('') + '</select></label>'
+    + '<span>' + grNb(n) + _tr(' partie' + (n > 1 ? 's' : '') + ' retenue' + (n > 1 ? 's' : ''), ' game' + (n > 1 ? 's' : '') + ' selected') + (f.periode ? ' · ' + _tr(f.periode + ' derniers jours', 'last ' + f.periode + ' days') : '') + '</span>'
+    + '<button class="ctrl-btn ms-export" onclick="msExporterCSV()">📊 ' + _tr('Exporter (CSV)', 'Export (CSV)') + '</button></div>';
+}
+function msExporterCSV(){
+  const L = _msParties();
+  if (!L.length) { showToast(_tr('Aucune partie à exporter avec ces filtres', 'No game to export with these filters')); return; }
+  const ej = {}, pr = {};
+  ((_msDernier.ej && _msDernier.ej.parties) || []).forEach(function(x){ ej[x.id] = x; });
+  ((_msDernier.profil && _msDernier.profil.parties) || []).forEach(function(x){ pr[x.id] = x; });
+  const q = function(v){ v = v == null ? '' : String(v); return /[",;\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  const lignes = [['date', 'type', 'disposition', 'couleur', 'adversaire', 'niveau_ia', 'style_ia', 'resultat', 'coups', 'billes_faites', 'billes_perdues', 'coups_analyses', 'coups_proches_du_meilleur'].join(',')];
+  L.forEach(function(e){
+    const a = ej[e.id] || {}, p = pr[e.id] || {};
+    lignes.push([e.date, e.mode, e.variant, e.humanColor, _msAdversaire(e) || '', e.mode === 'ai' ? (_niveauIA(e.aiDiff) || '') : '', e.mode === 'ai' ? (e.aiStyle || '') : '', _msResultat(e) || '', e.moveCount || '', a.faites != null ? a.faites : '', a.subies != null ? a.subies : '', p.coups || '', p.proches != null ? p.proches : ''].map(q).join(','));
+  });
+  _dl('abalassembly-mes-parties-' + new Date().toISOString().slice(0, 10) + '.csv', lignes.join('\n'), 'text/csv');
+  showToast('📊 ' + L.length + _tr(' parties exportées', ' games exported'));
+}
+
+/* ─── 1. Resultats detailles ─── */
+function _msHtmlResultats(L, W){
+  const S = _msScore(L);
+  let h = grTuiles([
+    { lab: _tr('Parties au résultat connu', 'Games with a known result'), v: grNb(S.n), sous: grNb(L.length) + _tr(' retenues en tout', ' selected in all') },
+    { lab: _tr('Score', 'Score'), v: S.n ? grPct(S.p / S.n) : '—', sous: S.v + _tr(' victoires · ', ' wins · ') + S.nl + _tr(' nulles · ', ' draws · ') + S.d + _tr(' défaites', ' losses') },
+    { lab: _tr('Coups par partie', 'Moves per game'), v: L.length ? grNb(L.reduce(function(a, e){ return a + (e.moveCount || 0); }, 0) / L.length, 0) : '—', sous: _tr('en moyenne', 'on average') }
+  ]);
+  // le taux glissant : les 10 dernieres parties au resultat connu, partie apres partie
+  const R = L.filter(function(e){ return _msResultat(e); }), pts = [];
+  for (let i = 0; i < R.length; i++) { const f = R.slice(Math.max(0, i - 9), i + 1), s = _msScore(f); pts.push([i + 1, Math.round(1000 * s.p / s.n) / 10]); }
+  if (pts.length >= 3) {
+    h += '<div class="gr-titre">' + _tr('Ton score, partie après partie', 'Your score, game after game') + '</div><div class="gr-sous">' + _tr('Sur tes 10 dernières parties à chaque fois (moins au début).', 'Over your last 10 games each time (fewer at the start).') + '</div>'
+      + grLignes(W, [{ nom: _tr('Score', 'Score'), couleur: GR_OR, pts: pts }], { yMin: 0, yMax: 100, fmtY: function(v){ return v + ' %'; }, nomX: _tr('Partie', 'Game'), fmtX: function(v){ return '#' + v; }, aria: _tr('Score glissant', 'Rolling score') });
+  }
+  const ai = L.filter(function(e){ return e.mode === 'ai'; });
+  const blocs = [
+    [_tr('Contre l’IA, par niveau', 'Against the AI, by level'), _msParGroupe(ai, function(e){ const n = _niveauIA(e.aiDiff); return n ? _tr('Niveau ', 'Level ') + n : null; }, function(a, b){ return parseInt(a.replace(/\D/g, ''), 10) - parseInt(b.replace(/\D/g, ''), 10); })],
+    [_tr('Contre l’IA, par style', 'Against the AI, by style'), _msParGroupe(ai, function(e){ const s = { auto: 'Auto', aggressive: _tr('Agressif', 'Aggressive'), defensive: _tr('Défensif', 'Defensive'), divide: _tr('Division', 'Divide'), balanced: _tr('Équilibré', 'Balanced'), kaah: 'KAAH', humain: _tr('Humain (Labo)', 'Human-like (Lab)'), contremoi: _tr('Contre moi (Labo)', 'Against me (Lab)') }; return s[e.aiStyle] || e.aiStyle || null; })],
+    [_tr('Par couleur', 'By colour'), _msParGroupe(L, function(e){ return e.humanColor === 'black' ? _tr('Noirs', 'Black') : (e.humanColor === 'white' ? _tr('Blancs', 'White') : null); })],
+    [_tr('Par disposition', 'By layout'), _msParGroupe(L, function(e){ return (typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[e.variant]) || e.variant || null; })],
+    [_tr('Par adversaire (parties importées ou à deux)', 'By opponent (imported or two-player games)'), _msParGroupe(L, _msAdversaire).slice(0, 10)]
+  ];
+  blocs.forEach(function(b){ if (b[1].length) h += '<div class="gr-titre">' + b[0] + '</div>' + grBarres(b[1], { max: 1 }); });
+  h += '<div class="gr-sous">' + _tr('Score : victoire 1, nulle ½. Le trait marque 50 %.', 'Score: win 1, draw ½. The tick marks 50%.') + '</div>';
+  return h;
+}
+
+/* ─── 2. Ma progression ─── */
+function _msHtmlProgression(L, W){
+  const ids = {}; L.forEach(function(e, i){ ids[e.id] = i + 1; });
+  const pr = ((_msDernier.profil && _msDernier.profil.parties) || []).filter(function(x){ return ids[x.id]; }).sort(function(a, b){ return ids[a.id] - ids[b.id]; });
+  const ej = ((_msDernier.ej && _msDernier.ej.parties) || []).filter(function(x){ return ids[x.id]; }).sort(function(a, b){ return ids[a.id] - ids[b.id]; });
+  let h = '';
+  if (pr.length >= 2) h += '<div class="gr-titre">' + _tr('Précision', 'Accuracy') + '</div><div class="gr-sous">' + _tr('Part de tes coups proches du meilleur choix disponible, partie par partie.', 'Share of your moves close to the best available choice, game by game.') + '</div>'
+    + grLignes(W, [{ nom: _tr('Précision', 'Accuracy'), couleur: GR_OR, pts: pr.map(function(x){ return [ids[x.id], Math.round(1000 * x.proches / x.coups) / 10]; }), points: pr.length <= 40 }], { yMin: 0, yMax: 100, fmtY: function(v){ return v + ' %'; }, nomX: _tr('Partie', 'Game'), fmtX: function(v){ return '#' + v; }, fmtTip: function(v, sr, x){ const p = pr.find(function(q){ return ids[q.id] === x; }); return v + ' %' + (p ? ' (' + p.proches + ' / ' + p.coups + ')' : ''); }, aria: _tr('Précision par partie', 'Accuracy per game') });
+  if (ej.length >= 2) h += '<div class="gr-titre">' + _tr('Billes faites et perdues', 'Marbles taken and lost') + '</div>'
+    + grLignes(W, [{ nom: _tr('faites', 'taken'), couleur: GR_SERIES[0], pts: ej.map(function(x){ return [ids[x.id], x.faites]; }), points: ej.length <= 40 }, { nom: _tr('perdues', 'lost'), couleur: GR_SERIES[1], pts: ej.map(function(x){ return [ids[x.id], x.subies]; }), points: ej.length <= 40 }], { yMin: 0, nomX: _tr('Partie', 'Game'), fmtX: function(v){ return '#' + v; }, aria: _tr('Billes par partie', 'Marbles per game') });
+  if (L.length >= 2) h += '<div class="gr-titre">' + _tr('Longueur des parties', 'Game length') + '</div>'
+    + grColonnes(W, L.map(function(e, i){ const r = _msResultat(e); return { lab: '#' + (i + 1), v: e.moveCount || 0, couleur: r === 'victoire' ? GR_SERIES[0] : (r === 'defaite' ? GR_SERIES[1] : GR_REF), tip: '#' + (i + 1) + ' · ' + new Date(e.date).toLocaleDateString(currentLang() === 'EN' ? 'en-GB' : 'fr-FR') + _dimDp() + (e.moveCount || 0) + _tr(' coups', ' moves') + (r ? ' · ' + _tr({ victoire: 'victoire', defaite: 'défaite', nulle: 'nulle' }[r], { victoire: 'win', defaite: 'loss', nulle: 'draw' }[r]) : '') }; }), { aria: _tr('Longueur des parties', 'Game length') })
+    + grLegende([{ nom: _tr('victoire', 'win'), couleur: GR_SERIES[0] }, { nom: _tr('défaite', 'loss'), couleur: GR_SERIES[1] }, { nom: _tr('nulle ou inconnu', 'draw or unknown'), couleur: GR_REF }]);
+  // quand tu joues : jours x tranches de 4 heures (parties dont on connait l'heure)
+  const J = [[], [], [], [], [], [], []].map(function(){ return [0, 0, 0, 0, 0, 0]; }); let nh = 0;
+  L.forEach(function(e){ if (typeof _histSansHeure === 'function' && _histSansHeure(e)) return; const d = new Date(e.date); if (isNaN(d)) return; J[(d.getDay() + 6) % 7][Math.floor(d.getHours() / 4)]++; nh++; });
+  if (nh) {
+    const jours = currentLang() === 'EN' ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'];
+    h += '<div class="gr-titre">' + _tr('Quand tu joues', 'When you play') + '</div><div class="gr-sous">' + _tr('Tes parties par jour de la semaine et par tranche de 4 heures (heure de ton appareil).', 'Your games by day of the week and 4-hour slot (your device’s time).') + '</div>'
+      + grCarte(jours, ['0-4 h', '4-8 h', '8-12 h', '12-16 h', '16-20 h', '20-24 h'], function(i, j){ const v = J[i][j]; return v ? { v: v, txt: String(v), tip: jours[i] + ' ' + (4 * j) + '-' + (4 * j + 4) + ' h' + _dimDp() + v + _tr(' parties', ' games') } : { v: null, txt: '' }; }, { echelle: 'or' });
+  }
+  return h || '<div class="gr-vide">' + _tr('Il faut au moins deux parties pour dessiner une progression.', 'At least two games are needed to draw a progression.') + '</div>';
+}
+
+/* ─── 3. Moi contre le corpus ───
+   Tes 12 dimensions : apres chacun de tes coups, la position mesuree comme dans le corpus
+   (calculerEmpreinte, du cote du camp qui vient de jouer), placee dans la distribution des
+   vrais joueurs ; on fait la moyenne de ces centiles (50 = comme les vrais joueurs).
+   Tes ouvertures : tes coups des 12 premiers demi-coups, face au livre (OPENING_TREES). */
+let _msCorpus = null, _msCorpusEnCours = false;
+/* Le centile « au milieu des egalites » : la part des positions en dessous, plus la moitie de celles
+   qui ont exactement la meme valeur. Sans cette moitie, les dimensions aux valeurs souvent egales
+   (l'ecart de billes, la profondeur tactique, souvent 0) tombaient trop bas : verifie sur 3 891
+   positions du corpus, qui doivent donner 50 en moyenne -- 39 et 24 avant, 50 et 51 apres. */
+function _msCentile(d, v){ const a = pourcentEnDessous(d, v), b = pourcentEnDessous(d, v + 0.0005); return (a == null || b == null) ? null : (a + b) / 2; }
+function msComparerAuCorpus(){
+  if (_msCorpusEnCours) return;
+  _msCorpusEnCours = true; _msRendreCorpus(_tr('⏳ Chargement des positions des vrais joueurs…', '⏳ Loading the real players’ positions…'));
+  Promise.all([ensureEmpreintesHistoriques(), (typeof ensureEmpreintesComplement === 'function' ? ensureEmpreintesComplement() : true), (typeof ensureGameBanks === 'function' ? ensureGameBanks() : true)]).then(function(){
+    const L = _msParties(), champs = EMPREINTES_CHAMPS, dist = champs.map(function(c){ return distributionDimension(c, 'tous'); });
+    const somme = champs.map(function(){ return 0; }); let n = 0;
+    const ouv = { coups: 0, livre: 0, premier: 0, tauxChoisi: 0, tauxMeilleur: 0, nTaux: 0 };
+    const sauve = { layout: currentLayout, board: board, cb: CapturedByBlack.get(), cw: CapturedByWhite.get() };
+    let i = 0;
+    return new Promise(function(fin){
+      const tranche = function(){
+        try {
+          for (let k = 0; k < 4 && i < L.length; k++, i++) {
+            const e = L[i], P = gameCodeParse(e.code); if (!P || !P.ok) continue;
+            const moi = e.humanColor === 'white' ? 'white' : 'black';
+            currentLayout = P.layout || 'standard'; initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
+            let tour = 'black', noeud = (typeof OPENING_TREES !== 'undefined' && OPENING_TREES[currentLayout]) ? OPENING_TREES[currentLayout] : null;
+            for (let j = 0; j < P.moves.length; j++) {
+              const mv = P.moves[j], v = validateMove(mv.cells, mv.dir, tour); if (!v || !v.valid) break;
+              const id = canonId(mv);
+              if (tour === moi && j < 12 && noeud && noeud.k) {
+                ouv.coups++;
+                const fils = Object.keys(noeud.k);
+                if (noeud.k[id]) {
+                  ouv.livre++;
+                  const top = fils.sort(function(a, b){ return noeud.k[b].c - noeud.k[a].c; })[0]; if (top === id) ouv.premier++;
+                  const taux = function(x){ return x.wg ? x.w / x.wg : null; }, tc = taux(noeud.k[id]);
+                  const meilleur = fils.filter(function(f){ return noeud.k[f].wg >= 10; }).reduce(function(m, f){ const t = taux(noeud.k[f]); return t != null && (m == null || t > m) ? t : m; }, null);
+                  if (tc != null && meilleur != null && noeud.k[id].wg >= 10) { ouv.tauxChoisi += tc; ouv.tauxMeilleur += meilleur; ouv.nTaux++; }
+                }
+              }
+              applyMove({ cells: mv.cells, dir: mv.dir, info: v }, tour);
+              if (noeud) noeud = (noeud.k && noeud.k[id]) ? noeud.k[id] : null;
+              if (tour === moi) { const emp = calculerEmpreinte(moi); champs.forEach(function(c, q){ const p = _msCentile(dist[q], emp[c]); if (p != null) somme[q] += p; }); n++; }
+              tour = tour === 'black' ? 'white' : 'black';
+              if (CapturedByBlack.get() >= 6 || CapturedByWhite.get() >= 6) break;
+            }
+          }
+        } finally { currentLayout = sauve.layout; board = sauve.board; CapturedByBlack.set(sauve.cb); CapturedByWhite.set(sauve.cw); }
+        _msRendreCorpus(_tr('⏳ Tes positions : ', '⏳ Your positions: ') + Math.round(100 * i / Math.max(1, L.length)) + ' %');
+        if (i < L.length) setTimeout(tranche, 0);
+        else fin({ n: n, parties: L.length, centiles: somme.map(function(x){ return n ? x / n : null; }), ouv: ouv, date: Date.now() });
+      };
+      tranche();
+    });
+  }).then(function(r){ _msCorpus = r; _msCorpusEnCours = false; _msRendreCorpus(); })
+    .catch(function(e){ _msCorpusEnCours = false; _msRendreCorpus('❌ ' + (e && e.message || e)); });
+}
+function _msRendreCorpus(msg){
+  const hote = document.getElementById('ms-corpus'); if (!hote) return;
+  const r = _msCorpus;
+  let h = '<div class="gr-sous">' + _tr('Après chacun de tes coups, ta position est mesurée sur les 12 dimensions et placée parmi les 427 000 positions des vrais joueurs ; 50 = comme eux en moyenne. Et tes 12 premiers demi-coups, face au livre d’ouvertures.', 'After each of your moves, your position is measured on the 12 dimensions and placed among the 427,000 positions of real players; 50 = like them on average. And your first 12 plies, against the opening book.') + '</div>';
+  h += '<div class="lab-actions"><button class="ctrl-btn" onclick="msComparerAuCorpus()"' + (_msCorpusEnCours ? ' disabled' : '') + '>' + (_msCorpusEnCours ? '⏳' : (r ? '↻ ' : '▶ ')) + _tr(r ? 'Recalculer' : 'Me comparer aux vrais joueurs', r ? 'Recompute' : 'Compare me with real players') + '</button></div>';
+  if (msg) h += '<div class="lab-etat">' + msg + '</div>';
+  if (r && r.n) {
+    h += '<div class="gr-titre">' + _tr('Tes 12 dimensions', 'Your 12 dimensions') + '</div><div class="gr-sous">' + _tr('Centile moyen de tes positions, moins 50 : à droite, plus que les vrais joueurs ; à gauche, moins. ', 'Average percentile of your positions, minus 50: right, more than real players; left, less. ') + grNb(r.n) + _tr(' positions, ', ' positions, ') + r.parties + _tr(' parties.', ' games.') + '</div>';
+    h += grBarres(EMPREINTES_CHAMPS.map(function(c, q){ const v = r.centiles[q]; return { lab: _labelDimension(c), v: v != null ? v - 50 : 0, txt: v != null ? _tr('centile ', 'percentile ') + grNb(v, 0) : '—', tip: _labelDimension(c) + _dimDp() + _tr('tes positions sont en moyenne au ', 'your positions are on average at percentile ') + grNb(v, 0) + _tr('ᵉ centile des vrais joueurs', ' of real players') }; }), { min: -50, max: 50 });
+    const o = r.ouv;
+    if (o.coups) {
+      h += '<div class="gr-titre">' + _tr('Tes ouvertures', 'Your openings') + '</div>' + grTuiles([
+        { lab: _tr('Coups connus du livre', 'Moves known to the book'), v: grPct(o.livre / o.coups), sous: o.livre + ' / ' + o.coups + _tr(' de tes coups des 12 premiers demi-coups', ' of your moves in the first 12 plies') },
+        { lab: _tr('Le coup le plus joué', 'The most played move'), v: o.livre ? grPct(o.premier / o.livre) : '—', sous: _tr('de tes coups connus sont le choix n° 1 des humains', 'of your known moves are humans’ first choice') },
+        { lab: _tr('Taux de victoire de tes choix', 'Win rate of your choices'), v: o.nTaux ? grPct(o.tauxChoisi / o.nTaux) : '—', sous: o.nTaux ? _tr('chez les humains ; le meilleur coup possible : ', 'among humans; the best possible move: ') + grPct(o.tauxMeilleur / o.nTaux) : _tr('pas assez de coups fréquents', 'not enough frequent moves') }
+      ]);
+    }
+  }
+  hote.innerHTML = h;
+}
+
+/* ─── La page ─── */
+function renderMesStatsPlus(){
+  const hf = document.getElementById('ms-filtres'), hp = document.getElementById('ms-plus');
+  const L = _msParties();
+  // l'onglet de periode actif suit le filtre garde
+  document.querySelectorAll('#stats-period .period-tab').forEach(function(b){ const m = String(b.getAttribute('onclick') || '').match(/setStatsPeriod\((\d+)/); if (m) b.classList.toggle('active', +m[1] === (_msFiltre.periode || 0)); });
+  if (hf) hf.innerHTML = _msHtmlFiltres(L.length);
+  if (!hp) return;
+  const W = grLargeur(hp, 640) - 40;
+  const carte = function(t, c, id){ return '<div class="ms-carte"' + (id ? ' id="' + id + '"' : '') + '><div class="ms-carte-t">' + t + '</div>' + c + '</div>'; };
+  if (!L.length) { hp.innerHTML = carte(_tr('Résultats détaillés', 'Detailed results'), '<div class="gr-vide">' + _tr('Aucune partie avec ces filtres.', 'No game with these filters.') + '</div>'); return; }
+  hp.innerHTML = carte(_tr('Résultats détaillés', 'Detailed results'), _msHtmlResultats(L, W))
+    + carte(_tr('Ma progression', 'My progress'), _msHtmlProgression(L, W))
+    + carte(_tr('Moi contre le corpus', 'Me against the corpus'), '<div id="ms-corpus"></div>');
+  _msRendreCorpus();
+  grSurRedim('messtats', 'ms-plus', function(){ _msFiltreApplique = true; try { renderMesStatsPlus(); } finally { _msFiltreApplique = false; } });
+}
+
+/* ─── Le Profil : mes chiffres en bref ─── */
+function renderProfilChiffres(){
+  const hote = document.getElementById('profil-chiffres'); if (!hote) return;
+  const L = getGameHistory().filter(estMaPartie).slice().sort(function(a, b){ return Date.parse(a.date) - Date.parse(b.date); });
+  const R = L.filter(function(e){ return _msResultat(e); });
+  if (!R.length) { hote.innerHTML = ''; return; }
+  const S = _msScore(R), D = _msScore(R.slice(-10));
+  let serie = 0, record = 0; R.forEach(function(e){ if (_msResultat(e) === 'victoire') { serie++; record = Math.max(record, serie); } else serie = 0; });
+  let niv = 0; R.forEach(function(e){ if (e.mode === 'ai' && _msResultat(e) === 'victoire') niv = Math.max(niv, _niveauIA(e.aiDiff) || 0); });
+  const W = grLargeur(hote, 600) - 40, pts = [];
+  for (let i = 0; i < R.length; i++) { const s = _msScore(R.slice(Math.max(0, i - 9), i + 1)); pts.push([i + 1, Math.round(1000 * s.p / s.n) / 10]); }
+  hote.innerHTML = '<div class="ms-carte"><div class="ms-carte-t">📊 ' + _tr('Mes chiffres', 'My numbers') + '</div>'
+    + grTuiles([
+      { lab: _tr('Score', 'Score'), v: grPct(S.p / S.n), sous: S.n + _tr(' parties au résultat connu', ' games with a known result') },
+      { lab: _tr('10 dernières', 'Last 10'), v: grPct(D.p / D.n), sous: D.v + _tr(' victoires', ' wins') },
+      { lab: _tr('Meilleure série', 'Best streak'), v: grNb(record), sous: _tr('victoires de suite', 'wins in a row') },
+      { lab: _tr('Plus haut niveau battu', 'Highest level beaten'), v: niv ? _tr('niveau ', 'level ') + niv : '—', sous: _tr('contre l’IA', 'against the AI') }
+    ])
+    + (pts.length >= 3 ? grLignes(W, [{ nom: _tr('Score', 'Score'), couleur: GR_OR, pts: pts }], { h: 150, yMin: 0, yMax: 100, fmtY: function(v){ return v + ' %'; }, nomX: _tr('Partie', 'Game'), fmtX: function(v){ return '#' + v; }, aria: _tr('Score glissant', 'Rolling score') }) + '<div class="gr-sous">' + _tr('Ton score sur tes 10 dernières parties, partie après partie.', 'Your score over your last 10 games, game after game.') + '</div>' : '')
+    + '<div class="lab-actions"><button class="ctrl-btn" onclick="showPage(\'stats\')">' + _tr('Toutes mes statistiques →', 'All my statistics →') + '</button></div></div>';
 }
 </script>
 

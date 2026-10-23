@@ -9,11 +9,16 @@ function renderStats() {
   // par defaut (backend dormant). Trouve en testant : le reste de la
   // page reste bien a blanc sans utilisateur, mais les stats moteur
   // personnelles n'ont aucune raison de l'etre.
-  if (typeof renderEngineStats === 'function') renderEngineStats();
-  if (typeof renderDecisionProfile === 'function') renderDecisionProfile();
-  if (typeof renderActivityHeatmap === 'function') renderActivityHeatmap();
-  if (typeof renderEjectionStats === 'function') renderEjectionStats();
-  if (typeof renderColorStats === 'function') renderColorStats();
+  // v2.73 : la periode et le type de partie choisis s'appliquent a tout ce qui suit (49-mes-stats-plus.js)
+  _msFiltreApplique = true;
+  try {
+    if (typeof renderEngineStats === 'function') renderEngineStats();
+    if (typeof renderDecisionProfile === 'function') renderDecisionProfile();
+    if (typeof renderActivityHeatmap === 'function') renderActivityHeatmap();
+    if (typeof renderEjectionStats === 'function') renderEjectionStats();
+    if (typeof renderColorStats === 'function') renderColorStats();
+    if (typeof renderMesStatsPlus === 'function') renderMesStatsPlus();
+  } finally { _msFiltreApplique = false; }
   const u = currentUser;
   if (!u) return;
   const el = function(id,v) { const e=document.getElementById(id); if(e) e.textContent=v; };
@@ -75,10 +80,13 @@ function renderStats() {
   if (av) { av.textContent=(u.username||'?')[0].toUpperCase(); av.style.background=u.color||'#2d5a3d'; }
 }
 
+/* v2.73 : la periode filtre vraiment (avant : elle ne faisait qu'afficher un message) --
+   historique, resultats, precision, ejections, couleurs, moteurs. */
 function setStatsPeriod(days, btn) {
   document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  showToast('📊 Période : ' + (days===0 ? 'Tout le temps' : days+' jours'));
+  if (btn) btn.classList.add('active');
+  if (typeof msFiltrer === 'function') msFiltrer('periode', days);
+  else showToast('📊 Période : ' + (days===0 ? 'Tout le temps' : days+' jours'));
 }
 
 /* ═══════════════════════════════════════════

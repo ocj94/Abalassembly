@@ -9,6 +9,36 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.73]
+
+### Added — My statistics and the Profile, filtered and in charts
+Third part of Olivier's request ("more settings, charts, metrics…"), after
+the Lab and the corpus.
+- **The filters filter**: the period tabs (7 days, 30 days, 90 days, 1
+  year, All) only showed a message; they now filter the whole page, with a
+  choice of **game type** (against the AI, imported, two players). The rest
+  of the site (history, Lab, sync) still sees all your games.
+- **Detailed results**: your score and the **rolling rate** over your last
+  10 games, then by AI level, style, colour, layout and opponent (imported
+  or two-player games).
+- **My progress**: **accuracy** game by game (moves close to the best
+  choice), marbles taken and lost, game length (wins and losses in colour),
+  and **when you play** (days of the week × 4-hour slots).
+- **Me against the corpus**: your **12 dimensions** against the 427,000
+  positions of real players (your average percentile, 50 = like them), and
+  **your openings** against the book: share of known moves, share of the
+  most played move, win rate of your choices among humans against that of
+  the best possible move.
+- **CSV export** of your games (filters applied) with their numbers:
+  opponent, level, result, marbles taken and lost, accuracy.
+- **The Profile** gets a "My numbers" card: score, last 10 games, best
+  streak, highest level beaten, and the score curve.
+- The percentile is computed "in the middle of ties": on dimensions with
+  often-equal values, the strict percentile placed real players themselves
+  at the 24th percentile instead of the 50th (checked on 3,891 corpus
+  positions).
+- 2 new tests (267 in all).
+
 ## [v2.72]
 
 ### Added — Game statistics, filtered and in charts

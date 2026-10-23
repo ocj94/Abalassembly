@@ -68,6 +68,7 @@ function renderProfile() {
 
   renderProfileHistory();
   renderProfileEloCard();
+  if (typeof renderProfilChiffres === 'function') renderProfilChiffres();   // v2.73
 }
 
 /* Les 10 dernieres parties, tirees de l'historique local (abaGameHistory). Le texte d'avant

@@ -2206,6 +2206,10 @@ table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset
 .cf-marque { font-size:10.5px; font-weight:600; color:var(--gold); text-transform:none; letter-spacing:0; margin-left:6px; }
 .cf-filtres .cf-tout { width:auto; padding:5px 10px; font-size:12px; }
 .cf-plateaux { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:18px; }
+.ms-carte { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 20px; margin-top:24px; }
+.ms-carte-t { font-size:13px; font-weight:700; color:var(--white); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.ms-export { width:auto !important; padding:5px 10px !important; font-size:12px !important; margin-left:auto; }
+@media (max-width: 560px) { .ms-carte { padding:16px 14px; } }
 @media (max-width: 700px) {
   .lab-onglets { flex-wrap:nowrap; overflow-x:auto; padding:14px 12px 10px; scrollbar-width:thin; }
   .lab-zone { margin:0 12px 28px; padding:16px 14px; }
