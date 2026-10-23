@@ -96,4 +96,3 @@ function renderLabTableau(){
   hote.innerHTML = h;
   grSurRedim('tableau', 'lab-tableau-host', renderLabTableau);
 }
-</script>

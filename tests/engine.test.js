@@ -4848,3 +4848,54 @@ test('labo v2.71 : reglages des bancs, marges Elo, historique du champion, temps
   ctx.renderLabTableau();
   assert.match(hote.innerHTML, /Parties jouées/); assert.match(hote.innerHTML, /Les poids du champion/); assert.match(hote.innerHTML, /Comment finissent les parties/);
 }));
+
+// ═══════════════════════════════════════════
+// 65. v2.72 : Statistiques du jeu -- filtres, gagner selon l'avance, premiers coups, ou sont les billes
+// ═══════════════════════════════════════════
+test('corpus v2.72 : les filtres recalculent les cartes 🔎, jamais Mes statistiques ni la fin de partie', async () => {
+  assert.ok(await ctx.ensureStatsParties());
+  const D = _r63('STATS_PARTIES');
+  const tout = ctx._sbAgreger(), migs = ctx._sbAgreger({ source: '0', dispo: 'tout', longueur: 'tout' });
+  let attendu = 0; for (let k = 0; k < D.nb[0]; k++) if (D.p[k][2]) attendu++;
+  assert.strictEqual(migs.nComplets, attendu, 'seulement les parties MIGS completes');
+  assert.ok(tout.nComplets > migs.nComplets);
+  const courtes = ctx._sbAgreger({ source: 'tout', dispo: 'belgian', longueur: 'courte' });
+  assert.ok(courtes.nComplets > 0 && courtes.nComplets < tout.nComplets);
+  assert.strictEqual(ctx._sbAgreger(), tout, 'le resultat sans filtre reste en cache, a part');
+  // un filtre actif sur la page ne change pas ce que lisent Mes statistiques
+  const avant = JSON.stringify(ctx._sbTauxRemontee(3, 1));
+  _r63("_corpusFiltre = { source: '0', dispo: 'tout', longueur: 'courte' }");
+  try { assert.strictEqual(JSON.stringify(ctx._sbTauxRemontee(3, 1)), avant); assert.ok(ctx._cfActif()); }
+  finally { _r63("_corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout' }"); }
+  assert.strictEqual(ctx._cfActif(), null);
+  assert.strictEqual(ctx._cfSourceDe(D.nb[0], D), 1, 'la premiere partie AbalOnline');
+});
+
+test('corpus v2.72 : gagner selon l avance -- une bille au 60e demi-coup gagne environ 2 fois sur 3', async () => {
+  assert.ok(await ctx.ensureStatsParties());
+  const T = ctx._cfAvance(ctx._cfParties());
+  const c = T[1][60], c3 = T[3][60];
+  assert.ok(c.n > 300, c.n + ' parties');
+  assert.ok(c.g / c.n > 0.58 && c.g / c.n < 0.75, 'une bille : ' + (c.g / c.n));
+  assert.ok(c3.g / c3.n > c.g / c.n, 'trois billes : plus sur');
+});
+
+test('corpus v2.72 : ou sont les billes -- 28 billes par position au depart, poussees dans l axe et vers une bille adverse', async () => {
+  await _pos63(); assert.ok(await ctx.ensureStatsParties());
+  _r63("_cfOccMoment = 'debut'");
+  const O = ctx._cfOccupation();
+  assert.ok(O.n > 1000 && O.np > 100, O.n + ' positions, ' + O.np + ' poussees');
+  const moy = (O.occ.black.reduce((a, b) => a + b, 0) + O.occ.white.reduce((a, b) => a + b, 0)) / O.n;
+  assert.ok(moy > 24 && moy <= 28, 'billes par position au debut : ' + moy);
+  _r63("_cfOccMoment = 'milieu'");
+  // la page : les cartes se dessinent
+  const els = {}, sG = ctx.document.getElementById;
+  ctx.document.getElementById = id => (els[id] = els[id] || { innerHTML: '', clientWidth: 600, isConnected: true });
+  try {
+    ctx._cfRendreTout();
+    assert.match(els['corpus-filtres'].innerHTML, /corpusFiltrer\('source'/);
+    assert.match(els['corpus-avance'].innerHTML, /Gagner selon l’avance/);
+    assert.match(els['corpus-ouvertures'].innerHTML, /Longueur des parties/);
+    assert.match(els['corpus-occupation'].innerHTML, /D’où partent les poussées/);
+  } finally { ctx.document.getElementById = sG; }
+});

@@ -9,6 +9,32 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.72]
+
+### Ajouté — les Statistiques du jeu, filtrées et en graphiques
+Deuxième partie de la demande d'Olivier (« plus de paramètres, de
+graphiques, de métriques… »), après le Labo.
+- **Des filtres** en tête de page : **source** (MIGS, AbalOnline,
+  PlayStrategy, parties de référence), **disposition**, **longueur** (moins
+  de 60 demi-coups, 60 à 119, 120 et plus). Ils recalculent les cartes
+  marquées 🔎 : le résumé, les billes qui tombent, ce qui fait gagner,
+  comment jouent les vrais joueurs et les nouvelles cartes. Mes statistiques
+  et l'écran de fin de partie restent comparés à tout le corpus.
+- **En bref** : parties, part gagnée par les Noirs, durée médiane, parties
+  finies à 6 billes — pour la sélection.
+- **Gagner selon l'avance et le moment** : une carte de chaleur — en ligne,
+  l'avance en billes (1 à 5), en colonne, le demi-coup (20 à 140) ; dans la
+  case, la part des vraies parties que le camp qui mène a gagnées. Par
+  exemple, une bille d'avance au 60ᵉ demi-coup : 65 %.
+- **Premiers coups, longueur et fins** : l'histogramme de la longueur des
+  parties, comment elles finissent (6 billes, abandon ou temps, nulle,
+  vainqueur inconnu), et les premiers coups des Noirs avec leur part des
+  parties et leur taux de victoire.
+- **Où sont les billes** : le plateau en carte de chaleur, par camp et par
+  moment (début, milieu, fin), et **d'où partent les poussées** (la case de
+  tête des groupes qui poussent), à partir des positions du Labo.
+- 3 tests nouveaux (265 au total).
+
 ## [v2.71]
 
 ### Ajouté — le Labo en graphiques et en réglages
