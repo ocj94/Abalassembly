@@ -305,12 +305,15 @@ async function renderCorpusStatsPage(){
   /* v2.63 : les billes qui tombent (apres « qui gagne, duree, fins de partie »), puis les
      variantes, ce qui fait gagner (juste apres les 12 dimensions), comment jouent les vrais
      joueurs (a la fin). Hotes poses ici, remplis par 39-statistiques-billes.js sans attendre. */
-  host.innerHTML = '<div id="corpus-autres"><div style="font-size:13px;color:var(--muted);margin-bottom:16px" id="corpus-progress">Calcul en cours (première fois seulement — mis en cache ensuite)…</div></div>'
-    + '<div id="billes-section"></div><div id="corpus-variantes"></div>'
+  // v2.72 : les filtres et le resume en tete ; gagner selon l'avance, premiers coups, ou sont les billes apres les billes qui tombent (48-corpus-plus.js)
+  host.innerHTML = '<div id="corpus-filtres"></div><div id="corpus-resume"></div>'
+    + '<div id="corpus-autres"><div style="font-size:13px;color:var(--muted);margin-bottom:16px" id="corpus-progress">Calcul en cours (première fois seulement — mis en cache ensuite)…</div></div>'
+    + '<div id="billes-section"></div><div id="corpus-avance"></div><div id="corpus-ouvertures"></div><div id="corpus-occupation"></div><div id="corpus-variantes"></div>'
     + '<div id="dims-carte">' + _carteStats(_tr('Les 12 dimensions, mesurées sur tout le corpus', 'The 12 dimensions, measured over the whole corpus'),
       '<div style="font-size:12px;color:var(--muted)">' + _tr('Chargement des positions mesurées…', 'Loading the measured positions…') + '</div>') + '</div>'
     + '<div id="gagner-section"></div><div id="dims-corr"></div><div id="jeu-section"></div>';
   if (typeof _sbRendreCorpus === 'function') _sbRendreCorpus().catch(function(e){ console.warn('billes qui tombent :', e); });
+  if (typeof corpusPlusRendre === 'function') corpusPlusRendre().catch(function(e){ console.warn('filtres du corpus :', e); });
   /* Les dimensions d'abord (moins d'une seconde une fois les positions chargees),
      PUIS le reste : le rejeu des parties MIGS rend la main au navigateur par
      paquets de 40 parties, et chaque etape des dimensions attendait derriere

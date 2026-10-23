@@ -9,6 +9,30 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.72]
+
+### Added — Game statistics, filtered and in charts
+Second part of Olivier's request ("more settings, charts, metrics…"), after
+the Lab.
+- **Filters** at the top of the page: **source** (MIGS, AbalOnline,
+  PlayStrategy, reference games), **layout**, **length** (under 60 plies, 60
+  to 119, 120 and more). They recompute the cards marked 🔎: the summary,
+  falling marbles, what wins games, how real players play and the new
+  cards. My statistics and the end-of-game screen are still compared with
+  the whole corpus.
+- **In short**: games, share won by Black, median length, games ended at 6
+  marbles — for the selection.
+- **Winning by lead and moment**: a heat map — rows, the lead in marbles (1
+  to 5), columns, the ply (20 to 140); in each cell, the share of real games
+  the leading side won. For example, one marble ahead at ply 60: 65%.
+- **First moves, length and endings**: the game length histogram, how games
+  end (6 marbles, resignation or time, draw, unknown winner), and Black's
+  first moves with their share of games and win rate.
+- **Where the marbles are**: the board as a heat map, by side and by moment
+  (opening, middle, end), and **where pushes start from** (the leading cell
+  of pushing groups), from the Lab positions.
+- 3 new tests (265 in all).
+
 ## [v2.71]
 
 ### Added — the Lab in charts and settings

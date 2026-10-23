@@ -175,10 +175,14 @@ function ensureStatsParties(){
    Seules les parties « completes » comptent (jouees depuis une position de
    depart). Celles qui demandent le vainqueur ne gardent que les parties ou on
    le connait. Les etats « 6-x » (partie finie) ne sont pas des remontees. */
-function _sbAgreger(){
+/* v2.71 : f = filtres de la page Statistiques du jeu (source, disposition, longueur ; voir
+   48-corpus-plus.js). Sans f : tout le corpus -- c'est ce que lisent Mes statistiques et l'ecran
+   de fin de partie, jamais filtres. Un resultat par jeu de filtres, garde en memoire. */
+function _sbAgreger(f){
   const D = STATS_PARTIES;
   if (!D) return null;
-  if (_sbCache && _sbCache.d === D) return _sbCache.v;
+  const cleF = (f && typeof _cfCle === 'function') ? _cfCle(f) : '';
+  if (_sbCache && _sbCache.d === D && _sbCache.m[cleF]) return _sbCache.m[cleF];
   const nDims = D.champs.length, cartes = {}, quandParDispo = {}, billesParDispo = {};
   const billes = []; for (let k = 0; k <= _SB_DERNIERE; k++) billes.push([]);
   const v = {
@@ -195,9 +199,10 @@ function _sbAgreger(){
     camp: { ej: 0, camps: 0, premiereSomme: 0, premiereN: 0, phases: { ouverture: 0, milieu: 0, finale: 0 } },
     cartes: cartes, quandParDispo: quandParDispo, dispos: D.dispos
   };
-  D.p.forEach(function(p){
+  D.p.forEach(function(p, k){
     const gagnant = p[0], complet = p[2], dispo = D.dispos[p[3]], ej = p[4], dims = p[7];
     if (!complet) return;
+    if (cleF && !_cfGarder(k, p, D, f)) return;
     v.nComplets++;
     const decide = (gagnant === 1 || gagnant === 2);
     if (decide) v.nDecides++;
@@ -251,7 +256,8 @@ function _sbAgreger(){
   const tous = new Array(61).fill(0);
   Object.keys(cartes).forEach(function(k){ cartes[k].forEach(function(x, i){ tous[i] += x; }); });
   cartes['*'] = tous;
-  _sbCache = { d: D, v: v };
+  if (!_sbCache || _sbCache.d !== D) _sbCache = { d: D, m: {} };
+  _sbCache.m[cleF] = v;
   return v;
 }
 // Le camp qui mene a-b : part des vraies parties qu'il gagne (null si moins de 30 parties)
@@ -540,7 +546,7 @@ function _sbHtmlBilles(v){
         'Every marble pushed off, in every real game: who pushes it, on which move, from which spot, and what it changes for the rest of the game. Computed by replaying, move by move, the <b>' + _dimNb(v.nComplets) + ' games</b> played from a starting position; the ' + _dimNb(v.nParties - v.nComplets) + ' AbalOnline games that began from a puzzle position are left out.')));
   // 1. la premiere bille
   const p = v.premiere, pct = p.n ? p.gagne / p.n * 100 : null;
-  if (pct !== null) h.push(_carteStats(_tr('Qui fait tomber la première bille gagne-t-il ?', 'Does the side that pushes off the first marble win?'),
+  if (pct !== null) h.push(_carteStats(_tr('Qui fait tomber la première bille gagne-t-il ?', 'Does the side that pushes off the first marble win?') + (typeof _cfMarque === 'function' ? _cfMarque() : ''),
     '<div class="sb-hero"><span class="sb-hero-val">' + _sbGrosPct(pct) + '</span><span class="sb-hero-txt">' + _tr('des parties sont gagnées par le camp qui fait tomber la première bille.', 'of games are won by the side that pushes off the first marble.') + '</span></div>'
     + '<div class="sb-phrase">' + _tr('Celui qui perd la première bille gagne quand même <b>' + _sbPct(100 - pct) + '</b> des parties.', 'The side that loses the first marble still wins <b>' + _sbPct(100 - pct) + '</b> of games.') + '</div>',
     _tr('Sur ' + _dimNb(p.n) + ' parties dont on connaît le vainqueur et où au moins une bille est tombée.', 'Over ' + _dimNb(p.n) + ' games with a known winner in which at least one marble was pushed off.')));
@@ -548,7 +554,7 @@ function _sbHtmlBilles(v){
   const lignesB = _sbLignesBilles(v);
   if (lignesB.length) {
     if (lignesB.indexOf(_sbBille) < 0) _sbBille = lignesB[0];
-    h.push('<div id="sb-carte-quand">' + _carteStats(_tr('À quel coup tombent les billes', 'When the marbles fall'), _sbHtmlQuand(v, lignesB, etroit), _sbNoteQuand(v, lignesB)) + '</div>');
+    h.push('<div id="sb-carte-quand">' + _carteStats(_tr('À quel coup tombent les billes', 'When the marbles fall') + (typeof _cfMarque === 'function' ? _cfMarque() : ''), _sbHtmlQuand(v, lignesB, etroit), _sbNoteQuand(v, lignesB)) + '</div>');
   }
   // 3. les remontees
   const r = function(a, b){ const e = v.remontees[a + '-' + b]; return (e && e.n >= 30) ? e.g / e.n * 100 : null; };
@@ -568,7 +574,7 @@ function _sbHtmlBilles(v){
   }
   grille += '</div>';
   const r10 = r(1, 0), r20 = r(2, 0), r30 = r(3, 0), r31 = r(3, 1);
-  h.push(_carteStats(_tr('Le tableau des remontées', 'The comeback table'),
+  h.push(_carteStats(_tr('Le tableau des remontées', 'The comeback table') + (typeof _cfMarque === 'function' ? _cfMarque() : ''),
     '<div class="sb-phrase">' + _tr('À <b>1-0</b>, celui qui mène gagne ' + _sbPct(r10) + ' des parties ; à <b>3-0</b>, ' + _sbPct(r30) + '. Mené <b>0-2</b>, on gagne encore ' + _sbPct(100 - r20) + ' du temps.',
                                     'At <b>1-0</b>, the leader wins ' + _sbPct(r10) + ' of games; at <b>3-0</b>, ' + _sbPct(r30) + '. Trailing <b>0-2</b>, a side still wins ' + _sbPct(100 - r20) + ' of the time.') + '</div>'
     + '<div class="sb-legende-grille">' + _tr('Lignes : billes que le camp qui mène a fait tomber. Colonnes : celles de l’autre camp. Case : part des parties gagnées par celui qui mène.', 'Rows: marbles pushed off by the leading side. Columns: by the other side. Cell: share of games won by the leader.') + '</div>'
@@ -579,7 +585,7 @@ function _sbHtmlBilles(v){
   const tf = v.finals.reduce(function(a, b){ return a + b; }, 0);
   if (tf) {
     let im = 0; v.finals.forEach(function(x, i){ if (x > v.finals[im]) im = i; });
-    h.push(_carteStats(_tr('Le score final', 'The final score'),
+    h.push(_carteStats(_tr('Le score final', 'The final score') + (typeof _cfMarque === 'function' ? _cfMarque() : ''),
       '<div class="sb-phrase">' + _tr('Le score le plus fréquent est <b>6-' + im + '</b> (' + _sbPct(v.finals[im] / tf * 100) + '). Une victoire sans perdre une bille, 6-0, arrive dans ' + _sbPct(v.finals[0] / tf * 100) + ' des parties ; la plus serrée, 6-5, dans ' + _sbPct(v.finals[5] / tf * 100) + '.',
                                       'The most frequent score is <b>6-' + im + '</b> (' + _sbPct(v.finals[im] / tf * 100) + '). A win without losing a marble, 6-0, happens in ' + _sbPct(v.finals[0] / tf * 100) + ' of games; the closest, 6-5, in ' + _sbPct(v.finals[5] / tf * 100) + '.') + '</div>'
       + _sbScoreSVG(v.finals, etroit),
@@ -592,7 +598,7 @@ function _sbHtmlBilles(v){
   if (lc) {
     const boutons = onglets.map(function(k){ return '<button type="button" class="sb-onglet" aria-pressed="' + (k === _sbOngletCarte) + '" onclick="_sbChoisirCarte(\'' + k + '\')">' + _sbNomDispo(k) + '</button>'; }).join('');
     const max = Math.max.apply(null, cnt);
-    h.push('<div id="sb-carte-carte">' + _carteStats(_tr('La carte des éjections', 'The ejection map'),
+    h.push('<div id="sb-carte-carte">' + _carteStats(_tr('La carte des éjections', 'The ejection map') + (typeof _cfMarque === 'function' ? _cfMarque() : ''),
       '<div class="sb-onglets">' + boutons + '</div>'
       + '<div class="sb-phrase">' + _tr('<b>' + _sbPct(lc.basPct) + '</b> des billes tombent de la moitié du plateau du joueur qui les perd, ' + _sbPct(lc.hautPct) + ' de la moitié d’en face (le reste, de la rangée du milieu). Les 6 coins n’en donnent que ' + _sbPct(lc.coinsPct) + ', alors qu’ils font un quart des cases du bord.',
                                       '<b>' + _sbPct(lc.basPct) + '</b> of marbles fall from the half of the board of the player who loses them, ' + _sbPct(lc.hautPct) + ' from the far half (the rest from the middle row). The 6 corners give only ' + _sbPct(lc.coinsPct) + ', although they make up a quarter of the edge spots.') + '</div>'
@@ -623,7 +629,7 @@ function _sbHtmlGagner(v){
   if (hors) phrase = _tr((mat ? 'Avoir plus de billes que l’adversaire fait gagner ' + _sbPct(mat.p) + ' des parties. Ensuite, ' : '') + 'c’est « <b>' + _labelDimension(hors.ch) + '</b> » qui distingue le plus le futur gagnant : le camp qui ' + (hors.p >= 50 ? 'a la valeur la plus haute' : 'a la valeur la plus basse') + ' gagne ' + _sbPct(hors.p >= 50 ? hors.p : 100 - hors.p) + ' des parties.',
     (mat ? 'Having more marbles than the opponent wins ' + _sbPct(mat.p) + ' of games. After that, ' : '') + '“<b>' + _labelDimension(hors.ch) + '</b>” best tells the future winner apart: the side with the ' + (hors.p >= 50 ? 'higher' : 'lower') + ' value wins ' + _sbPct(hors.p >= 50 ? hors.p : 100 - hors.p) + ' of games.');
   return _sbTitre(_tr('Ce qui fait gagner', 'What wins games'), _tr('Les 12 dimensions, camp contre camp : sur la même position, lequel des deux est devant, et gagne-t-il à la fin ?', 'The 12 dimensions, side against side: on the same position, which side is ahead, and does it win in the end?'))
-    + _carteStats(_tr('Le camp qui mène sur chaque dimension', 'The side ahead on each dimension'),
+    + _carteStats(_tr('Le camp qui mène sur chaque dimension', 'The side ahead on each dimension') + (typeof _cfMarque === 'function' ? _cfMarque() : ''),
       '<div class="sb-onglets">' + boutons + '</div>' + (phrase ? '<div class="sb-phrase">' + phrase + '</div>' : '') + barres,
       _tr('Au ' + et + 'ᵉ coup de ' + _dimNb(v.nDimsParties[s]) + ' parties dont on connaît le vainqueur, on mesure chaque dimension pour les deux camps sur la même position. « Gagne 62 % » : le camp qui a la valeur la plus haute gagne 62 % de ces parties (égalités exclues). Vert-bleu : avoir plus aide ; orange : avoir plus est mauvais signe. Un lien constaté, pas une preuve de cause : une dimension peut accompagner une bonne position sans en être la raison.',
           'At move ' + et + ' of ' + _dimNb(v.nDimsParties[s]) + ' games with a known winner, each dimension is measured for both sides on the same position. “Wins 62 %”: the side with the higher value wins 62 % of those games (ties left out). Blue-green: having more helps; orange: having more is a bad sign. A link observed, not proof of cause: a dimension can go with a good position without being its reason.'));
@@ -645,7 +651,7 @@ function _sbHtmlJeu(v){
     + '<div class="sb-tuile"><div class="sb-tuile-val">' + (T[7] ? _sbGrosPct(T[6] / T[7] * 100) : '—') + '</div><div class="sb-tuile-nom">' + _tr('des occasions de faire tomber une bille sont saisies', 'of chances to push a marble off are taken') + '</div></div>'
     + '</div>';
   return _sbTitre(_tr('Comment jouent les vrais joueurs', 'How real players play'), _tr('Tous les coups des vraies parties, rangés par sorte.', 'Every move of the real games, sorted by kind.'))
-    + _carteStats(_tr('Les coups joués', 'The moves played'), barres + tuiles,
+    + _carteStats(_tr('Les coups joués', 'The moves played') + (typeof _cfMarque === 'function' ? _cfMarque() : ''), barres + tuiles,
       _tr('Sur les ' + _dimNb(coups) + ' coups des ' + _dimNb(v.nComplets) + ' parties jouées depuis une position de départ. « De côté » : la ligne de billes avance de biais, chaque bille vers une case vide. Occasion : un moment où au moins un coup permettait de faire tomber une bille ; « saisie » quand une bille tombe à ce coup.',
           'Over the ' + _dimNb(coups) + ' moves of the ' + _dimNb(v.nComplets) + ' games played from a starting position. “Sideways”: the line of marbles moves at an angle, each marble into an empty spot. Chance: a moment when at least one move could push a marble off; “taken” when a marble falls on that move.'));
 }
@@ -659,12 +665,12 @@ function _sbAlerteEcart(){
 function _sbRemplirBilles(host, v){ host.innerHTML = _sbHtmlBilles(v) + _sbAlerteEcart(); }
 function _sbChoisirCarte(k){
   _sbOngletCarte = k;
-  const v = _sbAgreger(), host = document.getElementById('billes-section');
+  const v = _sbAgreger(_cfActif()), host = document.getElementById('billes-section');
   if (v && host) _sbRemplirBilles(host, v);
 }
 function _sbChoisirBille(k){
   _sbBille = k;
-  const v = _sbAgreger(), host = document.getElementById('billes-section');
+  const v = _sbAgreger(_cfActif()), host = document.getElementById('billes-section');
   if (!v || !host) return;
   _sbRemplirBilles(host, v);
   // le bouton redessine garde le focus (clavier) ; sur telephone, le detail est sous la liste : on le fait entrer dans l'ecran
@@ -680,7 +686,7 @@ function _sbChoisirBille(k){
 }
 function _sbChoisirEtape(k){
   _sbEtape = k;
-  const v = _sbAgreger(), host = document.getElementById('gagner-section');
+  const v = _sbAgreger(_cfActif()), host = document.getElementById('gagner-section');
   if (v && host) host.innerHTML = _sbHtmlGagner(v);
 }
 
@@ -690,7 +696,7 @@ async function _sbRendreCorpus(){
   const hb = document.getElementById('billes-section'), hg = document.getElementById('gagner-section'), hj = document.getElementById('jeu-section');
   if (!hb && !hg && !hj) return;
   const ok = await ensureStatsParties();
-  const v = ok ? _sbAgreger() : null;
+  const v = ok ? _sbAgreger(_cfActif()) : null;
   if (!v) {
     if (hb) hb.innerHTML = _carteStats(_tr('Les billes qui tombent', 'Falling marbles'), '<div style="font-size:12px;color:var(--muted)">' + _tr('Ce navigateur ne sait pas lire les données compressées du site : ces statistiques ne peuvent pas s’afficher.', 'This browser cannot read the site’s compressed data: these statistics cannot be shown.') + '</div>');
     return;
@@ -704,7 +710,7 @@ window.addEventListener('resize', function(){
   clearTimeout(_sbRendreCorpus._t);
   _sbRendreCorpus._t = setTimeout(function(){
     const host = document.getElementById('billes-section');
-    if (host && host.isConnected && host.innerHTML && STATS_PARTIES && _sbEtroit() !== _sbEtroitRendu) _sbRemplirBilles(host, _sbAgreger());
+    if (host && host.isConnected && host.innerHTML && STATS_PARTIES && _sbEtroit() !== _sbEtroitRendu) _sbRemplirBilles(host, _sbAgreger(_cfActif()));
   }, 200);
 });
 
