@@ -40,7 +40,8 @@ const AI_NIVEAU_TEXEL = 4;
 const AI_TEXEL_DUELS = [
   { cadre: 'profondeur 2', paires: 24, points: 42, sur: 48, elo: 338, marge: 145 },
   { cadre: 'niveau 4', paires: 16, points: 27.5, sur: 32, elo: 314, marge: 198 },
-  { cadre: 'niveau 5', paires: 16, points: 29, sur: 32, elo: 394, marge: 250 }
+  { cadre: 'niveau 5', paires: 16, points: 29, sur: 32, elo: 394, marge: 250 },
+  { cadre: 'niveau 6', paires: 10, points: 17.5, sur: 20, elo: 338, marge: 278 }
 ];
 // un champion du Labo adopte sur cet appareil (case « utiliser les poids du Labo ») : le choix de son proprietaire
 function _labChampionAdopte(){ try { return localStorage.getItem('abaLabUse') !== '0' && !!JSON.parse(localStorage.getItem('abaLabChampion') || 'null'); } catch (e) { return false; } }
