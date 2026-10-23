@@ -124,7 +124,7 @@ function _bancFin(t, d){
   const res = d.result || { winner: 'D' }, sc = _labScoreA(res);
   if (m.solo) { if (r.faits[t.p]) { _bancPlanifier(_bancPomper, 50); return; } r.faits[t.p] = 1; if (sc === 1) r.W++; else if (sc === 0.5) r.D++; else r.L++; }
   else _labPaireAjouter(r, t.p, t.g, sc);
-  s.parties++;
+  s.parties++; s.ms = (s.ms || 0) + (t.t0 ? Date.now() - t.t0 : 0);   // v2.71 : temps de calcul (tableau de bord)
   s.journal.unshift({ nom: t.nom, w: res.winner, why: res.why || '?', plies: res.plies || 0 }); if (s.journal.length > 6) s.journal.length = 6;
   _bancDebits.push(Date.now()); if (_bancDebits.length > 30) _bancDebits.shift();
   _bancSauver(t.banc, s);
@@ -162,6 +162,43 @@ function _bancJournal(s){
   const why = { '6capt': '6 billes', 'adj3': '3 billes d’écart', 'adjCap': 'billes d’avance', 'adjCap1': 'une bille d’avance, mieux placé', 'adjEval': 'évaluations d’accord', 'draw': 'nulle', 'draw1': 'nulle (une bille d’avance, pas mieux placé)', 'noMove': 'bloqué' };
   return '<div class="lab-journal">' + s.journal.map(function(j){ return '<div>' + (j.w === 'A' ? '🟢' : (j.w === 'D' ? '⚪' : '🔴')) + ' ' + j.nom + ' · ' + (why[j.why] || j.why) + ', ' + j.plies + ' demi-coups</div>'; }).join('') + '</div>';
 }
+/* v2.71, les reglages de chaque banc (demande d'Olivier : « plus de parametres ») : temps de
+   reflexion par coup, nombre de demi-coups avant l'arbitrage, positions de depart. Gardes par
+   banc ; ils s'appliquent a la serie suivante (une serie commencee garde les siens). */
+const BANC_TEMPS = [300, 600, 1000, 2000], BANC_PLIES = [60, 80, 120, 160];
+const BANC_DEPARTS = { belgian: 'Marguerite belge', corpus: 'toutes les dispositions', hasard: 'Standard + 6 coups au hasard' };
+function _bancReglagesLus(nom){
+  let t = {}; try { t = (JSON.parse(localStorage.getItem('abaBancReglages') || '{}') || {})[nom] || {}; } catch (e) {}
+  const R = _labRegime('confirm');
+  return { ms: BANC_TEMPS.indexOf(t.ms) >= 0 ? t.ms : R.ms, plies: BANC_PLIES.indexOf(t.plies) >= 0 ? t.plies : R.plies, depart: BANC_DEPARTS[t.depart] ? t.depart : (LAB_CFG.depart || 'belgian') };
+}
+function bancReglageSet(nom, k, v){
+  let t = {}; try { t = JSON.parse(localStorage.getItem('abaBancReglages') || '{}') || {}; } catch (e) {}
+  t[nom] = t[nom] || {}; t[nom][k] = (k === 'depart') ? v : +v;
+  try { localStorage.setItem('abaBancReglages', JSON.stringify(t)); } catch (e) {}
+}
+function _bancReglages(nom, sans){
+  sans = sans || {}; const r = _bancReglagesLus(nom);
+  const sel = function(k, L, lib){ return '<select onchange="bancReglageSet(\'' + nom + '\',\'' + k + '\',this.value)">' + L.map(function(v){ return '<option value="' + v + '"' + (String(r[k]) === String(v) ? ' selected' : '') + '>' + lib(v) + '</option>'; }).join('') + '</select>'; };
+  let h = '<div class="gr-filtres">';
+  if (!sans.ms) h += '<label>Temps par coup ' + sel('ms', BANC_TEMPS, function(v){ return grNb(v / 1000, v < 1000 ? 1 : 0) + ' s'; }) + '</label>';
+  if (!sans.plies) h += '<label>Demi-coups avant arbitrage ' + sel('plies', BANC_PLIES, function(v){ return v; }) + '</label>';
+  if (!sans.depart) h += '<label>Départ ' + sel('depart', Object.keys(BANC_DEPARTS), function(v){ return BANC_DEPARTS[v]; }) + '</label>';
+  return h + '</div>';
+}
+function _bancRegimeDe(o, nom){ const r = _bancReglagesLus(nom), R = _labRegime('confirm'); return { ms: o.ms || r.ms, plies: o.plies || r.plies, draw: R.draw }; }
+function _bancLigneReglages(s){ const R = s.plan.regime || {}; return 'Cette série : ' + (R.ms ? grNb(R.ms / 1000, R.ms < 1000 ? 1 : 0) + ' s par coup · ' : '') + (R.plies ? R.plies + ' demi-coups avant arbitrage' : '') + (s.plan.depart ? ' · départ : ' + (BANC_DEPARTS[s.plan.depart] || s.plan.depart) : ''); }
+// marge a 95 % de chaque Elo d'un tournoi (information de Fisher du modele de Bradley-Terry ; approximative)
+function _bancEloMarges(noms, matchs, res, elo){
+  const n = noms.length, I = new Array(n).fill(0);
+  matchs.forEach(function(m){
+    const i = noms.indexOf(m.a.nom), j = noms.indexOf(m.b.nom); if (i < 0 || j < 0) return;
+    const N = _bancPoints(m, res[m.id]).n; if (!N) return;
+    const p = 1 / (1 + Math.pow(10, (elo[j] - elo[i]) / 400)), q = N * p * (1 - p);
+    I[i] += q; I[j] += q;
+  });
+  return I.map(function(x){ return x > 0 ? Math.round(1.96 * 400 / Math.LN10 / Math.sqrt(x)) : null; });
+}
 // Elo des participants d'un tournoi (Bradley-Terry, demi-points pour les nulles), le premier a 0
 function _bancElo(noms, matchs, res){
   const n = noms.length, pts = new Array(n).fill(0), N = [];
@@ -198,18 +235,18 @@ BANCS.styles = {
   construire: function(o){
     const P = _styleParticipants(), paires = Math.max(1, Math.min(20, (o.paires | 0) || 4)), matchs = [];
     for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) matchs.push({ id: i + '-' + j, a: P[i], b: P[j], paires: paires });
-    const R = _labRegime('confirm');
-    return { matchs: matchs, noms: P.map(function(p){ return p.nom; }), paires: paires, depart: LAB_CFG.depart || 'belgian', regime: { ms: R.ms, plies: R.plies, draw: R.draw } };
+    return { matchs: matchs, noms: P.map(function(p){ return p.nom; }), paires: paires, depart: o.depart || _bancReglagesLus('styles').depart, regime: _bancRegimeDe(o, 'styles') };
   },
   rendu: function(s, msg){ renderTournoiStyles(msg); }
 };
-function lancerTournoiStyles(){ const el = document.getElementById('lab-styles-paires'); bancLancer('styles', { paires: el ? parseInt(el.value, 10) : 4 }); }
+function lancerTournoiStyles(){ const el = document.getElementById('lab-styles-paires'); bancLancer('styles', Object.assign(_bancReglagesLus('styles'), { paires: el ? parseInt(el.value, 10) : 4 })); }
 function renderTournoiStyles(msg){
   const hote = document.getElementById('lab-styles-host'); if (!hote) return;
   const s = bancEtat('styles');
   let h = '<p class="lab-intro">Tous les styles de l’IA s’affrontent deux à deux : Équilibré (avec ce que le Labo a adopté), Agressif, Défensif, Division, KAAH, et les poids Texel ou Humain s’ils existent. Chaque match se joue par paires — la même vraie position deux fois, couleurs inversées. À la fin, un classement Elo.</p>';
   h += '<div class="lab-options"><label>Paires par match <select id="lab-styles-paires">' + [2, 4, 8, 12].map(function(n){ return '<option value="' + n + '"' + (n === ((s && s.plan.paires) || 4) ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></label>'
     + '<span class="lab-note">' + _styleParticipants().length + ' styles → ' + (function(){ const k = _styleParticipants().length; return k * (k - 1) / 2; })() + ' matchs</span></div>';
+  h += _bancReglages('styles');
   h += _bancBoutons('styles', s, 'Nouveau tournoi', 'lancerTournoiStyles()');
   if (msg) h += '<div class="lab-etat">' + msg + '</div>';
   if (s) {
@@ -219,7 +256,18 @@ function renderTournoiStyles(msg){
     const ordre = noms.map(function(nm, i){ return i; }).sort(function(a, b){ return elo[b] - elo[a]; });
     h += '<table class="lab-poids lab-classement"><thead><tr><th>#</th><th>Style</th><th>Elo</th><th>Points</th></tr></thead><tbody>';
     ordre.forEach(function(i, r){ h += '<tr><td>' + (r + 1) + '</td><td>' + noms[i] + '</td><td>' + (tot[i].n ? (elo[i] >= 0 ? '+' : '') + elo[i] : '—') + '</td><td>' + (tot[i].n ? _labNombre(tot[i].p) + ' / ' + tot[i].n + ' (' + Math.round(100 * tot[i].p / tot[i].n) + ' %)' : '—') + '</td></tr>'; });
-    h += '</tbody></table><div class="lab-note">Elo relatif à Équilibré (0). Avec peu de paires, les écarts de moins de 50 à 100 Elo ne sont pas significatifs : le détail des matchs donne la marge de chacun.</div>';
+    h += '</tbody></table><div class="lab-note">' + _bancLigneReglages(s) + '.</div>';
+    // v2.71 : l'Elo de chaque style avec sa marge, et le tableau croise des matchs
+    const marges = _bancEloMarges(noms, s.plan.matchs, s.res, elo);
+    h += '<div class="gr-titre">Elo de chaque style</div><div class="gr-sous">Relatif à Équilibré (0), avec sa marge à 95 % (le trait fin) : deux styles dont les marges se recouvrent ne sont pas départagés.</div>';
+    h += grBarres(ordre.filter(function(i){ return tot[i].n; }).map(function(i){ return { lab: noms[i], v: elo[i], bas: marges[i] != null ? elo[i] - marges[i] : null, haut: marges[i] != null ? elo[i] + marges[i] : null,
+      txt: (elo[i] >= 0 ? '+' : '') + elo[i] + (marges[i] != null ? ' ± ' + marges[i] : ''), tip: noms[i] + _dimDp() + (elo[i] >= 0 ? '+' : '') + elo[i] + ' Elo' + (marges[i] != null ? ' ± ' + marges[i] : '') + ' · ' + grNb(tot[i].p) + ' / ' + tot[i].n }; }), {});
+    h += '<div class="gr-titre">Qui bat qui</div><div class="gr-sous">Le score du style de la ligne contre celui de la colonne. Bleu : il gagne plus qu’il ne perd ; rouge : l’inverse ; gris : à égalité.</div>';
+    const scoreDe = function(i, j){ const m = s.plan.matchs.find(function(x){ return (x.a.nom === noms[i] && x.b.nom === noms[j]) || (x.a.nom === noms[j] && x.b.nom === noms[i]); }); if (!m) return null; const x = _bancPoints(m, s.res[m.id]); if (!x.n) return null; return { p: m.a.nom === noms[i] ? x.pts : x.n - x.pts, n: x.n }; };
+    h += grCarte(ordre.map(function(i){ return noms[i]; }), ordre.map(function(i){ return noms[i]; }), function(a, b){
+      const i = ordre[a], j = ordre[b]; if (i === j) return { v: null, txt: '—' }; const x = scoreDe(i, j); if (!x) return { v: null, txt: '…' };
+      const pc = 100 * x.p / x.n; return { v: pc, txt: Math.round(pc) + ' %', tip: noms[i] + ' contre ' + noms[j] + _dimDp() + grNb(x.p) + ' / ' + x.n + ' (' + Math.round(pc) + ' %)' };
+    }, { echelle: 'signe', centre: 50, min: 0, max: 100, legende: ['perd tout', 'gagne tout'] });
     h += '<details class="lab-details"><summary>Détail des matchs</summary><table class="lab-poids"><tbody>';
     s.plan.matchs.forEach(function(m){ const r = s.res[m.id], x = _bancPoints(m, r), es = _labEloStrP(r.penta);
       h += '<tr><td>' + m.a.nom + ' – ' + m.b.nom + '</td><td>' + (x.n ? _labNombre(x.pts) + ' – ' + _labNombre(x.n - x.pts) : '…') + '</td><td>' + (es || '') + '</td></tr>'; });
@@ -241,13 +289,14 @@ BANCS.niveaux = {
   construire: function(o){
     const haut = Math.max(2, Math.min(NIVEAUX_MAX_MESURABLE, (o.jusqua | 0) || 6)), paires = Math.max(1, Math.min(20, (o.paires | 0) || 6)), w = _labComplet(AI_WEIGHT_PRESETS.balanced), matchs = [];
     for (let n = 1; n < haut; n++) matchs.push({ id: 'n' + n, a: { nom: 'Niveau ' + (n + 1), w: w, cfg: _niveauCfg(n + 1) }, b: { nom: 'Niveau ' + n, w: w, cfg: _niveauCfg(n) }, paires: paires, bas: n });
-    return { matchs: matchs, haut: haut, paires: paires, depart: LAB_CFG.depart || 'belgian', regime: { ms: 400, plies: LAB_CFG.confPlies || 80, draw: LAB_CFG.confDraw || 300 } };
+    const R = _bancRegimeDe(o, 'niveaux');
+    return { matchs: matchs, haut: haut, paires: paires, depart: o.depart || _bancReglagesLus('niveaux').depart, regime: { ms: 400, plies: R.plies, draw: LAB_CFG.confDraw || 300 } };
   },
   rendu: function(s, msg){ renderNiveaux(msg); }
 };
 function lancerNiveaux(){
   const a = document.getElementById('lab-niv-haut'), b = document.getElementById('lab-niv-paires');
-  bancLancer('niveaux', { jusqua: a ? parseInt(a.value, 10) : 6, paires: b ? parseInt(b.value, 10) : 6 });
+  bancLancer('niveaux', Object.assign(_bancReglagesLus('niveaux'), { jusqua: a ? parseInt(a.value, 10) : 6, paires: b ? parseInt(b.value, 10) : 6 }));
 }
 // duree estimee d'une partie entre deux niveaux (la moitie des coups chacun, le temps plein au pire)
 function _niveauDureePartie(n, plies){ const t = function(k){ const c = AI_DIFFICULTY_CONFIG[String(k)]; return c && !c.hasard ? c.time : 20; }; return (plies / 2) * (t(n) + t(n + 1)); }
@@ -258,10 +307,11 @@ function renderNiveaux(msg){
   const lu = function(id){ const el = document.getElementById(id); return el && el.value ? parseInt(el.value, 10) : 0; };
   const haut = lu('lab-niv-haut') || (s && s.plan.haut) || 6, paires = lu('lab-niv-paires') || (s && s.plan.paires) || 6;
   let h = '<p class="lab-intro">Chaque niveau affronte le suivant (1 contre 2, 2 contre 3…), avec sa vraie profondeur et son vrai temps de réflexion, par paires depuis de vraies positions. On voit la <b>hauteur de chaque marche</b> en Elo : des marches régulières, c’est une progression agréable.</p>';
-  let est = 0; for (let n = 1; n < haut; n++) est += 2 * paires * _niveauDureePartie(n, 80);
+  let est = 0; for (let n = 1; n < haut; n++) est += 2 * paires * _niveauDureePartie(n, _bancReglagesLus('niveaux').plies);
   h += '<div class="lab-options"><label>Jusqu’au niveau <select id="lab-niv-haut" onchange="renderNiveaux()">' + [4, 5, 6, 7, 8].map(function(n){ return '<option' + (n === haut ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></label>'
     + '<label>Paires par marche <select id="lab-niv-paires" onchange="renderNiveaux()">' + [4, 6, 10, 16].map(function(n){ return '<option' + (n === paires ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></label>'
     + '<span class="lab-note">au pire ≈ ' + _labDuree(est / Math.max(1, _labNbFils())) + ' sur ' + _labNbFils() + ' fil' + (_labNbFils() > 1 ? 's' : '') + ' (souvent bien moins : la profondeur est atteinte avant le temps)</span></div>';
+  h += _bancReglages('niveaux', { ms: true });
   h += _bancBoutons('niveaux', s, 'Nouvelle mesure', 'lancerNiveaux()');
   if (msg) h += '<div class="lab-etat">' + msg + '</div>';
   if (s) {
@@ -278,10 +328,18 @@ function renderNiveaux(msg){
         + '<td class="lab-marche"><span style="' + (larg >= 0 ? 'left:50%;width:' + larg + '%' : 'left:' + (50 + larg) + '%;width:' + (-larg) + '%') + '"></span></td>'
         + '<td>' + (e ? (cumul >= 0 ? '+' : '') + Math.round(cumul) : '…') + '</td></tr>';
     });
-    h += '</tbody></table><div class="lab-note">Écart : ce que le niveau supérieur gagne sur l’autre, en Elo, avec sa marge à 95 %. Échelle : la somme depuis le niveau 1. Les niveaux 9 et 10 (30 s par coup, sans limite) demanderaient des jours de calcul. Une marche trop haute ou trop basse se corrige en changeant le temps ou la profondeur du niveau : demande-le, une fois la mesure faite.</div>';
+    h += '</tbody></table><div class="lab-note">Écart : ce que le niveau supérieur gagne sur l’autre, en Elo, avec sa marge à 95 %. Échelle : la somme depuis le niveau 1. Les niveaux 9 et 10 (30 s par coup, sans limite) demanderaient des jours de calcul. Une marche trop haute ou trop basse se corrige en changeant le temps ou la profondeur du niveau : demande-le, une fois la mesure faite. ' + _bancLigneReglages(s).replace(/^Cette série : [^·]*· /, 'Cette série : ') + '.</div>';
+    // v2.71 : l'echelle en courbe, avec sa marge cumulee (les marges des marches s'ajoutent en quadrature)
+    let c2 = 0, v2 = 0; const pts = [[1, 0]], bande = [[1, 0, 0]];
+    lignes.forEach(function(x){ if (!x.e || x.e.n < 2) return; c2 += x.e.elo; v2 += x.e.ci * x.e.ci; const m = Math.sqrt(v2); pts.push([x.m.bas + 1, Math.round(c2)]); bande.push([x.m.bas + 1, Math.round(c2 - m), Math.round(c2 + m)]); });
+    if (pts.length > 1) {
+      h += '<div class="gr-titre">L’échelle des niveaux</div><div class="gr-sous">Elo de chaque niveau, le niveau 1 à 0 ; la zone claire, la marge à 95 %.</div>';
+      h += grLignes(grLargeur(hote, 640), [{ nom: 'Elo', couleur: GR_OR, pts: pts, bande: bande, points: true }], { ticksX: pts.map(function(p){ return p[0]; }), fmtX: function(v){ return 'N' + v; }, nomX: 'Niveau', zero: true, aria: 'Échelle des niveaux' });
+    }
     h += _bancJournal(s);
   }
   hote.innerHTML = h;
+  grSurRedim('niveaux', 'lab-niveaux-host', function(){ renderNiveaux(); });
 }
 
 /* ─── 3. Les ouvertures de la Marguerite belge ───
@@ -357,16 +415,16 @@ BANCS.ouvertures = {
         humains: { c: l.noeud.c, wg: l.noeud.wg, w: l.noeud.w },
         a: { nom: (joueur === 'black' ? 'Noirs' : 'Blancs'), w: w }, b: { nom: (joueur === 'black' ? 'Blancs' : 'Noirs'), w: w } });
     });
-    const R = _labRegime('screen');
-    return { matchs: matchs, parties: n, regime: { ms: R.ms, plies: R.plies, draw: R.draw } };
+    return { matchs: matchs, parties: n, regime: _bancRegimeDe(o, 'ouvertures') };
   },
   rendu: function(s, msg){ renderOuvertures(msg); },
   termine: function(){ _ouvVersLivre(); }
 };
 function lancerOuvertures(){
   const el = document.getElementById('lab-ouv-parties');
-  if (typeof ensureGameBanks === 'function') ensureGameBanks().then(function(){ bancLancer('ouvertures', { parties: el ? parseInt(el.value, 10) : 10 }); });
-  else bancLancer('ouvertures', { parties: el ? parseInt(el.value, 10) : 10 });
+  const o = Object.assign(_bancReglagesLus('ouvertures'), { parties: el ? parseInt(el.value, 10) : 10 });
+  if (typeof ensureGameBanks === 'function') ensureGameBanks().then(function(){ bancLancer('ouvertures', o); });
+  else bancLancer('ouvertures', o);
 }
 /* Dans le livre de l'IA (option) : le taux de victoire d'un coup teste melange celui des
    humains et celui des duels, au prorata du nombre de parties. Rien ne change sans la case. */
@@ -389,6 +447,7 @@ function renderOuvertures(msg){
   const s = bancEtat('ouvertures');
   let h = '<p class="lab-intro">Les débuts de partie du livre, en Marguerite belge : les premiers coups des Noirs joués au moins ' + OUV_MIN_PREMIER + ' fois dans le corpus, et les réponses des Blancs au coup principal jouées au moins ' + OUV_MIN_REPONSE + ' fois. Pour chacun, l’IA joue les deux camps depuis des positions un peu plus loin, en suivant ce que les vrais joueurs ont joué ensuite. On compare son score à celui des humains.</p>';
   h += '<div class="lab-options"><label>Parties par ligne <select id="lab-ouv-parties">' + [6, 10, 16, 24].map(function(n){ return '<option' + (n === ((s && s.plan.parties) || 10) ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></label></div>';
+  h += _bancReglages('ouvertures', { depart: true });
   h += _bancBoutons('ouvertures', s, 'Nouveau test', 'lancerOuvertures()');
   if (msg) h += '<div class="lab-etat">' + msg + '</div>';
   if (s) {
@@ -400,7 +459,16 @@ function renderOuvertures(msg){
         + '<td>' + (hm.wg ? Math.round(100 * hm.w / hm.wg) + ' %<small> sur ' + hm.wg + '</small>' : '—') + '</td>'
         + '<td>' + (nb ? Math.round(100 * (r.W + r.D / 2) / nb) + ' %<small> sur ' + nb + ' (' + r.W + '-' + r.D + '-' + r.L + ')</small>' : '…') + '</td></tr>';
     });
-    h += '</tbody></table><div class="lab-note">Score du camp qui joue la ligne (les coups en notation Aba-Pro, comme la liste des coups). Peu de parties par ligne : un écart de moins de 20 points n’est pas significatif.</div>';
+    h += '</tbody></table><div class="lab-note">Score du camp qui joue la ligne (les coups en notation Aba-Pro, comme la liste des coups). Peu de parties par ligne : un écart de moins de 20 points n’est pas significatif. ' + _bancLigneReglages(s) + '.</div>';
+    // v2.71 : humains et IA cote a cote, ligne par ligne
+    const it = [];
+    s.plan.matchs.forEach(function(m){
+      const r = s.res[m.id], nb = r.W + r.D + r.L, hm = m.humains, lab = (m.chemin.length === 2 ? '↳ ' : '') + m.nom;
+      it.push({ lab: lab, v: hm.wg ? hm.w / hm.wg : 0, couleur: GR_REF, txt: hm.wg ? grPct(hm.w / hm.wg) : '—', tip: lab + ' · humains' + _dimDp() + (hm.wg ? grPct(hm.w / hm.wg) + ' sur ' + hm.wg : '—') });
+      it.push({ lab: '', v: nb ? (r.W + r.D / 2) / nb : 0, couleur: GR_OR, txt: nb ? grPct((r.W + r.D / 2) / nb) : '…', tip: lab + ' · IA contre IA' + _dimDp() + (nb ? grPct((r.W + r.D / 2) / nb) + ' sur ' + nb : 'pas encore jouée') });
+    });
+    h += '<div class="gr-titre">Humains et IA, ligne par ligne</div><div class="gr-sous">Score du camp qui joue la ligne ; le trait marque 50 %.</div>'
+      + grBarres(it.map(function(x){ x.ref = 0.5; return x; }), { max: 1 }) + grLegende([{ nom: 'Humains', couleur: GR_REF }, { nom: 'IA contre IA', couleur: GR_OR }]);
     h += '<label class="lab-case"><input type="checkbox"' + (ouverturesDansLeLivre() ? ' checked' : '') + ' onchange="ouverturesBasculerLivre(this)"> Le livre de l’IA tient compte de ces duels (le taux de victoire d’un coup mélange humains et duels)</label>';
     h += _bancJournal(s);
   }

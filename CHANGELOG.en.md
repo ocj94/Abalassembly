@@ -9,6 +9,39 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.71]
+
+### Added — the Lab in charts and settings
+Olivier's request: "more settings, charts, metrics… for the Lab, the corpus
+and the profiles". First part: the Lab.
+- **📊 Dashboard** (new tab): games played (Lab, benches, KAAH test),
+  computing time, games per hour, decided tests (adopted, rejected,
+  undecided, screenings with no finalist), adoption rate, measured real
+  gain. Charts: the real gain test after test with its margin, **the
+  champion's weights adoption after adoption** (one small curve per
+  criterion), games per day, game length, how games end, the tested side's
+  score by colour, where games start. Filters at the top: period (7 days,
+  30 days, all) and phase.
+- **📐 Texel method**: settings — which positions (all layouts or Belgian
+  Daisy), which moment (opening, middle, end), the pull towards the
+  champion's weights (none to strong), the number of steps. And charts:
+  **predicted winner against actual winner** (the calibration, before and
+  after), how much each criterion moves the evaluation, the error by moment
+  of the game, and your previous settings side by side.
+- **Test benches** (style tournament, levels, against you, openings): the
+  thinking time per move, the number of plies before adjudication and the
+  start can be set for each one (levels keep their real time). The
+  tournament gets **each style's Elo with its margin** and a coloured
+  **"who beats whom" cross table**; levels, their scale as a curve with its
+  margin; against you, each style's score against your clone; openings,
+  humans and AI side by side.
+- Everywhere: a tooltip on hover (or touch) on every bar, cell or point, "See
+  the numbers" under the main charts, and charts drawn at the screen's real
+  width (readable text on phones).
+- The Lab now keeps the history of its champions and the computing time of
+  each game.
+- 3 new tests (262 in all).
+
 ## [v2.70]
 
 ### Added — the AI Lab, six more tools

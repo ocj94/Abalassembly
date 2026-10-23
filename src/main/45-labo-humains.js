@@ -299,12 +299,11 @@ BANCS.contremoi = {
     const clone = _labComplet(AI_WEIGHT_PRESETS.balanced); cl.cles.forEach(function(k, j){ clone[k] = cl.w[j]; });
     const paires = Math.max(1, Math.min(20, (o.paires | 0) || 6));
     const P = _styleParticipants().filter(function(p){ return p.nom !== 'Contre moi'; });
-    const R = _labRegime('confirm');
-    return { matchs: P.map(function(p, i){ return { id: 's' + i, a: p, b: { nom: 'ton clone', w: clone }, paires: paires }; }), paires: paires, depart: 'belgian', regime: { ms: R.ms, plies: R.plies, draw: R.draw } };
+    return { matchs: P.map(function(p, i){ return { id: 's' + i, a: p, b: { nom: 'ton clone', w: clone }, paires: paires }; }), paires: paires, depart: o.depart || _bancReglagesLus('contremoi').depart, regime: _bancRegimeDe(o, 'contremoi') };
   },
   rendu: function(s, msg){ renderContreToi(msg); }
 };
-function lancerContreToi(){ const el = document.getElementById('lab-ct-paires'); bancLancer('contremoi', { paires: el ? parseInt(el.value, 10) : 6 }); }
+function lancerContreToi(){ const el = document.getElementById('lab-ct-paires'); bancLancer('contremoi', Object.assign(_bancReglagesLus('contremoi'), { paires: el ? parseInt(el.value, 10) : 6 })); }
 function _ctMeilleur(s){
   let best = null;
   s.plan.matchs.forEach(function(m){ const x = _bancPoints(m, s.res[m.id]); if (!x.n) return; const sc = x.pts / x.n; if (!best || sc > best.sc) best = { m: m, sc: sc, x: x }; });
@@ -331,6 +330,7 @@ function renderContreToi(msg){
     h += _huTableauPoids(cl, 'Toi');
     h += '<p class="lab-intro"><b>2. Qui te bat le mieux ?</b> Chaque style affronte ton clone (tes priorités, à la même profondeur que lui), par paires depuis de vraies positions de Marguerite belge. Le meilleur peut devenir le style <b>« Contre moi (Labo) »</b> de la configuration de partie.</p>';
     h += '<div class="lab-options"><label>Paires par style <select id="lab-ct-paires">' + [4, 6, 10].map(function(n){ return '<option' + (n === ((s && s.plan.paires) || 6) ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></label></div>';
+    h += _bancReglages('contremoi');
     h += _bancBoutons('contremoi', s, 'Nouveaux duels', 'lancerContreToi()');
     if (msg && s) h += '<div class="lab-etat">' + msg + '</div>';
     if (s) {
@@ -338,7 +338,11 @@ function renderContreToi(msg){
       const lignes = s.plan.matchs.map(function(m){ const x = _bancPoints(m, s.res[m.id]); return { m: m, x: x, sc: x.n ? x.pts / x.n : -1 }; }).sort(function(a, b){ return b.sc - a.sc; });
       h += '<table class="lab-poids lab-classement"><thead><tr><th>Style</th><th>Contre ton clone</th><th>Elo</th></tr></thead><tbody>';
       lignes.forEach(function(l){ const es = _labEloStrP(s.res[l.m.id].penta); h += '<tr><td>' + l.m.a.nom + '</td><td>' + (l.x.n ? _labNombre(l.x.pts) + ' / ' + l.x.n + ' (' + Math.round(100 * l.sc) + ' %)' : '…') + '</td><td>' + (es || '') + '</td></tr>'; });
-      h += '</tbody></table>';
+      h += '</tbody></table><div class="lab-note">' + _bancLigneReglages(s) + '.</div>';
+      // v2.71 : le score de chaque style contre ton clone, avec sa marge
+      h += '<div class="gr-titre">Contre ton clone</div><div class="gr-sous">Score de chaque style ; le trait marque 50 %, le trait fin la marge à 95 %.</div>';
+      h += grBarres(lignes.filter(function(l){ return l.x.n; }).map(function(l){ const e = _labEloP(s.res[l.m.id].penta), m = e ? Math.min(0.5, 1.96 * Math.sqrt(Math.max(1e-6, l.sc * (1 - l.sc)) / Math.max(1, l.x.n))) : null;
+        return { lab: l.m.a.nom, v: l.sc, ref: 0.5, bas: m != null ? Math.max(0, l.sc - m) : null, haut: m != null ? Math.min(1, l.sc + m) : null, txt: grPct(l.sc), tip: l.m.a.nom + ' contre ton clone' + _dimDp() + grNb(l.x.pts) + ' / ' + l.x.n }; }), { max: 1 });
       const b = _ctMeilleur(s);
       if (b && s.fini) h += '<div class="lab-actions"><button class="ctrl-btn" onclick="adopterContreMoi()">🎯 Faire de « ' + b.m.a.nom + ' » mon style « Contre moi »</button></div>';
       h += _bancJournal(s);
@@ -348,7 +352,7 @@ function renderContreToi(msg){
   hote.innerHTML = h;
 }
 /* ─── Les onglets de la page Labo ─── */
-const LAB_ONGLETS = ['auto', 'texel', 'styles', 'niveaux', 'humains', 'contretoi', 'ouvertures', 'outils'];
+const LAB_ONGLETS = ['tableau', 'auto', 'texel', 'styles', 'niveaux', 'humains', 'contretoi', 'ouvertures', 'outils'];
 function _laboOngletMemo(){ try { const o = localStorage.getItem('abaLabOnglet'); return LAB_ONGLETS.indexOf(o) >= 0 ? o : 'auto'; } catch (e) { return 'auto'; } }
 function laboOnglet(nom){
   if (LAB_ONGLETS.indexOf(nom) < 0) nom = 'auto';
@@ -358,7 +362,7 @@ function laboOnglet(nom){
   laboRendreOnglet(nom);
 }
 function laboRendreOnglet(nom){
-  const r = { auto: 'renderLab', texel: 'renderTexel', styles: 'renderTournoiStyles', niveaux: 'renderNiveaux', humains: 'renderHumains',
+  const r = { tableau: 'renderLabTableau', auto: 'renderLab', texel: 'renderTexel', styles: 'renderTournoiStyles', niveaux: 'renderNiveaux', humains: 'renderHumains',
     contretoi: 'renderContreToi', ouvertures: 'renderOuvertures', outils: 'renderTestKaah' }[nom];
   if (r && typeof window[r] === 'function') window[r]();
 }
@@ -369,4 +373,3 @@ try {
   const banc = localStorage.getItem('abaBancAuto');
   if (banc && BANCS[banc] && localStorage.getItem('abaLabAutoRun') !== '1') setTimeout(function(){ if (!_bancActif && !_labRunning) { bancLancer(banc); showToast('🧪 Banc d’essai du Labo repris en arrière-plan'); } }, 5000);
 } catch (e) {}
-</script>

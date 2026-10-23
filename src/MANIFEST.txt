@@ -76,6 +76,8 @@ main/42-labo-positions.js
 main/43-labo-texel.js
 main/44-labo-bancs.js
 main/45-labo-humains.js
+main/46-graphiques.js
+main/47-labo-tableau.js
 08-html.part
 09-script-tablebase.js
 10-html.part
