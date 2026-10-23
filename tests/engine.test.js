@@ -4781,3 +4781,70 @@ test('labo v2.70 : la page -- sept onglets, les styles Humain et Contre moi, en 
   ['Humain (Labo)', 'Contre moi (Labo)'].forEach(t => assert.ok(ctx.I18N_EN[t], t));
   assert.strictEqual(_r63('LAB_CFG_DEFAULT').depart, 'belgian'); assert.strictEqual(_r63('LAB_CFG_DEFAULT').arbitrage, 2);
 });
+
+// ═══════════════════════════════════════════
+// 64. v2.71 : le Labo -- graphiques, reglages, historique du champion, tableau de bord
+// ═══════════════════════════════════════════
+test('graphiques v2.71 : graduations sans « -0 », courbes qui contiennent leurs marges, textes echappes', () => {
+  assert.deepStrictEqual(Array.from(ctx.grGraduations(-0.4, 6, 4)).map(String).indexOf('-0'), -1);
+  assert.ok(!Object.is(ctx.grGraduations(-1e-12, 6, 4)[0], -0));
+  const svg = ctx.grLignes(400, [{ nom: 'Gain', pts: [[1, 10], [2, 20]], barres: [[1, -50, 70], [2, -30, 90]] }], {});
+  const ticks = [...svg.matchAll(/class="gr-axe">(-?[\d\s ,]+)<\/text>/g)].map(m => +m[1].replace(/\s| /g, '').replace(',', '.'));
+  assert.ok(Math.min(...ticks) <= -50 && Math.max(...ticks) >= 90, 'l axe couvre les marges : ' + ticks);
+  const b = ctx.grBarres([{ lab: '<img src=x onerror=alert(1)>', v: 3 }], {});
+  assert.ok(b.indexOf('<img') < 0 && b.indexOf('&lt;img') > 0, 'etiquettes echappees');
+  const c = ctx.grCarte(['A', 'B'], ['A', 'B'], (i, j) => i === j ? { v: null, txt: '—' } : { v: i ? 30 : 70, txt: (i ? 30 : 70) + ' %' }, { echelle: 'signe', centre: 50, min: 0, max: 100 });
+  assert.match(c, /rgba\(57,135,229/); assert.match(c, /rgba\(230,103,103/);
+  assert.match(ctx.grPile([{ nom: 'a', v: 1 }, { nom: 'b', v: 3 }]), /75 %/);
+});
+
+test('labo v2.71 : Texel -- filtres de positions, calibration, importance, rappel vers le champion', async () => {
+  await _pos63();
+  const { w } = _filKaah();
+  const I = ctx._lpTexelIndices();
+  const fin = I.app.filter(i => ctx._txGarder(i, { dispo: 'belgian', phase: 'fin' }));
+  assert.ok(fin.length > 500 && fin.every(i => ctx._lpPly(i) >= 70 && ctx._lpDispo(i) === 'belgian'));
+  const cles = ['center', 'cohesion', 'edge', 'mob', 'iso', 'dng', 'chain', 'fortress'];
+  const L = I.app.filter((x, j) => j % 30 === 0), T = w.texelTermes(L.map(i => JSON.parse(JSON.stringify(ctx._lpPourFil(i)))), cles);
+  const R = L.map(ctx._txResultatPour), w0 = cles.map(k => ctx.LAB_ORIGINE[k]), s = ctx._txEchelle(T, R, w0);
+  const B = ctx._txCalibration(T, R, w0, s);
+  assert.strictEqual(B.length, 10); assert.strictEqual(B.reduce((a, x) => a + x.n, 0), L.length);
+  assert.ok(B.every(x => !x.n || (x.p >= 0 && x.p <= 1 && x.r >= 0 && x.r <= 1)));
+  assert.strictEqual(ctx._txImportance(T, w0).length, cles.length);
+  const regle = lam => { const st = { w: w0.slice(), w0, lam, m: new Array(8).fill(0), v: new Array(8).fill(0), t: 0, min: cles.map(() => 0), max: cles.map(k => _r63('SPSA_MAX')[k]), pas: cles.map(k => _r63('SPSA_MAX')[k] / 400) };
+    for (let k = 0; k < 200; k++) ctx._txEtape(T, R, s, st); return st.w.reduce((a, x, k) => a + Math.abs(x - w0[k]) / st.max[k], 0); };
+  assert.ok(regle(5) < regle(0), 'un rappel fort garde les poids plus pres du champion');
+});
+
+test('labo v2.71 : reglages des bancs, marges Elo, historique du champion, temps de calcul, tableau de bord', () => _laboBac(({ demarrer, attente, repondre, vider }) => {
+  ctx.localStorage.removeItem('abaBancReglages');
+  ctx.bancReglageSet('styles', 'ms', 1000); ctx.bancReglageSet('styles', 'plies', 120); ctx.bancReglageSet('styles', 'depart', 'corpus');
+  const plan = BANCS_construire('styles', Object.assign(ctx._bancReglagesLus('styles'), { paires: 2 }));
+  assert.deepStrictEqual([plan.regime.ms, plan.regime.plies, plan.depart], [1000, 120, 'corpus']);
+  ctx.bancReglageSet('niveaux', 'plies', 60);
+  const pn = BANCS_construire('niveaux', Object.assign(ctx._bancReglagesLus('niveaux'), { jusqua: 3, paires: 2 }));
+  assert.strictEqual(pn.regime.plies, 60); assert.deepStrictEqual(JSON.parse(JSON.stringify(pn.matchs[1].a.cfg)), { depth: 2, ms: 600 }, 'les niveaux gardent leur vrai temps');
+  ctx.localStorage.removeItem('abaBancReglages');
+  // marges : plus de parties, marges plus etroites
+  const noms = ['A', 'B'], m1 = [{ id: 'x', a: { nom: 'A' }, b: { nom: 'B' }, paires: 4 }];
+  const res = n => ({ x: { penta: [0, 0, n, 0, 0], half: {}, fait: {} } });
+  const marge = n => ctx._bancEloMarges(noms, m1, res(n), [0, 0])[0];
+  assert.ok(marge(40) < marge(10) && marge(10) > 0);
+  // le champion adopte entre dans l'historique ; la duree des parties est comptee
+  ctx.LAB_CFG.threads = 1;
+  demarrer();
+  let st = ctx.labLoad();
+  assert.strictEqual(st.champions.length, 1, 'les poids d origine');
+  const e = attente()[0]; e.m.__t0 = 0; repondre(e, 'A'); vider();
+  st = ctx.labLoad();
+  assert.ok(typeof st.msTotal === 'number');
+  assert.ok('ms' in JSON.parse(ctx.localStorage.getItem('abaLabDataLog')).pop());
+  st.confirm = { name: 'centre 6→8', w: Object.assign({}, st.champion, { center: 8 }), penta: [0, 0, 0, 0, 0], half: {}, fait: {} };
+  ctx._labAdopt(st, st.confirm);
+  assert.strictEqual(st.champions.length, 2); assert.strictEqual(st.champions[1].w[0], 8); assert.strictEqual(st.champions[1].nom, 'centre 6→8');
+  ctx.labSave(st);
+  // le tableau de bord se dessine
+  const hote = ctx.document.getElementById('lab-tableau-host');
+  ctx.renderLabTableau();
+  assert.match(hote.innerHTML, /Parties jouées/); assert.match(hote.innerHTML, /Les poids du champion/); assert.match(hote.innerHTML, /Comment finissent les parties/);
+}));

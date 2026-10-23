@@ -3650,6 +3650,7 @@
       </div>
     </div>
     <div class="lab-onglets" id="lab-onglets" role="tablist" aria-label="Outils du Labo">
+      <button data-onglet="tableau" onclick="laboOnglet('tableau')">📊 Tableau de bord</button>
       <button data-onglet="auto" onclick="laboOnglet('auto')">🔁 Auto-amélioration</button>
       <button data-onglet="texel" onclick="laboOnglet('texel')">📐 Méthode Texel</button>
       <button data-onglet="styles" onclick="laboOnglet('styles')">🏆 Tournoi des styles</button>
@@ -3659,6 +3660,10 @@
       <button data-onglet="ouvertures" onclick="laboOnglet('ouvertures')">📖 Ouvertures</button>
       <button data-onglet="outils" onclick="laboOnglet('outils')">🧰 Autres outils</button>
     </div>
+    <section class="lab-zone" data-onglet="tableau" hidden>
+      <h3>📊 Tableau de bord du Labo</h3>
+      <div id="lab-tableau-host"></div>
+    </section>
     <section class="lab-zone" data-onglet="auto">
       <h3>🔁 Auto-amélioration</h3>
       <div id="page-lab-host"></div>
@@ -3839,7 +3844,7 @@
 <li><b>Bibliothèque de parties</b> : des milliers de vraies parties (MIGS, AbalOnline, tournois, KAAH), à rejouer et filtrer.</li>
 <li><b>Stats du corpus</b> : les chiffres de ces parties — dont les billes qui tombent (qui fait tomber la première bille gagne-t-il, le tableau des remontées, le score final, la carte des éjections), ce qui fait gagner et comment jouent les vrais joueurs —, et la <b>profondeur de l'IA selon le temps de réflexion</b>, mesurée sur ton appareil et relevée pendant tes parties.</li>
 <li><b>Tables de finale</b> : les finales résolues exactement (2 contre 2, 3 contre 2, 4 contre 2), avec un entraînement.</li>
-<li><b>Labo IA</b> : des outils pour rendre l'IA plus forte et la comprendre, en onglets. <i>Auto-amélioration</i> : l'IA essaie de petits changements de ses poids contre son réglage actuel, par paires depuis de vraies positions de Marguerite belge, et n'adopte qu'après un verdict statistique. <i>Méthode Texel</i> : des réglages qui devinent le mieux le gagnant des vraies parties, à vérifier en duels. <i>Tournoi des styles</i>, <i>Niveaux</i> (la hauteur de chaque marche, en Elo), <i>Comme les humains</i> (combien de fois l'IA joue le coup du joueur ; un style « Humain »), <i>Contre toi</i> (ton clone à partir de ton historique, et le style qui le bat le mieux), <i>Ouvertures</i> (les débuts de la Marguerite belge joués par l'IA). Dans <i>Autres outils</i> : le test des critères de KAAH, le benchmark, le NNUE.</li>
+<li><b>Labo IA</b> : des outils pour rendre l'IA plus forte et la comprendre, en onglets. <i>Tableau de bord</i> : les totaux du Labo et ses graphiques (gain réel, poids du champion au fil des adoptions, parties par jour…). <i>Auto-amélioration</i> : l'IA essaie de petits changements de ses poids contre son réglage actuel, par paires depuis de vraies positions de Marguerite belge, et n'adopte qu'après un verdict statistique. <i>Méthode Texel</i> : des réglages qui devinent le mieux le gagnant des vraies parties, à vérifier en duels. <i>Tournoi des styles</i>, <i>Niveaux</i> (la hauteur de chaque marche, en Elo), <i>Comme les humains</i> (combien de fois l'IA joue le coup du joueur ; un style « Humain »), <i>Contre toi</i> (ton clone à partir de ton historique, et le style qui le bat le mieux), <i>Ouvertures</i> (les débuts de la Marguerite belge joués par l'IA). Dans <i>Autres outils</i> : le test des critères de KAAH, le benchmark, le NNUE.</li>
 <li><b>Détection photo / plateau</b> : photographie un vrai plateau pour le reproduire.</li>
 <li><b>Observer</b> : suivre une partie PlayStrategy en direct. <b>Tournoi</b> : un tournoi contre des IA.</li>
 <li><b>Variantes</b> et <b>Éditeur</b> : d'autres règles et dispositions, ou ta propre position.</li>
@@ -3946,7 +3951,7 @@
 <li><b>Game library</b>: thousands of real games (MIGS, AbalOnline, tournaments, KAAH) to replay and filter.</li>
 <li><b>Corpus stats</b>: the numbers behind these games — including falling marbles (does the first to push a marble off win, the comeback table, the final score, the ejection map), what wins games and how real players play — and the <b>AI’s depth by thinking time</b>, measured on your device and recorded during your games.</li>
 <li><b>Endgame tables</b>: endgames solved exactly (2 vs 2, 3 vs 2, 4 vs 2), with training.</li>
-<li><b>AI Lab</b> (in French): tools to make the AI stronger and understand it, in tabs. <i>Self-improvement</i>: the AI tries small changes to its weights against its current setting, in pairs from real Belgian Daisy positions, and adopts one only after a statistical verdict. <i>Texel method</i>: settings that best guess the winner of real games, to be checked in duels. <i>Style tournament</i>, <i>Levels</i> (the height of each step, in Elo), <i>Like humans</i> (how often the AI plays the player’s move; a “Human-like” style), <i>Against you</i> (your clone from your history, and the style that beats it best), <i>Openings</i> (the Belgian Daisy openings played by the AI). Under <i>Other tools</i>: the test of KAAH’s criteria, the benchmark, the NNUE.</li>
+<li><b>AI Lab</b> (in French): tools to make the AI stronger and understand it, in tabs. <i>Dashboard</i>: the Lab’s totals and charts (real gain, the champion’s weights adoption after adoption, games per day…). <i>Self-improvement</i>: the AI tries small changes to its weights against its current setting, in pairs from real Belgian Daisy positions, and adopts one only after a statistical verdict. <i>Texel method</i>: settings that best guess the winner of real games, to be checked in duels. <i>Style tournament</i>, <i>Levels</i> (the height of each step, in Elo), <i>Like humans</i> (how often the AI plays the player’s move; a “Human-like” style), <i>Against you</i> (your clone from your history, and the style that beats it best), <i>Openings</i> (the Belgian Daisy openings played by the AI). Under <i>Other tools</i>: the test of KAAH’s criteria, the benchmark, the NNUE.</li>
 <li><b>Photo / board detection</b>: photograph a real board to reproduce it.</li>
 <li><b>Watch</b>: follow a PlayStrategy game live. <b>Tournament</b>: a tournament against AIs.</li>
 <li><b>Variants</b> and <b>Editor</b>: other rules and layouts, or your own position.</li>

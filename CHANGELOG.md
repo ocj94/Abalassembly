@@ -9,6 +9,41 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.71]
+
+### Ajouté — le Labo en graphiques et en réglages
+Demande d'Olivier : « plus de paramètres, de graphiques, de métriques… pour le
+Labo, le corpus et les profils ». Première partie : le Labo.
+- **📊 Tableau de bord** (nouvel onglet) : parties jouées (Labo, bancs, test
+  KAAH), temps de calcul, parties par heure, tests tranchés (adoptés,
+  rejetés, indécis, tris sans finaliste), taux d'adoption, gain réel mesuré.
+  Graphiques : le gain réel bilan après bilan avec sa marge, **les poids du
+  champion adoption après adoption** (une petite courbe par critère), les
+  parties par jour, la longueur des parties, comment elles finissent, le
+  score du camp testé selon sa couleur, d'où partent les parties. Filtres
+  en tête : période (7 jours, 30 jours, tout) et phase.
+- **📐 Méthode Texel** : des réglages — quelles positions (toutes les
+  dispositions ou la Marguerite belge), à quel moment (début, milieu, fin),
+  le rappel vers les poids du champion (aucun à fort), le nombre d'étapes.
+  Et des graphiques : **gagnant prévu contre gagnant réel** (la calibration,
+  avant et après), de combien chaque critère fait bouger l'évaluation,
+  l'erreur selon le moment de la partie, et tes réglages précédents
+  côte à côte.
+- **Bancs d'essai** (tournoi des styles, niveaux, contre toi, ouvertures) :
+  le temps de réflexion par coup, le nombre de demi-coups avant l'arbitrage
+  et le départ se règlent pour chacun (les niveaux gardent leur vrai
+  temps). Le tournoi gagne **l'Elo de chaque style avec sa marge** et un
+  **tableau croisé « qui bat qui »** coloré ; les niveaux, leur échelle en
+  courbe avec sa marge ; contre toi, le score de chaque style contre ton
+  clone ; les ouvertures, humains et IA côte à côte.
+- Partout : une bulle au survol (ou au toucher) sur chaque barre, case ou
+  point, « Voir les chiffres » sous les graphiques principaux, et des
+  graphiques dessinés à la largeur réelle de l'écran (texte lisible sur
+  téléphone).
+- Le Labo garde désormais l'historique de ses champions et le temps de
+  calcul de chaque partie.
+- 3 tests nouveaux (262 au total).
+
 ## [v2.70]
 
 ### Ajouté — le Labo IA, six outils de plus

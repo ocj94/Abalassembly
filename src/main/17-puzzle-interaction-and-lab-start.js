@@ -345,6 +345,7 @@ function _labPhasePrincipale(){ return LAB_CFG.mode==='spsa' ? 'spsa' : 'screen'
 function _labDefaultState(){
   const champ=_labComplet(LAB_ORIGINE);
   return { v:5, gen:2, epoch:1, champion:champ, championGen:1, phase:_labPhasePrincipale(), departMode:LAB_CFG.depart||'belgian', cands:labMutants(champ,2,null), candsGen:2,
+    champions:[{ gen:1, t:null, w:_labVecteur(champ), nom:'poids d’origine' }], msTotal:0,
     confirm:null, bilan:null, totalGames:0, gameLog:[], lastGood:null, spsa:_spsaInit(champ), mesures:[],
     history:[{gen:1,type:'banc externe',name:'iso26/dng20/center9/cohesion6 testés — finaliste cohesion 6 : 17,5/32 (54,7 %) < seuil',score:null,games:60}] };
 }
@@ -383,7 +384,15 @@ function _labMigrerV5(s){
 function labLoad(){
   try{
     const s=JSON.parse(localStorage.getItem('abaLabState')||'null');
-    if(s && s.champion && s.phase){ if(s.v===5) return s; if(s.v===4) return _labMigrerV5(s); return _labMigrerV5(_labMigrer(s)); }
+    if(s && s.champion && s.phase){
+      const t = (s.v===5) ? s : (s.v===4 ? _labMigrerV5(s) : _labMigrerV5(_labMigrer(s)));
+      // v2.71 : l'historique des champions commence aux poids d'origine (et au champion actuel s'il en differe)
+      if(!t.champions){
+        t.champions=[{ gen:1, t:null, w:_labVecteur(LAB_ORIGINE), nom:'poids d’origine' }];
+        if(_labVecteur(t.champion).join()!==t.champions[0].w.join()) t.champions.push({ gen:t.championGen||t.gen, t:null, w:_labVecteur(t.champion), nom:'champion avant la v2.71' });
+      }
+      return t;
+    }
   }catch(e){}
   return _labDefaultState();
 }
@@ -535,8 +544,16 @@ function _labFinTri(st){
   _labNouvellePhase(st,'confirm');
   st.confirm={ name:best.name, w:best.w, key:best.key||null, penta:_labPentaVide(), half:{}, fait:{}, llr:0, source:'sprt' };
 }
+// v2.71 : l'historique des champions (tableau de bord : les poids au fil des generations)
+function _labVecteur(w){ const c=_labComplet(w); return SPSA_KEYS.map(function(k){ return Math.round(c[k]*10)/10; }); }
+function _labNoterChampion(st, nom){
+  st.champions=st.champions||[];
+  st.champions.push({ gen:st.championGen||st.gen, t:Date.now(), w:_labVecteur(st.champion), nom:nom||'' });
+  if(st.champions.length>200) st.champions.splice(1, st.champions.length-200);
+}
 function _labAdopt(st, cf){
   st.champion=_labComplet(cf.w); st.championGen=st.gen;
+  _labNoterChampion(st, cf.name);
   try{ localStorage.setItem('abaLabChampion', JSON.stringify(st.champion)); }catch(e){}
   applyLabChampion();
   st.history.unshift({gen:st.gen, type:'✅ adopté (SPRT)', name:cf.name, score:_labPoints(cf.penta), games:2*_labPentaN(cf.penta), elo:_labEloStrP(cf.penta)});
@@ -622,6 +639,7 @@ function _labFinPartie(t, d){
   if(t.epoch!==st.epoch){ _labPlanifier(_labPomper, 50); return; }   // la phase est deja tranchee : resultat ignore
   const r=d.result||{winner:'D'}, s=_labScoreA(r);
   st.totalGames++;
+  t.ms=t.t0 ? Date.now()-t.t0 : 0; st.msTotal=(st.msTotal||0)+t.ms;   // v2.71 : temps de calcul (tableau de bord)
   _labJournal(st, t, r, d.moves);
   if(t.job==='spsa') _spsaResultat(st, t, s);
   else {
@@ -654,7 +672,7 @@ function _labJournal(st, t, r, moves){
   if(moves && moves.length && !t.depart) _labMineBook(moves);   // le book du Labo part de la position Standard : seulement l'ancien depart
   _labDataPush({ t:Date.now(), gen:st.gen, phase:t.job, mutant:t.nom, mutKey:(t.job==='cand' && st.cands && st.cands[t.idx] && st.cands[t.idx].key) || '',
     winner:r.winner, why:r.why||'?', plies:r.plies||0, cb:r.cb!=null?r.cb:'', cw:r.cw!=null?r.cw:'', colorA:t.colorA, seed:t.seed, paire:t.p, wA:_labSansZeros(t.wA), wB:_labSansZeros(t.wB),
-    depart:t.depart ? (t.depart.ref||'corpus') : 'hasard' });
+    depart:t.depart ? (t.depart.ref||'corpus') : 'hasard', ms:t.ms||0 });
 }
 // mesure du gain reel a la demande : le champion contre les poids d'origine
 function labMesurerGain(){
@@ -764,6 +782,7 @@ function _labWeightsFromInputs(){
 function labApplyChampion(){
   const w=_labWeightsFromInputs();
   const st=labLoad(); st.champion=w; st.championGen=st.gen;
+  _labNoterChampion(st, 'défini à la main');
   st.cands=labMutants(w, st.gen, st.lastGood); st.candsGen=st.gen; st.confirm=null; st.bilan=null;
   if(LAB_CFG.mode==='spsa') st.spsa=_spsaInit(w);
   _labNouvellePhase(st, _labPhasePrincipale());

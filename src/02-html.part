@@ -2148,6 +2148,61 @@ table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset
 .lab-details summary { cursor:pointer; color:var(--gold); }
 .lab-case { display:flex; gap:8px; align-items:flex-start; font-size:12.5px; color:var(--text); line-height:1.5; margin:10px 0; }
 #page-lab-host { padding:0 !important; max-width:none !important; }
+/* ─── GRAPHIQUES (v2.71, module 46) ─── */
+.gr { margin:8px 0 6px; }
+.gr svg { overflow:visible; }
+.gr-grille { stroke:var(--border); stroke-width:1; }
+.gr-base { stroke:#4a5550; stroke-width:1; }
+.gr-axe { font-size:10.5px; fill:var(--muted); font-variant-numeric:tabular-nums; }
+.gr-val { font-size:10.5px; fill:var(--text); font-weight:600; }
+.gr-cible { cursor:crosshair; outline:none; }
+.gr-cible:hover, .gr-cible:focus { fill:rgba(255,255,255,0.04); }
+.gr-vide { font-size:12.5px; color:var(--muted); padding:10px 0; }
+.gr-legende { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:11.5px; color:var(--text); margin:6px 0 2px; }
+.gr-legende span { display:inline-flex; align-items:center; gap:6px; }
+.gr-cle { display:inline-block; width:10px; height:10px; border-radius:3px; }
+.gr-cle-trait { display:inline-block; width:14px; height:2px; border-radius:1px; }
+.gr-bulle { position:fixed; z-index:9000; display:none; pointer-events:none; background:#0d0f0e; border:1px solid var(--border); border-radius:8px; padding:7px 10px; font-size:12px; line-height:1.45; color:var(--text); max-width:280px; box-shadow:0 6px 20px rgba(0,0,0,0.5); }
+.gr-bulle-t { color:var(--muted); font-size:11px; }
+.gr-barres { display:flex; flex-direction:column; gap:3px; margin:6px 0; }
+.gr-barre { display:grid; grid-template-columns:minmax(70px,32%) minmax(0,1fr) auto; gap:8px; align-items:center; font-size:12px; color:var(--text); padding:2px 0; border-radius:4px; outline:none; }
+.gr-barre:hover, .gr-barre:focus { background:rgba(255,255,255,0.03); }
+.gr-barre-lab { overflow-wrap:anywhere; line-height:1.3; }
+.gr-barre-piste { position:relative; height:14px; }
+.gr-barre-v { position:absolute; top:2px; height:10px; border-radius:0 4px 4px 0; }
+.gr-zero { position:absolute; top:-2px; bottom:-2px; width:1px; background:#4a5550; }
+.gr-moustache { position:absolute; top:6px; height:2px; background:var(--text); opacity:0.55; }
+.gr-repere { position:absolute; top:-2px; bottom:-2px; width:2px; background:var(--text); opacity:0.7; }
+.gr-barre-val { font-variant-numeric:tabular-nums; color:var(--text); white-space:nowrap; font-size:11.5px; }
+.gr-pile { display:flex; gap:2px; height:14px; margin:8px 0 4px; }
+.gr-pile i { display:block; min-width:2px; outline:none; }
+.gr-pile i:first-child { border-radius:4px 0 0 4px; } .gr-pile i:last-child { border-radius:0 4px 4px 0; }
+.gr-carte-cadre { overflow-x:auto; margin:6px 0; }
+.gr-carte, .gr-chiffres table { border-collapse:separate; border-spacing:2px; font-size:11.5px; display:table !important; }
+.gr-carte th { font-weight:600; color:var(--muted); padding:3px 6px; text-align:left; white-space:nowrap; }
+.gr-carte thead th { text-align:center; }
+.gr-carte td { padding:5px 6px; text-align:center; border-radius:3px; min-width:34px; font-variant-numeric:tabular-nums; outline:none; }
+.gr-carte-vide { color:var(--muted); }
+.gr-echelle { display:flex; align-items:center; gap:8px; font-size:10.5px; color:var(--muted); margin:4px 0; }
+.gr-echelle i { flex:0 1 160px; height:8px; border-radius:4px; }
+.gr-echelle-or { background:linear-gradient(90deg, rgba(200,168,75,0.06), rgba(200,168,75,0.94)); }
+.gr-echelle-signe { background:linear-gradient(90deg, rgba(230,103,103,0.9), #383835, rgba(57,135,229,0.9)); }
+.gr-multiples { display:grid; grid-template-columns:repeat(auto-fill, minmax(130px,1fr)); gap:10px; margin:8px 0; }
+.gr-multiple { background:var(--surface2, #1a1d1c); border-radius:8px; padding:6px 8px 4px; outline:none; }
+.gr-multiple-t { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); }
+.gr-multiple-t b { color:var(--text); font-variant-numeric:tabular-nums; }
+.gr-tuiles { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:8px; margin:8px 0 14px; }
+.gr-tuile { background:var(--surface2, #1a1d1c); border-radius:8px; padding:10px 12px; }
+.gr-tuile span { display:block; font-size:11px; color:var(--muted); }
+.gr-tuile b { display:block; font-size:20px; color:var(--text); font-weight:600; margin:2px 0; }
+.gr-tuile small { font-size:11px; color:var(--muted); }
+.gr-chiffres { font-size:12px; color:var(--text); margin:4px 0 12px; }
+.gr-chiffres summary { cursor:pointer; color:var(--gold); font-size:12px; }
+.gr-chiffres td, .gr-chiffres th { padding:3px 8px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.05); font-variant-numeric:tabular-nums; }
+.gr-titre { font-size:13px; font-weight:700; color:var(--white); margin:16px 0 2px; }
+.gr-sous { font-size:12px; color:var(--muted); line-height:1.5; margin:0 0 4px; }
+.gr-filtres { display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; font-size:12.5px; color:var(--muted); margin:4px 0 12px; padding:8px 10px; background:var(--surface2, #1a1d1c); border-radius:8px; }
+.gr-filtres select { margin-left:6px; padding:4px 8px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:12.5px; max-width:100%; }
 @media (max-width: 700px) {
   .lab-onglets { flex-wrap:nowrap; overflow-x:auto; padding:14px 12px 10px; scrollbar-width:thin; }
   .lab-zone { margin:0 12px 28px; padding:16px 14px; }
