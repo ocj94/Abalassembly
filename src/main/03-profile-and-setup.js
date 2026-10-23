@@ -452,6 +452,7 @@ function setupPick(group, value, btn) {
      AI_DIFFICULTY_CONFIG), pas une description vague inventee a part.
      Demande d'Olivier : des niveaux plus progressifs + voir ce qui change. */
   if (group === 'diff') _setupReflexionDefaut(value);
+  if (group === 'style') _setupReflexionInfo();   // v2.75 : la phrase Texel depend aussi du style
 }
 
 /* Champ « Reflexion max » : rempli avec le temps habituel du niveau choisi (rien ne
@@ -476,6 +477,9 @@ function _setupReflexionInfo() {
   const niv = _setupCfg.diff, cfg = (typeof AI_DIFFICULTY_CONFIG !== 'undefined') ? AI_DIFFICULTY_CONFIG[niv] : null;
   if (!info || !cfg) return;
   let txt = 'Niveau ' + _niveauIA(niv) + ' — ' + cfg.label;
+  // v2.75 : a partir du niveau 4, en style Auto ou Equilibre, l'evaluation reglee sur les vraies parties
+  if ((_niveauIA(niv) || 0) >= AI_NIVEAU_TEXEL && (_setupCfg.style === 'auto' || _setupCfg.style === 'balanced' || !_setupCfg.style))
+    txt += ' Juge les positions avec des poids réglés sur les vraies parties du corpus (méthode Texel).';
   if (!cfg.hasard) {
     const defaut = (cfg.time >= 3600000) ? '' : cfg.time / 1000;
     if (_setupCfg.reflexion !== defaut) txt += _setupCfg.reflexion === ''

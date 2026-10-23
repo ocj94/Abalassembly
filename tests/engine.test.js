@@ -5012,3 +5012,80 @@ test('corpus v2.74 : filtres en anglais (sources, dispositions) et page redessin
   assert.match(corps, /getElementById\('page-corpusstats'\)[^\n]*renderCorpusStatsPage\(\)/);
   assert.match(corps, /getElementById\('page-stats'\)[^\n]*renderStats\(\)/);
 });
+
+/* ─── 68. v2.75 : les poids Texel a partir du niveau 4 ─── */
+
+function _avecNiveau75(niveau, fn, o) {
+  o = o || {};
+  const sauve = _r63('({ d: aiDifficulty, f: _aiForcedMode, t: _tourneyMatch, m: _aiMode })');
+  const ch = ctx.localStorage.getItem('abaLabChampion'), use = ctx.localStorage.getItem('abaLabUse');
+  const toast = ctx.showToast; let toasts = 0; ctx.showToast = () => { toasts++; };
+  _r63('aiDifficulty = ' + JSON.stringify(String(niveau)) + '; _aiForcedMode = ' + JSON.stringify(o.style || null) + '; _tourneyMatch = ' + (o.tournoi ? '{ cfg: { depth: 3, time: 1400 } }' : 'null'));
+  if (o.champion) ctx.localStorage.setItem('abaLabChampion', JSON.stringify(o.champion)); else ctx.localStorage.removeItem('abaLabChampion');
+  ctx.localStorage.removeItem('abaLabUse');
+  try { return fn(() => toasts); } finally {
+    _r63('aiDifficulty = ' + JSON.stringify(sauve.d) + '; _aiForcedMode = ' + JSON.stringify(sauve.f) + '; _aiMode = ' + JSON.stringify(sauve.m));
+    vm_r63_tournoi(sauve.t);
+    ctx.showToast = toast;
+    if (ch === null) ctx.localStorage.removeItem('abaLabChampion'); else ctx.localStorage.setItem('abaLabChampion', ch);
+    if (use === null) ctx.localStorage.removeItem('abaLabUse'); else ctx.localStorage.setItem('abaLabUse', use);
+  }
+}
+function vm_r63_tournoi(t) { ctx.__t75 = t; _r63('_tourneyMatch = this.__t75 || null'); delete ctx.__t75; }
+
+test('ia v2.75 : poids Texel a partir du niveau 4, en Auto ou Equilibre -- jamais pour un autre style, le tournoi ni un champion du Labo', () => {
+  const P = _r63('AI_WEIGHT_PRESETS'), T = P.texel;
+  assert.strictEqual(_r63('AI_NIVEAU_TEXEL'), 4);
+  // 16 criteres, dans les bornes du Labo ; les criteres de KAAH en font partie (calcules par le moteur)
+  const MIN = _r63('SPSA_MIN'), MAX = _r63('SPSA_MAX');
+  const cles = _r63('LAB_CLES_BASE.concat(LAB_CLES_KAAH)');
+  assert.strictEqual(cles.length, 16);
+  cles.forEach(k => assert.ok(typeof T[k] === 'number' && T[k] >= MIN[k] && T[k] <= MAX[k], k + ' = ' + T[k]));
+  assert.ok(T.compac > 0 && T.sumito > 0, 'des criteres de KAAH allumes');
+  const choix = (n, o) => _avecNiveau75(n, nbToasts => ({ w: ctx.updateAIStyle(), mode: _r63('_aiMode'), toasts: nbToasts() }), o);
+  for (const n of [1, 2, 3]) assert.strictEqual(choix(n).w, P.balanced, 'niveau ' + n + ' : comme avant');
+  for (const n of [4, 5, 8, 10]) { const c = choix(n); assert.strictEqual(c.w, T, 'niveau ' + n); assert.strictEqual(c.mode, 'texel'); assert.strictEqual(c.toasts, 0, 'pas d annonce de changement de style'); }
+  assert.strictEqual(choix('advanced').w, T, 'ancien identifiant du niveau 4');
+  assert.strictEqual(choix(4, { style: 'balanced' }).w, T, 'Equilibre choisi');
+  assert.strictEqual(choix(4, { style: 'aggressive' }).w, P.aggressive, 'un style choisi a la main reste le sien');
+  assert.strictEqual(choix(6, { style: 'kaah' }).w, P.kaah);
+  assert.strictEqual(choix(4, { tournoi: true }).w, P.balanced, 'tournoi du mois : meme difficulte pour tout le mois');
+  assert.strictEqual(choix(4, { champion: { center: 7 } }).w, P.balanced, 'champion du Labo adopte : il garde la main');
+  // les bancs du Labo mesurent chaque niveau avec ses poids de partie
+  assert.strictEqual(ctx._aiPoidsNiveau(3), P.balanced); assert.strictEqual(ctx._aiPoidsNiveau(4), T);
+  const plan = _r63('BANCS').niveaux.construire({ jusqua: 5, paires: 2 });
+  const m34 = plan.matchs.find(m => m.bas === 3), m23 = plan.matchs.find(m => m.bas === 2);
+  assert.strictEqual(m34.a.w.compac, T.compac); assert.strictEqual(m34.b.w.compac, 0);
+  assert.strictEqual(m23.a.w.center, P.balanced.center);
+});
+
+test('ia v2.75 : le moteur joue bien avec les poids Texel (criteres de KAAH calcules), et la page le dit', async () => {
+  const { w, ev } = _filKaah();
+  ev('EVAL_W = ' + JSON.stringify(_r63('AI_WEIGHT_PRESETS.texel')) + ';');
+  assert.strictEqual(ev('_kaahActif()'), true);
+  ev('_duelSetup();');
+  const m = w.searchBestMove('black', 2, 2000, []);
+  assert.ok(m && m.cells && m.cells.length >= 1, 'un coup legal');
+  // configuration de partie : la phrase Texel a partir du niveau 4, en Auto ou Equilibre
+  const s = _r63('({ d: _setupCfg.diff, st: _setupCfg.style })');
+  try {
+    await _dom54(async els => {
+      const lire = (d, st) => { _r63('_setupCfg.diff = ' + JSON.stringify(d) + '; _setupCfg.style = ' + JSON.stringify(st)); ctx._setupReflexionInfo(); return els['setup-diff-info'].textContent; };
+      assert.doesNotMatch(lire('3', 'auto'), /Texel/);
+      assert.match(lire('4', 'auto'), /vraies parties du corpus \(méthode Texel\)/);
+      assert.match(lire('7', 'balanced'), /Texel/);
+      assert.doesNotMatch(lire('7', 'defensive'), /Texel/);
+    });
+  } finally { _r63('_setupCfg.diff = ' + JSON.stringify(s.d) + '; _setupCfg.style = ' + JSON.stringify(s.st)); }
+});
+
+test('ia v2.75 : l aide et le Labo disent ou sont les poids Texel, et ce qu ont dit les duels', () => {
+  assert.match(_SRC_INDEX, /À partir du <b>niveau 4<\/b>, en style Auto ou Équilibré/);
+  assert.match(_SRC_INDEX, /From <b>level 4<\/b>, in Auto or Balanced style/);
+  const D = _r63('AI_TEXEL_DUELS');
+  assert.ok(D.length >= 2 && D.every(d => d.elo > 0 && d.elo - d.marge > 0), 'chaque duel retenu est gagne, marge comprise');
+  D.forEach(d => assert.ok(d.points > d.sur / 2 && d.sur === 2 * d.paires));
+  const h = ctx._txHtmlDansIA();
+  assert.match(h, /Dans l’IA depuis la v2\.75/); assert.match(h, /niveau 4/);
+  D.forEach(d => assert.ok(h.indexOf('+' + d.elo + ' ± ' + d.marge + ' Elo') > 0, d.cadre));
+});

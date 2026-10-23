@@ -3776,7 +3776,7 @@
 <li><b>Disposition de départ</b> : <i>Standard</i>, <i>Belgian Daisy</i> (la Marguerite belge des tournois)… et <i>Découverte</i>, 7 billes par camp, idéale pour débuter.</li>
 <li><b>Adversaire</b> : <i>Contre l'IA</i>, ou à deux, sur le <i>Même appareil</i> ou <i>En direct</i> (voir « Jouer à deux »).</li>
 <li><b>Qui commence ?</b> Les Noirs jouent en premier : <i>Moi</i> te donne les Noirs, <i>Adversaire</i> les Blancs, <i>Aléatoire</i> tire au sort.</li>
-<li><b>Niveau</b> de 1 à 10, et <b>Style de l'IA</b> (Auto, Agressif, Défensif, Division, Équilibré, KAAH expérimental).</li>
+<li><b>Niveau</b> de 1 à 10, et <b>Style de l'IA</b> (Auto, Agressif, Défensif, Division, Équilibré, KAAH expérimental). À partir du <b>niveau 4</b>, en style Auto ou Équilibré, l'IA juge les positions avec des poids réglés sur les vraies parties du corpus (méthode Texel du Labo) : nettement plus forte qu'avant à niveau égal.</li>
 <li><b>Réflexion max (s)</b> : le temps de réflexion de l'IA. Rempli avec le temps habituel du niveau ; vide, elle réfléchit jusqu'à trouver.</li>
 <li><b>Cadence</b> : Libre, 3 cadences toutes prêtes, <i>Chrono</i>, ou <i>Personnaliser…</i> (bonus ou délai par coup, bonus par éjection).</li>
 <li><b>Aides</b> : coups possibles mis en évidence, coordonnées a1…i9.</li>
@@ -3883,7 +3883,7 @@
 <li><b>Starting layout</b>: <i>Standard</i>, <i>Belgian Daisy</i> (the tournament layout)… and <i>Discovery</i>, 7 marbles per side, ideal for beginners.</li>
 <li><b>Opponent</b>: <i>Against the AI</i>, or two players, on the <i>Same device</i> or <i>Live</i> (see “Playing a friend”).</li>
 <li><b>Who starts?</b> Black moves first: <i>Me</i> gives you Black, <i>Opponent</i> gives you White, <i>Random</i> draws lots.</li>
-<li><b>Level</b> from 1 to 10, and <b>AI style</b> (Auto, Aggressive, Defensive, Divide, Balanced, KAAH experimental).</li>
+<li><b>Level</b> from 1 to 10, and <b>AI style</b> (Auto, Aggressive, Defensive, Divide, Balanced, KAAH experimental). From <b>level 4</b>, in Auto or Balanced style, the AI judges positions with weights tuned on the corpus’s real games (the Lab’s Texel method): clearly stronger than before at the same level.</li>
 <li><b>Max thinking time (s)</b>: how long the AI may think. Filled in with the level’s usual time; left empty, the AI thinks until it finds a move.</li>
 <li><b>Time control</b>: Untimed, 3 ready-made controls, <i>Clock</i>, or <i>Customize…</i> (increment or delay per move, bonus per ejection).</li>
 <li><b>Aids</b>: possible moves highlighted, a1…i9 coordinates.</li>

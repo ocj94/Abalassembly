@@ -179,7 +179,7 @@ function lancerConcordance(){
     const L = []; for (let i = 0; i < _lpN(); i++) if (!_lpEstDepart(i) && _lpPartie(i) % 5 === 0) L.push(i);
     const P = _huEchantillon(L, CONC_POSITIONS), pos = P.map(_lpPourFil), humains = P.map(function(i){ return _huCoupCode(_lpCoup(i)); });
     const facons = [];
-    for (let n = 1; n <= haut; n++) facons.push({ nom: 'Niveau ' + n, w: _labComplet(AI_WEIGHT_PRESETS.balanced), cfg: _niveauCfg(n) });
+    for (let n = 1; n <= haut; n++) facons.push({ nom: 'Niveau ' + n, w: _labComplet(_aiPoidsNiveau(n)), cfg: _niveauCfg(n) });   // v2.75 : les poids du niveau
     if (AI_WEIGHT_PRESETS.humain) facons.push({ nom: 'Humain, niveau 3', w: _labComplet(AI_WEIGHT_PRESETS.humain), cfg: _niveauCfg(3) });
     const lots = []; facons.forEach(function(f, fi){ _huLots(pos.map(function(p, i){ return i; }), 20).forEach(function(L2){ lots.push({ fi: fi, L: L2 }); }); });
     const egal = facons.map(function(){ return 0; }), vus = facons.map(function(){ return 0; });
