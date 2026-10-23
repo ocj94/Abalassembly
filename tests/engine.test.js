@@ -4899,3 +4899,55 @@ test('corpus v2.72 : ou sont les billes -- 28 billes par position au depart, pou
     assert.match(els['corpus-occupation'].innerHTML, /D’où partent les poussées/);
   } finally { ctx.document.getElementById = sG; }
 });
+
+// ═══════════════════════════════════════════
+// 66. v2.73 : Mes statistiques -- filtres qui filtrent, partie par partie, moi contre le corpus, export
+// ═══════════════════════════════════════════
+function _histo66(){
+  return _r63(`(function(){ const B=_sbBanques(), L=[];
+    for (let i=0;i<6;i++){ const g=B[0][i*11], dep=_sbDepart(0,g), J=_sbJetons(0,g); const sv=board; board=Object.assign({},dep.board); let col='black', body='', cb=0, cw=0;
+      for(let k=0;k<J.length;k++){ const mv=resolveAbaProToken(J[k],col,getAllMovesForColor(col)); if(!mv) break; body+=mv.cells.length+mv.cells.map(c=>coordToABAPRO(c.r,c.c)).join('')+_gcDirIndex(mv.dir); if(abApplyMove(mv.cells,mv.dir,col,mv.info).ejected){ if(col==='black') cb++; else cw++; } col=col==='black'?'white':'black'; }
+      board=sv;
+      L.push({ id:'t'+i, date:new Date(Date.now()-i*20*86400000).toISOString(), variant:'belgian', mode:i%2?'ai':'import', humanColor:'black', winner:cb>cw?'black':(cw>cb?'white':null), moveCount:J.length, aiDiff:i%2?'3':null, aiStyle:i%2?'auto':null, blackName:'Alex', whiteName:i%2?'':'Bob', code:'ABAL1:belgian:Alex|Bob:'+body }); }
+    return L; })()`);
+}
+test('mes statistiques v2.73 : la periode et le type filtrent vraiment, seulement pendant le rendu de la page', async () => {
+  await ctx.ensureGameBanks();
+  const avant = ctx.localStorage.getItem('abaGameHistory'), avantF = ctx.localStorage.getItem('abaMsFiltre');
+  try {
+    ctx.localStorage.setItem('abaGameHistory', JSON.stringify(_histo66()));
+    _r63("_msFiltre = { periode: 30, type: 'tout' }");
+    assert.strictEqual(ctx.getMesParties().length, 6, 'hors de la page : toutes les parties (historique, Labo, synchro…)');
+    _r63('_msFiltreApplique = true');
+    try { assert.strictEqual(ctx.getMesParties().length, 2, '30 derniers jours : 2 parties (0 et 20 jours)'); } finally { _r63('_msFiltreApplique = false'); }
+    _r63("_msFiltre = { periode: 0, type: 'ai' }");
+    assert.strictEqual(ctx._msParties().length, 3);
+    assert.ok(ctx._msParties().every(e => e.mode === 'ai'));
+    // partie par partie : ejections et precision
+    _r63("_msFiltre = { periode: 0, type: 'tout' }");
+    const ej = ctx.computeEjectionStats(), pr = ctx.computeDecisionProfile();
+    assert.strictEqual(ej.parties.length, 6); assert.strictEqual(ej.parties.reduce((a, x) => a + x.faites, 0), ej.realisees);
+    assert.strictEqual(pr.parties.reduce((a, x) => a + x.coups, 0), pr.totalMoves);
+    // l'export CSV
+    _r63('_msDernier.ej = ' + JSON.stringify(ej) + '; _msDernier.profil = ' + JSON.stringify(pr));
+    let fichier = null; const sDl = ctx._dl, sT = ctx.showToast; ctx._dl = (nom, txt) => { fichier = { nom, txt }; return true; }; ctx.showToast = () => {};
+    try { ctx.msExporterCSV(); } finally { ctx._dl = sDl; ctx.showToast = sT; }
+    const lignes = fichier.txt.split('\n');
+    assert.match(fichier.nom, /^abalassembly-mes-parties-\d{4}-\d\d-\d\d\.csv$/);
+    assert.strictEqual(lignes.length, 7); assert.match(lignes[0], /^date,type,disposition,couleur,adversaire/);
+    assert.ok(lignes.slice(1).some(l => /,import,belgian,black,Bob,/.test(l)), 'l adversaire d une partie importee');
+  } finally {
+    if (avant === null) ctx.localStorage.removeItem('abaGameHistory'); else ctx.localStorage.setItem('abaGameHistory', avant);
+    if (avantF === null) ctx.localStorage.removeItem('abaMsFiltre'); else ctx.localStorage.setItem('abaMsFiltre', avantF);
+    _r63("_msFiltre = { periode: 0, type: 'tout' }; _msDernier = { ej: null, profil: null }");
+  }
+});
+
+test('mes statistiques v2.73 : centile au milieu des egalites -- des positions du corpus donnent 50 en moyenne', async () => {
+  await ctx.ensureEmpreintesHistoriques();
+  const d = ctx.distributionDimension('profondeurTactique', 'tous');
+  // la mediane d'une dimension aux valeurs souvent egales : le centile strict tombe bas, le milieu des egalites non
+  const v = d.median, strict = ctx.pourcentEnDessous(d, v), milieu = ctx._msCentile(d, v);
+  assert.ok(milieu > strict, strict + ' -> ' + milieu);
+  assert.ok(Math.abs(milieu - 50) < Math.abs(strict - 50) + 1e-9);
+});

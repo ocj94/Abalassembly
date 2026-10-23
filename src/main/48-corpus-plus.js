@@ -205,4 +205,3 @@ async function corpusPlusRendre(){
   if (typeof ensureGameBanks === 'function') { try { await ensureGameBanks(); } catch (e) {} }
   _cfRendreTout();
 }
-</script>

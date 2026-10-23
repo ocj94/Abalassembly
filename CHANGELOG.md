@@ -9,6 +9,38 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.73]
+
+### Ajouté — Mes statistiques et le Profil, filtrés et en graphiques
+Troisième partie de la demande d'Olivier (« plus de paramètres, de
+graphiques, de métriques… »), après le Labo et le corpus.
+- **Les filtres filtrent** : les onglets de période (7 jours, 30 jours,
+  90 jours, 1 an, Tout) ne faisaient qu'afficher un message ; ils filtrent
+  maintenant toute la page, avec un choix du **type de partie** (contre
+  l'IA, importées, à deux). Le reste du site (historique, Labo, synchro)
+  voit toujours toutes tes parties.
+- **Résultats détaillés** : ton score et le **taux glissant** sur tes
+  10 dernières parties, puis par niveau de l'IA, par style, par couleur,
+  par disposition et par adversaire (parties importées ou à deux).
+- **Ma progression** : la **précision** partie par partie (coups proches du
+  meilleur choix), les billes faites et perdues, la longueur des parties
+  (victoires et défaites en couleur), et **quand tu joues** (jours de la
+  semaine × tranches de 4 heures).
+- **Moi contre le corpus** : tes **12 dimensions** face aux 427 000
+  positions des vrais joueurs (ton centile moyen, 50 = comme eux), et
+  **tes ouvertures** face au livre : part de coups connus, part du coup le
+  plus joué, taux de victoire de tes choix chez les humains contre celui
+  du meilleur coup possible.
+- **Export CSV** de tes parties (filtres appliqués) avec leurs chiffres :
+  adversaire, niveau, résultat, billes faites et perdues, précision.
+- **Le Profil** gagne une carte « Mes chiffres » : score, 10 dernières
+  parties, meilleure série, plus haut niveau battu, et la courbe du score.
+- Le centile se calcule « au milieu des égalités » : sur des dimensions aux
+  valeurs souvent égales, le centile strict plaçait les vrais joueurs
+  eux-mêmes au 24ᵉ centile au lieu du 50ᵉ (vérifié sur 3 891 positions du
+  corpus).
+- 2 tests nouveaux (267 au total).
+
 ## [v2.72]
 
 ### Ajouté — les Statistiques du jeu, filtrées et en graphiques

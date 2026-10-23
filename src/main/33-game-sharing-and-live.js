@@ -579,7 +579,8 @@ let _historyFilters = { variant:'all', mode:'all', result:'all', search:'' };
    enregistrees avant l'ajout de ce champ) est compte sous 'actuel', qui
    est la valeur par defaut reelle de _engineMode a cette epoque. */
 function computeEngineStats(){
-  const history = getGameHistory().filter(function(e){ return e.mode === 'ai'; });
+  let history = getGameHistory().filter(function(e){ return e.mode === 'ai'; });
+  if (typeof _msFiltrer === 'function') history = _msFiltrer(history);   // v2.73 : la periode choisie
   const stats = {};
   history.forEach(function(e){
     const eng = e.engine || 'actuel';
@@ -638,6 +639,7 @@ function renderEjectionStats(){
   const host = document.getElementById('ejection-stats-personal');
   if (!host) return;
   const s = computeEjectionStats();
+  if (typeof _msDernier === 'object' && _msDernier) _msDernier.ej = s;   // v2.73 : repris par Ma progression et l'export, sans refaire le rejeu
   if (!s) {
     host.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px 0">Aucune partie archivée pour l\u2019instant.</div>';
     return;
@@ -717,6 +719,7 @@ function renderDecisionProfile(){
   const host = document.getElementById('decision-profile-personal');
   if (!host) return;
   const profil = computeDecisionProfile();
+  if (typeof _msDernier === 'object' && _msDernier) _msDernier.profil = profil;   // v2.73 : repris par Ma progression et l'export
   if (!profil) {
     host.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px 0">Aucune partie archivée pour l\u2019instant.</div>';
     return;

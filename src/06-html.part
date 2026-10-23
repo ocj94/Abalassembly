@@ -2166,6 +2166,7 @@
       <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px">🔥 Carte de chaleur — où tu joues</div>
       <div id="heatmap-host"></div>
     </div>
+    <div id="profil-chiffres" style="margin-bottom:24px"></div>
     <div id="profile-progression" style="margin-bottom:24px"></div>
 
     <!-- THEME CUSTOMIZER -->
@@ -3834,7 +3835,7 @@
 <li><b>Sur un vrai plateau</b> : apprendre Abalone aux enfants à partir de 3 ans, sans écran — la sécurité, les règles d’or, 8 petites étapes avec leurs schémas, un carnet de progrès et une fiche à imprimer.</li>
 <li><b>Problèmes</b> : des positions à résoudre, tirées de vraies parties.</li>
 <li><b>Ouvertures</b> : les débuts de partie, avec leurs taux de gain réels.</li>
-<li><b>Analyse</b> et <b>Mes statistiques</b> : ta progression, ton classement, ton style ; dans la carte Éjections, tes remontées, où tombent tes billes et toi face aux vrais joueurs.</li>
+<li><b>Analyse</b> et <b>Mes statistiques</b> : ta progression, ton classement, ton style ; filtres par période et par type de partie ; tes résultats par niveau, style, couleur, disposition et adversaire ; ta précision partie par partie ; tes 12 dimensions et tes ouvertures face aux vrais joueurs ; export CSV. Dans la carte Éjections, tes remontées, où tombent tes billes et toi face aux vrais joueurs.</li>
 <li><b>Gym Cerveau</b> : des exercices courts de vision du jeu. <b>⚔️ Duel Cerveau</b> : relie-toi à un ami (<i>Se connecter à un ami</i>, même code que pour jouer en direct), puis <i>Lancer un duel</i> — 3 manches de vitesse, la même position pour vous deux ; le meilleur score gagne la manche, à égalité le plus rapide. Une barre face à face, aux couleurs du thème de chacun, montre qui pousse qui : au front, 1 bille contre 1 à égalité, jusqu'à 3 contre 1 pour celui qui mène ; la pastille verte ✓ veut dire que l'autre a déjà répondu.</li>
 <li><b>Formation Formateurs</b> : pour animer des ateliers.</li>
 </ul>
@@ -3941,7 +3942,7 @@
 <li><b>On a real board</b>: teaching Abalone to children from age 3, screen-free — safety, golden rules, 8 small steps with diagrams, a progress notebook and a printable guide.</li>
 <li><b>Puzzles</b>: positions to solve, taken from real games.</li>
 <li><b>Openings</b>: how games begin, with their real win rates.</li>
-<li><b>Analysis</b> and <b>My statistics</b>: your progress, your rating, your style; in the Ejections card, your comebacks, where your marbles fall and you against real players.</li>
+<li><b>Analysis</b> and <b>My statistics</b>: your progress, your rating, your style; filters by period and game type; your results by level, style, colour, layout and opponent; your accuracy game by game; your 12 dimensions and openings against real players; CSV export. In the Ejections card, your comebacks, where your marbles fall and you against real players.</li>
 <li><b>Brain Gym</b>: short board-vision exercises. <b>⚔️ Brain Duel</b>: link up with a friend (<i>Connect to a friend</i>, the same code as for live play), then <i>Start a duel</i> — 3 speed rounds, the same position for both of you; the best score wins the round, the fastest breaks a tie. A face-to-face bar, in each player’s theme colours, shows who is pushing whom: at the front, 1 marble against 1 when level, up to 3 against 1 for the leader; the green ✓ dot means the other player has already answered.</li>
 <li><b>Trainer course</b>: for running workshops.</li>
 </ul>
@@ -4176,6 +4177,8 @@
       <button class="period-tab" onclick="setStatsPeriod(365,this)">1 an</button>
       <button class="period-tab active" onclick="setStatsPeriod(0,this)">Tout</button>
     </div>
+    <!-- v2.73 : le type de partie et l'export (49-mes-stats-plus.js) ; la periode ci-dessus filtre vraiment -->
+    <div id="ms-filtres"></div>
 
     <!-- Player summary -->
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">
@@ -4240,6 +4243,9 @@
         <div style="font-size:11px;color:var(--muted);margin-top:3px">non suivi</div>
       </div>
     </div>
+
+    <!-- v2.73 : resultats detailles, ma progression, moi contre le corpus (49-mes-stats-plus.js) -->
+    <div id="ms-plus"></div>
 
     <!-- Statistiques par moteur -- general (benchmark connu) + personnel
          (calcule depuis l'historique de parties). -->

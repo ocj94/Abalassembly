@@ -66,7 +66,8 @@ function getGameHistory(){
    filtre, importer 85 parties d'un tournoi les comptait toutes comme les
    tiennes (ejections, noir/blanc, profil de decision, carte d'activite). */
 function estMaPartie(e){ return !(e && e.spectateur); }
-function getMesParties(){ return getGameHistory().filter(estMaPartie); }
+// v2.73 : pendant le rendu de Mes statistiques, la periode et le type de partie choisis (49-mes-stats-plus.js)
+function getMesParties(){ const L = getGameHistory().filter(estMaPartie); return (typeof _msFiltrer === 'function') ? _msFiltrer(L) : L; }
 
 /* Le resultat de TA partie (v2.68) : 'victoire', 'defaite', 'nulle', ou null
    (partie consultee, partie a deux sur le meme ecran, resultat inconnu).

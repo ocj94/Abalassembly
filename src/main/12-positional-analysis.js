@@ -906,6 +906,7 @@ function computeEjectionStats(){
   const premiere = { perdue: { n: 0, g: 0 }, faite: { n: 0, g: 0 } };
   const carteSubies = new Array(61).fill(0), sortes = [0, 0, 0, 0, 0, 0, 0, 0];
   const avecSb = (typeof _sbClasser === 'function');
+  const parties = [];   // v2.73 : partie par partie (Ma progression, export CSV)
 
   history.forEach(function(entry){
     if (!entry.code) return;
@@ -914,7 +915,7 @@ function computeEjectionStats(){
     const humanC = entry.humanColor || 'black';
     currentLayout = parsed.layout || 'standard';
     initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
-    let turn = 'black', thisGameEj = 0, firstEjThisGame = null, ply = 0, premierCamp = null;
+    let turn = 'black', thisGameEj = 0, firstEjThisGame = null, ply = 0, premierCamp = null, subiesIci = 0;
     for (let i = 0; i < parsed.moves.length; i++) {
       const mv = parsed.moves[i];
       const v = validateMove(mv.cells, mv.dir, turn);
@@ -937,7 +938,7 @@ function computeEjectionStats(){
         }
       } else {
         if (v.ejection) {
-          subies++;
+          subies++; subiesIci++;
           const rc = avecSb ? _sbCaseEjectee(mv, v) : null;
           if (rc) { const idx = _sbIndex(rc.r, rc.c); carteSubies[humanC === 'white' ? 60 - idx : idx]++; }
         }
@@ -946,7 +947,7 @@ function computeEjectionStats(){
       applyMove({cells:mv.cells, dir:mv.dir, info:v}, turn);
       turn = (turn === 'black') ? 'white' : 'black';
     }
-    if (ply > 0) gamesWithData++;
+    if (ply > 0) { gamesWithData++; parties.push({ id: entry.id, date: entry.date, faites: thisGameEj, subies: subiesIci, plis: ply }); }
     if (thisGameEj > bestGame) bestGame = thisGameEj;
     if (firstEjThisGame !== null) firstEjPlies.push(firstEjThisGame);
     if (premierCamp && (entry.winner === 'black' || entry.winner === 'white')) {
@@ -969,7 +970,7 @@ function computeEjectionStats(){
     partiesAvecEjection: firstEjPlies.length,
     meilleurePartie: bestGame,
     byPhase: byPhase,
-    premiere: premiere, carteSubies: carteSubies, sortes: sortes
+    premiere: premiere, carteSubies: carteSubies, sortes: sortes, parties: parties
   };
 }
 
@@ -1230,6 +1231,7 @@ function computeDecisionProfile(){
   const saveLayout = currentLayout, saveBoard = board, saveCB = CapturedByBlack.get(), saveCW = CapturedByWhite.get();
   let totalMoves = 0, closeToBest = 0, brancheSum = 0;
   let easyCount = 0, easyFound = 0, hardCount = 0, hardFound = 0;
+  const parties = [];   // v2.73 : precision partie par partie (Ma progression, export CSV)
 
   history.forEach(function(entry){
     if (!entry.code) return;
@@ -1238,7 +1240,7 @@ function computeDecisionProfile(){
     const humanC = entry.humanColor || 'black';
     currentLayout = parsed.layout || 'standard';
     initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
-    let turn = 'black';
+    let turn = 'black', nIci = 0, prochesIci = 0;
     for (let i = 0; i < parsed.moves.length; i++) {
       const mv = parsed.moves[i];
       const v = validateMove(mv.cells, mv.dir, turn);
@@ -1256,8 +1258,8 @@ function computeDecisionProfile(){
           const best = Math.max.apply(null, scores), worst = Math.min.apply(null, scores);
           const scoreJoue = scores[idxJoue];
           const trouve = (best - scoreJoue) <= SEUIL_PROCHE_MEILLEUR;
-          totalMoves++; brancheSum += legal.length;
-          if (trouve) closeToBest++;
+          totalMoves++; brancheSum += legal.length; nIci++;
+          if (trouve) { closeToBest++; prochesIci++; }
           const gap = best - worst;
           if (gap > SEUIL_ECART_DECISION_DISPUTEE) { easyCount++; if (trouve) easyFound++; }
           else { hardCount++; if (trouve) hardFound++; }
@@ -1266,6 +1268,7 @@ function computeDecisionProfile(){
       applyMove({cells:mv.cells, dir:mv.dir, info:v}, turn);
       turn = (turn === 'black') ? 'white' : 'black';
     }
+    if (nIci) parties.push({ id: entry.id, date: entry.date, coups: nIci, proches: prochesIci });
   });
 
   currentLayout = saveLayout; board = saveBoard; CapturedByBlack.set(saveCB); CapturedByWhite.set(saveCW);
@@ -1276,7 +1279,8 @@ function computeDecisionProfile(){
     tauxProcheMeilleur: +(closeToBest/totalMoves*100).toFixed(1),
     brancheMoyenne: +(brancheSum/totalMoves).toFixed(1),
     easyCount: easyCount, easyFoundPct: easyCount ? +(easyFound/easyCount*100).toFixed(1) : null,
-    hardCount: hardCount, hardFoundPct: hardCount ? +(hardFound/hardCount*100).toFixed(1) : null
+    hardCount: hardCount, hardFoundPct: hardCount ? +(hardFound/hardCount*100).toFixed(1) : null,
+    parties: parties
   };
 }
 
