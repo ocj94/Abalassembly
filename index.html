@@ -7235,7 +7235,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
 <li><b>Disposition de départ</b> : <i>Standard</i>, <i>Belgian Daisy</i> (la Marguerite belge des tournois)… et <i>Découverte</i>, 7 billes par camp, idéale pour débuter.</li>
 <li><b>Adversaire</b> : <i>Contre l'IA</i>, ou à deux, sur le <i>Même appareil</i> ou <i>En direct</i> (voir « Jouer à deux »).</li>
 <li><b>Qui commence ?</b> Les Noirs jouent en premier : <i>Moi</i> te donne les Noirs, <i>Adversaire</i> les Blancs, <i>Aléatoire</i> tire au sort.</li>
-<li><b>Niveau</b> de 1 à 10, et <b>Style de l'IA</b> (Auto, Agressif, Défensif, Division, Équilibré, KAAH expérimental).</li>
+<li><b>Niveau</b> de 1 à 10, et <b>Style de l'IA</b> (Auto, Agressif, Défensif, Division, Équilibré, KAAH expérimental). À partir du <b>niveau 4</b>, en style Auto ou Équilibré, l'IA juge les positions avec des poids réglés sur les vraies parties du corpus (méthode Texel du Labo) : nettement plus forte qu'avant à niveau égal.</li>
 <li><b>Réflexion max (s)</b> : le temps de réflexion de l'IA. Rempli avec le temps habituel du niveau ; vide, elle réfléchit jusqu'à trouver.</li>
 <li><b>Cadence</b> : Libre, 3 cadences toutes prêtes, <i>Chrono</i>, ou <i>Personnaliser…</i> (bonus ou délai par coup, bonus par éjection).</li>
 <li><b>Aides</b> : coups possibles mis en évidence, coordonnées a1…i9.</li>
@@ -7342,7 +7342,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
 <li><b>Starting layout</b>: <i>Standard</i>, <i>Belgian Daisy</i> (the tournament layout)… and <i>Discovery</i>, 7 marbles per side, ideal for beginners.</li>
 <li><b>Opponent</b>: <i>Against the AI</i>, or two players, on the <i>Same device</i> or <i>Live</i> (see “Playing a friend”).</li>
 <li><b>Who starts?</b> Black moves first: <i>Me</i> gives you Black, <i>Opponent</i> gives you White, <i>Random</i> draws lots.</li>
-<li><b>Level</b> from 1 to 10, and <b>AI style</b> (Auto, Aggressive, Defensive, Divide, Balanced, KAAH experimental).</li>
+<li><b>Level</b> from 1 to 10, and <b>AI style</b> (Auto, Aggressive, Defensive, Divide, Balanced, KAAH experimental). From <b>level 4</b>, in Auto or Balanced style, the AI judges positions with weights tuned on the corpus’s real games (the Lab’s Texel method): clearly stronger than before at the same level.</li>
 <li><b>Max thinking time (s)</b>: how long the AI may think. Filled in with the level’s usual time; left empty, the AI thinks until it finds a move.</li>
 <li><b>Time control</b>: Untimed, 3 ready-made controls, <i>Clock</i>, or <i>Customize…</i> (increment or delay per move, bonus per ejection).</li>
 <li><b>Aids</b>: possible moves highlighted, a1…i9 coordinates.</li>
@@ -8611,7 +8611,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.74';
+const APP_VERSION = 'v2.75';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -10300,6 +10300,7 @@ function setupPick(group, value, btn) {
      AI_DIFFICULTY_CONFIG), pas une description vague inventee a part.
      Demande d'Olivier : des niveaux plus progressifs + voir ce qui change. */
   if (group === 'diff') _setupReflexionDefaut(value);
+  if (group === 'style') _setupReflexionInfo();   // v2.75 : la phrase Texel depend aussi du style
 }
 
 /* Champ « Reflexion max » : rempli avec le temps habituel du niveau choisi (rien ne
@@ -10324,6 +10325,9 @@ function _setupReflexionInfo() {
   const niv = _setupCfg.diff, cfg = (typeof AI_DIFFICULTY_CONFIG !== 'undefined') ? AI_DIFFICULTY_CONFIG[niv] : null;
   if (!info || !cfg) return;
   let txt = 'Niveau ' + _niveauIA(niv) + ' — ' + cfg.label;
+  // v2.75 : a partir du niveau 4, en style Auto ou Equilibre, l'evaluation reglee sur les vraies parties
+  if ((_niveauIA(niv) || 0) >= AI_NIVEAU_TEXEL && (_setupCfg.style === 'auto' || _setupCfg.style === 'balanced' || !_setupCfg.style))
+    txt += ' Juge les positions avec des poids réglés sur les vraies parties du corpus (méthode Texel).';
   if (!cfg.hasard) {
     const defaut = (cfg.time >= 3600000) ? '' : cfg.time / 1000;
     if (_setupCfg.reflexion !== defaut) txt += _setupCfg.reflexion === ''
@@ -21348,8 +21352,48 @@ const AI_WEIGHT_PRESETS = {
   // jamais choisi par le profilage automatique, seulement a la demande, en attendant le verdict du Labo
   // (test « Criteres de KAAH », page Labo).
   kaah:      { center:6, cohesion:4, edge:8,  mob:2, iso:18, dng:14, chain:10, fortress:20,
-               scGain:200, scPerte:200, cases:1, compac:20, sumito:20, menace:120, fourch:60, piege:40, label:'KAAH (expérimental)' }
+               scGain:200, scPerte:200, cases:1, compac:20, sumito:20, menace:120, fourch:60, piege:40, label:'KAAH (expérimental)' },
+  /* v2.75 (choix d'Olivier, « solution 2 ») : les poids trouves par la methode Texel du Labo, avec ses
+     reglages par defaut -- 15 036 positions calmes de vraies parties pour regler, 3 819 pour verifier
+     (refaire le calcul : node tools/texel-poids.js -- memes positions, meme methode que le Labo).
+     Ils devinent mieux le gagnant (73,1 % -> 75,8 % des positions de controle) et, surtout, gagnent
+     leurs duels contre « equilibre », par paires depuis de vraies positions : voir AI_TEXEL_DUELS.
+     Leur evaluation est plus lourde (criteres de KAAH : environ 17 % de positions de moins par seconde) :
+     a temps egal, elle voit souvent un demi-coup de moins que « equilibre » -- et gagne quand meme.
+     Utilises a partir du niveau 4 (AI_NIVEAU_TEXEL), en style Auto ou Equilibre : voir _aiPoidsTexel. */
+  texel:     { center:24.3, cohesion:0, edge:4.1, mob:3, iso:11, dng:0, chain:0.7, fortress:0,
+               scGain:8, scPerte:0, cases:0.8, compac:60, sumito:19.4, menace:0, fourch:5.5, piege:12.7, label:'Texel (vraies parties)' }
 };
+const AI_NIVEAU_TEXEL = 4;
+// les duels qui ont decide (Elo des poids Texel contre « equilibre », marge a 95 %) -- affiches dans le Labo
+const AI_TEXEL_DUELS = [
+  { cadre: 'profondeur 2', paires: 24, points: 42, sur: 48, elo: 338, marge: 145 },
+  { cadre: 'niveau 4', paires: 16, points: 27.5, sur: 32, elo: 314, marge: 198 },
+  { cadre: 'niveau 5', paires: 16, points: 29, sur: 32, elo: 394, marge: 250 },
+  { cadre: 'niveau 6', paires: 10, points: 17.5, sur: 20, elo: 338, marge: 278 }
+];
+/* l'echelle autour du changement (chaque niveau contre le precedent, 10 paires, memes departs) : avant,
+   les niveaux 3 et 4 etaient a egalite ; le gain des poids Texel tombe donc sur cette marche */
+const AI_TEXEL_MARCHES = [
+  { marche: '2 → 3', elo: 191, marge: 146 },
+  { marche: '3 → 4', avant: { elo: 17, marge: 114 }, elo: 382, marge: 299 },
+  { marche: '4 → 5', elo: 127, marge: 163 }
+];
+// un champion du Labo adopte sur cet appareil (case « utiliser les poids du Labo ») : le choix de son proprietaire
+function _labChampionAdopte(){ try { return localStorage.getItem('abaLabUse') !== '0' && !!JSON.parse(localStorage.getItem('abaLabChampion') || 'null'); } catch (e) { return false; } }
+/* v2.75 : les poids Texel pour ce coup ? Niveau 4 et plus, style Auto (le profilage ne change plus les
+   poids a ces niveaux : Texel bat aussi les styles qu'il choisissait -- duels a profondeur 2, 8 paires
+   chacun : Agressif +163 ± 168, Defensif +338 ± 310, Division +163 ± 155 Elo)
+   ou Equilibre choisi. Jamais : un autre style choisi a la main, le tournoi du mois (meme difficulte pour
+   tout le mois, pour tout le monde), ni quand un champion du Labo est adopte sur l'appareil. */
+function _aiPoidsTexel(mode){
+  if (_aiForcedMode && mode !== 'balanced') return false;
+  if (typeof _tourneyMatch !== 'undefined' && _tourneyMatch) return false;
+  const n = (typeof _niveauIA === 'function') ? _niveauIA() : null;
+  return !!n && n >= AI_NIVEAU_TEXEL && !_labChampionAdopte();
+}
+// les poids d'un niveau, tels qu'en partie en style Auto (bancs d'essai du Labo)
+function _aiPoidsNiveau(n){ return (n >= AI_NIVEAU_TEXEL && !_labChampionAdopte()) ? AI_WEIGHT_PRESETS.texel : AI_WEIGHT_PRESETS.balanced; }
 let aiAdaptive = true;     // profilage activé par défaut
 let _aiMode = 'balanced';
 let _aiForcedMode = null;   // null = profilage auto ; sinon force un style (UI manuelle)
@@ -21374,11 +21418,12 @@ function deriveAIMode(){
 
 // Met à jour les poids de l'IA selon le style détecté ; signale un changement de mode.
 function updateAIStyle(){
-  const mode = _aiForcedMode ? _aiForcedMode : deriveAIMode();
+  let mode = _aiForcedMode ? _aiForcedMode : deriveAIMode();
+  if (_aiPoidsTexel(mode)) mode = 'texel';   // v2.75 : niveaux 4 et plus
   const w = AI_WEIGHT_PRESETS[mode] || AI_WEIGHT_PRESETS.balanced;
   if(mode !== _aiMode){
     _aiMode = mode;
-    if(mode !== 'balanced' && typeof showToast === 'function') showToast('🤖 IA : mode ' + w.label + (_aiForcedMode ? ' (forcé)' : ' (auto)'));
+    if(mode !== 'balanced' && mode !== 'texel' && typeof showToast === 'function') showToast('🤖 IA : mode ' + w.label + (_aiForcedMode ? ' (forcé)' : ' (auto)'));
   }
   return w;
 }
@@ -41986,6 +42031,19 @@ function texelEnDuels(){
 const TEXEL_LIBELLES = { dispo: { tout: 'toutes les dispositions', belgian: 'Marguerite belge' }, phase: { tout: 'toute la partie', debut: 'début (demi-coups 10 à 29)', milieu: 'milieu (30 à 69)', fin: 'fin (70 et plus)' },
   rappel: { 0: 'aucun', 0.05: 'léger', 0.2: 'moyen', 1: 'fort' }, etapes: { 400: '400', 800: '800', 1600: '1 600' } };
 function _txSelect(k, c){ const L = TEXEL_LIBELLES[k]; return '<select onchange="texelCfgSet(\'' + k + '\', this.value)"' + (_txEnCours ? ' disabled' : '') + '>' + Object.keys(L).map(function(v){ return '<option value="' + v + '"' + (String(c[k]) === v ? ' selected' : '') + '>' + L[v] + '</option>'; }).join('') + '</select>'; }
+// v2.75 : les poids Texel sont dans l'IA a partir du niveau 4 -- ce qu'ont dit les duels
+function _txHtmlDansIA(){
+  if (typeof AI_WEIGHT_PRESETS === 'undefined' || !AI_WEIGHT_PRESETS.texel) return '';
+  const D = (typeof AI_TEXEL_DUELS !== 'undefined') ? AI_TEXEL_DUELS : [];
+  let h = '<div class="lab-note lab-texel-ia">✅ <b>Dans l’IA depuis la v2.75</b> : à partir du <b>niveau ' + AI_NIVEAU_TEXEL + '</b>, en style Auto ou Équilibré, l’IA juge les positions avec les poids Texel calculés ici avec les réglages par défaut. '
+    + 'Duels contre les anciens poids, par paires depuis de vraies positions : '
+    + D.map(function(d){ return d.cadre + ' <b>' + (d.elo >= 0 ? '+' : '') + d.elo + ' ± ' + d.marge + ' Elo</b> (' + String(d.points).replace('.', ',') + ' points sur ' + d.sur + ')'; }).join(' ; ') + '.';
+  const M = (typeof AI_TEXEL_MARCHES !== 'undefined') ? AI_TEXEL_MARCHES : [];
+  const e = function(x){ return (x.elo >= 0 ? '+' : '') + x.elo + ' ± ' + x.marge; };
+  if (M.length) h += ' Les marches entre niveaux (Elo) : ' + M.map(function(m){ return m.marche + ' <b>' + e(m) + '</b>' + (m.avant ? ' (avant : ' + e(m.avant) + ')' : ''); }).join(' ; ') + '.';
+  if (_labChampionAdopte()) h += ' Sur cet appareil, ton champion du Labo est adopté : c’est lui qui joue, à tous les niveaux.';
+  return h + '</div>';
+}
 function renderTexel(msg){
   const hote = document.getElementById('lab-texel-host'); if (!hote) return;
   const r = texelResultat(), c = texelCfg(), W = grLargeur(hote, 640);
@@ -41993,6 +42051,7 @@ function renderTexel(msg){
   const err = function(x){ return x == null ? '—' : x.toFixed(4).replace('.', ','); };
   let h = '<p class="lab-intro">On prend des positions de vraies parties dont on connaît le gagnant, et on cherche les réglages pour lesquels l’évaluation de l’IA <b>devine le mieux qui va gagner</b>. C’est la « méthode Texel », celle des moteurs d’échecs. Pas de partie à jouer : un peu de calcul, sur ton appareil.</p>'
     + '<p class="lab-intro">Les parties dont le numéro finit par 0 ou 5 ne servent pas au réglage : on les garde pour <b>vérifier</b>. Et deviner le gagnant ne prouve pas qu’on joue mieux : le bouton « Vérifier en duels » fait affronter les poids trouvés au champion, et rien n’est adopté sans ce verdict.</p>';
+  h += _txHtmlDansIA();
   h += '<div class="gr-filtres"><label>Positions de ' + _txSelect('dispo', c) + '</label><label>Moment ' + _txSelect('phase', c) + '</label><label>Rappel vers le champion ' + _txSelect('rappel', c) + '</label><label>Étapes ' + _txSelect('etapes', c) + '</label></div>';
   h += '<div class="lab-actions"><button class="ctrl-btn" onclick="lancerTexel()"' + (_txEnCours ? ' disabled' : '') + '>' + (_txEnCours ? '⏳ Calcul en cours…' : (r ? '↻ Recalculer' : '▶ Lancer le réglage')) + '</button>'
     + (r && !_txEnCours ? '<button class="ctrl-btn" onclick="texelEnDuels()">⚔️ Vérifier en duels contre le champion</button>' : '') + '</div>';
@@ -42271,8 +42330,11 @@ function _styleParticipants(){
   P.push({ nom: 'Division', w: w(pr.divide) });
   P.push({ nom: 'KAAH', w: w(pr.kaah) });
   if (pr.humain) P.push({ nom: 'Humain', w: w(pr.humain) });
+  // v2.75 : les poids Texel de l'IA (niveaux 4 et plus), puis ceux d'un calcul fait ici s'ils different
+  if (pr.texel) P.push({ nom: 'Texel (niveaux 4+)', w: w(pr.texel) });
   const tx = (typeof texelResultat === 'function') ? texelResultat() : null;
-  if (tx) { const t = _labComplet(pr.balanced); tx.cles.forEach(function(k, j){ t[k] = tx.w[j]; }); P.push({ nom: 'Texel', w: t }); }
+  if (tx) { const t = _labComplet(pr.balanced); tx.cles.forEach(function(k, j){ t[k] = tx.w[j]; });
+    if (!pr.texel || tx.cles.some(function(k){ return t[k] !== _labComplet(pr.texel)[k]; })) P.push({ nom: 'Texel (ton calcul)', w: t }); }
   return P;
 }
 BANCS.styles = {
@@ -42332,8 +42394,10 @@ function _niveauCfg(n){ const c = AI_DIFFICULTY_CONFIG[String(n)]; if (!c) retur
 BANCS.niveaux = {
   cle: 'abaLabNiveaux',
   construire: function(o){
-    const haut = Math.max(2, Math.min(NIVEAUX_MAX_MESURABLE, (o.jusqua | 0) || 6)), paires = Math.max(1, Math.min(20, (o.paires | 0) || 6)), w = _labComplet(AI_WEIGHT_PRESETS.balanced), matchs = [];
-    for (let n = 1; n < haut; n++) matchs.push({ id: 'n' + n, a: { nom: 'Niveau ' + (n + 1), w: w, cfg: _niveauCfg(n + 1) }, b: { nom: 'Niveau ' + n, w: w, cfg: _niveauCfg(n) }, paires: paires, bas: n });
+    const haut = Math.max(2, Math.min(NIVEAUX_MAX_MESURABLE, (o.jusqua | 0) || 6)), paires = Math.max(1, Math.min(20, (o.paires | 0) || 6)), matchs = [];
+    // v2.75 : chaque niveau avec ses poids de partie (Texel a partir du niveau 4, voir _aiPoidsNiveau)
+    const w = function(n){ return _labComplet(_aiPoidsNiveau(n)); };
+    for (let n = 1; n < haut; n++) matchs.push({ id: 'n' + n, a: { nom: 'Niveau ' + (n + 1), w: w(n + 1), cfg: _niveauCfg(n + 1) }, b: { nom: 'Niveau ' + n, w: w(n), cfg: _niveauCfg(n) }, paires: paires, bas: n });
     const R = _bancRegimeDe(o, 'niveaux');
     return { matchs: matchs, haut: haut, paires: paires, depart: o.depart || _bancReglagesLus('niveaux').depart, regime: { ms: 400, plies: R.plies, draw: LAB_CFG.confDraw || 300 } };
   },
@@ -42702,7 +42766,7 @@ function lancerConcordance(){
     const L = []; for (let i = 0; i < _lpN(); i++) if (!_lpEstDepart(i) && _lpPartie(i) % 5 === 0) L.push(i);
     const P = _huEchantillon(L, CONC_POSITIONS), pos = P.map(_lpPourFil), humains = P.map(function(i){ return _huCoupCode(_lpCoup(i)); });
     const facons = [];
-    for (let n = 1; n <= haut; n++) facons.push({ nom: 'Niveau ' + n, w: _labComplet(AI_WEIGHT_PRESETS.balanced), cfg: _niveauCfg(n) });
+    for (let n = 1; n <= haut; n++) facons.push({ nom: 'Niveau ' + n, w: _labComplet(_aiPoidsNiveau(n)), cfg: _niveauCfg(n) });   // v2.75 : les poids du niveau
     if (AI_WEIGHT_PRESETS.humain) facons.push({ nom: 'Humain, niveau 3', w: _labComplet(AI_WEIGHT_PRESETS.humain), cfg: _niveauCfg(3) });
     const lots = []; facons.forEach(function(f, fi){ _huLots(pos.map(function(p, i){ return i; }), 20).forEach(function(L2){ lots.push({ fi: fi, L: L2 }); }); });
     const egal = facons.map(function(){ return 0; }), vus = facons.map(function(){ return 0; });

@@ -121,6 +121,7 @@ Chaque entrée du menu a son adresse, à garder en favori ou à envoyer : par ex
 
 **Jeu**
 - Partie contre l'IA (plusieurs niveaux, moteur alpha-bêta + PVS + quiescence dans un Web Worker — l'interface ne gèle jamais ; table de finales 2v2/3v2 consultée pendant la recherche, résultat exact dès qu'une fin de partie résolue est atteinte)
+- **À partir du niveau 4, une IA réglée sur les vraies parties (v2.75)** : en style Auto ou Équilibré, elle juge les positions avec les poids trouvés par la méthode Texel du Labo ; en duels contre les anciens poids, depuis de vraies positions, environ +300 à +400 Elo aux niveaux 4, 5 et 6
 - Mode 2 joueurs sur le même écran
 - **Synchroniser mes appareils** : historique, progression, problèmes, cartes de chaleur… fusionnés entre deux appareils ou deux navigateurs, en direct (un code dans chaque sens, connexion directe) ou par fichier. Sans compte ni serveur ; rien n'est écrasé, rien n'est compté deux fois
 - **Liste et Commentaires**, comme dans Uncle Lolo's Abalone : les coups en tableau Coup | Noir | Blanc avec le score après chaque éjection, et un journal coup par coup (suite prévue et évaluation de l'IA, distance au centre, cohésion, billes en danger). Les deux se copient ; la Liste et le journal d'ULA s'importent tels quels

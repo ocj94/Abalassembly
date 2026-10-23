@@ -23,8 +23,48 @@ const AI_WEIGHT_PRESETS = {
   // jamais choisi par le profilage automatique, seulement a la demande, en attendant le verdict du Labo
   // (test « Criteres de KAAH », page Labo).
   kaah:      { center:6, cohesion:4, edge:8,  mob:2, iso:18, dng:14, chain:10, fortress:20,
-               scGain:200, scPerte:200, cases:1, compac:20, sumito:20, menace:120, fourch:60, piege:40, label:'KAAH (expérimental)' }
+               scGain:200, scPerte:200, cases:1, compac:20, sumito:20, menace:120, fourch:60, piege:40, label:'KAAH (expérimental)' },
+  /* v2.75 (choix d'Olivier, « solution 2 ») : les poids trouves par la methode Texel du Labo, avec ses
+     reglages par defaut -- 15 036 positions calmes de vraies parties pour regler, 3 819 pour verifier
+     (refaire le calcul : node tools/texel-poids.js -- memes positions, meme methode que le Labo).
+     Ils devinent mieux le gagnant (73,1 % -> 75,8 % des positions de controle) et, surtout, gagnent
+     leurs duels contre « equilibre », par paires depuis de vraies positions : voir AI_TEXEL_DUELS.
+     Leur evaluation est plus lourde (criteres de KAAH : environ 17 % de positions de moins par seconde) :
+     a temps egal, elle voit souvent un demi-coup de moins que « equilibre » -- et gagne quand meme.
+     Utilises a partir du niveau 4 (AI_NIVEAU_TEXEL), en style Auto ou Equilibre : voir _aiPoidsTexel. */
+  texel:     { center:24.3, cohesion:0, edge:4.1, mob:3, iso:11, dng:0, chain:0.7, fortress:0,
+               scGain:8, scPerte:0, cases:0.8, compac:60, sumito:19.4, menace:0, fourch:5.5, piege:12.7, label:'Texel (vraies parties)' }
 };
+const AI_NIVEAU_TEXEL = 4;
+// les duels qui ont decide (Elo des poids Texel contre « equilibre », marge a 95 %) -- affiches dans le Labo
+const AI_TEXEL_DUELS = [
+  { cadre: 'profondeur 2', paires: 24, points: 42, sur: 48, elo: 338, marge: 145 },
+  { cadre: 'niveau 4', paires: 16, points: 27.5, sur: 32, elo: 314, marge: 198 },
+  { cadre: 'niveau 5', paires: 16, points: 29, sur: 32, elo: 394, marge: 250 },
+  { cadre: 'niveau 6', paires: 10, points: 17.5, sur: 20, elo: 338, marge: 278 }
+];
+/* l'echelle autour du changement (chaque niveau contre le precedent, 10 paires, memes departs) : avant,
+   les niveaux 3 et 4 etaient a egalite ; le gain des poids Texel tombe donc sur cette marche */
+const AI_TEXEL_MARCHES = [
+  { marche: '2 → 3', elo: 191, marge: 146 },
+  { marche: '3 → 4', avant: { elo: 17, marge: 114 }, elo: 382, marge: 299 },
+  { marche: '4 → 5', elo: 127, marge: 163 }
+];
+// un champion du Labo adopte sur cet appareil (case « utiliser les poids du Labo ») : le choix de son proprietaire
+function _labChampionAdopte(){ try { return localStorage.getItem('abaLabUse') !== '0' && !!JSON.parse(localStorage.getItem('abaLabChampion') || 'null'); } catch (e) { return false; } }
+/* v2.75 : les poids Texel pour ce coup ? Niveau 4 et plus, style Auto (le profilage ne change plus les
+   poids a ces niveaux : Texel bat aussi les styles qu'il choisissait -- duels a profondeur 2, 8 paires
+   chacun : Agressif +163 ± 168, Defensif +338 ± 310, Division +163 ± 155 Elo)
+   ou Equilibre choisi. Jamais : un autre style choisi a la main, le tournoi du mois (meme difficulte pour
+   tout le mois, pour tout le monde), ni quand un champion du Labo est adopte sur l'appareil. */
+function _aiPoidsTexel(mode){
+  if (_aiForcedMode && mode !== 'balanced') return false;
+  if (typeof _tourneyMatch !== 'undefined' && _tourneyMatch) return false;
+  const n = (typeof _niveauIA === 'function') ? _niveauIA() : null;
+  return !!n && n >= AI_NIVEAU_TEXEL && !_labChampionAdopte();
+}
+// les poids d'un niveau, tels qu'en partie en style Auto (bancs d'essai du Labo)
+function _aiPoidsNiveau(n){ return (n >= AI_NIVEAU_TEXEL && !_labChampionAdopte()) ? AI_WEIGHT_PRESETS.texel : AI_WEIGHT_PRESETS.balanced; }
 let aiAdaptive = true;     // profilage activé par défaut
 let _aiMode = 'balanced';
 let _aiForcedMode = null;   // null = profilage auto ; sinon force un style (UI manuelle)
@@ -49,11 +89,12 @@ function deriveAIMode(){
 
 // Met à jour les poids de l'IA selon le style détecté ; signale un changement de mode.
 function updateAIStyle(){
-  const mode = _aiForcedMode ? _aiForcedMode : deriveAIMode();
+  let mode = _aiForcedMode ? _aiForcedMode : deriveAIMode();
+  if (_aiPoidsTexel(mode)) mode = 'texel';   // v2.75 : niveaux 4 et plus
   const w = AI_WEIGHT_PRESETS[mode] || AI_WEIGHT_PRESETS.balanced;
   if(mode !== _aiMode){
     _aiMode = mode;
-    if(mode !== 'balanced' && typeof showToast === 'function') showToast('🤖 IA : mode ' + w.label + (_aiForcedMode ? ' (forcé)' : ' (auto)'));
+    if(mode !== 'balanced' && mode !== 'texel' && typeof showToast === 'function') showToast('🤖 IA : mode ' + w.label + (_aiForcedMode ? ' (forcé)' : ' (auto)'));
   }
   return w;
 }

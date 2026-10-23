@@ -184,6 +184,19 @@ function texelEnDuels(){
 const TEXEL_LIBELLES = { dispo: { tout: 'toutes les dispositions', belgian: 'Marguerite belge' }, phase: { tout: 'toute la partie', debut: 'début (demi-coups 10 à 29)', milieu: 'milieu (30 à 69)', fin: 'fin (70 et plus)' },
   rappel: { 0: 'aucun', 0.05: 'léger', 0.2: 'moyen', 1: 'fort' }, etapes: { 400: '400', 800: '800', 1600: '1 600' } };
 function _txSelect(k, c){ const L = TEXEL_LIBELLES[k]; return '<select onchange="texelCfgSet(\'' + k + '\', this.value)"' + (_txEnCours ? ' disabled' : '') + '>' + Object.keys(L).map(function(v){ return '<option value="' + v + '"' + (String(c[k]) === v ? ' selected' : '') + '>' + L[v] + '</option>'; }).join('') + '</select>'; }
+// v2.75 : les poids Texel sont dans l'IA a partir du niveau 4 -- ce qu'ont dit les duels
+function _txHtmlDansIA(){
+  if (typeof AI_WEIGHT_PRESETS === 'undefined' || !AI_WEIGHT_PRESETS.texel) return '';
+  const D = (typeof AI_TEXEL_DUELS !== 'undefined') ? AI_TEXEL_DUELS : [];
+  let h = '<div class="lab-note lab-texel-ia">✅ <b>Dans l’IA depuis la v2.75</b> : à partir du <b>niveau ' + AI_NIVEAU_TEXEL + '</b>, en style Auto ou Équilibré, l’IA juge les positions avec les poids Texel calculés ici avec les réglages par défaut. '
+    + 'Duels contre les anciens poids, par paires depuis de vraies positions : '
+    + D.map(function(d){ return d.cadre + ' <b>' + (d.elo >= 0 ? '+' : '') + d.elo + ' ± ' + d.marge + ' Elo</b> (' + String(d.points).replace('.', ',') + ' points sur ' + d.sur + ')'; }).join(' ; ') + '.';
+  const M = (typeof AI_TEXEL_MARCHES !== 'undefined') ? AI_TEXEL_MARCHES : [];
+  const e = function(x){ return (x.elo >= 0 ? '+' : '') + x.elo + ' ± ' + x.marge; };
+  if (M.length) h += ' Les marches entre niveaux (Elo) : ' + M.map(function(m){ return m.marche + ' <b>' + e(m) + '</b>' + (m.avant ? ' (avant : ' + e(m.avant) + ')' : ''); }).join(' ; ') + '.';
+  if (_labChampionAdopte()) h += ' Sur cet appareil, ton champion du Labo est adopté : c’est lui qui joue, à tous les niveaux.';
+  return h + '</div>';
+}
 function renderTexel(msg){
   const hote = document.getElementById('lab-texel-host'); if (!hote) return;
   const r = texelResultat(), c = texelCfg(), W = grLargeur(hote, 640);
@@ -191,6 +204,7 @@ function renderTexel(msg){
   const err = function(x){ return x == null ? '—' : x.toFixed(4).replace('.', ','); };
   let h = '<p class="lab-intro">On prend des positions de vraies parties dont on connaît le gagnant, et on cherche les réglages pour lesquels l’évaluation de l’IA <b>devine le mieux qui va gagner</b>. C’est la « méthode Texel », celle des moteurs d’échecs. Pas de partie à jouer : un peu de calcul, sur ton appareil.</p>'
     + '<p class="lab-intro">Les parties dont le numéro finit par 0 ou 5 ne servent pas au réglage : on les garde pour <b>vérifier</b>. Et deviner le gagnant ne prouve pas qu’on joue mieux : le bouton « Vérifier en duels » fait affronter les poids trouvés au champion, et rien n’est adopté sans ce verdict.</p>';
+  h += _txHtmlDansIA();
   h += '<div class="gr-filtres"><label>Positions de ' + _txSelect('dispo', c) + '</label><label>Moment ' + _txSelect('phase', c) + '</label><label>Rappel vers le champion ' + _txSelect('rappel', c) + '</label><label>Étapes ' + _txSelect('etapes', c) + '</label></div>';
   h += '<div class="lab-actions"><button class="ctrl-btn" onclick="lancerTexel()"' + (_txEnCours ? ' disabled' : '') + '>' + (_txEnCours ? '⏳ Calcul en cours…' : (r ? '↻ Recalculer' : '▶ Lancer le réglage')) + '</button>'
     + (r && !_txEnCours ? '<button class="ctrl-btn" onclick="texelEnDuels()">⚔️ Vérifier en duels contre le champion</button>' : '') + '</div>';

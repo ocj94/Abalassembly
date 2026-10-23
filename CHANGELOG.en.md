@@ -9,6 +9,44 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.75]
+
+### Changed — from level 4, an AI tuned on real games
+Olivier's choice ("OK for option 2"): the weights found by the Lab's
+**Texel method**, only for levels 4 and up.
+- **What changes**: from **level 4**, in **Auto** or **Balanced** style, the
+  AI judges positions with the Texel weights. They put much more weight on
+  the **centre** and on **compactness** (a criterion from KAAH), and almost
+  none on passive defence (fortress, danger). On the corpus's control
+  positions they guess the winner 75.8 % of the time, against 73.1 % for the
+  old weights.
+- **What does not change**: levels 1 to 3; a style picked by hand
+  (Aggressive, Defensive, Divide, KAAH…); the **monthly tournament** (same
+  difficulty for everyone until the end of the month); a device where a Lab
+  champion has been adopted (it stays in charge).
+- **Checked in duels** against the old weights, in pairs (the same real
+  position twice, colours swapped):
+  - depth 2: 42 points out of 48, about +338 Elo (± 145);
+  - level 4: 27.5 out of 32, +314 (± 198);
+  - level 5: 29 out of 32, +394 (± 250);
+  - level 6: 17.5 out of 20, +338 (± 278).
+  They also beat the styles the Auto mode used to pick (depth 2): Defensive
+  +338, Aggressive +163, Divide +163.
+- **The step between levels 3 and 4**: before, the two levels were even
+  (+17 ± 114 Elo); it rises to about **+382** (± 299). The neighbouring
+  steps: 2 → 3 about +191, 4 → 5 about +127. The 3 → 4 step is therefore the
+  highest; it is kept as it is, since softening it would only move the jump
+  to another step.
+- **A little slower to compute**: the Texel evaluation looks at about 17 %
+  fewer positions per second. In the same time it often sees one move less
+  far ahead, and still wins. Thinking time does not change.
+- **Where to see it**: the line under the level choice, the help, and the
+  Lab's "Texel method" tab (the duels and the steps). The Lab's benches
+  measure each level with its in-game weights. `tools/texel-poids.js` redoes
+  the computation and checks the embedded weights.
+- **Tests**: 3 more (272) — which levels and styles take the Texel weights,
+  the engine playing with them, the help and Lab texts.
+
 ## [v2.74]
 
 ### Fixed — the Game statistics page in English
