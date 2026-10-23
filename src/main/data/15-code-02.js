@@ -46,7 +46,8 @@ const AI_TEXEL_DUELS = [
 // un champion du Labo adopte sur cet appareil (case « utiliser les poids du Labo ») : le choix de son proprietaire
 function _labChampionAdopte(){ try { return localStorage.getItem('abaLabUse') !== '0' && !!JSON.parse(localStorage.getItem('abaLabChampion') || 'null'); } catch (e) { return false; } }
 /* v2.75 : les poids Texel pour ce coup ? Niveau 4 et plus, style Auto (le profilage ne change plus les
-   poids a ces niveaux : Texel bat largement « equilibre », dont les autres styles sont des variantes)
+   poids a ces niveaux : Texel bat aussi les styles qu'il choisissait -- duels a profondeur 2, 8 paires
+   chacun : Agressif +163 ± 168, Defensif +338 ± 310, Division +163 ± 155 Elo)
    ou Equilibre choisi. Jamais : un autre style choisi a la main, le tournoi du mois (meme difficulte pour
    tout le mois, pour tout le monde), ni quand un champion du Labo est adopte sur l'appareil. */
 function _aiPoidsTexel(mode){
