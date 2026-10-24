@@ -9,6 +9,37 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.76]
+
+### Modifié — le Labo part des poids Texel
+Demande d'Olivier (« Commence par le 1 ») : depuis la v2.75, l'IA joue avec
+les poids Texel à partir du niveau 4, mais l'auto-amélioration du Labo
+cherchait encore à améliorer les anciens poids « Équilibré », que presque
+plus personne n'affronte à ces niveaux.
+- **Le point de départ** : un Labo neuf part des poids Texel. Ses mutants,
+  SPSA et la méthode Texel tournent autour d'eux, et ses bilans mesurent le
+  champion **contre les poids Texel**. Le gain affiché est donc ce que le
+  Labo ajoute à l'IA réellement jouée.
+- **Ce qu'il adopte** remplace les poids Texel à partir du niveau 4, en
+  style Auto ou Équilibré, sur l'appareil où il tourne. Les niveaux 1 à 3
+  gardent les poids d'origine : avant, un champion adopté les changeait
+  aussi. La case « Utiliser les poids adoptés » dit maintenant où ils
+  servent.
+- **Un Labo déjà en route** repart des poids Texel à l'ouverture de la
+  page. Le test en cours s'arrête, puisqu'il portait sur l'ancien champion.
+  L'historique, les compteurs et le journal restent. L'ancien champion reste
+  dans l'historique des champions (le bouton « Définir comme champion » peut le remettre),
+  et ses bilans, mesurés contre les poids d'origine, sont gardés à part. Le
+  plafond de générations repart de zéro.
+- **Un champion adopté avant la v2.76** ne s'applique plus : il venait des
+  anciens poids, que les poids Texel battent de plus de 300 Elo. Le fichier
+  d'export du Labo enregistre maintenant d'où vient le champion.
+- **Deux mutations qui restaient bloquées à 0** : « danger » et
+  « mobilité », multipliées, ne pouvaient jamais se rallumer une fois à 0.
+  Or les poids Texel n'ont plus de « danger ». Elles repartent maintenant de
+  4 et de 1.
+- **Tests** : 3 de plus (275), et ceux du Labo suivent le nouveau départ.
+
 ## [v2.75]
 
 ### Modifié — à partir du niveau 4, une IA réglée sur les vraies parties

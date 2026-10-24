@@ -7105,7 +7105,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
       <div class="tech-detail" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-top:16px;max-width:680px">
         <h3 style="margin:0 0 10px;color:var(--white);font-size:16px">Deux méthodes, deux logiques</h3>
         <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">SPSA</strong> (Simultaneous Perturbation Stochastic Approximation) : perturbe tous les poids d'évaluation à la fois (θ+ et θ−), joue une paire de parties entre les deux, met à jour tous les poids dans le sens du gagnant. Trouve les interactions entre poids qu'une exploration coup par coup manquerait. Son résultat est vérifié par un SPRT contre le champion avant que l'IA ne l'utilise.</p>
-        <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">SPRT</strong> (Sequential Probability Ratio Test, méthodologie façon Fishtest/Stockfish) : teste un seul changement à la fois contre le champion actuel, jusqu'à franchir une borne statistique — pas un nombre de parties fixé à l'avance. Le verdict compte des <em>paires</em> (la même ouverture, couleurs inversées : 0, ½, 1, 1½ ou 2 points), comme Fishtest, avec un a priori qui empêche de conclure sur une courte série chanceuse. Après chaque adoption, le gain réel est mesuré contre les poids d'origine.</p>
+        <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">SPRT</strong> (Sequential Probability Ratio Test, méthodologie façon Fishtest/Stockfish) : teste un seul changement à la fois contre le champion actuel, jusqu'à franchir une borne statistique — pas un nombre de parties fixé à l'avance. Le verdict compte des <em>paires</em> (la même ouverture, couleurs inversées : 0, ½, 1, 1½ ou 2 points), comme Fishtest, avec un a priori qui empêche de conclure sur une courte série chanceuse. Après chaque adoption, le gain réel est mesuré contre le point de départ du Labo : depuis la v2.76, les poids Texel (ceux de l'IA à partir du niveau 4).</p>
         <p style="margin:0;font-size:13px;color:var(--muted);line-height:1.7">Les 8 poids (centre, cohésion, bord, mobilité, isolement, danger, alignements, forteresse) et les 8 critères de KAAH (sumito, menace, fourchette, piège, compacité, cases, gain et perte selon le score) sont partagés entre les deux méthodes et avec le moteur de jeu réel — un changement validé par le Labo s'applique directement à l'IA que tu affrontes. Les parties trop longues sont arbitrées par consensus : la victoire n'est donnée que si les deux évaluations sont d'accord.</p>
       </div>
     </div>
@@ -7304,7 +7304,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
 <li><b>Bibliothèque de parties</b> : des milliers de vraies parties (MIGS, AbalOnline, tournois, KAAH), à rejouer et filtrer.</li>
 <li><b>Stats du corpus</b> : les chiffres de ces parties — dont les billes qui tombent (qui fait tomber la première bille gagne-t-il, le tableau des remontées, le score final, la carte des éjections), ce qui fait gagner et comment jouent les vrais joueurs —, des <b>filtres</b> (source, disposition, longueur), qui gagne selon l'avance et le moment, les premiers coups, où sont les billes, et la <b>profondeur de l'IA selon le temps de réflexion</b>, mesurée sur ton appareil et relevée pendant tes parties.</li>
 <li><b>Tables de finale</b> : les finales résolues exactement (2 contre 2, 3 contre 2, 4 contre 2), avec un entraînement.</li>
-<li><b>Labo IA</b> : des outils pour rendre l'IA plus forte et la comprendre, en onglets. <i>Tableau de bord</i> : les totaux du Labo et ses graphiques (gain réel, poids du champion au fil des adoptions, parties par jour…). <i>Auto-amélioration</i> : l'IA essaie de petits changements de ses poids contre son réglage actuel, par paires depuis de vraies positions de Marguerite belge, et n'adopte qu'après un verdict statistique. <i>Méthode Texel</i> : des réglages qui devinent le mieux le gagnant des vraies parties, à vérifier en duels. <i>Tournoi des styles</i>, <i>Niveaux</i> (la hauteur de chaque marche, en Elo), <i>Comme les humains</i> (combien de fois l'IA joue le coup du joueur ; un style « Humain »), <i>Contre toi</i> (ton clone à partir de ton historique, et le style qui le bat le mieux), <i>Ouvertures</i> (les débuts de la Marguerite belge joués par l'IA). Dans <i>Autres outils</i> : le test des critères de KAAH, le benchmark, le NNUE.</li>
+<li><b>Labo IA</b> : des outils pour rendre l'IA plus forte et la comprendre, en onglets. <i>Tableau de bord</i> : les totaux du Labo et ses graphiques (gain réel, poids du champion au fil des adoptions, parties par jour…). <i>Auto-amélioration</i> : l'IA essaie de petits changements de ses poids contre son réglage actuel, par paires depuis de vraies positions de Marguerite belge, et n'adopte qu'après un verdict statistique. Elle part des poids Texel, ceux de l'IA à partir du niveau 4 : ce qu'elle adopte les remplace à ces niveaux, sur ton appareil. <i>Méthode Texel</i> : des réglages qui devinent le mieux le gagnant des vraies parties, à vérifier en duels. <i>Tournoi des styles</i>, <i>Niveaux</i> (la hauteur de chaque marche, en Elo), <i>Comme les humains</i> (combien de fois l'IA joue le coup du joueur ; un style « Humain »), <i>Contre toi</i> (ton clone à partir de ton historique, et le style qui le bat le mieux), <i>Ouvertures</i> (les débuts de la Marguerite belge joués par l'IA). Dans <i>Autres outils</i> : le test des critères de KAAH, le benchmark, le NNUE.</li>
 <li><b>Détection photo / plateau</b> : photographie un vrai plateau pour le reproduire.</li>
 <li><b>Observer</b> : suivre une partie PlayStrategy en direct. <b>Tournoi</b> : un tournoi contre des IA.</li>
 <li><b>Variantes</b> et <b>Éditeur</b> : d'autres règles et dispositions, ou ta propre position.</li>
@@ -7411,7 +7411,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
 <li><b>Game library</b>: thousands of real games (MIGS, AbalOnline, tournaments, KAAH) to replay and filter.</li>
 <li><b>Corpus stats</b>: the numbers behind these games — including falling marbles (does the first to push a marble off win, the comeback table, the final score, the ejection map), what wins games and how real players play —, <b>filters</b> (source, layout, length), winning by lead and moment, first moves, where the marbles are, and the <b>AI’s depth by thinking time</b>, measured on your device and recorded during your games.</li>
 <li><b>Endgame tables</b>: endgames solved exactly (2 vs 2, 3 vs 2, 4 vs 2), with training.</li>
-<li><b>AI Lab</b> (in French): tools to make the AI stronger and understand it, in tabs. <i>Dashboard</i>: the Lab’s totals and charts (real gain, the champion’s weights adoption after adoption, games per day…). <i>Self-improvement</i>: the AI tries small changes to its weights against its current setting, in pairs from real Belgian Daisy positions, and adopts one only after a statistical verdict. <i>Texel method</i>: settings that best guess the winner of real games, to be checked in duels. <i>Style tournament</i>, <i>Levels</i> (the height of each step, in Elo), <i>Like humans</i> (how often the AI plays the player’s move; a “Human-like” style), <i>Against you</i> (your clone from your history, and the style that beats it best), <i>Openings</i> (the Belgian Daisy openings played by the AI). Under <i>Other tools</i>: the test of KAAH’s criteria, the benchmark, the NNUE.</li>
+<li><b>AI Lab</b> (in French): tools to make the AI stronger and understand it, in tabs. <i>Dashboard</i>: the Lab’s totals and charts (real gain, the champion’s weights adoption after adoption, games per day…). <i>Self-improvement</i>: the AI tries small changes to its weights against its current setting, in pairs from real Belgian Daisy positions, and adopts one only after a statistical verdict. It starts from the Texel weights, those of the AI from level 4: what it adopts replaces them at those levels, on your device. <i>Texel method</i>: settings that best guess the winner of real games, to be checked in duels. <i>Style tournament</i>, <i>Levels</i> (the height of each step, in Elo), <i>Like humans</i> (how often the AI plays the player’s move; a “Human-like” style), <i>Against you</i> (your clone from your history, and the style that beats it best), <i>Openings</i> (the Belgian Daisy openings played by the AI). Under <i>Other tools</i>: the test of KAAH’s criteria, the benchmark, the NNUE.</li>
 <li><b>Photo / board detection</b>: photograph a real board to reproduce it.</li>
 <li><b>Watch</b>: follow a PlayStrategy game live. <b>Tournament</b>: a tournament against AIs.</li>
 <li><b>Variants</b> and <b>Editor</b>: other rules and layouts, or your own position.</li>
@@ -8611,7 +8611,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.75';
+const APP_VERSION = 'v2.76';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -21379,21 +21379,25 @@ const AI_TEXEL_MARCHES = [
   { marche: '3 → 4', avant: { elo: 17, marge: 114 }, elo: 382, marge: 299 },
   { marche: '4 → 5', elo: 127, marge: 163 }
 ];
-// un champion du Labo adopte sur cet appareil (case « utiliser les poids du Labo ») : le choix de son proprietaire
-function _labChampionAdopte(){ try { return localStorage.getItem('abaLabUse') !== '0' && !!JSON.parse(localStorage.getItem('abaLabChampion') || 'null'); } catch (e) { return false; } }
+/* v2.76 : un champion adopte par le Labo (parti des poids Texel) sur cet appareil, case « utiliser les
+   poids adoptes » cochee : applyLabChampion le range dans AI_WEIGHT_PRESETS.labo */
+function _labChampionAdopte(){ return !!AI_WEIGHT_PRESETS.labo; }
 /* v2.75 : les poids Texel pour ce coup ? Niveau 4 et plus, style Auto (le profilage ne change plus les
    poids a ces niveaux : Texel bat aussi les styles qu'il choisissait -- duels a profondeur 2, 8 paires
    chacun : Agressif +163 ± 168, Defensif +338 ± 310, Division +163 ± 155 Elo)
-   ou Equilibre choisi. Jamais : un autre style choisi a la main, le tournoi du mois (meme difficulte pour
-   tout le mois, pour tout le monde), ni quand un champion du Labo est adopte sur l'appareil. */
+   ou Equilibre choisi. Jamais : un autre style choisi a la main, ni le tournoi du mois (meme difficulte
+   pour tout le mois, pour tout le monde). v2.76 : a ces niveaux, le champion du Labo adopte sur
+   l'appareil remplace les poids Texel (voir _aiPoidsHaut). */
 function _aiPoidsTexel(mode){
   if (_aiForcedMode && mode !== 'balanced') return false;
   if (typeof _tourneyMatch !== 'undefined' && _tourneyMatch) return false;
   const n = (typeof _niveauIA === 'function') ? _niveauIA() : null;
-  return !!n && n >= AI_NIVEAU_TEXEL && !_labChampionAdopte();
+  return !!n && n >= AI_NIVEAU_TEXEL;
 }
+// le style des niveaux 4 et plus : le champion du Labo s'il est adopte ici, sinon les poids Texel
+function _aiStyleHaut(){ return AI_WEIGHT_PRESETS.labo ? 'labo' : 'texel'; }
 // les poids d'un niveau, tels qu'en partie en style Auto (bancs d'essai du Labo)
-function _aiPoidsNiveau(n){ return (n >= AI_NIVEAU_TEXEL && !_labChampionAdopte()) ? AI_WEIGHT_PRESETS.texel : AI_WEIGHT_PRESETS.balanced; }
+function _aiPoidsNiveau(n){ return n >= AI_NIVEAU_TEXEL ? AI_WEIGHT_PRESETS[_aiStyleHaut()] : AI_WEIGHT_PRESETS.balanced; }
 let aiAdaptive = true;     // profilage activé par défaut
 let _aiMode = 'balanced';
 let _aiForcedMode = null;   // null = profilage auto ; sinon force un style (UI manuelle)
@@ -21419,11 +21423,11 @@ function deriveAIMode(){
 // Met à jour les poids de l'IA selon le style détecté ; signale un changement de mode.
 function updateAIStyle(){
   let mode = _aiForcedMode ? _aiForcedMode : deriveAIMode();
-  if (_aiPoidsTexel(mode)) mode = 'texel';   // v2.75 : niveaux 4 et plus
+  if (_aiPoidsTexel(mode)) mode = _aiStyleHaut();   // v2.75 : niveaux 4 et plus (v2.76 : ou le champion du Labo)
   const w = AI_WEIGHT_PRESETS[mode] || AI_WEIGHT_PRESETS.balanced;
   if(mode !== _aiMode){
     _aiMode = mode;
-    if(mode !== 'balanced' && mode !== 'texel' && typeof showToast === 'function') showToast('🤖 IA : mode ' + w.label + (_aiForcedMode ? ' (forcé)' : ' (auto)'));
+    if(mode !== 'balanced' && mode !== 'texel' && mode !== 'labo' && typeof showToast === 'function') showToast('🤖 IA : mode ' + w.label + (_aiForcedMode ? ' (forcé)' : ' (auto)'));
   }
   return w;
 }
@@ -23223,14 +23227,30 @@ function _labComplet(w){
   LAB_CLES_BASE.concat(LAB_CLES_KAAH).forEach(function(k){ const v=w?w[k]:undefined; o[k]=(typeof v==='number' && isFinite(v) && v>=0) ? v : LAB_ORIGINE[k]; });
   return o;
 }
-function _labPoidsOrigineIA(){ if(typeof AI_WEIGHT_PRESETS!=='undefined') Object.assign(AI_WEIGHT_PRESETS.balanced, LAB_ORIGINE); }
+/* v2.76 (demande d'Olivier : « faire partir le Labo des poids Texel ») : depuis la v2.75, l'IA joue
+   avec les poids Texel a partir du niveau 4. Le Labo part donc d'eux (etat v6, base « texel ») : ce
+   qu'il adopte les remplace a ces niveaux (preset « labo », voir _aiPoidsTexel), et ses bilans
+   mesurent le champion contre ce point de depart. Les niveaux 1 a 3 gardent les poids d'origine. */
+function _labBasePoids(st){ return (st && st.base==='texel' && typeof AI_WEIGHT_PRESETS!=='undefined' && AI_WEIGHT_PRESETS.texel) ? _labComplet(AI_WEIGHT_PRESETS.texel) : _labComplet(LAB_ORIGINE); }
+function _labBaseNom(st){ return (st && st.base==='texel') ? 'poids Texel' : 'poids d’origine'; }
+function _labPoidsOrigineIA(){ if(typeof AI_WEIGHT_PRESETS!=='undefined'){ Object.assign(AI_WEIGHT_PRESETS.balanced, LAB_ORIGINE); delete AI_WEIGHT_PRESETS.labo; } }
+// le champion adopte, s'il vient d'un Labo parti des poids Texel : a la place de ceux-ci, niveaux 4 et plus.
+// Un champion issu des anciens poids (avant la v2.76) ne s'applique plus : Texel les bat de 300 Elo et plus.
 function applyLabChampion(){
   try{
+    if(typeof AI_WEIGHT_PRESETS==='undefined') return false;
+    delete AI_WEIGHT_PRESETS.labo;
     if(localStorage.getItem('abaLabUse')==='0') return false;
+    if(localStorage.getItem('abaLabChampionBase')!=='texel') return false;
     const c=JSON.parse(localStorage.getItem('abaLabChampion')||'null');
-    if(c && typeof AI_WEIGHT_PRESETS!=='undefined'){ Object.assign(AI_WEIGHT_PRESETS.balanced, _labComplet(c)); return true; }
+    if(c){ AI_WEIGHT_PRESETS.labo=Object.assign(_labComplet(c), { label:'champion du Labo' }); return true; }
   }catch(e){}
   return false;
+}
+// enregistre le champion adopte (et sa lignee), puis l'applique
+function _labEnregistrerChampion(st, w){
+  try{ localStorage.setItem('abaLabChampion', JSON.stringify(w)); localStorage.setItem('abaLabChampionBase', st.base||'origine'); }catch(e){}
+  applyLabChampion();
 }
 applyLabChampion();
 const LAB_CFG_DEFAULT={
@@ -23354,8 +23374,9 @@ function _labFilLancer(f, t, surFin){
 // a la valeur de KAAH, puis l'augmenter ou le baisser) -- les deux listes alternent
 const LAB_RECETTES_BASE=[
   ['cohesion', function(v){return v+1;}], ['edge', function(v){return Math.max(2,Math.round(v*0.75));}],
-  ['mob', function(v){return v*2;}],      ['iso', function(v){return Math.max(4,Math.round(v*0.8));}],
-  ['dng', function(v){return Math.round(v*1.3);}], ['center', function(v){return v+2;}],
+  // v2.76 : a 0 (les poids Texel n'ont plus de « danger »), une multiplication restait a 0 : ces criteres se rallumaient jamais
+  ['mob', function(v){return v ? v*2 : 1;}],      ['iso', function(v){return Math.max(4,Math.round(v*0.8));}],
+  ['dng', function(v){return v ? Math.round(v*1.3) : 4;}], ['center', function(v){return v+2;}],
   ['cohesion', function(v){return v+2;}], ['iso', function(v){return Math.round(v*1.3);}],
   ['edge', function(v){return Math.round(v*1.25);}],
   ['chain', function(v){return v+2;}],    ['chain', function(v){return Math.round(v*1.3);}],
@@ -23433,16 +23454,17 @@ function _spsaUpdate(sp, pert, score){
 // ── Etat persistant (v4) ──
 function _labPhasePrincipale(){ return LAB_CFG.mode==='spsa' ? 'spsa' : 'screen'; }
 function _labDefaultState(){
-  const champ=_labComplet(LAB_ORIGINE);
-  return { v:5, gen:2, epoch:1, champion:champ, championGen:1, phase:_labPhasePrincipale(), departMode:LAB_CFG.depart||'belgian', cands:labMutants(champ,2,null), candsGen:2,
-    champions:[{ gen:1, t:null, w:_labVecteur(champ), nom:'poids d’origine' }], msTotal:0,
+  const champ=_labBasePoids({ base:'texel' });
+  return { v:6, base:'texel', gen:2, epoch:1, champion:champ, championGen:1, phase:_labPhasePrincipale(), departMode:LAB_CFG.depart||'belgian', cands:labMutants(champ,2,null), candsGen:2,
+    champions:[{ gen:1, t:null, w:_labVecteur(champ), nom:'poids Texel (départ)' }], msTotal:0,
     confirm:null, bilan:null, totalGames:0, gameLog:[], lastGood:null, spsa:_spsaInit(champ), mesures:[],
-    history:[{gen:1,type:'banc externe',name:'iso26/dng20/center9/cohesion6 testés — finaliste cohesion 6 : 17,5/32 (54,7 %) < seuil',score:null,games:60}] };
+    history:[{gen:1,type:'⚙ départ',name:'les poids Texel, ceux de l’IA à partir du niveau 4 (v2.75)',score:null,games:0}] };
 }
 // etat v1 a v3 : on garde le champion, l'historique et les compteurs ; le test en cours repart
 // sur les nouvelles regles (ses parties comptaient une par une, pas par paires)
 function _labMigrer(s){
   const st=_labDefaultState();
+  delete st.champions;   // v2.76 : son historique des champions part des poids d'origine (voir labLoad), pas des poids Texel
   st.gen=s.gen||2; st.champion=_labComplet(s.champion); st.totalGames=s.totalGames||0;
   st.gameLog=(s.gameLog||[]).slice(0,12); st.lastGood=s.lastGood||null;
   st.history=(s.history||[]).slice(0,60);
@@ -23471,16 +23493,38 @@ function _labMigrerV5(s){
   s.history.unshift({gen:s.gen||2, type:'⚙ v5', name:'parties depuis de vraies positions du corpus (Marguerite belge), une bille d’avance ne suffit plus à gagner ; le test en cours repart', score:null, games:0});
   labSave(s); return s;
 }
+/* v2.76 : le Labo repart des poids Texel. Le test en cours s'arrete (il portait sur l'ancien champion) ;
+   l'historique, les compteurs et le journal restent. Un champion issu des poids d'origine reste dans
+   l'historique des champions (« Définir comme champion » peut le remettre) ; ses bilans, mesures contre les
+   poids d'origine, sont gardes a part (mesuresOrigine). Le champion adopte de cette lignee ne s'applique plus. */
+function _labMigrerV6(s){
+  const tx=_labBasePoids({ base:'texel' }), ancien=_labComplet(s.champion);
+  const ameliore=SPSA_KEYS.some(function(k){ return ancien[k]!==LAB_ORIGINE[k]; });
+  s.v=6; s.base='texel'; s.epoch=(s.epoch||1)+1; s.gen=s.gen||2; s.genDepart=s.gen-2;   // le plafond de generations repart de zero
+  s.champion=tx; s.championGen=s.gen;
+  s.champions=s.champions||[];
+  s.champions.push({ gen:s.gen, t:Date.now(), w:_labVecteur(tx), nom:'nouveau départ : poids Texel' });
+  if((s.mesures||[]).length){ s.mesuresOrigine=s.mesures; s.mesures=[]; }
+  s.cands=labMutants(tx, s.gen, null); s.candsGen=s.gen; s.lastGood=null;
+  s.confirm=null; s.bilan=null; s.spsa=_spsaInit(tx);
+  s.phase=_labPhasePrincipale();
+  s.history=s.history||[];
+  s.history.unshift({gen:s.gen, type:'⚙ v6', name:'le Labo repart des poids Texel, ceux de l’IA à partir du niveau 4'+(ameliore?' ; l’ancien champion, issu des poids d’origine, reste dans l’historique des champions':''), score:null, games:0});
+  try{ if(localStorage.getItem('abaLabChampionBase')!=='texel'){ localStorage.removeItem('abaLabChampion'); localStorage.removeItem('abaLabChampionBase'); } }catch(e){}
+  applyLabChampion();
+  labSave(s); return s;
+}
 function labLoad(){
   try{
     const s=JSON.parse(localStorage.getItem('abaLabState')||'null');
     if(s && s.champion && s.phase){
-      const t = (s.v===5) ? s : (s.v===4 ? _labMigrerV5(s) : _labMigrerV5(_labMigrer(s)));
+      let t = (s.v===5 || s.v===6) ? s : (s.v===4 ? _labMigrerV5(s) : _labMigrerV5(_labMigrer(s)));
       // v2.71 : l'historique des champions commence aux poids d'origine (et au champion actuel s'il en differe)
       if(!t.champions){
         t.champions=[{ gen:1, t:null, w:_labVecteur(LAB_ORIGINE), nom:'poids d’origine' }];
         if(_labVecteur(t.champion).join()!==t.champions[0].w.join()) t.champions.push({ gen:t.championGen||t.gen, t:null, w:_labVecteur(t.champion), nom:'champion avant la v2.71' });
       }
+      if(t.v!==6) t=_labMigrerV6(t);
       return t;
     }
   }catch(e){}
@@ -23538,14 +23582,14 @@ function pauseLab(){ _labRunning=false; _labHBstop(); _labFilsArreter(); _labEnV
 function resetLab(){
   if(!confirm('Réinitialiser le Labo ? (champion, historique et progression effacés ; les poids par défaut reviennent)')) return;
   pauseLab();
-  localStorage.removeItem('abaLabState'); localStorage.removeItem('abaLabChampion'); localStorage.removeItem('abaLabAutoRun');
+  localStorage.removeItem('abaLabState'); localStorage.removeItem('abaLabChampion'); localStorage.removeItem('abaLabChampionBase'); localStorage.removeItem('abaLabAutoRun');
   _labPoidsOrigineIA();
   renderLab(); showToast('Labo réinitialisé');
 }
 function labToggleUse(el){
   localStorage.setItem('abaLabUse', el.checked?'1':'0');
   if(el.checked){ applyLabChampion(); showToast('Poids du Labo appliqués à l’IA'); }
-  else { _labPoidsOrigineIA(); showToast('Poids par défaut restaurés'); }
+  else { _labPoidsOrigineIA(); showToast('Poids par défaut restaurés (Texel à partir du niveau 4)'); }
 }
 
 // ── Ordonnanceur ──
@@ -23584,7 +23628,7 @@ function _labTacheSuivante(st){
   }
   if(ph==='bilan' && st.bilan){
     const nx=_labPartieSuivante(st.bilan, st.bilan.pairs, 'e'+st.epoch+'|bl', _labEnVol); if(!nx) return null;
-    return _labTache(st, 'bilan', 0, nx, st.bilan.wA, LAB_ORIGINE, st.gen*100000+55000+nx.p, _labRegime('confirm'), st.bilan.name);
+    return _labTache(st, 'bilan', 0, nx, st.bilan.wA, _labBasePoids(st), st.gen*100000+55000+nx.p, _labRegime('confirm'), st.bilan.name);
   }
   if(ph==='spsa') return _spsaTacheSuivante(st);
   return null;
@@ -23618,7 +23662,7 @@ function _labRetourPrincipal(st){
     if(!(sp.prochVerif>sp.iter)) sp.prochVerif=sp.iter+(LAB_CFG.spsaVerif||50);
     _labNouvellePhase(st,'spsa'); return;
   }
-  if(st.gen>LAB_CFG.maxGen){ _labNouvellePhase(st,'done'); return; }
+  if(st.gen-(st.genDepart||0)>LAB_CFG.maxGen){ _labNouvellePhase(st,'done'); return; }   // v2.76 : compte depuis le nouveau depart
   if(!st.cands || st.candsGen!==st.gen){ st.cands=labMutants(st.champion, st.gen, st.lastGood); st.candsGen=st.gen; }
   _labNouvellePhase(st,'screen');
 }
@@ -23644,15 +23688,14 @@ function _labNoterChampion(st, nom){
 function _labAdopt(st, cf){
   st.champion=_labComplet(cf.w); st.championGen=st.gen;
   _labNoterChampion(st, cf.name);
-  try{ localStorage.setItem('abaLabChampion', JSON.stringify(st.champion)); }catch(e){}
-  applyLabChampion();
+  _labEnregistrerChampion(st, st.champion);
   st.history.unshift({gen:st.gen, type:'✅ adopté (SPRT)', name:cf.name, score:_labPoints(cf.penta), games:2*_labPentaN(cf.penta), elo:_labEloStrP(cf.penta)});
   st.lastGood=cf.key||null;
   if(typeof showToast==='function') showToast('🧪 Nouveau champion : '+cf.name+' · '+_labEloStrP(cf.penta));
   st.gen++; st.confirm=null;
   if((LAB_CFG.bilanPaires|0)>0){
     _labNouvellePhase(st,'bilan');
-    st.bilan={ name:'Bilan : champion G'+st.championGen+' contre les poids d’origine', wA:st.champion, gen:st.championGen, penta:_labPentaVide(), half:{}, fait:{}, pairs:LAB_CFG.bilanPaires|0 };
+    st.bilan={ name:'Bilan : champion G'+st.championGen+' contre les '+_labBaseNom(st), wA:st.champion, gen:st.championGen, penta:_labPentaVide(), half:{}, fait:{}, pairs:LAB_CFG.bilanPaires|0 };
   } else _labRetourPrincipal(st);
 }
 function _labReject(st, cf, undecided){
@@ -23664,7 +23707,7 @@ function _labFinBilan(st){
   st.mesures=st.mesures||[];
   if(e) st.mesures.push({ gen:b.gen, elo:Math.round(e.elo), ci:Math.round(e.ci), paires:e.n, t:Date.now() });
   if(st.mesures.length>50) st.mesures.splice(0, st.mesures.length-50);
-  st.history.unshift({gen:b.gen, type:'📏 bilan', name:'contre les poids d’origine : '+_labEloStrP(b.penta), score:_labPoints(b.penta), games:2*_labPentaN(b.penta)});
+  st.history.unshift({gen:b.gen, type:'📏 bilan', name:'contre les '+_labBaseNom(st)+' : '+_labEloStrP(b.penta), score:_labPoints(b.penta), games:2*_labPentaN(b.penta)});
   st.bilan=null; _labRetourPrincipal(st);
 }
 function _spsaVerifier(st){
@@ -23753,7 +23796,7 @@ function _spsaResultat(st, t, s){
 function _labSansZeros(w){ const o={}; if(w) for(const k in w){ if(typeof w[k]==='number' && w[k]!==0) o[k]=w[k]; } return o; }
 function _labJournal(st, t, r, moves){
   const qui = t.job==='spsa' ? (r.winner==='A'?'θ+':(r.winner==='D'?'nulle':'θ−'))
-    : (t.job==='bilan' ? (r.winner==='A'?'champion':(r.winner==='D'?'nulle':'origine'))
+    : (t.job==='bilan' ? (r.winner==='A'?'champion':(r.winner==='D'?'nulle':'départ'))
     : (r.winner==='A'?'mutant':(r.winner==='D'?'nulle':'champion')));
   st.gameLog=st.gameLog||[];
   st.gameLog.unshift({ phase:t.job, name:t.nom, w:qui, res:r.winner, why:r.why||'?', plies:r.plies||0, seed:t.seed, colorA:t.colorA, moves:(moves && moves.length<=200) ? moves : null,
@@ -23764,14 +23807,14 @@ function _labJournal(st, t, r, moves){
     winner:r.winner, why:r.why||'?', plies:r.plies||0, cb:r.cb!=null?r.cb:'', cw:r.cw!=null?r.cw:'', colorA:t.colorA, seed:t.seed, paire:t.p, wA:_labSansZeros(t.wA), wB:_labSansZeros(t.wB),
     depart:t.depart ? (t.depart.ref||'corpus') : 'hasard', ms:t.ms||0 });
 }
-// mesure du gain reel a la demande : le champion contre les poids d'origine
+// mesure du gain reel a la demande : le champion contre le point de depart du Labo (v2.76 : les poids Texel)
 function labMesurerGain(){
   const st=labLoad();
   if(st.phase==='confirm' || st.phase==='bilan'){ showToast('Attends la fin du test en cours'); return; }
-  const ch=_labComplet(st.champion);
-  if(SPSA_KEYS.every(function(k){ return ch[k]===LAB_ORIGINE[k]; })){ showToast('Le champion est encore celui d’origine : rien à mesurer'); return; }
+  const ch=_labComplet(st.champion), base=_labBasePoids(st);
+  if(SPSA_KEYS.every(function(k){ return ch[k]===base[k]; })){ showToast('Le champion est encore celui de départ ('+_labBaseNom(st)+') : rien à mesurer'); return; }
   _labNouvellePhase(st,'bilan');
-  st.bilan={ name:'Bilan : champion G'+(st.championGen||st.gen)+' contre les poids d’origine', wA:ch, gen:st.championGen||st.gen, penta:_labPentaVide(), half:{}, fait:{}, pairs:Math.max(5, LAB_CFG.bilanPaires|0||25) };
+  st.bilan={ name:'Bilan : champion G'+(st.championGen||st.gen)+' contre les '+_labBaseNom(st), wA:ch, gen:st.championGen||st.gen, penta:_labPentaVide(), half:{}, fait:{}, pairs:Math.max(5, LAB_CFG.bilanPaires|0||25) };
   labSave(st); renderLab();
   showToast(_labRunning ? '📏 Mesure lancée' : '📏 Mesure programmée : démarre le Labo');
   if(_labRunning) _labPlanifier(_labPomper, 50);
@@ -23877,8 +23920,7 @@ function labApplyChampion(){
   if(LAB_CFG.mode==='spsa') st.spsa=_spsaInit(w);
   _labNouvellePhase(st, _labPhasePrincipale());
   labSave(st);
-  try{ localStorage.setItem('abaLabChampion', JSON.stringify(w)); }catch(e){}
-  applyLabChampion();
+  _labEnregistrerChampion(st, w);
   showToast('\ud83c\udff3\ufe0f Champion redéfini manuellement \u2014 nouveaux mutants générés');
   renderLab();
 }
@@ -23979,7 +24021,7 @@ function _labStats(){
 }
 
 function labExport(){
-  const dump={ state:labLoad(), cfg:LAB_CFG, champion:(function(){try{return JSON.parse(localStorage.getItem('abaLabChampion')||'null');}catch(e){return null;}})() };
+  const dump={ state:labLoad(), cfg:LAB_CFG, champion:(function(){try{return JSON.parse(localStorage.getItem('abaLabChampion')||'null');}catch(e){return null;}})(), championBase:localStorage.getItem('abaLabChampionBase')||null };
   const txt=JSON.stringify(dump,null,2);
   try{
     const blob=new Blob([txt],{type:'application/json'});
@@ -24005,7 +24047,7 @@ function labImportFile(input){
       const d=JSON.parse(rd.result);
       if(d.cfg){ LAB_CFG=Object.assign({}, LAB_CFG_DEFAULT, d.cfg); labCfgSave(); }
       if(d.state && d.state.champion && d.state.phase){ labSave(d.state); }
-      if(d.champion){ localStorage.setItem('abaLabChampion', JSON.stringify(d.champion)); }
+      if(d.champion){ localStorage.setItem('abaLabChampion', JSON.stringify(d.champion)); localStorage.setItem('abaLabChampionBase', d.championBase || (d.state && d.state.base) || 'origine'); }
       applyLabChampion();
       showToast('\ud83d\udce5 État du Labo importé');
       renderLab();
@@ -24423,7 +24465,7 @@ function renderLab(){
   const st=labLoad();
   const useOn = localStorage.getItem('abaLabUse')!=='0';
   const ch=_labComplet(st.champion), B=_labBounds();
-  const phaseNom={screen:'Tri des mutants', confirm:'Confirmation (SPRT)', bilan:'Bilan contre les poids d’origine', spsa:'SPSA', done:'Terminé'}[st.phase]||st.phase;
+  const phaseNom={screen:'Tri des mutants', confirm:'Confirmation (SPRT)', bilan:'Bilan contre les '+_labBaseNom(st), spsa:'SPSA', done:'Terminé'}[st.phase]||st.phase;
   let h='';
   h+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">';
   h+='<span style="font-weight:700">'+(_labRunning?'🔄 En cours':'⏸ En pause')+' · Génération '+st.gen+' · '+phaseNom+'</span>';
@@ -24461,7 +24503,7 @@ function renderLab(){
   }
   // ── Gain reel mesure ──
   const M=(st.mesures||[]).filter(function(m){ return m && typeof m.elo==='number'; });
-  h+='<div style="margin-top:10px;font-size:12px;font-weight:700">📈 Gain réel mesuré (champion contre les poids d’origine)</div>';
+  h+='<div style="margin-top:10px;font-size:12px;font-weight:700">📈 Gain réel mesuré (champion contre les '+_labBaseNom(st)+')</div>';
   if(M.length){
     const d=M[M.length-1];
     h+='<div style="font-size:12px;margin-top:2px">'+(d.elo>=0?'+':'')+d.elo+' Elo ± '+d.ci+' <span style="color:var(--muted);font-size:11px">(champion G'+d.gen+', '+d.paires+' paires, marge à 95 %)</span></div>';
@@ -24488,7 +24530,7 @@ function renderLab(){
       h+='<div style="font-size:11px;color:var(--muted);margin:2px 0">G'+x.gen+' · '+x.type+' · '+x.name+(x.score!==null&&x.score!==undefined?' · '+x.score+'/'+x.games:'')+(x.elo?' · '+x.elo:'')+'</div>';
     });
   }
-  h+='<label style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px"><input type="checkbox" '+(useOn?'checked':'')+' onchange="labToggleUse(this)"> Utiliser les poids adoptés pour l’IA</label>';
+  h+='<label style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px"><input type="checkbox" '+(useOn?'checked':'')+' onchange="labToggleUse(this)"> Utiliser les poids adoptés pour l’IA (à partir du niveau 4, à la place des poids Texel)</label>';
   el.innerHTML=h;
   if(_labRunning) _labMajStatut();
   const bs=document.getElementById('lab-start'); if(bs) bs.textContent=_labRunning?'⏸ Pause':'▶ Démarrer';
@@ -42041,7 +42083,8 @@ function _txHtmlDansIA(){
   const M = (typeof AI_TEXEL_MARCHES !== 'undefined') ? AI_TEXEL_MARCHES : [];
   const e = function(x){ return (x.elo >= 0 ? '+' : '') + x.elo + ' ± ' + x.marge; };
   if (M.length) h += ' Les marches entre niveaux (Elo) : ' + M.map(function(m){ return m.marche + ' <b>' + e(m) + '</b>' + (m.avant ? ' (avant : ' + e(m.avant) + ')' : ''); }).join(' ; ') + '.';
-  if (_labChampionAdopte()) h += ' Sur cet appareil, ton champion du Labo est adopté : c’est lui qui joue, à tous les niveaux.';
+  h += ' Le Labo (onglet Auto-amélioration) part de ces poids : ce qu’il adopte les remplace à ces niveaux, sur ton appareil.';
+  if (_labChampionAdopte()) h += ' <b>C’est le cas ici</b> : ton champion du Labo joue à partir du niveau ' + AI_NIVEAU_TEXEL + '.';
   return h + '</div>';
 }
 function renderTexel(msg){
@@ -43278,17 +43321,17 @@ function renderLabTableau(){
     { lab: 'Parties par heure', v: debit ? grNb(debit, 0) : '—', sous: 'pendant que le Labo tourne (filtres ci-dessous)' },
     { lab: 'Tests tranchés', v: grNb(tranches), sous: T.adopte + ' adoptés · ' + T.rejete + ' rejetés · ' + T.indecis + ' indécis · ' + T.tri + ' tris sans finaliste' },
     { lab: 'Taux d’adoption', v: tranches ? grPct(T.adopte / tranches) : '—', sous: T.n ? 'un test tranché : ' + grNb(T.parties / T.n, 0) + ' parties en moyenne' : 'aucun test tranché' },
-    { lab: 'Gain réel mesuré', v: dern ? (dern.elo >= 0 ? '+' : '') + dern.elo + ' Elo' : '—', sous: dern ? '± ' + dern.ci + ' · champion G' + dern.gen + ' contre les poids d’origine' : 'mesuré après chaque adoption' }
+    { lab: 'Gain réel mesuré', v: dern ? (dern.elo >= 0 ? '+' : '') + dern.elo + ' Elo' : '—', sous: dern ? '± ' + dern.ci + ' · champion G' + dern.gen + ' contre les ' + _labBaseNom(st) : 'mesuré après chaque adoption' }
   ]);
   if (M.length) {
-    h += '<div class="gr-titre">Le gain réel, bilan après bilan</div><div class="gr-sous">Le champion contre les poids d’origine, en Elo, avec sa marge à 95 %. Au-dessus de 0 : le Labo a rendu l’IA plus forte.</div>';
+    h += '<div class="gr-titre">Le gain réel, bilan après bilan</div><div class="gr-sous">Le champion contre les ' + _labBaseNom(st) + ', en Elo, avec sa marge à 95 %. Au-dessus de 0 : le Labo a rendu l’IA plus forte.</div>';
     h += grLignes(W, [{ nom: 'Gain', couleur: GR_OR, pts: M.map(function(m, i){ return [i + 1, m.elo]; }), barres: M.map(function(m, i){ return [i + 1, m.elo - m.ci, m.elo + m.ci]; }), points: true }],
       { zero: true, ticksX: M.length <= 12 ? M.map(function(m, i){ return i + 1; }) : null, fmtX: function(v){ return '#' + v; }, nomX: 'Bilan', fmtTip: function(v, sr, x){ const m = M[x - 1]; return (v >= 0 ? '+' : '') + v + ' Elo ± ' + m.ci + ' (G' + m.gen + ', ' + m.paires + ' paires)'; }, aria: 'Gain réel mesuré' });
   }
   const C = st.champions || [];
   if (C.length) {
     const cles = SPSA_KEYS.filter(function(k, j){ return C.some(function(c){ return c.w[j]; }); });
-    h += '<div class="gr-titre">Les poids du champion, adoption après adoption</div><div class="gr-sous">' + C.length + ' champion' + (C.length > 1 ? 's' : '') + ' depuis les poids d’origine ; la dernière valeur à droite.' + (C.length < 2 ? ' Les courbes se dessinent aux prochaines adoptions.' : '') + '</div>';
+    h += '<div class="gr-titre">Les poids du champion, adoption après adoption</div><div class="gr-sous">' + C.length + ' champion' + (C.length > 1 ? 's' : '') + ' au fil des adoptions (le Labo est reparti des poids Texel en v2.76) ; la dernière valeur à droite.' + (C.length < 2 ? ' Les courbes se dessinent aux prochaines adoptions.' : '') + '</div>';
     h += grMultiples(W, cles.map(function(k){ const j = SPSA_KEYS.indexOf(k); return { nom: LAB_NOMS[k] || k, pts: C.map(function(c, i){ return [i, c.w[j]]; }) }; }), { nomX: 'n° ' });
     if (C.length > 1) h += grChiffres(['#', 'Génération', 'Quand', 'Changement'], C.map(function(c, i){ return [i, 'G' + c.gen, c.t ? new Date(c.t).toLocaleDateString('fr-FR') : '—', c.nom || '']; }));
   }

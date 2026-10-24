@@ -2379,7 +2379,7 @@ function _laboBac(fn){
   ctx._labCreerFil = () => { const w = { postMessage: m => { if (!m.ping) envois.push({ w, m, fini: false }); }, terminate: () => { w.mort = true; } }; fils.push(w); return { w }; };
   ctx._labPlanifier = (f, ms) => { (ms < 1000 ? file : longs).push(f); return 0; };
   ctx._testKaahPlanifier = (f, ms) => { if (ms < 1000) file.push(f); return 0; };
-  ['abaLabState', 'abaLabChampion', 'abaLabCfg', 'abaLabAutoRun', 'abaLabUse', 'abaTestKaah', 'abaLabDataLog', 'abaLabBookLearned'].forEach(k => ctx.localStorage.removeItem(k));
+  ['abaLabState', 'abaLabChampion', 'abaLabChampionBase', 'abaLabCfg', 'abaLabAutoRun', 'abaLabUse', 'abaTestKaah', 'abaLabDataLog', 'abaLabBookLearned'].forEach(k => ctx.localStorage.removeItem(k));
   ctx.LAB_CFG = Object.assign({}, ctx.LAB_CFG_DEFAULT, { depart: 'hasard' });   // v2.70 : depart des vraies positions teste a part (section 63)
   ctx._labRunning = false; ctx._labPingOk = false; ctx._labFils = []; ctx._labEnVol = {}; ctx._spsaVol = []; ctx._testKaahEnCours = false; ctx._testKaahEnVol = {};
   const vider = () => { let n = 0; while (file.length && n++ < 10000) file.shift()(); };
@@ -2392,7 +2392,8 @@ function _laboBac(fn){
     ctx.document.getElementById = sG; ctx.showToast = sTo; ctx.confirm = sCf;
     ctx._labCreerFil = sCreer; ctx._labPlanifier = sPlan; ctx._testKaahPlanifier = sTk; ctx.LAB_CFG = sCfg;
     Object.keys(ctx.AI_WEIGHT_PRESETS.balanced).forEach(k => { delete ctx.AI_WEIGHT_PRESETS.balanced[k]; }); Object.assign(ctx.AI_WEIGHT_PRESETS.balanced, sBal);
-    ['abaLabState', 'abaLabChampion', 'abaLabCfg', 'abaLabAutoRun', 'abaLabUse', 'abaTestKaah', 'abaLabDataLog', 'abaLabBookLearned'].forEach(k => ctx.localStorage.removeItem(k));
+    delete ctx.AI_WEIGHT_PRESETS.labo;
+    ['abaLabState', 'abaLabChampion', 'abaLabChampionBase', 'abaLabCfg', 'abaLabAutoRun', 'abaLabUse', 'abaTestKaah', 'abaLabDataLog', 'abaLabBookLearned'].forEach(k => ctx.localStorage.removeItem(k));
   };
   // v2.70 : les tests asynchrones (positions du corpus a charger) gardent le bac jusqu'a leur fin
   let r;
@@ -2437,7 +2438,7 @@ test('labo : plusieurs parties a la fois ; tri par paires sur les memes ouvertur
   ctx.navigator.hardwareConcurrency = sN;
 }));
 
-test('labo : tri -> confirmation (nouvelles ouvertures) -> adoption -> bilan contre les poids d origine -> generation suivante', () => _laboBac(({ envois, attente, vider, repondre, demarrer }) => {
+test('labo : tri -> confirmation (nouvelles ouvertures) -> adoption -> bilan contre les poids de depart (Texel) -> generation suivante', () => _laboBac(({ envois, attente, vider, repondre, demarrer }) => {
   ctx.LAB_CFG.threads = 2;
   demarrer();
   const st0 = ctx.labLoad(), gagnant = st0.cands[1].name;
@@ -2462,14 +2463,20 @@ test('labo : tri -> confirmation (nouvelles ouvertures) -> adoption -> bilan con
   assert.strictEqual(st.phase, 'bilan', 'apres adoption : mesure du gain reel');
   assert.match(st.history[0].type, /adopt/); assert.strictEqual(st.history[0].name, gagnant);
   assert.deepStrictEqual(st.champion, st0.cands[1].w);
-  assert.notStrictEqual(JSON.stringify(ctx.AI_WEIGHT_PRESETS.balanced), avant, 'l IA utilise le nouveau champion');
-  ctx.SPSA_KEYS.forEach(k => assert.strictEqual(ctx.AI_WEIGHT_PRESETS.balanced[k], st.champion[k]));
+  // v2.76 : le champion adopte remplace les poids Texel a partir du niveau 4 ; les niveaux 1 a 3 gardent les leurs
+  assert.strictEqual(JSON.stringify(ctx.AI_WEIGHT_PRESETS.balanced), avant, 'niveaux 1 a 3 : poids d origine');
+  ctx.SPSA_KEYS.forEach(k => assert.strictEqual(ctx.AI_WEIGHT_PRESETS.labo[k], st.champion[k]));
+  assert.strictEqual(ctx.localStorage.getItem('abaLabChampionBase'), 'texel');
+  assert.strictEqual(ctx._aiPoidsNiveau(4), ctx.AI_WEIGHT_PRESETS.labo); assert.strictEqual(ctx._aiPoidsNiveau(3), ctx.AI_WEIGHT_PRESETS.balanced);
   // les parties de la confirmation encore en cours reviennent : ignorees
+  const base = JSON.stringify(ctx._labBasePoids(st));
+  assert.strictEqual(base, JSON.stringify(ctx._labComplet(ctx.AI_WEIGHT_PRESETS.texel)));
   const bilanAvant = JSON.stringify(st.bilan.penta);
-  attente().filter(e => e.m.msPerMove === 600 && JSON.stringify(e.m.wB) !== JSON.stringify(ctx.LAB_ORIGINE)).forEach(e => repondre(e, 'A')); vider();
+  attente().filter(e => e.m.msPerMove === 600 && JSON.stringify(e.m.wB) !== base).forEach(e => repondre(e, 'A')); vider();
   assert.strictEqual(JSON.stringify(ctx.labLoad().bilan.penta), bilanAvant, 'resultat d une phase deja tranchee ignore');
-  // bilan : champion contre les poids d'origine, 25 paires
-  assert.ok(attente().every(e => JSON.stringify(e.m.wB) === JSON.stringify(ctx.LAB_ORIGINE)));
+  // bilan : champion contre les poids de depart (Texel), 25 paires
+  assert.match(st.bilan.name, /contre les poids Texel$/);
+  assert.ok(attente().every(e => JSON.stringify(e.m.wB) === base));
   garde = 0; let k = 0;
   while (ctx.labLoad().phase === 'bilan' && garde++ < 200) { repondre(attente()[0], (k++ % 3) ? 'A' : 'B'); vider(); }
   st = ctx.labLoad();
@@ -2499,7 +2506,8 @@ test('labo SPSA : les poids de l IA ne changent pas pendant les iterations ; the
   const ia0 = JSON.stringify(ctx.AI_WEIGHT_PRESETS.balanced);
   demarrer();
   let st = ctx.labLoad(); assert.strictEqual(st.phase, 'spsa');
-  assert.strictEqual(st.spsa.theta.sumito, ctx.LAB_KAAH_REF.sumito / 2, 'critere de KAAH : depart a la moitie de la valeur de KAAH');
+  assert.strictEqual(st.spsa.theta.sumito, ctx.AI_WEIGHT_PRESETS.texel.sumito, 'v2.76 : SPSA part des poids Texel');
+  assert.strictEqual(st.spsa.theta.menace, ctx.LAB_KAAH_REF.menace / 2, 'critere de KAAH eteint : depart a la moitie de la valeur de KAAH');
   const a = attente(); assert.strictEqual(a.length, 2);
   assert.strictEqual(a[0].m.seed, a[1].m.seed, 'iteration = une paire (meme ouverture)');
   assert.deepStrictEqual([a[0].m.colorA, a[1].m.colorA], ['black', 'white']);
@@ -2508,6 +2516,7 @@ test('labo SPSA : les poids de l IA ne changent pas pendant les iterations ; the
   while (ctx.labLoad().phase === 'spsa' && garde++ < 100) {
     repondre(attente()[0], 'A'); vider();
     assert.strictEqual(JSON.stringify(ctx.AI_WEIGHT_PRESETS.balanced), ia0, 'l IA garde ses poids pendant SPSA');
+    assert.strictEqual(ctx.AI_WEIGHT_PRESETS.labo, undefined);
     assert.strictEqual(ctx.localStorage.getItem('abaLabChampion'), null);
   }
   st = ctx.labLoad();
@@ -2524,7 +2533,7 @@ test('labo SPSA : les poids de l IA ne changent pas pendant les iterations ; the
   assert.strictEqual(JSON.stringify(ctx.AI_WEIGHT_PRESETS.balanced), ia0);
 }));
 
-test('labo : criteres de KAAH dans les mutants (16 poids), case pour les exclure, retour aux poids d origine sans KAAH', () => _laboBac(() => {
+test('labo : criteres de KAAH dans les mutants (16 poids), case pour les exclure, case « utiliser » qui allume et eteint le champion', () => _laboBac(() => {
   const ch = ctx._labComplet(ctx.LAB_ORIGINE);
   const tous = []; for (let g = 2; g < 12; g++) ctx.labMutants(ch, g, null).forEach(m => tous.push(m));
   assert.ok(tous.some(m => ctx.LAB_CLES_KAAH.indexOf(m.key) >= 0), 'des mutants allument des criteres de KAAH');
@@ -2534,33 +2543,44 @@ test('labo : criteres de KAAH dans les mutants (16 poids), case pour les exclure
   const sans = []; for (let g = 2; g < 12; g++) ctx.labMutants(ch, g, null).forEach(m => sans.push(m));
   assert.ok(sans.length && sans.every(m => ctx.LAB_CLES_KAAH.indexOf(m.key) < 0), 'case decochee : plus de mutant KAAH');
   ctx.LAB_CFG.kaah = 1;
-  // champion avec sumito adopte, puis « ne pas utiliser les poids du Labo » : sumito revient a 0
+  // v2.76 : un champion issu des anciens poids (sans lignee Texel) ne s'applique plus
   ctx.localStorage.setItem('abaLabChampion', JSON.stringify(Object.assign({}, ch, { sumito: 20 })));
-  ctx.applyLabChampion(); assert.strictEqual(ctx.AI_WEIGHT_PRESETS.balanced.sumito, 20);
-  ctx.labToggleUse({ checked: false }); assert.strictEqual(ctx.AI_WEIGHT_PRESETS.balanced.sumito, 0, 'critere de KAAH remis a 0');
+  assert.strictEqual(ctx.applyLabChampion(), false); assert.strictEqual(ctx.AI_WEIGHT_PRESETS.labo, undefined);
+  // champion de la lignee Texel : le preset « labo » (niveaux 4+), jamais les poids d'origine (niveaux 1 a 3)
+  ctx.localStorage.setItem('abaLabChampionBase', 'texel');
+  assert.strictEqual(ctx.applyLabChampion(), true); assert.strictEqual(ctx.AI_WEIGHT_PRESETS.labo.sumito, 20);
+  assert.ok(!ctx.AI_WEIGHT_PRESETS.balanced.sumito, 'niveaux 1 a 3 : pas touches');
+  ctx.labToggleUse({ checked: false }); assert.strictEqual(ctx.AI_WEIGHT_PRESETS.labo, undefined, 'case decochee : poids Texel');
   assert.strictEqual(ctx.AI_WEIGHT_PRESETS.balanced.label, 'équilibré');
-  ctx.labToggleUse({ checked: true }); assert.strictEqual(ctx.AI_WEIGHT_PRESETS.balanced.sumito, 20);
-  ctx.resetLab(); assert.strictEqual(ctx.AI_WEIGHT_PRESETS.balanced.sumito, 0);
+  ctx.labToggleUse({ checked: true }); assert.strictEqual(ctx.AI_WEIGHT_PRESETS.labo.sumito, 20);
+  ctx.resetLab(); assert.strictEqual(ctx.AI_WEIGHT_PRESETS.labo, undefined);
+  assert.strictEqual(ctx.localStorage.getItem('abaLabChampionBase'), null);
   // poids incomplets ou invalides : completes
   const c2 = ctx._labComplet({ center: 7, mob: -3, sumito: 'x' });
   assert.deepStrictEqual([c2.center, c2.mob, c2.sumito, c2.piege], [7, 2, 0, 0]);
 }));
 
-test('labo : un etat de l ancien Labo (v3) est repris -- champion, historique, SPSA ; plus l ancien Elo cumule', () => _laboBac(() => {
+test('labo : un etat de l ancien Labo (v3) est repris -- historique, compteurs, ancien Elo cumule ; puis repart des poids Texel (v2.76)', () => _laboBac(() => {
   ctx.localStorage.setItem('abaLabState', JSON.stringify({ v: 3, gen: 7, champion: { center: 6, cohesion: 6, edge: 8, mob: 2, iso: 18, dng: 14, chain: 10, fortress: 20 },
     phase: 'confirm', cands: [{ name: 'x', done: 3, target: 6, score: 2, W: 2, D: 0, L: 1 }], confirm: { name: 'edge 8→10', done: 12, target: 60, score: 9, W: 9, D: 0, L: 3, llr: 1.2 },
     totalGames: 321, eloCurve: [{ gen: 1, elo: 0 }, { gen: 5, elo: 88 }], cumElo: 88, gameLog: [], lastGood: 'cohesion',
     history: [{ gen: 5, type: '✅ adopté (SPRT)', name: 'cohesion 4→6', score: 7, games: 8, elo: '+240 Elo ± 0' }],
     spsa: { iter: 12, k: 12, theta: { center: 6.5, cohesion: 5, edge: 8, mob: 2, iso: 18, dng: 14, chain: 10, fortress: 20 }, thetaHist: [], wins: 5, draws: 1, losses: 6 } }));
   const st = ctx.labLoad();
-  assert.strictEqual(st.v, 5, 'v3 -> v4 -> v5 (v2.70)'); assert.strictEqual(st.gen, 7); assert.strictEqual(st.totalGames, 321);
-  assert.strictEqual(st.champion.cohesion, 6); assert.strictEqual(st.champion.sumito, 0);
+  assert.strictEqual(st.v, 6, 'v3 -> v4 -> v5 (v2.70) -> v6 (v2.76)'); assert.strictEqual(st.base, 'texel');
+  assert.strictEqual(st.gen, 7); assert.strictEqual(st.totalGames, 321);
+  assert.deepStrictEqual(st.champion, ctx._labComplet(ctx.AI_WEIGHT_PRESETS.texel), 'le champion : les poids Texel');
   assert.strictEqual(st.phase, 'screen', 'le test en cours repart sur les nouvelles regles');
-  assert.ok(st.cands.every(c => Array.isArray(c.penta)));
+  assert.ok(st.cands.length && st.cands.every(c => Array.isArray(c.penta)));
   assert.strictEqual(st.ancienCumul, 88);
-  assert.match(st.history[0].type, /v5/); assert.match(st.history[1].type, /v4/); assert.strictEqual(st.history[2].name, 'cohesion 4→6');
-  assert.strictEqual(st.spsa.iter, 12); assert.strictEqual(st.spsa.theta.center, 6.5);
-  assert.strictEqual(JSON.parse(ctx.localStorage.getItem('abaLabState')).v, 5, 'migration enregistree');
+  assert.match(st.history[0].type, /v6/); assert.match(st.history[0].name, /l’ancien champion, issu des poids d’origine, reste dans l’historique/);
+  assert.match(st.history[1].type, /v5/); assert.match(st.history[2].type, /v4/); assert.strictEqual(st.history[3].name, 'cohesion 4→6');
+  // l'ancien champion reste dans l'historique des champions, entre les poids d'origine et le nouveau depart
+  assert.deepStrictEqual(Array.from(st.champions, c => c.nom), ['poids d’origine', 'champion avant la v2.71', 'nouveau départ : poids Texel']);
+  assert.strictEqual(st.champions[1].w[ctx.SPSA_KEYS.indexOf('cohesion')], 6);
+  assert.strictEqual(st.spsa.iter, 0); assert.strictEqual(st.spsa.theta.center, ctx.AI_WEIGHT_PRESETS.texel.center);
+  assert.strictEqual(st.genDepart, 5, 'le plafond de generations repart de zero');
+  assert.strictEqual(JSON.parse(ctx.localStorage.getItem('abaLabState')).v, 6, 'migration enregistree');
 }));
 
 test('labo : partie trop longue -> fil remplace, partie relancee ; 3 fois de suite -> pause', () => _laboBac(({ fils, longs, attente, demarrer, vider }) => {
@@ -4650,7 +4670,7 @@ test('labo v2.70 : les parties du Labo partent de vraies positions -- la meme po
     const a = E[0];
     repondre(a, 'A'); vider();
     const st = ctx.labLoad();
-    assert.strictEqual(st.v, 5); assert.strictEqual(st.departMode, 'belgian');
+    assert.strictEqual(st.v, 6); assert.strictEqual(st.departMode, 'belgian');
     assert.ok(st.gameLog[0].depart && st.gameLog[0].depart.s === a.m.depart.s, 'le journal garde la position (rejeu)');
     assert.match(JSON.parse(ctx.localStorage.getItem('abaLabDataLog')).pop().depart, /^\d+@\d+$/, 'journal data : la partie du corpus et le demi-coup');
   });
@@ -5050,7 +5070,13 @@ test('ia v2.75 : poids Texel a partir du niveau 4, en Auto ou Equilibre -- jamai
   assert.strictEqual(choix(4, { style: 'aggressive' }).w, P.aggressive, 'un style choisi a la main reste le sien');
   assert.strictEqual(choix(6, { style: 'kaah' }).w, P.kaah);
   assert.strictEqual(choix(4, { tournoi: true }).w, P.balanced, 'tournoi du mois : meme difficulte pour tout le mois');
-  assert.strictEqual(choix(4, { champion: { center: 7 } }).w, P.balanced, 'champion du Labo adopte : il garde la main');
+  // v2.76 : un champion du Labo (lignee Texel) adopte : il remplace les poids Texel a partir du niveau 4
+  P.labo = Object.assign(ctx._labComplet({ center: 7 }), { label: 'champion du Labo' });
+  try {
+    const c = choix(4); assert.strictEqual(c.w, P.labo); assert.strictEqual(c.mode, 'labo'); assert.strictEqual(c.toasts, 0);
+    assert.strictEqual(choix(3).w, P.balanced, 'niveaux 1 a 3 : poids d origine');
+    assert.strictEqual(choix(4, { tournoi: true }).w, P.balanced);
+  } finally { delete P.labo; }
   // les bancs du Labo mesurent chaque niveau avec ses poids de partie
   assert.strictEqual(ctx._aiPoidsNiveau(3), P.balanced); assert.strictEqual(ctx._aiPoidsNiveau(4), T);
   const plan = _r63('BANCS').niveaux.construire({ jusqua: 5, paires: 2 });
@@ -5093,3 +5119,67 @@ test('ia v2.75 : l aide et le Labo disent ou sont les poids Texel, et ce qu ont 
   assert.ok(m34 && m34.avant && m34.elo > m34.avant.elo);
   assert.ok(h.indexOf('3 → 4 <b>+' + m34.elo + ' ± ' + m34.marge + '</b> (avant : +' + m34.avant.elo + ' ± ' + m34.avant.marge + ')') > 0);
 });
+
+/* ─── 69. v2.76 : le Labo part des poids Texel ─── */
+
+test('labo v2.76 : un Labo neuf part des poids Texel -- mutants, SPSA et bilans autour d eux', () => _laboBac(() => {
+  const st = ctx.labLoad(), T = ctx._labComplet(ctx.AI_WEIGHT_PRESETS.texel);
+  assert.strictEqual(st.v, 6); assert.strictEqual(st.base, 'texel');
+  assert.deepStrictEqual(st.champion, T);
+  assert.strictEqual(st.champions[0].nom, 'poids Texel (départ)'); assert.match(st.history[0].name, /poids Texel/);
+  // chaque mutant change un seul critere des poids Texel
+  assert.ok(st.cands.length >= 2);
+  st.cands.forEach(c => assert.strictEqual(ctx.SPSA_KEYS.filter(k => c.w[k] !== T[k]).length, 1, c.name));
+  assert.strictEqual(ctx._labBaseNom(st), 'poids Texel');
+  assert.deepStrictEqual(ctx._labBasePoids(st), T);
+  // rien a mesurer tant que le champion est le point de depart
+  let msg = null; const sT = ctx.showToast; ctx.showToast = m => { msg = m; };
+  try { ctx.labMesurerGain(); } finally { ctx.showToast = sT; }
+  assert.match(msg, /encore celui de départ \(poids Texel\)/);
+  assert.strictEqual(ctx.labLoad().phase, st.phase);
+  // l'ancien etat sans base mesure toujours contre les poids d'origine
+  assert.deepStrictEqual(ctx._labBasePoids({}), ctx._labComplet(ctx.LAB_ORIGINE));
+}));
+
+test('labo v2.76 : un etat v5 repart des poids Texel ; son champion adopte, issu des anciens poids, ne s applique plus', () => _laboBac(() => {
+  const vieux = Object.assign(ctx._labComplet(ctx.LAB_ORIGINE), { cohesion: 6, iso: 22 });
+  const v5 = ctx._labDefaultState(); delete v5.champions;
+  Object.assign(v5, { v: 5, base: undefined, gen: 25, champion: vieux, championGen: 20, phase: 'bilan', bilan: { name: 'x', wA: vieux, gen: 20, penta: [0, 0, 1, 0, 0], half: {}, fait: {}, pairs: 25 },
+    mesures: [{ gen: 12, elo: 40, ci: 30, paires: 25, t: 1 }], totalGames: 5000 });
+  ctx.localStorage.setItem('abaLabState', JSON.stringify(v5));
+  ctx.localStorage.setItem('abaLabChampion', JSON.stringify(vieux));
+  ctx.applyLabChampion();
+  assert.strictEqual(ctx.AI_WEIGHT_PRESETS.labo, undefined, 'pas de lignee Texel : jamais applique');
+  const st = ctx.labLoad();
+  assert.strictEqual(st.v, 6); assert.deepStrictEqual(st.champion, ctx._labComplet(ctx.AI_WEIGHT_PRESETS.texel));
+  assert.strictEqual(st.totalGames, 5000); assert.strictEqual(st.bilan, null); assert.strictEqual(st.phase, 'screen');
+  assert.strictEqual(st.mesures.length, 0); assert.strictEqual(st.mesuresOrigine[0].elo, 40, 'les anciens bilans gardes a part');
+  assert.strictEqual(ctx.localStorage.getItem('abaLabChampion'), null, 'l ancien champion adopte est retire');
+  assert.ok(Array.from(st.champions, c => c.w[ctx.SPSA_KEYS.indexOf('iso')]).includes(22), 'il reste dans l historique des champions');
+  assert.match(st.history[0].name, /ancien champion/);
+  // le plafond de generations compte depuis le nouveau depart (avant : 25 > 20, le Labo se serait arrete)
+  assert.strictEqual(st.genDepart, 23);
+  ctx._labRetourPrincipal(st); assert.strictEqual(st.phase, 'screen');
+  st.gen = 23 + ctx.LAB_CFG.maxGen + 1; ctx._labRetourPrincipal(st); assert.strictEqual(st.phase, 'done');
+  // la migration est faite une fois
+  assert.strictEqual(JSON.parse(ctx.localStorage.getItem('abaLabState')).v, 6);
+  assert.strictEqual(ctx.labLoad().history.filter(h => /v6/.test(h.type)).length, 1);
+}));
+
+test('labo v2.76 : export et import gardent la lignee du champion', () => _laboBac(() => {
+  const st = ctx.labLoad(), w = Object.assign({}, st.champion, { center: 30 });
+  ctx._labEnregistrerChampion(st, w);
+  assert.strictEqual(ctx.localStorage.getItem('abaLabChampionBase'), 'texel'); assert.strictEqual(ctx.AI_WEIGHT_PRESETS.labo.center, 30);
+  // l'import d'un ancien fichier (sans lignee) : enregistre, jamais applique
+  const sauve = ctx.FileReader;
+  const importer = d => { ctx.FileReader = function(){ this.readAsText = () => { this.result = JSON.stringify(d); this.onload(); }; }; ctx.labImportFile({ files: [{}], value: 'x' }); };
+  const sT = ctx.showToast, sR = ctx.renderLab; ctx.showToast = () => {}; ctx.renderLab = () => {};
+  try {
+    importer({ champion: Object.assign({}, w, { center: 9 }) });
+    assert.strictEqual(ctx.localStorage.getItem('abaLabChampionBase'), 'origine'); assert.strictEqual(ctx.AI_WEIGHT_PRESETS.labo, undefined);
+    importer({ champion: Object.assign({}, w, { center: 31 }), championBase: 'texel' });
+    assert.strictEqual(ctx.AI_WEIGHT_PRESETS.labo.center, 31);
+  } finally { ctx.FileReader = sauve; ctx.showToast = sT; ctx.renderLab = sR; }
+  // l'export ecrit la lignee a cote du champion
+  assert.match(_SRC_INDEX, /champion:\(function\(\)\{try\{return JSON\.parse\(localStorage\.getItem\('abaLabChampion'\)[^\n]*championBase:localStorage\.getItem\('abaLabChampionBase'\)/);
+}));
