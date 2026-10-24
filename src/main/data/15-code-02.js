@@ -50,21 +50,25 @@ const AI_TEXEL_MARCHES = [
   { marche: '3 → 4', avant: { elo: 17, marge: 114 }, elo: 382, marge: 299 },
   { marche: '4 → 5', elo: 127, marge: 163 }
 ];
-// un champion du Labo adopte sur cet appareil (case « utiliser les poids du Labo ») : le choix de son proprietaire
-function _labChampionAdopte(){ try { return localStorage.getItem('abaLabUse') !== '0' && !!JSON.parse(localStorage.getItem('abaLabChampion') || 'null'); } catch (e) { return false; } }
+/* v2.76 : un champion adopte par le Labo (parti des poids Texel) sur cet appareil, case « utiliser les
+   poids adoptes » cochee : applyLabChampion le range dans AI_WEIGHT_PRESETS.labo */
+function _labChampionAdopte(){ return !!AI_WEIGHT_PRESETS.labo; }
 /* v2.75 : les poids Texel pour ce coup ? Niveau 4 et plus, style Auto (le profilage ne change plus les
    poids a ces niveaux : Texel bat aussi les styles qu'il choisissait -- duels a profondeur 2, 8 paires
    chacun : Agressif +163 ± 168, Defensif +338 ± 310, Division +163 ± 155 Elo)
-   ou Equilibre choisi. Jamais : un autre style choisi a la main, le tournoi du mois (meme difficulte pour
-   tout le mois, pour tout le monde), ni quand un champion du Labo est adopte sur l'appareil. */
+   ou Equilibre choisi. Jamais : un autre style choisi a la main, ni le tournoi du mois (meme difficulte
+   pour tout le mois, pour tout le monde). v2.76 : a ces niveaux, le champion du Labo adopte sur
+   l'appareil remplace les poids Texel (voir _aiPoidsHaut). */
 function _aiPoidsTexel(mode){
   if (_aiForcedMode && mode !== 'balanced') return false;
   if (typeof _tourneyMatch !== 'undefined' && _tourneyMatch) return false;
   const n = (typeof _niveauIA === 'function') ? _niveauIA() : null;
-  return !!n && n >= AI_NIVEAU_TEXEL && !_labChampionAdopte();
+  return !!n && n >= AI_NIVEAU_TEXEL;
 }
+// le style des niveaux 4 et plus : le champion du Labo s'il est adopte ici, sinon les poids Texel
+function _aiStyleHaut(){ return AI_WEIGHT_PRESETS.labo ? 'labo' : 'texel'; }
 // les poids d'un niveau, tels qu'en partie en style Auto (bancs d'essai du Labo)
-function _aiPoidsNiveau(n){ return (n >= AI_NIVEAU_TEXEL && !_labChampionAdopte()) ? AI_WEIGHT_PRESETS.texel : AI_WEIGHT_PRESETS.balanced; }
+function _aiPoidsNiveau(n){ return n >= AI_NIVEAU_TEXEL ? AI_WEIGHT_PRESETS[_aiStyleHaut()] : AI_WEIGHT_PRESETS.balanced; }
 let aiAdaptive = true;     // profilage activé par défaut
 let _aiMode = 'balanced';
 let _aiForcedMode = null;   // null = profilage auto ; sinon force un style (UI manuelle)
@@ -90,11 +94,11 @@ function deriveAIMode(){
 // Met à jour les poids de l'IA selon le style détecté ; signale un changement de mode.
 function updateAIStyle(){
   let mode = _aiForcedMode ? _aiForcedMode : deriveAIMode();
-  if (_aiPoidsTexel(mode)) mode = 'texel';   // v2.75 : niveaux 4 et plus
+  if (_aiPoidsTexel(mode)) mode = _aiStyleHaut();   // v2.75 : niveaux 4 et plus (v2.76 : ou le champion du Labo)
   const w = AI_WEIGHT_PRESETS[mode] || AI_WEIGHT_PRESETS.balanced;
   if(mode !== _aiMode){
     _aiMode = mode;
-    if(mode !== 'balanced' && mode !== 'texel' && typeof showToast === 'function') showToast('🤖 IA : mode ' + w.label + (_aiForcedMode ? ' (forcé)' : ' (auto)'));
+    if(mode !== 'balanced' && mode !== 'texel' && mode !== 'labo' && typeof showToast === 'function') showToast('🤖 IA : mode ' + w.label + (_aiForcedMode ? ' (forcé)' : ' (auto)'));
   }
   return w;
 }

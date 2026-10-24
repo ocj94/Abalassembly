@@ -50,17 +50,17 @@ function renderLabTableau(){
     { lab: 'Parties par heure', v: debit ? grNb(debit, 0) : '—', sous: 'pendant que le Labo tourne (filtres ci-dessous)' },
     { lab: 'Tests tranchés', v: grNb(tranches), sous: T.adopte + ' adoptés · ' + T.rejete + ' rejetés · ' + T.indecis + ' indécis · ' + T.tri + ' tris sans finaliste' },
     { lab: 'Taux d’adoption', v: tranches ? grPct(T.adopte / tranches) : '—', sous: T.n ? 'un test tranché : ' + grNb(T.parties / T.n, 0) + ' parties en moyenne' : 'aucun test tranché' },
-    { lab: 'Gain réel mesuré', v: dern ? (dern.elo >= 0 ? '+' : '') + dern.elo + ' Elo' : '—', sous: dern ? '± ' + dern.ci + ' · champion G' + dern.gen + ' contre les poids d’origine' : 'mesuré après chaque adoption' }
+    { lab: 'Gain réel mesuré', v: dern ? (dern.elo >= 0 ? '+' : '') + dern.elo + ' Elo' : '—', sous: dern ? '± ' + dern.ci + ' · champion G' + dern.gen + ' contre les ' + _labBaseNom(st) : 'mesuré après chaque adoption' }
   ]);
   if (M.length) {
-    h += '<div class="gr-titre">Le gain réel, bilan après bilan</div><div class="gr-sous">Le champion contre les poids d’origine, en Elo, avec sa marge à 95 %. Au-dessus de 0 : le Labo a rendu l’IA plus forte.</div>';
+    h += '<div class="gr-titre">Le gain réel, bilan après bilan</div><div class="gr-sous">Le champion contre les ' + _labBaseNom(st) + ', en Elo, avec sa marge à 95 %. Au-dessus de 0 : le Labo a rendu l’IA plus forte.</div>';
     h += grLignes(W, [{ nom: 'Gain', couleur: GR_OR, pts: M.map(function(m, i){ return [i + 1, m.elo]; }), barres: M.map(function(m, i){ return [i + 1, m.elo - m.ci, m.elo + m.ci]; }), points: true }],
       { zero: true, ticksX: M.length <= 12 ? M.map(function(m, i){ return i + 1; }) : null, fmtX: function(v){ return '#' + v; }, nomX: 'Bilan', fmtTip: function(v, sr, x){ const m = M[x - 1]; return (v >= 0 ? '+' : '') + v + ' Elo ± ' + m.ci + ' (G' + m.gen + ', ' + m.paires + ' paires)'; }, aria: 'Gain réel mesuré' });
   }
   const C = st.champions || [];
   if (C.length) {
     const cles = SPSA_KEYS.filter(function(k, j){ return C.some(function(c){ return c.w[j]; }); });
-    h += '<div class="gr-titre">Les poids du champion, adoption après adoption</div><div class="gr-sous">' + C.length + ' champion' + (C.length > 1 ? 's' : '') + ' depuis les poids d’origine ; la dernière valeur à droite.' + (C.length < 2 ? ' Les courbes se dessinent aux prochaines adoptions.' : '') + '</div>';
+    h += '<div class="gr-titre">Les poids du champion, adoption après adoption</div><div class="gr-sous">' + C.length + ' champion' + (C.length > 1 ? 's' : '') + ' au fil des adoptions (le Labo est reparti des poids Texel en v2.76) ; la dernière valeur à droite.' + (C.length < 2 ? ' Les courbes se dessinent aux prochaines adoptions.' : '') + '</div>';
     h += grMultiples(W, cles.map(function(k){ const j = SPSA_KEYS.indexOf(k); return { nom: LAB_NOMS[k] || k, pts: C.map(function(c, i){ return [i, c.w[j]]; }) }; }), { nomX: 'n° ' });
     if (C.length > 1) h += grChiffres(['#', 'Génération', 'Quand', 'Changement'], C.map(function(c, i){ return [i, 'G' + c.gen, c.t ? new Date(c.t).toLocaleDateString('fr-FR') : '—', c.nom || '']; }));
   }

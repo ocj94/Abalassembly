@@ -9,6 +9,35 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.76]
+
+### Changed — the Lab starts from the Texel weights
+Olivier's request ("Start with 1"): since v2.75 the AI plays with the Texel
+weights from level 4, but the Lab's self-improvement was still trying to
+improve the old "Balanced" weights, which almost nobody faces at those
+levels any more.
+- **The starting point**: a new Lab starts from the Texel weights. Its
+  mutants, SPSA and the Texel method work around them, and its checks
+  measure the champion **against the Texel weights**. The gain shown is
+  therefore what the Lab adds to the AI people actually play.
+- **What it adopts** replaces the Texel weights from level 4, in Auto or
+  Balanced style, on the device where it runs. Levels 1 to 3 keep the
+  original weights: before, an adopted champion changed them too. The "Use
+  the adopted weights" box now says where they apply.
+- **A Lab already running** restarts from the Texel weights when the page
+  opens. The current test stops, since it was about the old champion. The
+  history, counters and log stay. The old champion stays in the champions'
+  history (the "Définir comme champion" button can bring it back), and its checks, measured
+  against the original weights, are kept apart. The generation cap starts
+  again from zero.
+- **A champion adopted before v2.76** no longer applies: it came from the
+  old weights, which the Texel weights beat by more than 300 Elo. The Lab's
+  export file now records where the champion comes from.
+- **Two mutations that stayed stuck at 0**: "danger" and "mobility", being
+  multiplied, could never come back once at 0. The Texel weights have no
+  "danger" any more. They now restart from 4 and 1.
+- **Tests**: 3 more (275), and the Lab tests follow the new starting point.
+
 ## [v2.75]
 
 ### Changed — from level 4, an AI tuned on real games

@@ -194,7 +194,8 @@ function _txHtmlDansIA(){
   const M = (typeof AI_TEXEL_MARCHES !== 'undefined') ? AI_TEXEL_MARCHES : [];
   const e = function(x){ return (x.elo >= 0 ? '+' : '') + x.elo + ' ± ' + x.marge; };
   if (M.length) h += ' Les marches entre niveaux (Elo) : ' + M.map(function(m){ return m.marche + ' <b>' + e(m) + '</b>' + (m.avant ? ' (avant : ' + e(m.avant) + ')' : ''); }).join(' ; ') + '.';
-  if (_labChampionAdopte()) h += ' Sur cet appareil, ton champion du Labo est adopté : c’est lui qui joue, à tous les niveaux.';
+  h += ' Le Labo (onglet Auto-amélioration) part de ces poids : ce qu’il adopte les remplace à ces niveaux, sur ton appareil.';
+  if (_labChampionAdopte()) h += ' <b>C’est le cas ici</b> : ton champion du Labo joue à partir du niveau ' + AI_NIVEAU_TEXEL + '.';
   return h + '</div>';
 }
 function renderTexel(msg){

@@ -133,14 +133,30 @@ function _labComplet(w){
   LAB_CLES_BASE.concat(LAB_CLES_KAAH).forEach(function(k){ const v=w?w[k]:undefined; o[k]=(typeof v==='number' && isFinite(v) && v>=0) ? v : LAB_ORIGINE[k]; });
   return o;
 }
-function _labPoidsOrigineIA(){ if(typeof AI_WEIGHT_PRESETS!=='undefined') Object.assign(AI_WEIGHT_PRESETS.balanced, LAB_ORIGINE); }
+/* v2.76 (demande d'Olivier : « faire partir le Labo des poids Texel ») : depuis la v2.75, l'IA joue
+   avec les poids Texel a partir du niveau 4. Le Labo part donc d'eux (etat v6, base « texel ») : ce
+   qu'il adopte les remplace a ces niveaux (preset « labo », voir _aiPoidsTexel), et ses bilans
+   mesurent le champion contre ce point de depart. Les niveaux 1 a 3 gardent les poids d'origine. */
+function _labBasePoids(st){ return (st && st.base==='texel' && typeof AI_WEIGHT_PRESETS!=='undefined' && AI_WEIGHT_PRESETS.texel) ? _labComplet(AI_WEIGHT_PRESETS.texel) : _labComplet(LAB_ORIGINE); }
+function _labBaseNom(st){ return (st && st.base==='texel') ? 'poids Texel' : 'poids d’origine'; }
+function _labPoidsOrigineIA(){ if(typeof AI_WEIGHT_PRESETS!=='undefined'){ Object.assign(AI_WEIGHT_PRESETS.balanced, LAB_ORIGINE); delete AI_WEIGHT_PRESETS.labo; } }
+// le champion adopte, s'il vient d'un Labo parti des poids Texel : a la place de ceux-ci, niveaux 4 et plus.
+// Un champion issu des anciens poids (avant la v2.76) ne s'applique plus : Texel les bat de 300 Elo et plus.
 function applyLabChampion(){
   try{
+    if(typeof AI_WEIGHT_PRESETS==='undefined') return false;
+    delete AI_WEIGHT_PRESETS.labo;
     if(localStorage.getItem('abaLabUse')==='0') return false;
+    if(localStorage.getItem('abaLabChampionBase')!=='texel') return false;
     const c=JSON.parse(localStorage.getItem('abaLabChampion')||'null');
-    if(c && typeof AI_WEIGHT_PRESETS!=='undefined'){ Object.assign(AI_WEIGHT_PRESETS.balanced, _labComplet(c)); return true; }
+    if(c){ AI_WEIGHT_PRESETS.labo=Object.assign(_labComplet(c), { label:'champion du Labo' }); return true; }
   }catch(e){}
   return false;
+}
+// enregistre le champion adopte (et sa lignee), puis l'applique
+function _labEnregistrerChampion(st, w){
+  try{ localStorage.setItem('abaLabChampion', JSON.stringify(w)); localStorage.setItem('abaLabChampionBase', st.base||'origine'); }catch(e){}
+  applyLabChampion();
 }
 applyLabChampion();
 const LAB_CFG_DEFAULT={
@@ -264,8 +280,9 @@ function _labFilLancer(f, t, surFin){
 // a la valeur de KAAH, puis l'augmenter ou le baisser) -- les deux listes alternent
 const LAB_RECETTES_BASE=[
   ['cohesion', function(v){return v+1;}], ['edge', function(v){return Math.max(2,Math.round(v*0.75));}],
-  ['mob', function(v){return v*2;}],      ['iso', function(v){return Math.max(4,Math.round(v*0.8));}],
-  ['dng', function(v){return Math.round(v*1.3);}], ['center', function(v){return v+2;}],
+  // v2.76 : a 0 (les poids Texel n'ont plus de « danger »), une multiplication restait a 0 : ces criteres se rallumaient jamais
+  ['mob', function(v){return v ? v*2 : 1;}],      ['iso', function(v){return Math.max(4,Math.round(v*0.8));}],
+  ['dng', function(v){return v ? Math.round(v*1.3) : 4;}], ['center', function(v){return v+2;}],
   ['cohesion', function(v){return v+2;}], ['iso', function(v){return Math.round(v*1.3);}],
   ['edge', function(v){return Math.round(v*1.25);}],
   ['chain', function(v){return v+2;}],    ['chain', function(v){return Math.round(v*1.3);}],
@@ -343,16 +360,17 @@ function _spsaUpdate(sp, pert, score){
 // ── Etat persistant (v4) ──
 function _labPhasePrincipale(){ return LAB_CFG.mode==='spsa' ? 'spsa' : 'screen'; }
 function _labDefaultState(){
-  const champ=_labComplet(LAB_ORIGINE);
-  return { v:5, gen:2, epoch:1, champion:champ, championGen:1, phase:_labPhasePrincipale(), departMode:LAB_CFG.depart||'belgian', cands:labMutants(champ,2,null), candsGen:2,
-    champions:[{ gen:1, t:null, w:_labVecteur(champ), nom:'poids d’origine' }], msTotal:0,
+  const champ=_labBasePoids({ base:'texel' });
+  return { v:6, base:'texel', gen:2, epoch:1, champion:champ, championGen:1, phase:_labPhasePrincipale(), departMode:LAB_CFG.depart||'belgian', cands:labMutants(champ,2,null), candsGen:2,
+    champions:[{ gen:1, t:null, w:_labVecteur(champ), nom:'poids Texel (départ)' }], msTotal:0,
     confirm:null, bilan:null, totalGames:0, gameLog:[], lastGood:null, spsa:_spsaInit(champ), mesures:[],
-    history:[{gen:1,type:'banc externe',name:'iso26/dng20/center9/cohesion6 testés — finaliste cohesion 6 : 17,5/32 (54,7 %) < seuil',score:null,games:60}] };
+    history:[{gen:1,type:'⚙ départ',name:'les poids Texel, ceux de l’IA à partir du niveau 4 (v2.75)',score:null,games:0}] };
 }
 // etat v1 a v3 : on garde le champion, l'historique et les compteurs ; le test en cours repart
 // sur les nouvelles regles (ses parties comptaient une par une, pas par paires)
 function _labMigrer(s){
   const st=_labDefaultState();
+  delete st.champions;   // v2.76 : son historique des champions part des poids d'origine (voir labLoad), pas des poids Texel
   st.gen=s.gen||2; st.champion=_labComplet(s.champion); st.totalGames=s.totalGames||0;
   st.gameLog=(s.gameLog||[]).slice(0,12); st.lastGood=s.lastGood||null;
   st.history=(s.history||[]).slice(0,60);
@@ -381,16 +399,38 @@ function _labMigrerV5(s){
   s.history.unshift({gen:s.gen||2, type:'⚙ v5', name:'parties depuis de vraies positions du corpus (Marguerite belge), une bille d’avance ne suffit plus à gagner ; le test en cours repart', score:null, games:0});
   labSave(s); return s;
 }
+/* v2.76 : le Labo repart des poids Texel. Le test en cours s'arrete (il portait sur l'ancien champion) ;
+   l'historique, les compteurs et le journal restent. Un champion issu des poids d'origine reste dans
+   l'historique des champions (« Définir comme champion » peut le remettre) ; ses bilans, mesures contre les
+   poids d'origine, sont gardes a part (mesuresOrigine). Le champion adopte de cette lignee ne s'applique plus. */
+function _labMigrerV6(s){
+  const tx=_labBasePoids({ base:'texel' }), ancien=_labComplet(s.champion);
+  const ameliore=SPSA_KEYS.some(function(k){ return ancien[k]!==LAB_ORIGINE[k]; });
+  s.v=6; s.base='texel'; s.epoch=(s.epoch||1)+1; s.gen=s.gen||2; s.genDepart=s.gen-2;   // le plafond de generations repart de zero
+  s.champion=tx; s.championGen=s.gen;
+  s.champions=s.champions||[];
+  s.champions.push({ gen:s.gen, t:Date.now(), w:_labVecteur(tx), nom:'nouveau départ : poids Texel' });
+  if((s.mesures||[]).length){ s.mesuresOrigine=s.mesures; s.mesures=[]; }
+  s.cands=labMutants(tx, s.gen, null); s.candsGen=s.gen; s.lastGood=null;
+  s.confirm=null; s.bilan=null; s.spsa=_spsaInit(tx);
+  s.phase=_labPhasePrincipale();
+  s.history=s.history||[];
+  s.history.unshift({gen:s.gen, type:'⚙ v6', name:'le Labo repart des poids Texel, ceux de l’IA à partir du niveau 4'+(ameliore?' ; l’ancien champion, issu des poids d’origine, reste dans l’historique des champions':''), score:null, games:0});
+  try{ if(localStorage.getItem('abaLabChampionBase')!=='texel'){ localStorage.removeItem('abaLabChampion'); localStorage.removeItem('abaLabChampionBase'); } }catch(e){}
+  applyLabChampion();
+  labSave(s); return s;
+}
 function labLoad(){
   try{
     const s=JSON.parse(localStorage.getItem('abaLabState')||'null');
     if(s && s.champion && s.phase){
-      const t = (s.v===5) ? s : (s.v===4 ? _labMigrerV5(s) : _labMigrerV5(_labMigrer(s)));
+      let t = (s.v===5 || s.v===6) ? s : (s.v===4 ? _labMigrerV5(s) : _labMigrerV5(_labMigrer(s)));
       // v2.71 : l'historique des champions commence aux poids d'origine (et au champion actuel s'il en differe)
       if(!t.champions){
         t.champions=[{ gen:1, t:null, w:_labVecteur(LAB_ORIGINE), nom:'poids d’origine' }];
         if(_labVecteur(t.champion).join()!==t.champions[0].w.join()) t.champions.push({ gen:t.championGen||t.gen, t:null, w:_labVecteur(t.champion), nom:'champion avant la v2.71' });
       }
+      if(t.v!==6) t=_labMigrerV6(t);
       return t;
     }
   }catch(e){}
@@ -448,14 +488,14 @@ function pauseLab(){ _labRunning=false; _labHBstop(); _labFilsArreter(); _labEnV
 function resetLab(){
   if(!confirm('Réinitialiser le Labo ? (champion, historique et progression effacés ; les poids par défaut reviennent)')) return;
   pauseLab();
-  localStorage.removeItem('abaLabState'); localStorage.removeItem('abaLabChampion'); localStorage.removeItem('abaLabAutoRun');
+  localStorage.removeItem('abaLabState'); localStorage.removeItem('abaLabChampion'); localStorage.removeItem('abaLabChampionBase'); localStorage.removeItem('abaLabAutoRun');
   _labPoidsOrigineIA();
   renderLab(); showToast('Labo réinitialisé');
 }
 function labToggleUse(el){
   localStorage.setItem('abaLabUse', el.checked?'1':'0');
   if(el.checked){ applyLabChampion(); showToast('Poids du Labo appliqués à l’IA'); }
-  else { _labPoidsOrigineIA(); showToast('Poids par défaut restaurés'); }
+  else { _labPoidsOrigineIA(); showToast('Poids par défaut restaurés (Texel à partir du niveau 4)'); }
 }
 
 // ── Ordonnanceur ──
@@ -494,7 +534,7 @@ function _labTacheSuivante(st){
   }
   if(ph==='bilan' && st.bilan){
     const nx=_labPartieSuivante(st.bilan, st.bilan.pairs, 'e'+st.epoch+'|bl', _labEnVol); if(!nx) return null;
-    return _labTache(st, 'bilan', 0, nx, st.bilan.wA, LAB_ORIGINE, st.gen*100000+55000+nx.p, _labRegime('confirm'), st.bilan.name);
+    return _labTache(st, 'bilan', 0, nx, st.bilan.wA, _labBasePoids(st), st.gen*100000+55000+nx.p, _labRegime('confirm'), st.bilan.name);
   }
   if(ph==='spsa') return _spsaTacheSuivante(st);
   return null;
@@ -528,7 +568,7 @@ function _labRetourPrincipal(st){
     if(!(sp.prochVerif>sp.iter)) sp.prochVerif=sp.iter+(LAB_CFG.spsaVerif||50);
     _labNouvellePhase(st,'spsa'); return;
   }
-  if(st.gen>LAB_CFG.maxGen){ _labNouvellePhase(st,'done'); return; }
+  if(st.gen-(st.genDepart||0)>LAB_CFG.maxGen){ _labNouvellePhase(st,'done'); return; }   // v2.76 : compte depuis le nouveau depart
   if(!st.cands || st.candsGen!==st.gen){ st.cands=labMutants(st.champion, st.gen, st.lastGood); st.candsGen=st.gen; }
   _labNouvellePhase(st,'screen');
 }
@@ -554,15 +594,14 @@ function _labNoterChampion(st, nom){
 function _labAdopt(st, cf){
   st.champion=_labComplet(cf.w); st.championGen=st.gen;
   _labNoterChampion(st, cf.name);
-  try{ localStorage.setItem('abaLabChampion', JSON.stringify(st.champion)); }catch(e){}
-  applyLabChampion();
+  _labEnregistrerChampion(st, st.champion);
   st.history.unshift({gen:st.gen, type:'✅ adopté (SPRT)', name:cf.name, score:_labPoints(cf.penta), games:2*_labPentaN(cf.penta), elo:_labEloStrP(cf.penta)});
   st.lastGood=cf.key||null;
   if(typeof showToast==='function') showToast('🧪 Nouveau champion : '+cf.name+' · '+_labEloStrP(cf.penta));
   st.gen++; st.confirm=null;
   if((LAB_CFG.bilanPaires|0)>0){
     _labNouvellePhase(st,'bilan');
-    st.bilan={ name:'Bilan : champion G'+st.championGen+' contre les poids d’origine', wA:st.champion, gen:st.championGen, penta:_labPentaVide(), half:{}, fait:{}, pairs:LAB_CFG.bilanPaires|0 };
+    st.bilan={ name:'Bilan : champion G'+st.championGen+' contre les '+_labBaseNom(st), wA:st.champion, gen:st.championGen, penta:_labPentaVide(), half:{}, fait:{}, pairs:LAB_CFG.bilanPaires|0 };
   } else _labRetourPrincipal(st);
 }
 function _labReject(st, cf, undecided){
@@ -574,7 +613,7 @@ function _labFinBilan(st){
   st.mesures=st.mesures||[];
   if(e) st.mesures.push({ gen:b.gen, elo:Math.round(e.elo), ci:Math.round(e.ci), paires:e.n, t:Date.now() });
   if(st.mesures.length>50) st.mesures.splice(0, st.mesures.length-50);
-  st.history.unshift({gen:b.gen, type:'📏 bilan', name:'contre les poids d’origine : '+_labEloStrP(b.penta), score:_labPoints(b.penta), games:2*_labPentaN(b.penta)});
+  st.history.unshift({gen:b.gen, type:'📏 bilan', name:'contre les '+_labBaseNom(st)+' : '+_labEloStrP(b.penta), score:_labPoints(b.penta), games:2*_labPentaN(b.penta)});
   st.bilan=null; _labRetourPrincipal(st);
 }
 function _spsaVerifier(st){
@@ -663,7 +702,7 @@ function _spsaResultat(st, t, s){
 function _labSansZeros(w){ const o={}; if(w) for(const k in w){ if(typeof w[k]==='number' && w[k]!==0) o[k]=w[k]; } return o; }
 function _labJournal(st, t, r, moves){
   const qui = t.job==='spsa' ? (r.winner==='A'?'θ+':(r.winner==='D'?'nulle':'θ−'))
-    : (t.job==='bilan' ? (r.winner==='A'?'champion':(r.winner==='D'?'nulle':'origine'))
+    : (t.job==='bilan' ? (r.winner==='A'?'champion':(r.winner==='D'?'nulle':'départ'))
     : (r.winner==='A'?'mutant':(r.winner==='D'?'nulle':'champion')));
   st.gameLog=st.gameLog||[];
   st.gameLog.unshift({ phase:t.job, name:t.nom, w:qui, res:r.winner, why:r.why||'?', plies:r.plies||0, seed:t.seed, colorA:t.colorA, moves:(moves && moves.length<=200) ? moves : null,
@@ -674,14 +713,14 @@ function _labJournal(st, t, r, moves){
     winner:r.winner, why:r.why||'?', plies:r.plies||0, cb:r.cb!=null?r.cb:'', cw:r.cw!=null?r.cw:'', colorA:t.colorA, seed:t.seed, paire:t.p, wA:_labSansZeros(t.wA), wB:_labSansZeros(t.wB),
     depart:t.depart ? (t.depart.ref||'corpus') : 'hasard', ms:t.ms||0 });
 }
-// mesure du gain reel a la demande : le champion contre les poids d'origine
+// mesure du gain reel a la demande : le champion contre le point de depart du Labo (v2.76 : les poids Texel)
 function labMesurerGain(){
   const st=labLoad();
   if(st.phase==='confirm' || st.phase==='bilan'){ showToast('Attends la fin du test en cours'); return; }
-  const ch=_labComplet(st.champion);
-  if(SPSA_KEYS.every(function(k){ return ch[k]===LAB_ORIGINE[k]; })){ showToast('Le champion est encore celui d’origine : rien à mesurer'); return; }
+  const ch=_labComplet(st.champion), base=_labBasePoids(st);
+  if(SPSA_KEYS.every(function(k){ return ch[k]===base[k]; })){ showToast('Le champion est encore celui de départ ('+_labBaseNom(st)+') : rien à mesurer'); return; }
   _labNouvellePhase(st,'bilan');
-  st.bilan={ name:'Bilan : champion G'+(st.championGen||st.gen)+' contre les poids d’origine', wA:ch, gen:st.championGen||st.gen, penta:_labPentaVide(), half:{}, fait:{}, pairs:Math.max(5, LAB_CFG.bilanPaires|0||25) };
+  st.bilan={ name:'Bilan : champion G'+(st.championGen||st.gen)+' contre les '+_labBaseNom(st), wA:ch, gen:st.championGen||st.gen, penta:_labPentaVide(), half:{}, fait:{}, pairs:Math.max(5, LAB_CFG.bilanPaires|0||25) };
   labSave(st); renderLab();
   showToast(_labRunning ? '📏 Mesure lancée' : '📏 Mesure programmée : démarre le Labo');
   if(_labRunning) _labPlanifier(_labPomper, 50);
@@ -787,8 +826,7 @@ function labApplyChampion(){
   if(LAB_CFG.mode==='spsa') st.spsa=_spsaInit(w);
   _labNouvellePhase(st, _labPhasePrincipale());
   labSave(st);
-  try{ localStorage.setItem('abaLabChampion', JSON.stringify(w)); }catch(e){}
-  applyLabChampion();
+  _labEnregistrerChampion(st, w);
   showToast('\ud83c\udff3\ufe0f Champion redéfini manuellement \u2014 nouveaux mutants générés');
   renderLab();
 }
@@ -889,7 +927,7 @@ function _labStats(){
 }
 
 function labExport(){
-  const dump={ state:labLoad(), cfg:LAB_CFG, champion:(function(){try{return JSON.parse(localStorage.getItem('abaLabChampion')||'null');}catch(e){return null;}})() };
+  const dump={ state:labLoad(), cfg:LAB_CFG, champion:(function(){try{return JSON.parse(localStorage.getItem('abaLabChampion')||'null');}catch(e){return null;}})(), championBase:localStorage.getItem('abaLabChampionBase')||null };
   const txt=JSON.stringify(dump,null,2);
   try{
     const blob=new Blob([txt],{type:'application/json'});
@@ -915,7 +953,7 @@ function labImportFile(input){
       const d=JSON.parse(rd.result);
       if(d.cfg){ LAB_CFG=Object.assign({}, LAB_CFG_DEFAULT, d.cfg); labCfgSave(); }
       if(d.state && d.state.champion && d.state.phase){ labSave(d.state); }
-      if(d.champion){ localStorage.setItem('abaLabChampion', JSON.stringify(d.champion)); }
+      if(d.champion){ localStorage.setItem('abaLabChampion', JSON.stringify(d.champion)); localStorage.setItem('abaLabChampionBase', d.championBase || (d.state && d.state.base) || 'origine'); }
       applyLabChampion();
       showToast('\ud83d\udce5 État du Labo importé');
       renderLab();
@@ -1333,7 +1371,7 @@ function renderLab(){
   const st=labLoad();
   const useOn = localStorage.getItem('abaLabUse')!=='0';
   const ch=_labComplet(st.champion), B=_labBounds();
-  const phaseNom={screen:'Tri des mutants', confirm:'Confirmation (SPRT)', bilan:'Bilan contre les poids d’origine', spsa:'SPSA', done:'Terminé'}[st.phase]||st.phase;
+  const phaseNom={screen:'Tri des mutants', confirm:'Confirmation (SPRT)', bilan:'Bilan contre les '+_labBaseNom(st), spsa:'SPSA', done:'Terminé'}[st.phase]||st.phase;
   let h='';
   h+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">';
   h+='<span style="font-weight:700">'+(_labRunning?'🔄 En cours':'⏸ En pause')+' · Génération '+st.gen+' · '+phaseNom+'</span>';
@@ -1371,7 +1409,7 @@ function renderLab(){
   }
   // ── Gain reel mesure ──
   const M=(st.mesures||[]).filter(function(m){ return m && typeof m.elo==='number'; });
-  h+='<div style="margin-top:10px;font-size:12px;font-weight:700">📈 Gain réel mesuré (champion contre les poids d’origine)</div>';
+  h+='<div style="margin-top:10px;font-size:12px;font-weight:700">📈 Gain réel mesuré (champion contre les '+_labBaseNom(st)+')</div>';
   if(M.length){
     const d=M[M.length-1];
     h+='<div style="font-size:12px;margin-top:2px">'+(d.elo>=0?'+':'')+d.elo+' Elo ± '+d.ci+' <span style="color:var(--muted);font-size:11px">(champion G'+d.gen+', '+d.paires+' paires, marge à 95 %)</span></div>';
@@ -1398,7 +1436,7 @@ function renderLab(){
       h+='<div style="font-size:11px;color:var(--muted);margin:2px 0">G'+x.gen+' · '+x.type+' · '+x.name+(x.score!==null&&x.score!==undefined?' · '+x.score+'/'+x.games:'')+(x.elo?' · '+x.elo:'')+'</div>';
     });
   }
-  h+='<label style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px"><input type="checkbox" '+(useOn?'checked':'')+' onchange="labToggleUse(this)"> Utiliser les poids adoptés pour l’IA</label>';
+  h+='<label style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px"><input type="checkbox" '+(useOn?'checked':'')+' onchange="labToggleUse(this)"> Utiliser les poids adoptés pour l’IA (à partir du niveau 4, à la place des poids Texel)</label>';
   el.innerHTML=h;
   if(_labRunning) _labMajStatut();
   const bs=document.getElementById('lab-start'); if(bs) bs.textContent=_labRunning?'⏸ Pause':'▶ Démarrer';
