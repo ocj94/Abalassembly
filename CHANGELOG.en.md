@@ -9,6 +9,40 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.78]
+
+### Added — the quality of real players' moves
+Point 4 of the statistics audit chosen by Olivier. Each of the 418,046 moves
+of the 4,247 games played from a starting position was analysed in advance
+by the site's engine (31 minutes of computation, `tools/qualite-coups.js`).
+- **Moves close to the best**: one ply ahead, every legal move is
+  evaluated, and the move played counts if it is within 30 points of the
+  best. It is **exactly** the accuracy shown in My statistics (a test checks
+  it), so the two compare. My statistics now show, under your accuracy,
+  that of real players: **37.5 %**.
+- **Offered marbles**: after the move, the opponent can push a marble off
+  when another move avoided it. A trade (the move played pushes one off
+  itself) does not count. Result: **10.1 per 100 moves**. The check is
+  exact, and 20 times faster than generating every opposing move; a test
+  compares it with the generator on more than 2,000 positions.
+- **What it shows**:
+  - the future winner offers 8.3 marbles per 100 moves, the future loser
+    11.6;
+  - the middlegame is the riskiest moment (13.4);
+  - the players of the PlayStrategy tournament, the strongest in the corpus,
+    offer only 3.6, but do not have a better "accuracy" (34.7 %). One ply
+    ahead, accuracy measures strength poorly, and the card says so.
+- The card follows the page filters (source, layout, length, year). The
+  data, 131 KB, is embedded in the page, which stays fully offline.
+
+### Changed — the tests on GitHub
+The same engine test sometimes fails on GitHub (v2.73, v2.76, v2.77), then
+passes on a rerun, with no readable reason. Each failure now becomes a
+readable annotation, with the error message and the machine's system, to
+catch it next time.
+
+- **Tests**: 4 more (283).
+
 ## [v2.77]
 
 ### Added — more reliable corpus statistics, and the score explorer

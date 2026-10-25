@@ -5273,3 +5273,91 @@ test('corpus v2.77 : explorateur des scores -- chaque partie une fois par score,
   try { const h = ctx._cfHtmlExplorateur(L); assert.match(h, /cf-ex-ouvert/); assert.match(h, /corpusRevoir\(\d+\)/); assert.doesNotMatch(h, /NaN|undefined/); }
   finally { _r63('_cfExOuvert = null'); }
 });
+
+/* ─── 71. v2.78 : la qualite des coups du corpus ─── */
+
+test('qualite v2.78 : detection rapide d ejection == generateur de coups, sur des positions du corpus', async () => {
+  await ctx.ensureGameBanks();
+  const B = ctx._sbBanques(), vm = require('vm');
+  const lent = col => ctx.getAllMovesForColor(col).some(m => m.info && m.info.type === 'push' && m.info.ejection);
+  let n = 0, oui = 0;
+  for (let gi = 0; gi < 24; gi++) {
+    const src = gi % 3 === 0 ? 1 : 0, g = B[src][gi * 37 % B[src].length], dep = ctx._sbDepart(src, g); if (!dep) continue;
+    vm.runInContext('board = ' + JSON.stringify(dep.board), ctx);
+    let col = 'black';
+    for (const t of ctx._sbJetons(src, g)) {
+      for (const p of ['black', 'white']) { const x = lent(p); assert.strictEqual(ctx._qcEjectionPossible(p), x, 'partie ' + gi + ', ' + p); n++; if (x) oui++; }
+      const mv = ctx.resolveAbaProToken(t, col, ctx.getAllMovesForColor(col)); if (!mv) break;
+      ctx.abApplyMove(mv.cells, mv.dir, col, mv.info); col = col === 'black' ? 'white' : 'black';
+    }
+  }
+  assert.ok(n > 2000 && oui > 200, n + ' positions, ' + oui + ' avec ejection possible');
+});
+
+// le code de partie (ABAL1) des coups d'une partie MIGS, pour computeDecisionProfile
+function _corps78(g) {
+  const vm = require('vm'), dep = ctx._sbDepart(0, g), sauve = vm.runInContext('board', ctx);
+  vm.runInContext('board = ' + JSON.stringify(dep.board), ctx);
+  let col = 'black', corps = '';
+  try {
+    for (const t of ctx._sbJetons(0, g)) {
+      const mv = ctx.resolveAbaProToken(t, col, ctx.getAllMovesForColor(col)); if (!mv) break;
+      corps += mv.cells.length + mv.cells.map(c => ctx.coordToABAPRO(c.r, c.c)).join('') + ctx._gcDirIndex(mv.dir);
+      ctx.abApplyMove(mv.cells, mv.dir, col, mv.info); col = col === 'black' ? 'white' : 'black';
+    }
+  } finally { ctx.__b78 = sauve; vm.runInContext('board = this.__b78', ctx); delete ctx.__b78; }
+  return corps;
+}
+test('qualite v2.78 : « proche du meilleur » est exactement la precision de Mes statistiques', async () => {
+  await ctx.ensureGameBanks();
+  const B = ctx._sbBanques(), g = B[0][3], corps = _corps78(g);
+  const q = ctx._qcAnalyserPartie(0, g), somme = (camp, c) => [0, 1, 2].reduce((a, m) => a + q[camp][m][c], 0);
+  const sauve = ctx.getMesParties;
+  try {
+    for (const [camp, couleur] of [[0, 'black'], [1, 'white']]) {
+      ctx.getMesParties = () => [{ id: 'x', code: 'ABAL1:belgian:a|b:' + corps, humanColor: couleur }];
+      const p = ctx.computeDecisionProfile();
+      assert.strictEqual(somme(camp, 0), p.totalMoves, couleur + ' : memes coups');
+      assert.strictEqual(+(somme(camp, 1) / somme(camp, 0) * 100).toFixed(1), p.tauxProcheMeilleur, couleur + ' : meme precision');
+    }
+  } finally { ctx.getMesParties = sauve; }
+  assert.ok(somme(0, 4) + somme(1, 4) >= 0 && somme(0, 1) <= somme(0, 0));
+});
+
+test('qualite v2.78 : donnees embarquees a jour (sinon : node tools/build.js && node tools/qualite-coups.js && node tools/build.js)', async () => {
+  assert.ok(await ctx.ensureGameBanks()); assert.ok(await ctx.ensureStatsParties()); assert.ok(await ctx.ensureQualiteCoups(), 'donnees lisibles, memes champs et memes seuils');
+  const Q = _r63('QUALITE_COUPS'), D = _r63('STATS_PARTIES'), B = ctx._sbBanques();
+  assert.strictEqual(Q.sig, ctx._sbSignature(), 'parties embarquees modifiees : relancer tools/qualite-coups.js');
+  assert.strictEqual(Q.p.length, D.p.length);
+  // une partie analysee exactement quand elle part d'une position de depart, comme dans STATS_PARTIES
+  Q.p.forEach((q, k) => assert.strictEqual(!!q, !!D.p[k][2], 'partie ' + k));
+  // quelques parties recalculees : memes compteurs (l'evaluation du moteur n'a pas change)
+  let k0 = 0; const debut = D.nb.map(n => { const a = k0; k0 += n; return a; });
+  for (const [s, i] of [[0, 11], [1, 40], [2, 7], [3, 2]]) {
+    const q = ctx._qcAnalyserPartie(s, B[s][i]), e = Q.p[debut[s] + i];
+    assert.strictEqual(JSON.stringify(q ? JSON.parse(JSON.stringify(q)).flat(2) : 0), JSON.stringify(e), 'source ' + s + ' partie ' + i);
+  }
+});
+
+test('qualite v2.78 : la carte du corpus et la comparaison dans Mes statistiques', async () => {
+  assert.ok(await ctx.ensureStatsParties()); assert.ok(await ctx.ensureQualiteCoups());
+  const L = ctx._cfParties(), r = ctx._qcAgreger(L);
+  assert.strictEqual(r.tout[0], r.moments.reduce((a, t) => a + t[0], 0), 'les trois moments font le tout');
+  assert.strictEqual(r.tout[0], r.sources.reduce((a, t) => a + t[0], 0));
+  assert.ok(r.vainqueur[0] + r.perdant[0] <= r.tout[0] && r.parties <= L.length);
+  assert.ok(ctx._qcPrecision(r.vainqueur) > ctx._qcPrecision(r.perdant), 'le futur vainqueur joue plus souvent le meilleur coup');
+  const h = ctx._qcHtml(L);
+  assert.match(h, /Coups proches du meilleur/); assert.match(h, /Le vainqueur contre le perdant/); assert.doesNotMatch(h, /NaN|undefined/);
+  const c = ctx.qcPrecisionCorpus(); assert.ok(c && c.coups === r.tout[0] && c.p > 0 && c.p < 1);
+  // Mes statistiques : la ligne des vrais joueurs, sous ta precision (meme mesure)
+  const sauve = ctx.getMesParties, corps = _corps78(ctx._sbBanques()[0][3]);
+  ctx.getMesParties = () => [{ id: 'y', code: 'ABAL1:belgian:a|b:' + corps, humanColor: 'black' }];
+  try {
+    await _enFrancais54(() => _dom54(async els => {
+      ctx.renderDecisionProfile();
+      const h2 = els['decision-profile-personal'].innerHTML;
+      assert.match(h2, /Coups proches du meilleur choix disponible/); assert.match(h2, /Les vrais joueurs du corpus, même mesure/);
+      assert.ok(h2.indexOf(ctx.grPct(c.p, 1)) > 0);
+    }));
+  } finally { ctx.getMesParties = sauve; }
+});
