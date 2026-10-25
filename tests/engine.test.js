@@ -4996,11 +4996,11 @@ async function _corpusPage74(langue) {
 
 test('corpus v2.74 : en anglais, plus un mot de francais dans les cartes, les variantes ni la reflexion de l IA', async () => {
   const en = await _corpusPage74('EN');
-  assert.strictEqual(en.titre, 'What 4,580 real games say');
+  assert.strictEqual(en.titre, 'What 4,577 real games say', 'v2.77 : parties distinctes (3 doublons comptes une fois)');
   ['The first player’s advantage', 'Black (moves first)', 'Length of a game', 'How games end', 'Six marbles off', 'Resigned', 'Disconnected',
    'Field recorded directly in the MIGS corpus', 'percentage points</strong> more than an even split'].forEach(t => assert.ok(en.cartes.indexOf(t) >= 0, t));
   assert.match(en.cartes, /100\.7 moves/, 'decimales a l anglaise');
-  assert.match(en.cartes, /1,877 wins/, 'milliers a l anglaise');
+  assert.match(en.cartes, /\b1,\d{3} wins/, 'milliers a l anglaise');
   assert.ok(en.variantes.indexOf('Most played variants') >= 0 && en.variantes.indexOf('Custom layout') >= 0 && en.variantes.indexOf('Swiss Daisy') >= 0);
   assert.doesNotMatch(en.variantes, /swiss_daisy|german_daisy|>custom</, 'jamais les cles brutes');
   assert.ok(en.reflexion.indexOf('AI thinking: depth by time') >= 0);
@@ -5008,7 +5008,7 @@ test('corpus v2.74 : en anglais, plus un mot de francais dans les cartes, les va
   for (const k of ['titre', 'cartes', 'variantes', 'reflexion']) assert.doesNotMatch(en[k].replace(/<[^>]*>/g, ' '), francais, k);
   // en francais, rien ne change de sens ; l'avantage est bien l'ecart a 50 %, pas l'ecart entre les camps
   const fr = await _corpusPage74('FR');
-  assert.match(fr.titre, /^Ce que disent 4\s580 vraies parties$/);
+  assert.match(fr.titre, /^Ce que disent 4\s577 vraies parties$/);
   ['L’avantage du premier joueur', 'Au score', 'de plus qu’un partage égal (50 %)', '100,7 coups'].forEach(t => assert.ok(fr.cartes.indexOf(t) >= 0, t));
   const s = await ctx.computeCorpusStats(() => {});
   assert.ok(fr.cartes.indexOf((s.blackPct - 50).toFixed(1).replace('.', ',') + ' points de pourcentage') >= 0);
@@ -5183,3 +5183,93 @@ test('labo v2.76 : export et import gardent la lignee du champion', () => _laboB
   // l'export ecrit la lignee a cote du champion
   assert.match(_SRC_INDEX, /champion:\(function\(\)\{try\{return JSON\.parse\(localStorage\.getItem\('abaLabChampion'\)[^\n]*championBase:localStorage\.getItem\('abaLabChampionBase'\)/);
 }));
+
+/* ─── 70. v2.77 : doublons, marges d'erreur, annees, explorateur des scores ─── */
+
+test('corpus v2.77 : les 3 doublons exacts d AbalOnline comptent une fois -- statistiques, resume, titre', async () => {
+  assert.ok(await ctx.ensureStatsParties()); await ctx.ensureGameBanks();
+  const d = ctx._sbDoublons(), B = ctx._sbBanques(), D = _r63('STATS_PARTIES');
+  assert.strictEqual(d.n, 3); assert.strictEqual(d.parBanque[1].size, 3, 'tous dans AbalOnline');
+  d.exemples.forEach(e => assert.strictEqual(JSON.stringify(B[e.source][e.premier]), JSON.stringify(B[e.source][e.doublon]), 'copie exacte'));
+  // chaque doublon : meme partie que l'original dans STATS_PARTIES, et ecarte des additions
+  const k0 = D.nb[0];
+  d.exemples.forEach(e => assert.ok(ctx._sbEstDoublon(k0 + e.doublon) && !ctx._sbEstDoublon(k0 + e.premier)));
+  let complets = 0, incomplets = 0; D.p.forEach((p, k) => { if (ctx._sbEstDoublon(k)) return; if (p[2]) complets++; else incomplets++; });
+  const v = ctx._sbAgreger();
+  assert.strictEqual(v.nComplets, complets); assert.strictEqual(v.nIncomplets, incomplets);
+  assert.strictEqual(ctx._cfParties().length, complets);
+  const s = await ctx.computeCorpusStats(() => {});
+  assert.strictEqual(s.nDoublons, 3); assert.strictEqual(s.nDoublonsAO, 3); assert.strictEqual(s.totalGames, 4580, 'parties embarquees : rien n est retire');
+  assert.match(_r63('_corpusPhraseDoublons')(s, 'FR'), /^3 doublons exacts d’AbalOnline .* ne comptent qu’une fois : 4\s577 parties distinctes\.$/);
+  // avec un filtre, les parties laissees de cote sont comptees, pas deduites du total (avant : 2 000 « problemes » sous un filtre MIGS)
+  const migs = ctx._sbAgreger({ source: '0', dispo: 'tout', longueur: 'tout', periode: 'tout' });
+  assert.strictEqual(migs.nIncomplets, 0);
+});
+
+test('corpus v2.77 : marge d erreur (Wilson a 95 %) -- valeurs connues, petits effectifs signales', () => {
+  const w = ctx.grWilson(1877, 3495);
+  assert.ok(Math.abs(w.p - 0.537) < 0.001 && Math.abs((w.haut - w.bas) / 2 - 0.0165) < 0.001, JSON.stringify(w));
+  const z = ctx.grWilson(0, 10); assert.strictEqual(z.bas, 0); assert.ok(z.haut > 0.25 && z.haut < 0.32, 'pas de marge nulle a 0 sur 10');
+  assert.strictEqual(ctx.grWilson(0, 0), null);
+  const avant = ctx.localStorage.getItem('abalone_lang');
+  try {
+    ctx.localStorage.setItem('abalone_lang', 'FR');
+    assert.strictEqual(ctx.grMarge(1877, 3495), '± 1,7'); assert.match(ctx.grFourchette(1877, 3495), /^entre 52 et 55\s%$/);
+    assert.match(ctx.grPeu(60), /peu de parties/); assert.strictEqual(ctx.grPeu(100), '');
+    ctx.localStorage.setItem('abalone_lang', 'EN');
+    assert.strictEqual(ctx.grMarge(1877, 3495), '± 1.7');
+  } finally { if (avant === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avant); }
+  // le resume du corpus affiche la marge et la legende
+  const h = ctx._cfHtmlResume(ctx._cfParties());
+  assert.match(h, /± \d+,\d · sur /); assert.match(h, /intervalle de Wilson/);
+});
+
+test('corpus v2.77 : filtre par annee -- annees lues dans les banques, filtre applique a toutes les cartes 🔎', async () => {
+  assert.ok(await ctx.ensureStatsParties()); await ctx.ensureGameBanks();
+  const D = _r63('STATS_PARTIES');
+  assert.strictEqual(ctx._cfAnnee(0), ctx.MIGS_GAMES[0][1].slice(0, 4));
+  assert.strictEqual(ctx._cfAnnee(D.nb[0]), ctx.AO_GAMES[0][0].slice(0, 4));
+  const barre = ctx._cfBarre();
+  for (const y of ['2016', '2017', '2020', '2026']) assert.match(barre, new RegExp('value="' + y + '"'));
+  _r63("_corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: '2016' }");
+  try {
+    assert.ok(ctx._cfActif());
+    const L = ctx._cfParties();
+    assert.ok(L.length > 100 && L.every(x => ctx._cfAnnee(x.k) === '2016'), 'seulement des parties de 2016');
+    assert.ok(L.every(x => [0, 3].includes(ctx._cfSourceDe(x.k, D))), 'en 2016 : MIGS (et des parties de reference de 2016)');
+    assert.strictEqual(ctx._sbAgreger(ctx._cfActif()).nComplets, L.length);
+  } finally { _r63("_corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: 'tout' }"); }
+  // un ancien filtre enregistre sans annee reste « tout le corpus »
+  _r63("_corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout' }");
+  try { assert.strictEqual(ctx._cfActif(), null); } finally { _r63("_corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: 'tout' }"); }
+});
+
+test('corpus v2.77 : explorateur des scores -- chaque partie une fois par score, V/D/N/inconnu, parties a rejouer', async () => {
+  assert.ok(await ctx.ensureStatsParties()); await ctx.ensureGameBanks();
+  const L = ctx._cfParties(), rows = ctx._cfExplorer(L, 'black', 'tout');
+  const r00 = rows.find(r => r.nb === 0 && r.nw === 0);
+  assert.strictEqual(r00.n, L.length, '0-0 : toutes les parties');
+  const dec = L.filter(x => x.p[0] === 1 || x.p[0] === 2).length, noirs = L.filter(x => x.p[0] === 1).length;
+  assert.strictEqual(r00.v + r00.d, dec); assert.strictEqual(r00.v, noirs);
+  rows.forEach(r => { assert.strictEqual(r.v + r.d + r.nul + r.inconnu, r.n); assert.strictEqual(new Set(r.parties).size, r.n, 'une fois par score'); });
+  // camp Blancs : victoires et defaites echangees
+  const b00 = ctx._cfExplorer(L, 'white', 'tout').find(r => r.nb === 0 && r.nw === 0);
+  assert.strictEqual(b00.v, r00.d); assert.strictEqual(b00.d, r00.v);
+  // le moment : un score atteint a la fin n'est pas compte au debut
+  const fin = ctx._cfExplorer(L, 'black', 'fin'), debut = ctx._cfExplorer(L, 'black', 'debut');
+  assert.ok(!fin.find(r => r.nb === 0 && r.nw === 0), '0-0 est atteint au demi-coup 0');
+  const r10 = rows.find(r => r.nb === 1 && r.nw === 0), d10 = debut.find(r => r.nb === 1 && r.nw === 0), f10 = fin.find(r => r.nb === 1 && r.nw === 0);
+  const m10 = ctx._cfExplorer(L, 'black', 'milieu').find(r => r.nb === 1 && r.nw === 0);
+  assert.strictEqual((d10 ? d10.n : 0) + (m10 ? m10.n : 0) + (f10 ? f10.n : 0), r10.n, 'les trois moments partagent les parties');
+  // une partie de la ligne : retrouvee dans sa banque, et rejouee par le bon chargeur
+  const k = r10.parties[0], x = ctx._cfPartieDe(k);
+  assert.ok(x && x.p === _r63('STATS_PARTIES').p[k]);
+  const appels = [], sauve = {};
+  ['loadMigsGame', 'loadAOGame', 'loadPSGame', 'loadRefGame', 'showPage'].forEach(f => { sauve[f] = ctx[f]; ctx[f] = i => appels.push([f, i]); });
+  try { ctx.corpusRevoir(k); } finally { Object.assign(ctx, sauve); }
+  assert.deepStrictEqual(appels[0], [['loadMigsGame', 'loadAOGame', 'loadPSGame', 'loadRefGame'][x.s], x.i]);
+  // le rendu : une ligne ouverte montre ses parties
+  _r63("_cfExOuvert = '1-0'");
+  try { const h = ctx._cfHtmlExplorateur(L); assert.match(h, /cf-ex-ouvert/); assert.match(h, /corpusRevoir\(\d+\)/); assert.doesNotMatch(h, /NaN|undefined/); }
+  finally { _r63('_cfExOuvert = null'); }
+});

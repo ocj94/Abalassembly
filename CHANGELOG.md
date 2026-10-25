@@ -9,6 +9,45 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.77]
+
+### Ajouté — des statistiques du corpus plus fiables, et l'explorateur des scores
+Suite à l'audit des statistiques fait par ChatGPT pour Olivier (« 1 2 3 et
+4 », plus la spécification de l'explorateur). Le point 4, la qualité des
+coups, suit en v2.78 : il demande un long calcul fait à l'avance.
+- **Les marges d'erreur** : les pourcentages du corpus montrent leur marge à
+  95 % (« 53,7 % ± 1,7 »), calculée par l'intervalle de Wilson, plus juste
+  que la formule habituelle pour les petits effectifs. Elle apparaît :
+  - en chiffre dans « En bref » et dans « Qui fait tomber la première
+    bille » ;
+  - en moustache sur les barres de « Ce qui fait gagner » et des premiers
+    coups ;
+  - au survol des cartes de chaleur et du tableau des remontées.
+
+  Sous 100 parties, un ⚠ signale un chiffre fragile.
+- **Les doublons** : 3 parties d'AbalOnline (2020) étaient enregistrées deux
+  fois à l'identique. Elles restent dans la bibliothèque mais ne comptent
+  plus qu'une fois dans les statistiques. La page parle donc de **4 577
+  parties distinctes**, et le dit dans ses sources.
+- **Un filtre par année**, à côté de la source, de la disposition et de la
+  longueur. Exemple : en 2021, les Noirs ne gagnent que 50,1 % (± 3,6) des
+  parties AbalOnline.
+- **L'explorateur des scores** (d'après la spécification proposée) : pour
+  chaque score atteint en cours de partie, et pour le camp choisi, les
+  victoires, défaites, nulles et résultats inconnus, le taux de victoire avec
+  sa marge, au choix sur toute la partie, le début, le milieu ou la fin.
+  - Une partie compte une fois par score.
+  - Un clic sur une ligne montre ses parties, à rejouer.
+  - Différence avec la spécification : les moments se comptent en
+    demi-coups (comme ailleurs sur le site), puisque le score donne déjà le
+    nombre d'éjections.
+  - Pas de serveur : tout se calcule sur l'appareil.
+- **Corrigé** : avec un filtre actif, la carte « Les billes qui tombent »
+  annonçait un nombre faux de parties AbalOnline « commencées sur une
+  position de problème » (par exemple 2 000 avec le filtre MIGS). Il est
+  maintenant compté, pas déduit.
+- **Tests** : 4 de plus (279).
+
 ## [v2.76]
 
 ### Modifié — le Labo part des poids Texel

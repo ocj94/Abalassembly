@@ -308,6 +308,13 @@ function _nomVarianteCorpus(d){
   if (typeof _sbNomDispo === 'function') return _sbNomDispo(d);
   return (typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[d]) ? HEAT_VARIANT_LABEL[d] : d;
 }
+// v2.77 : les doublons exacts, dits une fois en tete de page
+function _corpusPhraseDoublons(s, langue){
+  const n = s.nDoublons, ao = s.nDoublonsAO === n;
+  return langue === 'EN'
+    ? n + ' exact duplicate' + (n > 1 ? 's' : '') + (ao ? ' in AbalOnline' : '') + ' (the same game recorded twice) count' + (n > 1 ? '' : 's') + ' only once: ' + _dimNb(s.totalGames - n) + ' distinct games.'
+    : n + ' doublon' + (n > 1 ? 's' : '') + ' exact' + (n > 1 ? 's' : '') + (ao ? ' d’AbalOnline' : '') + ' (la même partie enregistrée deux fois) ne compte' + (n > 1 ? 'nt' : '') + ' qu’une fois : ' + _dimNb(s.totalGames - n) + ' parties distinctes.';
+}
 async function renderCorpusStatsPage(){
   if (typeof renderReflexionStats === 'function') renderReflexionStats();
   const host = document.getElementById('corpus-stats-body');
@@ -320,7 +327,7 @@ async function renderCorpusStatsPage(){
   // v2.72 : les filtres et le resume en tete ; gagner selon l'avance, premiers coups, ou sont les billes apres les billes qui tombent (48-corpus-plus.js)
   host.innerHTML = '<div id="corpus-filtres"></div><div id="corpus-resume"></div>'
     + '<div id="corpus-autres"><div style="font-size:13px;color:var(--muted);margin-bottom:16px" id="corpus-progress">' + _tr('Calcul en cours (première fois seulement — mis en cache ensuite)…', 'Computing (first time only — cached afterwards)…') + '</div></div>'
-    + '<div id="billes-section"></div><div id="corpus-avance"></div><div id="corpus-ouvertures"></div><div id="corpus-occupation"></div><div id="corpus-variantes"></div>'
+    + '<div id="billes-section"></div><div id="corpus-avance"></div><div id="corpus-explorateur"></div><div id="corpus-ouvertures"></div><div id="corpus-occupation"></div><div id="corpus-variantes"></div>'
     + '<div id="dims-carte">' + _carteStats(_tr('Les 12 dimensions, mesurées sur tout le corpus', 'The 12 dimensions, measured over the whole corpus'),
       '<div style="font-size:12px;color:var(--muted)">' + _tr('Chargement des positions mesurées…', 'Loading the measured positions…') + '</div>') + '</div>'
     + '<div id="gagner-section"></div><div id="dims-corr"></div><div id="jeu-section"></div>';
@@ -355,7 +362,9 @@ async function renderCorpusStatsPage(){
 
   // Le titre suit le vrai total au lieu d'un nombre ecrit en dur.
   const titre = document.getElementById('corpus-stats-titre');
-  if (titre) titre.textContent = _tr('Ce que disent ' + _dimNb(s.totalGames) + ' vraies parties', 'What ' + _dimNb(s.totalGames) + ' real games say');
+  // v2.77 : les parties distinctes (un doublon exact ne compte qu'une fois)
+  const distinctes = s.totalGames - (s.nDoublons || 0);
+  if (titre) titre.textContent = _tr('Ce que disent ' + _dimNb(distinctes) + ' vraies parties', 'What ' + _dimNb(distinctes) + ' real games say');
 
   /* v2.74 : tout le texte de ces cartes en francais ou en anglais (signale par Olivier : en
      anglais, la page restait en francais). Nombres a la mode de la langue (_dimNb, _dimDec). */
@@ -365,10 +374,12 @@ async function renderCorpusStatsPage(){
   html += '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">' + _tr(
       'Sources : MIGS (' + nb(s.nMigs) + ' parties), AbalOnline (' + nb(s.nAo) + ')'
       + (s.nPs ? ', Yearly Abalone Arena de PlayStrategy (' + s.nPs + (s.nPsSansCoup ? ', dont ' + s.nPsSansCoup + ' abandonnées avant le premier coup' : '') + ')' : '') + (s.nRef ? ', parties de référence des variantes (' + s.nRef + ')' : '') + '. Toutes les parties comptent, même abandonnées.'
-      + (s.nPs ? ' Le livre d’ouvertures reste calculé sur MIGS et AbalOnline (précalculé hors ligne).' : ''),
+      + (s.nPs ? ' Le livre d’ouvertures reste calculé sur MIGS et AbalOnline (précalculé hors ligne).' : '')
+      + (s.nDoublons ? ' ' + _corpusPhraseDoublons(s, 'FR') : ''),
       'Sources: MIGS (' + nb(s.nMigs) + ' games), AbalOnline (' + nb(s.nAo) + ')'
       + (s.nPs ? ', PlayStrategy’s Yearly Abalone Arena (' + s.nPs + (s.nPsSansCoup ? ', including ' + s.nPsSansCoup + ' resigned before the first move' : '') + ')' : '') + (s.nRef ? ', reference games of the variants (' + s.nRef + ')' : '') + '. Every game counts, even resigned ones.'
-      + (s.nPs ? ' The opening book is still computed on MIGS and AbalOnline (precomputed offline).' : '')) + '</div>';
+      + (s.nPs ? ' The opening book is still computed on MIGS and AbalOnline (precomputed offline).' : '')
+      + (s.nDoublons ? ' ' + _corpusPhraseDoublons(s, 'EN') : '')) + '</div>';
 
   const camp = function(nom, pct, n){
     return '<div style="flex:1;text-align:center"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">' + nom + '</div>'

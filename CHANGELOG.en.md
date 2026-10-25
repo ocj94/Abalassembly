@@ -9,6 +9,42 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.77]
+
+### Added — more reliable corpus statistics, and the score explorer
+Following the statistics audit ChatGPT made for Olivier ("1 2 3 and 4", plus
+the explorer specification). Point 4, the quality of moves, follows in v2.78:
+it needs a long computation done in advance.
+- **Margins of error**: the corpus percentages show their 95 % margin ("53.7 %
+  ± 1.7"), computed with the Wilson interval, more accurate than the usual
+  formula for small samples. It appears:
+  - as a figure in "In short" and in "Does the side that pushes off the
+    first marble win";
+  - as a whisker on the bars of "What wins games" and of the first moves;
+  - on hover in the heat maps and the comeback table.
+
+  Under 100 games, a ⚠ flags a fragile figure.
+- **Duplicates**: 3 AbalOnline games (2020) were recorded twice, identically.
+  They stay in the library but now count only once in the statistics. The
+  page therefore speaks of **4,577 distinct games**, and says so in its
+  sources.
+- **A year filter**, next to source, layout and length. For example, in 2021
+  Black wins only 50.1 % (± 3.6) of AbalOnline games.
+- **The score explorer** (after the proposed specification): for each score
+  reached during the game, and for the chosen side, the wins, losses, draws
+  and unknown results, the win rate with its margin, over the whole game, the
+  opening, the middle or the end.
+  - A game counts once per score.
+  - Clicking a row shows its games, to replay.
+  - One difference from the specification: the moments are counted in plies
+    (as elsewhere on the site), since the score already gives the number of
+    ejections.
+  - No server: everything is computed on the device.
+- **Fixed**: with a filter on, the "Falling marbles" card announced a wrong
+  number of AbalOnline games "started from a puzzle position" (e.g. 2,000
+  with the MIGS filter). It is now counted, not deduced.
+- **Tests**: 4 more (279).
+
 ## [v2.76]
 
 ### Changed — the Lab starts from the Texel weights

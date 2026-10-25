@@ -1130,8 +1130,10 @@ async function computeCorpusStats(onProgress){
 
   // --- Vainqueurs AbalOnline (lecture directe, aucun rejeu) ---
   let aoBlack = 0, aoWhite = 0;
-  AO_GAMES.forEach(function(g){
-    if (!g[3]) return;
+  // v2.77 : les doublons exacts ne comptent qu'une fois (_sbDoublons, 39-statistiques-billes.js)
+  const dbl = (typeof _sbDoublons === 'function') ? _sbDoublons() : null, aoDbl = dbl ? dbl.parBanque[1] : new Set();
+  AO_GAMES.forEach(function(g, i){
+    if (!g[3] || aoDbl.has(i)) return;
     if (g[3] === g[1]) aoBlack++;
     else if (g[3] === g[2]) aoWhite++;
   });
@@ -1184,13 +1186,14 @@ async function computeCorpusStats(onProgress){
 
   // --- Variantes representees (AbalOnline) ---
   const byVariant = {};
-  AO_GAMES.forEach(function(g){ byVariant[g[4]] = (byVariant[g[4]]||0) + 1; });
+  AO_GAMES.forEach(function(g, i){ if (!aoDbl.has(i)) byVariant[g[4]] = (byVariant[g[4]]||0) + 1; });
   if (PS.length) byVariant.belgian = (byVariant.belgian||0) + PS.length;   // AbalOnline n'en a aucune
   REF.forEach(function(g){ byVariant[g[4]] = (byVariant[g[4]]||0) + 1; });
   const topVariants = Object.entries(byVariant).sort(function(a,b){ return b[1]-a[1]; }).slice(0, 8);
 
   return {
     totalGames: MIGS_GAMES.length + AO_GAMES.length + PS.length + REF.length, nRef: REF.length,
+    nDoublons: dbl ? dbl.n : 0, nDoublonsAO: aoDbl.size,   // v2.77 : totalDistinctes = totalGames - nDoublons
     nMigs: MIGS_GAMES.length, nAo: AO_GAMES.length, nPs: PS.length, nLens: lens.length,
     nPsSansCoup: PS.filter(function(g){ return !String(g[5]||'').trim(); }).length,
     decided: decided,

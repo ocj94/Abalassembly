@@ -242,4 +242,3 @@ function renderProfilChiffres(){
     + (pts.length >= 3 ? grLignes(W, [{ nom: _tr('Score', 'Score'), couleur: GR_OR, pts: pts }], { h: 150, yMin: 0, yMax: 100, fmtY: function(v){ return v + ' %'; }, nomX: _tr('Partie', 'Game'), fmtX: function(v){ return '#' + v; }, aria: _tr('Score glissant', 'Rolling score') }) + '<div class="gr-sous">' + _tr('Ton score sur tes 10 dernières parties, partie après partie.', 'Your score over your last 10 games, game after game.') + '</div>' : '')
     + '<div class="lab-actions"><button class="ctrl-btn" onclick="showPage(\'stats\')">' + _tr('Toutes mes statistiques →', 'All my statistics →') + '</button></div></div>';
 }
-</script>

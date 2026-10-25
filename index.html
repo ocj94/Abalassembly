@@ -2127,6 +2127,30 @@ table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset
 .sb-div-nom { font-size:12px; color:var(--text); text-align:right; line-height:1.3; }
 .sb-div-piste { position:relative; height:18px; background:linear-gradient(var(--muted),var(--muted)) 50% 0/1px 100% no-repeat; }
 .sb-div-barre { position:absolute; top:4px; height:10px; border-radius:3px; }
+.sb-div-ic { position:absolute; top:8px; height:2px; background:var(--text); opacity:.55; border-radius:1px; }   /* v2.77 : marge a 95 % */
+.sb-marge { white-space:nowrap; color:var(--muted); }
+/* v2.77 : l'explorateur des scores */
+.cf-ex { display:flex; flex-direction:column; gap:2px; margin-top:8px; font-size:12px; }
+.cf-ex-l { display:grid; grid-template-columns:56px 56px 150px 1fr; gap:8px; align-items:center; padding:5px 6px; border-radius:6px; cursor:pointer; }
+.cf-ex-l:hover, .cf-ex-l:focus, .cf-ex-ouvert { background:var(--surface2); outline:none; }
+.cf-ex-ent { cursor:default; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.5px; }
+.cf-ex-ent:hover { background:none; }
+.cf-ex-score { font-family:'DM Mono',monospace; font-weight:700; color:var(--white); }
+.cf-ex-vdn { font-family:'DM Mono',monospace; color:var(--muted); font-size:10.5px; white-space:nowrap; }
+.cf-ex-taux { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; }
+.cf-ex-taux > span:first-child { grid-column:1 / -1; }
+.cf-ex-taux b { color:var(--gold); } .cf-ex-taux i { font-style:normal; color:var(--muted); font-size:11px; }
+.cf-ex-peu .cf-ex-taux b { color:var(--muted); }
+.cf-ex-parties { margin:2px 0 8px 12px; display:flex; flex-direction:column; gap:3px; }
+.cf-ex-partie { display:grid; grid-template-columns:150px 1fr 170px auto; gap:8px; align-items:center; font-size:11px; color:var(--text); }
+.cf-ex-partie .ctrl-btn { width:auto; padding:3px 8px; font-size:11px; }
+@media (max-width:560px) {
+  .cf-ex-l { grid-template-columns:44px 44px 1fr; }
+  .cf-ex-l > span:nth-child(3) { display:none; }
+  .cf-ex-partie { grid-template-columns:1fr auto; }
+  .cf-ex-partie > span:nth-child(2), .cf-ex-partie > span:nth-child(3) { grid-column:1; }
+  .cf-ex-partie .ctrl-btn { grid-row:1 / span 3; grid-column:2; }
+}
 .sb-div-val { font-size:12px; font-weight:700; color:var(--text); text-align:right; font-variant-numeric:tabular-nums; }
 .sb-div-axe { margin-top:4px; font-size:10.5px; color:var(--muted); }
 .sb-div-axe > span:nth-child(2) { display:flex; justify-content:space-between; gap:6px; }
@@ -8611,7 +8635,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.76';
+const APP_VERSION = 'v2.77';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -18567,8 +18591,10 @@ async function computeCorpusStats(onProgress){
 
   // --- Vainqueurs AbalOnline (lecture directe, aucun rejeu) ---
   let aoBlack = 0, aoWhite = 0;
-  AO_GAMES.forEach(function(g){
-    if (!g[3]) return;
+  // v2.77 : les doublons exacts ne comptent qu'une fois (_sbDoublons, 39-statistiques-billes.js)
+  const dbl = (typeof _sbDoublons === 'function') ? _sbDoublons() : null, aoDbl = dbl ? dbl.parBanque[1] : new Set();
+  AO_GAMES.forEach(function(g, i){
+    if (!g[3] || aoDbl.has(i)) return;
     if (g[3] === g[1]) aoBlack++;
     else if (g[3] === g[2]) aoWhite++;
   });
@@ -18621,13 +18647,14 @@ async function computeCorpusStats(onProgress){
 
   // --- Variantes representees (AbalOnline) ---
   const byVariant = {};
-  AO_GAMES.forEach(function(g){ byVariant[g[4]] = (byVariant[g[4]]||0) + 1; });
+  AO_GAMES.forEach(function(g, i){ if (!aoDbl.has(i)) byVariant[g[4]] = (byVariant[g[4]]||0) + 1; });
   if (PS.length) byVariant.belgian = (byVariant.belgian||0) + PS.length;   // AbalOnline n'en a aucune
   REF.forEach(function(g){ byVariant[g[4]] = (byVariant[g[4]]||0) + 1; });
   const topVariants = Object.entries(byVariant).sort(function(a,b){ return b[1]-a[1]; }).slice(0, 8);
 
   return {
     totalGames: MIGS_GAMES.length + AO_GAMES.length + PS.length + REF.length, nRef: REF.length,
+    nDoublons: dbl ? dbl.n : 0, nDoublonsAO: aoDbl.size,   // v2.77 : totalDistinctes = totalGames - nDoublons
     nMigs: MIGS_GAMES.length, nAo: AO_GAMES.length, nPs: PS.length, nLens: lens.length,
     nPsSansCoup: PS.filter(function(g){ return !String(g[5]||'').trim(); }).length,
     decided: decided,
@@ -37732,6 +37759,13 @@ function _nomVarianteCorpus(d){
   if (typeof _sbNomDispo === 'function') return _sbNomDispo(d);
   return (typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[d]) ? HEAT_VARIANT_LABEL[d] : d;
 }
+// v2.77 : les doublons exacts, dits une fois en tete de page
+function _corpusPhraseDoublons(s, langue){
+  const n = s.nDoublons, ao = s.nDoublonsAO === n;
+  return langue === 'EN'
+    ? n + ' exact duplicate' + (n > 1 ? 's' : '') + (ao ? ' in AbalOnline' : '') + ' (the same game recorded twice) count' + (n > 1 ? '' : 's') + ' only once: ' + _dimNb(s.totalGames - n) + ' distinct games.'
+    : n + ' doublon' + (n > 1 ? 's' : '') + ' exact' + (n > 1 ? 's' : '') + (ao ? ' d’AbalOnline' : '') + ' (la même partie enregistrée deux fois) ne compte' + (n > 1 ? 'nt' : '') + ' qu’une fois : ' + _dimNb(s.totalGames - n) + ' parties distinctes.';
+}
 async function renderCorpusStatsPage(){
   if (typeof renderReflexionStats === 'function') renderReflexionStats();
   const host = document.getElementById('corpus-stats-body');
@@ -37744,7 +37778,7 @@ async function renderCorpusStatsPage(){
   // v2.72 : les filtres et le resume en tete ; gagner selon l'avance, premiers coups, ou sont les billes apres les billes qui tombent (48-corpus-plus.js)
   host.innerHTML = '<div id="corpus-filtres"></div><div id="corpus-resume"></div>'
     + '<div id="corpus-autres"><div style="font-size:13px;color:var(--muted);margin-bottom:16px" id="corpus-progress">' + _tr('Calcul en cours (première fois seulement — mis en cache ensuite)…', 'Computing (first time only — cached afterwards)…') + '</div></div>'
-    + '<div id="billes-section"></div><div id="corpus-avance"></div><div id="corpus-ouvertures"></div><div id="corpus-occupation"></div><div id="corpus-variantes"></div>'
+    + '<div id="billes-section"></div><div id="corpus-avance"></div><div id="corpus-explorateur"></div><div id="corpus-ouvertures"></div><div id="corpus-occupation"></div><div id="corpus-variantes"></div>'
     + '<div id="dims-carte">' + _carteStats(_tr('Les 12 dimensions, mesurées sur tout le corpus', 'The 12 dimensions, measured over the whole corpus'),
       '<div style="font-size:12px;color:var(--muted)">' + _tr('Chargement des positions mesurées…', 'Loading the measured positions…') + '</div>') + '</div>'
     + '<div id="gagner-section"></div><div id="dims-corr"></div><div id="jeu-section"></div>';
@@ -37779,7 +37813,9 @@ async function renderCorpusStatsPage(){
 
   // Le titre suit le vrai total au lieu d'un nombre ecrit en dur.
   const titre = document.getElementById('corpus-stats-titre');
-  if (titre) titre.textContent = _tr('Ce que disent ' + _dimNb(s.totalGames) + ' vraies parties', 'What ' + _dimNb(s.totalGames) + ' real games say');
+  // v2.77 : les parties distinctes (un doublon exact ne compte qu'une fois)
+  const distinctes = s.totalGames - (s.nDoublons || 0);
+  if (titre) titre.textContent = _tr('Ce que disent ' + _dimNb(distinctes) + ' vraies parties', 'What ' + _dimNb(distinctes) + ' real games say');
 
   /* v2.74 : tout le texte de ces cartes en francais ou en anglais (signale par Olivier : en
      anglais, la page restait en francais). Nombres a la mode de la langue (_dimNb, _dimDec). */
@@ -37789,10 +37825,12 @@ async function renderCorpusStatsPage(){
   html += '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">' + _tr(
       'Sources : MIGS (' + nb(s.nMigs) + ' parties), AbalOnline (' + nb(s.nAo) + ')'
       + (s.nPs ? ', Yearly Abalone Arena de PlayStrategy (' + s.nPs + (s.nPsSansCoup ? ', dont ' + s.nPsSansCoup + ' abandonnées avant le premier coup' : '') + ')' : '') + (s.nRef ? ', parties de référence des variantes (' + s.nRef + ')' : '') + '. Toutes les parties comptent, même abandonnées.'
-      + (s.nPs ? ' Le livre d’ouvertures reste calculé sur MIGS et AbalOnline (précalculé hors ligne).' : ''),
+      + (s.nPs ? ' Le livre d’ouvertures reste calculé sur MIGS et AbalOnline (précalculé hors ligne).' : '')
+      + (s.nDoublons ? ' ' + _corpusPhraseDoublons(s, 'FR') : ''),
       'Sources: MIGS (' + nb(s.nMigs) + ' games), AbalOnline (' + nb(s.nAo) + ')'
       + (s.nPs ? ', PlayStrategy’s Yearly Abalone Arena (' + s.nPs + (s.nPsSansCoup ? ', including ' + s.nPsSansCoup + ' resigned before the first move' : '') + ')' : '') + (s.nRef ? ', reference games of the variants (' + s.nRef + ')' : '') + '. Every game counts, even resigned ones.'
-      + (s.nPs ? ' The opening book is still computed on MIGS and AbalOnline (precomputed offline).' : '')) + '</div>';
+      + (s.nPs ? ' The opening book is still computed on MIGS and AbalOnline (precomputed offline).' : '')
+      + (s.nDoublons ? ' ' + _corpusPhraseDoublons(s, 'EN') : '')) + '</div>';
 
   const camp = function(nom, pct, n){
     return '<div style="flex:1;text-align:center"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">' + nom + '</div>'
@@ -40134,6 +40172,30 @@ function _sbIndex(r, c){ let i = 0; for (let k = 0; k < r; k++) i += ROWS[k]; re
 function _sbCase(i){ let r = 0; while (r < 9 && i >= ROWS[r]) { i -= ROWS[r]; r++; } return { r: r, c: i }; }
 
 // Disposition de depart d'une partie : MIGS et PlayStrategy jouent la Marguerite belge
+/* v2.77 (audit des statistiques, point 2) : les doublons exacts du corpus -- une partie enregistree
+   deux fois a l'identique dans la meme banque (3 dans AbalOnline, en 2020 : meme date, memes joueurs,
+   memes coups). Ils restent dans la bibliotheque (rien n'est retire des donnees embarquees) mais ne
+   comptent qu'une fois dans les statistiques. global : rangs dans l'ordre des banques (celui de
+   STATS_PARTIES) ; parBanque[s] : rangs dans la banque s. */
+let _sbDoublonsCache = null;
+function _sbDoublons(){
+  const B = _sbBanques(), cle = B.map(function(b){ return b.length; }).join('-');
+  if (_sbDoublonsCache && _sbDoublonsCache.cle === cle) return _sbDoublonsCache;
+  const r = { cle: cle, global: new Set(), parBanque: B.map(function(){ return new Set(); }), n: 0, exemples: [] };
+  let base = 0;
+  B.forEach(function(banque, s){
+    const vus = new Map();
+    banque.forEach(function(g, i){
+      const k = JSON.stringify(g);
+      if (vus.has(k)) { r.global.add(base + i); r.parBanque[s].add(i); r.n++; if (r.exemples.length < 10) r.exemples.push({ source: s, premier: vus.get(k), doublon: i }); }
+      else vus.set(k, i);
+    });
+    base += banque.length;
+  });
+  _sbDoublonsCache = r;
+  return r;
+}
+function _sbEstDoublon(k){ return _sbDoublons().global.has(k); }
 function _sbDispo(src, g){ return (src === 0 || src === 2) ? 'belgian' : String(g[4] || '?'); }
 function _sbDepart(src, g){
   if (src === 1) return _empDepartPartie('AO', g);   // AbalOnline : position (et score) de depart enregistres avec la partie
@@ -40270,7 +40332,7 @@ function _sbAgreger(f){
   const nDims = D.champs.length, cartes = {}, quandParDispo = {}, billesParDispo = {};
   const billes = []; for (let k = 0; k <= _SB_DERNIERE; k++) billes.push([]);
   const v = {
-    nParties: D.p.length, nComplets: 0, nDecides: 0, nAvecEj: 0,
+    nParties: D.p.length, nComplets: 0, nDecides: 0, nAvecEj: 0, nIncomplets: 0,
     premiere: { n: 0, gagne: 0 },              // le camp qui fait tomber la premiere bille gagne
     quand: billes[0],                          // demi-coup de la premiere ejection de chaque partie
     billes: billes,                            // billes[k] : demi-coups ou tombe la (k+1)e bille de la partie (k = 0..10) ; billes[11] : la derniere, la 6e du vainqueur
@@ -40285,8 +40347,9 @@ function _sbAgreger(f){
   };
   D.p.forEach(function(p, k){
     const gagnant = p[0], complet = p[2], dispo = D.dispos[p[3]], ej = p[4], dims = p[7];
-    if (!complet) return;
+    if (_sbEstDoublon(k)) return;   // v2.77 : un doublon ne compte qu'une fois
     if (cleF && !_cfGarder(k, p, D, f)) return;
+    if (!complet) { v.nIncomplets++; return; }   // v2.77 : comptees (avant : deduites du total, faux avec un filtre)
     v.nComplets++;
     const decide = (gagnant === 1 || gagnant === 2);
     if (decide) v.nDecides++;
@@ -40628,12 +40691,12 @@ function _sbHtmlBilles(v){
   const etroit = _sbEtroit(); _sbEtroitRendu = etroit;
   const dp = _dimDp(), h = [];
   h.push(_sbTitre(_tr('Les billes qui tombent', 'Falling marbles'),
-    _tr('Chaque bille éjectée, dans chaque vraie partie : qui la fait tomber, à quel coup, de quelle case, et ce que ça change pour la suite. Calculé en rejouant coup par coup les <b>' + _dimNb(v.nComplets) + ' parties</b> jouées depuis une position de départ ; les ' + _dimNb(v.nParties - v.nComplets) + ' parties AbalOnline commencées sur une position de problème sont laissées de côté.',
-        'Every marble pushed off, in every real game: who pushes it, on which move, from which spot, and what it changes for the rest of the game. Computed by replaying, move by move, the <b>' + _dimNb(v.nComplets) + ' games</b> played from a starting position; the ' + _dimNb(v.nParties - v.nComplets) + ' AbalOnline games that began from a puzzle position are left out.')));
+    _tr('Chaque bille éjectée, dans chaque vraie partie : qui la fait tomber, à quel coup, de quelle case, et ce que ça change pour la suite. Calculé en rejouant coup par coup les <b>' + _dimNb(v.nComplets) + ' parties</b> jouées depuis une position de départ ; les ' + _dimNb(v.nIncomplets) + ' parties AbalOnline commencées sur une position de problème sont laissées de côté.',
+        'Every marble pushed off, in every real game: who pushes it, on which move, from which spot, and what it changes for the rest of the game. Computed by replaying, move by move, the <b>' + _dimNb(v.nComplets) + ' games</b> played from a starting position; the ' + _dimNb(v.nIncomplets) + ' AbalOnline games that began from a puzzle position are left out.')));
   // 1. la premiere bille
   const p = v.premiere, pct = p.n ? p.gagne / p.n * 100 : null;
   if (pct !== null) h.push(_carteStats(_tr('Qui fait tomber la première bille gagne-t-il ?', 'Does the side that pushes off the first marble win?') + (typeof _cfMarque === 'function' ? _cfMarque() : ''),
-    '<div class="sb-hero"><span class="sb-hero-val">' + _sbGrosPct(pct) + '</span><span class="sb-hero-txt">' + _tr('des parties sont gagnées par le camp qui fait tomber la première bille.', 'of games are won by the side that pushes off the first marble.') + '</span></div>'
+    '<div class="sb-hero"><span class="sb-hero-val">' + _sbGrosPct(pct) + '</span><span class="sb-hero-txt">' + _tr('des parties sont gagnées par le camp qui fait tomber la première bille', 'of games are won by the side that pushes off the first marble') + ' <span class="sb-marge">(' + grMarge(p.gagne, p.n) + ')</span>.</span></div>'
     + '<div class="sb-phrase">' + _tr('Celui qui perd la première bille gagne quand même <b>' + _sbPct(100 - pct) + '</b> des parties.', 'The side that loses the first marble still wins <b>' + _sbPct(100 - pct) + '</b> of games.') + '</div>',
     _tr('Sur ' + _dimNb(p.n) + ' parties dont on connaît le vainqueur et où au moins une bille est tombée.', 'Over ' + _dimNb(p.n) + ' games with a known winner in which at least one marble was pushed off.')));
   // 2. a quel coup tombe chaque bille
@@ -40655,7 +40718,7 @@ function _sbHtmlBilles(v){
       if (q === null) { grille += '<div class="sb-g-case sb-g-rare" role="cell" title="' + _tr('Moins de 30 parties', 'Fewer than 30 games') + '">—</div>'; continue; }
       const alpha = 0.14 + Math.max(0, q - 50) / 50 * 0.8, clair = alpha > 0.55;
       grille += '<div class="sb-g-case" role="cell" tabindex="0" style="background:rgba(47,158,127,' + alpha.toFixed(2) + ');color:' + (clair ? '#fff' : 'var(--text)') + '" title="'
-        + _tr('À ' + a + '-' + b + ', le camp qui mène gagne ' + _sbPct(q) + ' de ' + _dimNb(e.n) + ' parties', 'At ' + a + '-' + b + ', the leading side wins ' + _sbPct(q) + ' of ' + _dimNb(e.n) + ' games') + '">' + Math.round(q) + ' %</div>';
+        + _tr('À ' + a + '-' + b + ', le camp qui mène gagne ' + _sbPct(q) + ' de ' + _dimNb(e.n) + ' parties', 'At ' + a + '-' + b + ', the leading side wins ' + _sbPct(q) + ' of ' + _dimNb(e.n) + ' games') + ' (' + grFourchette(e.g, e.n) + ')' + grPeu(e.n) + '">' + Math.round(q) + ' %</div>';
     }
   }
   grille += '</div>';
@@ -40697,15 +40760,17 @@ function _sbHtmlBilles(v){
 
 function _sbHtmlGagner(v){
   const D = STATS_PARTIES, s = Math.max(0, Math.min(_SB_ETAPES.length - 1, _sbEtape)), et = _SB_ETAPES[s];
-  const lignes = D.champs.map(function(ch, j){ const t = v.dims[s][j]; return { ch: ch, n: t.n, p: t.n ? t.g / t.n * 100 : null }; })
+  const lignes = D.champs.map(function(ch, j){ const t = v.dims[s][j]; return { ch: ch, n: t.n, g: t.g, p: t.n ? t.g / t.n * 100 : null }; })
     .filter(function(x){ return x.n >= 50; }).sort(function(a, b){ return Math.abs(b.p - 50) - Math.abs(a.p - 50); });
   const boutons = _SB_ETAPES.map(function(e, k){ return '<button type="button" class="sb-onglet" aria-pressed="' + (k === s) + '" onclick="_sbChoisirEtape(' + k + ')">' + _tr('Au ' + e + 'ᵉ coup', 'At move ' + e) + '</button>'; }).join('');
   let barres = '<div class="sb-div" role="table">';
   lignes.forEach(function(x){
     const plus = x.p >= 50, larg = Math.abs(x.p - 50);     // en points de pourcentage, la demi-largeur valant 50 points
-    barres += '<div class="sb-div-l" role="row" tabindex="0" title="' + _tr('Le camp qui a la valeur la plus haute gagne ' + _sbPct(x.p) + ' de ' + _dimNb(x.n) + ' parties', 'The side with the higher value wins ' + _sbPct(x.p) + ' of ' + _dimNb(x.n) + ' games') + '">'
+    const w = grWilson(x.g, x.n);   // v2.77 : la marge a 95 %, en moustache (la piste va de 0 a 100 %)
+    barres += '<div class="sb-div-l" role="row" tabindex="0" title="' + _tr('Le camp qui a la valeur la plus haute gagne ' + _sbPct(x.p) + ' de ' + _dimNb(x.n) + ' parties', 'The side with the higher value wins ' + _sbPct(x.p) + ' of ' + _dimNb(x.n) + ' games') + ' (' + grFourchette(x.g, x.n) + ')' + grPeu(x.n) + '">'
       + '<span class="sb-div-nom" role="rowheader">' + _labelDimension(x.ch) + '</span>'
-      + '<span class="sb-div-piste" role="presentation"><span class="sb-div-barre" style="' + (plus ? 'left:50%' : 'right:50%') + ';width:' + larg + '%;background:' + (plus ? _SB_VERT : _SB_ORANGE) + '"></span></span>'
+      + '<span class="sb-div-piste" role="presentation"><span class="sb-div-barre" style="' + (plus ? 'left:50%' : 'right:50%') + ';width:' + larg + '%;background:' + (plus ? _SB_VERT : _SB_ORANGE) + '"></span>'
+      + '<span class="sb-div-ic" style="left:' + (100 * w.bas).toFixed(1) + '%;width:' + Math.max(0.4, 100 * (w.haut - w.bas)).toFixed(1) + '%"></span></span>'
       + '<span class="sb-div-val" role="cell">' + _sbPct(x.p) + '</span></div>';
   });
   barres += '</div><div class="sb-div-axe" aria-hidden="true"><span></span><span><i>' + _tr('← gagne moins', '← wins less') + '</i><i>50\u00a0%</i><i>' + _tr('gagne plus →', 'wins more →') + '</i></span><span></span></div>';
@@ -43030,6 +43095,21 @@ function grEchapper(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, fu
 function grLargeur(el, defaut){ const w = el && el.clientWidth ? el.clientWidth : (defaut || 600); return Math.max(260, Math.min(760, Math.round(w))); }
 function grNb(x, dec){ if (x == null || !isFinite(x)) return '—'; const d = dec == null ? (Math.abs(x) >= 100 || Number.isInteger(x) ? 0 : 1) : dec; return Number(x).toLocaleString(currentLang() === 'EN' ? 'en-GB' : 'fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d }); }
 function grPct(x, dec){ return x == null || !isFinite(x) ? '—' : grNb(100 * x, dec == null ? 0 : dec) + ' %'; }
+/* v2.77 (audit des statistiques, point 1) : la marge d'erreur d'une proportion, g sur n -- intervalle de
+   Wilson a 95 %, plus juste que « p ± 1,96 ecart-type » pour les petits effectifs et pres de 0 ou 100 %.
+   La vraie valeur (sur toutes les parties qu'on aurait pu jouer) a 95 chances sur 100 d'etre dedans,
+   si les parties du corpus sont representatives. Moins de GR_PEU parties : chiffre fragile, signale. */
+const GR_PEU = 100;
+function grWilson(g, n){
+  if (!n) return null;
+  const z = 1.96, p = g / n, d = 1 + z * z / n, c = (p + z * z / (2 * n)) / d, e = z * Math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d;
+  return { p: p, bas: Math.max(0, c - e), haut: Math.min(1, c + e) };
+}
+// « ± 1,7 » : la demi-largeur de l'intervalle, en points de pourcentage
+function grMarge(g, n){ const w = grWilson(g, n); return w ? '± ' + grNb(100 * (w.haut - w.bas) / 2, 1) : ''; }
+// « entre 52 et 55 % »
+function grFourchette(g, n){ const w = grWilson(g, n); return w ? _tr('entre ', 'between ') + grNb(100 * w.bas, 0) + _tr(' et ', ' and ') + grPct(w.haut) : ''; }
+function grPeu(n){ return n < GR_PEU ? ' · ⚠ ' + _tr('peu de parties', 'few games') : ''; }
 function grCompact(x){ const a = Math.abs(x); if (a >= 1e6) return grNb(x / 1e6, 1) + ' M'; if (a >= 1e4) return grNb(x / 1e3, 0) + ' k'; return grNb(x); }
 
 // graduations « rondes » entre a et b (environ n)
@@ -43384,11 +43464,22 @@ function renderLabTableau(){
 const CF_SOURCES = ['MIGS', 'AbalOnline', 'PlayStrategy', 'Référence'];
 function _cfNomSource(i){ return i === 3 ? _tr('Parties de référence', 'Reference games') : CF_SOURCES[i]; }
 const CF_LONGUEURS = { courte: [0, 60], moyenne: [60, 120], longue: [120, 1e9] };
-let _corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout' };
+let _corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: 'tout' };
 try { const f = JSON.parse(localStorage.getItem('abaCorpusFiltre') || 'null'); if (f) _corpusFiltre = Object.assign(_corpusFiltre, f); } catch (e) {}
-function _cfCle(f){ return f.source + '|' + f.dispo + '|' + f.longueur; }
+function _cfCle(f){ return f.source + '|' + f.dispo + '|' + f.longueur + '|' + (f.periode || 'tout'); }
 // le filtre actif, ou null quand rien n'est filtre (le cache commun de _sbAgreger sert alors)
-function _cfActif(){ const f = _corpusFiltre; return (f.source === 'tout' && f.dispo === 'tout' && f.longueur === 'tout') ? null : f; }
+function _cfActif(){ const f = _corpusFiltre; return (f.source === 'tout' && f.dispo === 'tout' && f.longueur === 'tout' && (f.periode || 'tout') === 'tout') ? null : f; }
+/* v2.77 (audit des statistiques, point 3) : l'annee de chaque partie, lue dans sa banque (MIGS : 2016-2017,
+   AbalOnline : 2020-2023, PlayStrategy : 2026, reference : selon la partie). Rang = ordre de STATS_PARTIES. */
+let _cfAnneesCache = null;
+function _cfAnnee(k){
+  const B = _sbBanques(), cle = B.map(function(b){ return b.length; }).join('-');
+  if (!_cfAnneesCache || _cfAnneesCache.cle !== cle) {
+    const a = []; B.forEach(function(banque, s){ banque.forEach(function(g){ const d = String((s === 0 || s === 2) ? g[1] : g[0]); a.push(/^\d{4}/.test(d) ? d.slice(0, 4) : '?'); }); });
+    _cfAnneesCache = { cle: cle, a: a };
+  }
+  return _cfAnneesCache.a[k] || '?';
+}
 // la source d'une partie : son rang global dans les banques (MIGS, AbalOnline, PlayStrategy, reference)
 function _cfSourceDe(k, D){ let a = 0; for (let s = 0; s < D.nb.length; s++) { a += D.nb[s]; if (k < a) return s; } return D.nb.length - 1; }
 function _cfGarder(k, p, D, f){
@@ -43396,6 +43487,7 @@ function _cfGarder(k, p, D, f){
   if (f.source !== 'tout' && _cfSourceDe(k, D) !== +f.source) return false;
   if (f.dispo !== 'tout' && D.dispos[p[3]] !== f.dispo) return false;
   const L = CF_LONGUEURS[f.longueur]; if (L && !(p[1] >= L[0] && p[1] < L[1])) return false;
+  if (f.periode && f.periode !== 'tout' && _cfAnnee(k) !== f.periode) return false;
   return true;
 }
 function corpusFiltrer(k, v){
@@ -43411,14 +43503,17 @@ function _cfMarque(){ return _cfActif() ? ' <span class="cf-marque">🔎 ' + _tr
 function _cfBarre(){
   const D = STATS_PARTIES; if (!D) return '';
   const f = _corpusFiltre, n = {};
-  D.p.forEach(function(p){ if (p[2]) n[D.dispos[p[3]]] = (n[D.dispos[p[3]]] || 0) + 1; });
+  const an = {};
+  D.p.forEach(function(p, k){ if (p[2] && !_sbEstDoublon(k)) { n[D.dispos[p[3]]] = (n[D.dispos[p[3]]] || 0) + 1; const y = _cfAnnee(k); an[y] = (an[y] || 0) + 1; } });
+  const annees = Object.keys(an).filter(function(y){ return y !== '?'; }).sort();
   const dispos = Object.keys(n).sort(function(a, b){ return n[b] - n[a]; });
   const sel = function(k, O){ return '<select onchange="corpusFiltrer(\'' + k + '\',this.value)">' + O.map(function(o){ return '<option value="' + o[0] + '"' + (String(f[k]) === String(o[0]) ? ' selected' : '') + '>' + grEchapper(o[1]) + '</option>'; }).join('') + '</select>'; };
   let h = '<div class="gr-filtres cf-filtres">'
     + '<label>' + _tr('Source', 'Source') + ' ' + sel('source', [['tout', _tr('toutes', 'all')]].concat(CF_SOURCES.map(function(s, i){ return [String(i), _cfNomSource(i)]; }))) + '</label>'
     + '<label>' + _tr('Disposition', 'Layout') + ' ' + sel('dispo', [['tout', _tr('toutes', 'all')]].concat(dispos.map(function(d){ return [d, _cfNomDispo(d) + ' (' + n[d] + ')']; }))) + '</label>'
-    + '<label>' + _tr('Longueur', 'Length') + ' ' + sel('longueur', [['tout', _tr('toutes', 'all')], ['courte', _tr('moins de 60 demi-coups', 'under 60 plies')], ['moyenne', _tr('60 à 119', '60 to 119')], ['longue', _tr('120 et plus', '120 and more')]]) + '</label>';
-  if (_cfActif()) h += '<button class="ctrl-btn cf-tout" onclick="corpusFiltrer(\'source\',\'tout\');corpusFiltrer(\'dispo\',\'tout\');corpusFiltrer(\'longueur\',\'tout\')">' + _tr('Tout le corpus', 'Whole corpus') + '</button>';
+    + '<label>' + _tr('Longueur', 'Length') + ' ' + sel('longueur', [['tout', _tr('toutes', 'all')], ['courte', _tr('moins de 60 demi-coups', 'under 60 plies')], ['moyenne', _tr('60 à 119', '60 to 119')], ['longue', _tr('120 et plus', '120 and more')]]) + '</label>'
+    + '<label>' + _tr('Année', 'Year') + ' ' + sel('periode', [['tout', _tr('toutes', 'all')]].concat(annees.map(function(y){ return [y, y + ' (' + an[y] + ')']; }))) + '</label>';
+  if (_cfActif()) h += '<button class="ctrl-btn cf-tout" onclick="corpusFiltrer(\'source\',\'tout\');corpusFiltrer(\'dispo\',\'tout\');corpusFiltrer(\'longueur\',\'tout\');corpusFiltrer(\'periode\',\'tout\')">' + _tr('Tout le corpus', 'Whole corpus') + '</button>';
   h += '</div><div class="gr-sous">' + _tr('Les filtres recalculent les cartes marquées 🔎 (les autres, comme les 12 dimensions, portent toujours sur tout le corpus).', 'The filters recompute the cards marked 🔎 (the others, like the 12 dimensions, always cover the whole corpus).') + '</div>';
   return h;
 }
@@ -43427,7 +43522,7 @@ function _cfBarre(){
 function _cfParties(){
   const D = STATS_PARTIES; if (!D) return [];
   const f = _cfActif(), L = [];
-  D.p.forEach(function(p, k){ if (p[2] && _cfGarder(k, p, D, f)) L.push({ k: k, p: p }); });
+  D.p.forEach(function(p, k){ if (p[2] && !_sbEstDoublon(k) && _cfGarder(k, p, D, f)) L.push({ k: k, p: p }); });
   return L;
 }
 // l'ecart (Noirs moins Blancs) au demi-coup « ply » : les ejections faites jusque-la
@@ -43440,10 +43535,11 @@ function _cfHtmlResume(L){
   const six = L.filter(function(x){ const s = _cfScoreA(x.p[4], 1e9); return s.nb >= 6 || s.nw >= 6; }).length;
   return _carteStats(_tr('En bref', 'In short') + _cfMarque(), grTuiles([
     { lab: _tr('Parties', 'Games'), v: grNb(L.length), sous: _tr('jouées depuis une position de départ', 'played from a starting position') },
-    { lab: _tr('Les Noirs gagnent', 'Black wins'), v: dec.length ? grPct(noirs / dec.length, 1) : '—', sous: _tr('sur ', 'of ') + grNb(dec.length) + _tr(' parties au vainqueur connu', ' games with a known winner') },
+    { lab: _tr('Les Noirs gagnent', 'Black wins'), v: dec.length ? grPct(noirs / dec.length, 1) : '—', sous: (dec.length ? grMarge(noirs, dec.length) + ' · ' : '') + _tr('sur ', 'of ') + grNb(dec.length) + _tr(' parties au vainqueur connu', ' games with a known winner') + grPeu(dec.length) },
     { lab: _tr('Durée médiane', 'Median length'), v: med != null ? grNb(med) + _tr(' demi-coups', ' plies') : '—', sous: _tr('notation lisible jusqu’au bout', 'notation readable to the end') },
-    { lab: _tr('Finies à 6 billes', 'Ended at 6 marbles'), v: L.length ? grPct(six / L.length) : '—', sous: _tr('les autres : abandon, temps, partie interrompue', 'the others: resignation, time, interrupted game') }
-  ]));
+    { lab: _tr('Finies à 6 billes', 'Ended at 6 marbles'), v: L.length ? grPct(six / L.length) : '—', sous: (L.length ? grMarge(six, L.length) + ' · ' : '') + _tr('les autres : abandon, temps, partie interrompue', 'the others: resignation, time, interrupted game') }
+  ]) + '<div class="gr-sous">' + _tr('± : la marge d’erreur à 95 % (intervalle de Wilson) — la vraie valeur a 95 chances sur 100 d’être dans cette marge, si les parties du corpus sont représentatives. ⚠ : moins de ' + GR_PEU + ' parties, chiffre fragile.',
+    '±: the 95 % margin of error (Wilson interval) — the true value has 95 chances in 100 of lying within it, if the corpus games are representative. ⚠: fewer than ' + GR_PEU + ' games, a fragile figure.') + '</div>');
 }
 
 /* ─── 2. Gagner selon l'avance et le moment ───
@@ -43470,7 +43566,7 @@ function _cfHtmlAvance(L){
       const c = T[i + 1][CF_MOMENTS[j]];
       if (c.n < 20) return { v: null, txt: c.n ? '·' : '' };
       const p = c.g / c.n;
-      return { v: 100 * p, txt: String(Math.round(100 * p)), tip: _tr('Mène de ' + (i + 1) + ' au demi-coup ' + CF_MOMENTS[j], 'Ahead by ' + (i + 1) + ' at ply ' + CF_MOMENTS[j]) + _dimDp() + _tr('gagne ', 'wins ') + c.g + ' / ' + c.n + ' (' + Math.round(100 * p) + ' %)' };
+      return { v: 100 * p, txt: String(Math.round(100 * p)), tip: _tr('Mène de ' + (i + 1) + ' au demi-coup ' + CF_MOMENTS[j], 'Ahead by ' + (i + 1) + ' at ply ' + CF_MOMENTS[j]) + _dimDp() + _tr('gagne ', 'wins ') + c.g + ' / ' + c.n + ' (' + Math.round(100 * p) + ' %, ' + grFourchette(c.g, c.n) + ')' + grPeu(c.n) };
     }, { echelle: 'signe', centre: 50, min: 0, max: 100, legende: [_tr('perd souvent', 'often loses'), _tr('gagne souvent', 'usually wins')] })
     + '<div class="gr-sous">' + _tr('Colonnes : le demi-coup ; cases : en %.', 'Columns: the ply; cells: in %.') + '</div>';
   const lignes = []; [1, 2, 3, 4, 5].forEach(function(a){ CF_MOMENTS.forEach(function(m){ const c = T[a][m]; if (c.n) lignes.push(['+' + a, m, c.n, c.g, grPct(c.g / c.n)]); }); });
@@ -43505,7 +43601,8 @@ function _cfHtmlOuvertures(L, W){
     const top = Object.keys(C).filter(function(j){ return C[j].n >= 10; }).sort(function(a, b){ return C[b].n - C[a].n; }).slice(0, 8);   // joues au moins 10 fois
     if (top.length) {
       h += '<div class="gr-titre">' + _tr('Les premiers coups des Noirs', 'Black’s first moves') + ' — ' + grEchapper(_cfNomDispo(dispo)) + '</div><div class="gr-sous">' + _tr('Ceux joués au moins 10 fois (notation Aba-Pro), avec leur part des parties, et la part gagnée par les Noirs après chacun (vainqueur connu). Le trait marque 50 %.', 'Those played at least 10 times (Aba-Pro notation), with their share of games, and the share Black won after each one (known winner). The tick marks 50%.') + '</div>';
-      h += grBarres(top.map(function(j){ const c = C[j]; return { lab: j + ' · ' + grPct(c.n / tot, c.n / tot < 0.1 ? 1 : 0), v: c.dec ? c.g / c.dec : 0, ref: 0.5, txt: c.dec ? grPct(c.g / c.dec) + _tr(' sur ', ' of ') + c.dec : '—', tip: j + _dimDp() + _tr('joué ', 'played ') + c.n + _tr(' fois', ' times') + (c.dec ? ' · ' + _tr('Noirs gagnent ', 'Black wins ') + c.g + ' / ' + c.dec : '') }; }), { max: 1 });
+      h += grBarres(top.map(function(j){ const c = C[j]; return { lab: j + ' · ' + grPct(c.n / tot, c.n / tot < 0.1 ? 1 : 0), v: c.dec ? c.g / c.dec : 0, ref: 0.5, txt: c.dec ? grPct(c.g / c.dec) + _tr(' sur ', ' of ') + c.dec : '—', tip: j + _dimDp() + _tr('joué ', 'played ') + c.n + _tr(' fois', ' times') + (c.dec ? ' · ' + _tr('Noirs gagnent ', 'Black wins ') + c.g + ' / ' + c.dec + ' (' + grFourchette(c.g, c.dec) + ')' + grPeu(c.dec) : ''),
+        bas: c.dec ? grWilson(c.g, c.dec).bas : null, haut: c.dec ? grWilson(c.g, c.dec).haut : null }; }), { max: 1 });   // v2.77 : la moustache = la marge a 95 %
     }
   }
   return _carteStats(_tr('Premiers coups, longueur et fins', 'First moves, length and endings') + _cfMarque(), h);
@@ -43523,7 +43620,7 @@ function _cfOccupation(){
   for (let i = 0; i < LABO_POS.n; i++) {
     if (_lpEstDepart(i)) continue;
     const ply = _lpPly(i); if (ply < M[0] || ply >= M[1]) continue;
-    const k = _lpPartie(i), p = D.p[k]; if (!p || !p[2] || !_cfGarder(k, p, D, f)) continue;
+    const k = _lpPartie(i), p = D.p[k]; if (!p || !p[2] || _sbEstDoublon(k) || !_cfGarder(k, p, D, f)) continue;
     const s = _lpChaine(i); n++;
     for (let c = 0; c < 61; c++) { const x = s.charAt(c); if (x === 'b') occ.black[c]++; else if (x === 'w') occ.white[c]++; }
     // le coup joue est-il une poussee ? la case de tete, vue du joueur (plateau retourne pour les Blancs)
@@ -43559,12 +43656,101 @@ function _cfRendreOccupation(){
 }
 
 /* ─── Tout redessiner (filtre change) ─── */
+/* ─── 5. L'explorateur des scores (v2.77) ───
+   Specification proposee par ChatGPT a Olivier (« explorateur statistique du corpus ») : pour chaque
+   score atteint en cours de partie (billes ejectees par les Noirs – par les Blancs), le moment ou il est
+   atteint, et le camp etudie : victoires, defaites, nulles, parties au resultat inconnu (exclues du taux),
+   le taux de victoire avec sa marge a 95 %, et les parties qui le composent, a rejouer.
+   - Une partie compte au plus une fois par score : le score ne fait que monter, elle n'y passe qu'une fois.
+   - Le moment : celui ou le score est atteint (debut : demi-coups 0 a 29, milieu : 30 a 69, fin : 70 et
+     plus -- les memes qu'ailleurs sur le site). La specification proposait des phases par nombre
+     d'ejections : redondant ici, le score les donne deja.
+   - Le score, pas les « billes restantes » : toutes les dispositions ne partent pas de 14 billes.
+   - Memes parties que les autres cartes 🔎 : completes, filtrees, doublons comptes une fois. */
+let _cfExCamp = 'black', _cfExMoment = 'tout', _cfExOuvert = null;
+const CF_EX_MOMENTS = { tout: null, debut: [0, 30], milieu: [30, 70], fin: [70, 1e9] };
+function corpusExplorer(k, v){ if (k === 'camp') _cfExCamp = v; else if (k === 'moment') _cfExMoment = v; else if (k === 'ouvrir') _cfExOuvert = (_cfExOuvert === v ? null : v); _cfRendreExplorateur(); }
+// rows[score] = { n, v, d, nul, inconnu, parties: [rangs] } pour le camp et le moment choisis
+function _cfExplorer(L, camp, moment){
+  const M = CF_EX_MOMENTS[moment], R = {};
+  L.forEach(function(x){
+    const g = x.p[0], ej = x.p[4];
+    let nb = 0, nw = 0;
+    const noter = function(ply){
+      if (nb >= 6 || nw >= 6) return;                    // partie gagnee : rien a apprendre de ce score
+      if (M && !(ply >= M[0] && ply < M[1])) return;
+      const cle = nb + '-' + nw, r = R[cle] || (R[cle] = { nb: nb, nw: nw, n: 0, v: 0, d: 0, nul: 0, inconnu: 0, parties: [] });
+      r.n++; r.parties.push(x.k);
+      if (g === 3) r.nul++;
+      else if (g !== 1 && g !== 2) r.inconnu++;
+      else if ((g === 1) === (camp === 'black')) r.v++; else r.d++;
+    };
+    noter(0);
+    for (let i = 0; i < ej.length; i += 2) { if (ej[i + 1] & 1) nb++; else nw++; noter(ej[i]); }
+  });
+  return Object.keys(R).map(function(c){ return R[c]; }).sort(function(a, b){ return (a.nb + a.nw) - (b.nb + b.nw) || (b.nb - b.nw) - (a.nb - a.nw); });
+}
+function _cfNomSourceCourt(s){ return ['MIGS', 'AbalOnline', 'PlayStrategy', _tr('Référence', 'Reference')][s] || '?'; }
+// la partie de rang global k : sa banque, son rang dans la banque, et de quoi l'afficher
+function _cfPartieDe(k){
+  const D = STATS_PARTIES, B = _sbBanques(), s = _cfSourceDe(k, D);
+  let i = k; for (let t = 0; t < s; t++) i -= D.nb[t];
+  const g = B[s] && B[s][i]; if (!g) return null;
+  const date = String((s === 0 || s === 2) ? g[1] : g[0]), nN = (s === 0 || s === 2) ? g[2] : g[1], nB = (s === 0 || s === 2) ? g[3] : g[2];
+  return { s: s, i: i, g: g, date: date, noirs: nN, blancs: nB, p: D.p[k] };
+}
+function corpusRevoir(k){
+  const x = _cfPartieDe(k); if (!x) return;
+  if (x.s === 0) loadMigsGame(x.i);
+  else if (x.s === 1) loadAOGame(x.i);
+  else if (x.s === 2) { const j = PS_GAMES.findIndex(function(h){ return h[0] === x.g[0]; }); if (j >= 0) loadPSGame(j); else if (typeof showToast === 'function') showToast(_tr('Partie introuvable dans la bibliothèque', 'Game not found in the library')); }
+  else { if (typeof showPage === 'function') showPage('game'); loadRefGame(x.i); }
+}
+function _cfHtmlExplorateur(L){
+  const rows = _cfExplorer(L, _cfExCamp, _cfExMoment), camp = _cfExCamp === 'black' ? _tr('les Noirs', 'Black') : _tr('les Blancs', 'White');
+  const bouton = function(k, v, txt){ const on = (k === 'camp' ? _cfExCamp : _cfExMoment) === v; return '<button type="button" class="sb-onglet" aria-pressed="' + on + '" onclick="corpusExplorer(\'' + k + '\',\'' + v + '\')">' + txt + '</button>'; };
+  let h = '<div class="gr-sous">' + _tr('Pour chaque score atteint pendant la partie (billes éjectées par les Noirs – par les Blancs), ce que sont devenues ces parties. Une partie compte une fois par score : elle n’y passe qu’une fois. Le taux ne compte que les parties au vainqueur connu ; les nulles et les résultats inconnus sont donnés à part. Cliquer une ligne : ses parties, à rejouer.',
+    'For each score reached during the game (marbles pushed off by Black – by White), what became of those games. A game counts once per score: it only passes through it once. The rate only counts games with a known winner; draws and unknown results are given apart. Click a row: its games, to replay.') + '</div>';
+  h += '<div class="sb-onglets">' + bouton('camp', 'black', _tr('Camp : Noirs', 'Side: Black')) + bouton('camp', 'white', _tr('Camp : Blancs', 'Side: White')) + '</div>';
+  h += '<div class="sb-onglets">' + bouton('moment', 'tout', _tr('Toute la partie', 'Whole game')) + bouton('moment', 'debut', _tr('Début (0–29)', 'Opening (0–29)')) + bouton('moment', 'milieu', _tr('Milieu (30–69)', 'Middle (30–69)')) + bouton('moment', 'fin', _tr('Fin (70 et +)', 'End (70+)')) + '</div>';
+  if (!rows.length) return h + '<div class="gr-vide">' + _tr('Aucune partie avec ces réglages.', 'No game with these settings.') + '</div>';
+  h += '<div class="cf-ex" role="table"><div class="cf-ex-l cf-ex-ent" role="row"><span>' + _tr('Score N–B', 'Score B–W') + '</span><span>' + _tr('Parties', 'Games') + '</span><span>' + _tr('V / D / N / ?', 'W / L / D / ?') + '</span><span>' + _tr('Taux de victoire de ', 'Win rate of ') + camp + '</span></div>';
+  rows.forEach(function(r){
+    const dec = r.v + r.d, w = dec ? grWilson(r.v, dec) : null, cle = r.nb + '-' + r.nw, ouvert = _cfExOuvert === cle;
+    const barre = w ? '<span class="sb-div-piste"><span class="sb-div-barre" style="' + (w.p >= 0.5 ? 'left:50%' : 'right:50%') + ';width:' + (100 * Math.abs(w.p - 0.5)).toFixed(1) + '%;background:' + (w.p >= 0.5 ? _SB_VERT : _SB_ORANGE) + '"></span>'
+      + '<span class="sb-div-ic" style="left:' + (100 * w.bas).toFixed(1) + '%;width:' + Math.max(0.4, 100 * (w.haut - w.bas)).toFixed(1) + '%"></span></span>' : '<span></span>';
+    h += '<div class="cf-ex-l' + (ouvert ? ' cf-ex-ouvert' : '') + (dec < GR_PEU ? ' cf-ex-peu' : '') + '" role="row" tabindex="0" onclick="corpusExplorer(\'ouvrir\',\'' + cle + '\')" onkeydown="if(event.key===\'Enter\')corpusExplorer(\'ouvrir\',\'' + cle + '\')"'
+      + ' title="' + grEchapper(r.v + _tr(' victoires, ', ' wins, ') + r.d + _tr(' défaites, ', ' losses, ') + r.nul + _tr(' nulles, ', ' draws, ') + r.inconnu + _tr(' au résultat inconnu', ' with an unknown result') + (w ? ' · ' + grFourchette(r.v, dec) : '') + grPeu(dec)) + '">'
+      + '<span class="cf-ex-score">' + r.nb + ' – ' + r.nw + '</span><span>' + grNb(r.n) + '</span><span class="cf-ex-vdn">' + r.v + ' / ' + r.d + ' / ' + r.nul + ' / ' + r.inconnu + '</span>'
+      + '<span class="cf-ex-taux">' + barre + '<b>' + (w ? grPct(w.p) : '—') + '</b> <i>' + (w ? grMarge(r.v, dec) : '') + (dec < GR_PEU ? ' ⚠' : '') + '</i></span></div>';
+    if (ouvert) h += _cfHtmlExParties(r);
+  });
+  h += '</div>';
+  return h;
+}
+// les parties d'une ligne : les 20 premieres, a rejouer
+function _cfHtmlExParties(r){
+  const res = function(g){ return g === 1 ? _tr('Noirs gagnent', 'Black wins') : (g === 2 ? _tr('Blancs gagnent', 'White wins') : (g === 3 ? _tr('nulle', 'draw') : _tr('résultat inconnu', 'unknown result'))); };
+  let h = '<div class="cf-ex-parties">';
+  r.parties.slice(0, 20).forEach(function(k){
+    const x = _cfPartieDe(k); if (!x) return;
+    h += '<div class="cf-ex-partie"><span>' + _cfNomSourceCourt(x.s) + ' · ' + grEchapper(x.date) + '</span><span>' + grEchapper(String(x.noirs || '?')) + ' – ' + grEchapper(String(x.blancs || '?')) + '</span><span>' + res(x.p[0]) + ' · ' + x.p[1] + _tr(' demi-coups', ' plies') + '</span>'
+      + '<button type="button" class="ctrl-btn" onclick="event.stopPropagation();corpusRevoir(' + k + ')">▶ ' + _tr('Revoir', 'Replay') + '</button></div>';
+  });
+  if (r.parties.length > 20) h += '<div class="gr-sous">' + _tr('… et ', '… and ') + grNb(r.parties.length - 20) + _tr(' autres parties : un filtre (source, disposition, année) réduit la liste.', ' more games: a filter (source, layout, year) narrows the list.') + '</div>';
+  return h + '</div>';
+}
+function _cfRendreExplorateur(){
+  const he = document.getElementById('corpus-explorateur'); if (!he || !STATS_PARTIES) return;
+  he.innerHTML = _carteStats(_tr('L’explorateur des scores', 'The score explorer') + _cfMarque(), _cfHtmlExplorateur(_cfParties()));
+}
 function _cfRendreTout(){
   const D = STATS_PARTIES; if (!D) return;
   const L = _cfParties();
   const hf = document.getElementById('corpus-filtres'); if (hf) hf.innerHTML = _cfBarre();
   const hr = document.getElementById('corpus-resume'); if (hr) hr.innerHTML = _cfHtmlResume(L);
   const ha = document.getElementById('corpus-avance'); if (ha) ha.innerHTML = _cfHtmlAvance(L);
+  _cfRendreExplorateur();
   const ho = document.getElementById('corpus-ouvertures'); if (ho) ho.innerHTML = _cfHtmlOuvertures(L, grLargeur(ho, 640) - 40);
   _cfRendreOccupation();
   if (typeof _sbRendreCorpus === 'function') _sbRendreCorpus();
@@ -43819,6 +44005,95 @@ function renderProfilChiffres(){
     ])
     + (pts.length >= 3 ? grLignes(W, [{ nom: _tr('Score', 'Score'), couleur: GR_OR, pts: pts }], { h: 150, yMin: 0, yMax: 100, fmtY: function(v){ return v + ' %'; }, nomX: _tr('Partie', 'Game'), fmtX: function(v){ return '#' + v; }, aria: _tr('Score glissant', 'Rolling score') }) + '<div class="gr-sous">' + _tr('Ton score sur tes 10 dernières parties, partie après partie.', 'Your score over your last 10 games, game after game.') + '</div>' : '')
     + '<div class="lab-actions"><button class="ctrl-btn" onclick="showPage(\'stats\')">' + _tr('Toutes mes statistiques →', 'All my statistics →') + '</button></div></div>';
+}
+/* ═══════════════════════════════════════════
+   STATISTIQUES DU JEU : LA QUALITE DES COUPS (v2.78)
+   Demande d'Olivier (audit des statistiques du corpus, point 4) : pour chaque
+   vrai coup du corpus, est-il proche du meilleur coup du moteur, et offre-t-il
+   une bille a l'adversaire ?
+   - « Proche du meilleur » : EXACTEMENT la mesure de la precision de Mes
+     statistiques (computeDecisionProfile, 12-positional-analysis.js) -- chaque
+     coup legal evalue a un demi-coup (evaluateBoard du camp au trait), le coup
+     joue a SEUIL_PROCHE_MEILLEUR points ou moins du meilleur. Meme mesure des
+     deux cotes : ta precision se compare a celle des vrais joueurs.
+   - « Decision facile » : le meilleur et le pire coup legaux sont a plus de
+     SEUIL_ECART_DECISION_DISPUTEE points (meme regle que Mes statistiques).
+   - « Bille offerte » : apres le coup joue, l'adversaire peut ejecter une bille,
+     alors qu'un autre coup legal ne le permettait pas. Un coup qui ejecte
+     lui-meme (echange) n'est pas compte.
+   - Par partie, par camp et par moment (debut : demi-coups 0 a 29, milieu : 30 a
+     69, fin : 70 et plus -- les memes que la methode Texel du Labo).
+   Le calcul (plusieurs minutes, toutes les parties completes) est fait hors
+   ligne par tools/qualite-coups.js ; la page n'additionne que des compteurs.
+═══════════════════════════════════════════ */
+const QC_MOMENTS = [30, 70];                 // bornes des trois moments (demi-coups)
+const QC_CHAMPS = ['coups', 'proches', 'faciles', 'facilesTrouves', 'offertes', 'perte'];   // perte : somme des ecarts au meilleur (dizaines de points, plafonnee a 1 000 par coup)
+function _qcMoment(ply){ return ply < QC_MOMENTS[0] ? 0 : (ply < QC_MOMENTS[1] ? 1 : 2); }
+/* Le camp « pousseur » peut-il ejecter une bille au prochain coup ? Exact, sans generer tous ses coups
+   (un test le compare a getAllMovesForColor sur des milliers de positions du corpus) : une bille
+   adverse au bord, la case au-dela hors du plateau dans une direction d ; en remontant la ligne
+   (sens -d), k billes adverses contigues (1 ou 2) puis au moins k + 1 billes du pousseur (3 au plus). */
+function _qcEjectionPossible(pousseur){
+  const victime = pousseur === 'black' ? 'white' : 'black';
+  for (const cle in board) {
+    if (board[cle] !== victime) continue;
+    const rc = cle.split(','), ax = rcToAxial(+rc[0], +rc[1]);
+    for (let i = 0; i < AX_DIRS.length; i++) {
+      const d = AX_DIRS[i];
+      if (axialToRc(ax.q + d.q, ax.r + d.r)) continue;          // la case au-dela est sur le plateau
+      let q = ax.q, r = ax.r, k = 0, j = 0, c;
+      while ((c = axialToRc(q, r)) && board[akey(c.r, c.c)] === victime) { k++; q -= d.q; r -= d.r; }
+      if (k > 2 || !c) continue;
+      while ((c = axialToRc(q, r)) && board[akey(c.r, c.c)] === pousseur && j < 3) { j++; q -= d.q; r -= d.r; }
+      if (j > k) return true;
+    }
+  }
+  return false;
+}
+
+/* Analyse une partie du corpus (memes depart, jetons et arret que _sbRejouerPartie).
+   Rend null pour une partie qui ne part pas d'une position de depart (probleme, position
+   arrangee) ; sinon q[camp][moment] = les 6 compteurs de QC_CHAMPS (camp 0 : Noirs). */
+function _qcAnalyserPartie(src, g){
+  const dep = _sbDepart(src, g);
+  if (!dep) return null;
+  let nN = 0, nB = 0;
+  for (const k in dep.board) { if (dep.board[k] === 'black') nN++; else if (dep.board[k] === 'white') nB++; }
+  if (!(dep.cb === 0 && dep.cw === 0 && Math.min(nN, nB) >= 12)) return null;
+  const jetons = _sbJetons(src, g);
+  const q = [0, 1].map(function(){ return [0, 1, 2].map(function(){ return [0, 0, 0, 0, 0, 0]; }); });
+  const sauve = { b: board, cb: CapturedByBlack.get(), cw: CapturedByWhite.get() };
+  try {
+    board = Object.assign({}, dep.board); CapturedByBlack.set(0); CapturedByWhite.set(0);
+    let col = 'black', cb = 0, cw = 0;
+    for (let k = 0; k < jetons.length; k++) {
+      const legal = getAllMovesForColor(col);
+      const mv = resolveAbaProToken(jetons[k], col, legal);
+      if (!mv) break;
+      const adv = col === 'black' ? 'white' : 'black';
+      {   // tous les coups, meme forces (comme computeDecisionProfile)
+        const scores = legal.map(function(m){ const u = applyMove(m, col); const s = evaluateBoard(col); undoMove(u); return s; });
+        const idJ = canonId(mv), iJ = legal.findIndex(function(m){ return canonId(m) === idJ; });
+        if (iJ >= 0) {
+          const t = q[col === 'black' ? 0 : 1][_qcMoment(k)];
+          const best = Math.max.apply(null, scores), worst = Math.min.apply(null, scores), ecart = best - scores[iJ];
+          t[0]++;
+          if (ecart <= SEUIL_PROCHE_MEILLEUR) t[1]++;
+          if (best - worst > SEUIL_ECART_DECISION_DISPUTEE) { t[2]++; if (ecart <= SEUIL_PROCHE_MEILLEUR) t[3]++; }
+          t[5] += Math.round(Math.min(1000, ecart) / 10);
+          // bille offerte : le coup joue (sans ejection) permet une ejection, un autre coup legal non
+          if (!(mv.info && mv.info.type === 'push' && mv.info.ejection)) {
+            const u = applyMove(mv, col), offre = _qcEjectionPossible(adv); undoMove(u);
+            if (offre && legal.some(function(m, i){ if (i === iJ) return false; const v = applyMove(m, col), danger = _qcEjectionPossible(adv); undoMove(v); return !danger; })) t[4]++;
+          }
+        }
+      }
+      if (abApplyMove(mv.cells, mv.dir, col, mv.info).ejected) { if (col === 'black') { cb++; CapturedByBlack.set(cb); } else { cw++; CapturedByWhite.set(cw); } }
+      col = adv;
+      if (cb >= 6 || cw >= 6) break;
+    }
+  } finally { board = sauve.b; CapturedByBlack.set(sauve.cb); CapturedByWhite.set(sauve.cw); }
+  return q;
 }
 </script>
 
