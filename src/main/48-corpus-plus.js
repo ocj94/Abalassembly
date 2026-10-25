@@ -304,6 +304,7 @@ function _cfRendreTout(){
   _cfRendreExplorateur();
   const ho = document.getElementById('corpus-ouvertures'); if (ho) ho.innerHTML = _cfHtmlOuvertures(L, grLargeur(ho, 640) - 40);
   _cfRendreOccupation();
+  if (typeof _qcRendre === 'function') _qcRendre();   // v2.78 : la qualite des coups
   if (typeof _sbRendreCorpus === 'function') _sbRendreCorpus();
   grSurRedim('corpus', 'corpus-ouvertures', function(){ const h2 = document.getElementById('corpus-ouvertures'); if (h2 && STATS_PARTIES) h2.innerHTML = _cfHtmlOuvertures(_cfParties(), grLargeur(h2, 640) - 40); });
 }

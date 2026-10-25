@@ -59,7 +59,21 @@ jobs:
         # Fichier nomme explicitement : le motif glob de node --test n'existe
         # qu'a partir de Node 21, et ce workflow tourne sur Node 20. Ajouter un
         # fichier de test ici lorsqu'il y en aura un nouveau.
-        run: node --test tests/engine.test.js
+        # v2.78 : un echec intermittent (v2.73, v2.76, v2.77, passe a la relance) reste
+        # introuvable, les journaux n'etant pas toujours lisibles hors de GitHub. Chaque
+        # test en echec devient donc une annotation (lisible par l'API des check-runs),
+        # avec son message d'erreur et le systeme du runner.
+        run: |
+          set -o pipefail
+          if ! node --test tests/engine.test.js 2>&1 | tee test-moteur.log; then
+            sys="$(. /etc/os-release && echo "$PRETTY_NAME") · node $(node -v) · TZ=${TZ:-?} · $(date -u +%FT%TZ)"
+            awk -v sys="$sys" '
+              /^not ok/ { if (msg) print "::error title=Test en echec::" msg; l = $0; gsub(/%/, "%25", l); msg = l " [" sys "]"; n = 1; next }
+              n && n < 30 { gsub(/%/, "%25"); msg = msg "%0A" $0; n++; next }
+              { if (msg) { print "::error title=Test en echec::" msg; msg = "" } n = 0 }
+              END { if (msg) print "::error title=Test en echec::" msg }' test-moteur.log
+            exit 1
+          fi
 
       # 5/7 — contrôles de régression sur le source et le README
       - name: Contrôles de régression

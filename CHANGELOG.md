@@ -9,6 +9,43 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.78]
+
+### Ajouté — la qualité des coups des vrais joueurs
+Point 4 de l'audit des statistiques choisi par Olivier. Chacun des 418 046
+coups des 4 247 parties jouées depuis une position de départ a été analysé
+à l'avance par le moteur du site (31 minutes de calcul,
+`tools/qualite-coups.js`).
+- **Coups proches du meilleur** : à un demi-coup, chaque coup légal est
+  évalué, et le coup joué compte s'il est à 30 points ou moins du meilleur.
+  C'est **exactement** la précision affichée dans Mes statistiques (un test
+  le vérifie), donc les deux se comparent. Mes statistiques montrent
+  maintenant, sous ta précision, celle des vrais joueurs : **37,5 %**.
+- **Billes offertes** : après le coup, l'adversaire peut éjecter une bille
+  alors qu'un autre coup l'évitait. Un échange (le coup joué éjecte
+  lui-même) ne compte pas. Résultat : **10,1 pour 100 coups**. La
+  vérification est exacte, et 20 fois plus rapide que de générer tous les
+  coups adverses ; un test la compare au générateur sur plus de 2 000
+  positions.
+- **Ce que ça montre** :
+  - le futur vainqueur offre 8,3 billes pour 100 coups, le futur perdant
+    11,6 ;
+  - le milieu de partie est le moment le plus risqué (13,4) ;
+  - les joueurs du tournoi PlayStrategy, les plus forts du corpus, n'en
+    offrent que 3,6, mais n'ont pas une meilleure « précision » (34,7 %).
+    À un demi-coup, la précision mesure mal la force, et la carte le dit.
+- La carte suit les filtres de la page (source, disposition, longueur,
+  année). Les données, 131 Ko, sont embarquées dans la page, qui reste
+  entièrement hors ligne.
+
+### Modifié — les tests sur GitHub
+Le même test du moteur échoue de temps en temps sur GitHub (v2.73, v2.76,
+v2.77) puis passe à la relance, sans qu'on puisse lire pourquoi. Chaque
+échec devient maintenant une annotation lisible, avec le message d'erreur
+et le système de la machine, pour le trouver à la prochaine occurrence.
+
+- **Tests** : 4 de plus (283).
+
 ## [v2.77]
 
 ### Ajouté — des statistiques du corpus plus fiables, et l'explorateur des scores

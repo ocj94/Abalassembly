@@ -724,11 +724,18 @@ function renderDecisionProfile(){
     host.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px 0">Aucune partie archivée pour l\u2019instant.</div>';
     return;
   }
+  // v2.78 : la meme mesure sur tous les coups du corpus, pour comparer
+  const corpus = (typeof qcPrecisionCorpus === 'function') ? qcPrecisionCorpus() : null;
+  if (!corpus && typeof ensureQualiteCoups === 'function' && !renderDecisionProfile._attente) {
+    renderDecisionProfile._attente = true;
+    ensureQualiteCoups().then(function(ok){ if (ok && typeof ensureStatsParties === 'function') return ensureStatsParties(); }).then(function(){ if (qcPrecisionCorpus()) renderDecisionProfile(); });
+  }
   const rows = [
     ['Coups proches du meilleur choix disponible', profil.tauxProcheMeilleur + '%', profil.totalMoves + ' coups analysés'],
+    corpus ? [_tr('Les vrais joueurs du corpus, même mesure', 'Real players of the corpus, same measure'), grPct(corpus.p, 1), grNb(corpus.coups) + _tr(' coups analysés (page Statistiques du jeu)', ' moves analysed (Game statistics page)')] : null,
     ['Nombre moyen de coups légaux par position', profil.brancheMoyenne, null],
   ];
-  let html = rows.map(function(r){
+  let html = rows.filter(Boolean).map(function(r){
     return '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--border)">'
       + '<div><div style="font-size:12px;color:var(--text)">'+r[0]+'</div>'+(r[2]?'<div style="font-size:11px;color:var(--muted)">'+r[2]+'</div>':'')+'</div>'
       + '<div style="font-weight:700;color:var(--gold)">'+r[1]+'</div></div>';
