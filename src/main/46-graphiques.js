@@ -25,6 +25,21 @@ function grEchapper(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, fu
 function grLargeur(el, defaut){ const w = el && el.clientWidth ? el.clientWidth : (defaut || 600); return Math.max(260, Math.min(760, Math.round(w))); }
 function grNb(x, dec){ if (x == null || !isFinite(x)) return '—'; const d = dec == null ? (Math.abs(x) >= 100 || Number.isInteger(x) ? 0 : 1) : dec; return Number(x).toLocaleString(currentLang() === 'EN' ? 'en-GB' : 'fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d }); }
 function grPct(x, dec){ return x == null || !isFinite(x) ? '—' : grNb(100 * x, dec == null ? 0 : dec) + ' %'; }
+/* v2.77 (audit des statistiques, point 1) : la marge d'erreur d'une proportion, g sur n -- intervalle de
+   Wilson a 95 %, plus juste que « p ± 1,96 ecart-type » pour les petits effectifs et pres de 0 ou 100 %.
+   La vraie valeur (sur toutes les parties qu'on aurait pu jouer) a 95 chances sur 100 d'etre dedans,
+   si les parties du corpus sont representatives. Moins de GR_PEU parties : chiffre fragile, signale. */
+const GR_PEU = 100;
+function grWilson(g, n){
+  if (!n) return null;
+  const z = 1.96, p = g / n, d = 1 + z * z / n, c = (p + z * z / (2 * n)) / d, e = z * Math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d;
+  return { p: p, bas: Math.max(0, c - e), haut: Math.min(1, c + e) };
+}
+// « ± 1,7 » : la demi-largeur de l'intervalle, en points de pourcentage
+function grMarge(g, n){ const w = grWilson(g, n); return w ? '± ' + grNb(100 * (w.haut - w.bas) / 2, 1) : ''; }
+// « entre 52 et 55 % »
+function grFourchette(g, n){ const w = grWilson(g, n); return w ? _tr('entre ', 'between ') + grNb(100 * w.bas, 0) + _tr(' et ', ' and ') + grPct(w.haut) : ''; }
+function grPeu(n){ return n < GR_PEU ? ' · ⚠ ' + _tr('peu de parties', 'few games') : ''; }
 function grCompact(x){ const a = Math.abs(x); if (a >= 1e6) return grNb(x / 1e6, 1) + ' M'; if (a >= 1e4) return grNb(x / 1e3, 0) + ' k'; return grNb(x); }
 
 // graduations « rondes » entre a et b (environ n)
