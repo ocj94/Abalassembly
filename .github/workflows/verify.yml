@@ -63,6 +63,8 @@ jobs:
         # introuvable, les journaux n'etant pas toujours lisibles hors de GitHub. Chaque
         # test en echec devient donc une annotation (lisible par l'API des check-runs),
         # avec son message d'erreur et le systeme du runner.
+        # v2.82 : trouve grace a elles -- une egalite de date dans les marques de suppression
+        # de la synchro (test v2.69 synchro). Les annotations restent pour le prochain.
         run: |
           set -o pipefail
           if ! node --test tests/engine.test.js 2>&1 | tee test-moteur.log; then

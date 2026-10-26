@@ -9,6 +9,24 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.82]
+
+### Corrigé — l'échec intermittent des tests, trouvé : une partie réimportée pouvait disparaître à la synchro
+Les annotations ajoutées à la CI en v2.78 l'ont attrapé à la première
+occurrence. Quand une partie était supprimée puis réimportée sur un
+appareil **dans la même milliseconde**, les deux marques portaient la même
+date. À la synchronisation, la suppression gardée par l'autre appareil
+pouvait l'emporter, et la partie réimportée disparaissait. Dans la vraie
+vie, c'est presque impossible ; sur un serveur de test rapide, ça arrivait
+une fois de temps en temps (v2.73, v2.76, v2.77, v2.81).
+- Une marque posée sur un appareil est maintenant toujours plus récente que
+  la précédente pour la même partie.
+- Entre deux appareils, à date égale, la partie revient : une égalité ne
+  fait jamais perdre une partie.
+- Un test fige l'horloge pour reproduire le cas à coup sûr : il échoue sans
+  la correction.
+- **Tests** : 1 de plus (294).
+
 ## [v2.81]
 
 ### Ajouté — l'avantage du trait par disposition, le jeu au fil des années, la première poussée de chaque type, les positions répétées, les coups possibles

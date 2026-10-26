@@ -302,7 +302,8 @@ function _syncFusionner(A, B){
   // 2. les suppressions de parties : pour chaque partie, la marque la plus recente (supprimee, ou revenue par un import)
   const sup = {};
   [B.supprimees || {}, A.supprimees || {}].forEach(function(src){ Object.keys(src).forEach(function(c){
-    const m = _syncMarque(src[c]); if (!sup[c] || String(m.d) > String(sup[c].d)) sup[c] = m;
+    // v2.82 : a date egale, la partie revient (x = 0) -- ne jamais perdre une partie sur une egalite
+    const m = _syncMarque(src[c]); if (!sup[c] || String(m.d) > String(sup[c].d) || (String(m.d) === String(sup[c].d) && m.x < sup[c].x)) sup[c] = m;
   }); });
   const supprimees = {};
   Object.keys(sup).sort(function(x, y){ return String(sup[y].d).localeCompare(String(sup[x].d)); }).slice(0, _SYNC_SUPPRIMEES_GARDE).forEach(function(c){ supprimees[c] = sup[c]; });
@@ -384,7 +385,15 @@ function _syncEstSupprimee(m){ return !!m && _syncMarque(m).x === 1; }
 function _syncMarquer(codes, x, st){
   st = st || _syncStock();
   const s = _syncJson(st, SYNC_SUPPRIMEES_CLE, {}) || {}, t = new Date().toISOString();
-  (codes || []).forEach(function(c){ if (c) s[c] = { d: t, x: x }; });
+  /* v2.82 : une marque posee ici est toujours plus recente que la precedente pour la meme partie, meme dans la
+     meme milliseconde. Sinon « supprimee » puis « revenue » portaient la meme date, et a la synchro la
+     suppression de l'autre appareil pouvait l'emporter : la partie reimportee disparaissait. Trouve par les
+     annotations de la CI (v2.78) : c'etait l'echec intermittent des tests (v2.73, v2.76, v2.77, v2.81). */
+  (codes || []).forEach(function(c){
+    if (!c) return;
+    const avant = s[c] ? _syncMarque(s[c]).d : '', ms = Date.parse(avant);
+    s[c] = { d: (avant && avant >= t && isFinite(ms)) ? new Date(ms + 1).toISOString() : t, x: x };
+  });
   const cles = Object.keys(s).sort(function(p, q){ return String(_syncMarque(s[q]).d).localeCompare(String(_syncMarque(s[p]).d)); });
   cles.slice(_SYNC_SUPPRIMEES_GARDE).forEach(function(c){ delete s[c]; });
   try { st.ecrire(SYNC_SUPPRIMEES_CLE, JSON.stringify(s)); } catch (e) {}
