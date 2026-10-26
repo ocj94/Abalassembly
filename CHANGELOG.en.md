@@ -9,6 +9,23 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.82]
+
+### Fixed — the intermittent test failure, found: a re-imported game could vanish on sync
+The annotations added to the CI in v2.78 caught it the first time it
+happened. When a game was deleted and then re-imported on a device **within
+the same millisecond**, both marks carried the same date. On sync, the
+deletion held by the other device could win, and the re-imported game
+vanished. In real life this is almost impossible; on a fast test server it
+happened now and then (v2.73, v2.76, v2.77, v2.81).
+- A mark set on a device is now always more recent than the previous one
+  for the same game.
+- Between two devices, on equal dates, the game comes back: a tie never
+  loses a game.
+- A test freezes the clock to reproduce the case every time: it fails
+  without the fix.
+- **Tests**: 1 more (294).
+
 ## [v2.81]
 
 ### Added — the first-move advantage by layout, the game over the years, the first push of each kind, repeated positions, possible moves

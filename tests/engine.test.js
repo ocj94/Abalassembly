@@ -5582,3 +5582,32 @@ test('corpus v2.81 : les cinq cartes en francais et en anglais, sans trou', asyn
   assert.match(h, /gr-axe-l/); assert.match(h, /gr-axe-m">50 %/);
   assert.match(_SRC_INDEX, /grid-template-columns:subgrid/);
 });
+
+test('v2.82 synchro : supprimee puis reimportee dans la meme milliseconde -- la partie revient (echec intermittent de la CI)', () => {
+  // l'horloge figee : les deux marques tombent dans la meme milliseconde, comme sur un runner rapide
+  const T = Date.parse('2026-10-26T02:32:50.000Z');
+  _r63('globalThis.__vraieDate = Date; Date = class extends __vraieDate { constructor(...a){ super(...(a.length ? a : [' + T + '])); } static now(){ return ' + T + '; } }');
+  try {
+    assert.strictEqual(_r63('new Date().toISOString()'), '2026-10-26T02:32:50.000Z', 'horloge figee');
+    const G = c => _partie62(c, { mode: 'import' });
+    const A = _app62('app-A', { abaGameHistory: [G('G1'), G('G2')], abalone_progress: _prog62({}) });
+    const B = _app62('app-B', { abaGameHistory: [G('G1'), G('G2')], abalone_progress: _prog62({}) });
+    ctx._syncNoterSuppression(['G2'], A.st);
+    A.ls.setItem('abaGameHistory', JSON.stringify([G('G1')]));
+    _sync62(A, B);
+    assert.strictEqual(JSON.stringify(B.lire('abaGameHistory').map(e => e.code)), '["G1"]');
+    ctx._syncOublierSuppression('G2', A.st);
+    const m = JSON.parse(A.ls.getItem('abaSyncSupprimees')).G2;
+    assert.strictEqual(m.x, 0); assert.ok(m.d > '2026-10-26T02:32:50.000Z', 'la marque « revenue » est plus recente que la suppression');
+    A.ls.setItem('abaGameHistory', JSON.stringify([G('G2'), G('G1')]));
+    _sync62(A, B);
+    assert.strictEqual(JSON.stringify(B.lire('abaGameHistory').map(e => e.code).sort()), '["G1","G2"]');
+  } finally { _r63('Date = globalThis.__vraieDate; delete globalThis.__vraieDate'); }
+  assert.notStrictEqual(_r63('new Date().toISOString()'), '2026-10-26T02:32:50.000Z', 'horloge rendue');
+  // deux appareils, meme date : la partie revient, dans un sens comme dans l'autre
+  const d = '2026-10-26T02:32:50.000Z', P = (x, app) => ({ format: 2, appareil: app, donnees: {}, connu: {}, supprimees: { G9: { d, x } } });
+  for (const [a, b] of [[P(1, 'a'), P(0, 'b')], [P(0, 'a'), P(1, 'b')]]) {
+    const f = JSON.parse(JSON.stringify(ctx._syncFusionner(a, b)));
+    assert.strictEqual(f.supprimees.G9.x, 0);
+  }
+});
