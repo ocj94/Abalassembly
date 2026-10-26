@@ -5468,3 +5468,117 @@ test('corpus v2.80 : explorateur d ouvertures -- toutes les parties de la dispos
     });
   } finally { _r63("_eoTravail = null; _eoEtat = null; _eoChemin = []"); }
 });
+
+/* ─── 74. v2.81 : avantage du trait par disposition, annees, premieres poussees, positions repetees, coups possibles ─── */
+
+test('corpus v2.81 : le rejeu note les positions repetees (cle exacte), la premiere poussee et les coups possibles', () => {
+  const { poserDisposition } = require('./harness');
+  poserDisposition(ctx, 'belgian');
+  const k0 = ctx._sbClePlateau();
+  assert.strictEqual(k0.length, 61); assert.strictEqual((k0.match(/n/g) || []).length, 14); assert.strictEqual((k0.match(/b/g) || []).length, 14);
+  // un aller-retour de chaque camp, deux fois : la position de depart revient aux demi-coups 4 et 8
+  const un = (col) => ctx.getAllMovesForColor(col).find(m => m.cells.length === 1 && m.info.type !== 'push');
+  const mN = un('black'), tN = ctx.abaproOfficialLabels(mN)[0];
+  ctx.abApplyMove(mN.cells, mN.dir, 'black', mN.info);
+  assert.notStrictEqual(ctx._sbClePlateau(), k0, 'un coup change la cle');
+  const mB = un('white'), tB = ctx.abaproOfficialLabels(mB)[0];
+  const retour = t => t.slice(2, 4) + t.slice(0, 2);
+  const tour = [tN, tB, retour(tN), retour(tB)];
+  const partie = ['2026-01-01', 'Alex', 'Bob', '', 'belgian', '', tour.concat(tour).join(' ')];
+  const avant = JSON.stringify(ctx.board);
+  const rec = ctx._sbRejouerPartie(3, partie, false);
+  assert.strictEqual(JSON.stringify(ctx.board), avant, 'le rejeu ne touche pas au plateau');
+  assert.strictEqual(rec.n, 8);
+  // premiere repetition au demi-coup 4, 4 demi-coups apres sa premiere apparition ; 5 repetitions ; la position de depart vue 3 fois
+  assert.deepStrictEqual(Array.from(rec.rep), [4, 4, 5, 3]);
+  assert.strictEqual(rec.br[0], 52, 'Marguerite belge : 52 coups possibles au depart');
+  assert.strictEqual(rec.br[1], 0, 'partie finie avant le 10e demi-coup');
+  assert.deepStrictEqual(Array.from(rec.fp), [0, 0, 0, 0, 0, 0], 'aucune poussee');
+  const enc = ctx._sbEncoder(rec, 0);
+  assert.strictEqual(enc.length, 12); assert.deepStrictEqual(Array.from(enc[10]), [4, 4, 5, 3]);
+  // sans repetition : 0
+  const rec2 = ctx._sbRejouerPartie(3, ['2026-01-01', 'Alex', 'Bob', '', 'belgian', '', tour.slice(0, 3).join(' ')], false);
+  assert.strictEqual(rec2.rep, null); assert.strictEqual(ctx._sbEncoder(rec2, 0)[10], 0);
+});
+
+test('corpus v2.81 : premieres poussees, repetitions -- sur des parties construites a la main', () => {
+  const L = [
+    { k: 0, p: [1, 40, 1, 0, [], 0, 0, 0, 0, [5, 0, 0, 8, 0, 0], 0, []] },          // Noirs gagnent ; Noirs poussent les premiers (2 c. 1, demi-coup 5)
+    { k: 1, p: [2, 60, 1, 0, [], 0, 0, 0, 0, [0, 20, 0, 7, 9, 0], [30, 4, 2, 2], []] },   // Blancs gagnent ; Blancs les premiers partout
+    { k: 2, p: [0, 30, 1, 0, [], 0, 0, 0, 0, [3, 0, 0, 0, 0, 0], [12, 6, 1, 3], []] },   // vainqueur inconnu : compte pour « quand », pas pour « gagne »
+    { k: 3, p: [1, 50, 1, 0, [], 0, 0, 0, 0] }                                         // donnees d'avant v2.81 : ignoree
+  ];
+  const R = ctx._ctPremieres(L);
+  assert.strictEqual(R[0].n, 3); assert.strictEqual(R[0].avec, 3); assert.deepStrictEqual(Array.from(R[0].plies), [5, 7, 3]);
+  assert.strictEqual(R[0].dec, 2); assert.strictEqual(R[0].g, 2); assert.strictEqual(R[0].noirs, 2);
+  assert.strictEqual(R[1].avec, 3); assert.strictEqual(R[2].avec, 1, '3 contre 1 : une seule partie'); assert.deepStrictEqual(Array.from(R[2].plies), [9], 'les Blancs (9) avant les Noirs (20)');
+  assert.strictEqual(R[3].avec, 0);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(R[0].parCamp)), [null, { n: 1, g: 1 }, { n: 1, g: 1 }]);
+  const P = ctx._ctRepetitions(L);
+  assert.strictEqual(P.n, 3); assert.strictEqual(P.avec, 2); assert.strictEqual(P.trois, 1);
+  assert.deepStrictEqual(Array.from(P.prem), [30, 12]); assert.deepStrictEqual(JSON.parse(JSON.stringify(P.cycles)), { 4: 1, 6: 1 });
+  assert.deepStrictEqual(Array.from(P.finAvec), [0, 1, 0, 1]); assert.deepStrictEqual(Array.from(P.finSans), [0, 1, 0, 0]);
+});
+
+test('corpus v2.81 : avantage du trait par disposition et annees -- memes parties et memes totaux que « En bref »', async () => {
+  await ctx.ensureGameBanks(); assert.ok(await ctx.ensureStatsParties());
+  _r63("_corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: 'tout' }");
+  const L = ctx._cfParties(), dec = L.filter(x => x.p[0] === 1 || x.p[0] === 2);
+  const T = ctx._ctTrait(L);
+  assert.strictEqual(T.tout.n, dec.length); assert.strictEqual(T.tout.g, dec.filter(x => x.p[0] === 1).length);
+  assert.strictEqual(T.lignes.reduce((a, t) => a + t.n, 0) + T.autres.n, T.tout.n, 'chaque partie dans une ligne');
+  assert.ok(T.lignes.every(t => t.n >= 100), 'une barre par disposition assez jouee'); assert.strictEqual(T.lignes[0].d, 'belgian');
+  assert.strictEqual(T.toutes.reduce((a, t) => a + t.n, 0), T.tout.n);
+  const A = ctx._ctAnnees(L);
+  assert.strictEqual(A.reduce((a, x) => a + x.n, 0), L.length, 'chaque partie dans une annee');
+  const ans = A.map(x => x.annee); ['2016', '2017', '2026'].forEach(y => assert.ok(ans.includes(y), y));
+  assert.deepStrictEqual(ans, ans.slice().sort(), 'dans l ordre');
+  A.forEach(x => { assert.ok(x.dec <= x.n && x.g <= x.dec && x.six <= x.n && x.med > 0); assert.strictEqual(x.src.reduce((a, b) => a + b, 0), x.n); });
+  // le filtre d'annee ne garde que cette annee
+  _r63("_corpusFiltre.periode = '2017'");
+  try { const A2 = ctx._ctAnnees(ctx._cfParties()); assert.strictEqual(JSON.stringify(A2.map(x => x.annee)), '["2017"]'); }
+  finally { _r63("_corpusFiltre.periode = 'tout'"); }
+});
+
+test('corpus v2.81 : donnees embarquees -- premieres poussees, repetitions et coups possibles sur toutes les parties', async () => {
+  await ctx.ensureGameBanks(); assert.ok(await ctx.ensureStatsParties());
+  const D = _r63('STATS_PARTIES'), BR = Array.from(_r63('_SB_BRANCHES'));
+  D.p.forEach((p, k) => {
+    assert.ok(p.length === 12 && p[9].length === 6 && p[11].length === BR.length, 'partie ' + k + ' : relancer node tools/stats-parties.js');
+    p[9].forEach((v, i) => assert.ok(v === 0 || (v >= 1 && v <= p[1] && (v % 2 === (i < 3 ? 1 : 0))), 'premiere poussee jouee par le bon camp, partie ' + k));
+    if (p[10]) assert.ok(p[10][0] >= 4 && p[10][0] <= p[1] && p[10][1] >= 4 && p[10][1] % 2 === 0 && p[10][2] >= 1 && p[10][3] >= 2, 'repetition, partie ' + k);
+    BR.forEach((ply, i) => assert.ok(ply > p[1] ? p[11][i] === 0 : p[11][i] > 0, 'coups possibles, partie ' + k));
+  });
+  _r63("_corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: 'tout' }");
+  const L = ctx._cfParties(), B = ctx._ctBranchement(L);
+  const { poserDisposition } = require('./harness'); poserDisposition(ctx, 'belgian');
+  const depart = B.depart.belgian.slice().sort((a, b) => a - b);
+  assert.strictEqual(depart[0], ctx.getAllMovesForColor('black').length); assert.strictEqual(depart[depart.length - 1], depart[0], 'meme depart pour toutes');
+  assert.ok(B.pts[3].med > 40 && B.pts[3].med < 90, 'au 30e demi-coup : quelques dizaines de coups');
+  const R = ctx._ctRepetitions(L); assert.ok(R.avec > 0 && R.avec < R.n);
+  const P = ctx._ctPremieres(L); assert.ok(P[0].avec / P[0].n > 0.9, 'presque toutes les parties ont une poussee');
+});
+
+test('corpus v2.81 : les cinq cartes en francais et en anglais, sans trou', async () => {
+  await ctx.ensureGameBanks(); assert.ok(await ctx.ensureStatsParties());
+  _r63("_corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: 'tout' }");
+  const avant = ctx.localStorage.getItem('abalone_lang');
+  try {
+    for (const lang of ['FR', 'EN']) {
+      ctx.localStorage.setItem('abalone_lang', lang);
+      await _dom54(async els => {
+        ctx._ctRendreTout();
+        ['corpus-trait', 'corpus-annees', 'corpus-premieres', 'corpus-repetitions', 'corpus-branchement'].forEach(id => {
+          const h = els[id].innerHTML;
+          assert.ok(h.length > 500, id + ' ' + lang); assert.doesNotMatch(h, /NaN|undefined|Infinity/, id + ' ' + lang);
+        });
+        if (lang === 'EN') { assert.match(els['corpus-trait'].innerHTML, /layout by layout/); assert.doesNotMatch(els['corpus-annees'].innerHTML, /Durée|Année/); }
+        else assert.match(els['corpus-repetitions'].innerHTML, /Les positions répétées/);
+      });
+    }
+  } finally { if (avant === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avant); }
+  // les barres partagent les colonnes du conteneur (v2.81) ; l'axe est une ligne de la meme grille
+  const h = ctx.grBarres([{ lab: 'a', v: -3 }, { lab: 'b', v: 5 }], { min: -10, max: 10, axe: ['40 %', '50 %', '60 %'] });
+  assert.match(h, /gr-axe-l/); assert.match(h, /gr-axe-m">50 %/);
+  assert.match(_SRC_INDEX, /grid-template-columns:subgrid/);
+});

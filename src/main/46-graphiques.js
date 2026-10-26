@@ -191,7 +191,12 @@ function grBarres(items, o){
       + (it.ref != null ? '<i class="gr-repere" style="left:' + P(it.ref).toFixed(1) + '%"></i>' : '')
       + '</span><span class="gr-barre-val">' + (it.txt || fmt(it.v)) + '</span></div>';
   });
-  return h + '</div>';
+  return h + _grAxeLigne(o.axe) + '</div>';
+}
+// v2.81 : une ligne d'axe sous les pistes, dans la meme grille (memes colonnes) : [gauche, milieu ou null, droite]
+function _grAxeLigne(A){
+  if (!A) return '';
+  return '<div class="gr-barre gr-axe-l" aria-hidden="true"><span></span><span class="gr-axe-piste"><span>' + A[0] + '</span>' + (A[1] != null ? '<span class="gr-axe-m">' + A[1] + '</span>' : '') + '<span>' + A[2] + '</span></span><span></span></div>';
 }
 
 /* ─── Boites a moustaches (v2.80) : items = [{ lab, vals: [nombres], tip }] -- une ligne par item, comme
@@ -217,8 +222,7 @@ function grBoites(items, o){
       + (o.ref != null ? '<i class="gr-repere" style="left:' + P(o.ref) + '%"></i>' : '')
       + '</span><span class="gr-barre-val">' + fmt(x.med) + '</span></div>';
   });
-  h += '</div><div class="gr-boites-axe"><span>' + fmt(mn) + '</span><span>' + fmt(mx) + '</span></div>';
-  return h;
+  return h + _grAxeLigne([fmt(mn), null, fmt(mx)]) + '</div>';   // v2.81 : l'axe dans la grille des boites (meme largeur de piste)
 }
 
 /* ─── Barre empilee a 100 % : segments = [{ nom, v }] (couleurs dans l'ordre fixe) ─── */

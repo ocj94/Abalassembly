@@ -134,4 +134,3 @@ function _eoRendreTout(){
   if (niv.suite) { _eoRendre(); return; }
   _eoCalculerSuite(function(){ _eoRendre(); });
 }
-</script>
