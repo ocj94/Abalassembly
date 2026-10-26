@@ -9,6 +9,39 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.80]
+
+### Added — the corpus opening explorer, push types, game length by first move
+Continuing Olivier's request ("4, 1, 2 and 3"): points 1, 2 and 3, on the
+Game statistics page.
+- **Pushes by type** (in "How real players play"):
+  - 2 against 1: 46 % of pushes;
+  - 3 against 1: 29 %;
+  - 3 against 2: 24 %.
+
+  They push a marble off 15 to 19 % of the time. And within a game, **the
+  side that pushes 3 against 2 more often wins 80 %** of the games (3
+  against 1: 70 %, 2 against 1: 59 %). Pushes that eject are not counted,
+  since the fallen marble would already tell who wins. The card says it is
+  a link, not a cause. The game events were recomputed
+  (`tools/stats-parties.js`, 8 minutes).
+- **The corpus opening explorer**, move by move, as in chess, over all the
+  games of the chosen layout and with the page filters. For each line: the
+  number of games, the share won by Black with its margin, and the median
+  length. Under 20 games, the list of games, to replay.
+  - A move is recognised by its marbles and direction, not by how it is
+    written: MIGS and AbalOnline do not write moves the same way.
+  - The custom layout is left out, since each of its games starts from a
+    different board.
+  - The Openings page keeps its explorer (2,126 tournament games) and links
+    to this one.
+- **Game length by first move**, as box plots: the box holds half of the
+  games, the tick the median, the whisker 8 games in 10. In Belgian Daisy,
+  the two most played first moves lead to games of the same length (medians
+  93 and 90 plies); only rare moves stray from it, on too few games to
+  conclude. New `grBoites` chart.
+- **Tests**: 3 more (288).
+
 ## [v2.79]
 
 ### Added — your offered marbles and your lead conversion, against real players

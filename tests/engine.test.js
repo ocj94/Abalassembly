@@ -5412,3 +5412,59 @@ test('mes statistiques v2.79 : la carte « ma qualite de jeu », la courbe des b
   } finally { ctx.getMesParties = sauve; _r63('_msDernier = { ej: null, profil: null }'); }
   assert.match(_SRC_INDEX, /'coups_proches_du_meilleur', 'billes_offertes'\]/);
 });
+
+/* ─── 73. v2.80 : types de poussee, longueur selon le premier coup, explorateur d'ouvertures du corpus ─── */
+
+test('corpus v2.80 : poussees par type -- classement, total egal aux sumitos, le camp qui pousse le plus', async () => {
+  await ctx.ensureGameBanks(); assert.ok(await ctx.ensureStatsParties());
+  const mv = n => ({ cells: new Array(n).fill({ r: 0, c: 0 }) });
+  assert.strictEqual(ctx._sbTypePoussee(mv(2), { type: 'push', push: 1 }), 0);
+  assert.strictEqual(ctx._sbTypePoussee(mv(3), { type: 'push', push: 1 }), 1);
+  assert.strictEqual(ctx._sbTypePoussee(mv(3), { type: 'push', push: 2 }), 2);
+  assert.strictEqual(ctx._sbTypePoussee(mv(3), { type: 'move' }), -1);
+  const v = ctx._sbAgreger(), P = v.poussees;
+  assert.strictEqual(P.types[0] + P.types[1] + P.types[2], v.types[5], 'chaque sumito a un type');
+  assert.strictEqual(P.types[3] + P.types[4] + P.types[5], v.types[6], 'chaque ejection vient d une poussee');
+  P.plus.forEach(c => assert.ok(c.n > 1000 && c.g / c.n > 0.5));
+  assert.ok(P.plus[2].g / P.plus[2].n > P.plus[0].g / P.plus[0].n, '3 contre 2 plus parlant que 2 contre 1');
+  const h = ctx._sbHtmlPoussees(v); assert.match(h, /3 contre 2|3 against 2/); assert.doesNotMatch(h, /NaN|undefined/);
+});
+
+test('graphiques v2.80 : boites a moustaches -- quartiles, repere, axe', () => {
+  assert.strictEqual(ctx.grQuantile([1, 2, 3, 4, 5], 0.5), 3);
+  assert.strictEqual(ctx.grQuantile([10, 20], 0.25), 12.5);
+  assert.strictEqual(ctx.grQuantile([], 0.5), null);
+  const h = ctx.grBoites([{ lab: 'a', vals: [1, 2, 3, 4, 100] }, { lab: 'b', vals: [] }], { min: 0, ref: 3 });
+  assert.strictEqual((h.match(/class="gr-boite-q"/g) || []).length, 1, 'un item vide n est pas dessine');
+  assert.match(h, /gr-repere/); assert.match(h, /class="gr-barre-val">3</);
+});
+
+test('corpus v2.80 : explorateur d ouvertures -- toutes les parties de la disposition, un coup reconnu quelle que soit son ecriture', async () => {
+  await ctx.ensureGameBanks(); assert.ok(await ctx.ensureStatsParties());
+  _r63("_corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: 'tout' }; _eoDispo = 'belgian'; _eoChemin = []; _eoEtat = null");
+  try {
+    await _dom54(async els => {
+      ctx._eoRacine();
+      const racine = _r63('_eoEtat.niveaux[0].parties'), D = _r63('STATS_PARTIES');
+      assert.strictEqual(racine.length, ctx._cfParties().filter(x => D.dispos[x.p[3]] === 'belgian').length);
+      assert.ok(racine.length > 2500);
+      await new Promise(ok => ctx._eoCalculerSuite(ok));
+      const E = ctx._eoEnfants();
+      const avecCoup = racine.filter(x => x.jetons.length).length;
+      assert.ok(E.reduce((a, e) => a + e.n, 0) <= avecCoup && E.reduce((a, e) => a + e.n, 0) > avecCoup - 20, 'presque chaque partie a un premier coup lisible');
+      // MIGS et PlayStrategy ecrivent le meme premier coup : une seule ligne
+      const sources = new Set(E[0].ks.map(k => ctx._cfSourceDe(k, D))); assert.ok(sources.size >= 2, 'le premier coup le plus joue reunit plusieurs sources');
+      // descendre : les parties de la suite choisie, une de plus dans le chemin
+      ctx.corpusOuvertureAller(0, E[0].id);
+      await new Promise(ok => { const t = () => (_r63('_eoEtat.niveaux[1].suite') ? ok() : setTimeout(t, 20)); t(); });
+      assert.strictEqual(_r63('_eoEtat.niveaux[1].parties.length'), E[0].n);
+      const h = ctx._eoHtml();
+      assert.match(h, /eo-chemin/); assert.match(h, /aria-current="step"/); assert.doesNotMatch(h, /NaN|undefined/);
+      // remonter au depart
+      ctx.corpusOuvertureAller(0);
+      assert.strictEqual(_r63('_eoEtat.niveaux.length'), 1); assert.strictEqual(_r63('_eoChemin.length'), 0);
+      // la disposition libre : pas de depart commun, pas d'exploration
+      assert.ok(!ctx._eoDisposPossibles().some(x => x[0] === 'custom'));
+    });
+  } finally { _r63("_eoTravail = null; _eoEtat = null; _eoChemin = []"); }
+});

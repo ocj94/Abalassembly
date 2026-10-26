@@ -3593,6 +3593,8 @@
       <div class="section-label">Statistiques réelles</div>
       <h2>Ouvertures</h2>
       <p style="color:var(--muted);font-size:14px;max-width:680px">Ce que 2 126 parties de tournoi en Marguerite belge ont réellement donné, coup par coup. Aucune évaluation de moteur ici : uniquement des résultats observés. Une position y est reconnue aux seules billes du camp au trait (c'est ainsi que la source, une statistique agrégée, les compte) : plus loin dans l'arbre, des positions où l'adversaire est placé autrement sont regroupées, et leurs totaux peuvent dépasser 2 126.</p>
+      <!-- v2.80 : l'explorateur de tout le corpus, sur la page Statistiques du jeu -->
+      <p style="color:var(--muted);font-size:13px;max-width:680px;margin-top:8px"><span class="fr-only">Toutes les dispositions et toutes les vraies parties du corpus : <a href="#" onclick="showPage('corpusstats');return false;" style="color:var(--gold)">l’explorateur d’ouvertures de la page Statistiques du jeu</a>.</span><span class="en-only">Every layout and every real game of the corpus: <a href="#" onclick="showPage('corpusstats');return false;" style="color:var(--gold)">the opening explorer on the Game statistics page</a>.</span></p>
     </div>
     <div style="padding:24px 60px 60px;max-width:920px">
 
