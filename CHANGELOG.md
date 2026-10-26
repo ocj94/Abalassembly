@@ -9,6 +9,31 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.79]
+
+### Ajouté — tes billes offertes et ta conversion de l'avance, face aux vrais joueurs
+Demande d'Olivier, à partir de deux propositions d'IA (« 4, 1, 2 et 3 ») :
+le point 4 d'abord.
+- **Ma qualité de jeu face aux vrais joueurs**, nouvelle carte de Mes
+  statistiques, avec deux colonnes « Toi » et « Vrais joueurs » :
+  - tes coups proches du meilleur, avec leur marge d'erreur ;
+  - tes **billes offertes** pour 100 coups, en tout et selon le moment de
+    la partie (début, milieu, fin).
+
+  Les mesures sont **exactement** celles du corpus (un test le vérifie
+  partie par partie, sur les deux couleurs). Les vrais joueurs offrent
+  10,1 billes pour 100 coups, et 13,4 en milieu de partie.
+- **Quand tu mènes, quand tu es mené** : tes victoires après avoir mené de
+  1, 2 ou 3 billes à un moment de la partie, et après avoir été mené
+  d'autant. Chez les vrais joueurs, celui qui a mené de 2 billes gagne
+  80 % du temps, et celui qui a mené de 3, 92 %. La 6ᵉ bille, qui finit la
+  partie, ne compte pas. Même règle des deux côtés, vérifiée par un test.
+- **Ma progression** montre tes billes offertes partie par partie, avec un
+  trait gris pour les vrais joueurs. Le profil de décision affiche aussi la
+  ligne des billes offertes.
+- L'**export CSV** gagne une colonne `billes_offertes`.
+- **Tests** : 2 de plus (285).
+
 ## [v2.78]
 
 ### Ajouté — la qualité des coups des vrais joueurs

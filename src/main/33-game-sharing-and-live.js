@@ -733,6 +733,8 @@ function renderDecisionProfile(){
   const rows = [
     ['Coups proches du meilleur choix disponible', profil.tauxProcheMeilleur + '%', profil.totalMoves + ' coups analysés'],
     corpus ? [_tr('Les vrais joueurs du corpus, même mesure', 'Real players of the corpus, same measure'), grPct(corpus.p, 1), grNb(corpus.coups) + _tr(' coups analysés (page Statistiques du jeu)', ' moves analysed (Game statistics page)')] : null,
+    // v2.79 : tes billes offertes (meme mesure que le corpus)
+    profil.offertes != null ? [_tr('Billes offertes pour 100 coups', 'Marbles offered per 100 moves'), grNb(100 * profil.offertes / profil.totalMoves, 1), _tr('l’adversaire pouvait éjecter, alors qu’un autre coup l’évitait', 'the opponent could push one off, when another move avoided it') + (corpus ? _tr(' · vrais joueurs : ', ' · real players: ') + grNb(corpus.offertes100, 1) : '')] : null,
     ['Nombre moyen de coups légaux par position', profil.brancheMoyenne, null],
   ];
   let html = rows.filter(Boolean).map(function(r){

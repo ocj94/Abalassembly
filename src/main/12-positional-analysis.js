@@ -904,6 +904,10 @@ function computeEjectionStats(){
      tes billes (vue de ton cote, comme sur ton ecran : plateau retourne quand tu as
      les Blancs), et tes sortes de coups, comptees comme dans le corpus. */
   const premiere = { perdue: { n: 0, g: 0 }, faite: { n: 0, g: 0 } };
+  /* v2.79 : la conversion de l'avance -- conversion.mene[e] : parties ou tu as mene de e billes (e = 1 a 3)
+     a un moment, et combien tu en as gagne ; conversion.mene_[e] : la meme chose quand tu as ete mene.
+     Une avance prise par la 6e bille (la partie est finie) ne compte pas. Meme regle que _sbConversion. */
+  const conversion = { mene: [null, { n: 0, g: 0 }, { n: 0, g: 0 }, { n: 0, g: 0 }], menee: [null, { n: 0, g: 0 }, { n: 0, g: 0 }, { n: 0, g: 0 }] };
   const carteSubies = new Array(61).fill(0), sortes = [0, 0, 0, 0, 0, 0, 0, 0];
   const avecSb = (typeof _sbClasser === 'function');
   const parties = [];   // v2.73 : partie par partie (Ma progression, export CSV)
@@ -916,6 +920,7 @@ function computeEjectionStats(){
     currentLayout = parsed.layout || 'standard';
     initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
     let turn = 'black', thisGameEj = 0, firstEjThisGame = null, ply = 0, premierCamp = null, subiesIci = 0;
+    const atteint = { mene: [false, false, false, false], menee: [false, false, false, false] };
     for (let i = 0; i < parsed.moves.length; i++) {
       const mv = parsed.moves[i];
       const v = validateMove(mv.cells, mv.dir, turn);
@@ -945,7 +950,13 @@ function computeEjectionStats(){
       }
 
       applyMove({cells:mv.cells, dir:mv.dir, info:v}, turn);
+      const moiB = humanC === 'black' ? CapturedByBlack.get() : CapturedByWhite.get(), luiB = humanC === 'black' ? CapturedByWhite.get() : CapturedByBlack.get();
+      if (moiB < 6 && luiB < 6) for (let e = 1; e <= 3; e++) { if (moiB - luiB >= e) atteint.mene[e] = true; if (luiB - moiB >= e) atteint.menee[e] = true; }
       turn = (turn === 'black') ? 'white' : 'black';
+    }
+    if (entry.winner === 'black' || entry.winner === 'white') for (let e = 1; e <= 3; e++) {
+      if (atteint.mene[e]) { conversion.mene[e].n++; if (entry.winner === humanC) conversion.mene[e].g++; }
+      if (atteint.menee[e]) { conversion.menee[e].n++; if (entry.winner === humanC) conversion.menee[e].g++; }
     }
     if (ply > 0) { gamesWithData++; parties.push({ id: entry.id, date: entry.date, faites: thisGameEj, subies: subiesIci, plis: ply }); }
     if (thisGameEj > bestGame) bestGame = thisGameEj;
@@ -970,7 +981,7 @@ function computeEjectionStats(){
     partiesAvecEjection: firstEjPlies.length,
     meilleurePartie: bestGame,
     byPhase: byPhase,
-    premiere: premiere, carteSubies: carteSubies, sortes: sortes, parties: parties
+    premiere: premiere, carteSubies: carteSubies, sortes: sortes, parties: parties, conversion: conversion
   };
 }
 
@@ -1235,6 +1246,12 @@ function computeDecisionProfile(){
   let totalMoves = 0, closeToBest = 0, brancheSum = 0;
   let easyCount = 0, easyFound = 0, hardCount = 0, hardFound = 0;
   const parties = [];   // v2.73 : precision partie par partie (Ma progression, export CSV)
+  /* v2.79 : les billes offertes, mesurees EXACTEMENT comme dans le corpus (_qcAnalyserPartie,
+     50-qualite-coups.js) -- apres ton coup (sans ejection), l'adversaire peut ejecter, alors qu'un
+     autre coup legal l'evitait -- et tout, par moment de la partie (debut, milieu, fin : _qcMoment). */
+  let offertes = 0;
+  const moments = [0, 1, 2].map(function(){ return { coups: 0, proches: 0, offertes: 0 }; });
+  const avecOffertes = (typeof _qcEjectionPossible === 'function');
 
   history.forEach(function(entry){
     if (!entry.code) return;
@@ -1243,7 +1260,7 @@ function computeDecisionProfile(){
     const humanC = entry.humanColor || 'black';
     currentLayout = parsed.layout || 'standard';
     initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
-    let turn = 'black', nIci = 0, prochesIci = 0;
+    let turn = 'black', nIci = 0, prochesIci = 0, offertesIci = 0;
     for (let i = 0; i < parsed.moves.length; i++) {
       const mv = parsed.moves[i];
       const v = validateMove(mv.cells, mv.dir, turn);
@@ -1263,6 +1280,12 @@ function computeDecisionProfile(){
           const trouve = (best - scoreJoue) <= SEUIL_PROCHE_MEILLEUR;
           totalMoves++; brancheSum += legal.length; nIci++;
           if (trouve) { closeToBest++; prochesIci++; }
+          const mo = moments[_qcMoment(i)]; mo.coups++; if (trouve) mo.proches++;
+          if (avecOffertes && !v.ejection) {
+            const adv = turn === 'black' ? 'white' : 'black';
+            const u0 = applyMove(legal[idxJoue], turn), offre = _qcEjectionPossible(adv); undoMove(u0);
+            if (offre && legal.some(function(m, j){ if (j === idxJoue) return false; const u = applyMove(m, turn), d = _qcEjectionPossible(adv); undoMove(u); return !d; })) { offertes++; offertesIci++; mo.offertes++; }
+          }
           const gap = best - worst;
           if (gap > SEUIL_ECART_DECISION_DISPUTEE) { easyCount++; if (trouve) easyFound++; }
           else { hardCount++; if (trouve) hardFound++; }
@@ -1271,19 +1294,20 @@ function computeDecisionProfile(){
       applyMove({cells:mv.cells, dir:mv.dir, info:v}, turn);
       turn = (turn === 'black') ? 'white' : 'black';
     }
-    if (nIci) parties.push({ id: entry.id, date: entry.date, coups: nIci, proches: prochesIci });
+    if (nIci) parties.push({ id: entry.id, date: entry.date, coups: nIci, proches: prochesIci, offertes: offertesIci });
   });
 
   currentLayout = saveLayout; board = saveBoard; CapturedByBlack.set(saveCB); CapturedByWhite.set(saveCW);
 
   if (!totalMoves) return null;
   return {
-    totalMoves: totalMoves,
+    totalMoves: totalMoves, proches: closeToBest,
     tauxProcheMeilleur: +(closeToBest/totalMoves*100).toFixed(1),
     brancheMoyenne: +(brancheSum/totalMoves).toFixed(1),
     easyCount: easyCount, easyFoundPct: easyCount ? +(easyFound/easyCount*100).toFixed(1) : null,
     hardCount: hardCount, hardFoundPct: hardCount ? +(hardFound/hardCount*100).toFixed(1) : null,
-    parties: parties
+    parties: parties,
+    offertes: avecOffertes ? offertes : null, moments: moments
   };
 }
 

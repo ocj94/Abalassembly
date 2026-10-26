@@ -164,10 +164,14 @@ function _qcRendre(){
   }
   h.innerHTML = _carteStats(_tr('La qualité des coups', 'The quality of moves') + (typeof _cfMarque === 'function' ? _cfMarque() : ''), _qcHtml(_cfParties()), _qcNote());
 }
-// la precision de tous les vrais joueurs (sans filtre), pour la comparer a la tienne (Mes statistiques)
+// la precision de tous les vrais joueurs (sans filtre), pour la comparer a la tienne (Mes statistiques) ;
+// v2.79 : aussi leurs billes offertes, par moment, et la conversion de l'avance (_cfConversion)
 function qcPrecisionCorpus(){
   if (!QUALITE_COUPS || !STATS_PARTIES) return null;
   const L = []; STATS_PARTIES.p.forEach(function(p, k){ if (p[2] && !_sbEstDoublon(k)) L.push({ k: k, p: p }); });
-  const r = _qcAgreger(L); return r && r.tout[0] ? { p: _qcPrecision(r.tout), coups: r.tout[0] } : null;
+  const r = _qcAgreger(L); if (!r || !r.tout[0]) return null;
+  return { p: _qcPrecision(r.tout), coups: r.tout[0], proches: r.tout[1], offertes: r.tout[4], offertes100: _qcOffertes(r.tout),
+    moments: r.moments.map(function(t){ return { coups: t[0], proches: t[1], offertes: t[4] }; }),
+    conversion: (typeof _cfConversion === 'function') ? _cfConversion(L) : null };
 }
 </script>

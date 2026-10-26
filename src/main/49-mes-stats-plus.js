@@ -62,10 +62,10 @@ function msExporterCSV(){
   ((_msDernier.ej && _msDernier.ej.parties) || []).forEach(function(x){ ej[x.id] = x; });
   ((_msDernier.profil && _msDernier.profil.parties) || []).forEach(function(x){ pr[x.id] = x; });
   const q = function(v){ v = v == null ? '' : String(v); return /[",;\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
-  const lignes = [['date', 'type', 'disposition', 'couleur', 'adversaire', 'niveau_ia', 'style_ia', 'resultat', 'coups', 'billes_faites', 'billes_perdues', 'coups_analyses', 'coups_proches_du_meilleur'].join(',')];
+  const lignes = [['date', 'type', 'disposition', 'couleur', 'adversaire', 'niveau_ia', 'style_ia', 'resultat', 'coups', 'billes_faites', 'billes_perdues', 'coups_analyses', 'coups_proches_du_meilleur', 'billes_offertes'].join(',')];
   L.forEach(function(e){
     const a = ej[e.id] || {}, p = pr[e.id] || {};
-    lignes.push([e.date, e.mode, e.variant, e.humanColor, _msAdversaire(e) || '', e.mode === 'ai' ? (_niveauIA(e.aiDiff) || '') : '', e.mode === 'ai' ? (e.aiStyle || '') : '', _msResultat(e) || '', e.moveCount || '', a.faites != null ? a.faites : '', a.subies != null ? a.subies : '', p.coups || '', p.proches != null ? p.proches : ''].map(q).join(','));
+    lignes.push([e.date, e.mode, e.variant, e.humanColor, _msAdversaire(e) || '', e.mode === 'ai' ? (_niveauIA(e.aiDiff) || '') : '', e.mode === 'ai' ? (e.aiStyle || '') : '', _msResultat(e) || '', e.moveCount || '', a.faites != null ? a.faites : '', a.subies != null ? a.subies : '', p.coups || '', p.proches != null ? p.proches : '', p.offertes != null ? p.offertes : ''].map(q).join(','));
   });
   _dl('abalassembly-mes-parties-' + new Date().toISOString().slice(0, 10) + '.csv', lignes.join('\n'), 'text/csv');
   showToast('📊 ' + L.length + _tr(' parties exportées', ' games exported'));
@@ -107,6 +107,12 @@ function _msHtmlProgression(L, W){
   let h = '';
   if (pr.length >= 2) h += '<div class="gr-titre">' + _tr('Précision', 'Accuracy') + '</div><div class="gr-sous">' + _tr('Part de tes coups proches du meilleur choix disponible, partie par partie.', 'Share of your moves close to the best available choice, game by game.') + '</div>'
     + grLignes(W, [{ nom: _tr('Précision', 'Accuracy'), couleur: GR_OR, pts: pr.map(function(x){ return [ids[x.id], Math.round(1000 * x.proches / x.coups) / 10]; }), points: pr.length <= 40 }], { yMin: 0, yMax: 100, fmtY: function(v){ return v + ' %'; }, nomX: _tr('Partie', 'Game'), fmtX: function(v){ return '#' + v; }, fmtTip: function(v, sr, x){ const p = pr.find(function(q){ return ids[q.id] === x; }); return v + ' %' + (p ? ' (' + p.proches + ' / ' + p.coups + ')' : ''); }, aria: _tr('Précision par partie', 'Accuracy per game') });
+  // v2.79 : tes billes offertes pour 100 coups, partie par partie, face aux vrais joueurs
+  const prO = pr.filter(function(x){ return x.offertes != null && x.coups; }), cq = (typeof qcPrecisionCorpus === 'function') ? qcPrecisionCorpus() : null;
+  if (prO.length >= 2) h += '<div class="gr-titre">' + _tr('Billes offertes', 'Marbles offered') + '</div><div class="gr-sous">' + _tr('Pour 100 de tes coups, partie par partie : l’adversaire pouvait éjecter, alors qu’un autre coup l’évitait.', 'Per 100 of your moves, game by game: the opponent could push one off, when another move avoided it.') + (cq ? _tr(' Le trait gris : les vrais joueurs (', ' The grey line: real players (') + grNb(cq.offertes100, 1) + ').' : '') + '</div>'
+    + grLignes(W, [{ nom: _tr('toi', 'you'), couleur: GR_SERIES[1], pts: prO.map(function(x){ return [ids[x.id], Math.round(1000 * x.offertes / x.coups) / 10]; }), points: prO.length <= 40 }]
+      .concat(cq ? [{ nom: _tr('vrais joueurs', 'real players'), couleur: GR_REF, pts: [[ids[prO[0].id], Math.round(10 * cq.offertes100) / 10], [ids[prO[prO.length - 1].id], Math.round(10 * cq.offertes100) / 10]] }] : []),
+      { yMin: 0, nomX: _tr('Partie', 'Game'), fmtX: function(v){ return '#' + v; }, aria: _tr('Billes offertes par partie', 'Marbles offered per game') });
   if (ej.length >= 2) h += '<div class="gr-titre">' + _tr('Billes faites et perdues', 'Marbles taken and lost') + '</div>'
     + grLignes(W, [{ nom: _tr('faites', 'taken'), couleur: GR_SERIES[0], pts: ej.map(function(x){ return [ids[x.id], x.faites]; }), points: ej.length <= 40 }, { nom: _tr('perdues', 'lost'), couleur: GR_SERIES[1], pts: ej.map(function(x){ return [ids[x.id], x.subies]; }), points: ej.length <= 40 }], { yMin: 0, nomX: _tr('Partie', 'Game'), fmtX: function(v){ return '#' + v; }, aria: _tr('Billes par partie', 'Marbles per game') });
   if (L.length >= 2) h += '<div class="gr-titre">' + _tr('Longueur des parties', 'Game length') + '</div>'
@@ -121,6 +127,43 @@ function _msHtmlProgression(L, W){
       + grCarte(jours, ['0-4 h', '4-8 h', '8-12 h', '12-16 h', '16-20 h', '20-24 h'], function(i, j){ const v = J[i][j]; return v ? { v: v, txt: String(v), tip: jours[i] + ' ' + (4 * j) + '-' + (4 * j + 4) + ' h' + _dimDp() + v + _tr(' parties', ' games') } : { v: null, txt: '' }; }, { echelle: 'or' });
   }
   return h || '<div class="gr-vide">' + _tr('Il faut au moins deux parties pour dessiner une progression.', 'At least two games are needed to draw a progression.') + '</div>';
+}
+
+/* ─── 2 bis. Ma qualite de jeu face aux vrais joueurs (v2.79) ───
+   Les memes mesures des deux cotes : tes coups proches du meilleur et tes billes offertes
+   (computeDecisionProfile), celles des 418 000 coups du corpus (qcPrecisionCorpus) ; et la conversion
+   de l'avance (computeEjectionStats, _cfConversion). */
+function _msHtmlQualite(){
+  const pf = _msDernier.profil, ej = _msDernier.ej, cq = (typeof qcPrecisionCorpus === 'function') ? qcPrecisionCorpus() : null;
+  if (!cq && typeof ensureQualiteCoups === 'function' && !_msHtmlQualite._attente) {
+    _msHtmlQualite._attente = true;
+    Promise.all([ensureQualiteCoups(), ensureStatsParties()]).then(function(){ const h = document.getElementById('ms-qualite'); if (h && qcPrecisionCorpus()) h.innerHTML = _msHtmlQualite(); });
+  }
+  if (!pf) return '<div class="gr-vide">' + _tr('Aucune partie analysable pour l’instant.', 'No game to analyse yet.') + '</div>';
+  const eux = function(v){ return cq ? v : '<span class="ms-attente">…</span>'; };
+  const ligne = function(nom, toi, lui){ return '<div class="sb-cmp-l"><span>' + nom + '</span><span>' + toi + '</span><span>' + lui + '</span></div>'; };
+  const pc = function(g, n){ return n ? grPct(g / n, 1) + ' <i class="sb-marge">' + grMarge(g, n) + '</i>' : '—'; };
+  const p100 = function(g, n){ return n ? grNb(100 * g / n, 1) : '—'; };
+  let h = '<div class="gr-sous">' + _tr('Tes coups mesurés exactement comme ceux des vrais joueurs du corpus (page Statistiques du jeu, carte « La qualité des coups »). Les billes offertes distinguent mieux les joueurs forts que la précision.', 'Your moves measured exactly like those of the corpus’s real players (Game statistics page, “The quality of moves” card). Offered marbles tell strong players apart better than accuracy does.') + '</div>';
+  h += '<div class="sb-cmp"><div class="sb-cmp-l sb-cmp-ent"><span></span><span>' + _tr('Toi', 'You') + '</span><span>' + _tr('Vrais joueurs', 'Real players') + '</span></div>';
+  const tO = pf.offertes != null ? pf.offertes : null;
+  h += ligne(_tr('Coups proches du meilleur', 'Moves close to the best'), pc(pf.proches != null ? pf.proches : Math.round(pf.tauxProcheMeilleur * pf.totalMoves / 100), pf.totalMoves), eux(cq ? grPct(cq.p, 1) : ''));
+  if (tO != null) h += ligne(_tr('Billes offertes pour 100 coups', 'Marbles offered per 100 moves'), p100(tO, pf.totalMoves), eux(cq ? grNb(cq.offertes100, 1) : ''));
+  const noms = [_tr('début (0–29)', 'opening (0–29)'), _tr('milieu (30–69)', 'middle (30–69)'), _tr('fin (70 et +)', 'end (70+)')];
+  if (pf.moments && tO != null) pf.moments.forEach(function(m, i){ if (!m.coups) return; const c = cq ? cq.moments[i] : null;
+    h += ligne('· ' + _tr('billes offertes, ', 'marbles offered, ') + noms[i], p100(m.offertes, m.coups) + ' <i class="sb-marge">(' + m.coups + _tr(' coups', ' moves') + ')</i>', eux(c ? p100(c.offertes, c.coups) : '')); });
+  h += '</div>';
+  // la conversion de l'avance
+  const cv = ej && ej.conversion, cc = cq && cq.conversion;
+  if (cv) {
+    h += '<div class="gr-titre">' + _tr('Quand tu mènes, quand tu es mené', 'When you lead, when you trail') + '</div><div class="gr-sous">' + _tr('Tes parties au vainqueur connu où, à un moment, un camp a eu une avance de 1, 2 ou 3 billes (sans compter la 6ᵉ, qui finit la partie) ; chez les vrais joueurs, la même chose pour chaque camp.', 'Your games with a known winner where, at some point, a side led by 1, 2 or 3 marbles (not counting the 6th, which ends the game); for real players, the same for each side.') + '</div>';
+    h += '<div class="sb-cmp"><div class="sb-cmp-l sb-cmp-ent"><span></span><span>' + _tr('Toi', 'You') + '</span><span>' + _tr('Vrais joueurs', 'Real players') + '</span></div>';
+    const sur = function(x){ return x.n ? grPct(x.g / x.n) + ' <i class="sb-marge">(' + x.g + '/' + x.n + ')</i>' : '—'; };
+    for (let e = 1; e <= 3; e++) h += ligne(_tr('Victoires après avoir mené de ' + e + ' bille' + (e > 1 ? 's' : ''), 'Wins after leading by ' + e + ' marble' + (e > 1 ? 's' : '')), sur(cv.mene[e]), eux(cc && cc[e].n ? grPct(cc[e].g / cc[e].n) : ''));
+    for (let e = 1; e <= 3; e++) h += ligne(_tr('Victoires après avoir été mené de ' + e + ' bille' + (e > 1 ? 's' : ''), 'Wins after trailing by ' + e + ' marble' + (e > 1 ? 's' : '')), sur(cv.menee[e]), eux(cc && cc[e].n ? grPct(1 - cc[e].g / cc[e].n) : ''));
+    h += '</div>';
+  }
+  return h;
 }
 
 /* ─── 3. Moi contre le corpus ───
@@ -216,6 +259,7 @@ function renderMesStatsPlus(){
   if (!L.length) { hp.innerHTML = carte(_tr('Résultats détaillés', 'Detailed results'), '<div class="gr-vide">' + _tr('Aucune partie avec ces filtres.', 'No game with these filters.') + '</div>'); return; }
   hp.innerHTML = carte(_tr('Résultats détaillés', 'Detailed results'), _msHtmlResultats(L, W))
     + carte(_tr('Ma progression', 'My progress'), _msHtmlProgression(L, W))
+    + carte(_tr('Ma qualité de jeu face aux vrais joueurs', 'My quality of play against real players'), '<div id="ms-qualite">' + _msHtmlQualite() + '</div>')
     + carte(_tr('Moi contre le corpus', 'Me against the corpus'), '<div id="ms-corpus"></div>');
   _msRendreCorpus();
   grSurRedim('messtats', 'ms-plus', function(){ _msFiltreApplique = true; try { renderMesStatsPlus(); } finally { _msFiltreApplique = false; } });

@@ -5361,3 +5361,54 @@ test('qualite v2.78 : la carte du corpus et la comparaison dans Mes statistiques
     }));
   } finally { ctx.getMesParties = sauve; }
 });
+
+/* ─── 72. v2.79 : tes billes offertes et la conversion de l'avance, face aux vrais joueurs ─── */
+
+test('mes statistiques v2.79 : billes offertes et conversion -- exactement la mesure du corpus, partie par partie', async () => {
+  await ctx.ensureGameBanks(); assert.ok(await ctx.ensureStatsParties());
+  const B = ctx._sbBanques(), D = _r63('STATS_PARTIES'), sauve = ctx.getMesParties;
+  // des parties MIGS au vainqueur connu (« Au score »)
+  const idx = []; for (let i = 0; i < B[0].length && idx.length < 4; i++) if (D.p[i][2] && (D.p[i][0] === 1 || D.p[i][0] === 2)) idx.push(i);
+  try {
+    for (const i of idx) {
+      const g = B[0][i], corps = _corps78(g), q = ctx._qcAnalyserPartie(0, g), gagnant = D.p[i][0] === 1 ? 'black' : 'white';
+      for (const [camp, couleur] of [[0, 'black'], [1, 'white']]) {
+        ctx.getMesParties = () => [{ id: 'z' + i, code: 'ABAL1:belgian:a|b:' + corps, humanColor: couleur, winner: gagnant }];
+        const pf = ctx.computeDecisionProfile(), ej = ctx.computeEjectionStats();
+        const somme = c => [0, 1, 2].reduce((a, m) => a + q[camp][m][c], 0);
+        assert.strictEqual(pf.offertes, somme(4), 'partie ' + i + ', ' + couleur + ' : memes billes offertes');
+        [0, 1, 2].forEach(m => { assert.strictEqual(pf.moments[m].coups, q[camp][m][0]); assert.strictEqual(pf.moments[m].offertes, q[camp][m][4]); assert.strictEqual(pf.moments[m].proches, q[camp][m][1]); });
+        assert.strictEqual(pf.parties[0].offertes, pf.offertes); assert.strictEqual(pf.proches, somme(1));
+        // conversion : comme _cfConversion sur la meme partie, vue de ce camp
+        const cc = ctx._cfConversion([{ k: i, p: D.p[i] }]);
+        for (let e = 1; e <= 3; e++) {
+          const moi = ej.conversion.mene[e], lui = ej.conversion.menee[e];
+          assert.strictEqual(moi.n + lui.n, cc[e].n, 'avance de ' + e + ' : memes camps qui l ont eue');
+          assert.strictEqual(moi.g + (lui.n - lui.g), cc[e].g, 'avance de ' + e + ' : memes conversions');
+        }
+      }
+    }
+  } finally { ctx.getMesParties = sauve; }
+});
+
+test('mes statistiques v2.79 : la carte « ma qualite de jeu », la courbe des billes offertes et l export', async () => {
+  await ctx.ensureGameBanks(); assert.ok(await ctx.ensureStatsParties()); assert.ok(await ctx.ensureQualiteCoups());
+  const cq = ctx.qcPrecisionCorpus();
+  assert.ok(cq.offertes100 > 5 && cq.offertes100 < 20 && cq.conversion[2].n > 1000 && cq.conversion[1].g / cq.conversion[1].n > 0.5);
+  assert.strictEqual(cq.moments.reduce((a, m) => a + m.coups, 0), cq.coups);
+  const g = ctx._sbBanques()[0][3], corps = _corps78(g), sauve = ctx.getMesParties;
+  ctx.getMesParties = () => [{ id: 'a1', code: 'ABAL1:belgian:a|b:' + corps, humanColor: 'black', winner: 'black' }, { id: 'a2', code: 'ABAL1:belgian:a|b:' + corps, humanColor: 'white', winner: 'black' }];
+  try {
+    await _enFrancais54(async () => {
+      _r63('_msDernier.profil = computeDecisionProfile(); _msDernier.ej = computeEjectionStats()');
+      const h = ctx._msHtmlQualite();
+      ['Coups proches du meilleur', 'Billes offertes pour 100 coups', 'billes offertes, milieu', 'Victoires après avoir mené de 2 billes', 'Victoires après avoir été mené de 1 bille'].forEach(t => assert.ok(h.indexOf(t) > 0, t));
+      assert.ok(h.indexOf(ctx.grNb(cq.offertes100, 1)) > 0, 'la valeur des vrais joueurs');
+      assert.doesNotMatch(h, /NaN|undefined/);
+      const L = [{ id: 'a1', date: '2026-10-01T10:00:00Z', moveCount: 80 }, { id: 'a2', date: '2026-10-02T10:00:00Z', moveCount: 80 }];
+      const p = ctx._msHtmlProgression(L, 600);
+      assert.match(p, /Billes offertes/); assert.match(p, /Le trait gris : les vrais joueurs/);
+    });
+  } finally { ctx.getMesParties = sauve; _r63('_msDernier = { ej: null, profil: null }'); }
+  assert.match(_SRC_INDEX, /'coups_proches_du_meilleur', 'billes_offertes'\]/);
+});
