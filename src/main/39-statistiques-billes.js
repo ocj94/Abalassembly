@@ -35,6 +35,7 @@
 
 const _SB_ETAPES = [20, 40, 60];      // demi-coups ou l'on compare les 12 dimensions des deux camps
 const _SB_SOURCES = ['MIGS', 'AO', 'PS', 'REF'];
+const _SB_BRANCHES = [1, 10, 20, 30, 40, 50, 60, 80, 100, 120, 150];   // v2.81 : demi-coups ou l'on compte les coups legaux
 const _SB_DERNIERE = 11;              // dans les listes « billes » : 0..10 = la 1re..11e bille de la partie, 11 = la derniere (6e du vainqueur)
 
 function _sbBanques(){
@@ -48,6 +49,15 @@ function _sbBanques(){
 // case (r, c) <-> rang 0..60, rangee par rangee. Le demi-tour du plateau envoie le rang i sur 60 - i.
 function _sbIndex(r, c){ let i = 0; for (let k = 0; k < r; k++) i += ROWS[k]; return i + c; }
 function _sbCase(i){ let r = 0; while (r < 9 && i >= ROWS[r]) { i -= ROWS[r]; r++; } return { r: r, c: i }; }
+/* v2.81 : le plateau en 61 caracteres, case par case dans l'ordre des rangs (n noire, b blanche, . vide) --
+   une cle exacte, pas un hachage : deux positions differentes ne se confondent jamais. */
+let _sbCles = null;
+function _sbClePlateau(){
+  if (!_sbCles) { _sbCles = []; for (let r = 0; r < 9; r++) for (let c = 0; c < ROWS[r]; c++) _sbCles.push(akey(r, c)); }
+  let s = '';
+  for (let i = 0; i < _sbCles.length; i++) { const v = board[_sbCles[i]]; s += v === 'black' ? 'n' : (v === 'white' ? 'b' : '.'); }
+  return s;
+}
 
 // Disposition de depart d'une partie : MIGS et PlayStrategy jouent la Marguerite belge
 /* v2.77 (audit des statistiques, point 2) : les doublons exacts du corpus -- une partie enregistree
@@ -141,15 +151,29 @@ function _sbRejouerPartie(src, g, avecDims){
   // pas depuis une position de probleme -- seules celles-ci entrent dans les statistiques
   const rec = { n: 0, nj: jetons.length, complet: (dep.cb === 0 && dep.cw === 0 && Math.min(nN, nB) >= 12) ? 1 : 0,
     ej: [], tN: [0, 0, 0, 0, 0, 0, 0, 0], tB: [0, 0, 0, 0, 0, 0, 0, 0], dims: null, cb: dep.cb, cw: dep.cw, g: 0,
-    pN: [0, 0, 0, 0, 0, 0], pB: [0, 0, 0, 0, 0, 0] };   // v2.80 : poussees 2 c. 1, 3 c. 1, 3 c. 2 ; puis les memes qui ejectent
+    pN: [0, 0, 0, 0, 0, 0], pB: [0, 0, 0, 0, 0, 0],    // v2.80 : poussees 2 c. 1, 3 c. 1, 3 c. 2 ; puis les memes qui ejectent
+    // v2.81 : demi-coup de la premiere poussee de chaque type (Noirs 0..2, Blancs 3..5 ; 0 = jamais),
+    // positions repetees, et nombre de coups legaux aux demi-coups _SB_BRANCHES
+    fp: [0, 0, 0, 0, 0, 0], rep: null, br: _SB_BRANCHES.map(function(){ return 0; }) };
   const dimsUtiles = avecDims && rec.complet && (src === 0 ? g[4] === 'Au score' : [1, 2].indexOf(_sbGagnant(src, g, 0, 0)) >= 0);
   if (dimsUtiles) rec.dims = _SB_ETAPES.map(function(){ return ''; });
   const sauve = board;
+  // v2.81 : chaque position (plateau + camp au trait) deja vue -> le demi-coup ou on l'a vue la premiere fois
+  const vues = new Map(), rep = { prem: 0, cycle: 0, n: 0, max: 1 }, fois = new Map();
+  const noter = function(nJoues, col){
+    const cle = col.charAt(0) + _sbClePlateau();
+    if (!vues.has(cle)) { vues.set(cle, nJoues); return; }
+    rep.n++;
+    const f = (fois.get(cle) || 1) + 1; fois.set(cle, f); if (f > rep.max) rep.max = f;
+    if (!rep.prem) { rep.prem = nJoues; rep.cycle = nJoues - vues.get(cle); }
+  };
   try {
     board = Object.assign({}, dep.board);
     let col = 'black';
+    noter(0, col);
     for (let k = 0; k < jetons.length; k++) {
       const legal = getAllMovesForColor(col);
+      const b = _SB_BRANCHES.indexOf(k + 1); if (b >= 0) rec.br[b] = legal.length;
       const mv = resolveAbaProToken(jetons[k], col, legal);
       if (!mv) break;                            // comme le rejeu du site : arret au premier coup illisible
       const info = mv.info;
@@ -158,7 +182,7 @@ function _sbRejouerPartie(src, g, avecDims){
       _sbClasser(t, mv, info);
       const caseEj = _sbCaseEjectee(mv, info);
       const tp = _sbTypePoussee(mv, info);
-      if (tp >= 0) (col === 'black' ? rec.pN : rec.pB)[tp]++;
+      if (tp >= 0) { (col === 'black' ? rec.pN : rec.pB)[tp]++; const f = (col === 'black' ? 0 : 3) + tp; if (!rec.fp[f]) rec.fp[f] = k + 1; }
       if (abApplyMove(mv.cells, mv.dir, col, info).ejected) {
         if (tp >= 0) (col === 'black' ? rec.pN : rec.pB)[tp + 3]++;
         t[6]++;
@@ -170,13 +194,18 @@ function _sbRejouerPartie(src, g, avecDims){
       if (dimsUtiles) { const e = _SB_ETAPES.indexOf(k + 1); if (e >= 0) rec.dims[e] = _sbComparerDims(); }
       col = col === 'black' ? 'white' : 'black';
       if (rec.cb >= 6 || rec.cw >= 6) break;      // partie gagnee
+      noter(k + 1, col);
     }
   } finally { board = sauve; }
+  if (rep.n) rec.rep = [rep.prem, rep.cycle, rep.n, rep.max];
   rec.g = _sbGagnant(src, g, rec.cb, rec.cw);
   return rec;
 }
 // Forme embarquee d'une partie (tools/stats-parties.js) : [vainqueur, demi-coups rejoues, complete, disposition, ejections, coups Noirs, coups Blancs, dimensions]
-function _sbEncoder(rec, dispo){ return [rec.g, rec.n, rec.complet, dispo, rec.ej, rec.tN, rec.tB, rec.dims || 0, rec.pN.concat(rec.pB)]; }   // v2.80 : [8] les poussees par type
+// v2.80 : [8] les poussees par type ; v2.81 : [9] premiere poussee de chaque type, [10] positions repetees
+// [premier demi-coup qui revoit une position, ecart avec sa premiere apparition, repetitions, plus grand nombre de passages] ou 0,
+// [11] coups legaux aux demi-coups _SB_BRANCHES (0 : partie plus courte)
+function _sbEncoder(rec, dispo){ return [rec.g, rec.n, rec.complet, dispo, rec.ej, rec.tN, rec.tB, rec.dims || 0, rec.pN.concat(rec.pB), rec.fp, rec.rep || 0, rec.br]; }
 
 /* Signature des parties couvertes : une partie ajoutee, retiree ou modifiee
    (coups, resultat, disposition) sans relancer tools/stats-parties.js ne

@@ -9,6 +9,47 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.81]
+
+### Ajouté — l'avantage du trait par disposition, le jeu au fil des années, la première poussée de chaque type, les positions répétées, les coups possibles
+Demande d'Olivier (« Je veux tout ») : les cinq propositions, sur la page
+Statistiques du jeu. Toutes suivent les filtres 🔎.
+- **L'avantage du trait, disposition par disposition**, avec la marge
+  d'erreur de chacune. Les Noirs gagnent 53,7 % des parties en tout, 55,6 %
+  en Marguerite belge et 55,1 % en Standard : là, l'avantage est démontré
+  (toute la marge est au-dessus de 50 %). Ailleurs, rien n'est démontré :
+  The Wall donne 44 % aux Noirs, mais avec une marge de 8 points. Une
+  disposition jouée moins de 100 fois rejoint « Autres ».
+- **Le jeu au fil des années** : pour chaque année, la part gagnée par les
+  Noirs, la durée médiane et les parties finies à 6 billes. Les Noirs
+  gagnent 55 à 56 % sur MIGS (2016-2017), 50 à 51 % sur AbalOnline
+  (2020-2021). La carte prévient que chaque année vient presque toujours
+  d'un seul site : un écart dit d'abord que ce ne sont pas les mêmes
+  parties.
+- **La première poussée de chaque type** : la première poussée arrive au
+  6ᵉ demi-coup (médiane), le premier 3 contre 2 au 11ᵉ. Le camp qui joue le
+  premier **3 contre 2 gagne 62 %** des parties (63 % si ce sont les Noirs,
+  61 % si ce sont les Blancs). Le premier 2 contre 1 ne dit rien (50 %).
+  C'est un lien, pas une cause, et la carte le dit.
+- **Les positions répétées** : 7,7 % des parties revoient exactement une
+  position déjà vue (même plateau, même camp au trait). La première
+  répétition arrive vers le 81ᵉ demi-coup ; près de 9 fois sur 10, c'est un
+  aller-retour de chaque camp. Ces parties sont plus longues (médiane 148
+  demi-coups contre 87). La comparaison se fait case par case, pas par un
+  hachage.
+- **Combien de coups possibles** : 52 au départ en Marguerite belge, 59 au
+  10ᵉ demi-coup, puis environ 51 jusqu'à la fin. Au 30ᵉ demi-coup, regarder
+  toutes les suites de 4 demi-coups représente déjà 8,5 millions de
+  positions. Le nombre de départ est aussi donné pour chaque disposition :
+  de 33 (Corners, The clearing) à 102 (The Wall).
+- Les événements des parties ont été recalculés (`tools/stats-parties.js`,
+  8 minutes) : trois champs de plus par partie.
+- **Graphiques** : dans les barres horizontales, toutes les lignes ont
+  maintenant la même longueur de piste. Avant, une valeur plus longue
+  raccourcissait sa ligne, et le zéro des barres signées se décalait. Les
+  boîtes à moustaches ont leur axe dans la même grille.
+- **Tests** : 5 de plus (293).
+
 ## [v2.80]
 
 ### Ajouté — l'explorateur d'ouvertures du corpus, les types de poussée, la longueur selon le premier coup

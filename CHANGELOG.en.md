@@ -9,6 +9,42 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.81]
+
+### Added — the first-move advantage by layout, the game over the years, the first push of each kind, repeated positions, possible moves
+Olivier's request ("I want everything"): all five proposals, on the Game
+statistics page. They all follow the 🔎 filters.
+- **The first-move advantage, layout by layout**, each with its margin of
+  error. Black wins 53.7 % of all games, 55.6 % in Belgian Daisy and 55.1 %
+  in Standard: there the advantage is shown (the whole margin is above
+  50 %). Elsewhere nothing is shown: The Wall gives Black 44 %, but with an
+  8-point margin. A layout played fewer than 100 times joins "Others".
+- **The game over the years**: for each year, Black's winning share, the
+  median length and the games ended at 6 marbles. Black wins 55 to 56 % on
+  MIGS (2016-2017), 50 to 51 % on AbalOnline (2020-2021). The card warns
+  that each year almost always comes from a single site: a gap first says
+  these are not the same games.
+- **The first push of each kind**: the first push comes at ply 6 (median),
+  the first 3 against 2 at ply 11. The side that plays the first **3
+  against 2 wins 62 %** of games (63 % when it is Black, 61 % when it is
+  White). The first 2 against 1 says nothing (50 %). It is a link, not a
+  cause, and the card says so.
+- **Repeated positions**: 7.7 % of games see a position again exactly (same
+  board, same side to move). The first repetition comes around ply 81; nearly 9
+  times in 10, each side moves there and back. These games are longer
+  (median 148 plies against 87). The comparison is cell by cell, not a
+  hash.
+- **How many possible moves**: 52 at the start in Belgian Daisy, 59 at ply
+  10, then about 51 to the end. At ply 30, looking at every sequence of 4
+  plies already means 8.5 million positions. The starting count is also
+  given for each layout: from 33 (Corners, The clearing) to 102 (The Wall).
+- The game events were recomputed (`tools/stats-parties.js`, 8 minutes):
+  three more fields per game.
+- **Charts**: in horizontal bars, every row now has the same track length.
+  Before, a longer value shortened its row, and the zero of signed bars
+  shifted. Box plots have their axis in the same grid.
+- **Tests**: 5 more (293).
+
 ## [v2.80]
 
 ### Added — the corpus opening explorer, push types, game length by first move
