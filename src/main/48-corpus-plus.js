@@ -241,6 +241,27 @@ function _cfExplorer(L, camp, moment){
   });
   return Object.keys(R).map(function(c){ return R[c]; }).sort(function(a, b){ return (a.nb + a.nw) - (b.nb + b.nw) || (b.nb - b.nw) - (a.nb - a.nw); });
 }
+/* v2.79 : la conversion de l'avance dans le corpus (L : parties retenues, vainqueur connu seulement).
+   Pour chaque camp de chaque partie : a-t-il mene de e billes (e = 1 a 3) a un moment, et a-t-il gagne ?
+   Une avance prise par la 6e bille ne compte pas. Meme regle que computeEjectionStats (Mes statistiques). */
+function _cfConversion(L){
+  const c = [null, { n: 0, g: 0 }, { n: 0, g: 0 }, { n: 0, g: 0 }];
+  L.forEach(function(x){
+    const g = x.p[0]; if (g !== 1 && g !== 2) return;
+    const ej = x.p[4], att = { black: [false, false, false, false], white: [false, false, false, false] };
+    let nb = 0, nw = 0;
+    for (let i = 0; i < ej.length; i += 2) {
+      if (ej[i + 1] & 1) nb++; else nw++;
+      if (nb >= 6 || nw >= 6) break;
+      for (let e = 1; e <= 3; e++) { if (nb - nw >= e) att.black[e] = true; if (nw - nb >= e) att.white[e] = true; }
+    }
+    for (let e = 1; e <= 3; e++) {
+      if (att.black[e]) { c[e].n++; if (g === 1) c[e].g++; }
+      if (att.white[e]) { c[e].n++; if (g === 2) c[e].g++; }
+    }
+  });
+  return c;
+}
 function _cfNomSourceCourt(s){ return ['MIGS', 'AbalOnline', 'PlayStrategy', _tr('Référence', 'Reference')][s] || '?'; }
 // la partie de rang global k : sa banque, son rang dans la banque, et de quoi l'afficher
 function _cfPartieDe(k){

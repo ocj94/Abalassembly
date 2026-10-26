@@ -9,6 +9,30 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.79]
+
+### Added — your offered marbles and your lead conversion, against real players
+Olivier's request, from two AI proposals ("4, 1, 2 and 3"): point 4 first.
+- **My quality of play against real players**, a new card in My statistics,
+  with two columns, "You" and "Real players":
+  - your moves close to the best, with their margin of error;
+  - your **offered marbles** per 100 moves, overall and by moment of the
+    game (opening, middle, end).
+
+  The measures are **exactly** those of the corpus (a test checks it game
+  by game, for both colours). Real players offer 10.1 marbles per 100 moves,
+  and 13.4 in the middlegame.
+- **When you lead, when you trail**: your wins after leading by 1, 2 or 3
+  marbles at some point in the game, and after trailing by as much. Among
+  real players, the side that led by 2 marbles wins 80 % of the time, and
+  the one that led by 3, 92 %. The 6th marble, which ends the game, does not
+  count. Same rule on both sides, checked by a test.
+- **My progress** shows your offered marbles game by game, with a grey line
+  for real players. The decision profile also shows the offered-marbles
+  row.
+- The **CSV export** gets a `billes_offertes` column.
+- **Tests**: 2 more (285).
+
 ## [v2.78]
 
 ### Added — the quality of real players' moves
