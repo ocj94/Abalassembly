@@ -327,7 +327,7 @@ async function renderCorpusStatsPage(){
   // v2.72 : les filtres et le resume en tete ; gagner selon l'avance, premiers coups, ou sont les billes apres les billes qui tombent (48-corpus-plus.js)
   host.innerHTML = '<div id="corpus-filtres"></div><div id="corpus-resume"></div>'
     + '<div id="corpus-autres"><div style="font-size:13px;color:var(--muted);margin-bottom:16px" id="corpus-progress">' + _tr('Calcul en cours (première fois seulement — mis en cache ensuite)…', 'Computing (first time only — cached afterwards)…') + '</div></div>'
-    + '<div id="billes-section"></div><div id="corpus-avance"></div><div id="corpus-explorateur"></div><div id="corpus-ouvertures"></div><div id="corpus-occupation"></div><div id="corpus-variantes"></div>'
+    + '<div id="billes-section"></div><div id="corpus-avance"></div><div id="corpus-explorateur"></div><div id="corpus-ouvertures"></div><div id="corpus-explorateur-ouv"></div><div id="corpus-occupation"></div><div id="corpus-variantes"></div>'
     + '<div id="dims-carte">' + _carteStats(_tr('Les 12 dimensions, mesurées sur tout le corpus', 'The 12 dimensions, measured over the whole corpus'),
       '<div style="font-size:12px;color:var(--muted)">' + _tr('Chargement des positions mesurées…', 'Loading the measured positions…') + '</div>') + '</div>'
     + '<div id="gagner-section"></div><div id="dims-corr"></div><div id="jeu-section"></div><div id="corpus-qualite"></div>';

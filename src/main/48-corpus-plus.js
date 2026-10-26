@@ -145,7 +145,7 @@ function _cfHtmlOuvertures(L, W){
       if (D.dispos[x.p[3]] !== dispo) return;
       const src = _cfSourceDe(x.k, D), g = B[src][x.k - debut[src]]; if (!g) return;
       const j = _sbJetons(src, g)[0]; if (!j) return;
-      const c = C[j] || (C[j] = { n: 0, dec: 0, g: 0 }); c.n++;
+      const c = C[j] || (C[j] = { n: 0, dec: 0, g: 0, len: [] }); c.n++; c.len.push(x.p[1]);
       if (x.p[0] === 1 || x.p[0] === 2) { c.dec++; if (x.p[0] === 1) c.g++; }
     });
     const tot = Object.keys(C).reduce(function(a, j){ return a + C[j].n; }, 0);
@@ -154,6 +154,13 @@ function _cfHtmlOuvertures(L, W){
       h += '<div class="gr-titre">' + _tr('Les premiers coups des Noirs', 'Black’s first moves') + ' — ' + grEchapper(_cfNomDispo(dispo)) + '</div><div class="gr-sous">' + _tr('Ceux joués au moins 10 fois (notation Aba-Pro), avec leur part des parties, et la part gagnée par les Noirs après chacun (vainqueur connu). Le trait marque 50 %.', 'Those played at least 10 times (Aba-Pro notation), with their share of games, and the share Black won after each one (known winner). The tick marks 50%.') + '</div>';
       h += grBarres(top.map(function(j){ const c = C[j]; return { lab: j + ' · ' + grPct(c.n / tot, c.n / tot < 0.1 ? 1 : 0), v: c.dec ? c.g / c.dec : 0, ref: 0.5, txt: c.dec ? grPct(c.g / c.dec) + _tr(' sur ', ' of ') + c.dec : '—', tip: j + _dimDp() + _tr('joué ', 'played ') + c.n + _tr(' fois', ' times') + (c.dec ? ' · ' + _tr('Noirs gagnent ', 'Black wins ') + c.g + ' / ' + c.dec + ' (' + grFourchette(c.g, c.dec) + ')' + grPeu(c.dec) : ''),
         bas: c.dec ? grWilson(c.g, c.dec).bas : null, haut: c.dec ? grWilson(c.g, c.dec).haut : null }; }), { max: 1 });   // v2.77 : la moustache = la marge a 95 %
+      // v2.80 (demande d'Olivier) : la longueur des parties selon le premier coup, en boites a moustaches
+      const tous = []; Object.keys(C).forEach(function(j){ C[j].len.forEach(function(l){ tous.push(l); }); });
+      const medT = grQuantile(tous.slice().sort(function(a, b){ return a - b; }), 0.5);
+      h += '<div class="gr-titre">' + _tr('La longueur des parties selon le premier coup', 'Game length by first move') + ' — ' + grEchapper(_cfNomDispo(dispo)) + '</div><div class="gr-sous">'
+        + _tr('En demi-coups. La boîte : la moitié des parties (du 1er au 3e quartile) ; le trait doré : la médiane ; la moustache : 8 parties sur 10 ; le repère gris : la médiane de toutes les parties de cette disposition (' + grNb(medT, 0) + ').',
+              'In plies. The box: half of the games (1st to 3rd quartile); the gold tick: the median; the whisker: 8 games in 10; the grey mark: the median of all games of this layout (' + grNb(medT, 0) + ').') + '</div>'
+        + grBoites(top.map(function(j){ return { lab: j, vals: C[j].len }; }), { min: 0, ref: medT });
     }
   }
   return _carteStats(_tr('Premiers coups, longueur et fins', 'First moves, length and endings') + _cfMarque(), h);
@@ -326,6 +333,7 @@ function _cfRendreTout(){
   const ho = document.getElementById('corpus-ouvertures'); if (ho) ho.innerHTML = _cfHtmlOuvertures(L, grLargeur(ho, 640) - 40);
   _cfRendreOccupation();
   if (typeof _qcRendre === 'function') _qcRendre();   // v2.78 : la qualite des coups
+  if (typeof _eoRendreTout === 'function') _eoRendreTout();   // v2.80 : l'explorateur d'ouvertures
   if (typeof _sbRendreCorpus === 'function') _sbRendreCorpus();
   grSurRedim('corpus', 'corpus-ouvertures', function(){ const h2 = document.getElementById('corpus-ouvertures'); if (h2 && STATS_PARTIES) h2.innerHTML = _cfHtmlOuvertures(_cfParties(), grLargeur(h2, 640) - 40); });
 }

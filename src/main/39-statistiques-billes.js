@@ -115,6 +115,13 @@ function _sbClasser(t, mv, info){
   else t[n === 1 ? 0 : (n === 2 ? 1 : 2)]++;
   if (info.type === 'push') t[5]++;
 }
+/* v2.80 (demande d'Olivier, « les types de sumito ») : le type d'une poussee -- 0 : 2 contre 1, 1 : 3 contre 1,
+   2 : 3 contre 2 ; -1 pour un coup qui ne pousse pas. info.push : le nombre de billes adverses poussees. */
+function _sbTypePoussee(mv, info){
+  if (!info || info.type !== 'push') return -1;
+  const n = mv.cells.length, m = info.push;
+  return n === 2 && m === 1 ? 0 : (n === 3 && m === 1 ? 1 : (n === 3 && m === 2 ? 2 : -1));
+}
 // Case d'ou tombe la bille ejectee par ce coup (la derniere bille adverse de la ligne poussee)
 function _sbCaseEjectee(mv, info){
   if (!info || info.type !== 'push' || !info.ejection) return null;
@@ -133,7 +140,8 @@ function _sbRejouerPartie(src, g, avecDims){
   // « partie complete » : jouee depuis une position de depart (score 0-0, au moins 12 billes chacun),
   // pas depuis une position de probleme -- seules celles-ci entrent dans les statistiques
   const rec = { n: 0, nj: jetons.length, complet: (dep.cb === 0 && dep.cw === 0 && Math.min(nN, nB) >= 12) ? 1 : 0,
-    ej: [], tN: [0, 0, 0, 0, 0, 0, 0, 0], tB: [0, 0, 0, 0, 0, 0, 0, 0], dims: null, cb: dep.cb, cw: dep.cw, g: 0 };
+    ej: [], tN: [0, 0, 0, 0, 0, 0, 0, 0], tB: [0, 0, 0, 0, 0, 0, 0, 0], dims: null, cb: dep.cb, cw: dep.cw, g: 0,
+    pN: [0, 0, 0, 0, 0, 0], pB: [0, 0, 0, 0, 0, 0] };   // v2.80 : poussees 2 c. 1, 3 c. 1, 3 c. 2 ; puis les memes qui ejectent
   const dimsUtiles = avecDims && rec.complet && (src === 0 ? g[4] === 'Au score' : [1, 2].indexOf(_sbGagnant(src, g, 0, 0)) >= 0);
   if (dimsUtiles) rec.dims = _SB_ETAPES.map(function(){ return ''; });
   const sauve = board;
@@ -149,7 +157,10 @@ function _sbRejouerPartie(src, g, avecDims){
       if (legal.some(function(m){ return m.info && m.info.type === 'push' && m.info.ejection; })) t[7]++;
       _sbClasser(t, mv, info);
       const caseEj = _sbCaseEjectee(mv, info);
+      const tp = _sbTypePoussee(mv, info);
+      if (tp >= 0) (col === 'black' ? rec.pN : rec.pB)[tp]++;
       if (abApplyMove(mv.cells, mv.dir, col, info).ejected) {
+        if (tp >= 0) (col === 'black' ? rec.pN : rec.pB)[tp + 3]++;
         t[6]++;
         if (col === 'black') rec.cb++; else rec.cw++;
         // [demi-coup, rang de la case x 2 + 1 si la bille tombee est blanche]
@@ -165,7 +176,7 @@ function _sbRejouerPartie(src, g, avecDims){
   return rec;
 }
 // Forme embarquee d'une partie (tools/stats-parties.js) : [vainqueur, demi-coups rejoues, complete, disposition, ejections, coups Noirs, coups Blancs, dimensions]
-function _sbEncoder(rec, dispo){ return [rec.g, rec.n, rec.complet, dispo, rec.ej, rec.tN, rec.tB, rec.dims || 0]; }
+function _sbEncoder(rec, dispo){ return [rec.g, rec.n, rec.complet, dispo, rec.ej, rec.tN, rec.tB, rec.dims || 0, rec.pN.concat(rec.pB)]; }   // v2.80 : [8] les poussees par type
 
 /* Signature des parties couvertes : une partie ajoutee, retiree ou modifiee
    (coups, resultat, disposition) sans relancer tools/stats-parties.js ne
@@ -221,7 +232,8 @@ function _sbAgreger(f){
     dims: _SB_ETAPES.map(function(){ const t = []; for (let j = 0; j < nDims; j++) t.push({ n: 0, g: 0 }); return t; }),
     nDimsParties: _SB_ETAPES.map(function(){ return 0; }),
     camp: { ej: 0, camps: 0, premiereSomme: 0, premiereN: 0, phases: { ouverture: 0, milieu: 0, finale: 0 } },
-    cartes: cartes, quandParDispo: quandParDispo, dispos: D.dispos
+    cartes: cartes, quandParDispo: quandParDispo, dispos: D.dispos,
+    poussees: { types: [0, 0, 0, 0, 0, 0], plus: [{ n: 0, g: 0 }, { n: 0, g: 0 }, { n: 0, g: 0 }] }   // v2.80
   };
   D.p.forEach(function(p, k){
     const gagnant = p[0], complet = p[2], dispo = D.dispos[p[3]], ej = p[4], dims = p[7];
@@ -232,6 +244,12 @@ function _sbAgreger(f){
     const decide = (gagnant === 1 || gagnant === 2);
     if (decide) v.nDecides++;
     for (let k = 0; k < 8; k++) v.types[k] += p[5][k] + p[6][k];
+    /* v2.80 : les poussees par type ; et, partie par partie, le camp qui en a fait le plus de ce type
+       (sans compter celles qui ejectent : la bille tombee dirait deja qui gagne) a-t-il gagne ? */
+    if (p[8]) for (let t = 0; t < 6; t++) {
+      v.poussees.types[t] += p[8][t] + p[8][t + 6];
+      if (decide && t < 3) { const a = p[8][t] - p[8][t + 3], b = p[8][6 + t] - p[8][6 + t + 3]; if (a !== b) { const c = v.poussees.plus[t]; c.n++; if ((a > b ? 1 : 2) === gagnant) c.g++; } }
+    }
     v.camp.camps += 2; v.camp.ej += ej.length / 2;
     const carte = cartes[dispo] || (cartes[dispo] = new Array(61).fill(0));
     const parDispo = billesParDispo[dispo] || (billesParDispo[dispo] = billes.map(function(){ return []; }));
@@ -680,11 +698,28 @@ function _sbHtmlJeu(v){
     + '<div class="sb-tuile"><div class="sb-tuile-val">' + (T[7] ? _sbGrosPct(T[6] / T[7] * 100) : '—') + '</div><div class="sb-tuile-nom">' + _tr('des occasions de faire tomber une bille sont saisies', 'of chances to push a marble off are taken') + '</div></div>'
     + '</div>';
   return _sbTitre(_tr('Comment jouent les vrais joueurs', 'How real players play'), _tr('Tous les coups des vraies parties, rangés par sorte.', 'Every move of the real games, sorted by kind.'))
-    + _carteStats(_tr('Les coups joués', 'The moves played') + (typeof _cfMarque === 'function' ? _cfMarque() : ''), barres + tuiles,
+    + _carteStats(_tr('Les coups joués', 'The moves played') + (typeof _cfMarque === 'function' ? _cfMarque() : ''), barres + tuiles + _sbHtmlPoussees(v),
       _tr('Sur les ' + _dimNb(coups) + ' coups des ' + _dimNb(v.nComplets) + ' parties jouées depuis une position de départ. « De côté » : la ligne de billes avance de biais, chaque bille vers une case vide. Occasion : un moment où au moins un coup permettait de faire tomber une bille ; « saisie » quand une bille tombe à ce coup.',
           'Over the ' + _dimNb(coups) + ' moves of the ' + _dimNb(v.nComplets) + ' games played from a starting position. “Sideways”: the line of marbles moves at an angle, each marble into an empty spot. Chance: a moment when at least one move could push a marble off; “taken” when a marble falls on that move.'));
 }
 
+/* v2.80 : les poussees par type -- leur part, la part qui fait tomber une bille, et le camp qui en a
+   reussi au moins une de ce type : gagne-t-il ? (parties au vainqueur connu ; marge a 95 %) */
+function _sbHtmlPoussees(v){
+  const P = v.poussees; if (!P) return '';
+  const tot = P.types[0] + P.types[1] + P.types[2]; if (!tot) return '';
+  const noms = [_tr('2 contre 1', '2 against 1'), _tr('3 contre 1', '3 against 1'), _tr('3 contre 2', '3 against 2')];
+  let h = '<div class="gr-titre">' + _tr('Les poussées (sumitos), par type', 'Pushes (sumitos), by type') + '</div>';
+  h += grBarres(noms.map(function(nm, t){ const n = P.types[t]; return { lab: nm, v: n / tot, txt: _sbPct(100 * n / tot),
+    tip: nm + _dimDp() + _dimNb(n) + _tr(' poussées, dont ', ' pushes, of which ') + _dimNb(P.types[t + 3]) + _tr(' font tomber une bille (', ' push a marble off (') + _sbPct(n ? 100 * P.types[t + 3] / n : 0) + ')' }; }), { min: 0, max: 1, fmt: function(x){ return _sbPct(100 * x); } });
+  h += '<div class="gr-sous">' + _tr('Font tomber une bille : ', 'Push a marble off: ') + noms.map(function(nm, t){ return nm + ' ' + _sbPct(P.types[t] ? 100 * P.types[t + 3] / P.types[t] : 0); }).join(' · ') + '.</div>';
+  h += '<div class="gr-titre">' + _tr('Celui qui pousse le plus gagne-t-il ?', 'Does the side that pushes more win?') + '</div>';
+  h += grBarres(noms.map(function(nm, t){ const c = P.plus[t], w = grWilson(c.g, c.n); return { lab: nm, v: w ? w.p : 0, bas: w ? w.bas : null, haut: w ? w.haut : null, ref: 0.5, txt: w ? _sbPct(100 * w.p) : '—',
+    tip: _tr('Le camp qui a fait le plus de poussées ' + nm + ' gagne ' + c.g + ' parties sur ' + c.n, 'The side that made more ' + nm + ' pushes wins ' + c.g + ' games out of ' + c.n) + (w ? ' (' + grFourchette(c.g, c.n) + ')' : '') + grPeu(c.n) }; }), { min: 0, max: 1, fmt: function(x){ return _sbPct(100 * x); } });
+  h += '<div class="gr-sous">' + _tr('Dans chaque partie au vainqueur connu, le camp qui a fait le plus de poussées de ce type, sans compter celles qui font tomber une bille (la bille tombée dirait déjà qui gagne). Le trait marque 50 %. C’est un lien, pas une cause : pousser à 3 contre 2 demande déjà une position dominante.',
+    'In each game with a known winner, the side that made more pushes of that type, not counting those that push a marble off (the fallen marble would already tell who wins). The tick marks 50 %. It is a link, not a cause: pushing 3 against 2 already takes a dominant position.') + '</div>';
+  return h;
+}
 // La section « Les billes qui tombent », avec l'alerte des parties pas encore comptees (gardee a chaque nouveau rendu)
 function _sbAlerteEcart(){
   const B = _sbBanques(), nb = (STATS_PARTIES && STATS_PARTIES.nb) || [];

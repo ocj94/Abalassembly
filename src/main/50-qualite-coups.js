@@ -174,4 +174,3 @@ function qcPrecisionCorpus(){
     moments: r.moments.map(function(t){ return { coups: t[0], proches: t[1], offertes: t[4] }; }),
     conversion: (typeof _cfConversion === 'function') ? _cfConversion(L) : null };
 }
-</script>

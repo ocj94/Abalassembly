@@ -9,6 +9,41 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.80]
+
+### Ajouté — l'explorateur d'ouvertures du corpus, les types de poussée, la longueur selon le premier coup
+Suite de la demande d'Olivier (« 4, 1, 2 et 3 ») : les points 1, 2 et 3,
+sur la page Statistiques du jeu.
+- **Les poussées par type** (dans « Comment jouent les vrais joueurs ») :
+  - 2 contre 1 : 46 % des poussées ;
+  - 3 contre 1 : 29 % ;
+  - 3 contre 2 : 24 %.
+
+  Elles font tomber une bille dans 15 à 19 % des cas. Et dans une même
+  partie, **le camp qui pousse le plus à 3 contre 2 gagne 80 %** des
+  parties (3 contre 1 : 70 %, 2 contre 1 : 59 %). Les poussées qui éjectent
+  ne sont pas comptées, puisque la bille tombée dirait déjà qui gagne. La
+  carte précise que c'est un lien, pas une cause. Les événements des
+  parties ont été recalculés (`tools/stats-parties.js`, 8 minutes).
+- **L'explorateur d'ouvertures du corpus**, coup par coup, comme aux échecs,
+  sur toutes les parties de la disposition choisie et avec les filtres de
+  la page. Pour chaque suite : le nombre de parties, la part gagnée par les
+  Noirs avec sa marge, et la longueur médiane. Sous 20 parties, la liste
+  des parties, à rejouer.
+  - Un coup est reconnu à ses billes et à sa direction, pas à son écriture :
+    MIGS et AbalOnline ne notent pas les coups pareil.
+  - La disposition libre est exclue, puisque chaque partie y part d'un
+    plateau différent.
+  - La page Ouvertures garde son explorateur (2 126 parties de tournoi) et
+    renvoie à celui-ci.
+- **La longueur des parties selon le premier coup**, en boîtes à
+  moustaches : la boîte contient la moitié des parties, le trait la
+  médiane, la moustache 8 parties sur 10. En Marguerite belge, les deux
+  premiers coups les plus joués mènent à des parties de même longueur
+  (médianes 93 et 90 demi-coups) ; seuls des coups rares s'en écartent, sur
+  trop peu de parties pour conclure. Nouveau graphique `grBoites`.
+- **Tests** : 3 de plus (288).
+
 ## [v2.79]
 
 ### Ajouté — tes billes offertes et ta conversion de l'avance, face aux vrais joueurs

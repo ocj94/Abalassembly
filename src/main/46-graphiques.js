@@ -194,6 +194,33 @@ function grBarres(items, o){
   return h + '</div>';
 }
 
+/* ─── Boites a moustaches (v2.80) : items = [{ lab, vals: [nombres], tip }] -- une ligne par item, comme
+   grBarres. La boite : du 1er au 3e quartile ; le trait : la mediane ; les moustaches : du 10e au 90e
+   centile (pas du minimum au maximum : une seule partie de 370 coups ecraserait tout). ─── */
+function grQuantile(tri, q){ if (!tri.length) return null; const i = (tri.length - 1) * q, a = Math.floor(i), b = Math.ceil(i); return tri[a] + (tri[b] - tri[a]) * (i - a); }
+function grBoites(items, o){
+  o = o || {};
+  const S = items.map(function(it){ const t = it.vals.slice().sort(function(a, b){ return a - b; });
+    return { it: it, n: t.length, p10: grQuantile(t, 0.1), q1: grQuantile(t, 0.25), med: grQuantile(t, 0.5), q3: grQuantile(t, 0.75), p90: grQuantile(t, 0.9) }; }).filter(function(x){ return x.n; });
+  if (!S.length) return '<div class="gr-vide">' + (o.vide || _tr('Pas encore de données.', 'No data yet.')) + '</div>';
+  const fmt = o.fmt || function(v){ return grNb(v, 0); };
+  let mn = o.min != null ? o.min : Math.min.apply(null, S.map(function(x){ return x.p10; })), mx = o.max != null ? o.max : Math.max.apply(null, S.map(function(x){ return x.p90; }));
+  if (mx === mn) mx = mn + 1;
+  const P = function(v){ return ((v - mn) / (mx - mn) * 100).toFixed(1); };
+  let h = '<div class="gr-barres gr-boites">';
+  S.forEach(function(x){
+    const tip = x.it.tip || (x.it.lab + _dimDp() + _tr('médiane ', 'median ') + fmt(x.med) + _tr(', la moitié des parties entre ', ', half of the games between ') + fmt(x.q1) + _tr(' et ', ' and ') + fmt(x.q3) + _tr(', 8 sur 10 entre ', ', 8 in 10 between ') + fmt(x.p10) + _tr(' et ', ' and ') + fmt(x.p90) + ' (' + x.n + _tr(' parties)', ' games)'));
+    h += '<div class="gr-barre"' + _grTip([tip]) + '><span class="gr-barre-lab">' + grEchapper(x.it.lab) + '</span><span class="gr-barre-piste">'
+      + '<i class="gr-boite-m" style="left:' + P(x.p10) + '%;width:' + Math.max(0.4, P(x.p90) - P(x.p10)).toFixed(1) + '%"></i>'
+      + '<i class="gr-boite-q" style="left:' + P(x.q1) + '%;width:' + Math.max(0.6, P(x.q3) - P(x.q1)).toFixed(1) + '%"></i>'
+      + '<i class="gr-boite-med" style="left:' + P(x.med) + '%"></i>'
+      + (o.ref != null ? '<i class="gr-repere" style="left:' + P(o.ref) + '%"></i>' : '')
+      + '</span><span class="gr-barre-val">' + fmt(x.med) + '</span></div>';
+  });
+  h += '</div><div class="gr-boites-axe"><span>' + fmt(mn) + '</span><span>' + fmt(mx) + '</span></div>';
+  return h;
+}
+
 /* ─── Barre empilee a 100 % : segments = [{ nom, v }] (couleurs dans l'ordre fixe) ─── */
 function grPile(segments, o){
   o = o || {};
