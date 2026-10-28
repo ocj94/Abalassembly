@@ -5751,3 +5751,76 @@ test('corpus v2.83 : les six cartes en francais et en anglais, sans trou', async
     }
   } finally { if (avant === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avant); }
 });
+
+/* ─── 76. v2.84 : les positions critiques (un seul coup evite de perdre une bille) ─── */
+
+test('qualite v2.84 : chaque position critique notee n a vraiment qu un coup qui ne laisse pas de bille', async () => {
+  assert.ok(await ctx.ensureGameBanks()); assert.ok(await ctx.ensureStatsParties()); assert.ok(await ctx.ensureQualiteCoups());
+  const Q = _r63('QUALITE_COUPS'), D = _r63('STATS_PARTIES'), B = ctx._sbBanques(), NB = Q.champs.length, MAX = _r63('QC_CRIT_MAX');
+  assert.strictEqual(NB, 9); assert.strictEqual(Q.crit.length, Q.p.length);
+  // la liste de chaque partie : ses premieres positions critiques, autant que son compteur (au plus QC_CRIT_MAX)
+  Q.p.forEach((q, k) => {
+    const c = Q.crit[k];
+    if (!q) { assert.strictEqual(c, 0); return; }
+    let n = 0; for (let i = 0; i < 6; i++) n += q[i * NB + 6];
+    let t = 0; for (let i = 0; i < 6; i++) t += q[i * NB + 7];
+    assert.strictEqual(c.length / 2, Math.min(MAX, n), 'partie ' + k);
+    assert.ok(t <= n);
+    for (let j = 0; j < c.length; j += 2) assert.ok(c[j] >= 1 && c[j] <= D.p[k][1] && (c[j + 1] === 0 || c[j + 1] === 1));
+  });
+  // rejouer quelques parties jusqu'a leurs positions critiques : un seul coup sur, et le camp ne peut pas ejecter
+  let k0 = 0; const debut = D.nb.map(n => { const a = k0; k0 += n; return a; });
+  let verifiees = 0; const avant = JSON.stringify(ctx.board);
+  try {
+    for (const [s, i] of [[0, 500], [1, 900], [2, 7], [0, 1800]]) {
+      const c = Q.crit[debut[s] + i]; if (!c || !c.length) continue;
+      const g = B[s][i], dep = ctx._sbDepart(s, g), jetons = ctx._sbJetons(s, g);
+      ctx.board = Object.assign({}, dep.board);
+      let col = 'black';
+      for (let k = 0; k < jetons.length; k++) {
+        const legal = ctx.getAllMovesForColor(col), mv = ctx.resolveAbaProToken(jetons[k], col, legal), adv = col === 'black' ? 'white' : 'black';
+        const j = c.indexOf(k + 1);
+        if (j >= 0 && j % 2 === 0) {
+          assert.ok(!legal.some(m => m.info && m.info.type === 'push' && m.info.ejection), 'le camp ne peut pas ejecter');
+          const surs = legal.filter(m => { const u = ctx.applyMove(m, col), d = ctx._qcEjectionPossible(adv); ctx.undoMove(u); return !d; });
+          assert.strictEqual(surs.length, 1, 'un seul coup sur, source ' + s + ' partie ' + i + ' demi-coup ' + (k + 1));
+          assert.strictEqual(c[j + 1], ctx.canonId(surs[0]) === ctx.canonId(mv) ? 1 : 0, 'trouvee = le coup joue est le coup sur');
+          verifiees++;
+        }
+        ctx.abApplyMove(mv.cells, mv.dir, col, mv.info);
+        col = adv;
+        if (k + 1 >= c[c.length - 2]) break;
+      }
+    }
+  } finally { ctx.board = JSON.parse(avant); }
+  assert.ok(verifiees >= 3, verifiees + ' positions verifiees');
+});
+
+test('qualite v2.84 : la carte des positions critiques, en francais et en anglais', async () => {
+  assert.ok(await ctx.ensureStatsParties()); assert.ok(await ctx.ensureQualiteCoups());
+  _r63("_corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: 'tout' }");
+  const L = ctx._cfParties(), r = ctx._qcAgreger(L);
+  assert.ok(r.tout[6] > 1000, 'des milliers de positions critiques');
+  assert.ok(ctx._qcTrouvees(r.tout) > 0 && ctx._qcTrouvees(r.tout) < 1);
+  // le seul bon coup trouve ne laisse jamais d'ejection au coup suivant ; manque, la bille est parfois prise
+  const pu = ctx._qcPunies(L);
+  assert.strictEqual(pu.trouve[1], 0, 'trouve : aucune bille prise au coup suivant');
+  assert.ok(pu.manque[1] > 0 && pu.manque[1] < pu.manque[0]);
+  const E = ctx._qcExemples(L, 10); assert.strictEqual(E.length, 10);
+  const Q = _r63('QUALITE_COUPS');
+  E.forEach(e => { const c = Q.crit[e.k], j = c.indexOf(e.ply); assert.ok(j >= 0 && j % 2 === 0 && c[j + 1] === 0, 'une position manquee'); });
+  const avant = ctx.localStorage.getItem('abalone_lang');
+  try {
+    for (const lang of ['FR', 'EN']) {
+      ctx.localStorage.setItem('abalone_lang', lang);
+      await _dom54(async els => {
+        ctx._qcRendre();
+        const h = els['corpus-critiques'].innerHTML;
+        assert.ok(h.length > 1000); assert.doesNotMatch(h, /NaN|undefined|Infinity/);
+        assert.match(h, lang === 'EN' ? /Critical positions/ : /Les positions critiques/);
+        assert.match(h, /corpusRevoirA\(\d+,\d+\)/);
+        assert.match(els['corpus-qualite'].innerHTML, lang === 'EN' ? /quality of moves/ : /qualité des coups/);
+      });
+    }
+  } finally { if (avant === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avant); }
+});

@@ -10,6 +10,9 @@
    meilleur coup a un demi-coup (la mesure de la precision de Mes
    statistiques), et offre-t-il une bille a l'adversaire ? Compteurs par
    partie, par camp et par moment de la partie.
+   v2.84 : aussi les positions critiques (un seul coup legal evite de perdre une
+   bille au coup suivant ; le joueur l'a-t-il trouve ?), les positions sans
+   issue, et pour chaque partie ses premieres positions critiques (a revoir).
    Le resultat est embarque compresse (src/main/data/15-qualite-coups.b64).
 
    A relancer a chaque ajout ou modification d'une partie embarquee, ou de
@@ -43,7 +46,8 @@ if (arg > 0) {
     if (!await ctx.ensureGameBanks()) throw new Error('banques de parties illisibles');
     const B = ctx._sbBanques(), out = [];
     fs.mkdirSync(REPRISE, { recursive: true });
-    const fichier = path.join(REPRISE, ctx._sbSignature() + '-' + k + '-' + n + '.jsonl'), faits = new Map();
+    // v2.84 : 'f2' -- 9 compteurs et la liste des positions critiques (les reprises d'avant ne servent plus)
+    const fichier = path.join(REPRISE, 'f2-' + ctx._sbSignature() + '-' + k + '-' + n + '.jsonl'), faits = new Map();
     if (fs.existsSync(fichier)) fs.readFileSync(fichier, 'utf8').split('\n').forEach(l => { if (!l) return; try { const x = JSON.parse(l); faits.set(x[0] + '|' + x[1], x); } catch (e) {} });
     if (faits.size) process.stderr.write('  [' + k + '] reprise : ' + faits.size + ' parties deja analysees\n');
     let vus = 0;
@@ -52,7 +56,7 @@ if (arg > 0) {
       let x = faits.get(src + '|' + i);
       if (!x) {
         const q = ctx._qcAnalyserPartie(src, g);
-        x = [src, i, q ? [].concat.apply([], [].concat.apply([], JSON.parse(JSON.stringify(q)))) : 0];
+        x = [src, i, q ? [].concat.apply([], [].concat.apply([], JSON.parse(JSON.stringify(q)))) : 0, q ? Array.from(q.crit) : 0];
         fs.appendFileSync(fichier, JSON.stringify(x) + '\n');
       }
       out.push(x);
@@ -81,10 +85,10 @@ if (arg > 0) {
       if (tous.length !== attendu) throw new Error(tous.length + ' parties analysees, ' + attendu + ' attendues');
       const ev = c => vm.runInContext(c, ctx);
       const donnees = { v: 1, sig: ctx._sbSignature(), nb: B.map(b => b.length), champs: Array.from(ev('QC_CHAMPS')), moments: Array.from(ev('QC_MOMENTS')),
-        seuils: [ev('SEUIL_PROCHE_MEILLEUR'), ev('SEUIL_ECART_DECISION_DISPUTEE')], p: tous.map(x => x[2]) };
+        seuils: [ev('SEUIL_PROCHE_MEILLEUR'), ev('SEUIL_ECART_DECISION_DISPUTEE')], p: tous.map(x => x[2]), crit: tous.map(x => x[3] || 0) };
       const b64 = zlib.deflateRawSync(Buffer.from(JSON.stringify(donnees), 'utf8'), { level: 9 }).toString('base64');
       fs.writeFileSync(SORTIE, b64);
-      const coups = donnees.p.reduce((s, q) => s + (q ? q.filter((v, j) => j % 6 === 0).reduce((a, b) => a + b, 0) : 0), 0);
+      const NB = donnees.champs.length, coups = donnees.p.reduce((s, q) => s + (q ? q.filter((v, j) => j % NB === 0).reduce((a, b) => a + b, 0) : 0), 0);
       console.log('Ecrit ' + path.relative(process.cwd(), SORTIE) + ' : ' + donnees.p.filter(Boolean).length + ' parties completes, ' + coups + ' coups, '
         + b64.length + ' caracteres base64, ' + Math.round((Date.now() - t0) / 60000) + ' min.');
       console.log('  signature ' + donnees.sig);
