@@ -9,6 +9,36 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.84]
+
+### Added — critical positions
+Item 7 of Olivier's request ("All of them"), after the six of v2.83.
+- **A critical position**: the player to move cannot push a marble off, and
+  **only one** of their moves leaves the opponent no possible ejection. It is
+  checked move by move, with no evaluation. That is 2.1 % of the corpus's
+  moves (8,957 positions).
+- **Real players find that only move just 25 % of the time**: 18 % in the
+  opening, 22 % in the middle game, 33 % in the end. The PlayStrategy
+  tournament players find it 68 % of the time (over 162 positions), against
+  22 % on MIGS and 28 % on AbalOnline.
+- **A surprise, reported as it is**: the future winner finds that move less
+  often (22 %) than the future loser (29 %). When the move is missed, the
+  opponent really takes the marble on the next move in only 27 % of cases.
+  So offering a marble is not always a mistake, and the card says so.
+- **No way out**: in 7.7 % of positions, whatever the move, the opponent
+  will be able to push one off.
+- **Missed positions to replay**: the "See the position" button opens the
+  game just before the move. Material for puzzles.
+- **The gap between the best and the 2nd move was tried, then set aside.**
+  With the one-ply evaluation, it is only large when a move pushes a marble
+  off (a jump of nearly 2,000 points). It would have counted ejection
+  chances, which are already on the page. The card explains it.
+- The quality of moves was recomputed (`tools/qualite-coups.js`, 27 minutes
+  on 2 cores). Accuracy (37.5 %) and offered marbles (10.1 per 100 moves) did
+  not move: the six earlier counters are identical, game by game, over
+  all 4,580 games.
+- **Tests**: 2 more (301).
+
 ## [v2.83]
 
 ### Added — quiet stretches, leaving the corpus, positions already seen, lone marbles, contacts, what deteriorates before a lost marble

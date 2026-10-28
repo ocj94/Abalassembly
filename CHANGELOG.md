@@ -9,6 +9,37 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.84]
+
+### Ajouté — les positions critiques
+Le point 7 de la demande d'Olivier (« Toute »), après les six de la v2.83.
+- **Une position critique** : le joueur au trait ne peut pas éjecter, et
+  **un seul** de ses coups ne laisse à l'adversaire aucune éjection possible.
+  Elle est vérifiée coup par coup, sans évaluation. C'est le cas de 2,1 %
+  des coups du corpus (8 957 positions).
+- **Les vrais joueurs ne trouvent ce seul coup que 25 % du temps** : 18 % en
+  début de partie, 22 % au milieu, 33 % en fin. Les joueurs du tournoi
+  PlayStrategy le trouvent 68 % du temps (sur 162 positions), contre 22 %
+  sur MIGS et 28 % sur AbalOnline.
+- **Une surprise, dite telle quelle** : le futur vainqueur trouve ce coup
+  moins souvent (22 %) que le futur perdant (29 %). Quand le coup est manqué,
+  l'adversaire ne prend vraiment la bille au coup suivant que dans 27 % des
+  cas. Offrir une bille n'est donc pas toujours une faute, et la carte le
+  dit.
+- **Sans issue** : dans 7,7 % des positions, quoi qu'on joue, l'adversaire
+  pourra éjecter.
+- **Des positions manquées à revoir** : le bouton « Voir la position »
+  ouvre la partie juste avant le coup. De quoi fabriquer des puzzles.
+- **L'écart entre le meilleur et le 2ᵉ coup a été essayé, puis écarté.**
+  Avec l'évaluation à un demi-coup, il n'est grand que quand un coup éjecte
+  une bille (un bond de près de 2 000 points). Il aurait compté les occasions
+  d'éjection, qui sont déjà sur la page. La carte l'explique.
+- La qualité des coups a été recalculée (`tools/qualite-coups.js`, 27
+  minutes sur 2 cœurs). La précision (37,5 %) et les billes offertes (10,1
+  pour 100 coups) n'ont pas bougé : les six compteurs d'avant sont
+  identiques, partie par partie, sur les 4 580 parties.
+- **Tests** : 2 de plus (301).
+
 ## [v2.83]
 
 ### Ajouté — temps morts, sortie du corpus, positions déjà vues, billes seules, contacts, ce qui se dégrade avant une bille perdue
