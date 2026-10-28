@@ -42,7 +42,7 @@ if (arg > 0) {
     let vus = 0;
     B.forEach((banque, src) => banque.forEach((g, i) => {
       if ((vus++) % n !== k) return;
-      const rec = ctx._sbRejouerPartie(src, g, true);
+      const rec = ctx._sbRejouerPartie(src, g, true, true);   // v2.83 : avec rec.x (comparaison des parties entre elles)
       if (!rec) throw new Error('depart illisible : ' + vm.runInContext('_SB_SOURCES', ctx)[src] + ' ' + i);
       out.push([src, i, ctx._sbDispo(src, g), JSON.parse(JSON.stringify(rec))]);
       if (out.length % 200 === 0) process.stderr.write('  [' + k + '] ' + out.length + ' parties\n');
@@ -50,6 +50,10 @@ if (arg > 0) {
     process.stdout.write(JSON.stringify(out));
   })().catch(e => { console.error(e); process.exit(1); });
 } else {
+  // v2.83 : la place de chaque partie dans le corpus et les comptes de tout le corpus -- _sbPlaceDansCorpus et
+  // _sbTotauxCorpus (src/main/39-statistiques-billes.js), pour qu'un test les verifie sur des parties construites
+  const connaissance = (tous, ctx) => ctx._sbPlaceDansCorpus(tous.map(t => t[3]), ctx._sbDoublons().global);
+  const totauxCorpus = (tous, ctx) => ctx._sbTotauxCorpus(tous.map(t => t[3]), ctx._sbDoublons().global);
   // ── processus principal : repartit, rassemble, ecrit ──
   const n = Math.max(1, Math.min(4, os.cpus().length));
   const t0 = Date.now();
@@ -70,15 +74,16 @@ if (arg > 0) {
       if (tous.length !== attendu) throw new Error(tous.length + ' parties rejouees, ' + attendu + ' attendues');
       const dispos = [], p = [];
       const bilan = { complets: 0, decides: 0, nonFinies: 0 };
-      tous.forEach(([src, i, dispo, rec]) => {
+      const conn = connaissance(tous, ctx), ext = totauxCorpus(tous, ctx);
+      tous.forEach(([src, i, dispo, rec], k) => {
         let d = dispos.indexOf(dispo); if (d < 0) { dispos.push(dispo); d = dispos.length - 1; }
-        p.push(ctx._sbEncoder(rec, d));
+        p.push(ctx._sbEncoder(rec, d).concat([conn[k]]));   // v2.83 : [13] la place de la partie dans le corpus
         if (rec.complet) bilan.complets++;
         if (rec.g === 1 || rec.g === 2) bilan.decides++;
         if (rec.n < rec.nj && rec.cb < 6 && rec.cw < 6) bilan.nonFinies++;   // coup illisible avant la fin
       });
       const donnees = { v: 1, sig: ctx._sbSignature(), nb: B.map(b => b.length), etapes: Array.from(vm.runInContext('_SB_ETAPES', ctx)),
-        champs: Array.from(vm.runInContext('EMPREINTES_CHAMPS', ctx)), dispos: dispos, p: p };
+        champs: Array.from(vm.runInContext('EMPREINTES_CHAMPS', ctx)), dispos: dispos, p: p, ext: ext };
       const b64 = zlib.deflateRawSync(Buffer.from(JSON.stringify(donnees), 'utf8'), { level: 9 }).toString('base64');
       fs.writeFileSync(SORTIE, b64);
       console.log('Ecrit ' + path.relative(process.cwd(), SORTIE) + ' : ' + p.length + ' parties, ' + b64.length + ' caracteres base64, '

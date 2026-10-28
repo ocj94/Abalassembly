@@ -9,6 +9,49 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.83]
+
+### Ajouté — temps morts, sortie du corpus, positions déjà vues, billes seules, contacts, ce qui se dégrade avant une bille perdue
+Demande d'Olivier (« Toute ») : les idées retenues après l'audit de deux
+listes proposées par une autre IA. Elles étaient en partie déjà sur le site,
+et leurs chiffres étaient des paris. Ici, tout est compté sur les vraies
+parties.
+- **Les temps morts** 🔎 : la plus longue période sans bille tombée dure 36
+  demi-coups en médiane (26 après la première bille). Deux billes tombent en
+  médiane à 6 demi-coups d'écart. 14 % des parties passent au moins 60
+  demi-coups sans bille. Le record (275 demi-coups) se rejoue d'un clic.
+- **Quand une partie sort du corpus** 🔎 : comme aux échecs quand on « sort
+  du livre ». En Marguerite belge, une partie ne ressemble plus à aucune
+  autre au 9ᵉ demi-coup (médiane) : 38 % sont encore « dans le corpus » au
+  10ᵉ, 3 % au 20ᵉ. Les autres dispositions en sortent vers le 4ᵉ.
+- **Les positions déjà vues** 🔎 : la position exacte existe dans une autre
+  partie au 10ᵉ demi-coup dans 37 % des cas, au 20ᵉ dans 3 %, au 30ᵉ presque
+  jamais. Au 10ᵉ, 31 % de ces positions communes ont été atteintes par un
+  autre ordre de coups (des transpositions).
+- **Les billes seules** 🔎 (aucune voisine de leur couleur), suivies d'un
+  coup à l'autre :
+  - une bille seule tombe **5,3 fois plus** souvent qu'une bille
+    accompagnée ;
+  - 38 % des billes perdues étaient seules, alors qu'elles ne le sont que
+    10 % du temps ;
+  - une bille laissée seule tombe dans 11 % des cas, retrouve une voisine
+    dans 77 % (12 % restent seules jusqu'à la fin) ;
+  - le perdant laisse ses billes seules 12,7 % du temps, le vainqueur
+    9,3 %.
+- **Les contacts et les billes qui tombent** : une bille tombe dans les 3
+  demi-coups dans 2 % des positions avec 0 à 4 contacts, 11 % avec 5 à 9, et
+  18 à 19 % au-delà.
+- **Ce qui se dégrade avant une bille perdue** 🔎 : juste avant de perdre une
+  bille, le camp a nettement plus de billes au bord (+0,78 écart-type) et de
+  menaces, moins de soutien et de cohésion. Le retard matériel compte peu
+  (−0,16). Les billes au bord sont aussi ce qui change le plus dans les trois
+  coups qui précèdent. La carte dit que c'est un lien, pas une cause.
+- Les événements des parties ont été recalculés (`tools/stats-parties.js`,
+  8 minutes). Une partie est maintenant comparée à toutes les autres. Les
+  calculs sur tout le corpus (`_sbPlaceDansCorpus`, `_sbTotauxCorpus`) sont
+  vérifiés par des tests sur des parties construites à la main.
+- **Tests** : 5 de plus (299).
+
 ## [v2.82]
 
 ### Corrigé — l'échec intermittent des tests, trouvé : une partie réimportée pouvait disparaître à la synchro

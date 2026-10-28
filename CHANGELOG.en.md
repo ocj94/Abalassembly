@@ -9,6 +9,45 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.83]
+
+### Added — quiet stretches, leaving the corpus, positions already seen, lone marbles, contacts, what deteriorates before a lost marble
+Olivier's request ("All of them"): the ideas kept after auditing two lists
+proposed by another AI. They were partly on the site already, and their
+figures were guesses. Here everything is counted on the real games.
+- **The quiet stretches** 🔎: the longest stretch without a marble falling
+  lasts a median 36 plies (26 after the first marble). Two marbles fall a
+  median 6 plies apart. 14 % of games go at least 60 plies without a marble.
+  The record (275 plies) can be replayed in one click.
+- **When a game leaves the corpus** 🔎: like "leaving the book" in chess. In
+  Belgian Daisy, a game no longer looks like any other at ply 9 (median): 38 %
+  are still "in the corpus" at ply 10, 3 % at ply 20. The other layouts leave
+  it around ply 4.
+- **Positions already seen** 🔎: the exact position exists in another game in
+  37 % of cases at ply 10, 3 % at ply 20, almost never at ply 30. At ply 10,
+  31 % of these shared positions were reached through another order of moves
+  (transpositions).
+- **Lone marbles** 🔎 (no neighbour of their colour), followed from move to
+  move:
+  - a lone marble falls **5.3 times more** often than an accompanied one;
+  - 38 % of the marbles lost were alone, while marbles are alone only 10 %
+    of the time;
+  - a marble left alone falls in 11 % of cases, finds a neighbour again in
+    77 % (12 % stay alone to the end);
+  - the loser leaves his marbles alone 12.7 % of the time, the winner 9.3 %.
+- **Contacts and falling marbles**: a marble falls within 3 plies in 2 % of
+  positions with 0 to 4 contacts, 11 % with 5 to 9, and 18 to 19 % beyond.
+- **What deteriorates before a lost marble** 🔎: just before losing a marble,
+  the side has clearly more marbles on the edge (+0.78 standard deviation)
+  and more threats, less support and cohesion. The material deficit counts
+  little (−0.16). Marbles on the edge are also what changes most over the
+  three preceding moves. The card says it is a link, not a cause.
+- The game events were recomputed (`tools/stats-parties.js`, 8 minutes). A
+  game is now compared with all the others. The corpus-wide computations
+  (`_sbPlaceDansCorpus`, `_sbTotauxCorpus`) are checked by tests on
+  hand-built games.
+- **Tests**: 5 more (299).
+
 ## [v2.82]
 
 ### Fixed — the intermittent test failure, found: a re-imported game could vanish on sync

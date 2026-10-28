@@ -85,6 +85,7 @@ main/49-mes-stats-plus.js
 main/50-qualite-coups.js
 main/51-explorateur-ouvertures.js
 main/52-corpus-tendances.js
+main/53-corpus-tactique.js
 08-html.part
 09-script-tablebase.js
 10-html.part

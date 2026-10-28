@@ -273,4 +273,3 @@ function _ctRendreTout(){
   grSurRedim('corpus-rep', 'corpus-repetitions', function(){ const el = document.getElementById('corpus-repetitions'); if (el && STATS_PARTIES) el.innerHTML = _ctHtmlRepetitions(_cfParties(), grLargeur(el, 640) - 40); });
   grSurRedim('corpus-br', 'corpus-branchement', function(){ const el = document.getElementById('corpus-branchement'); if (el && STATS_PARTIES) el.innerHTML = _ctHtmlBranchement(_cfParties(), grLargeur(el, 640) - 40); });
 }
-</script>

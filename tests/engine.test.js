@@ -3803,7 +3803,8 @@ test('v2.63 événements : un échantillon de vraies parties, rejouées ici, red
   for (const [src, i] of echantillon) {
     const g = B[src][i], rec = ctx._sbRejouerPartie(src, g, true);
     const enc = JSON.parse(JSON.stringify(ctx._sbEncoder(rec, D.dispos.indexOf(ctx._sbDispo(src, g)))));
-    assert.deepStrictEqual(enc, JSON.parse(JSON.stringify(D.p[_rang57(src, i)])), ['MIGS', 'AO', 'PS', 'REF'][src] + ' ' + i);
+    // v2.83 : le champ 13 (la place de la partie dans le corpus) est ajoute par l'outil, qui voit toutes les parties
+    assert.deepStrictEqual(enc, JSON.parse(JSON.stringify(D.p[_rang57(src, i)])).slice(0, enc.length), ['MIGS', 'AO', 'PS', 'REF'][src] + ' ' + i);
   }
   assert.strictEqual(JSON.stringify(ctx.board), avant, 'le rejeu ne touche pas au plateau du jeu');
   // les deux facons de lire un coup donnent le meme coup (liste des coups legaux fournie ou non)
@@ -5495,7 +5496,7 @@ test('corpus v2.81 : le rejeu note les positions repetees (cle exacte), la premi
   assert.strictEqual(rec.br[1], 0, 'partie finie avant le 10e demi-coup');
   assert.deepStrictEqual(Array.from(rec.fp), [0, 0, 0, 0, 0, 0], 'aucune poussee');
   const enc = ctx._sbEncoder(rec, 0);
-  assert.strictEqual(enc.length, 12); assert.deepStrictEqual(Array.from(enc[10]), [4, 4, 5, 3]);
+  assert.strictEqual(enc.length, 13); assert.deepStrictEqual(Array.from(enc[10]), [4, 4, 5, 3]);
   // sans repetition : 0
   const rec2 = ctx._sbRejouerPartie(3, ['2026-01-01', 'Alex', 'Bob', '', 'belgian', '', tour.slice(0, 3).join(' ')], false);
   assert.strictEqual(rec2.rep, null); assert.strictEqual(ctx._sbEncoder(rec2, 0)[10], 0);
@@ -5544,7 +5545,7 @@ test('corpus v2.81 : donnees embarquees -- premieres poussees, repetitions et co
   await ctx.ensureGameBanks(); assert.ok(await ctx.ensureStatsParties());
   const D = _r63('STATS_PARTIES'), BR = Array.from(_r63('_SB_BRANCHES'));
   D.p.forEach((p, k) => {
-    assert.ok(p.length === 12 && p[9].length === 6 && p[11].length === BR.length, 'partie ' + k + ' : relancer node tools/stats-parties.js');
+    assert.ok(p.length === 14 && p[9].length === 6 && p[11].length === BR.length, 'partie ' + k + ' : relancer node tools/stats-parties.js');
     p[9].forEach((v, i) => assert.ok(v === 0 || (v >= 1 && v <= p[1] && (v % 2 === (i < 3 ? 1 : 0))), 'premiere poussee jouee par le bon camp, partie ' + k));
     if (p[10]) assert.ok(p[10][0] >= 4 && p[10][0] <= p[1] && p[10][1] >= 4 && p[10][1] % 2 === 0 && p[10][2] >= 1 && p[10][3] >= 2, 'repetition, partie ' + k);
     BR.forEach((ply, i) => assert.ok(ply > p[1] ? p[11][i] === 0 : p[11][i] > 0, 'coups possibles, partie ' + k));
@@ -5610,4 +5611,143 @@ test('v2.82 synchro : supprimee puis reimportee dans la meme milliseconde -- la 
     const f = JSON.parse(JSON.stringify(ctx._syncFusionner(a, b)));
     assert.strictEqual(f.supprimees.G9.x, 0);
   }
+});
+
+
+/* ─── 75. v2.83 : temps morts, sortie du corpus, positions deja vues, billes seules, contacts, avant une bille perdue ─── */
+
+test('corpus v2.83 : chaque bille est suivie d un coup a l autre, poussees et ejections comprises', async () => {
+  await ctx.ensureGameBanks();
+  const B = ctx._sbBanques(), avant = JSON.stringify(ctx.board);
+  try {
+    for (const [s, i] of [[0, 3], [0, 1200], [1, 15], [2, 4]]) {
+      const g = B[s][i], dep = ctx._sbDepart(s, g), jetons = ctx._sbJetons(s, g);
+      ctx.board = Object.assign({}, dep.board);
+      let id = new Map(), col = 'black', n = 0, tombees = 0, ej = 0;
+      Object.keys(ctx.board).forEach(k => { if (ctx.board[k]) id.set(k, n++); });
+      for (let k = 0; k < jetons.length; k++) {
+        const mv = ctx.resolveAbaProToken(jetons[k], col); if (!mv) break;
+        const suivi = ctx._sbDeplacerIdentites(id, mv, mv.info);
+        const r = ctx.abApplyMove(mv.cells, mv.dir, col, mv.info);
+        if (r.ejected) ej++; if (suivi.tombe != null) tombees++;
+        id = suivi.id;
+        const occupees = Object.keys(ctx.board).filter(c => ctx.board[c]).sort().join(' '), suivies = Array.from(id.keys()).sort().join(' ');
+        assert.strictEqual(suivies, occupees, 'source ' + s + ' partie ' + i + ' coup ' + (k + 1));
+        assert.strictEqual(new Set(id.values()).size, id.size, 'chaque numero une seule fois');
+        col = col === 'black' ? 'white' : 'black';
+        if (ej >= 6) break;
+      }
+      assert.strictEqual(tombees, ej, 'une bille tombee suivie pour chaque ejection');
+    }
+  } finally { ctx.board = JSON.parse(avant); }
+  // seule, contacts : sur un plateau pose a la main
+  ctx.board = { '4,4': 'black', '4,5': 'white', '3,3': 'white', '0,0': 'black', '0,1': 'black' };
+  try {
+    assert.strictEqual(ctx._sbSeule('4,4', 'black'), true);
+    assert.strictEqual(ctx._sbSeule('0,0', 'black'), false, 'une voisine de sa couleur');
+    assert.strictEqual(ctx._sbSeule('4,5', 'white'), true);
+    assert.strictEqual(ctx._sbContacts(), 2, 'deux paires noire-blanche voisines');
+  } finally { ctx.board = JSON.parse(avant); }
+  // la cle d'un coup ne depend pas de l'ordre des billes
+  const a = { cells: [{ r: 1, c: 2 }, { r: 1, c: 3 }], dir: { q: 1, r: 0 } }, b = { cells: [{ r: 1, c: 3 }, { r: 1, c: 2 }], dir: { q: 1, r: 0 } };
+  assert.strictEqual(ctx._sbCleCoup(a), ctx._sbCleCoup(b));
+});
+
+test('corpus v2.83 : sortie du corpus et positions deja vues -- sur des parties construites a la main', () => {
+  // trois parties de la meme position de depart (n), une d'une autre (m) ; positions : cle, chemin
+  const R = (cles, pos, complet) => ({ complet: complet === undefined ? 1 : complet, x: { cles, pos } });
+  const recs = [
+    R(['a', 'b', 'c'], ['n', 'h0', 'p1', 'h1', 'p2', 'h2', 'p3', 'h3']),
+    R(['a', 'b', 'd'], ['n', 'h0', 'p1', 'h1', 'p2', 'h2', 'p4', 'h4']),
+    R(['e', 'f', 'g'], ['n', 'h0', 'q1', 'h5', 'p2', 'h6', 'q3', 'h7']),          // p2 au meme demi-coup, par un autre chemin
+    R(['a', 'b', 'c'], ['n', 'h0', 'p1', 'h1', 'p2', 'h2', 'p3', 'h3']),          // doublon de la 1re : ne compte pas
+    R(['a'], ['m', 'h0', 'p1', 'h1'])                                             // autre depart, mais p1 deja vue (meme chemin)
+  ];
+  const out = JSON.parse(JSON.stringify(ctx._sbPlaceDansCorpus(recs, new Set([3]))));
+  assert.deepStrictEqual(out[0].slice(0, 3), [3, 2, 3], 'sort au 3e demi-coup (a, b partages avec la 2e) ; derniere position partagee : p2');
+  assert.deepStrictEqual(out[1].slice(0, 3), [3, 2, 3]);
+  assert.deepStrictEqual(out[2].slice(0, 3), [1, 2, 3], 'sort des le 1er coup');
+  assert.deepStrictEqual(out[3], [0, 0, 0, ''], 'le doublon');
+  assert.deepStrictEqual(out[4].slice(0, 3), [1, 1, 1], 'seule de son depart : sort tout de suite');
+  // reperes aux demi-coups 1, 10… : la position de depart est partagee par les trois parties
+  assert.strictEqual(out[0][3].charAt(0), '1'); assert.strictEqual(out[0][3].charAt(1), '.', 'partie plus courte que 10 demi-coups');
+  assert.strictEqual(out[4][3].charAt(0), '0', 'depart propre a cette partie');
+  // les comptes du corpus : parties completes, doublons exclus
+  const avecIso = recs.map((r, k) => Object.assign({}, r, { x: Object.assign({}, r.x, { isoT: [k + 1], isoR: [2], contH: [[1, k === 0 ? 1 : 0]] }) }));
+  avecIso[2].complet = 0;
+  const E = JSON.parse(JSON.stringify(ctx._sbTotauxCorpus(avecIso, new Set([3]))));
+  assert.strictEqual(E.isoTombe[1] + E.isoTombe[2] + E.isoTombe[5], 3, 'parties 0, 1 et 4');
+  assert.strictEqual(E.isoTombe[3], 0, 'la partie incomplete ne compte pas'); assert.strictEqual(E.isoTombe[4], 0, 'ni le doublon');
+  assert.deepStrictEqual(E.contacts[0], [3, 1]);
+});
+
+test('corpus v2.83 : donnees embarquees -- billes seules, place dans le corpus, comptes du corpus', async () => {
+  await ctx.ensureGameBanks(); assert.ok(await ctx.ensureStatsParties());
+  const D = _r63('STATS_PARTIES'), BR = Array.from(_r63('_SB_BRANCHES'));
+  let fins = 0, sT = 0, sR = 0;
+  D.p.forEach((p, k) => {
+    const iso = p[12], c = p[13], dup = ctx._sbEstDoublon(k);
+    assert.strictEqual(iso.length, 11);
+    assert.strictEqual(iso[2] + iso[3] + iso[6] + iso[7], p[4].length / 2, 'une bille tombee, seule ou accompagnee, par ejection -- partie ' + k);
+    assert.strictEqual(iso[8], iso[2] + iso[6], 'chaque bille tombee seule ferme une periode d isolement');
+    if (dup) { assert.deepStrictEqual(Array.from(c), [0, 0, 0, '']); return; }
+    assert.ok(c[0] >= 0 && c[0] <= Math.min(80, p[1]) && c[1] >= 0 && c[1] <= p[1] && c[2] >= 1, 'partie ' + k);
+    assert.strictEqual(c[3].length, BR.length);
+    BR.forEach((b, i) => assert.strictEqual(c[3].charAt(i) === '.', b - 1 > p[1], 'reperes, partie ' + k));
+    if (c[2] >= 2) assert.notStrictEqual(c[3].charAt(0), '0', 'la position de depart est partagee');
+    if (p[2]) { fins += iso[10]; sT += iso[8]; sR += iso[9]; }
+  });
+  const E = D.ext;
+  assert.strictEqual(E.isoTombe.length, 41); assert.strictEqual(E.contacts.length, 31);
+  assert.strictEqual(E.isoTombe.reduce((a, b) => a + b, 0), sT, 'memes periodes finies par la chute');
+  assert.strictEqual(E.isoRejoint.reduce((a, b) => a + b, 0), sR);
+  assert.strictEqual(ctx._c3FinsCorpus(), fins);
+  // une bille seule tombe bien plus souvent qu'une bille accompagnee ; plus de contacts, plus d'ejections
+  _r63("_corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: 'tout' }");
+  const S = ctx._c3Seules(ctx._cfParties());
+  assert.ok(S.tomS / S.expS > 3 * S.tomA / S.expA);
+  const taux = c => E.contacts[c][1] / E.contacts[c][0];
+  assert.ok(taux(15) > 3 * taux(3));
+});
+
+test('corpus v2.83 : avant une bille perdue -- les empreintes sont rattachees a la bonne partie et au bon camp', async () => {
+  await ctx.ensureGameBanks(); assert.ok(await ctx.ensureStatsParties());
+  assert.ok(await ctx.ensureEmpreintesHistoriques()); await ctx.ensureEmpreintesComplement();
+  const D = _r63('STATS_PARTIES'), P = _r63('EMPREINTES_HISTORIQUES');
+  // la difference materielle de chaque empreinte MIGS (sur un echantillon) = celle que donnent les ejections de STATS_PARTIES
+  let vus = 0;
+  for (let i = 0; i < P.length && vus < 3000; i += 97) {
+    const e = P[i]; if (e.s !== 'MIGS') continue;
+    const p = D.p[e.g]; if (!p || !p[2]) continue;
+    const s = ctx._cfScoreA(p[4], e.m + 1), diff = e.c === 'black' ? s.nb - s.nw : s.nw - s.nb;
+    assert.strictEqual(Math.round(e.e.materialDiff), diff, 'empreinte ' + i);
+    vus++;
+  }
+  assert.ok(vus > 1000);
+  _r63("_corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: 'tout' }; _c3AvantCache = null");
+  const R = ctx._c3AvantPerte(ctx._cfParties());
+  assert.ok(R && R.avant[0].n > 5000, 'des milliers de billes perdues');
+  const C = Array.from(_r63('EMPREINTES_CHAMPS'));
+  assert.ok(R.avant[0].z[C.indexOf('materialDiff')] < 0, 'on perd des billes quand on est deja mene');
+  const h = ctx._c3HtmlAvantPerte(ctx._cfParties()); assert.doesNotMatch(h, /NaN|undefined|Infinity/); assert.match(h, /avant une bille perdue|before a lost marble/);
+});
+
+test('corpus v2.83 : les six cartes en francais et en anglais, sans trou', async () => {
+  await ctx.ensureGameBanks(); assert.ok(await ctx.ensureStatsParties());
+  _r63("_corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: 'tout' }");
+  const avant = ctx.localStorage.getItem('abalone_lang');
+  try {
+    for (const lang of ['FR', 'EN']) {
+      ctx.localStorage.setItem('abalone_lang', lang);
+      _r63('_c3AvantCache = null');
+      await _dom54(async els => {
+        ctx._c3RendreTout();
+        ['corpus-tempsmorts', 'corpus-sortie', 'corpus-dejavues', 'corpus-seules', 'corpus-contacts', 'corpus-avantperte'].forEach(id => {
+          const h = els[id].innerHTML;
+          assert.ok(h.length > 300, id + ' ' + lang); assert.doesNotMatch(h, /NaN|undefined|Infinity/, id + ' ' + lang);
+        });
+        if (lang === 'EN') assert.match(els['corpus-seules'].innerHTML, /Lone marbles/); else assert.match(els['corpus-tempsmorts'].innerHTML, /Les temps morts/);
+      });
+    }
+  } finally { if (avant === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avant); }
 });
