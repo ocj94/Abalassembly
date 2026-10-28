@@ -2044,6 +2044,8 @@ table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset
 .sb-cmp-l { display:grid; grid-template-columns:minmax(0,1fr) 72px 92px; gap:8px; padding:6px 0; border-bottom:1px solid var(--border); color:var(--text); }
 .sb-cmp-l span:not(:first-child) { text-align:right; font-variant-numeric:tabular-nums; }
 .sb-cmp-l span:nth-child(2) { font-weight:700; color:var(--gold); }
+.sb-cmp-4 { grid-template-columns:minmax(0,1fr) 64px 80px 80px; }   /* v2.85 : la colonne « les gagnants » */
+@media (max-width:420px) { .sb-cmp-4 { grid-template-columns:minmax(0,1fr) 52px 62px 62px; gap:5px; } }
 .sb-cmp-ent span { color:var(--muted) !important; font-weight:400 !important; font-size:11px; }
 /* v2.65 : a quel coup tombent les billes (une ligne par bille, cliquable) et graduations de l'echelle de couleurs */
 .sb-cad { display:flex; flex-direction:column; gap:1px; margin:6px 0 4px; }

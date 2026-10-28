@@ -5824,3 +5824,25 @@ test('qualite v2.84 : la carte des positions critiques, en francais et en anglai
     }
   } finally { if (avant === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avant); }
 });
+
+/* ─── 77. v2.85 : Mes statistiques, la colonne « les gagnants » et les coups d'une seule bille (comme sur BGA) ─── */
+
+test('mes stats v2.85 : la colonne des gagnants -- le seul camp vainqueur, memes definitions', async () => {
+  await ctx.ensureGameBanks(); assert.ok(await ctx.ensureStatsParties());
+  const v = ctx._sbAgreger(), G = v.gagnants;
+  assert.strictEqual(G.camps, v.nDecides, 'un camp vainqueur par partie au vainqueur connu');
+  const somme = t => t[0] + t[1] + t[2] + t[3] + t[4];
+  assert.ok(somme(G.types) < somme(v.types) && G.ej <= v.camp.ej && G.premiereN <= v.camp.premiereN);
+  assert.strictEqual(G.phases.ouverture + G.phases.milieu + G.phases.finale, G.ej);
+  // dans une partie gagnee a 6 billes, le vainqueur en a fait tomber 6
+  const six = v.finals.reduce((a, b) => a + b, 0); assert.ok(G.ej >= 6 * six);
+  // ce que montre aussi BGA : les gagnants jouent moins de coups d'une seule bille, et poussent plus
+  assert.ok(G.types[0] / somme(G.types) < v.types[0] / somme(v.types));
+  assert.ok(G.types[5] / somme(G.types) > v.types[5] / somme(v.types));
+  const s = { carteSubies: new Array(61).fill(0), premiere: { perdue: { n: 0, g: 0 }, faite: { n: 0, g: 0 } }, sortes: [10, 20, 5, 3, 2, 12, 4, 6], byPhase: { ouverture: 1, milieu: 2, finale: 1 }, parPartie: 2, efficacite: 50, premiereEjectionMoyenne: 30 };
+  const h = await _enFrancais54(() => ctx._sbHtmlPerso(s));
+  assert.match(h, /Les gagnants/); assert.match(h, /Coups d’une seule bille/); assert.match(h, /Coups en ligne/);
+  assert.match(h, /<span>Coups d’une seule bille<\/span><span>25[\s\u00a0]%<\/span>/, 'toi : 10 coups sur 40');
+  assert.strictEqual((h.match(/sb-cmp-l sb-cmp-4/g) || []).length, 10, 'l en-tete et 9 lignes a quatre colonnes');
+  assert.doesNotMatch(h, /NaN|undefined/);
+});

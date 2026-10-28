@@ -2173,6 +2173,8 @@ table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset
 .sb-cmp-l { display:grid; grid-template-columns:minmax(0,1fr) 72px 92px; gap:8px; padding:6px 0; border-bottom:1px solid var(--border); color:var(--text); }
 .sb-cmp-l span:not(:first-child) { text-align:right; font-variant-numeric:tabular-nums; }
 .sb-cmp-l span:nth-child(2) { font-weight:700; color:var(--gold); }
+.sb-cmp-4 { grid-template-columns:minmax(0,1fr) 64px 80px 80px; }   /* v2.85 : la colonne « les gagnants » */
+@media (max-width:420px) { .sb-cmp-4 { grid-template-columns:minmax(0,1fr) 52px 62px 62px; gap:5px; } }
 .sb-cmp-ent span { color:var(--muted) !important; font-weight:400 !important; font-size:11px; }
 /* v2.65 : a quel coup tombent les billes (une ligne par bille, cliquable) et graduations de l'echelle de couleurs */
 .sb-cad { display:flex; flex-direction:column; gap:1px; margin:6px 0 4px; }
@@ -8669,7 +8671,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.84';
+const APP_VERSION = 'v2.85';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -40606,6 +40608,8 @@ function _sbAgreger(f){
     dims: _SB_ETAPES.map(function(){ const t = []; for (let j = 0; j < nDims; j++) t.push({ n: 0, g: 0 }); return t; }),
     nDimsParties: _SB_ETAPES.map(function(){ return 0; }),
     camp: { ej: 0, camps: 0, premiereSomme: 0, premiereN: 0, phases: { ouverture: 0, milieu: 0, finale: 0 } },
+    // v2.85 (demande d'Olivier, « comme sur BGA ») : les memes comptes pour le seul camp vainqueur (parties au vainqueur connu)
+    gagnants: { types: [0, 0, 0, 0, 0, 0, 0, 0], ej: 0, camps: 0, premiereSomme: 0, premiereN: 0, phases: { ouverture: 0, milieu: 0, finale: 0 } },
     cartes: cartes, quandParDispo: quandParDispo, dispos: D.dispos,
     poussees: { types: [0, 0, 0, 0, 0, 0], plus: [{ n: 0, g: 0 }, { n: 0, g: 0 }, { n: 0, g: 0 }] }   // v2.80
   };
@@ -40625,6 +40629,8 @@ function _sbAgreger(f){
       if (decide && t < 3) { const a = p[8][t] - p[8][t + 3], b = p[8][6 + t] - p[8][6 + t + 3]; if (a !== b) { const c = v.poussees.plus[t]; c.n++; if ((a > b ? 1 : 2) === gagnant) c.g++; } }
     }
     v.camp.camps += 2; v.camp.ej += ej.length / 2;
+    const G = v.gagnants;
+    if (decide) { const tg = gagnant === 1 ? p[5] : p[6]; for (let t = 0; t < 8; t++) G.types[t] += tg[t]; G.camps++; }
     const carte = cartes[dispo] || (cartes[dispo] = new Array(61).fill(0));
     const parDispo = billesParDispo[dispo] || (billesParDispo[dispo] = billes.map(function(){ return []; }));
     let nb = 0, nw = 0, premN = 0, premB = 0, fin = 0;
@@ -40633,6 +40639,7 @@ function _sbAgreger(f){
       // phase AVANT ce coup, meme regle que la carte Ejections de Mes statistiques
       const phase = (nb === 0 && nw === 0) ? 'ouverture' : (Math.max(nb, nw) >= 3 ? 'finale' : 'milieu');
       v.camp.phases[phase]++;
+      if (decide && (blancheTombe ? 1 : 2) === gagnant) { G.ej++; G.phases[phase]++; }   // une ejection du futur vainqueur
       if (blancheTombe) { nb++; if (!premN) premN = ply; } else { nw++; if (!premB) premB = ply; }
       // la (i/2 + 1)e bille de la partie, et la 6e d'un camp : celle qui finit la partie
       if (i / 2 < _SB_DERNIERE) { billes[i / 2].push(ply); parDispo[i / 2].push(ply); }
@@ -40646,6 +40653,7 @@ function _sbAgreger(f){
     }
     if (premN) { v.camp.premiereSomme += premN; v.camp.premiereN++; }
     if (premB) { v.camp.premiereSomme += premB; v.camp.premiereN++; }
+    if (decide) { const pg = gagnant === 1 ? premN : premB; if (pg) { G.premiereSomme += pg; G.premiereN++; } }
     if (fin) { billes[_SB_DERNIERE].push(fin); parDispo[_SB_DERNIERE].push(fin); }
     if (ej.length) {
       v.nAvecEj++;
@@ -41164,8 +41172,10 @@ function _sbHtmlPerso(s){
   const v = STATS_PARTIES ? _sbAgreger() : null;
   const attente = '<span style="color:var(--muted)">…</span>';
   const pct = function(a, b){ return b ? _sbPct(a / b * 100) : '—'; };
-  const ligne = function(nom, toi, eux){ return '<div class="sb-cmp-l"><span>' + nom + '</span><span>' + toi + '</span><span>' + (v ? eux : attente) + '</span></div>'; };
+  // v2.85 : un 4e argument -- la colonne « les gagnants » (le seul camp vainqueur des vrais joueurs), comme sur BGA
+  const ligne = function(nom, toi, eux, gag){ return '<div class="sb-cmp-l' + (gag !== undefined ? ' sb-cmp-4' : '') + '"><span>' + nom + '</span><span>' + toi + '</span><span>' + (v ? eux : attente) + '</span>' + (gag !== undefined ? '<span>' + (v ? gag : attente) + '</span>' : '') + '</div>'; };
   const entete = '<div class="sb-cmp-l sb-cmp-ent"><span></span><span>' + _tr('Toi', 'You') + '</span><span>' + _tr('Vrais joueurs', 'Real players') + '</span></div>';
+  const entete4 = '<div class="sb-cmp-l sb-cmp-4 sb-cmp-ent"><span></span><span>' + _tr('Toi', 'You') + '</span><span>' + _tr('Vrais joueurs', 'Real players') + '</span><span>' + _tr('Les gagnants', 'The winners') + '</span></div>';
   const P = s.premiere || { perdue: { n: 0, g: 0 }, faite: { n: 0, g: 0 } };
   const pc = (v && v.premiere.n) ? v.premiere.gagne / v.premiere.n * 100 : null;
   const sur = function(x){ return x.n ? _dimNb(x.g) + '/' + _dimNb(x.n) + ' · ' + _sbPct(x.g / x.n * 100) : '—'; };
@@ -41181,16 +41191,20 @@ function _sbHtmlPerso(s){
   const ph = s.byPhase || { ouverture: 0, milieu: 0, finale: 0 }, phT = ph.ouverture + ph.milieu + ph.finale;
   const phV = v ? v.camp.phases : null, phVT = phV ? phV.ouverture + phV.milieu + phV.finale : 0;
   const trois = function(o, t){ return t ? Math.round(o.ouverture / t * 100) + ' / ' + Math.round(o.milieu / t * 100) + ' / ' + Math.round(o.finale / t * 100) + ' %' : '—'; };
-  h += '<div class="sb-perso"><div class="sb-perso-titre">' + _tr('Toi face aux vrais joueurs', 'You against real players') + '</div><div class="sb-cmp">' + entete
-    + ligne(_tr('Éjections par partie', 'Ejections per game'), _dimDec(s.parPartie, 2), v ? _dimDec(v.camp.ej / v.camp.camps, 2) : '')
-    + ligne(_tr('Occasions d’éjection saisies', 'Ejection chances taken'), s.efficacite != null ? _sbPct(s.efficacite) : '—', T ? pct(T[6], T[7]) : '')
-    + ligne(_tr('1ʳᵉ éjection en moyenne', '1st ejection on average'), s.premiereEjectionMoyenne != null ? _tr('coup ', 'move ') + _dimDec(s.premiereEjectionMoyenne, 1) : '—', v && v.camp.premiereN ? _tr('coup ', 'move ') + _dimDec(v.camp.premiereSomme / v.camp.premiereN, 1) : '—')
-    + ligne(_tr('Coups à 3 billes', '3-marble moves'), pct(S[2] + S[4], coups), T ? pct(T[2] + T[4], coupsV) : '')
-    + ligne(_tr('Déplacements de côté', 'Sideways moves'), pct(S[3] + S[4], coups), T ? pct(T[3] + T[4], coupsV) : '')
-    + ligne(_tr('Poussées (sumito)', 'Pushes (sumito)'), pct(S[5], coups), T ? pct(T[5], coupsV) : '')
-    + ligne(_tr('Éjections : ouverture / milieu / finale', 'Ejections: opening / middle / endgame'), trois(ph, phT), phV ? trois(phV, phVT) : '')
-    + '</div><div style="font-size:11px;color:var(--muted);margin-top:6px">' + _tr('Vrais joueurs : les ' + (v ? _dimNb(v.nComplets) + ' ' : '') + 'parties du corpus jouées depuis une position de départ, les deux camps comptés. Mêmes définitions des deux côtés : occasion = un coup permettait de faire tomber une bille ; phases comme ci-dessus.',
-                                                                              'Real players: the ' + (v ? _dimNb(v.nComplets) + ' ' : '') + 'corpus games played from a starting position, both sides counted. Same definitions on both sides: chance = a move could push a marble off; phases as above.') + '</div></div>';
+  const Gg = v && v.gagnants && v.gagnants.camps ? v.gagnants : null, TG = Gg ? Gg.types : null, coupsG = TG ? TG[0] + TG[1] + TG[2] + TG[3] + TG[4] : 0;
+  const phG = Gg ? Gg.phases : null, phGT = phG ? phG.ouverture + phG.milieu + phG.finale : 0;
+  h += '<div class="sb-perso"><div class="sb-perso-titre">' + _tr('Toi face aux vrais joueurs', 'You against real players') + '</div><div class="sb-cmp">' + entete4
+    + ligne(_tr('Éjections par partie', 'Ejections per game'), _dimDec(s.parPartie, 2), v ? _dimDec(v.camp.ej / v.camp.camps, 2) : '', Gg ? _dimDec(Gg.ej / Gg.camps, 2) : '—')
+    + ligne(_tr('Occasions d’éjection saisies', 'Ejection chances taken'), s.efficacite != null ? _sbPct(s.efficacite) : '—', T ? pct(T[6], T[7]) : '', TG ? pct(TG[6], TG[7]) : '—')
+    + ligne(_tr('1ʳᵉ éjection en moyenne', '1st ejection on average'), s.premiereEjectionMoyenne != null ? _tr('coup ', 'move ') + _dimDec(s.premiereEjectionMoyenne, 1) : '—', v && v.camp.premiereN ? _tr('coup ', 'move ') + _dimDec(v.camp.premiereSomme / v.camp.premiereN, 1) : '—', Gg && Gg.premiereN ? _tr('coup ', 'move ') + _dimDec(Gg.premiereSomme / Gg.premiereN, 1) : '—')
+    + ligne(_tr('Coups d’une seule bille', 'Single-marble moves'), pct(S[0], coups), T ? pct(T[0], coupsV) : '', TG ? pct(TG[0], coupsG) : '—')
+    + ligne(_tr('Coups en ligne (2 ou 3 billes)', 'Inline moves (2 or 3 marbles)'), pct(S[1] + S[2], coups), T ? pct(T[1] + T[2], coupsV) : '', TG ? pct(TG[1] + TG[2], coupsG) : '—')
+    + ligne(_tr('Coups à 3 billes', '3-marble moves'), pct(S[2] + S[4], coups), T ? pct(T[2] + T[4], coupsV) : '', TG ? pct(TG[2] + TG[4], coupsG) : '—')
+    + ligne(_tr('Déplacements de côté', 'Sideways moves'), pct(S[3] + S[4], coups), T ? pct(T[3] + T[4], coupsV) : '', TG ? pct(TG[3] + TG[4], coupsG) : '—')
+    + ligne(_tr('Poussées (sumito)', 'Pushes (sumito)'), pct(S[5], coups), T ? pct(T[5], coupsV) : '', TG ? pct(TG[5], coupsG) : '—')
+    + ligne(_tr('Éjections : ouverture / milieu / finale', 'Ejections: opening / middle / endgame'), trois(ph, phT), phV ? trois(phV, phVT) : '', phG ? trois(phG, phGT) : '—')
+    + '</div><div style="font-size:11px;color:var(--muted);margin-top:6px">' + _tr('Vrais joueurs : les ' + (v ? _dimNb(v.nComplets) + ' ' : '') + 'parties du corpus jouées depuis une position de départ, les deux camps comptés. Les gagnants : le seul camp qui a gagné, dans les ' + (v ? _dimNb(v.nDecides) + ' ' : '') + 'parties au vainqueur connu — comme la colonne « Moyenne des gagnants » de Board Game Arena. Mêmes définitions partout : occasion = un coup permettait de faire tomber une bille ; phases comme ci-dessus ; les parts sont celles de tous les coups joués.',
+                                                                              'Real players: the ' + (v ? _dimNb(v.nComplets) + ' ' : '') + 'corpus games played from a starting position, both sides counted. The winners: only the side that won, in the ' + (v ? _dimNb(v.nDecides) + ' ' : '') + 'games with a known winner — like Board Game Arena’s “winners’ average” column. Same definitions everywhere: chance = a move could push a marble off; phases as above; shares are of all moves played.') + '</div></div>';
   // 3. ou tombent tes billes
   const cnt = s.carteSubies || new Array(61).fill(0), lc = _sbLireCarte(cnt);
   h += '<div class="sb-perso"><div class="sb-perso-titre">' + _tr('Où tombent tes billes', 'Where your marbles fall') + '</div>';
