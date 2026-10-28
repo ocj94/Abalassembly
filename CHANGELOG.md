@@ -9,6 +9,23 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.85]
+
+### Ajouté — Mes statistiques : la colonne « les gagnants » et les coups d'une seule bille, comme sur Board Game Arena
+Demande d'Olivier, après avoir comparé son profil de joueur sur BGA.
+- Le tableau **Toi face aux vrais joueurs** a une 3ᵉ colonne, **Les
+  gagnants** : le seul camp qui a gagné, dans les 3 163 parties du corpus au
+  vainqueur connu. Pour chaque ligne, on voit où l'on se situe entre
+  l'ensemble des joueurs et ceux qui gagnent.
+- Deux lignes de plus, celles de BGA : les **coups d'une seule bille** et les
+  **coups en ligne** (2 ou 3 billes).
+- Dans le corpus comme sur BGA, les gagnants jouent moins de coups d'une
+  seule bille (21 % contre 25 % pour l'ensemble) et poussent plus (47 %
+  contre 39 %).
+- Toutes les lignes sont des parts de l'ensemble des coups joués. BGA, lui,
+  donne des moyennes par partie : elles dépendent de la longueur des parties.
+- **Tests** : 1 de plus (302).
+
 ## [v2.84]
 
 ### Ajouté — les positions critiques

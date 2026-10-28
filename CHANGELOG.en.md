@@ -9,6 +9,21 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.85]
+
+### Added — My statistics: the "winners" column and single-marble moves, as on Board Game Arena
+Olivier's request, after comparing his player profile on BGA.
+- The **You against real players** table has a 3rd column, **The winners**:
+  only the side that won, in the 3,163 corpus games with a known winner. For
+  each row, you see where you stand between all players and those who win.
+- Two more rows, BGA's: **single-marble moves** and **inline moves** (2 or
+  3 marbles).
+- In the corpus as on BGA, winners play fewer single-marble moves (21 %
+  against 25 % overall) and push more (47 % against 39 %).
+- Every row is a share of all moves played. BGA gives averages per game,
+  which depend on how long the games are.
+- **Tests**: 1 more (302).
+
 ## [v2.84]
 
 ### Added — critical positions
