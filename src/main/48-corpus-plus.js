@@ -335,6 +335,7 @@ function _cfRendreTout(){
   if (typeof _qcRendre === 'function') _qcRendre();   // v2.78 : la qualite des coups
   if (typeof _eoRendreTout === 'function') _eoRendreTout();   // v2.80 : l'explorateur d'ouvertures
   if (typeof _ctRendreTout === 'function') _ctRendreTout();   // v2.81 : le trait, les annees, premieres poussees, repetitions, coups possibles
+  if (typeof _c3RendreTout === 'function') _c3RendreTout();   // v2.83 : temps morts, sortie du corpus, positions deja vues, billes seules, contacts, avant une bille perdue
   if (typeof _sbRendreCorpus === 'function') _sbRendreCorpus();
   grSurRedim('corpus', 'corpus-ouvertures', function(){ const h2 = document.getElementById('corpus-ouvertures'); if (h2 && STATS_PARTIES) h2.innerHTML = _cfHtmlOuvertures(_cfParties(), grLargeur(h2, 640) - 40); });
 }

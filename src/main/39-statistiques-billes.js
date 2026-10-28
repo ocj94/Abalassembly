@@ -141,7 +141,48 @@ function _sbCaseEjectee(mv, info){
 /* Rejoue une partie du corpus. Ne touche jamais au jeu en cours : le plateau global
    est permute le temps du rejeu (resolveAbaProToken et calculerEmpreinte le lisent),
    puis restaure, meme en cas d'erreur. */
-function _sbRejouerPartie(src, g, avecDims){
+/* v2.83 : le suivi de chaque bille d'un coup a l'autre (ses identites suivent les billes poussees), pour
+   savoir combien de temps une bille reste seule. id : case -> numero de bille ; rend la carte apres le
+   coup et le numero de la bille tombee (null s'il n'y en a pas). Appele AVANT d'appliquer le coup. */
+function _sbDeplacerIdentites(id, mv, info){
+  const nv = new Map(id), bouger = [];
+  let tombe = null;
+  mv.cells.forEach(function(c){ bouger.push(akey(c.r, c.c)); });
+  if (info && info.type === 'push') for (let i = 0; i < info.push; i++) { const rc = axialToRc(info.oppStart.q + i * mv.dir.q, info.oppStart.r + i * mv.dir.r); if (rc) bouger.push(akey(rc.r, rc.c)); }
+  const ids = bouger.map(function(k){ return id.get(k); });
+  bouger.forEach(function(k){ nv.delete(k); });
+  bouger.forEach(function(k, i){
+    const p = k.split(','), ax = rcToAxial(+p[0], +p[1]), d = axialToRc(ax.q + mv.dir.q, ax.r + mv.dir.r);
+    if (d) nv.set(akey(d.r, d.c), ids[i]); else tombe = ids[i];
+  });
+  return { id: nv, tombe: tombe };
+}
+// v2.83 : une bille « seule » : aucune des 6 cases voisines ne porte une bille de sa couleur
+function _sbSeule(cle, col){
+  const p = cle.split(','), ax = rcToAxial(+p[0], +p[1]);
+  for (let i = 0; i < AX_DIRS.length; i++) { const v = axialToRc(ax.q + AX_DIRS[i].q, ax.r + AX_DIRS[i].r); if (v && board[akey(v.r, v.c)] === col) return false; }
+  return true;
+}
+// v2.83 : les contacts : paires de cases voisines portant une bille noire et une bille blanche
+function _sbContacts(){
+  let n = 0;
+  for (const cle in board) {
+    if (board[cle] !== 'black') continue;
+    const p = cle.split(','), ax = rcToAxial(+p[0], +p[1]);
+    for (let i = 0; i < AX_DIRS.length; i++) { const v = axialToRc(ax.q + AX_DIRS[i].q, ax.r + AX_DIRS[i].r); if (v && board[akey(v.r, v.c)] === 'white') n++; }
+  }
+  return n;
+}
+// v2.83 : la cle d'un coup, la meme quelle que soit son ecriture (MIGS et AbalOnline n'ecrivent pas pareil) : ses billes et sa direction
+function _sbCleCoup(mv){ return mv.cells.map(function(c){ return c.r + ',' + c.c; }).sort().join('|') + '>' + mv.dir.q + ',' + mv.dir.r; }
+const _SB_ISO_MAX = 40;        // v2.83 : durees d'isolement comptees jusqu'a 40 demi-coups (au-dela : 40)
+const _SB_CONTACTS_MAX = 30;   // v2.83 : contacts comptes jusqu'a 30 (au-dela : 30)
+const _SB_NOUVEAUTE_MAX = 80;  // v2.83 : la sortie du corpus est cherchee dans les 80 premiers demi-coups
+
+/* extra (v2.83, tools/stats-parties.js seulement) : garde aussi, dans rec.x, de quoi comparer les parties
+   entre elles (cles des coups et des positions) et les comptes de tout le corpus (durees d'isolement,
+   contacts) -- trop gros pour etre embarques partie par partie. */
+function _sbRejouerPartie(src, g, avecDims, extra){
   const dep = _sbDepart(src, g);
   if (!dep) return null;
   const jetons = _sbJetons(src, g);
@@ -154,7 +195,13 @@ function _sbRejouerPartie(src, g, avecDims){
     pN: [0, 0, 0, 0, 0, 0], pB: [0, 0, 0, 0, 0, 0],    // v2.80 : poussees 2 c. 1, 3 c. 1, 3 c. 2 ; puis les memes qui ejectent
     // v2.81 : demi-coup de la premiere poussee de chaque type (Noirs 0..2, Blancs 3..5 ; 0 = jamais),
     // positions repetees, et nombre de coups legaux aux demi-coups _SB_BRANCHES
-    fp: [0, 0, 0, 0, 0, 0], rep: null, br: _SB_BRANCHES.map(function(){ return 0; }) };
+    fp: [0, 0, 0, 0, 0, 0], rep: null, br: _SB_BRANCHES.map(function(){ return 0; }),
+    /* v2.83 : les billes seules, par camp (Noirs 0..3, Blancs 4..7) : [demi-coups passes seule par ses billes,
+       demi-coups passes accompagnees, billes tombees alors qu'elles etaient seules, tombees accompagnees] ;
+       puis les periodes d'isolement : [8] finies par la chute, [9] par une voisine retrouvee, [10] par la fin */
+    iso: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] };
+  const X = extra ? { cles: [], pos: [], cont: [], ejPly: [], isoT: [], isoR: [] } : null;
+  if (X) rec.x = X;
   const dimsUtiles = avecDims && rec.complet && (src === 0 ? g[4] === 'Au score' : [1, 2].indexOf(_sbGagnant(src, g, 0, 0)) >= 0);
   if (dimsUtiles) rec.dims = _SB_ETAPES.map(function(){ return ''; });
   const sauve = board;
@@ -167,11 +214,35 @@ function _sbRejouerPartie(src, g, avecDims){
     const f = (fois.get(cle) || 1) + 1; fois.set(cle, f); if (f > rep.max) rep.max = f;
     if (!rep.prem) { rep.prem = nJoues; rep.cycle = nJoues - vues.get(cle); }
   };
+  // v2.83 : chaque bille a un numero, qui la suit ; debutSeule : numero -> demi-coup ou elle s'est retrouvee seule
+  let ident = new Map(), seules = new Set(), prefixe = 2166136261;
+  const debutSeule = new Map();
+  const fnv = function(h, s){ for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h; };
+  const finIso = function(numero, ply, issue){   // issue : 0 tombee, 1 voisine retrouvee, 2 fin de partie
+    const d = Math.min(_SB_ISO_MAX, ply - debutSeule.get(numero)); debutSeule.delete(numero);
+    rec.iso[8 + issue]++;
+    if (X) { if (issue === 0) X.isoT.push(d); else if (issue === 1) X.isoR.push(d); }
+  };
+  // la position apres nJoues demi-coups : qui est seule, les contacts, la cle de la position
+  let dernier = -1;
+  const observer = function(nJoues, col, aJouer){
+    if (nJoues === dernier) return;               // deja vue (arret sur un coup illisible)
+    dernier = nJoues;
+    seules = new Set();
+    ident.forEach(function(numero, cle){
+      const c = board[cle], o = c === 'black' ? 0 : 4;
+      if (_sbSeule(cle, c)) { seules.add(numero); if (aJouer) rec.iso[o]++; if (!debutSeule.has(numero)) debutSeule.set(numero, nJoues); }
+      else { if (aJouer) rec.iso[o + 1]++; if (debutSeule.has(numero)) finIso(numero, nJoues, 1); }
+    });
+    if (X) { X.pos.push(col.charAt(0) + _sbClePlateau(), prefixe.toString(36)); if (aJouer) X.cont.push(Math.min(_SB_CONTACTS_MAX, _sbContacts())); }
+  };
   try {
     board = Object.assign({}, dep.board);
-    let col = 'black';
+    let col = 'black', numero = 0;
+    for (const cle in board) if (board[cle] === 'black' || board[cle] === 'white') ident.set(cle, numero++);
     noter(0, col);
     for (let k = 0; k < jetons.length; k++) {
+      observer(k, col, true);
       const legal = getAllMovesForColor(col);
       const b = _SB_BRANCHES.indexOf(k + 1); if (b >= 0) rec.br[b] = legal.length;
       const mv = resolveAbaProToken(jetons[k], col, legal);
@@ -183,6 +254,15 @@ function _sbRejouerPartie(src, g, avecDims){
       const caseEj = _sbCaseEjectee(mv, info);
       const tp = _sbTypePoussee(mv, info);
       if (tp >= 0) { (col === 'black' ? rec.pN : rec.pB)[tp]++; const f = (col === 'black' ? 0 : 3) + tp; if (!rec.fp[f]) rec.fp[f] = k + 1; }
+      const suivi = _sbDeplacerIdentites(ident, mv, info);
+      if (X && k < _SB_NOUVEAUTE_MAX) X.cles.push(_sbCleCoup(mv));
+      prefixe = fnv(prefixe, _sbCleCoup(mv) + ';');
+      if (suivi.tombe != null) {   // la bille tombee : seule ou accompagnee juste avant le coup qui l'ejecte
+        const o = col === 'black' ? 4 : 0;
+        if (seules.has(suivi.tombe)) { rec.iso[o + 2]++; finIso(suivi.tombe, k + 1, 0); } else rec.iso[o + 3]++;
+        if (X) X.ejPly.push(k + 1);
+      }
+      ident = suivi.id;
       if (abApplyMove(mv.cells, mv.dir, col, info).ejected) {
         if (tp >= 0) (col === 'black' ? rec.pN : rec.pB)[tp + 3]++;
         t[6]++;
@@ -196,7 +276,16 @@ function _sbRejouerPartie(src, g, avecDims){
       if (rec.cb >= 6 || rec.cw >= 6) break;      // partie gagnee
       noter(k + 1, col);
     }
+    observer(rec.n, col, false);                    // la position finale : ferme les isolements qui la precedent
+    debutSeule.forEach(function(d, numero){ finIso(numero, rec.n, 2); });
   } finally { board = sauve; }
+  if (X) {
+    // contacts -> [positions, positions suivies d'une ejection dans les 3 demi-coups] ; seulement les positions
+    // qui ont 3 demi-coups apres elles dans la partie (sinon on ne sait pas)
+    X.contH = []; for (let c = 0; c <= _SB_CONTACTS_MAX; c++) X.contH.push([0, 0]);
+    X.cont.forEach(function(c, k){ if (k + 3 > rec.n) return; const h = X.contH[c]; h[0]++; if (X.ejPly.some(function(p){ return p > k && p <= k + 3; })) h[1]++; });
+    delete X.cont; delete X.ejPly;
+  }
   if (rep.n) rec.rep = [rep.prem, rep.cycle, rep.n, rep.max];
   rec.g = _sbGagnant(src, g, rec.cb, rec.cw);
   return rec;
@@ -205,7 +294,71 @@ function _sbRejouerPartie(src, g, avecDims){
 // v2.80 : [8] les poussees par type ; v2.81 : [9] premiere poussee de chaque type, [10] positions repetees
 // [premier demi-coup qui revoit une position, ecart avec sa premiere apparition, repetitions, plus grand nombre de passages] ou 0,
 // [11] coups legaux aux demi-coups _SB_BRANCHES (0 : partie plus courte)
-function _sbEncoder(rec, dispo){ return [rec.g, rec.n, rec.complet, dispo, rec.ej, rec.tN, rec.tB, rec.dims || 0, rec.pN.concat(rec.pB), rec.fp, rec.rep || 0, rec.br]; }
+// v2.83 : [12] les billes seules (rec.iso) ; tools/stats-parties.js ajoute [13] la place de la partie dans le corpus
+// (sortie du corpus, positions deja vues : il faut toutes les parties pour le savoir)
+function _sbEncoder(rec, dispo){ return [rec.g, rec.n, rec.complet, dispo, rec.ej, rec.tN, rec.tB, rec.dims || 0, rec.pN.concat(rec.pB), rec.fp, rec.rep || 0, rec.br, rec.iso]; }
+
+/* v2.83 : la place de chaque partie dans le corpus (tools/stats-parties.js, apres le rejeu de toutes les
+   parties avec extra). recs : les rec de _sbRejouerPartie, dans l'ordre de STATS_PARTIES ; dup : les rangs
+   des doublons exacts (_sbDoublons().global), qui ne comptent pas -- sinon chaque partie copiee serait
+   « deja vue » d'un bout a l'autre. Rend, par partie : [sortie, vue, groupe, reperes]
+   - sortie : le demi-coup ou la suite de ses coups n'est plus celle d'aucune autre partie partie de la
+     meme position (0 : pas sortie dans les _SB_NOUVEAUTE_MAX premiers demi-coups, ou finie avant) ;
+   - vue : le dernier demi-coup dont la position (plateau + camp au trait) existe dans une autre partie ;
+   - groupe : le nombre de parties parties de la meme position (0 : doublon) ;
+   - reperes : aux demi-coups _SB_BRANCHES, la position ou le coup est a jouer -- '.' pas atteinte,
+     '0' dans cette partie seulement, '1' aussi dans une autre partie, '2' aussi dans une autre partie,
+     au meme demi-coup mais par des coups differents (une transposition). Au meme demi-coup : une position
+     revue plus tard apres des allers-retours (la position de depart retrouvee au 4e demi-coup, par
+     exemple) est « deja vue », pas une transposition. */
+function _sbPlaceDansCorpus(recs, dup){
+  const out = recs.map(function(){ return [0, 0, 0, '']; });
+  // 1. la sortie du corpus : un arbre des suites de coups, par position de depart
+  const groupes = new Map();
+  recs.forEach(function(r, k){ if (dup.has(k)) return; const dk = r.x.pos[0]; if (!groupes.has(dk)) groupes.set(dk, []); groupes.get(dk).push(k); });
+  groupes.forEach(function(L){
+    const racine = { n: 0, f: new Map() };
+    L.forEach(function(k){ let nd = racine; recs[k].x.cles.forEach(function(c){ let e = nd.f.get(c); if (!e) { e = { n: 0, f: new Map() }; nd.f.set(c, e); } e.n++; nd = e; }); });
+    L.forEach(function(k){
+      const cles = recs[k].x.cles; let nd = racine;
+      for (let j = 0; j < cles.length; j++) { nd = nd.f.get(cles[j]); if (nd.n === 1) { out[k][0] = j + 1; break; } }
+      out[k][2] = L.length;
+    });
+  });
+  // 2. les positions : la premiere partie qui l'atteint, a quel demi-coup, par quel chemin
+  const P = new Map();
+  recs.forEach(function(r, k){
+    if (dup.has(k)) return;
+    const pos = r.x.pos;
+    for (let j = 0; j < pos.length; j += 2) {
+      const e = P.get(pos[j]);
+      if (!e) P.set(pos[j], { g: k, y: j, m: 0, p: pos[j + 1], t: 0 });
+      else if (e.g !== k) { e.m = 1; if (e.y === j && e.p !== pos[j + 1]) e.t = 1; }
+    }
+  });
+  recs.forEach(function(r, k){
+    if (dup.has(k)) return;
+    const pos = r.x.pos;
+    for (let j = 0; j < pos.length; j += 2) if (P.get(pos[j]).m) out[k][1] = j / 2;
+    out[k][3] = _SB_BRANCHES.map(function(b){ const j = 2 * (b - 1); if (j >= pos.length) return '.'; const e = P.get(pos[j]); return e.t ? '2' : (e.m ? '1' : '0'); }).join('');
+  });
+  return out;
+}
+/* v2.83 : les comptes de tout le corpus (parties completes, doublons une fois), trop gros partie par partie.
+   isoTombe[d], isoRejoint[d] : periodes d'isolement d'une bille finies par sa chute, ou par une voisine
+   retrouvee, apres d demi-coups (d plafonne a _SB_ISO_MAX) ; contacts[c] = [positions, suivies d'une
+   bille tombee dans les 3 demi-coups] (c plafonne a _SB_CONTACTS_MAX). */
+function _sbTotauxCorpus(recs, dup){
+  const ext = { isoTombe: [], isoRejoint: [], contacts: [] };
+  for (let d = 0; d <= _SB_ISO_MAX; d++) { ext.isoTombe.push(0); ext.isoRejoint.push(0); }
+  for (let c = 0; c <= _SB_CONTACTS_MAX; c++) ext.contacts.push([0, 0]);
+  recs.forEach(function(r, k){
+    if (dup.has(k) || !r.complet) return;
+    r.x.isoT.forEach(function(d){ ext.isoTombe[d]++; }); r.x.isoR.forEach(function(d){ ext.isoRejoint[d]++; });
+    r.x.contH.forEach(function(h, c){ ext.contacts[c][0] += h[0]; ext.contacts[c][1] += h[1]; });
+  });
+  return ext;
+}
 
 /* Signature des parties couvertes : une partie ajoutee, retiree ou modifiee
    (coups, resultat, disposition) sans relancer tools/stats-parties.js ne
