@@ -145,7 +145,7 @@ function jouerVariante(layoutKey){
    l'Abalone. Volontairement une BIBLIOGRAPHIE (références + liens) et non
    des fichiers embarqués : intégrer les PDF en base64 ferait passer le
    fichier unique de ~2,5 Mo à plus de 12 Mo, imposé à chaque visiteur même
-   sans ouvrir un seul document. Idée d'Olivier, source : son Drive.
+   sans ouvrir un seul document. Idée d'ocj94, source : son Drive.
    NOTE : les descriptions ne sont renseignées que pour les documents dont
    le contenu est établi ; les autres portent une mention neutre plutôt
    qu'un résumé inventé. */

@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════
    LABO : LES BANCS D'ESSAI (v2.70)
-   Demande d'Olivier : « les 6 ». Trois des outils sont des series de duels :
+   Demande d'ocj94 : « les 6 ». Trois des outils sont des series de duels :
      - le tournoi entre les styles (Equilibre, Agressif, Defensif, Division, KAAH…) ;
      - la mesure des niveaux 1 a 10 (chaque niveau contre le suivant) ;
      - le test des ouvertures de la Marguerite belge ;
@@ -162,7 +162,7 @@ function _bancJournal(s){
   const why = { '6capt': '6 billes', 'adj3': '3 billes d’écart', 'adjCap': 'billes d’avance', 'adjCap1': 'une bille d’avance, mieux placé', 'adjEval': 'évaluations d’accord', 'draw': 'nulle', 'draw1': 'nulle (une bille d’avance, pas mieux placé)', 'noMove': 'bloqué' };
   return '<div class="lab-journal">' + s.journal.map(function(j){ return '<div>' + (j.w === 'A' ? '🟢' : (j.w === 'D' ? '⚪' : '🔴')) + ' ' + j.nom + ' · ' + (why[j.why] || j.why) + ', ' + j.plies + ' demi-coups</div>'; }).join('') + '</div>';
 }
-/* v2.71, les reglages de chaque banc (demande d'Olivier : « plus de parametres ») : temps de
+/* v2.71, les reglages de chaque banc (demande d'ocj94 : « plus de parametres ») : temps de
    reflexion par coup, nombre de demi-coups avant l'arbitrage, positions de depart. Gardes par
    banc ; ils s'appliquent a la serie suivante (une serie commencee garde les siens). */
 const BANC_TEMPS = [300, 600, 1000, 2000], BANC_PLIES = [60, 80, 120, 160];

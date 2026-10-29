@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Abalassembly — jeu de stratégie Abalone
-  Copyright (C) 2026  Olivier (ocj94)
+  Copyright (C) 2026  ocj94
 
   Ce programme est un logiciel libre : vous pouvez le redistribuer et/ou le
   modifier selon les termes de la GNU General Public License version 3, telle
@@ -166,7 +166,7 @@ body {
 
 
 /* ─── SCROLLBAR ─── */
-/* Elargie de 6 a 9px (signale trop fine par Olivier). */
+/* Elargie de 6 a 9px (signale trop fine par ocj94). */
 ::-webkit-scrollbar { width: 9px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 3px; }
@@ -384,7 +384,7 @@ html[dir="rtl"] .lang-option { text-align: right; }
      navigateurs qui supportent la propriete standard scrollbar-color (Chrome
      recent inclus), elle prend le pas sur la regle ::-webkit-scrollbar
      globale et donnait donc une scrollbar grise ici, differente du reste
-     du site. Signale par Olivier. */
+     du site. Signale par ocj94. */
   scrollbar-width: thin; scrollbar-color: var(--gold-dim) transparent;
 }
 .sidebar-bottom { padding: 4px 0 8px; }
@@ -927,7 +927,7 @@ h2 {
    apercu ouvrable. line-height reste un multiplicateur sans unite : il suit
    automatiquement la taille du bloc. letter-spacing est en em (relatif a la
    taille du bloc), pas en px, pour garder un espacement visuellement
-   proportionne quelle que soit la taille du cadre. Signale par Olivier. */
+   proportionne quelle que soit la taille du cadre. Signale par ocj94. */
 #board-1d-text.plateau1d { font-size: 6.2cqw; line-height: 1.4; letter-spacing: 0.06em; }
 
 .game-controls {
@@ -960,7 +960,7 @@ h2 {
    Ici, UNE SEULE boite carree (#board-stage) porte la taille et le centrage ;
    les trois vues ne sont plus que des enfants en position absolute, inset:0,
    qui en remplissent chacune 100% — bit pour bit la meme boite, quelle que
-   soit celle qui est active. Signale par Olivier. */
+   soit celle qui est active. Signale par ocj94. */
 #board-stage {
   width: 640px; max-width: 100%; aspect-ratio: 1;
   margin: 0 auto; position: relative;
@@ -1307,7 +1307,7 @@ footer {
      (voir sa regle de base, plus haut). #board et #board-3d avaient chacun
      leur propre max-width ici, mais #board-1d n'avait pas d'equivalent : a
      cette largeur d'ecran, la 1D restait donc plus grande que les deux autres
-     et ne partageait plus leur centrage. Signale par Olivier. */
+     et ne partageait plus leur centrage. Signale par ocj94. */
   #board-stage { max-width: 440px; }
   /* Sur mobile, le plateau et le panneau des onglets sont empilés (plus côte
      à côte) : board-msg (position:absolute; bottom:-40px) déborderait sous
@@ -1397,7 +1397,7 @@ footer {
    ecran de configuration .setup-*, etc.) etait piege par erreur a l'interieur
    de ce @media (max-width:480px) et ne s'appliquait donc QUE sous 480px de
    large — c'est ce qui causait des boutons non stylises au-dela de ce seuil,
-   signale par Olivier (screenshots : theme actif a 400px, casse a 481px). */
+   signale par ocj94 (screenshots : theme actif a 400px, casse a 481px). */
 
 /* ═══════════════════════════════════════════════════════════════════════
    CONFORT & ACCESSIBILITE
@@ -1497,7 +1497,7 @@ body.a11y-oneaction .ctrl-btn:not(.primary):not(:hover):not(:focus) { opacity: 0
      memes couleurs que .setup-opt/.setup-opt.active ci-dessus, pas de
      nouvelles valeurs inventees. Toujours dore : contrairement a un groupe
      de boutons qui peut n'avoir aucun actif, un <select> a TOUJOURS une
-     valeur choisie -- demande d'Olivier. */
+     valeur choisie -- demande d'ocj94. */
   .setup-layout-select { padding:8px 12px; font-size:12px; background:var(--gold); color:#0d0f0e; border:1px solid var(--gold); border-radius:7px; font-weight:600; cursor:pointer; }
   .setup-opt:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
   .setup-toggle { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); cursor:pointer; }
@@ -2684,7 +2684,7 @@ body.kids-mode #bnav-settings { display: none !important; }
      le CSS puisse deja masquer le chrome normal des le premier rendu.
      ?projector=1d|2d|3d dans l'URL : fenetre separee, plateau seul, plein
      ecran, lecture seule (canInteractWithBoard le bloque, voir plus bas
-     dans le script principal). Demande d'Olivier — plusieurs fenetres du
+     dans le script principal). Demande d'ocj94 — plusieurs fenetres du
      meme appareil, a repartir sur plusieurs ecrans, synchronisees en
      direct via BroadcastChannel (natif, aucune dependance, aucun serveur). -->
 <script>
@@ -2699,7 +2699,7 @@ body.kids-mode #bnav-settings { display: none !important; }
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════
-     BANDE-ANNONCE D'OUVERTURE — ~6,7 secondes, a la demande d'Olivier : l'EMBLEME
+     BANDE-ANNONCE D'OUVERTURE — ~6,7 secondes, a la demande d'ocj94 : l'EMBLEME
      (hexagone dore et bille, les proportions de l'icone : l'intro prolonge
      l'ecran de demarrage d'Android sans rupture), l'hexagone tourne autour de
      la bille en retrecissant, la bille retrecit avec lui, les deux
@@ -2723,7 +2723,7 @@ body.kids-mode #bnav-settings { display: none !important; }
 /* Emblème : meme taille a l'ecran que l'icone du demarrage d'Android (hexagone
    ~58 % de la largeur), puis l'hexagone tourne d'un tour en retrecissant et la
    bille retrecit avec lui, jusqu'a disparaitre (0,35 -> 2,95 s : disparition
-   allongee a la demande d'Olivier). */
+   allongee a la demande d'ocj94). */
 .intro-emblem { position: absolute; left: 50%; top: 50%; width: min(66vw, 340px); aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none; }
 .intro-emblem svg { width: 100%; height: 100%; overflow: visible; display: block; }
 .ie-hex, .ie-bille { transform-box: view-box; transform-origin: 100px 100px; }
@@ -4308,14 +4308,14 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
       </div>
       <!-- Sous-section : "Deux joueurs" se decline en deux facons de jouer,
            regroupees plutot que presentees comme trois choix d'adversaire au
-           meme niveau (demande d'Olivier). -->
+           meme niveau (demande d'ocj94). -->
       <div id="setup-mode-2p-sub" style="display:none;margin-top:8px;padding:10px;border:1px solid var(--border);border-radius:10px">
         <div style="display:flex;gap:5px;flex-wrap:wrap">
           <button onclick="setupPick('mode','local',this)" class="setup-opt" style="flex:1">📱 Même appareil</button>
           <button onclick="setupPick('mode','rtc',this)" class="setup-opt" style="flex:1" title="Connexion directe entre deux navigateurs, sans compte ni serveur de jeu (experimental)">📡 En direct 🧪</button>
         </div>
         <!-- Panneau de connexion integre directement ici, plutot qu'en
-             fenetre superposee (demande d'Olivier). Memes identifiants
+             fenetre superposee (demande d'ocj94). Memes identifiants
              d'elements (rtc-status, rtc-ui-body) que l'ancien panneau
              modal : toutes les fonctions de connexion existantes
              (_rtcUiCreateOffer, _rtcUiShowJoin...) fonctionnent sans
@@ -4378,7 +4378,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
       <!-- Moteur (experimental) : meme _engineMode que Labo IA, choisi ici
            AVANT de jouer plutot que de devoir aller le changer dans Labo IA
            a chaque partie. Fusionne dans la meme carte que Style/Niveau
-           (au lieu d'une carte separee) -- demande d'Olivier. L'id reste
+           (au lieu d'une carte separee) -- demande d'ocj94. L'id reste
            sur cette section interne, pas sur toute la carte : le masquage
            en mode "Deux joueurs" (setupPick, group==='mode') ne doit
            cacher que le choix de moteur, pas Style/Niveau qui restent
@@ -4499,8 +4499,8 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
           <!-- Uniquement le plateau + coordonnees, centre dans la fenetre
                (display:flex sur le parent). Les infos textuelles (legende,
                ejections, trait, selection, invite) ont ete retirees de cette
-               vue — demande d'Olivier : seul le plateau reste affiche.
-               Signale par Olivier. -->
+               vue — demande d'ocj94 : seul le plateau reste affiche.
+               Signale par ocj94. -->
           <pre id="board-1d-text" style="margin:0;font-family:'DM Mono',ui-monospace,'Courier New',monospace;color:#e8e8e8;white-space:pre;user-select:text"></pre>
         </div>
         <div id="board-3d" style="display:none;position:absolute;inset:0;border-radius:12px;overflow:hidden;background:#14141a">
@@ -4523,7 +4523,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
              3D — les deux ne bougent QUE la rotation Y (pas d'elevation en 2D),
              donc compatibles avec le verrou "vue du dessus" de la 3D, comme Y.
              Colores selon le skin actif, pas figes en noir/blanc — voir
-             skinSideBtnColor(). Signale par Olivier. -->
+             skinSideBtnColor(). Signale par ocj94. -->
         <div class="rot-ctl" id="rot2d-bottom" style="bottom:22%" title="Rotation (votre côté)">
           <button class="rot-btn" onclick="rotateBoard(-BOARD_ROTATE_STEP_DEG)" title="Pivoter anti-horaire">Y↺</button>
           <button class="rot-btn" onclick="rotateBoard(BOARD_ROTATE_STEP_DEG)" title="Pivoter horaire">Y↻</button>
@@ -4539,7 +4539,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
         <!-- Mode commentateur : stats des deux joueurs, mises a jour en direct
              via les evenements publics abalassembly:movePlayed/GameOver.get() deja
              emis par le moteur (aucune modification du jeu lui-meme requise —
-             pur observateur, voir _emitAbaEvent). Demande d'Olivier, pour
+             pur observateur, voir _emitAbaEvent). Demande d'ocj94, pour
              suivre une partie (tournoi ou non) de l'exterieur. -->
         <div style="text-align:center;margin-top:8px">
           <button class="btn-ghost" id="commentator-toggle" onclick="toggleCommentatorMode()"
@@ -4547,7 +4547,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
         </div>
         <!-- Mode projecteur : ouvre une fenetre separee par dimension, a
              repartir sur plusieurs ecrans, synchronisee en direct via
-             BroadcastChannel. Demande d'Olivier. -->
+             BroadcastChannel. Demande d'ocj94. -->
         <div style="text-align:center;margin-top:6px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
           <span style="font-size:11px;color:var(--muted);align-self:center">📺 Projeter :</span>
           <button class="btn-ghost" onclick="openProjectorWindow('1d')" title="Ouvrir la vue 1D dans une fenêtre séparée"
@@ -5820,7 +5820,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
           <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">Chaque thème change réellement la couleur du plateau — feutre, gouttière et contour — aussi bien en 2D qu'en 3D.</div>
           <!-- Jour/Nuit : pour l'instant, seul Volcanique a une variante nuit
                (les 5 autres viendront plus tard, un par un — demande
-               d'Olivier). toggleThemeNight() previent clairement si le
+               d'ocj94). toggleThemeNight() previent clairement si le
                theme actif n'en a pas encore. -->
           <div style="margin-top:10px">
             <button onclick="toggleThemeNight()" id="theme-night-toggle" class="btn-ghost"
@@ -7007,9 +7007,9 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center">
           <div style="width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#3a7a56,#1c3d2a);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;font-family:'Playfair Display',serif;color:var(--gold);margin:0 auto 8px;border:2px solid rgba(200,168,75,0.3)">O</div>
-          <div style="font-size:13px;font-weight:600;color:var(--white)">Olivier Charles-Joseph</div>
+          <div style="font-size:13px;font-weight:600;color:var(--white)">ocj94</div>
           <div style="font-size:11px;color:var(--muted);margin-top:3px;line-height:1.4">Ambassadeur & promoteur communautaire 🌍</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace">ocj94 · non classé</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace">non classé</div>
         </div>
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center">
           <div style="width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#4a1c5a,#2a0a3a);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;font-family:'Playfair Display',serif;color:#b89ef0;margin:0 auto 8px;border:2px solid rgba(138,114,210,0.3)">F</div>
@@ -7152,7 +7152,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
 
 
 <!-- PAGE: LABO IA -->
-<!-- v2.70 (demande d'Olivier : « amelioration du Labo », puis « les 6 ») : sept outils en onglets.
+<!-- v2.70 (demande d'ocj94 : « amelioration du Labo », puis « les 6 ») : sept outils en onglets.
      Chaque onglet est rempli par son module : 17 (auto-amelioration), 43 (Texel), 44 (tournoi des
      styles, niveaux, ouvertures), 45 (comme les humains, contre toi). -->
 <div class="page" id="page-lab">
@@ -7278,7 +7278,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
 </div>
 
 <!-- PAGE: MUSEUM -->
-<!-- ═══ AIDE : comment utiliser le site (demande d'Olivier). Libelles verifies dans le code
+<!-- ═══ AIDE : comment utiliser le site (demande d'ocj94). Libelles verifies dans le code
      (menu, configuration, boutons). Hors ligne, avec une recherche qui ignore les accents. ═══ -->
 <div class="page" id="page-aide">
   <div style="padding:24px 20px 60px;max-width:820px;margin:0 auto">
@@ -7848,7 +7848,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
 
 <!-- ══════════════════════════════════════════
      PAGE: HISTORIQUE DE PARTIES (convertie depuis un modal flottant --
-     signale par Olivier : demande une page normale du site, comme les
+     signale par ocj94 : demande une page normale du site, comme les
      autres, plutot qu'une fenetre superposee)
 ══════════════════════════════════════════ -->
 <div class="page" id="page-historique">
@@ -8669,9 +8669,9 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    (doit correspondre exactement au tag de la derniere release publiee).
    Affichee dans le pied de page (footer-bottom). Rien n'affichait la
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
-   la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
+   la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.87';
+const APP_VERSION = 'v2.88';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -9050,7 +9050,7 @@ function isMyColor(color) {
    comptabilise deux fois : dans le cumul GLOBAL (me_black / me_white) et dans
    le seau de la variante en cours (me_black@belgian, etc.). On peut ainsi
    comparer ses habitudes selon la position de depart, qui change beaucoup le
-   jeu. Demande d'Olivier. */
+   jeu. Demande d'ocj94. */
 const HEAT_VARIANTS = ['standard','belgian','german','dutch','swiss','decouverte','69','fujiyama','the_wall','star','face_a_face','alliances','domination','atomouche','centrifuge','snakes_variant','snakes','alien','korean_daisy','anglattack','alitration','pyramide','french'];
 const HEAT_VARIANT_LABEL = { standard:'Standard', belgian:'Belgian Daisy', german:'German Daisy',
   dutch:'Dutch Daisy', swiss:'Swiss Daisy', decouverte:'D\u00e9couverte', '69':'69', fujiyama:'Fujiyama', the_wall:'The Wall', star:'Star', face_a_face:'Face à face', alliances:'Alliances', domination:'Domination', atomouche:'Atomouche', centrifuge:'Centrifugeuse', snakes_variant:'Snakes variant', snakes:'Snakes', alien:'Alien', korean_daisy:'Korean Daisy', anglattack:'Anglattack', alitration:'Alitration', pyramide:'Pyramide', french:'Marguerite fran\u00e7aise' };
@@ -9804,7 +9804,7 @@ function renderEngageBar() {
   quickLinks.forEach(function(q){
     // "Jouer" doit passer par la configuration de partie (openGameSetup),
     // pas sauter dessus -- meme comportement que le lien equivalent dans
-    // la barre laterale (sidebarNav('setup',...)). Signale par Olivier :
+    // la barre laterale (sidebarNav('setup',...)). Signale par ocj94 :
     // la carte d'accueil demarrait une partie directement avec les
     // derniers reglages, sans jamais repasser par l'ecran de configuration.
     const handler = (q.page === 'game') ? 'openGameSetup()' : ('showPage(\''+q.page+'\')');
@@ -10194,7 +10194,7 @@ let _setupCfgTimeBeforeRtc;
 
 /* Bouton parent "Deux joueurs" : deplie la sous-section (Meme appareil /
    En direct) plutot que de choisir directement un mode -- demande
-   d'Olivier, ces deux choix sont des declinaisons de "jouer a deux",
+   d'ocj94, ces deux choix sont des declinaisons de "jouer a deux",
    pas un troisieme mode independant au meme niveau que "Contre l'IA". */
 function setupPickTwoPlayers(){
   const subSection = document.getElementById('setup-mode-2p-sub');
@@ -10210,7 +10210,7 @@ function setupPickTwoPlayers(){
 /* Miniature de la disposition de depart, affichee quand on choisit une
    variante en configuration. Reutilise gymMarbleGradient() TEL QUEL : les
    billes de la miniature suivent donc le VRAI skin actif choisi par la
-   personne, pas un noir/blanc fixe -- Olivier a explicitement demande que
+   personne, pas un noir/blanc fixe -- ocj94 a explicitement demande que
    seul l'EXPORT garde les couleurs officielles rigides, pas l'affichage. */
 function setupRenderLayoutThumb(layoutKey, labelText){
   const box = document.getElementById('setup-layout-thumb');
@@ -10247,7 +10247,7 @@ function _miniDispositionHTML(layoutKey, cell){
 }
 
 /* Dedie au menu deroulant des dispositions (21 entrees -- trop pour des
-   boutons individuels, demande d'Olivier). Fonction SEPAREE de setupPick()
+   boutons individuels, demande d'ocj94). Fonction SEPAREE de setupPick()
    plutot que de la reutiliser telle quelle : setupPick() attend un bouton
    avec .parentElement et des .setup-opt freres a desactiver, ce qu'un
    <select> n'a pas. Meme principe que le commentaire de setupPick() pour
@@ -10294,7 +10294,7 @@ function setupPick(group, value, btn) {
   }
   /* En deux joueurs local, « qui commence » et le style IA n'ont pas de sens
      (les deux joueurs sont sur le meme ecran). En revanche, en partie EN
-     DIRECT il faut pouvoir choisir son camp -- demande d'Olivier. */
+     DIRECT il faut pouvoir choisir son camp -- demande d'ocj94. */
   if (group === 'mode') {
     const isAI = value === 'ai';
     const isLocal2p = value === 'local';
@@ -10330,7 +10330,7 @@ function setupPick(group, value, btn) {
        manuel des codes de connexion peut prendre plusieurs minutes (copier-
        coller entre deux appareils) -- une pendule qui tourne pendant ce
        temps ferait perdre au temps avant meme le premier coup. Signale par
-       Olivier. Le choix est restaure des qu'on repasse sur un autre mode. */
+       ocj94. Le choix est restaure des qu'on repasse sur un autre mode. */
     const timeCard = document.getElementById('setup-time-card');
     if (timeCard) timeCard.style.display = isRtc ? 'none' : '';
     if (isRtc) {
@@ -10358,7 +10358,7 @@ function setupPick(group, value, btn) {
   /* Indication reelle (profondeur + budget temps) sous les boutons de niveau —
      memes chiffres EXACTS que ceux que l'IA va vraiment utiliser (meme table
      AI_DIFFICULTY_CONFIG), pas une description vague inventee a part.
-     Demande d'Olivier : des niveaux plus progressifs + voir ce qui change. */
+     Demande d'ocj94 : des niveaux plus progressifs + voir ce qui change. */
   if (group === 'diff') _setupReflexionDefaut(value);
   if (group === 'style') _setupReflexionInfo();   // v2.75 : la phrase Texel depend aussi du style
 }
@@ -10456,7 +10456,7 @@ function startConfiguredGame() {
   /* Le moteur ne connait que 'ai' et 'local'. Le mode 'rtc' (partie en
      direct) est un mode local du point de vue du jeu -- aucune IA ne joue --
      mais avec un camp choisi et le panneau de connexion ouvert au
-     lancement. Demande d'Olivier : le choisir comme un adversaire, pas
+     lancement. Demande d'ocj94 : le choisir comme un adversaire, pas
      comme une action en cours de partie. */
   const _isRtc = (c.mode === 'rtc');
   step(function(){ if (typeof GameMode !== 'undefined') GameMode.set(_isRtc ? 'local' : c.mode); });
@@ -10861,13 +10861,13 @@ function toggleRadarVisibility(show) {
 /* Échelle de fausses couleurs de la carte de chaleur (façon éditeur de
    fausses couleurs) : du noir — là où le joueur joue le MOINS — au blanc,
    là où il joue le PLUS, en passant par bleu, violet, rose, orange et jaune.
-   Choix d'Olivier (palette fournie en référence). */
+   Choix d'ocj94 (palette fournie en référence). */
 /* Echelle de reference a 8 paliers : noir bleute, bleu, violet, rose,
    orange, dore, jaune, blanc — du moins joue au plus joue. Les couleurs
    intermediaires sont INTERPOLEES par heatColor(), ce qui donne une
    centaine de nuances continues a l'ecran : les 8 valeurs ci-dessous sont
    des points d'ancrage, pas les seules couleurs affichees.
-   Choix d'Olivier, revenu a cette palette apres essai d'une version a 15
+   Choix d'ocj94, revenu a cette palette apres essai d'une version a 15
    paliers jugee trop chargee. Note : la luminance monte regulierement sauf
    entre le violet et le rose, ou elle redescend legerement (0,263 -> 0,245).
    Ecart assez faible pour rester lisible ; eclaircir le rose le corrigerait. */
@@ -10885,7 +10885,7 @@ const HEATMAP_EMPTY = '#0d0d14';   // case jamais jouée
    palette devient un degrade continu, donc beaucoup plus nuance.
    Un leger adoucissement (gamma 0.6) etale le bas de l'echelle, sinon les
    cases peu jouees se retrouvaient toutes dans le meme bleu sombre des qu'une
-   seule case dominait le maximum. Demande d'Olivier : « plus de nuance ». */
+   seule case dominait le maximum. Demande d'ocj94 : « plus de nuance ». */
 function _heatHexToRgb(hex) {
   return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)];
 }
@@ -11039,7 +11039,7 @@ function renderOneHeatmapCard(title, subtitle, heat, isYou) {
    qu'un historique invente.
 
    L'etat de la partie en cours est sauvegarde puis restaure : importer ne
-   perturbe jamais une partie ouverte. Demande d'Olivier. */
+   perturbe jamais une partie ouverte. Demande d'ocj94. */
 function _importExtractTokens(text) {
   return String(text || '')
     .split('\n')
@@ -11224,7 +11224,7 @@ function renderHeatmap() {
      de couleur reelle (pas ⚫/⚪ figes) — meme raisonnement et memes
      fonctions que les bandeaux joueur (_skinDotColor/_dot) : le skin des
      billes va changer, un rond noir fixe ne representerait plus la vraie
-     couleur jouee des qu'un skin colore est actif. Signale par Olivier. */
+     couleur jouee des qu'un skin colore est actif. Signale par ocj94. */
   const blackCard = renderOneHeatmapCard(_dot(_skinDotColor('black')) + ' Mes billes en tant que joueur 1', 'Cumul de tes parties en tant que joueur 1 \u00b7 ' + scopeLabel, blackHeat, true);
   const whiteCard = renderOneHeatmapCard(_dot(_skinDotColor('white')) + ' Mes billes en tant que joueur 2', 'Cumul de tes parties en tant que joueur 2 \u00b7 ' + scopeLabel, whiteHeat, true);
 
@@ -13034,7 +13034,7 @@ window.boardRotation = 0;   // rotation de la VUE du plateau, en degrés — pro
 /* Pas de rotation, PARTAGE entre les boutons 2D (rotateBoard) et les
    boutons Y de la 3D (orbite de la camera) — une seule valeur, deux
    consommateurs, pour qu'il n'y ait jamais deux pas differents a
-   resynchroniser separement. 10° par clic, sur demande d'Olivier
+   resynchroniser separement. 10° par clic, sur demande d'ocj94
    (auparavant 11,5°) — la 2D accepte n'importe quel angle (le cadre
    hexagonal ET les cases se recalculent tous deux via hexCoord(), donc
    restent coherents entre eux a n'importe quel angle). */
@@ -13051,14 +13051,14 @@ window.BOARD_ROTATE_STEP_DEG = BOARD_ROTATE_STEP_DEG;   // rendu explicitement g
    la rotation 2D (boardRotation, degres) et l'orbite 3D (theta, radians),
    afin que changer de dimension ne produise aucun decalage visuel :
    tourner le plateau en 2D puis passer en 3D doit montrer le MEME angle,
-   et inversement. Signale par Olivier. */
+   et inversement. Signale par ocj94. */
 /* 90°, PAS 45° : axPos() place la rangee sur l'axe Z et la colonne sur l'axe
    X (voir axPos plus bas, autre bloc <script>) — a theta=0 la camera est
    alignee sur l'axe des COLONNES (aucun decalage Z), pas sur celui des
    RANGEES. Avec l'ancienne valeur (Math.PI*0.25), boardRotation=0
    produisait donc une vue 3D en coin/diagonale au lieu d'etre alignee
    comme la 2D (rangee 0 en haut, rangee 8 en bas) — exactement le
-   decalage signale par Olivier (« le plateau n'est pas aligne »).
+   decalage signale par ocj94 (« le plateau n'est pas aligne »).
    Verifie par calcul : a theta=90°, le decalage camera est purement sur Z
    (aligne avec l'axe des rangees) ; a 45°, il est diagonal (x=z). */
 const THETA_DEFAULT_3D = Math.PI * 0.5;
@@ -13096,7 +13096,7 @@ function hexCoord(row, col, ignorerRotation) {
      une reference statistique statique, pas une vue du plateau en cours de
      partie. Sans ce parametre, tourner le plateau (Y↺/Y↻, synchronise avec
      la 3D) faisait aussi tourner la carte de chaleur, ce qui n'a pas de
-     sens pour des donnees cumulees. Signale par Olivier. */
+     sens pour des donnees cumulees. Signale par ocj94. */
   if (boardRotation && !ignorerRotation) {
     const a = boardRotation * Math.PI / 180;
     const dx = x - cx, dy = y - cy;
@@ -13119,7 +13119,7 @@ function rotateBoard(deg) {
    pas de notion d'elevation, et ca les rend compatibles avec le verrou
    "vue du dessus" de la 3D — toujours actifs, jamais grises. 0°/180° pour
    coincider avec applyPovOrientation() (meme convention noirs/blancs).
-   Signale par Olivier. */
+   Signale par ocj94. */
 function setSideView(side) {
   window.boardRotation = (side === 'white') ? 180 : 0;
   if (typeof drawBoard === 'function') drawBoard();
@@ -13187,7 +13187,7 @@ const LAYOUTS = {
     // Coordonnees relues directement sur une image fournie, position par
     // position (pas de generation automatique) : 14 billes de chaque camp,
     // aucune collision, verifie avant integration. Nommee d'apres le
-    // fichier source. Corrigee une fois par Olivier apres relecture
+    // fichier source. Corrigee une fois par ocj94 apres relecture
     // precise de l'image (10 cases decalees dans le premier jet) --
     // reconverti depuis la notation Aba-Pro qu'il a fournie, pas retouche
     // a la main en interne.
@@ -13224,7 +13224,7 @@ const LAYOUTS = {
     // "Star" -- motif etoile radiant depuis le centre. Coordonnees lues
     // DIRECTEMENT depuis le champ de position brut du corpus AbalOnline
     // (a1b5c3c7d5e2e4e7e9f6g5g9h8i5 / a5b2c1c5d4e1e3e6e8f5g3g7h5i9),
-    // rendues visuellement et comparees a l'image fournie par Olivier
+    // rendues visuellement et comparees a l'image fournie par ocj94
     // AVANT integration -- correspondance exacte confirmee (troisieme
     // validation independante d'affilee, apres fujiyama et the_wall).
     // Convertie via la vraie fonction abaproToRc (jamais a la main).
@@ -13237,7 +13237,7 @@ const LAYOUTS = {
     // central, contrairement aux autres variantes artistiques qui
     // opposent le haut et le bas (fujiyama, the_wall, star), celle-ci
     // oppose la gauche et la droite. Coordonnees relues position par
-    // position sur une image fournie par Olivier, PUIS converties via
+    // position sur une image fournie par ocj94, PUIS converties via
     // la vraie fonction abaproToRc (jamais a la main) : 14 billes de
     // chaque camp, aucune collision, rendu visuel compare a l'image
     // source avant integration.
@@ -13247,7 +13247,7 @@ const LAYOUTS = {
   alliances: {
     // "Alliances" -- deux spirales imbriquees, blanc s'enroulant vers
     // noir. Coordonnees relues position par position sur une image
-    // fournie par Olivier (bandes zoomees rangee par rangee pour une
+    // fournie par ocj94 (bandes zoomees rangee par rangee pour une
     // lecture fiable), PUIS converties via abaproToRc (jamais a la
     // main), rendu visuel compare a l'image source avant integration.
     // VALIDATION INDEPENDANTE : le corpus AbalOnline contient 87 vraies
@@ -13262,7 +13262,7 @@ const LAYOUTS = {
   domination: {
     // "Domination" -- deux triangles opposes en symetrie de rotation a
     // 180 degres. Coordonnees relues position par position sur une image
-    // fournie par Olivier (bandes zoomees rangee par rangee), PUIS
+    // fournie par ocj94 (bandes zoomees rangee par rangee), PUIS
     // converties via abaproToRc (jamais a la main), rendu visuel compare
     // a l'image source avant integration.
     // VALIDATION INDEPENDANTE : le corpus AbalOnline contient 33 vraies
@@ -13282,7 +13282,7 @@ const LAYOUTS = {
     // l'identique contre le corpus (voir plus bas) -- ce n'est pas une
     // approximation, c'est une caracteristique authentique de cette
     // variante telle que jouee sur AbalOnline. Coordonnees relues
-    // position par position sur une image fournie par Olivier (bandes
+    // position par position sur une image fournie par ocj94 (bandes
     // zoomees rangee par rangee), PUIS converties via abaproToRc
     // (jamais a la main), rendu visuel compare a l'image source avant
     // integration.
@@ -13329,7 +13329,7 @@ const LAYOUTS = {
   snakes: {
     // "Snakes" -- motif distinct de "snakes_variant" malgre le nom
     // proche. Coordonnees relues position par position sur une image
-    // fournie par Olivier (bandes zoomees rangee par rangee), PUIS
+    // fournie par ocj94 (bandes zoomees rangee par rangee), PUIS
     // converties via abaproToRc (jamais a la main).
     // VALIDATION CROISEE independante : le meme projet tiers gym-abalone
     // qui a permis de valider "centrifuge" contient une entree "snakes"
@@ -13345,7 +13345,7 @@ const LAYOUTS = {
   alien: {
     // "Alien" -- deux figures compactes en symetrie de rotation a 180
     // degres. Coordonnees relues position par position sur une image
-    // fournie par Olivier (bandes zoomees rangee par rangee), PUIS
+    // fournie par ocj94 (bandes zoomees rangee par rangee), PUIS
     // converties via abaproToRc (jamais a la main), rendu visuel compare
     // a l'image source avant integration.
     // VALIDATION INDEPENDANTE : le corpus AbalOnline contient 35 vraies
@@ -13363,7 +13363,7 @@ const LAYOUTS = {
     // source. Symetrie de rotation a 180 degres, pas un simple miroir
     // haut-bas -- decouvert en cours de verification, pas suppose.
     // Source : https://onlineabalone.wordpress.com/2018/03/30/la-variante-de-mars-alitration/
-    // Coordonnees relues sur l'image fournie par Olivier, PUIS VERIFIEES
+    // Coordonnees relues sur l'image fournie par ocj94, PUIS VERIFIEES
     // en rejouant integralement une vraie partie MiGs citee dans
     // l'article (29744, MLA vs ccc) depuis cette position exacte : 122
     // demi-coups en notation Aba-Pro, tous legaux, resultat final
@@ -13378,7 +13378,7 @@ const LAYOUTS = {
     // "Pyramide" -- variante de type bloc defensif : deux pyramides de 14
     // billes face a face (Blancs au Nord-Ouest, Noirs au Sud-Est).
     // Source : onlineabalone.wordpress.com (fevrier 2018), image fournie par
-    // Olivier. Coordonnees relues rangee par rangee, PUIS converties par le
+    // ocj94. Coordonnees relues rangee par rangee, PUIS converties par le
     // moteur (coordToABAPRO), jamais a la main.
     // Symetrie CALCULEE sur les 12 symetries de l'hexagone, pas supposee :
     // une seule reflexion conserve les couleurs, d'axe g3-f4-e5-d6-c7 --
@@ -13397,7 +13397,7 @@ const LAYOUTS = {
     // "Marguerite francaise" -- quatre marguerites en trefle : deux noires
     // au Nord et au Sud, deux blanches a l'Ouest et a l'Est.
     // Source : onlineabalone.wordpress.com (janvier 2018), image fournie par
-    // Olivier. Coordonnees relues rangee par rangee, PUIS converties par le
+    // ocj94. Coordonnees relues rangee par rangee, PUIS converties par le
     // moteur (coordToABAPRO), jamais a la main.
     // Affirmations de l'article VERIFIEES PAR CALCUL, pas recopiees :
     // - trois symetries conservant les couleurs, exactement : rotation de
@@ -13422,7 +13422,7 @@ const LAYOUTS = {
     // "Korean Daisy" -- deux clusters en haut avec echange de couleur au
     // contact, deux blocs en bas en symetrie de rotation a 180 degres.
     // Coordonnees relues position par position sur une image fournie par
-    // Olivier (source abaloneonline.wordpress.com, creditee "Hyunmin
+    // ocj94 (source abaloneonline.wordpress.com, creditee "Hyunmin
     // KIM"), bandes zoomees rangee par rangee, PUIS converties via
     // abaproToRc (jamais a la main), rendu visuel compare a l'image
     // source avant integration.
@@ -13436,7 +13436,7 @@ const LAYOUTS = {
   anglattack: {
     // "Anglattack" -- quatre coins symetriques (rotation 180 degres),
     // une rangee mediane alternee, deux singletons isoles. Coordonnees
-    // relues position par position sur une image fournie par Olivier
+    // relues position par position sur une image fournie par ocj94
     // (bandes zoomees rangee par rangee), PUIS converties via
     // abaproToRc (jamais a la main), rendu visuel compare a l'image
     // source avant integration.
@@ -13521,14 +13521,14 @@ function computePlayableCells(turn, boardData) {
    degrade radial), seules les teintes changent. Exposee sur window pour
    que syncBoardTheme3D() (autre bloc <script>) puisse la reutiliser —
    memes couleurs des deux cotes, pas une seconde palette inventee.
-   Signale par Olivier. */
+   Signale par ocj94. */
 const BOARD_SURFACE_THEMES = {
   dark:   { gutterOuter:'#16181a', gutGrad:['#2a2d30','#1a1c1e'], trim:'#0a0a0b', surf:['#a8a8a8','#919191','#7c7c7c'] },
   ocean:  { gutterOuter:'#0a1826', gutGrad:['#1a3a52','#0d2436'], trim:'#040d16', surf:['#5a8aa8','#3f6a88','#254a64'] },
   marble: { gutterOuter:'#2a2a2a', gutGrad:['#3a3a3a','#242424'], trim:'#141414', surf:['#d8d4cc','#c0bab0','#a8a094'] },
   gold:   { gutterOuter:'#241a08', gutGrad:['#4a3510','#2a1c08'], trim:'#120c04', surf:['#c9a24a','#a8822e','#7a5c1c'] },
   forest: { gutterOuter:'#0e1a0e', gutGrad:['#1e3a1e','#0f200f'], trim:'#060e06', surf:['#5a8258','#436843','#2c4a2c'] },
-  /* 10 nouveaux thèmes (demande d'Olivier : "metal, pierre, marbre, verre...
+  /* 10 nouveaux thèmes (demande d'ocj94 : "metal, pierre, marbre, verre...
      une dixaine, tous differents"). Même structure EXACTE que les 5
      ci-dessus (gutterOuter/gutGrad/trim/surf) — aucun nouveau champ, aucun
      traitement spécial requis côté drawBoard()/3D, juste de nouvelles
@@ -13574,9 +13574,9 @@ const BOARD_SURFACE_THEMES = {
   marble_white: { gutterOuter:'#2a2a2a', gutGrad:['#4a4a4a','#2a2a2a'], trim:'#b0b0b0', surf:['#3a3a3a','#5a5a5a','#2a2a2a'] },
   pastel:       { gutterOuter:'#1a1a20', gutGrad:['#2a2a3a','#1a1a20'], trim:'#d0b0d0', surf:['#1a1a20','#2a2a3a','#151520'] },
   /* Volcanique : PREMIER theme avec variante jour/nuit (les 5 autres n'en
-     ont pas encore — "on fera les autres apres", demande d'Olivier).
+     ont pas encore — "on fera les autres apres", demande d'ocj94).
      Couleurs RE-ECHANTILLONNEES directement sur la photo de reference
-     fournie par Olivier (roche noire craquelee, veines de lave) — pas
+     fournie par ocj94 (roche noire craquelee, veines de lave) — pas
      choisies a l'oeil. La premiere version etait trop chaude/brune sur la
      roche ; la vraie photo montre un gris-noir neutre, avec les veines
      nettement plus discretes le jour (ambre terne) que la nuit (rouge-
@@ -13593,7 +13593,7 @@ window.BOARD_SURFACE_THEMES = BOARD_SURFACE_THEMES;
    simple ; ignore silencieusement pour un theme qui n'a pas encore de
    variante nuit (repli sur day, ou sur le theme plat tel quel) — jamais
    d'erreur si on bascule le mode nuit sur un theme qui ne le gere pas
-   encore. Signale par Olivier. */
+   encore. Signale par ocj94. */
 function resolveThemeColors(nom, estNuit) {
   const t = BOARD_SURFACE_THEMES[nom] || BOARD_SURFACE_THEMES.dark;
   if (t.day || t.night) return (estNuit && t.night) ? t.night : (t.day || t.night);
@@ -14016,7 +14016,7 @@ window.THEME_RECIPES = {
    texture est donc peinte UNE SEULE FOIS sur un canvas hors-ecran, mis en
    cache par (theme, jour/nuit), puis simplement collee (drawImage) a
    chaque redessin — aussi rapide qu'un degrade, motif stable. Signale par
-   Olivier — "je veux ca pour chaque theme". */
+   ocj94 — "je veux ca pour chaque theme". */
 const themeTextures2D = {};
 function peindreTextureTheme2D(nom, night, t) {
   const cv = document.createElement('canvas');
@@ -14537,7 +14537,7 @@ let gutterMarbles = [];  // [{x, y, color}]
    'bottom' = elles se rangent en bas de la rigole (« circuit rigole »)
    Les deux ont leurs partisans : la premiere montre par ou l'adversaire a
    perce, la seconde se lit d'un coup d'oeil. Demande de Saab, arbitree par
-   Olivier en gardant les deux. */
+   ocj94 en gardant les deux. */
 let gutterAlign = (function(){
   try { return localStorage.getItem('abalone_gutter_align') === 'bottom' ? 'bottom' : 'drop'; }
   catch(e){ return 'drop'; }
@@ -14961,7 +14961,7 @@ let _audioCtx = null;
 let soundEnabled = true;
 try { soundEnabled = localStorage.getItem('abalone_sound') !== '0'; } catch(e) {}
 
-/* Son et vibration, GRANULAIRES PAR VUE (1D / 2D / 3D) — demande d'Olivier.
+/* Son et vibration, GRANULAIRES PAR VUE (1D / 2D / 3D) — demande d'ocj94.
    Par defaut : la 1D est entierement silencieuse (aucune vibration non
    plus — coherente avec une vue texte pensee pour la lecture concentree),
    la 2D garde le son mais pas de vibration (le jeu "normal"), la 3D active
@@ -15099,7 +15099,7 @@ function playSfx(name){
 }
 
 /* Ces 4 fonctions correspondent aux micro-interactions DU PLATEAU — celles
-   dont Olivier a demande qu'elles suivent la vue active (1D/2D/3D), pas les
+   dont ocj94 a demande qu'elles suivent la vue active (1D/2D/3D), pas les
    evenements globaux du jeu (partie gagnee, badge debloque...) qui restent
    uniquement sous le controle du son general (soundEnabled). */
 function soundMove()    { if (_viewAllowsSound()) playSfx('move'); if (_viewAllowsVibration()) vibrate(20); }  // déplacement : clic doux + buzz (3D)
@@ -15109,7 +15109,7 @@ function soundSelect()  { if (_viewAllowsSound()) playTone(440, 0.05, 'sine', 0.
 /* ── Sons synthétisés supplémentaires ─────────────────────────────────
    Entièrement générés par oscillateur (Web Audio) : aucun échantillon, donc
    aucun poids ajouté au fichier et aucune ressource tierce. Chaque son est
-   une courte séquence de notes jouées via playTone. Idée d'Olivier. */
+   une courte séquence de notes jouées via playTone. Idée d'ocj94. */
 function playSequence(notes) {
   // notes : [{f:fréquence, t:délai ms, d:durée s, w:forme, v:volume, to:glissando}]
   if (!soundEnabled) return;
@@ -15300,7 +15300,7 @@ function getHexAt(px, py) {
    Au lancement d'une partie, une pluie de billes noires et blanches tombe
    sur un canvas plein écran (avec gravité, rotation et rebond léger), puis
    l'overlay se retire en fondu et la partie commence. 100% canvas, aucune
-   dépendance. Idée d'Olivier. Respecte prefers-reduced-motion (accessibilité)
+   dépendance. Idée d'ocj94. Respecte prefers-reduced-motion (accessibilité)
    et ne se déclenche qu'une fois par entrée sur la page de jeu. */
 let _marbleRainActive = false;
 // Point d'entrée « Jouer » : joue l'animation de pluie de billes puis ouvre
@@ -15506,7 +15506,7 @@ function _emitAbaEvent(name, detail){
    lus au moment de l'affichage, pas caches. MoveCount.get() est un compteur
    GLOBAL (toutes couleurs confondues) dans le moteur — le decompte par
    joueur est donc tenu ICI, a partir du flux d'evenements, puisque rien
-   d'equivalent n'existe deja cote moteur. Demande d'Olivier. */
+   d'equivalent n'existe deja cote moteur. Demande d'ocj94. */
 let _commentatorOn = false;
 let _commentatorMoves = { black: 0, white: 0 };
 function toggleCommentatorMode() {
@@ -15590,7 +15590,7 @@ document.addEventListener('abalassembly:positionChanged', function(){
    facon fiable que dans ce meme bloc. window._isProjector et
    window.boardRotation, eux, sont deja des proprietes explicites de
    window (voir plus haut) et restent lisibles depuis n'importe ou.
-   Signale par Olivier. */
+   Signale par ocj94. */
 let _projectorChannel = null;
 function _getProjectorChannel() {
   if (_projectorChannel) return _projectorChannel;
@@ -15683,7 +15683,7 @@ function resetGame() {
   // _timeCtlBase===0 (cadence Libre) est un "faux" en JS : "_timeCtlBase || 600"
   // retombait donc sur 600s (10:00) meme en Libre, ce que le panneau
   // Commentateur affichait tel quel avant sa propre verification. Comparaison
-  // explicite pour que 0 reste 0. Signale par Olivier (capture d'ecran :
+  // explicite pour que 0 reste 0. Signale par ocj94 (capture d'ecran :
   // "Temps restant 10:00" affiche pour les deux joueurs en cadence Libre).
   myTime = (_timeCtlBase > 0) ? _timeCtlBase : 0;     // Chrono : part de 0 et monte
   oppTime = (_timeCtlBase > 0) ? _timeCtlBase : 0;
@@ -15729,7 +15729,7 @@ function resetGame() {
   _emitAbaEvent('positionChanged', { layout: (typeof currentLayout !== 'undefined') ? currentLayout : null });
 }
 
-/* Annulation de partie pour inactivité — idée d'Olivier : si aucun coup n'est
+/* Annulation de partie pour inactivité — idée d'ocj94 : si aucun coup n'est
    joué durant la première minute, la partie est annulée (aucun ELO retiré,
    aucune stat comptée, puisque MoveCount.get() vaut toujours 0). Le minuteur est
    armé à chaque nouvelle partie et désarmé dès le premier coup. */
@@ -15794,7 +15794,7 @@ function tickTimers() {
    au temps. Exclusions : tournoi (sa propre pendule 10+5), puzzles, duels de
    bots, replay. */
 let _timeCtlBase=0, _timeCtlInc=0;   // 0 = pendule informative
-/* Modes de pendule (sur le modele de KAAH, demande d'Olivier). Code de cadence :
+/* Modes de pendule (sur le modele de KAAH, demande d'ocj94). Code de cadence :
      ''         Libre : aucune pendule (inchange)
      'C'        Chrono : compte le temps de chaque joueur, sans limite
      '300+3'    Bonus : 300 s, +3 s par coup -- les anciennes cadences, inchangees
@@ -15873,7 +15873,7 @@ function _dot(color) {
    Joueur 1 = O, Joueur 2 = @, FIXE — pas suivant humanColor. « Joueur 1 »
    designe un siege (la barre du bas, vous), pas une couleur ; le symbole
    qui l'accompagne suit desormais cette meme logique plutot que la couleur
-   reellement jouee. Signale par Olivier. */
+   reellement jouee. Signale par ocj94. */
 function _letter(ch) {
   const color = ch === 'O' ? _skinDotColor('black') : _skinDotColor('white');
   /* Taille mesuree sur le VRAI plateau (getComputedStyle de #board-1d-text,
@@ -15894,7 +15894,7 @@ function _letter(ch) {
    de jeu, unifiees en une seule. Joueur 1 = vous (la barre du bas), Joueur
    2 = l'adversaire (la barre du haut), quel que soit le mode. La pastille
    dit la couleur reelle ; le texte n'a plus besoin de repeter "(noirs)" /
-   "(blancs)". Signale par Olivier. */
+   "(blancs)". Signale par ocj94. */
 function _clockNames(){
   const mine = monCamp();
   const opp = mine === 'black' ? 'white' : 'black';
@@ -15917,7 +15917,7 @@ function _clockPaintFree(){
   /* Le trait, lui, reste indispensable : sans horloge qui tourne, le lisere
      dore est le seul repere disant a qui de jouer. On garde donc exactement
      la meme mise en evidence que les cadences chronometrees, simplement sans
-     chiffres. Demande d'Olivier.
+     chiffres. Demande d'ocj94.
      Aucun trait n'est marque hors partie vivante : replay, puzzle, match de
      tournoi ou partie terminee — marquer un camp y serait trompeur. */
   const vivante = !((typeof GameOver !== 'undefined' && GameOver.get()) || _clockExempt());
@@ -16176,7 +16176,7 @@ function updateStatus() {
   document.getElementById('board-msg').textContent = msg;
   _majCarteJoueur();
 }
-/* Carte du joueur (panneau de gauche, ordinateur) : avant, « Vous (Olivier) » et « Vos billes: Noires »
+/* Carte du joueur (panneau de gauche, ordinateur) : avant, « Vous (ocj94) » et « Vos billes: Noires »
    etaient ecrits en dur -- le prenom du createur du site pour tout le monde, et les Noires meme quand on
    joue les Blancs. Maintenant : le pseudo s'il y en a un, et la couleur des billes reellement tenues. */
 function _majCarteJoueur() {
@@ -16623,7 +16623,7 @@ const akey = (r,c) => r + ',' + c;
    plateau, sans distinction supplémentaire de réflexion (une ligne lue à
    l'envers est déjà couverte par la direction opposée, présente dans
    AX_DIRS). Le nom et la description de chaque motif sont fournis par
-   Olivier — ce module se contente de les détecter et de les compter dans
+   ocj94 — ce module se contente de les détecter et de les compter dans
    les vraies parties, jamais de juger ou d'inventer une valeur stratégique.
 ═══════════════════════════════════════════ */
 const MOTIFS_TACTIQUES = {
@@ -17144,7 +17144,7 @@ function setLayout(name, btn) {
    h1: center distance | h2: cohesion | h3: push threats
 ═══════════════════════════════════════════ */
 let aiDifficulty = '3';
-/* Reflexion max de l'IA (demande d'Olivier, comme dans KAAH) : null = le temps du
+/* Reflexion max de l'IA (demande d'ocj94, comme dans KAAH) : null = le temps du
    niveau ; '' = sans limite (l'IA va jusqu'au bout de la profondeur de son
    niveau) ; un nombre = ce nombre de secondes AU PLUS -- elle joue alors le
    meilleur coup trouve. Reglee a l'ecran de configuration ; hors tournois. */
@@ -17154,7 +17154,7 @@ let aiReflexionMax = null;
    sur l'écran de configuration (setup-diff-info). Une seule source de verité :
    changer un chiffre ici le change partout, jamais deux tables qui pourraient
    diverger et afficher un niveau différent de ce qui est réellement joué. */
-/* Niveaux NUMEROTES de 1 a 10 (demande d'Olivier : des chiffres plutot que des
+/* Niveaux NUMEROTES de 1 a 10 (demande d'ocj94 : des chiffres plutot que des
    noms, et des niveaux intermediaires). Les 6 anciens niveaux sont conserves A
    L'IDENTIQUE : 1 = ancien Facile, 3 = Moyen, 4 = Avance, 5 = Expert, 7 = Maitre,
    10 = Minimax. Les niveaux 2, 6, 8 et 9 s'intercalent entre eux. La recherche
@@ -18366,7 +18366,7 @@ function calculerProfilDecision(color) {
    le bon coup plus souvent quand c'est facile ou quand c'est dispute. */
 const SEUIL_ECART_DECISION_DISPUTEE = 100; // points d'evaluateBoard -- choix documente, pas calibre
 /* ═══════════════════════════════════════════
-   STATISTIQUES D'EJECTION — demande d'Olivier suite a une revue externe.
+   STATISTIQUES D'EJECTION — demande d'ocj94 suite a une revue externe.
    Reutilise exactement la meme methode que computeDecisionProfile()
    (gameCodeParse + rejeu isole, sauvegarde/restauration systematique de
    l'etat) : chaque statistique ci-dessous precise sa source de donnee
@@ -19192,7 +19192,7 @@ function undoMove(undo){
 }
 const EVAL_CENTER={q:0,r:0};
 function axHexDist(a,b){return(Math.abs(a.q-b.q)+Math.abs(a.q+a.r-b.q-b.r)+Math.abs(a.r-b.r))/2;}
-/* ── Criteres de KAAH (demande d'Olivier : « les integrer au moteur, tests au
+/* ── Criteres de KAAH (demande d'ocj94 : « les integrer au moteur, tests au
    Labo »). Reimplementes ici d'apres leurs DEFINITIONS (le code de KAAH, sans
    licence, n'est pas recopie) :
      scGain / scPerte : la k-ieme ejection vaut k-1 fois le poids de plus ;
@@ -19287,7 +19287,7 @@ function evalDetail(color){
     bordM:-myEdge*EVAL_W.edge,bordA:enEdge*EVAL_W.edge,sumito:K.sumito,menace:K.menace,fourch:K.fourch,piege:K.piege,
     mob:(myMob-enMob)*EVAL_W.mob,iso:(enIso-myIso)*EVAL_W.iso,dng:(enDng-myDng)*EVAL_W.dng,chaine:(myChain-enChain)*EVAL_W.chain,fort:(myFort-enFort)*EVAL_W.fortress};
 }
-/* Tableau « Reflexion IA » (demande d'Olivier, sur le modele de KAAH) : evalDetail
+/* Tableau « Reflexion IA » (demande d'ocj94, sur le modele de KAAH) : evalDetail
    est une copie EXACTE de evaluateBoard ci-dessus, qui renvoie chaque critere
    pondere au lieu du total (leur somme = evaluateBoard). La suite prevue suit les
    meilleurs coups gardes dans la table de transposition ; la cle d'une position
@@ -20303,7 +20303,7 @@ function requestAIMovePooled(params, onDone) {
    ci-dessus, pas cette fonction) -- conserve comme piste documentee,
    testee, mais pas deployee, plutot que supprimee. Voici pourquoi.
 
-   Constat de depart (benchmark moteur, mesure par Olivier sur son
+   Constat de depart (benchmark moteur, mesure par ocj94 sur son
    appareil) : la division fixe (requestAIMovePooled) n'atteint que 15-18%
    de l'efficacite theorique a profondeur 4-6. Hypothese testee : un
    worker rapide reste les bras croises pendant qu'un autre rame sur son
@@ -21440,7 +21440,7 @@ const AI_WEIGHT_PRESETS = {
   // (test « Criteres de KAAH », page Labo).
   kaah:      { center:6, cohesion:4, edge:8,  mob:2, iso:18, dng:14, chain:10, fortress:20,
                scGain:200, scPerte:200, cases:1, compac:20, sumito:20, menace:120, fourch:60, piege:40, label:'KAAH (expérimental)' },
-  /* v2.75 (choix d'Olivier, « solution 2 ») : les poids trouves par la methode Texel du Labo, avec ses
+  /* v2.75 (choix d'ocj94, « solution 2 ») : les poids trouves par la methode Texel du Labo, avec ses
      reglages par defaut -- 15 036 positions calmes de vraies parties pour regler, 3 819 pour verifier
      (refaire le calcul : node tools/texel-poids.js -- memes positions, meme methode que le Labo).
      Ils devinent mieux le gagnant (73,1 % -> 75,8 % des positions de controle) et, surtout, gagnent
@@ -21794,21 +21794,21 @@ const PARTIES_REFERENCE = [
    '1.h6g6 f8e7 2.h7g6 e7d6 3.g5f5 d6c5 4.g6f5 d7e8c7 5.f5e4 e2d2 6.b3b2 d2c2 7.e5d4 e3f3d2 8.g7f6 e2d2 9.e5d4 a3b3 10.d4c3 f4e3 11.a1b2 c6c7b5 12.e4d4 a4b5 13.e6f6e5 e3e2 14.f5e5 e2d2 15.e5d5 d2c2 16.b4b5']
   // KAAH, l'application de Saab (saabalone.github.io/KAAH_Test), 28/09/2026, partie
   // amicale 2609281513. Noirs : l'IA de KAAH, niveau 3, style agressif, 5 s de
-  // reflexion ('Machine_N3_Agressif'). Blancs : Olivier ('Joueur_2' dans KAAH).
+  // reflexion ('Machine_N3_Agressif'). Blancs : ocj94 ('Joueur_2' dans KAAH).
   // Fournie dans DEUX notations, Aba-Pro et Nacre, rejouees separement : 204
   // demi-coups chacune, les 204 positions identiques, une seule lecture Aba-Pro
   // possible, 6e ejection blanche au dernier demi-coup (Blancs 6 a 5).
   ,['2026-09-28', 'IA de KAAH (niveau 3, agressive)', 'ocj94', 'ocj94', 'belgian', 'KAAH, l\u2019application de Saab',
    '1.i9h8 a5b5 2.i8h7 a4b4 3.h7g6 c6c5 4.a1b2 b5c5 5.g8g7 g3g4f3 6.c1c2 b6c6 7.c2c3 c6d6 8.a2b3 f3f4e3 9.b3c4 e3e4 10.g5g6 g9f8 11.b2c3c2 e4e5 12.e8d7 c7c6 13.c4c5 c7d8 14.h8g7 e7e6 15.g8g7 d8e8 16.h9h8 e8f9 17.e4f4 b4c4 18.f4g5 h4h5 19.g7h7 f9f8 20.b1c2 f8f7 21.f3e3 f7f6 22.f3e3 d6e7 23.e3d3 a3b4 24.d7d6 e7e6 25.d6c5 a3a4 26.b3b4 i5h4 27.h8g7 h4h5 28.c6b5 e4d4 29.a4b5 b4c4 30.c6d6 h5h6 31.h9g8 h8i8 32.g7h8 f6e6g7 33.g8h8 f7g7 34.i8h8 i6h6 35.g8f7 h6g6 36.f7e6 f4e4 37.d3c3 e4d4 38.c3b3 d4c4 39.h8g8 a4b4 40.a3b3 b4c4 41.g5f4 g6g5 42.e3f4 h7g6 43.d6d5 g7f6 44.b3c3 f6e5 45.a1b1 h6g6 46.g5f4 e5e4 47.b5c5 d2e3 48.g8f7 f6g7 49.f7f6 g7g6 50.c5d5 g6g5 51.g3f3 i7i6 52.d5e5 e3f4 53.e2f3d2 i5h5 54.b1c2 h5g5 55.c5d6 f4f5 56.c2d3 c4d4 57.h6h5 g6h7h6 58.f5g6 g4g5 59.f4g4 i6i7 60.g4f4 g5g6 61.g8h8 h6g6 62.h5h6 i7h7 63.h8g8 i8h7 64.d6c6c5 g7g6 65.g8g7 g5g6 66.b5c5 f6f5 67.h6h5 c3d4 68.c5c4 h7g7 69.f3e3 e6f7 70.h9h8 f7f8 71.e7e6 f8g8 72.i8i7 e5f5 73.i5h4 g6h6 74.h4g4 g5h6 75.d5e5 i7h6 76.g4f3 h5g5 77.d2c2 g5f5 78.c5d6 e4e5 79.e7f7 h6h7 80.e3e4 e6e5 81.d6e6 h7g7h6 82.c2c3 h8g8h7 83.f3g4 f4e4 84.b4c5 e4e5 85.f7f6 d5e5 86.c5d5 c4d4 87.e7f7 d4e4 88.h4h5 h7g7 89.b2c3b3 g7g8 90.d3c3 g6h7 91.e7d6 h7h6 92.h4g3 e5e4 93.g3f3 e4e3 94.e1f2 e2d2 95.c5d5 h6g6 96.c3c4 h5g4 97.f2e2 f4e3 98.b3c3 e3d2 99.c5c4 c1d2 100.c2d3 g6f5 101.d6d5 e4e3 102.d5d4 e3e2']
   // KAAH, 01/10/2026, partie amicale 2610010832. Noirs : KAI++ de KAAH, niveau 8,
-  // profil 'agressif v2', 30 s de reflexion ('KAI++8_Agr_30s_v2'). Blancs : Olivier.
+  // profil 'agressif v2', 30 s de reflexion ('KAI++8_Agr_30s_v2'). Blancs : ocj94.
   // Trois sources independantes : notation Aba-Pro (84 demi-coups, une seule lecture),
   // notation Nacre rejouee separement (84 positions identiques), et code de la
   // position FINALE affiche par KAAH -- identique case par case. Blancs 6 a 3.
   ,['2026-10-01', 'KAI++ de KAAH (niveau 8, agressif v2)', 'ocj94', 'ocj94', 'belgian', 'KAAH, l\u2019application de Saab',
    '1.i9h8 a5b5 2.i8h7 a4b4 3.h7g6 i5h4 4.h8g7 b4c4 5.a1b1 g3g5f2 6.c1c3d1 b5c5 7.f5g5 i5h4 8.g6g5 c5d5 9.g5g4 i6h6 10.d1e2 b6c6 11.d2e2 f4f3 12.a2b2 f2f3 13.b3c3 c6d6 14.b1d3c1 d5e5 15.e2d2 f3f4 16.g7f7 d6d5 17.h5g4 f6e5 18.b2b1 d4e4 19.f3e3 e5e4 20.d2d3 h6g6 21.d3d4 e3d3 22.d5d4 d6d5 23.d4d3 h4h5 24.d3d2 c3c4d3 25.d2e3 f5e4 26.b1a1b2 g5f4 27.d1e2 h5g5 28.d2e2 e4f5 29.f2e1 f6f5 30.e1e2 f5f4 31.g3g4h4 f2f3 32.c1d2 f5g5 33.i5i6 e4f4 34.i6h6 f4g4 35.d2e3 d4d5e4 36.h6h7 e6e5 37.e1e2d1 e4e5d4 38.d1e1 h5g4 39.b2b3 d4d3 40.d1c1 e3d2 41.h7h8 c1d2 42.f4f5 e3e2']
   // KAAH, 02/10/2026, partie amicale 2610021154. Noirs : KAI++ de KAAH, niveau 8,
-  // profil 'Normal', 60 s ('KAI++8_Nor_60s'). Blancs : Olivier. Trois sources
+  // profil 'Normal', 60 s ('KAI++8_Nor_60s'). Blancs : ocj94. Trois sources
   // independantes : Aba-Pro (216 demi-coups, une seule lecture), Nacre (216
   // positions identiques), code de la position FINALE affiche par KAAH --
   // identique case par case. Blancs 6 a 5. (L'en-tete KAAH '-0-3tr18' ne
@@ -21816,14 +21816,14 @@ const PARTIES_REFERENCE = [
   ,['2026-10-02', 'KAI++ de KAAH (niveau 8, normal, 60 s)', 'ocj94', 'ocj94', 'belgian', 'KAAH, l\u2019application de Saab',
    '1.i9h8 a5b5 2.i8h7 a4b4 3.a1b2 b5c5 4.h7g6 c6c5 5.c1c2d2 i5h4 6.d2d3 g3g5f2 7.h9g8 f2f4e2 8.g8g7 i6h5 9.f5g5 e2e4f3 10.g7g6 g3f3 11.f6g6 d6e6 12.g6h6 b4c4 13.i6h6 c5c4 14.h6h5 c2d2 15.g5h5 d2e3 16.h5g4 f5f4 17.h4i5h5 e5e6f5 18.h8g7 e2e3 19.f2e2 b6c6 20.e5d5e6 c6c5 21.e6d6e5 c5d6 22.b1b2 e3e4 23.e2e3 e4f4 24.h4h5 e5e4 25.f7g8 e4f5 26.d3e3 f5f4 27.f2e2 c3d4 28.e2e3 g3f3 29.a2b2 f4g5 30.b2c3 f6g6 31.b3c3 f3f4 32.i7h7 i6h6 33.f7e6 d6e7 34.e6d5 h6g6 35.d5c4 f6f5 36.h5h6 e7e6 37.a2b3 g4g5 38.g8g9f7 g3f3 39.d3e3 e6e5 40.e1e2d1 f5g6 41.i8h8 f4g5 42.d1d2 g5h6 43.f3f4 g3g4 44.b3c3 g7g6 45.c3d3 g3h4 46.f3f4 g6f6 47.h8g7 h7g6 48.f7f8e6 g6f6 49.b4c5 e6e5 50.e2f3 g4g5 51.c2c3 d4e4 52.d2d3 g5g6 53.g8f7 g7f6 54.g4g5 h6g6 55.f3g4 e3f4 56.h6h5 g6g5 57.g3f3 i7h6 58.f7e7 e6f6 59.b2b3 g6h7 60.b3c4 h4g3 61.d7e8 d4e5 62.d3d4 h6g5 63.h5h6 g7g6 64.h6h5 g6h6 65.d6e6 h7h6 66.f6e6 g6f6 67.d6e6 h6h5 68.e7e8d6 g5f4 69.e6f6 d2d3 70.f5g5 d3e4 71.f6g7 e4f5 72.c3d4 f6f5 73.f2e2 h4g4 74.e2d2 e3e4 75.c5c4 f3f4 76.d6d7e7 f4e3 77.c4d4 h5h6 78.e7e8f7 h7g6 79.c3d3 h6g6 80.f7e7 e6e5 81.e2d2 f6e5 82.c3c4 f4e4 83.h8g7 g6f5 84.b1c2b2 e4d4 85.a4b5 f3e3 86.e7f8e6 g3g4f3 87.b5c5 f4e3 88.d6c5 e3d2 89.c5b4 f5e5 90.a3b4 e5d5 91.d6e6 f3e3 92.b3b4 d5c5 93.a5a4 d2d3 94.g7f6 e3d3 95.f7f6 c1c2 96.e6e5 d3d2 97.g6f5 d2c2 98.f5e4 d5d4 99.b6c6 b5c5 100.e5f5 d5c4 101.d2e3 a2b3 102.c2d2 c3c4 103.c7d8 c5c6d6 104.d8e8 b1b2 105.a4b5 b4c5 106.c6b5 b2b3 107.a4b5 c4c5 108.g5f5 c5c6']
   // KAAH, 05/10/2026, partie amicale 2610051911. Noirs : KAI++ de KAAH, niveau 8,
-  // profil 'agressif v4', 60 s ('KAI++8_Agr_60s_v4'). Blancs : Olivier. Trois
+  // profil 'agressif v4', 60 s ('KAI++8_Agr_60s_v4'). Blancs : ocj94. Trois
   // sources independantes : Aba-Pro (66 demi-coups, une seule lecture), Nacre (66
   // positions identiques), codes de depart et de fin affiches par KAAH --
   // identiques au caractere pres au code calcule par Abalassembly. Blancs 6 a 3.
   ,['2026-10-05', 'KAI++ de KAAH (niveau 8, agressif v4, 60 s)', 'ocj94', 'ocj94', 'belgian', 'KAAH, l\u2019application de Saab',
    '1.a1b2 i5h5 2.a2b3 i6h6 3.b3c4 a5b6 4.b2c3 c5c7d6 5.b1c2 d6d8e6 6.c2c3 e6e8f6 7.i9h9 a4b5 8.e5d5 b6c6 9.d5c5 h6g6 10.d4c4 h5g5 11.c4b4 d6c6e7 12.i8i7 f5g6 13.h9h8 e5f5 14.a5a4 e6f7 15.g9h9 d7e8 16.i9h8 e8f8 17.f6g7 e5e4 18.i7h7 e4f5 19.f7g7 i7h6 20.g7h8 h4g4 21.h7g7 d7e7 22.h8g7 e7f7 23.h7h8 f7g8 24.f6e5 f4f5 25.b5c5 g4h5 26.a3b4 e4f5 27.b4c5 g6h7 28.d6e7e6 h7g7 29.e7e6 h6g6 30.e4d4 i8h7 31.i9i8 g6h7 32.e6e5 f6g7 33.c3d4 g7h8']
   // KAAH, 08/10/2026, partie amicale 2610080332. Noirs : KAI++ de KAAH, niveau 8,
-  // profil 'Normal' v4el10, 60 s ('KAI++8_Nor_60s_v4el10'). Blancs : Olivier. Trois
+  // profil 'Normal' v4el10, 60 s ('KAI++8_Nor_60s_v4el10'). Blancs : ocj94. Trois
   // sources independantes : Aba-Pro (172 demi-coups, une seule lecture), Nacre (172
   // positions identiques), codes affiches par KAAH apres le 1er coup et en fin de
   // partie -- identiques au caractere pres. Blancs 6 a 2. (En-tete KAAH '-1-2tr36
@@ -21831,7 +21831,7 @@ const PARTIES_REFERENCE = [
   ,['2026-10-08', 'KAI++ de KAAH (niveau 8, normal v4el10, 60 s)', 'ocj94', 'ocj94', 'belgian', 'KAAH, l\u2019application de Saab',
    '1.a1b2 i5h5 2.a2b3 i6h6 3.b3c4 a5b6 4.b2c3 h6g6 5.i9h9 c5c7d6 6.g7g9f7 d6d8e6 7.c2c3 a4b5 8.c3c4 c7d7 9.e5d5 a5a4 10.d4d5 d7e7 11.f8f9g8 a4b4 12.d6c6 b4c4 13.b6c6 c4d4 14.i8i9 e8e7 15.b1b2 h4h5 16.h9h8 e4f5 17.c6c5 e7f8 18.i8h8 e8e7 19.d6d5 d3e4 20.d4c4 e4d4 21.f4e3 e6f7 22.b2b3 f7g8 23.g9f8 d6e6 24.b3c4 f5f4 25.f8e8 g4f4 26.b5c5 f4e4 27.e6d5 g8f7 28.e7e8d6 g5g6 29.a4b5 b3c3 30.c5c4 c2d3 31.d7d6 g6g7 32.c4d4 d2e2 33.d6d5 f4g5 34.b4b5c4 d2e2 35.g9f8 e2f3 36.c3d3 g3g4 37.e3f4 g4g5 38.d4e4 h4i5 39.f4f3 f7f6 40.f3g4 f4g5 41.g4h5g3 i5h5 42.f2h4e2 i6i5 43.d3d4 h9g8 44.e4e5 h6h7 45.h9g9 g6f6 46.i7h6 g7h8 47.f8g9e8 g8f7 48.c4c3 e7e6 49.e2f3 i6i7 50.c5d6b5 i9h9 51.e4d4e3 h7h9g6 52.g4h5g3 i5h5 53.h4g3 h5f5g4 54.d3d2 g4g5 55.d2e3c2 i7h7 56.h6h5 h7g6 57.f2f3e1 g7g6 58.g3f2 e6e5 59.e2d2 g6f5 60.c2c3 e5e4 61.e1d1 g5f4 62.d1c1 f4e3 63.f2g3 c1d2 64.c3c4 d3e3 65.f9e8 e3f3 66.b1a1b2 g8f7 67.h5h6 e4e5 68.c5d6 e2d2e3 69.d7d6 f5e5 70.d6d7 f3f4 71.c5b5b4 g4f4 72.h6h7 g3f3 73.d7d6 f3e3 74.b2b3 d3c2 75.d6c5 f5e5 76.a5a4 e6f7d6 77.a3b3 f6e5 78.b3c4 d6c5 79.a3a4 d3d4 80.b5c6b6 e6d5 81.e8d7 e4e5 82.a2b2 d2f4d3 83.a5b6 e5d4 84.a4a5 f5e4 85.b1c1 c4c3 86.b6c6 c3b2']
   // KAAH, 22/10/2026, partie amicale 2610220641. Noirs : KAI++ de KAAH, niveau 8,
-  // profil 'Normal' v5El10, 60 s ('KAI++8_Nor_60s_v5El10'). Blancs : Olivier. Trois
+  // profil 'Normal' v5El10, 60 s ('KAI++8_Nor_60s_v5El10'). Blancs : ocj94. Trois
   // sources independantes : Aba-Pro (116 demi-coups, une seule lecture), Nacre (116
   // positions identiques), et cinq codes affiches par KAAH (depart, apres 26, 55 et
   // 82 demi-coups, fin) -- identiques au caractere pres au code calcule par
@@ -22333,7 +22333,7 @@ function psConvertirSequence(coups){
    tournoi. 90 se rejouent coup par coup ; 3 ont ete abandonnees avant le
    premier coup (seconde partie de la liste, coups vides) : rien a rejouer,
    mais leur resultat est celui enregistre par le serveur, et elles comptent
-   dans les statistiques du corpus -- choix d'Olivier, "toutes les parties".
+   dans les statistiques du corpus -- choix d'ocj94, "toutes les parties".
    Publiees avec l'accord de
    Vincent. Coups deja convertis en Aba-Pro et verifies un a un : legaux pour
    le moteur d'Abalassembly, positions identiques a PlayStrategy sur les 7 705
@@ -23291,7 +23291,7 @@ function puzzleQuit(){
 
 // ── 🧪 LABO D'AUTO-AMÉLIORATION RÉCURSIVE ──
 // De VRAIS duels moteur contre moteur, dans des fils de calcul dedies (plusieurs a la fois).
-// v4 (demande d'Olivier : « ameliorer le Labo » -- verdicts fiables, plus rapide, criteres de KAAH) :
+// v4 (demande d'ocj94 : « ameliorer le Labo » -- verdicts fiables, plus rapide, criteres de KAAH) :
 //  - PAIRES d'ouvertures : chaque ouverture tiree au sort est jouee deux fois, couleurs
 //    inversees, et le verdict compte des PAIRES (0, ½, 1, 1½ ou 2 points) -- l'avantage
 //    qu'une ouverture donne a une couleur s'annule dans la paire ;
@@ -23320,7 +23320,7 @@ function _labComplet(w){
   LAB_CLES_BASE.concat(LAB_CLES_KAAH).forEach(function(k){ const v=w?w[k]:undefined; o[k]=(typeof v==='number' && isFinite(v) && v>=0) ? v : LAB_ORIGINE[k]; });
   return o;
 }
-/* v2.76 (demande d'Olivier : « faire partir le Labo des poids Texel ») : depuis la v2.75, l'IA joue
+/* v2.76 (demande d'ocj94 : « faire partir le Labo des poids Texel ») : depuis la v2.75, l'IA joue
    avec les poids Texel a partir du niveau 4. Le Labo part donc d'eux (etat v6, base « texel ») : ce
    qu'il adopte les remplace a ces niveaux (preset « labo », voir _aiPoidsTexel), et ses bilans
    mesurent le champion contre ce point de depart. Les niveaux 1 a 3 gardent les poids d'origine. */
@@ -24443,7 +24443,7 @@ function closeLabReplay(){
 }
 
 /* ═══ TEST AU LABO : LES CRITERES DE KAAH RENDENT-ILS L'IA PLUS FORTE ? ═══
-   Demande d'Olivier (« les integrer au moteur, tests au Labo »). Duels moteur contre
+   Demande d'ocj94 (« les integrer au moteur, tests au Labo »). Duels moteur contre
    moteur (le meme duelGame que le Labo, sur ses fils de calcul -- jamais en meme temps
    que lui) : « IA actuelle + criteres de KAAH » contre « IA actuelle seule ».
    v4 : par PAIRES sur la meme ouverture (la version avec KAAH joue Noirs puis Blancs),
@@ -24733,7 +24733,7 @@ function tourneyMatchEnd(winner, reason){
    Avant : le bouton « Proposer nulle » affichait « Demande de nulle envoyee »
    et ne faisait RIEN d'autre -- aucune proposition, aucune nulle possible (seul
    le duel de robots constatait la triple repetition, sans l'enregistrer).
-   Maintenant (demande d'Olivier, sur le modele de KAAH) :
+   Maintenant (demande d'ocj94, sur le modele de KAAH) :
    - proposer la nulle : contre l'IA, elle accepte si elle n'a pas l'avantage ;
      a deux sur le meme ecran, l'autre joueur repond ; a distance, la proposition
      part chez l'adversaire (messages NULLE:offre / accepte / refuse) ;
@@ -25414,7 +25414,7 @@ function getMesParties(){ const L = getGameHistory().filter(estMaPartie); return
    (partie consultee, partie a deux sur le meme ecran, resultat inconnu).
    Avant, seules les parties contre l'IA en avaient un : une partie importee
    ou l'on sait quel camp tu tenais et qui a gagne (KAAH...) affichait « — ».
-   Signale par Olivier, capture a l'appui. */
+   Signale par ocj94, capture a l'appui. */
 function _histMonResultat(e){
   if (!e || e.spectateur) return null;
   if (e.mode === 'ai') return !e.winner ? 'nulle' : (e.winner === e.humanColor ? 'victoire' : 'defaite');
@@ -25523,7 +25523,7 @@ function triggerWin(winner, reason) {
   /* Le joueur n'a pas toujours les Noirs. Avant : "Noirs = moi" code en dur ici --
      une victoire AVEC LES BLANCS s'affichait « Défaite… » et comptait comme une
      DEFAITE (ELO, XP, serie, conversion, badge). Constate par simulation et
-     signale a Olivier, qui joue souvent les Blancs. On suit monCamp(), le point
+     signale a ocj94, qui joue souvent les Blancs. On suit monCamp(), le point
      de verite unique du camp tenu (mode IA : la couleur choisie ; deux joueurs
      sur le meme ecran : convention Noirs = joueur local, comme partout ailleurs). */
   const moi = (typeof monCamp === 'function') ? monCamp() : 'black';
@@ -25577,7 +25577,7 @@ function triggerWin(winner, reason) {
     onGamePlayed(jeGagne);
   }
   // Partie sans aucun coup joué (abandon immédiat, annulation) : aucun ELO
-  // retiré, aucune stat comptée — idée d'Olivier. On informe juste discrètement.
+  // retiré, aucune stat comptée — idée d'ocj94. On informe juste discrètement.
   if (typeof MoveCount !== 'undefined' && MoveCount.get() === 0) {
     if (typeof showToast === 'function') showToast('Partie annulée — aucun coup joué, ELO inchangé');
   }
@@ -25693,7 +25693,7 @@ function styleBar(name, val, color){
    toute la partie. Rend un plateau SVG en losange où l'intensité de couleur
    traduit la fréquence : là où ça a le plus / le moins joué. 100% local,
    reconstruit à partir de boardSnapshots (aucune donnée supplémentaire à
-   stocker). Idée d'Olivier (fin de partie + stats). */
+   stocker). Idée d'ocj94 (fin de partie + stats). */
 function computeGameHeatmap(snapshots, forColor) {
   // forColor : la couleur a cartographier, quelle qu'elle soit. Ne suppose
   // PAS que noir est le joueur -- renderHeatmapCard() la derive de
@@ -26093,7 +26093,7 @@ const MOVE_LIST_HEADER = '<div class="move-head"><span></span><span></span><span
 
 // Ajoute une ligne de coup : numéro · pastille couleur · Aba-Pro (gauche) · Nacre (droite)
 /* ═══ POSITION ET EVALUATION, COUP PAR COUP ═══
-   Demande d'Olivier, sur le modele de KAAH :
+   Demande d'ocj94, sur le modele de KAAH :
    - le CODE DE LA POSITION affichee, au format de KAAH/KAAWA ("0a12b123..._0a45...":
      billes noires puis blanches, chaque moitie precedee du nombre de billes
      EJECTEES de ce camp, cases triees et groupees par rangee) -- copiable, et
@@ -26272,7 +26272,7 @@ function codePosition(plateau, ejNoires, ejBlanches) {
   };
   return moitie('black', ejNoires) + '_' + moitie('white', ejBlanches);
 }
-/* ── Permutations d'une position, comme dans KAAH (demande d'Olivier) ──
+/* ── Permutations d'une position, comme dans KAAH (demande d'ocj94) ──
    Les 12 symetries du plateau hexagonal, avec la NUMEROTATION DE KAAH, retrouvee
    en comparant nos calculs aux permutations affichees par KAAH lui-meme :
      0 a 5    : rotation de n sixiemes de tour ;
@@ -26378,7 +26378,7 @@ function appendMoveRow(list, moveInfo, fallbackLabel, color, plyNum) {
   const row = document.createElement('div');
   row.className = 'move-item current';
   /* Ligne cliquable : affiche la position APRES ce coup sur le plateau
-     (demande d'Olivier). Reutilise loadSnapshot(), deja utilise par la
+     (demande d'ocj94). Reutilise loadSnapshot(), deja utilise par la
      navigation replay -- aucun nouveau chemin d'affichage, donc aucun
      risque de divergence entre les deux facons de naviguer.
      plyNum est le rang du coup (1-based) alors que boardSnapshots est
@@ -26406,7 +26406,7 @@ function _gotoMoveFromHistory(idx){
   if (typeof boardSnapshots === 'undefined' || !boardSnapshots.length) return;
   idx = Math.max(-1, Math.min(boardSnapshots.length - 1, idx));
   if (typeof replayMode !== 'undefined' && !replayMode) {
-    /* Relecture possible MEME en pleine partie (demande d'Olivier).
+    /* Relecture possible MEME en pleine partie (demande d'ocj94).
        L'etat reel est mis de cote AVANT de charger l'instantane, et
        restaure a la sortie du replay -- sans quoi la partie en cours
        serait perdue (bug preexistant sur toggleReplay, corrige en meme
@@ -28834,7 +28834,7 @@ function runAnalysis() {
   const advPct = Math.min(100, Math.max(0, 50 + advantage*8));
   // Coups reellement calcules sur la position courante (voir computeTopMoves).
   // Cette liste etait auparavant ecrite en dur et affichait toujours les memes
-  // quatre coups, quelle que soit la partie — signale par Olivier.
+  // quatre coups, quelle que soit la partie — signale par ocj94.
   const moves = computeTopMoves(CurrentTurn.get(), 3);
   // Comparaison a la base historique reconstruite (voir calculerAnalyseHistorique) :
   // percentile de la position sur quelques dimensions cles + positions reelles les
@@ -29199,7 +29199,7 @@ function applyMarbleSkin() {
    la personne reconnaisse tout de suite quelle couleur elle va jouer.
    Étendu à l'Éditeur de position et à Analyse de partie (« Comprendre la
    position ») : mêmes emojis fixes noir/blanc au même défaut, et labels
-   "Noir"/"Blanc" remplacés par "Joueur 1"/"Joueur 2" (demande d'Olivier —
+   "Noir"/"Blanc" remplacés par "Joueur 1"/"Joueur 2" (demande d'ocj94 —
    ces pages servent aussi à préparer des positions où "noir"/"blanc" n'a
    pas toujours de sens, ex. positions personnalisées). */
 function _marbleSwatch(stops, size) {
@@ -29624,7 +29624,7 @@ document.addEventListener('DOMContentLoaded', function() {
    rien (avec message clair) si ce theme n'a pas encore de variante nuit —
    seul Volcanique en a une pour l'instant, les 5 autres viendront plus
    tard un par un. Redessine 2D et resynchronise la 3D si elle est ouverte,
-   comme n'importe quel autre changement de theme. Signale par Olivier. */
+   comme n'importe quel autre changement de theme. Signale par ocj94. */
 function toggleThemeNight() {
   const t = BOARD_SURFACE_THEMES[boardTheme.theme];
   if (!t || !t.night) { showToast('🌞 Ce thème n\'a pas encore de variante nuit'); return; }
@@ -29982,7 +29982,7 @@ function jouerVariante(layoutKey){
    l'Abalone. Volontairement une BIBLIOGRAPHIE (références + liens) et non
    des fichiers embarqués : intégrer les PDF en base64 ferait passer le
    fichier unique de ~2,5 Mo à plus de 12 Mo, imposé à chaque visiteur même
-   sans ouvrir un seul document. Idée d'Olivier, source : son Drive.
+   sans ouvrir un seul document. Idée d'ocj94, source : son Drive.
    NOTE : les descriptions ne sont renseignées que pour les documents dont
    le contenu est établi ; les autres portent une mention neutre plutôt
    qu'un résumé inventé. */
@@ -30672,7 +30672,7 @@ function exportGameNotation() {
   const notation = buildGameNotation(system, bound);
   var scB = CapturedByBlack.get(), scW = CapturedByWhite.get();
   if (inReplay) {
-    /* CORRECTIF (signale par Olivier) : au chargement d'une partie depuis
+    /* CORRECTIF (signale par ocj94) : au chargement d'une partie depuis
        l'historique, le replay se positionne desormais AU DEBUT (v2.30) --
        replayCurrentIdx vaut donc -1, et cette branche forçait le score a
        0-0 alors que la sequence exportee, elle, est COMPLETE. Resultat :
@@ -30696,7 +30696,7 @@ function exportGameNotation() {
   const p2 = function(v){ return String(v).padStart(2, '0'); };
   const stamp = p2(d.getFullYear() % 100) + p2(d.getMonth() + 1) + p2(d.getDate())
               + p2(d.getHours()) + p2(d.getMinutes());
-  /* En-tete enrichi (demande d'Olivier) : la date, la variante, le style et
+  /* En-tete enrichi (demande d'ocj94) : la date, la variante, le style et
      le niveau de l'IA, le moteur utilise et le nombre de coups etaient
      affiches dans l'historique mais ABSENTS de l'export -- l'information
      etait donc perdue des qu'on partageait une partie. Chaque ligne n'est
@@ -31519,7 +31519,7 @@ let gameTimerBudget = 1200;        // budget par defaut : 20 minutes
 /* Le chronometre est un DECOMPTE : on veut savoir combien de temps il reste,
    pas combien s'est ecoule. Le budget suit la cadence choisie quand il y en a
    une (« 10 min + 5 s » -> 600 s) ; sinon 20 minutes par defaut.
-   Demande d'Olivier. */
+   Demande d'ocj94. */
 function _gameTimerBudgetFromControl() {
   // la cadence deja lue (tous modes, y compris 'D300+5') plutot qu'un decoupage maison du code
   if (typeof _timeCtlBase !== 'undefined' && _timeCtlBase > 0) return _timeCtlBase;
@@ -31535,7 +31535,7 @@ function startGameTimer() {
   const box = document.getElementById('game-timer-box');
   // Cadence libre (_timeCtlBase===0) : pas de decompte a afficher, la pendule
   // ne fait rien perdre au temps dans ce mode — l'afficher quand meme
-  // laissait croire a une limite qui n'existe pas. Signale par Olivier.
+  // laissait croire a une limite qui n'existe pas. Signale par ocj94.
   if (typeof _timeCtlBase !== 'undefined' && _timeCtlBase === 0) {
     if (box) box.style.display = 'none';
     return;
@@ -32471,7 +32471,7 @@ const compareProfiles = {
   /* Compte de demonstration : les compteurs sont a zero tant qu'aucune partie
      n'est conservee. Les valeurs precedentes — 1766 d'ELO, 247 parties, 133
      victoires — etaient inventees et affichees comme des faits. */
-  'Olivier_CJ':   { color:'#2d5a3d', elo:null, games:0, wins:0, streak:0, puzzles:0 },
+  'ocj94':   { color:'#2d5a3d', elo:null, games:0, wins:0, streak:0, puzzles:0 },
   'Daisy (démo)':    { color:'#1c3d5a', elo:2189, games:430, wins:340, streak:12, puzzles:750 },
 };
 
@@ -32943,7 +32943,7 @@ function gymStartFlexibility(level){
 /* ─── 7. SPATIAL — rotation mentale 60° horaire, N billes (via axiales) ─── */
 /* Exercice spatial : rotation autour d'un centre.
    Version initiale limitee a 60° et aux seules cases VOISINES du centre.
-   Etendue (demande d'Olivier) : n'importe quel multiple de 60° (60 a 300)
+   Etendue (demande d'ocj94) : n'importe quel multiple de 60° (60 a 300)
    et des billes placees a distance variable, pas seulement collees au
    centre. Sur une grille hexagonale, toute rotation multiple de 60°
    autour d'une case tombe exactement sur une autre case, quelle que soit
@@ -33433,7 +33433,7 @@ function gymStartMat(level){
 
 /* ═══════════════════════════════════════════
    DUEL CERVEAU — exercices de vitesse contre un autre joueur, en direct
-   (demande d'Olivier, sur le modele de Brain Wars). Deux appareils relies par la
+   (demande d'ocj94, sur le modele de Brain Wars). Deux appareils relies par la
    connexion « En direct » (un code echange une fois, aucun compte, aucun serveur
    de jeu) ; 3 manches tirees parmi 5 exercices courts. Chaque manche : le
    meilleur score gagne, a score egal le plus rapide. Chacun mesure SON temps
@@ -34030,7 +34030,7 @@ function renderCompare() {
 
   const btns = document.getElementById('compare-friends-btns');
   if (btns && btns.children.length===0) {
-    ['Bord (démo)','Sumito (démo)','Olivier_CJ','Daisy (démo)'].forEach(function(name) {
+    ['Bord (démo)','Sumito (démo)','ocj94','Daisy (démo)'].forEach(function(name) {
       const p = compareProfiles[name];
       const btn = document.createElement('button');
       btn.style.cssText='padding:7px 14px;background:none;border:1px solid var(--border);color:var(--text);border-radius:20px;cursor:pointer;font-size:12px;font-family:DM Sans,sans-serif;transition:all 0.15s';
@@ -35904,7 +35904,7 @@ function drawBestMoveHint() {
 }
 
 /* ── Dernier coup : un chevron sur chaque bille deplacee ──
-   Remplace l'ancienne fleche, a la demande d'Olivier, sur le modele du site
+   Remplace l'ancienne fleche, a la demande d'ocj94, sur le modele du site
    de Saab : un petit chevron sur le bord de CHAQUE bille qui a bouge, sa
    pointe tournee dans le sens du deplacement -- blanc sur les billes noires,
    sombre sur les blanches. Plus de trait qui traverse le plateau et masque
@@ -36552,7 +36552,7 @@ function analysisLoadLastGame() {
      avec pour label la notation de ce premier coup — ce n'est pas la position
      de depart. L'ancien code etiquetait cet element « Depart », ce qui
      decalait toute la liste d'un cran : le coup 1 n'etait jamais affiche et
-     chaque case montrait le coup suivant. Signale par Olivier.
+     chaque case montrait le coup suivant. Signale par ocj94.
      On insere donc la vraie position de depart en tete, puis chaque snapshot
      conserve son propre label. */
   var startBoard = {};
@@ -36836,7 +36836,7 @@ function gameCodeLoad(code) {
   if (typeof currentLayout !== 'undefined') currentLayout = parsed.layout;
   if (typeof resetGame === 'function') resetGame();
   else { initBoardState(); boardSnapshots = []; CapturedByBlack.set(0); CapturedByWhite.set(0); }
-  /* CORRECTIF (signale par Olivier) : gameCodeLoad() a sa propre boucle de
+  /* CORRECTIF (signale par ocj94) : gameCodeLoad() a sa propre boucle de
      rejeu, separee de _replaySeqToSnapshots() -- elle ne renseignait jamais
      _replayStartBoard, dont loadSnapshot(-1) a besoin pour afficher la
      position de depart. Sans lui, loadSnapshot(-1) ne fait RIEN (garde
@@ -37006,7 +37006,7 @@ function _rtcSetupChannelHandlers(ch){
   ch.onmessage = function(e){ _rtcHandleMessage(e.data); };
 }
 function _rtcSetupPeerHandlers(peer){
-  /* CORRECTIF (signale par Olivier, teste sur deux vrais telephones) :
+  /* CORRECTIF (signale par ocj94, teste sur deux vrais telephones) :
      "Connexion perdue" s'affichait alors qu'AUCUNE connexion n'avait jamais
      ete etablie. Cause : 'disconnected' etait traite comme un echec
      definitif et declenchait rtcClose(), qui detruit le peer -- or c'est un
@@ -37526,7 +37526,7 @@ function _historySetFilter(key, value){
    progression honnete pendant ce calcul plutot que de figer la page. */
 /* ═══════════════════════════════════════════
    PAGE ARCHITECTURE — quatre cartes ecrites en HTML (v2.66)
-   Demande d'Olivier : « la partie Architecture correspond toujours ? ».
+   Demande d'ocj94 : « la partie Architecture correspond toujours ? ».
    Non : verifiee pour la derniere fois en v2.39, elle ignorait la table de
    finale 4 contre 2 (branchee sur l'IA depuis la v2.49), les parties
    PlayStrategy et de reference, les statistiques des v2.63-v2.65, les liens
@@ -37682,7 +37682,7 @@ function renderArchiPage(){
 }
 
 /* ═══ REFLEXION DE L'IA : PROFONDEUR ATTEINTE SELON LE TEMPS ═══
-   Demande d'Olivier, en deux volets :
+   Demande d'ocj94, en deux volets :
    1. RELEVE EN PARTIE -- chaque coup de l'IA contre toi est note (niveau, temps
       regle, temps reel, profondeur atteinte, positions examinees, phase) ;
       statistiques cumulees par niveau. Les tournois (reglages a part) ne sont
@@ -37893,7 +37893,7 @@ async function renderCorpusStatsPage(){
   const distinctes = s.totalGames - (s.nDoublons || 0);
   if (titre) titre.textContent = _tr('Ce que disent ' + _dimNb(distinctes) + ' vraies parties', 'What ' + _dimNb(distinctes) + ' real games say');
 
-  /* v2.74 : tout le texte de ces cartes en francais ou en anglais (signale par Olivier : en
+  /* v2.74 : tout le texte de ces cartes en francais ou en anglais (signale par ocj94 : en
      anglais, la page restait en francais). Nombres a la mode de la langue (_dimNb, _dimDec). */
   const nb = _dimNb, pc = function(p){ return p != null ? _dimDec(p, 1) + ' %' : '—'; };
   const avantage = (s.blackPct != null) ? _dimDec(s.blackPct - 50, 1) : null;
@@ -37953,7 +37953,7 @@ async function renderCorpusStatsPage(){
 
 /* ═══════════════════════════════════════════
    LES 12 DIMENSIONS : EXPLICATION ET GRAPHIQUES (v2.59)
-   Demande d'Olivier : mettre dans la page le dessin qui explique les centiles,
+   Demande d'ocj94 : mettre dans la page le dessin qui explique les centiles,
    un graphique pour les deux camps ensemble, un pour les Noirs, un pour les
    Blancs, toujours accordes au nombre de parties. Tout est calcule ici, a
    l'ouverture de la page, a partir des positions chargees (banque principale
@@ -38203,7 +38203,7 @@ function renderHistoriquePage(){
 
 /* Conservee pour compatibilite (referencee par la fiche technique pour IA,
    et par toute habitude anterieure) -- redirige simplement vers la page,
-   qui a remplace le modal flottant (signale par Olivier : demande une page
+   qui a remplace le modal flottant (signale par ocj94 : demande une page
    normale du site comme les autres, pas une fenetre superposee). */
 function openHistoryModal(){
   if (typeof showPage === 'function') showPage('historique');
@@ -38714,7 +38714,7 @@ function _parseBulkHistoryText(text, monPseudo){
    depart des billes deplacees, cf. recordPlayerMove), memes cartes : 'me',
    'me_<couleur>' et 'me_<couleur>@<variante>'. Uniquement TES parties (jamais une
    partie consultee), et une seule fois par partie : la marque `chaleur` l'empeche
-   d'etre recomptee. Demande d'Olivier. Renvoie le nombre de coups comptes. */
+   d'etre recomptee. Demande d'ocj94. Renvoie le nombre de coups comptes. */
 function _chaleurDepuisImport(e) {
   if (!e || e.spectateur || e.chaleur || e.mode !== 'import' || (e.humanColor !== 'black' && e.humanColor !== 'white') || !e.code) return 0;
   const g = gameCodeParse(e.code);
@@ -39458,7 +39458,7 @@ function partagerImageDefi(n) { carteDefi(n).then(function (b) { partagerImage(b
 
 /* ═══════════════════════════════════════════
    LISTE ET COMMENTAIRES DE LA PARTIE (v2.58), comme dans Uncle Lolo's Abalone (ULA)
-   Demande d'Olivier, captures d'ULA a l'appui : pendant une partie, deux onglets de plus.
+   Demande d'ocj94, captures d'ULA a l'appui : pendant une partie, deux onglets de plus.
    - LISTE : les coups en tableau Coup | Noir | Blanc, en Aba-Pro, avec le score apres
      chaque ejection « (2-1) » (Noirs-Blancs), comme la Liste d'ULA. Toucher un coup
      montre la position apres lui.
@@ -39468,7 +39468,7 @@ function partagerImageDefi(n) { carteDefi(n).then(function (b) { partagerImage(b
      positions examinees et le temps ; ou d'ou vient le coup quand il n'a pas ete calcule
      (livre d'ouvertures, table de finale...). Pour chaque position, quatre mesures des deux
      camps, calculees ici et definies plus bas.
-   Les notations d'ULA et du site sont les memes : la partie du journal d'ULA joint par Olivier
+   Les notations d'ULA et du site sont les memes : la partie du journal d'ULA joint par ocj94
    (217 coups, Marguerite belge) se rejoue entierement ici, ejections aux memes coups, 6-2.
    Les mesures « compacité visuelle » et « vision vers centre » d'ULA ne sont pas reprises :
    leur definition n'est pas publiee. Le site affiche les siennes, qu'il sait calculer.
@@ -39755,7 +39755,7 @@ function copierCommentaires() {
    APPRENDRE SUR UN VRAI PLATEAU (v2.61)
    Pour apprendre Abalone aux enfants A PARTIR DE 3 ANS, loin des ecrans,
    « sans traumas et sans les degouter des jeux de plateau » (demande
-   d'Olivier).
+   d'ocj94).
    - Securite d'abord : la boite d'Abalone ne convient pas aux moins de
      3 ans (petits elements : les billes) et vise 6-7 ans. La page commence
      donc a 3 ans, pas avant (v2.62 : tout ce qui visait les moins de 3 ans
@@ -40199,7 +40199,7 @@ function renderPlateauPage() {
 
 /* ═══════════════════════════════════════════
    LES BILLES QUI TOMBENT, CE QUI FAIT GAGNER, COMMENT JOUENT LES VRAIS JOUEURS (v2.63)
-   Demande d'Olivier, apres un coup d'oeil a ClickHouse : reprendre l'idee de
+   Demande d'ocj94, apres un coup d'oeil a ClickHouse : reprendre l'idee de
    ses fonctions d'analyse de sequences (sequenceMatch, windowFunnel) -- suivre
    les enchainements d'evenements d'une partie -- et l'appliquer aux vraies
    parties, sans rien installer. Dix statistiques :
@@ -40223,7 +40223,7 @@ function renderPlateauPage() {
    parties : une partie ajoutee ou modifiee sans relancer l'outil le fait echouer.
    La page n'a plus qu'a additionner (quelques millisecondes).
 
-   v2.65, demande d'Olivier : « fais-le pour toutes les billes ». La carte
+   v2.65, demande d'ocj94 : « fais-le pour toutes les billes ». La carte
    « a quel coup tombe la premiere bille » devient « a quel coup tombent les
    billes » : de la 1re a la 11e bille de la partie, plus la derniere (la 6e
    du vainqueur, celle qui finit la partie). Rien a recalculer hors ligne : le
@@ -40324,7 +40324,7 @@ function _sbClasser(t, mv, info){
   else t[n === 1 ? 0 : (n === 2 ? 1 : 2)]++;
   if (info.type === 'push') t[5]++;
 }
-/* v2.80 (demande d'Olivier, « les types de sumito ») : le type d'une poussee -- 0 : 2 contre 1, 1 : 3 contre 1,
+/* v2.80 (demande d'ocj94, « les types de sumito ») : le type d'une poussee -- 0 : 2 contre 1, 1 : 3 contre 1,
    2 : 3 contre 2 ; -1 pour un coup qui ne pousse pas. info.push : le nombre de billes adverses poussees. */
 function _sbTypePoussee(mv, info){
   if (!info || info.type !== 'push') return -1;
@@ -40613,7 +40613,7 @@ function _sbAgreger(f){
     dims: _SB_ETAPES.map(function(){ const t = []; for (let j = 0; j < nDims; j++) t.push({ n: 0, g: 0 }); return t; }),
     nDimsParties: _SB_ETAPES.map(function(){ return 0; }),
     camp: { ej: 0, camps: 0, premiereSomme: 0, premiereN: 0, phases: { ouverture: 0, milieu: 0, finale: 0 } },
-    // v2.85 (demande d'Olivier, « comme sur BGA ») : les memes comptes pour le seul camp vainqueur (parties au vainqueur connu)
+    // v2.85 (demande d'ocj94, « comme sur BGA ») : les memes comptes pour le seul camp vainqueur (parties au vainqueur connu)
     gagnants: { types: [0, 0, 0, 0, 0, 0, 0, 0], ej: 0, camps: 0, premiereSomme: 0, premiereN: 0, phases: { ouverture: 0, milieu: 0, finale: 0 } },
     cartes: cartes, quandParDispo: quandParDispo, dispos: D.dispos,
     poussees: { types: [0, 0, 0, 0, 0, 0], plus: [{ n: 0, g: 0 }, { n: 0, g: 0 }, { n: 0, g: 0 }] }   // v2.80
@@ -40813,7 +40813,7 @@ function _sbCarteSVG(cnt, nombres, aria){
   const m = R + 3, vw = x1 - x0 + 2 * m, vh = y1 - y0 + 2 * m;
   return '<svg viewBox="' + (x0 - m).toFixed(1) + ' ' + (y0 - m).toFixed(1) + ' ' + vw.toFixed(1) + ' ' + vh.toFixed(1) + '" role="img" aria-label="' + aria + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:' + Math.round(vw) + 'px;height:auto;display:block;margin:0 auto">' + s + '</svg>';
 }
-/* Les graduations de l'echelle de couleurs (v2.65, demande d'Olivier) : 0, quelques valeurs
+/* Les graduations de l'echelle de couleurs (v2.65, demande d'ocj94) : 0, quelques valeurs
    rondes, le maximum. Placees la ou heatColor met leur couleur : le nombre c est a (c / max)^0,6
    de la largeur (le meme gamma 0,6 qui etale le bas de l'echelle). Jusqu'a 6, chaque nombre ;
    au-dela, trois valeurs au plus, visees au quart, a la moitie et aux trois quarts de la barre :
@@ -41266,7 +41266,7 @@ function _sbRepereFinDePartie(winner, moi, deuxJoueurs){
 
 /* ═══════════════════════════════════════════
    UNE ADRESSE PAR PAGE (v2.64)
-   Demande d'Olivier : chaque entree du menu a son adresse, par exemple
+   Demande d'ocj94 : chaque entree du menu a son adresse, par exemple
    https://ocj94.github.io/Abalassembly/#corpus pour les Stats du corpus.
    - Ouvrir une page met son adresse dans la barre (history.pushState) : le
      bouton Retour du navigateur ou du telephone revient a la page d'avant.
@@ -41474,7 +41474,7 @@ function _adrAuChargement(){
 })();
 /* ═══════════════════════════════════════════
    SYNCHRONISER MES APPAREILS (v2.69)
-   Demande d'Olivier : « comment faire pour que tous les navigateurs aient les
+   Demande d'ocj94 : « comment faire pour que tous les navigateurs aient les
    memes donnees ? ». Le site n'a ni compte ni serveur : chaque navigateur garde
    ses donnees (localStorage). Ici, deux appareils FUSIONNENT les leurs :
    - en direct : les deux ouverts, un code dans chaque sens (comme la Partie en
@@ -42096,7 +42096,7 @@ function openSyncModal(){
 }
 /* ═══════════════════════════════════════════
    LABO : LES POSITIONS DU CORPUS (v2.70)
-   Demande d'Olivier : « amelioration du Labo », puis « les 6 » (les six outils
+   Demande d'ocj94 : « amelioration du Labo », puis « les 6 » (les six outils
    proposes). Un audit avait montre que les parties du Labo ne ressemblaient pas
    aux vraies : toujours la disposition Standard, 6 coups tires au hasard, alors
    que 2 688 des 4 580 parties du corpus sont en Marguerite belge (384 en
@@ -42235,7 +42235,7 @@ function _lpCoup(i){ const v = _lpOct(i, 19) | (_lpOct(i, 20) << 8); return { a:
 function _lpPourFil(i){ return { s: _lpChaine(i), t: _lpTrait(i), cb: _lpCb(i), cw: _lpCw(i) }; }
 
 /* Positions de depart des duels. 'belgian' (par defaut : la disposition des
-   tournois, celle des parties d'Olivier) ou 'corpus' (toutes les dispositions,
+   tournois, celle des parties d'ocj94) ou 'corpus' (toutes les dispositions,
    dans leurs proportions du corpus). */
 const LP_MODES_DEPART = ['belgian', 'corpus'];
 function _lpDeparts(mode){
@@ -42269,7 +42269,7 @@ function _lpTexelIndices(){
 }
 /* ═══════════════════════════════════════════
    LABO : LA METHODE TEXEL (v2.70)
-   Demande d'Olivier : « les 6 » -- 1er outil, « apprendre des vraies parties en
+   Demande d'ocj94 : « les 6 » -- 1er outil, « apprendre des vraies parties en
    quelques minutes ». La methode des regleurs de moteurs d'echecs (Texel) :
    sur des positions de vraies parties dont on connait le gagnant, on cherche
    les poids pour lesquels l'evaluation de l'IA devine le mieux qui va gagner.
@@ -42323,7 +42323,7 @@ function _txEtape(D, R, s, st){
   }
 }
 const TEXEL_ETAPES = 800;
-/* v2.71, les reglages (demande d'Olivier : « plus de parametres ») : quelles positions (disposition,
+/* v2.71, les reglages (demande d'ocj94 : « plus de parametres ») : quelles positions (disposition,
    moment de la partie), la force du rappel vers les poids du champion, le nombre d'etapes. */
 const TEXEL_CFG_DEFAUT = { dispo: 'tout', phase: 'tout', rappel: 0, etapes: 800 };
 const TEXEL_PHASES = { debut: [0, 30], milieu: [30, 70], fin: [70, 999] };
@@ -42527,7 +42527,7 @@ function renderTexel(msg){
 function _labNombre(x){ return (Math.round(x * 10) / 10).toLocaleString('fr-FR'); }
 /* ═══════════════════════════════════════════
    LABO : LES BANCS D'ESSAI (v2.70)
-   Demande d'Olivier : « les 6 ». Trois des outils sont des series de duels :
+   Demande d'ocj94 : « les 6 ». Trois des outils sont des series de duels :
      - le tournoi entre les styles (Equilibre, Agressif, Defensif, Division, KAAH…) ;
      - la mesure des niveaux 1 a 10 (chaque niveau contre le suivant) ;
      - le test des ouvertures de la Marguerite belge ;
@@ -42689,7 +42689,7 @@ function _bancJournal(s){
   const why = { '6capt': '6 billes', 'adj3': '3 billes d’écart', 'adjCap': 'billes d’avance', 'adjCap1': 'une bille d’avance, mieux placé', 'adjEval': 'évaluations d’accord', 'draw': 'nulle', 'draw1': 'nulle (une bille d’avance, pas mieux placé)', 'noMove': 'bloqué' };
   return '<div class="lab-journal">' + s.journal.map(function(j){ return '<div>' + (j.w === 'A' ? '🟢' : (j.w === 'D' ? '⚪' : '🔴')) + ' ' + j.nom + ' · ' + (why[j.why] || j.why) + ', ' + j.plies + ' demi-coups</div>'; }).join('') + '</div>';
 }
-/* v2.71, les reglages de chaque banc (demande d'Olivier : « plus de parametres ») : temps de
+/* v2.71, les reglages de chaque banc (demande d'ocj94 : « plus de parametres ») : temps de
    reflexion par coup, nombre de demi-coups avant l'arbitrage, positions de depart. Gardes par
    banc ; ils s'appliquent a la serie suivante (une serie commencee garde les siens). */
 const BANC_TEMPS = [300, 600, 1000, 2000], BANC_PLIES = [60, 80, 120, 160];
@@ -43010,7 +43010,7 @@ function renderOuvertures(msg){
 if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('load', function(){ try { if (ouverturesDansLeLivre() && typeof ensureGameBanks === 'function') ensureGameBanks().then(_ouvVersLivre); } catch (e) {} });
 /* ═══════════════════════════════════════════
    LABO : COMME LES HUMAINS, ET CONTRE TOI (v2.70)
-   Demande d'Olivier : « les 6 » -- 4e et 5e outils.
+   Demande d'ocj94 : « les 6 » -- 4e et 5e outils.
 
    4. Comme les humains
       - Concordance : sur des positions de vraies parties, combien de fois l'IA
@@ -43385,7 +43385,7 @@ try {
 } catch (e) {}
 /* ═══════════════════════════════════════════
    GRAPHIQUES (v2.71) -- communs au Labo, aux Stats du corpus et a Mes statistiques
-   Demande d'Olivier : « plus de parametres, de graphiques, de metriques pour le
+   Demande d'ocj94 : « plus de parametres, de graphiques, de metriques pour le
    Labo, le corpus et les profils ».
 
    Regles suivies partout (methode « dataviz ») :
@@ -43704,7 +43704,7 @@ function grChiffres(entetes, lignes){
 }
 /* ═══════════════════════════════════════════
    LABO : LE TABLEAU DE BORD (v2.71)
-   Demande d'Olivier : « plus de parametres, de graphiques, de metriques ».
+   Demande d'ocj94 : « plus de parametres, de graphiques, de metriques ».
    Les totaux du Labo (parties, temps de calcul, tests tranches, gain mesure),
    les poids du champion au fil des adoptions, et les graphiques du journal
    des parties (les 2 000 dernieres) : parties par jour, longueur, fins,
@@ -43802,7 +43802,7 @@ function renderLabTableau(){
 }
 /* ═══════════════════════════════════════════
    STATISTIQUES DU JEU : FILTRES ET NOUVELLES CARTES (v2.72)
-   Demande d'Olivier : « plus de parametres, de graphiques, de metriques…
+   Demande d'ocj94 : « plus de parametres, de graphiques, de metriques…
    pour le corpus ». Deuxieme partie, apres le Labo (v2.71).
    - Des filtres en tete de page : source (MIGS, AbalOnline, PlayStrategy,
      parties de reference), disposition, longueur. Ils recalculent les cartes
@@ -43956,7 +43956,7 @@ function _cfHtmlOuvertures(L, W){
       h += '<div class="gr-titre">' + _tr('Les premiers coups des Noirs', 'Black’s first moves') + ' — ' + grEchapper(_cfNomDispo(dispo)) + '</div><div class="gr-sous">' + _tr('Ceux joués au moins 10 fois (notation Aba-Pro), avec leur part des parties, et la part gagnée par les Noirs après chacun (vainqueur connu). Le trait marque 50 %.', 'Those played at least 10 times (Aba-Pro notation), with their share of games, and the share Black won after each one (known winner). The tick marks 50%.') + '</div>';
       h += grBarres(top.map(function(j){ const c = C[j]; return { lab: j + ' · ' + grPct(c.n / tot, c.n / tot < 0.1 ? 1 : 0), v: c.dec ? c.g / c.dec : 0, ref: 0.5, txt: c.dec ? grPct(c.g / c.dec) + _tr(' sur ', ' of ') + c.dec : '—', tip: j + _dimDp() + _tr('joué ', 'played ') + c.n + _tr(' fois', ' times') + (c.dec ? ' · ' + _tr('Noirs gagnent ', 'Black wins ') + c.g + ' / ' + c.dec + ' (' + grFourchette(c.g, c.dec) + ')' + grPeu(c.dec) : ''),
         bas: c.dec ? grWilson(c.g, c.dec).bas : null, haut: c.dec ? grWilson(c.g, c.dec).haut : null }; }), { max: 1 });   // v2.77 : la moustache = la marge a 95 %
-      // v2.80 (demande d'Olivier) : la longueur des parties selon le premier coup, en boites a moustaches
+      // v2.80 (demande d'ocj94) : la longueur des parties selon le premier coup, en boites a moustaches
       const tous = []; Object.keys(C).forEach(function(j){ C[j].len.forEach(function(l){ tous.push(l); }); });
       const medT = grQuantile(tous.slice().sort(function(a, b){ return a - b; }), 0.5);
       h += '<div class="gr-titre">' + _tr('La longueur des parties selon le premier coup', 'Game length by first move') + ' — ' + grEchapper(_cfNomDispo(dispo)) + '</div><div class="gr-sous">'
@@ -44017,7 +44017,7 @@ function _cfRendreOccupation(){
 
 /* ─── Tout redessiner (filtre change) ─── */
 /* ─── 5. L'explorateur des scores (v2.77) ───
-   Specification proposee par ChatGPT a Olivier (« explorateur statistique du corpus ») : pour chaque
+   Specification proposee par ChatGPT a ocj94 (« explorateur statistique du corpus ») : pour chaque
    score atteint en cours de partie (billes ejectees par les Noirs – par les Blancs), le moment ou il est
    atteint, et le camp etudie : victoires, defaites, nulles, parties au resultat inconnu (exclues du taux),
    le taux de victoire avec sa marge a 95 %, et les parties qui le composent, a rejouer.
@@ -44150,7 +44150,7 @@ async function corpusPlusRendre(){
 }
 /* ═══════════════════════════════════════════
    MES STATISTIQUES : FILTRES, RESULTATS DETAILLES, PROGRESSION, MOI CONTRE LE CORPUS (v2.73)
-   Demande d'Olivier : « plus de parametres, de graphiques, de metriques… pour
+   Demande d'ocj94 : « plus de parametres, de graphiques, de metriques… pour
    les profils ». Troisieme partie, apres le Labo (v2.71) et le corpus (v2.72).
    - Les filtres : la periode (les onglets 7 jours… Tout, qui ne faisaient
      qu'afficher un message) et le type de partie (contre l'IA, importees, a
@@ -44438,7 +44438,7 @@ function renderProfilChiffres(){
 }
 /* ═══════════════════════════════════════════
    STATISTIQUES DU JEU : LA QUALITE DES COUPS (v2.78)
-   Demande d'Olivier (audit des statistiques du corpus, point 4) : pour chaque
+   Demande d'ocj94 (audit des statistiques du corpus, point 4) : pour chaque
    vrai coup du corpus, est-il proche du meilleur coup du moteur, et offre-t-il
    une bille a l'adversaire ?
    - « Proche du meilleur » : EXACTEMENT la mesure de la precision de Mes
@@ -44610,7 +44610,7 @@ function _qcNote(){
   return _tr('Mesuré hors ligne sur chaque coup des parties jouées depuis une position de départ, avec le moteur du site regardant <b>un demi-coup</b> : chaque coup légal est évalué, et le coup joué compte comme « proche du meilleur » à ' + SEUIL_PROCHE_MEILLEUR + ' points ou moins du meilleur. C’est exactement la précision de <a href="#" onclick="showPage(\'stats\');return false;" style="color:var(--gold)">Mes statistiques</a> : les deux se comparent. Limite : à un demi-coup, le moteur ne voit pas les plans ; un coup « loin du meilleur » peut être un bon coup à long terme. Les billes offertes distinguent mieux les joueurs forts que la précision. Une bille « offerte » est vérifiée exactement : après le coup, l’adversaire peut l’éjecter, alors qu’un autre coup légal l’évitait (un échange, où le coup joué éjecte lui-même, ne compte pas).',
     'Measured offline on every move of the games played from a starting position, with the site’s engine looking <b>one ply</b> ahead: every legal move is evaluated, and the move played counts as “close to the best” within ' + SEUIL_PROCHE_MEILLEUR + ' points of the best. It is exactly the accuracy of <a href="#" onclick="showPage(\'stats\');return false;" style="color:var(--gold)">My statistics</a>: the two compare. Limit: one ply ahead, the engine does not see plans; a move “far from the best” may be good in the long run. Offered marbles tell strong players apart better than accuracy does. An “offered” marble is checked exactly: after the move, the opponent can push it off, when another legal move avoided it (a trade, where the move played pushes one off itself, does not count).');
 }
-/* ─── v2.84 : les positions critiques (demande d'Olivier : « les positions tranchantes ») ───
+/* ─── v2.84 : les positions critiques (demande d'ocj94 : « les positions tranchantes ») ───
    Un seul coup legal evite de perdre une bille au coup suivant de l'adversaire. Exact : aucune
    evaluation n'entre dans la mesure. L'ecart entre le meilleur et le 2e coup de l'evaluation a un
    demi-coup a ete essaye, puis ecarte : il n'est grand que quand un coup ejecte une bille (alors
@@ -44709,7 +44709,7 @@ function qcPrecisionCorpus(){
 }
 /* ═══════════════════════════════════════════
    STATISTIQUES DU JEU : L'EXPLORATEUR D'OUVERTURES DU CORPUS (v2.80)
-   Demande d'Olivier (point 2 des propositions d'IA) : comme l'explorateur d'ouvertures des
+   Demande d'ocj94 (point 2 des propositions d'IA) : comme l'explorateur d'ouvertures des
    echecs, mais sur TOUT le corpus -- les 4 577 parties distinctes, toutes les dispositions
    (sauf la disposition libre, ou chaque partie part d'un plateau different), et les filtres
    de la page (source, longueur, annee). La page Ouvertures garde le sien (2 126 parties de
@@ -44846,7 +44846,7 @@ function _eoRendreTout(){
 /* ═══════════════════════════════════════════
    STATISTIQUES DU JEU : LE TRAIT, LES ANNEES, LES PREMIERES POUSSEES,
    LES REPETITIONS, LES COUPS POSSIBLES (v2.81)
-   Demande d'Olivier (« Je veux tout », sur cinq propositions) :
+   Demande d'ocj94 (« Je veux tout », sur cinq propositions) :
    1. l'avantage du trait disposition par disposition, avec sa marge ;
    2. le jeu au fil des annees : part gagnee par les Noirs, duree mediane,
       parties finies a 6 billes ;
@@ -45121,7 +45121,7 @@ function _ctRendreTout(){
 /* ═══════════════════════════════════════════
    STATISTIQUES DU JEU : TEMPS MORTS, SORTIE DU CORPUS, POSITIONS DEJA VUES,
    BILLES SEULES, CONTACTS, CE QUI SE DEGRADE AVANT UNE BILLE PERDUE (v2.83)
-   Demande d'Olivier (« Toute ») : les propositions retenues apres l'audit de
+   Demande d'ocj94 (« Toute ») : les propositions retenues apres l'audit de
    deux listes d'idees d'une autre IA (les chiffres annonces y etaient des
    paris ; ici, tout est compte sur les vraies parties).
    1. la plus longue periode sans bille tombee ;
@@ -45427,7 +45427,7 @@ function _c3RendreTout(){
 /* ═══════════════════════════════════════════
    STATISTIQUES DU JEU : LA MATRICE DES 12 DIMENSIONS, LES DIMENSIONS AU FIL
    DE LA PARTIE, LE POINT DE NON-RETOUR (v2.86)
-   Demande d'Olivier (« Go »), apres l'audit d'une nouvelle liste d'idees
+   Demande d'ocj94 (« Go »), apres l'audit d'une nouvelle liste d'idees
    d'une autre IA : les trois qui n'etaient pas deja sur le site.
    1. la matrice complete des correlations des 12 dimensions (avant : les 5
       liens les plus forts seulement) ;
@@ -45680,7 +45680,7 @@ window.setBoardView = function(view) {
      que la 2D (ou la bascule de vue elle-meme, au prochain retour en 3D)
      reprenne exactement la ou l'utilisateur avait laisse la camera. Sans
      ce report, tourner la vue en 3D n'aurait aucun effet une fois revenu
-     en 2D — exactement le decalage qu'Olivier a signale. */
+     en 2D — exactement le decalage qu'ocj94 a signale. */
   if (previousView === '3d' && window._three3d && typeof theta3DToBoardRotation === 'function') {
     window.boardRotation = theta3DToBoardRotation(window._three3d.getTheta());
   }
@@ -45702,7 +45702,7 @@ window.setBoardView = function(view) {
      jusqu'en haut a gauche, et la bascule recouvrait les rangees I et H. On
      la colle donc dans l'angle, et le texte demarre sous elle — la decaler
      seulement vers la gauche n'aurait pas suffi sur un ecran etroit, ou elle
-     est plus large que la marge disponible. Signale par Olivier. */
+     est plus large que la marge disponible. Signale par ocj94. */
   const bascule = document.getElementById('view-toggle');
   if (bascule) {
     bascule.style.top  = (view === '1d') ? '30px' : '11%';
@@ -45714,7 +45714,7 @@ window.setBoardView = function(view) {
      du centre reel au lieu de l'y laisser. La bascule a deja ete descendue
      (30px) lors d'une demande precedente ; si un chevauchement reapparait a
      l'usage sur un ecran etroit, le reglage se fera sur la bascule elle-meme,
-     pas en recreant ce hack. Signale par Olivier. */
+     pas en recreant ce hack. Signale par ocj94. */
   if (view === '3d') {
     activate(btn3d, true); activate(btn2d, false); if (btn1d) activate(btn1d, false);
     canvas2d.style.display = 'none';
@@ -45727,7 +45727,7 @@ window.setBoardView = function(view) {
        ouverture — ce cas est deja couvert par l'angle de depart de
        start3DScene), on pousse la rotation 2D en cours dans la camera,
        pour qu'il n'y ait jamais de decalage visuel au changement de vue.
-       Signale par Olivier. */
+       Signale par ocj94. */
     if (window._three3d && typeof boardRotationToTheta3D === 'function') {
       window._three3d.setTheta(boardRotationToTheta3D(window.boardRotation || 0));
     }
@@ -45826,7 +45826,7 @@ window.render1D = function () {
      bloc, on y centre le champ de 17 caracteres qu'occupent les cases, puis
      on pose chaque etiquette juste avant sa rangee. Les etiquettes suivent
      alors le bord gauche de l'hexagone, ce qui est aussi plus lisible.
-     Signale par Olivier. */
+     Signale par ocj94. */
   /* Largeur du bloc FIXE. Si on la deduisait des lignes d'information, elle
      changerait avec elles — la ligne d'aide n'apparait qu'une fois une bille
      choisie — et l'hexagone sauterait lateralement a chaque selection.
@@ -45851,7 +45851,7 @@ window.render1D = function () {
      (ses propres billes en bas). Un joueur blanc veut l'inverse : ses
      propres billes en bas, l'adversaire qui joue en premier (noir) en
      haut. Meme famille de bug que "noir = moi" trouvee ailleurs cette
-     session, ici sur la vue 1D specifiquement. Demande d'Olivier,
+     session, ici sur la vue 1D specifiquement. Demande d'ocj94,
      confirmee par la position reelle de LAYOUTS.standard avant d'ecrire
      ce code (noir en r=6..8, blanc en r=0..2), pas supposee a l'aveugle.
      Les data-r/data-c de chaque case restent les VRAIES coordonnees (pour
@@ -45874,7 +45874,7 @@ window.render1D = function () {
     const cOrder = flip ? Array.from({length: rows[r]}, function(_, i){ return rows[r]-1-i; }) : Array.from({length: rows[r]}, function(_, i){ return i; });
     for (const c of cOrder) {
       const v = board[r + ',' + c];
-      // O = noirs, @ = blancs (convention retenue par Olivier)
+      // O = noirs, @ = blancs (convention retenue par ocj94)
       const ch = (v === 'black') ? 'O' : (v === 'white') ? '@' : '.';
       let cls = 'c1d';
       if (estSel(r, c)) {
@@ -45897,7 +45897,7 @@ window.render1D = function () {
        diagonale 9 finit en e9 : son repere tombe donc au bout de la ligne de
        la rangee D, pas de celle de E. De meme 8 au bout de C, 7 au bout de B,
        6 au bout de A, et 5 en pied. Les reperes longent ainsi exactement le
-       bord bas-droit du plateau. Signale par Olivier. */
+       bord bas-droit du plateau. Signale par ocj94. */
     if (coordsOn && r >= 5) { line += ' ' + (14 - r); visible += 2; }
     /* Complete a largeur VISIBLE fixe (W=35 caracteres), en comptant les
        glyphes reellement affiches — pas les caracteres de la chaine HTML.
@@ -45908,7 +45908,7 @@ window.render1D = function () {
        (colonne 17) qui suppose une largeur de 35. Un espace de fin occupe
        bien une cellule dans un <pre> monospace (white-space:pre les
        preserve) : completer redonne a la boite sa largeur prevue, quel que
-       soit le contenu affiche par ailleurs. Signale par Olivier — corrige
+       soit le contenu affiche par ailleurs. Signale par ocj94 — corrige
        apres avoir constate que la premiere version comparait par erreur
        W a la longueur de la chaine HTML (200-400+ caracteres a cause des
        balises <span>), qui ne declenchait donc jamais le complement. */
@@ -45920,14 +45920,14 @@ window.render1D = function () {
        case de sa diagonale — un cran plus bas, un cran plus a droite — et non
        a l'aplomb de la case : c'est ainsi que les reperes sortent du plateau,
        le long du bord. Le 5 tombe alors pile dans l'angle bas-droit, dans le
-       prolongement de a5. Signale par Olivier. */
+       prolongement de a5. Signale par ocj94. */
     let pied = ' '.repeat(BORD + 5);
     for (let n = 1; n <= 5; n++) pied += (n > 1 ? ' ' : '') + n;
     L.push(pied.length < W ? pied + ' '.repeat(W - pied.length) : pied);
   }
   /* Le plateau est le SEUL contenu de cette vue desormais : la legende, les
      ejections, le trait, la selection et l'invite ont ete retires — demande
-     d'Olivier. */
+     d'ocj94. */
   pre.className = 'plateau1d';
   pre.innerHTML = L.join('\n');
   pre.classList.toggle('jouable', jouable);
@@ -46321,7 +46321,7 @@ function start3DScene() {
      du degrade 2D (reflet simule / ombre simulee) que la vraie lumiere 3D
      recree deja par elle-meme. Les veines dorees (kintsugi) et le nacrage
      restent des effets 2D uniquement — hors de portee d'une simple couleur
-     de base. Signale par Olivier. */
+     de base. Signale par ocj94. */
   const matBlack = new THREE.MeshStandardMaterial({ color: 0x16161a, roughness: 0.22, metalness: 0.15 });
   const matWhite = new THREE.MeshStandardMaterial({ color: 0xeceff4, roughness: 0.22, metalness: 0.1 });
   function syncMarbleColors() {
@@ -46389,14 +46389,14 @@ function start3DScene() {
   // theta = azimut (rotation autour de Y, horizontale), phi = elevation
   // (incline autour de X), radius = distance (zoom). roll s'y ajoute : une
   // rotation autour de Z (l'axe de visee lui-meme), absente jusqu'ici — la
-  // camera ne pouvait tourner que sur 2 des 3 axes. Demande d'Olivier.
+  // camera ne pouvait tourner que sur 2 des 3 axes. Demande d'ocj94.
   /* Angle de depart : derive de window.boardRotation (la rotation 2D en
      cours), pas d'une valeur fixe — si le plateau a deja ete pivote en 2D
      avant la toute premiere ouverture de la 3D, la camera doit demarrer
      sur ce MEME angle plutot que sur l'orientation par defaut, sinon un
      decalage apparaitrait des la premiere fois. boardRotationToTheta3D est
      declare dans l'autre bloc <script> (function = toujours globale,
-     window. inutile pour la lire). Signale par Olivier. */
+     window. inutile pour la lire). Signale par ocj94. */
   let theta = (typeof boardRotationToTheta3D === 'function') ? boardRotationToTheta3D(window.boardRotation || 0) : Math.PI*0.25;
   /* Verrou "vue du dessus", ACTIF PAR DEFAUT : phi et radius demarrent donc
      sur les valeurs du preregle ⬆ Vue de dessus (0.12 / 26), pas sur la vue
@@ -46404,16 +46404,16 @@ function start3DScene() {
      doit deja s'y trouver, pas juste l'autoriser plus tard. theta n'est PAS
      touche : il reste sur l'angle synchronise avec la 2D (ci-dessus), seul
      axe que le verrou laisse toujours libre, avec le zoom. Signale par
-     Olivier. */
+     ocj94. */
   let topLocked = true;
   let phi = topLocked ? 0.12 : Math.PI*0.34, radius = topLocked ? 26 : 22, roll = 0;
   let tTheta = theta, tPhi = phi, tRadius = radius, tRoll = 0;
   /* auto=false par defaut : le bouton 🔄 qui permettait de (re)activer la
      rotation automatique a ete retire du panneau (v1.36, sur demande
-     d'Olivier). Depuis, plus AUCUN code ne remet jamais auto a true — seul
+     d'ocj94). Depuis, plus AUCUN code ne remet jamais auto a true — seul
      ce point de depart le faisait, ce qui faisait tourner le plateau tout
      seul a chaque nouvelle partie, sans aucun moyen de l'arreter avant de
-     cliquer sur autre chose. Signale par Olivier. */
+     cliquer sur autre chose. Signale par ocj94. */
   let auto = false, running = true;
   /* Boutons ⚫/⚪ (cote Noirs/Blancs) et leur synchro de couleur : declares
      ICI (portee de start3DScene, pas a l'interieur du bloc de construction
@@ -46439,7 +46439,7 @@ function start3DScene() {
      couleurs des deux cotes, pas une seconde palette inventee. Le bois
      reste un CAS A PART (comme en 2D) : un traitement plus riche (grain,
      rivieres de resine) qui ne se resume pas a deux couleurs. Signale par
-     Olivier — complete une base deja posee (BOARD_SURFACE_THEMES,
+     ocj94 — complete une base deja posee (BOARD_SURFACE_THEMES,
      boardTheme.theme) mais dont seule la 2D avait ete cablee jusqu'ici. */
   /* Texture procedurale bois + rivieres d'epoxy pour la VRAIE surface du
      plateau (top, l'hexagone extrude qui sert de plan de jeu — pas les
@@ -46449,7 +46449,7 @@ function start3DScene() {
      contrainte zero-dependance du fichier (aucune image externe). Construite
      UNE SEULE FOIS et mise en cache (woodTexture) : sync() tourne a chaque
      coup, refaire ce dessin a chaque fois serait couteux pour rien — seul
-     un changement REEL de theme doit la (re)generer. Signale par Olivier. */
+     un changement REEL de theme doit la (re)generer. Signale par ocj94. */
   let woodTexture = null;
   let woodNormalMap = null;
 
@@ -46459,7 +46459,7 @@ function start3DScene() {
        rendu 2D (hexCoord utilise cx=cy=320) — le grain occupe donc les
        memes proportions du plateau des deux cotes. Les rivieres d'epoxy ne
        sont PLUS peintes ici : une texture plate n'est pas un relief, ce
-       qu'Olivier a signale a raison. Elles sont desormais une vraie
+       qu'ocj94 a signale a raison. Elles sont desormais une vraie
        geometrie 3D, voir getRiverMeshes() juste en dessous. */
     const cv = document.createElement('canvas');
     cv.width = 640; cv.height = 640;
@@ -46500,7 +46500,7 @@ function start3DScene() {
      lieu d'un degrade uni, meme esprit que le grain du bois ci-dessus.
      Verifiees d'abord dans un apercu Three.js reel (deux allers-retours :
      couleurs re-echantillonnees sur une vraie photo pour Volcanique, puis
-     les 6 textures ensemble). Signale par Olivier — "je veux ca pour
+     les 6 textures ensemble). Signale par ocj94 — "je veux ca pour
      chaque theme".
      Generees par le meme moteur generique a couches que la 2D
      (window.THEME_RECIPES / window.peindreCouches, definis dans le bloc
@@ -46547,7 +46547,7 @@ function start3DScene() {
   }
   /* Rivieres d'epoxy : VRAIE geometrie 3D (un ruban extrude par riviere),
      pas une texture plate — corrige une premiere version qui les peignait
-     sur la surface, signalee a raison par Olivier ("il faut des sinusoides
+     sur la surface, signalee a raison par ocj94 ("il faut des sinusoides
      d'epoxy EN 3D"). Meme tracé sinusoïdal EXACT que la 2D (memes y/amp/w/
      phase, meme formule riverY), converti de l'espace pixel 2D (canvas
      640x640, centre 320,320) vers l'espace monde 3D par un simple facteur
@@ -46675,7 +46675,7 @@ function start3DScene() {
     /* Lueur (emissive) : Volcanique seulement pour l'instant (les 5 autres
        themes n'en ont pas — meme logique progressive que jour/nuit, "on
        fera les autres apres"). Jour discret, nuit intense — valeurs
-       reprises de la proposition d'Olivier (0.25 / 1.2), verifiees d'abord
+       reprises de la proposition d'ocj94 (0.25 / 1.2), verifiees d'abord
        dans l'apercu avant d'etre integrees ici. */
     if (nom === 'volcanique') {
       top.material.emissive.set(estNuit ? '#ff3300' : '#ff2200');
@@ -46739,7 +46739,7 @@ function start3DScene() {
        reellement demandes : la camera partait presque a l'oppose avant de
        revenir, ce qui ressemblait a un retour a l'etat initial. Enrouler
        l'ecart lui-meme (pas seulement theta) force l'interpolation a
-       toujours prendre le chemin le plus court. Signale par Olivier. */
+       toujours prendre le chemin le plus court. Signale par ocj94. */
     theta += wrapAngle(tTheta-theta)*0.1; phi += (tPhi-phi)*0.1; radius += (tRadius-radius)*0.1;
     /* Meme raisonnement pour le roulis (roll) : tRoll s'enroule aussi dans
        (-pi, pi] (voir les boutons Z↶/Z↷), donc sujet exactement au meme
@@ -46812,7 +46812,7 @@ function start3DScene() {
        accidentels. movedDist, lui, continue d'etre suivi meme verrouille :
        necessaire a la distinction tap/glisser pour la selection d'une
        bille au relachement, sans rapport avec la camera. Signale par
-       Olivier. */
+       ocj94. */
     if (!topLocked) {
       tTheta -= (e.clientX-lx)*0.008;
       tPhi = Math.max(0.15, Math.min(Math.PI*0.49, tPhi - (e.clientY-ly)*0.008));
@@ -46828,7 +46828,7 @@ function start3DScene() {
   // (mêmes coordonnées que le drag manuel : theta = azimut, phi = hauteur)
   const DEFAULT_VIEW = { theta: Math.PI*0.25, phi: Math.PI*0.34, radius: 22 };
   /* ⟲ (vue cavaliere), 🔄 (rotation auto) et ⬆ (vue de dessus) retires —
-     demande d'Olivier. ⬆ etait devenu redondant : le verrou "vue du
+     demande d'ocj94. ⬆ etait devenu redondant : le verrou "vue du
      dessus" impose deja exactement les memes valeurs (tPhi=0.12,
      tRadius=26, voir plus bas) des qu'il est active, ce qui est le cas par
      defaut. */
@@ -46897,7 +46897,7 @@ function start3DScene() {
        d'elevation, donc plus de raison de faire bouger phi/radius ici non
        plus. TOUJOURS ACTIFS, jamais grises par le verrou : meme categorie
        que Y. Colores selon le skin actif (pas noir/blanc fige) — voir
-       syncSideButtonColors3D(). Signale par Olivier. */
+       syncSideButtonColors3D(). Signale par ocj94. */
     function actionCote(side) {
       return function(){
         auto = false;
@@ -46926,7 +46926,7 @@ function start3DScene() {
        Place a l'emplacement libre (colonne 3, rangee 3, sous ⚪) plutot que
        colonne 4 : ⬆ (vue de dessus), qui occupait la colonne 4, a ete
        retire — redondant avec ce que le verrou impose deja par defaut.
-       Signale par Olivier. */
+       Signale par ocj94. */
     function applyLockUI() {
       lockableBtns.forEach(function(b){
         b.style.opacity = topLocked ? '0.35' : '1';
@@ -47176,7 +47176,7 @@ window.refresh3DIfActive = function() {
 /* .bg-swatch n'avait AUCUNE regle CSS definie nulle part dans le fichier —
    seulement des usages avec un style="background:..." inline. Un <button>
    vide (sans texte ni enfant) retombe sur la taille minuscule par defaut du
-   navigateur : illisible, comme signale par Olivier (capture d'ecran a
+   navigateur : illisible, comme signale par ocj94 (capture d'ecran a
    l'appui — de minuscules triangles sombres, impossibles a distinguer).
    Taille et forme explicites ici ; l'anneau dore sur .active reprend le
    meme langage visuel que les autres etats "selectionne" de l'app. */

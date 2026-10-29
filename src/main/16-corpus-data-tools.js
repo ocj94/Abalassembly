@@ -339,7 +339,7 @@ function psConvertirSequence(coups){
    tournoi. 90 se rejouent coup par coup ; 3 ont ete abandonnees avant le
    premier coup (seconde partie de la liste, coups vides) : rien a rejouer,
    mais leur resultat est celui enregistre par le serveur, et elles comptent
-   dans les statistiques du corpus -- choix d'Olivier, "toutes les parties".
+   dans les statistiques du corpus -- choix d'ocj94, "toutes les parties".
    Publiees avec l'accord de
    Vincent. Coups deja convertis en Aba-Pro et verifies un a un : legaux pour
    le moteur d'Abalassembly, positions identiques a PlayStrategy sur les 7 705

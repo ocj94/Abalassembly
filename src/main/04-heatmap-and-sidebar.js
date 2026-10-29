@@ -5,13 +5,13 @@
 /* Échelle de fausses couleurs de la carte de chaleur (façon éditeur de
    fausses couleurs) : du noir — là où le joueur joue le MOINS — au blanc,
    là où il joue le PLUS, en passant par bleu, violet, rose, orange et jaune.
-   Choix d'Olivier (palette fournie en référence). */
+   Choix d'ocj94 (palette fournie en référence). */
 /* Echelle de reference a 8 paliers : noir bleute, bleu, violet, rose,
    orange, dore, jaune, blanc — du moins joue au plus joue. Les couleurs
    intermediaires sont INTERPOLEES par heatColor(), ce qui donne une
    centaine de nuances continues a l'ecran : les 8 valeurs ci-dessous sont
    des points d'ancrage, pas les seules couleurs affichees.
-   Choix d'Olivier, revenu a cette palette apres essai d'une version a 15
+   Choix d'ocj94, revenu a cette palette apres essai d'une version a 15
    paliers jugee trop chargee. Note : la luminance monte regulierement sauf
    entre le violet et le rose, ou elle redescend legerement (0,263 -> 0,245).
    Ecart assez faible pour rester lisible ; eclaircir le rose le corrigerait. */
@@ -29,7 +29,7 @@ const HEATMAP_EMPTY = '#0d0d14';   // case jamais jouée
    palette devient un degrade continu, donc beaucoup plus nuance.
    Un leger adoucissement (gamma 0.6) etale le bas de l'echelle, sinon les
    cases peu jouees se retrouvaient toutes dans le meme bleu sombre des qu'une
-   seule case dominait le maximum. Demande d'Olivier : « plus de nuance ». */
+   seule case dominait le maximum. Demande d'ocj94 : « plus de nuance ». */
 function _heatHexToRgb(hex) {
   return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)];
 }
@@ -183,7 +183,7 @@ function renderOneHeatmapCard(title, subtitle, heat, isYou) {
    qu'un historique invente.
 
    L'etat de la partie en cours est sauvegarde puis restaure : importer ne
-   perturbe jamais une partie ouverte. Demande d'Olivier. */
+   perturbe jamais une partie ouverte. Demande d'ocj94. */
 function _importExtractTokens(text) {
   return String(text || '')
     .split('\n')
@@ -368,7 +368,7 @@ function renderHeatmap() {
      de couleur reelle (pas ⚫/⚪ figes) — meme raisonnement et memes
      fonctions que les bandeaux joueur (_skinDotColor/_dot) : le skin des
      billes va changer, un rond noir fixe ne representerait plus la vraie
-     couleur jouee des qu'un skin colore est actif. Signale par Olivier. */
+     couleur jouee des qu'un skin colore est actif. Signale par ocj94. */
   const blackCard = renderOneHeatmapCard(_dot(_skinDotColor('black')) + ' Mes billes en tant que joueur 1', 'Cumul de tes parties en tant que joueur 1 \u00b7 ' + scopeLabel, blackHeat, true);
   const whiteCard = renderOneHeatmapCard(_dot(_skinDotColor('white')) + ' Mes billes en tant que joueur 2', 'Cumul de tes parties en tant que joueur 2 \u00b7 ' + scopeLabel, whiteHeat, true);
 

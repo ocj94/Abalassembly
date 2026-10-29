@@ -444,7 +444,7 @@ function requestAIMovePooled(params, onDone) {
    ci-dessus, pas cette fonction) -- conserve comme piste documentee,
    testee, mais pas deployee, plutot que supprimee. Voici pourquoi.
 
-   Constat de depart (benchmark moteur, mesure par Olivier sur son
+   Constat de depart (benchmark moteur, mesure par ocj94 sur son
    appareil) : la division fixe (requestAIMovePooled) n'atteint que 15-18%
    de l'efficacite theorique a profondeur 4-6. Hypothese testee : un
    worker rapide reste les bras croises pendant qu'un autre rame sur son

@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════
    SYNCHRONISER MES APPAREILS (v2.69)
-   Demande d'Olivier : « comment faire pour que tous les navigateurs aient les
+   Demande d'ocj94 : « comment faire pour que tous les navigateurs aient les
    memes donnees ? ». Le site n'a ni compte ni serveur : chaque navigateur garde
    ses donnees (localStorage). Ici, deux appareils FUSIONNENT les leurs :
    - en direct : les deux ouverts, un code dans chaque sens (comme la Partie en

@@ -16,7 +16,7 @@ let gutterMarbles = [];  // [{x, y, color}]
    'bottom' = elles se rangent en bas de la rigole (« circuit rigole »)
    Les deux ont leurs partisans : la premiere montre par ou l'adversaire a
    perce, la seconde se lit d'un coup d'oeil. Demande de Saab, arbitree par
-   Olivier en gardant les deux. */
+   ocj94 en gardant les deux. */
 let gutterAlign = (function(){
   try { return localStorage.getItem('abalone_gutter_align') === 'bottom' ? 'bottom' : 'drop'; }
   catch(e){ return 'drop'; }
@@ -440,7 +440,7 @@ let _audioCtx = null;
 let soundEnabled = true;
 try { soundEnabled = localStorage.getItem('abalone_sound') !== '0'; } catch(e) {}
 
-/* Son et vibration, GRANULAIRES PAR VUE (1D / 2D / 3D) — demande d'Olivier.
+/* Son et vibration, GRANULAIRES PAR VUE (1D / 2D / 3D) — demande d'ocj94.
    Par defaut : la 1D est entierement silencieuse (aucune vibration non
    plus — coherente avec une vue texte pensee pour la lecture concentree),
    la 2D garde le son mais pas de vibration (le jeu "normal"), la 3D active
@@ -578,7 +578,7 @@ function playSfx(name){
 }
 
 /* Ces 4 fonctions correspondent aux micro-interactions DU PLATEAU — celles
-   dont Olivier a demande qu'elles suivent la vue active (1D/2D/3D), pas les
+   dont ocj94 a demande qu'elles suivent la vue active (1D/2D/3D), pas les
    evenements globaux du jeu (partie gagnee, badge debloque...) qui restent
    uniquement sous le controle du son general (soundEnabled). */
 function soundMove()    { if (_viewAllowsSound()) playSfx('move'); if (_viewAllowsVibration()) vibrate(20); }  // déplacement : clic doux + buzz (3D)
@@ -588,7 +588,7 @@ function soundSelect()  { if (_viewAllowsSound()) playTone(440, 0.05, 'sine', 0.
 /* ── Sons synthétisés supplémentaires ─────────────────────────────────
    Entièrement générés par oscillateur (Web Audio) : aucun échantillon, donc
    aucun poids ajouté au fichier et aucune ressource tierce. Chaque son est
-   une courte séquence de notes jouées via playTone. Idée d'Olivier. */
+   une courte séquence de notes jouées via playTone. Idée d'ocj94. */
 function playSequence(notes) {
   // notes : [{f:fréquence, t:délai ms, d:durée s, w:forme, v:volume, to:glissando}]
   if (!soundEnabled) return;
@@ -779,7 +779,7 @@ function getHexAt(px, py) {
    Au lancement d'une partie, une pluie de billes noires et blanches tombe
    sur un canvas plein écran (avec gravité, rotation et rebond léger), puis
    l'overlay se retire en fondu et la partie commence. 100% canvas, aucune
-   dépendance. Idée d'Olivier. Respecte prefers-reduced-motion (accessibilité)
+   dépendance. Idée d'ocj94. Respecte prefers-reduced-motion (accessibilité)
    et ne se déclenche qu'une fois par entrée sur la page de jeu. */
 let _marbleRainActive = false;
 // Point d'entrée « Jouer » : joue l'animation de pluie de billes puis ouvre

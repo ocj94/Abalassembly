@@ -305,7 +305,7 @@ function drawBestMoveHint() {
 }
 
 /* ── Dernier coup : un chevron sur chaque bille deplacee ──
-   Remplace l'ancienne fleche, a la demande d'Olivier, sur le modele du site
+   Remplace l'ancienne fleche, a la demande d'ocj94, sur le modele du site
    de Saab : un petit chevron sur le bord de CHAQUE bille qui a bouge, sa
    pointe tournee dans le sens du deplacement -- blanc sur les billes noires,
    sombre sur les blanches. Plus de trait qui traverse le plateau et masque

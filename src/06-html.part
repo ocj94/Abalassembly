@@ -791,14 +791,14 @@
       </div>
       <!-- Sous-section : "Deux joueurs" se decline en deux facons de jouer,
            regroupees plutot que presentees comme trois choix d'adversaire au
-           meme niveau (demande d'Olivier). -->
+           meme niveau (demande d'ocj94). -->
       <div id="setup-mode-2p-sub" style="display:none;margin-top:8px;padding:10px;border:1px solid var(--border);border-radius:10px">
         <div style="display:flex;gap:5px;flex-wrap:wrap">
           <button onclick="setupPick('mode','local',this)" class="setup-opt" style="flex:1">📱 Même appareil</button>
           <button onclick="setupPick('mode','rtc',this)" class="setup-opt" style="flex:1" title="Connexion directe entre deux navigateurs, sans compte ni serveur de jeu (experimental)">📡 En direct 🧪</button>
         </div>
         <!-- Panneau de connexion integre directement ici, plutot qu'en
-             fenetre superposee (demande d'Olivier). Memes identifiants
+             fenetre superposee (demande d'ocj94). Memes identifiants
              d'elements (rtc-status, rtc-ui-body) que l'ancien panneau
              modal : toutes les fonctions de connexion existantes
              (_rtcUiCreateOffer, _rtcUiShowJoin...) fonctionnent sans
@@ -861,7 +861,7 @@
       <!-- Moteur (experimental) : meme _engineMode que Labo IA, choisi ici
            AVANT de jouer plutot que de devoir aller le changer dans Labo IA
            a chaque partie. Fusionne dans la meme carte que Style/Niveau
-           (au lieu d'une carte separee) -- demande d'Olivier. L'id reste
+           (au lieu d'une carte separee) -- demande d'ocj94. L'id reste
            sur cette section interne, pas sur toute la carte : le masquage
            en mode "Deux joueurs" (setupPick, group==='mode') ne doit
            cacher que le choix de moteur, pas Style/Niveau qui restent
@@ -982,8 +982,8 @@
           <!-- Uniquement le plateau + coordonnees, centre dans la fenetre
                (display:flex sur le parent). Les infos textuelles (legende,
                ejections, trait, selection, invite) ont ete retirees de cette
-               vue — demande d'Olivier : seul le plateau reste affiche.
-               Signale par Olivier. -->
+               vue — demande d'ocj94 : seul le plateau reste affiche.
+               Signale par ocj94. -->
           <pre id="board-1d-text" style="margin:0;font-family:'DM Mono',ui-monospace,'Courier New',monospace;color:#e8e8e8;white-space:pre;user-select:text"></pre>
         </div>
         <div id="board-3d" style="display:none;position:absolute;inset:0;border-radius:12px;overflow:hidden;background:#14141a">
@@ -1006,7 +1006,7 @@
              3D — les deux ne bougent QUE la rotation Y (pas d'elevation en 2D),
              donc compatibles avec le verrou "vue du dessus" de la 3D, comme Y.
              Colores selon le skin actif, pas figes en noir/blanc — voir
-             skinSideBtnColor(). Signale par Olivier. -->
+             skinSideBtnColor(). Signale par ocj94. -->
         <div class="rot-ctl" id="rot2d-bottom" style="bottom:22%" title="Rotation (votre côté)">
           <button class="rot-btn" onclick="rotateBoard(-BOARD_ROTATE_STEP_DEG)" title="Pivoter anti-horaire">Y↺</button>
           <button class="rot-btn" onclick="rotateBoard(BOARD_ROTATE_STEP_DEG)" title="Pivoter horaire">Y↻</button>
@@ -1022,7 +1022,7 @@
         <!-- Mode commentateur : stats des deux joueurs, mises a jour en direct
              via les evenements publics abalassembly:movePlayed/GameOver.get() deja
              emis par le moteur (aucune modification du jeu lui-meme requise —
-             pur observateur, voir _emitAbaEvent). Demande d'Olivier, pour
+             pur observateur, voir _emitAbaEvent). Demande d'ocj94, pour
              suivre une partie (tournoi ou non) de l'exterieur. -->
         <div style="text-align:center;margin-top:8px">
           <button class="btn-ghost" id="commentator-toggle" onclick="toggleCommentatorMode()"
@@ -1030,7 +1030,7 @@
         </div>
         <!-- Mode projecteur : ouvre une fenetre separee par dimension, a
              repartir sur plusieurs ecrans, synchronisee en direct via
-             BroadcastChannel. Demande d'Olivier. -->
+             BroadcastChannel. Demande d'ocj94. -->
         <div style="text-align:center;margin-top:6px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
           <span style="font-size:11px;color:var(--muted);align-self:center">📺 Projeter :</span>
           <button class="btn-ghost" onclick="openProjectorWindow('1d')" title="Ouvrir la vue 1D dans une fenêtre séparée"
@@ -2303,7 +2303,7 @@
           <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">Chaque thème change réellement la couleur du plateau — feutre, gouttière et contour — aussi bien en 2D qu'en 3D.</div>
           <!-- Jour/Nuit : pour l'instant, seul Volcanique a une variante nuit
                (les 5 autres viendront plus tard, un par un — demande
-               d'Olivier). toggleThemeNight() previent clairement si le
+               d'ocj94). toggleThemeNight() previent clairement si le
                theme actif n'en a pas encore. -->
           <div style="margin-top:10px">
             <button onclick="toggleThemeNight()" id="theme-night-toggle" class="btn-ghost"
@@ -3490,9 +3490,9 @@
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center">
           <div style="width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#3a7a56,#1c3d2a);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;font-family:'Playfair Display',serif;color:var(--gold);margin:0 auto 8px;border:2px solid rgba(200,168,75,0.3)">O</div>
-          <div style="font-size:13px;font-weight:600;color:var(--white)">Olivier Charles-Joseph</div>
+          <div style="font-size:13px;font-weight:600;color:var(--white)">ocj94</div>
           <div style="font-size:11px;color:var(--muted);margin-top:3px;line-height:1.4">Ambassadeur & promoteur communautaire 🌍</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace">ocj94 · non classé</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace">non classé</div>
         </div>
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center">
           <div style="width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#4a1c5a,#2a0a3a);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;font-family:'Playfair Display',serif;color:#b89ef0;margin:0 auto 8px;border:2px solid rgba(138,114,210,0.3)">F</div>
@@ -3635,7 +3635,7 @@
 
 
 <!-- PAGE: LABO IA -->
-<!-- v2.70 (demande d'Olivier : « amelioration du Labo », puis « les 6 ») : sept outils en onglets.
+<!-- v2.70 (demande d'ocj94 : « amelioration du Labo », puis « les 6 ») : sept outils en onglets.
      Chaque onglet est rempli par son module : 17 (auto-amelioration), 43 (Texel), 44 (tournoi des
      styles, niveaux, ouvertures), 45 (comme les humains, contre toi). -->
 <div class="page" id="page-lab">
@@ -3761,7 +3761,7 @@
 </div>
 
 <!-- PAGE: MUSEUM -->
-<!-- ═══ AIDE : comment utiliser le site (demande d'Olivier). Libelles verifies dans le code
+<!-- ═══ AIDE : comment utiliser le site (demande d'ocj94). Libelles verifies dans le code
      (menu, configuration, boutons). Hors ligne, avec une recherche qui ignore les accents. ═══ -->
 <div class="page" id="page-aide">
   <div style="padding:24px 20px 60px;max-width:820px;margin:0 auto">
@@ -4331,7 +4331,7 @@
 
 <!-- ══════════════════════════════════════════
      PAGE: HISTORIQUE DE PARTIES (convertie depuis un modal flottant --
-     signale par Olivier : demande une page normale du site, comme les
+     signale par ocj94 : demande une page normale du site, comme les
      autres, plutot qu'une fenetre superposee)
 ══════════════════════════════════════════ -->
 <div class="page" id="page-historique">

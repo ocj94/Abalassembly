@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════
    LABO : COMME LES HUMAINS, ET CONTRE TOI (v2.70)
-   Demande d'Olivier : « les 6 » -- 4e et 5e outils.
+   Demande d'ocj94 : « les 6 » -- 4e et 5e outils.
 
    4. Comme les humains
       - Concordance : sur des positions de vraies parties, combien de fois l'IA

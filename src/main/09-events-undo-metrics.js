@@ -29,7 +29,7 @@ function _emitAbaEvent(name, detail){
    lus au moment de l'affichage, pas caches. MoveCount.get() est un compteur
    GLOBAL (toutes couleurs confondues) dans le moteur — le decompte par
    joueur est donc tenu ICI, a partir du flux d'evenements, puisque rien
-   d'equivalent n'existe deja cote moteur. Demande d'Olivier. */
+   d'equivalent n'existe deja cote moteur. Demande d'ocj94. */
 let _commentatorOn = false;
 let _commentatorMoves = { black: 0, white: 0 };
 function toggleCommentatorMode() {
@@ -113,7 +113,7 @@ document.addEventListener('abalassembly:positionChanged', function(){
    facon fiable que dans ce meme bloc. window._isProjector et
    window.boardRotation, eux, sont deja des proprietes explicites de
    window (voir plus haut) et restent lisibles depuis n'importe ou.
-   Signale par Olivier. */
+   Signale par ocj94. */
 let _projectorChannel = null;
 function _getProjectorChannel() {
   if (_projectorChannel) return _projectorChannel;
@@ -206,7 +206,7 @@ function resetGame() {
   // _timeCtlBase===0 (cadence Libre) est un "faux" en JS : "_timeCtlBase || 600"
   // retombait donc sur 600s (10:00) meme en Libre, ce que le panneau
   // Commentateur affichait tel quel avant sa propre verification. Comparaison
-  // explicite pour que 0 reste 0. Signale par Olivier (capture d'ecran :
+  // explicite pour que 0 reste 0. Signale par ocj94 (capture d'ecran :
   // "Temps restant 10:00" affiche pour les deux joueurs en cadence Libre).
   myTime = (_timeCtlBase > 0) ? _timeCtlBase : 0;     // Chrono : part de 0 et monte
   oppTime = (_timeCtlBase > 0) ? _timeCtlBase : 0;
@@ -252,7 +252,7 @@ function resetGame() {
   _emitAbaEvent('positionChanged', { layout: (typeof currentLayout !== 'undefined') ? currentLayout : null });
 }
 
-/* Annulation de partie pour inactivité — idée d'Olivier : si aucun coup n'est
+/* Annulation de partie pour inactivité — idée d'ocj94 : si aucun coup n'est
    joué durant la première minute, la partie est annulée (aucun ELO retiré,
    aucune stat comptée, puisque MoveCount.get() vaut toujours 0). Le minuteur est
    armé à chaque nouvelle partie et désarmé dès le premier coup. */
@@ -317,7 +317,7 @@ function tickTimers() {
    au temps. Exclusions : tournoi (sa propre pendule 10+5), puzzles, duels de
    bots, replay. */
 let _timeCtlBase=0, _timeCtlInc=0;   // 0 = pendule informative
-/* Modes de pendule (sur le modele de KAAH, demande d'Olivier). Code de cadence :
+/* Modes de pendule (sur le modele de KAAH, demande d'ocj94). Code de cadence :
      ''         Libre : aucune pendule (inchange)
      'C'        Chrono : compte le temps de chaque joueur, sans limite
      '300+3'    Bonus : 300 s, +3 s par coup -- les anciennes cadences, inchangees
@@ -396,7 +396,7 @@ function _dot(color) {
    Joueur 1 = O, Joueur 2 = @, FIXE — pas suivant humanColor. « Joueur 1 »
    designe un siege (la barre du bas, vous), pas une couleur ; le symbole
    qui l'accompagne suit desormais cette meme logique plutot que la couleur
-   reellement jouee. Signale par Olivier. */
+   reellement jouee. Signale par ocj94. */
 function _letter(ch) {
   const color = ch === 'O' ? _skinDotColor('black') : _skinDotColor('white');
   /* Taille mesuree sur le VRAI plateau (getComputedStyle de #board-1d-text,
@@ -417,7 +417,7 @@ function _letter(ch) {
    de jeu, unifiees en une seule. Joueur 1 = vous (la barre du bas), Joueur
    2 = l'adversaire (la barre du haut), quel que soit le mode. La pastille
    dit la couleur reelle ; le texte n'a plus besoin de repeter "(noirs)" /
-   "(blancs)". Signale par Olivier. */
+   "(blancs)". Signale par ocj94. */
 function _clockNames(){
   const mine = monCamp();
   const opp = mine === 'black' ? 'white' : 'black';
@@ -440,7 +440,7 @@ function _clockPaintFree(){
   /* Le trait, lui, reste indispensable : sans horloge qui tourne, le lisere
      dore est le seul repere disant a qui de jouer. On garde donc exactement
      la meme mise en evidence que les cadences chronometrees, simplement sans
-     chiffres. Demande d'Olivier.
+     chiffres. Demande d'ocj94.
      Aucun trait n'est marque hors partie vivante : replay, puzzle, match de
      tournoi ou partie terminee — marquer un camp y serait trompeur. */
   const vivante = !((typeof GameOver !== 'undefined' && GameOver.get()) || _clockExempt());
@@ -699,7 +699,7 @@ function updateStatus() {
   document.getElementById('board-msg').textContent = msg;
   _majCarteJoueur();
 }
-/* Carte du joueur (panneau de gauche, ordinateur) : avant, « Vous (Olivier) » et « Vos billes: Noires »
+/* Carte du joueur (panneau de gauche, ordinateur) : avant, « Vous (ocj94) » et « Vos billes: Noires »
    etaient ecrits en dur -- le prenom du createur du site pour tout le monde, et les Noires meme quand on
    joue les Blancs. Maintenant : le pseudo s'il y en a un, et la couleur des billes reellement tenues. */
 function _majCarteJoueur() {

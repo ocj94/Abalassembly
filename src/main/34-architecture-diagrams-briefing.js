@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════
    PAGE ARCHITECTURE — quatre cartes ecrites en HTML (v2.66)
-   Demande d'Olivier : « la partie Architecture correspond toujours ? ».
+   Demande d'ocj94 : « la partie Architecture correspond toujours ? ».
    Non : verifiee pour la derniere fois en v2.39, elle ignorait la table de
    finale 4 contre 2 (branchee sur l'IA depuis la v2.49), les parties
    PlayStrategy et de reference, les statistiques des v2.63-v2.65, les liens
@@ -156,7 +156,7 @@ function renderArchiPage(){
 }
 
 /* ═══ REFLEXION DE L'IA : PROFONDEUR ATTEINTE SELON LE TEMPS ═══
-   Demande d'Olivier, en deux volets :
+   Demande d'ocj94, en deux volets :
    1. RELEVE EN PARTIE -- chaque coup de l'IA contre toi est note (niveau, temps
       regle, temps reel, profondeur atteinte, positions examinees, phase) ;
       statistiques cumulees par niveau. Les tournois (reglages a part) ne sont
@@ -367,7 +367,7 @@ async function renderCorpusStatsPage(){
   const distinctes = s.totalGames - (s.nDoublons || 0);
   if (titre) titre.textContent = _tr('Ce que disent ' + _dimNb(distinctes) + ' vraies parties', 'What ' + _dimNb(distinctes) + ' real games say');
 
-  /* v2.74 : tout le texte de ces cartes en francais ou en anglais (signale par Olivier : en
+  /* v2.74 : tout le texte de ces cartes en francais ou en anglais (signale par ocj94 : en
      anglais, la page restait en francais). Nombres a la mode de la langue (_dimNb, _dimDec). */
   const nb = _dimNb, pc = function(p){ return p != null ? _dimDec(p, 1) + ' %' : '—'; };
   const avantage = (s.blackPct != null) ? _dimDec(s.blackPct - 50, 1) : null;
@@ -427,7 +427,7 @@ async function renderCorpusStatsPage(){
 
 /* ═══════════════════════════════════════════
    LES 12 DIMENSIONS : EXPLICATION ET GRAPHIQUES (v2.59)
-   Demande d'Olivier : mettre dans la page le dessin qui explique les centiles,
+   Demande d'ocj94 : mettre dans la page le dessin qui explique les centiles,
    un graphique pour les deux camps ensemble, un pour les Noirs, un pour les
    Blancs, toujours accordes au nombre de parties. Tout est calcule ici, a
    l'ouverture de la page, a partir des positions chargees (banque principale
@@ -677,7 +677,7 @@ function renderHistoriquePage(){
 
 /* Conservee pour compatibilite (referencee par la fiche technique pour IA,
    et par toute habitude anterieure) -- redirige simplement vers la page,
-   qui a remplace le modal flottant (signale par Olivier : demande une page
+   qui a remplace le modal flottant (signale par ocj94 : demande une page
    normale du site comme les autres, pas une fenetre superposee). */
 function openHistoryModal(){
   if (typeof showPage === 'function') showPage('historique');

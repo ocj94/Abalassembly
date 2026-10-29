@@ -189,7 +189,7 @@ const akey = (r,c) => r + ',' + c;
    plateau, sans distinction supplémentaire de réflexion (une ligne lue à
    l'envers est déjà couverte par la direction opposée, présente dans
    AX_DIRS). Le nom et la description de chaque motif sont fournis par
-   Olivier — ce module se contente de les détecter et de les compter dans
+   ocj94 — ce module se contente de les détecter et de les compter dans
    les vraies parties, jamais de juger ou d'inventer une valeur stratégique.
 ═══════════════════════════════════════════ */
 const MOTIFS_TACTIQUES = {

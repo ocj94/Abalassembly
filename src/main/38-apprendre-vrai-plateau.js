@@ -2,7 +2,7 @@
    APPRENDRE SUR UN VRAI PLATEAU (v2.61)
    Pour apprendre Abalone aux enfants A PARTIR DE 3 ANS, loin des ecrans,
    « sans traumas et sans les degouter des jeux de plateau » (demande
-   d'Olivier).
+   d'ocj94).
    - Securite d'abord : la boite d'Abalone ne convient pas aux moins de
      3 ans (petits elements : les billes) et vise 6-7 ans. La page commence
      donc a 3 ans, pas avant (v2.62 : tout ce qui visait les moins de 3 ans

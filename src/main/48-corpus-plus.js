@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════
    STATISTIQUES DU JEU : FILTRES ET NOUVELLES CARTES (v2.72)
-   Demande d'Olivier : « plus de parametres, de graphiques, de metriques…
+   Demande d'ocj94 : « plus de parametres, de graphiques, de metriques…
    pour le corpus ». Deuxieme partie, apres le Labo (v2.71).
    - Des filtres en tete de page : source (MIGS, AbalOnline, PlayStrategy,
      parties de reference), disposition, longueur. Ils recalculent les cartes
@@ -154,7 +154,7 @@ function _cfHtmlOuvertures(L, W){
       h += '<div class="gr-titre">' + _tr('Les premiers coups des Noirs', 'Black’s first moves') + ' — ' + grEchapper(_cfNomDispo(dispo)) + '</div><div class="gr-sous">' + _tr('Ceux joués au moins 10 fois (notation Aba-Pro), avec leur part des parties, et la part gagnée par les Noirs après chacun (vainqueur connu). Le trait marque 50 %.', 'Those played at least 10 times (Aba-Pro notation), with their share of games, and the share Black won after each one (known winner). The tick marks 50%.') + '</div>';
       h += grBarres(top.map(function(j){ const c = C[j]; return { lab: j + ' · ' + grPct(c.n / tot, c.n / tot < 0.1 ? 1 : 0), v: c.dec ? c.g / c.dec : 0, ref: 0.5, txt: c.dec ? grPct(c.g / c.dec) + _tr(' sur ', ' of ') + c.dec : '—', tip: j + _dimDp() + _tr('joué ', 'played ') + c.n + _tr(' fois', ' times') + (c.dec ? ' · ' + _tr('Noirs gagnent ', 'Black wins ') + c.g + ' / ' + c.dec + ' (' + grFourchette(c.g, c.dec) + ')' + grPeu(c.dec) : ''),
         bas: c.dec ? grWilson(c.g, c.dec).bas : null, haut: c.dec ? grWilson(c.g, c.dec).haut : null }; }), { max: 1 });   // v2.77 : la moustache = la marge a 95 %
-      // v2.80 (demande d'Olivier) : la longueur des parties selon le premier coup, en boites a moustaches
+      // v2.80 (demande d'ocj94) : la longueur des parties selon le premier coup, en boites a moustaches
       const tous = []; Object.keys(C).forEach(function(j){ C[j].len.forEach(function(l){ tous.push(l); }); });
       const medT = grQuantile(tous.slice().sort(function(a, b){ return a - b; }), 0.5);
       h += '<div class="gr-titre">' + _tr('La longueur des parties selon le premier coup', 'Game length by first move') + ' — ' + grEchapper(_cfNomDispo(dispo)) + '</div><div class="gr-sous">'
@@ -215,7 +215,7 @@ function _cfRendreOccupation(){
 
 /* ─── Tout redessiner (filtre change) ─── */
 /* ─── 5. L'explorateur des scores (v2.77) ───
-   Specification proposee par ChatGPT a Olivier (« explorateur statistique du corpus ») : pour chaque
+   Specification proposee par ChatGPT a ocj94 (« explorateur statistique du corpus ») : pour chaque
    score atteint en cours de partie (billes ejectees par les Noirs – par les Blancs), le moment ou il est
    atteint, et le camp etudie : victoires, defaites, nulles, parties au resultat inconnu (exclues du taux),
    le taux de victoire avec sa marge a 95 %, et les parties qui le composent, a rejouer.

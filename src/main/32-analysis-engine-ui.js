@@ -471,7 +471,7 @@ function analysisLoadLastGame() {
      avec pour label la notation de ce premier coup — ce n'est pas la position
      de depart. L'ancien code etiquetait cet element « Depart », ce qui
      decalait toute la liste d'un cran : le coup 1 n'etait jamais affiche et
-     chaque case montrait le coup suivant. Signale par Olivier.
+     chaque case montrait le coup suivant. Signale par ocj94.
      On insere donc la vraie position de depart en tete, puis chaque snapshot
      conserve son propre label. */
   var startBoard = {};

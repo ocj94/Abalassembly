@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════
    MES STATISTIQUES : FILTRES, RESULTATS DETAILLES, PROGRESSION, MOI CONTRE LE CORPUS (v2.73)
-   Demande d'Olivier : « plus de parametres, de graphiques, de metriques… pour
+   Demande d'ocj94 : « plus de parametres, de graphiques, de metriques… pour
    les profils ». Troisieme partie, apres le Labo (v2.71) et le corpus (v2.72).
    - Les filtres : la periode (les onglets 7 jours… Tout, qui ne faisaient
      qu'afficher un message) et le type de partie (contre l'IA, importees, a

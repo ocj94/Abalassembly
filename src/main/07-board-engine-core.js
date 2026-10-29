@@ -145,7 +145,7 @@ window.boardRotation = 0;   // rotation de la VUE du plateau, en degrés — pro
 /* Pas de rotation, PARTAGE entre les boutons 2D (rotateBoard) et les
    boutons Y de la 3D (orbite de la camera) — une seule valeur, deux
    consommateurs, pour qu'il n'y ait jamais deux pas differents a
-   resynchroniser separement. 10° par clic, sur demande d'Olivier
+   resynchroniser separement. 10° par clic, sur demande d'ocj94
    (auparavant 11,5°) — la 2D accepte n'importe quel angle (le cadre
    hexagonal ET les cases se recalculent tous deux via hexCoord(), donc
    restent coherents entre eux a n'importe quel angle). */
@@ -162,14 +162,14 @@ window.BOARD_ROTATE_STEP_DEG = BOARD_ROTATE_STEP_DEG;   // rendu explicitement g
    la rotation 2D (boardRotation, degres) et l'orbite 3D (theta, radians),
    afin que changer de dimension ne produise aucun decalage visuel :
    tourner le plateau en 2D puis passer en 3D doit montrer le MEME angle,
-   et inversement. Signale par Olivier. */
+   et inversement. Signale par ocj94. */
 /* 90°, PAS 45° : axPos() place la rangee sur l'axe Z et la colonne sur l'axe
    X (voir axPos plus bas, autre bloc <script>) — a theta=0 la camera est
    alignee sur l'axe des COLONNES (aucun decalage Z), pas sur celui des
    RANGEES. Avec l'ancienne valeur (Math.PI*0.25), boardRotation=0
    produisait donc une vue 3D en coin/diagonale au lieu d'etre alignee
    comme la 2D (rangee 0 en haut, rangee 8 en bas) — exactement le
-   decalage signale par Olivier (« le plateau n'est pas aligne »).
+   decalage signale par ocj94 (« le plateau n'est pas aligne »).
    Verifie par calcul : a theta=90°, le decalage camera est purement sur Z
    (aligne avec l'axe des rangees) ; a 45°, il est diagonal (x=z). */
 const THETA_DEFAULT_3D = Math.PI * 0.5;
@@ -207,7 +207,7 @@ function hexCoord(row, col, ignorerRotation) {
      une reference statistique statique, pas une vue du plateau en cours de
      partie. Sans ce parametre, tourner le plateau (Y↺/Y↻, synchronise avec
      la 3D) faisait aussi tourner la carte de chaleur, ce qui n'a pas de
-     sens pour des donnees cumulees. Signale par Olivier. */
+     sens pour des donnees cumulees. Signale par ocj94. */
   if (boardRotation && !ignorerRotation) {
     const a = boardRotation * Math.PI / 180;
     const dx = x - cx, dy = y - cy;
@@ -230,7 +230,7 @@ function rotateBoard(deg) {
    pas de notion d'elevation, et ca les rend compatibles avec le verrou
    "vue du dessus" de la 3D — toujours actifs, jamais grises. 0°/180° pour
    coincider avec applyPovOrientation() (meme convention noirs/blancs).
-   Signale par Olivier. */
+   Signale par ocj94. */
 function setSideView(side) {
   window.boardRotation = (side === 'white') ? 180 : 0;
   if (typeof drawBoard === 'function') drawBoard();
@@ -298,7 +298,7 @@ const LAYOUTS = {
     // Coordonnees relues directement sur une image fournie, position par
     // position (pas de generation automatique) : 14 billes de chaque camp,
     // aucune collision, verifie avant integration. Nommee d'apres le
-    // fichier source. Corrigee une fois par Olivier apres relecture
+    // fichier source. Corrigee une fois par ocj94 apres relecture
     // precise de l'image (10 cases decalees dans le premier jet) --
     // reconverti depuis la notation Aba-Pro qu'il a fournie, pas retouche
     // a la main en interne.
@@ -335,7 +335,7 @@ const LAYOUTS = {
     // "Star" -- motif etoile radiant depuis le centre. Coordonnees lues
     // DIRECTEMENT depuis le champ de position brut du corpus AbalOnline
     // (a1b5c3c7d5e2e4e7e9f6g5g9h8i5 / a5b2c1c5d4e1e3e6e8f5g3g7h5i9),
-    // rendues visuellement et comparees a l'image fournie par Olivier
+    // rendues visuellement et comparees a l'image fournie par ocj94
     // AVANT integration -- correspondance exacte confirmee (troisieme
     // validation independante d'affilee, apres fujiyama et the_wall).
     // Convertie via la vraie fonction abaproToRc (jamais a la main).
@@ -348,7 +348,7 @@ const LAYOUTS = {
     // central, contrairement aux autres variantes artistiques qui
     // opposent le haut et le bas (fujiyama, the_wall, star), celle-ci
     // oppose la gauche et la droite. Coordonnees relues position par
-    // position sur une image fournie par Olivier, PUIS converties via
+    // position sur une image fournie par ocj94, PUIS converties via
     // la vraie fonction abaproToRc (jamais a la main) : 14 billes de
     // chaque camp, aucune collision, rendu visuel compare a l'image
     // source avant integration.
@@ -358,7 +358,7 @@ const LAYOUTS = {
   alliances: {
     // "Alliances" -- deux spirales imbriquees, blanc s'enroulant vers
     // noir. Coordonnees relues position par position sur une image
-    // fournie par Olivier (bandes zoomees rangee par rangee pour une
+    // fournie par ocj94 (bandes zoomees rangee par rangee pour une
     // lecture fiable), PUIS converties via abaproToRc (jamais a la
     // main), rendu visuel compare a l'image source avant integration.
     // VALIDATION INDEPENDANTE : le corpus AbalOnline contient 87 vraies
@@ -373,7 +373,7 @@ const LAYOUTS = {
   domination: {
     // "Domination" -- deux triangles opposes en symetrie de rotation a
     // 180 degres. Coordonnees relues position par position sur une image
-    // fournie par Olivier (bandes zoomees rangee par rangee), PUIS
+    // fournie par ocj94 (bandes zoomees rangee par rangee), PUIS
     // converties via abaproToRc (jamais a la main), rendu visuel compare
     // a l'image source avant integration.
     // VALIDATION INDEPENDANTE : le corpus AbalOnline contient 33 vraies
@@ -393,7 +393,7 @@ const LAYOUTS = {
     // l'identique contre le corpus (voir plus bas) -- ce n'est pas une
     // approximation, c'est une caracteristique authentique de cette
     // variante telle que jouee sur AbalOnline. Coordonnees relues
-    // position par position sur une image fournie par Olivier (bandes
+    // position par position sur une image fournie par ocj94 (bandes
     // zoomees rangee par rangee), PUIS converties via abaproToRc
     // (jamais a la main), rendu visuel compare a l'image source avant
     // integration.
@@ -440,7 +440,7 @@ const LAYOUTS = {
   snakes: {
     // "Snakes" -- motif distinct de "snakes_variant" malgre le nom
     // proche. Coordonnees relues position par position sur une image
-    // fournie par Olivier (bandes zoomees rangee par rangee), PUIS
+    // fournie par ocj94 (bandes zoomees rangee par rangee), PUIS
     // converties via abaproToRc (jamais a la main).
     // VALIDATION CROISEE independante : le meme projet tiers gym-abalone
     // qui a permis de valider "centrifuge" contient une entree "snakes"
@@ -456,7 +456,7 @@ const LAYOUTS = {
   alien: {
     // "Alien" -- deux figures compactes en symetrie de rotation a 180
     // degres. Coordonnees relues position par position sur une image
-    // fournie par Olivier (bandes zoomees rangee par rangee), PUIS
+    // fournie par ocj94 (bandes zoomees rangee par rangee), PUIS
     // converties via abaproToRc (jamais a la main), rendu visuel compare
     // a l'image source avant integration.
     // VALIDATION INDEPENDANTE : le corpus AbalOnline contient 35 vraies
@@ -474,7 +474,7 @@ const LAYOUTS = {
     // source. Symetrie de rotation a 180 degres, pas un simple miroir
     // haut-bas -- decouvert en cours de verification, pas suppose.
     // Source : https://onlineabalone.wordpress.com/2018/03/30/la-variante-de-mars-alitration/
-    // Coordonnees relues sur l'image fournie par Olivier, PUIS VERIFIEES
+    // Coordonnees relues sur l'image fournie par ocj94, PUIS VERIFIEES
     // en rejouant integralement une vraie partie MiGs citee dans
     // l'article (29744, MLA vs ccc) depuis cette position exacte : 122
     // demi-coups en notation Aba-Pro, tous legaux, resultat final
@@ -489,7 +489,7 @@ const LAYOUTS = {
     // "Pyramide" -- variante de type bloc defensif : deux pyramides de 14
     // billes face a face (Blancs au Nord-Ouest, Noirs au Sud-Est).
     // Source : onlineabalone.wordpress.com (fevrier 2018), image fournie par
-    // Olivier. Coordonnees relues rangee par rangee, PUIS converties par le
+    // ocj94. Coordonnees relues rangee par rangee, PUIS converties par le
     // moteur (coordToABAPRO), jamais a la main.
     // Symetrie CALCULEE sur les 12 symetries de l'hexagone, pas supposee :
     // une seule reflexion conserve les couleurs, d'axe g3-f4-e5-d6-c7 --
@@ -508,7 +508,7 @@ const LAYOUTS = {
     // "Marguerite francaise" -- quatre marguerites en trefle : deux noires
     // au Nord et au Sud, deux blanches a l'Ouest et a l'Est.
     // Source : onlineabalone.wordpress.com (janvier 2018), image fournie par
-    // Olivier. Coordonnees relues rangee par rangee, PUIS converties par le
+    // ocj94. Coordonnees relues rangee par rangee, PUIS converties par le
     // moteur (coordToABAPRO), jamais a la main.
     // Affirmations de l'article VERIFIEES PAR CALCUL, pas recopiees :
     // - trois symetries conservant les couleurs, exactement : rotation de
@@ -533,7 +533,7 @@ const LAYOUTS = {
     // "Korean Daisy" -- deux clusters en haut avec echange de couleur au
     // contact, deux blocs en bas en symetrie de rotation a 180 degres.
     // Coordonnees relues position par position sur une image fournie par
-    // Olivier (source abaloneonline.wordpress.com, creditee "Hyunmin
+    // ocj94 (source abaloneonline.wordpress.com, creditee "Hyunmin
     // KIM"), bandes zoomees rangee par rangee, PUIS converties via
     // abaproToRc (jamais a la main), rendu visuel compare a l'image
     // source avant integration.
@@ -547,7 +547,7 @@ const LAYOUTS = {
   anglattack: {
     // "Anglattack" -- quatre coins symetriques (rotation 180 degres),
     // une rangee mediane alternee, deux singletons isoles. Coordonnees
-    // relues position par position sur une image fournie par Olivier
+    // relues position par position sur une image fournie par ocj94
     // (bandes zoomees rangee par rangee), PUIS converties via
     // abaproToRc (jamais a la main), rendu visuel compare a l'image
     // source avant integration.
@@ -632,14 +632,14 @@ function computePlayableCells(turn, boardData) {
    degrade radial), seules les teintes changent. Exposee sur window pour
    que syncBoardTheme3D() (autre bloc <script>) puisse la reutiliser —
    memes couleurs des deux cotes, pas une seconde palette inventee.
-   Signale par Olivier. */
+   Signale par ocj94. */
 const BOARD_SURFACE_THEMES = {
   dark:   { gutterOuter:'#16181a', gutGrad:['#2a2d30','#1a1c1e'], trim:'#0a0a0b', surf:['#a8a8a8','#919191','#7c7c7c'] },
   ocean:  { gutterOuter:'#0a1826', gutGrad:['#1a3a52','#0d2436'], trim:'#040d16', surf:['#5a8aa8','#3f6a88','#254a64'] },
   marble: { gutterOuter:'#2a2a2a', gutGrad:['#3a3a3a','#242424'], trim:'#141414', surf:['#d8d4cc','#c0bab0','#a8a094'] },
   gold:   { gutterOuter:'#241a08', gutGrad:['#4a3510','#2a1c08'], trim:'#120c04', surf:['#c9a24a','#a8822e','#7a5c1c'] },
   forest: { gutterOuter:'#0e1a0e', gutGrad:['#1e3a1e','#0f200f'], trim:'#060e06', surf:['#5a8258','#436843','#2c4a2c'] },
-  /* 10 nouveaux thèmes (demande d'Olivier : "metal, pierre, marbre, verre...
+  /* 10 nouveaux thèmes (demande d'ocj94 : "metal, pierre, marbre, verre...
      une dixaine, tous differents"). Même structure EXACTE que les 5
      ci-dessus (gutterOuter/gutGrad/trim/surf) — aucun nouveau champ, aucun
      traitement spécial requis côté drawBoard()/3D, juste de nouvelles
@@ -685,9 +685,9 @@ const BOARD_SURFACE_THEMES = {
   marble_white: { gutterOuter:'#2a2a2a', gutGrad:['#4a4a4a','#2a2a2a'], trim:'#b0b0b0', surf:['#3a3a3a','#5a5a5a','#2a2a2a'] },
   pastel:       { gutterOuter:'#1a1a20', gutGrad:['#2a2a3a','#1a1a20'], trim:'#d0b0d0', surf:['#1a1a20','#2a2a3a','#151520'] },
   /* Volcanique : PREMIER theme avec variante jour/nuit (les 5 autres n'en
-     ont pas encore — "on fera les autres apres", demande d'Olivier).
+     ont pas encore — "on fera les autres apres", demande d'ocj94).
      Couleurs RE-ECHANTILLONNEES directement sur la photo de reference
-     fournie par Olivier (roche noire craquelee, veines de lave) — pas
+     fournie par ocj94 (roche noire craquelee, veines de lave) — pas
      choisies a l'oeil. La premiere version etait trop chaude/brune sur la
      roche ; la vraie photo montre un gris-noir neutre, avec les veines
      nettement plus discretes le jour (ambre terne) que la nuit (rouge-
@@ -704,7 +704,7 @@ window.BOARD_SURFACE_THEMES = BOARD_SURFACE_THEMES;
    simple ; ignore silencieusement pour un theme qui n'a pas encore de
    variante nuit (repli sur day, ou sur le theme plat tel quel) — jamais
    d'erreur si on bascule le mode nuit sur un theme qui ne le gere pas
-   encore. Signale par Olivier. */
+   encore. Signale par ocj94. */
 function resolveThemeColors(nom, estNuit) {
   const t = BOARD_SURFACE_THEMES[nom] || BOARD_SURFACE_THEMES.dark;
   if (t.day || t.night) return (estNuit && t.night) ? t.night : (t.day || t.night);
@@ -1127,7 +1127,7 @@ window.THEME_RECIPES = {
    texture est donc peinte UNE SEULE FOIS sur un canvas hors-ecran, mis en
    cache par (theme, jour/nuit), puis simplement collee (drawImage) a
    chaque redessin — aussi rapide qu'un degrade, motif stable. Signale par
-   Olivier — "je veux ca pour chaque theme". */
+   ocj94 — "je veux ca pour chaque theme". */
 const themeTextures2D = {};
 function peindreTextureTheme2D(nom, night, t) {
   const cv = document.createElement('canvas');

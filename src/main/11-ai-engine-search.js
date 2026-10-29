@@ -31,7 +31,7 @@ function setLayout(name, btn) {
    h1: center distance | h2: cohesion | h3: push threats
 ═══════════════════════════════════════════ */
 let aiDifficulty = '3';
-/* Reflexion max de l'IA (demande d'Olivier, comme dans KAAH) : null = le temps du
+/* Reflexion max de l'IA (demande d'ocj94, comme dans KAAH) : null = le temps du
    niveau ; '' = sans limite (l'IA va jusqu'au bout de la profondeur de son
    niveau) ; un nombre = ce nombre de secondes AU PLUS -- elle joue alors le
    meilleur coup trouve. Reglee a l'ecran de configuration ; hors tournois. */
@@ -41,7 +41,7 @@ let aiReflexionMax = null;
    sur l'écran de configuration (setup-diff-info). Une seule source de verité :
    changer un chiffre ici le change partout, jamais deux tables qui pourraient
    diverger et afficher un niveau différent de ce qui est réellement joué. */
-/* Niveaux NUMEROTES de 1 a 10 (demande d'Olivier : des chiffres plutot que des
+/* Niveaux NUMEROTES de 1 a 10 (demande d'ocj94 : des chiffres plutot que des
    noms, et des niveaux intermediaires). Les 6 anciens niveaux sont conserves A
    L'IDENTIQUE : 1 = ancien Facile, 3 = Moyen, 4 = Avance, 5 = Expert, 7 = Maitre,
    10 = Minimax. Les niveaux 2, 6, 8 et 9 s'intercalent entre eux. La recherche

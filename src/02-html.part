@@ -37,7 +37,7 @@ body {
 
 
 /* ─── SCROLLBAR ─── */
-/* Elargie de 6 a 9px (signale trop fine par Olivier). */
+/* Elargie de 6 a 9px (signale trop fine par ocj94). */
 ::-webkit-scrollbar { width: 9px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 3px; }
@@ -255,7 +255,7 @@ html[dir="rtl"] .lang-option { text-align: right; }
      navigateurs qui supportent la propriete standard scrollbar-color (Chrome
      recent inclus), elle prend le pas sur la regle ::-webkit-scrollbar
      globale et donnait donc une scrollbar grise ici, differente du reste
-     du site. Signale par Olivier. */
+     du site. Signale par ocj94. */
   scrollbar-width: thin; scrollbar-color: var(--gold-dim) transparent;
 }
 .sidebar-bottom { padding: 4px 0 8px; }
@@ -798,7 +798,7 @@ h2 {
    apercu ouvrable. line-height reste un multiplicateur sans unite : il suit
    automatiquement la taille du bloc. letter-spacing est en em (relatif a la
    taille du bloc), pas en px, pour garder un espacement visuellement
-   proportionne quelle que soit la taille du cadre. Signale par Olivier. */
+   proportionne quelle que soit la taille du cadre. Signale par ocj94. */
 #board-1d-text.plateau1d { font-size: 6.2cqw; line-height: 1.4; letter-spacing: 0.06em; }
 
 .game-controls {
@@ -831,7 +831,7 @@ h2 {
    Ici, UNE SEULE boite carree (#board-stage) porte la taille et le centrage ;
    les trois vues ne sont plus que des enfants en position absolute, inset:0,
    qui en remplissent chacune 100% — bit pour bit la meme boite, quelle que
-   soit celle qui est active. Signale par Olivier. */
+   soit celle qui est active. Signale par ocj94. */
 #board-stage {
   width: 640px; max-width: 100%; aspect-ratio: 1;
   margin: 0 auto; position: relative;
@@ -1178,7 +1178,7 @@ footer {
      (voir sa regle de base, plus haut). #board et #board-3d avaient chacun
      leur propre max-width ici, mais #board-1d n'avait pas d'equivalent : a
      cette largeur d'ecran, la 1D restait donc plus grande que les deux autres
-     et ne partageait plus leur centrage. Signale par Olivier. */
+     et ne partageait plus leur centrage. Signale par ocj94. */
   #board-stage { max-width: 440px; }
   /* Sur mobile, le plateau et le panneau des onglets sont empilés (plus côte
      à côte) : board-msg (position:absolute; bottom:-40px) déborderait sous
@@ -1268,7 +1268,7 @@ footer {
    ecran de configuration .setup-*, etc.) etait piege par erreur a l'interieur
    de ce @media (max-width:480px) et ne s'appliquait donc QUE sous 480px de
    large — c'est ce qui causait des boutons non stylises au-dela de ce seuil,
-   signale par Olivier (screenshots : theme actif a 400px, casse a 481px). */
+   signale par ocj94 (screenshots : theme actif a 400px, casse a 481px). */
 
 /* ═══════════════════════════════════════════════════════════════════════
    CONFORT & ACCESSIBILITE
@@ -1368,7 +1368,7 @@ body.a11y-oneaction .ctrl-btn:not(.primary):not(:hover):not(:focus) { opacity: 0
      memes couleurs que .setup-opt/.setup-opt.active ci-dessus, pas de
      nouvelles valeurs inventees. Toujours dore : contrairement a un groupe
      de boutons qui peut n'avoir aucun actif, un <select> a TOUJOURS une
-     valeur choisie -- demande d'Olivier. */
+     valeur choisie -- demande d'ocj94. */
   .setup-layout-select { padding:8px 12px; font-size:12px; background:var(--gold); color:#0d0f0e; border:1px solid var(--gold); border-radius:7px; font-weight:600; cursor:pointer; }
   .setup-opt:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
   .setup-toggle { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); cursor:pointer; }
@@ -2555,6 +2555,6 @@ body.kids-mode #bnav-settings { display: none !important; }
      le CSS puisse deja masquer le chrome normal des le premier rendu.
      ?projector=1d|2d|3d dans l'URL : fenetre separee, plateau seul, plein
      ecran, lecture seule (canInteractWithBoard le bloque, voir plus bas
-     dans le script principal). Demande d'Olivier — plusieurs fenetres du
+     dans le script principal). Demande d'ocj94 — plusieurs fenetres du
      meme appareil, a repartir sur plusieurs ecrans, synchronisees en
      direct via BroadcastChannel (natif, aucune dependance, aucun serveur). -->

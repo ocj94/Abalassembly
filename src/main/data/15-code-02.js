@@ -24,7 +24,7 @@ const AI_WEIGHT_PRESETS = {
   // (test « Criteres de KAAH », page Labo).
   kaah:      { center:6, cohesion:4, edge:8,  mob:2, iso:18, dng:14, chain:10, fortress:20,
                scGain:200, scPerte:200, cases:1, compac:20, sumito:20, menace:120, fourch:60, piege:40, label:'KAAH (expérimental)' },
-  /* v2.75 (choix d'Olivier, « solution 2 ») : les poids trouves par la methode Texel du Labo, avec ses
+  /* v2.75 (choix d'ocj94, « solution 2 ») : les poids trouves par la methode Texel du Labo, avec ses
      reglages par defaut -- 15 036 positions calmes de vraies parties pour regler, 3 819 pour verifier
      (refaire le calcul : node tools/texel-poids.js -- memes positions, meme methode que le Labo).
      Ils devinent mieux le gagnant (73,1 % -> 75,8 % des positions de controle) et, surtout, gagnent

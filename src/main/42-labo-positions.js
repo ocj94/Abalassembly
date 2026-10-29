@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════
    LABO : LES POSITIONS DU CORPUS (v2.70)
-   Demande d'Olivier : « amelioration du Labo », puis « les 6 » (les six outils
+   Demande d'ocj94 : « amelioration du Labo », puis « les 6 » (les six outils
    proposes). Un audit avait montre que les parties du Labo ne ressemblaient pas
    aux vraies : toujours la disposition Standard, 6 coups tires au hasard, alors
    que 2 688 des 4 580 parties du corpus sont en Marguerite belge (384 en
@@ -139,7 +139,7 @@ function _lpCoup(i){ const v = _lpOct(i, 19) | (_lpOct(i, 20) << 8); return { a:
 function _lpPourFil(i){ return { s: _lpChaine(i), t: _lpTrait(i), cb: _lpCb(i), cw: _lpCw(i) }; }
 
 /* Positions de depart des duels. 'belgian' (par defaut : la disposition des
-   tournois, celle des parties d'Olivier) ou 'corpus' (toutes les dispositions,
+   tournois, celle des parties d'ocj94) ou 'corpus' (toutes les dispositions,
    dans leurs proportions du corpus). */
 const LP_MODES_DEPART = ['belgian', 'corpus'];
 function _lpDeparts(mode){

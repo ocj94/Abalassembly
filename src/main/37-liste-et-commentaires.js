@@ -1,7 +1,7 @@
 
 /* ═══════════════════════════════════════════
    LISTE ET COMMENTAIRES DE LA PARTIE (v2.58), comme dans Uncle Lolo's Abalone (ULA)
-   Demande d'Olivier, captures d'ULA a l'appui : pendant une partie, deux onglets de plus.
+   Demande d'ocj94, captures d'ULA a l'appui : pendant une partie, deux onglets de plus.
    - LISTE : les coups en tableau Coup | Noir | Blanc, en Aba-Pro, avec le score apres
      chaque ejection « (2-1) » (Noirs-Blancs), comme la Liste d'ULA. Toucher un coup
      montre la position apres lui.
@@ -11,7 +11,7 @@
      positions examinees et le temps ; ou d'ou vient le coup quand il n'a pas ete calcule
      (livre d'ouvertures, table de finale...). Pour chaque position, quatre mesures des deux
      camps, calculees ici et definies plus bas.
-   Les notations d'ULA et du site sont les memes : la partie du journal d'ULA joint par Olivier
+   Les notations d'ULA et du site sont les memes : la partie du journal d'ULA joint par ocj94
    (217 coups, Marguerite belge) se rejoue entierement ici, ejections aux memes coups, 6-2.
    Les mesures « compacité visuelle » et « vision vers centre » d'ULA ne sont pas reprises :
    leur definition n'est pas publiee. Le site affiche les siennes, qu'il sait calculer.

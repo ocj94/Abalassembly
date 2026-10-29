@@ -5,9 +5,7 @@ message: >-
   finales ou la notation APGN — merci de le citer comme ci-dessous.
 type: software
 authors:
-  - given-names: Olivier
-    alias: ocj94
-    # family-names: à compléter si vous souhaitez apparaître sous votre nom complet
+  - alias: ocj94
 repository-code: "https://github.com/ocj94/Abalassembly"
 url: "https://ocj94.github.io/Abalassembly/"
 abstract: >-

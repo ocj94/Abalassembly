@@ -105,7 +105,7 @@ const compareProfiles = {
   /* Compte de demonstration : les compteurs sont a zero tant qu'aucune partie
      n'est conservee. Les valeurs precedentes — 1766 d'ELO, 247 parties, 133
      victoires — etaient inventees et affichees comme des faits. */
-  'Olivier_CJ':   { color:'#2d5a3d', elo:null, games:0, wins:0, streak:0, puzzles:0 },
+  'ocj94':   { color:'#2d5a3d', elo:null, games:0, wins:0, streak:0, puzzles:0 },
   'Daisy (démo)':    { color:'#1c3d5a', elo:2189, games:430, wins:340, streak:12, puzzles:750 },
 };
 

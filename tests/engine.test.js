@@ -832,6 +832,9 @@ test("Marguerite francaise : desequilibree -- aucune symetrie n'echange Noirs et
 /* ─── 22. Galerie des variantes : detail sous la fiche, plateau, bouton Jouer ─── */
 
 const _SRC_INDEX = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
+// v2.88 : le vrai nom de l'auteur, qui ne doit apparaitre nulle part -- sur le site il signe ocj94.
+// Encode ici pour ne pas l'ecrire en clair dans les tests non plus.
+const _NOMS_AUTEUR = ['T2xpdmllcg==', 'Q2hhcmxlcy1Kb3NlcGg='].map(b => Buffer.from(b, 'base64').toString('utf8'));
 
 
 test('correspondance : 23 fiches jouables, chacune reliee a une disposition du moteur ET du menu Jouer', () => {
@@ -1966,7 +1969,7 @@ test('intro : l embleme disparait avant le titre, le titre avant le sous-titre, 
   assert.match(html, /<polygon points="188,100 144,176\.2 56,176\.2 12,100 56,23\.8 144,23\.8"/, 'hexagone a faces planes en haut et en bas');
   const sec = re => { const m = src.match(re); assert.ok(m, String(re)); return parseFloat(m[1]); };
   const dureeEmbleme = sec(/\.ie-hex\s*\{ animation: ieHex ([\d.]+)s /), finEmbleme = sec(/\.ie-hex\s*\{ animation: ieHex [\d.]+s [^)]*\) ([\d.]+)s/) + dureeEmbleme;
-  assert.ok(dureeEmbleme >= 2.5, 'disparition allongee a la demande d Olivier');
+  assert.ok(dureeEmbleme >= 2.5, 'disparition allongee a la demande d ocj94');
   const titre = sec(/\.intro-title \{[^}]*introTitleIn \.9s ease-out ([\d.]+)s/);
   const sousTitre = sec(/animation: introTaglineIn \.8s ease-out ([\d.]+)s forwards;/);
   const sortie = sec(/animation: introFadeOut \.6s ease-in ([\d.]+)s forwards;/);
@@ -2903,8 +2906,8 @@ test('problemes : chaque bille sur le plateau, une ejection existe, la solution 
   }
 });
 
-test('honnetete : la carte du joueur ne montre plus « Olivier » a tout le monde ; la couleur annoncee est celle tenue', () => {
-  assert.strictEqual(_SRC().indexOf('>Vous (Olivier)<'), -1);
+test('honnetete : la carte du joueur ne montre plus le prenom de l auteur a tout le monde ; la couleur annoncee est celle tenue', () => {
+  assert.strictEqual(_SRC().indexOf('>Vous (' + _NOMS_AUTEUR[0] + ')<'), -1);
   const els = {}, sG = ctx.document.getElementById, u = ctx.currentUser, c = ctx.HumanColor.get();
   ctx.document.getElementById = id => (els[id] = els[id] || { style: {}, textContent: '' });
   try {
@@ -3148,7 +3151,7 @@ test('v2.57 defi et probleme du mois : ouverts sur le plateau de la partie, sans
 });
 
 /* ─── 53. v2.58 : Liste et Commentaires de la partie, comme dans Uncle Lolo's Abalone (ULA) ─── */
-// La partie du journal d'ULA joint par Olivier (Marguerite belge, ULA niveau 3, 217 coups, 6-2) :
+// La partie du journal d'ULA joint par ocj94 (Marguerite belge, ULA niveau 3, 217 coups, 6-2) :
 // les coups seuls, dans l'ordre final (coups repris compris)
 const ULA_PARTIE = [
   'i9h8 a5b5 i8h7 a4b4 a1b1 i5h5 h8g7 h4h5 h9g8 g4g5f3 h8g8 i6h5 c1c3d2 c5c6d6 b1b3c1 b5b6c5',
@@ -3286,7 +3289,7 @@ test('v2.58 annulation : le coup annule quitte la liste, les commentaires et l h
 }));
 
 /* ─── 54. v2.59 : les 12 dimensions sur toutes les parties de la page, expliquées, par camp ─── */
-// Demande d'Olivier : le dessin qui explique les centiles dans la page Statistiques du jeu, un
+// Demande d'ocj94 : le dessin qui explique les centiles dans la page Statistiques du jeu, un
 // graphique pour les deux camps, un pour les Noirs, un pour les Blancs, toujours accordés au
 // nombre de parties. Les parties PlayStrategy et de référence n'avaient pas d'empreintes : elles
 // en ont (tools/empreintes-complement.js), et ces tests échouent si une partie change sans elles.
@@ -4039,7 +4042,7 @@ test('v2.64 adresses : chaque entrée du menu et chaque page ont la leur, unique
   }));
   // aucune n'est aussi l'id d'un element (le navigateur sauterait dessus)
   T.forEach(l => [l[1], l[2]].forEach(a => assert.strictEqual(src.indexOf('id="' + a + '"'), -1, 'id ' + a)));
-  assert.strictEqual(_r58("_adrLire('corpus')"), 'corpusstats', 'l exemple d Olivier : #corpus');
+  assert.strictEqual(_r58("_adrLire('corpus')"), 'corpusstats', 'l exemple d ocj94 : #corpus');
 });
 
 test('v2.64 adresses : lecture tolérante (accents, majuscules, espaces, encodage, noms internes), écriture dans la langue du site', () => {
@@ -5953,9 +5956,29 @@ test('bibliotheque v2.87 : 25 parties de MiGs citees par le blog, dont 2 rejouab
 
 test('bibliotheque v2.87 : les traces ne citent que des pseudos, jamais de nom reel', () => {
   const T = _r63('PARTIES_TRACES'), tout = JSON.stringify(T) + _SRC_INDEX.slice(_SRC_INDEX.indexOf('const PARTIES_TRACES'), _SRC_INDEX.indexOf('let _ptRangs'));
-  ['Alfaro', 'Piat', 'Borello', 'Garnier', 'Frochot', 'Charles-Joseph', 'Olivier'].forEach(n => assert.ok(!tout.includes(n), n));
+  ['Alfaro', 'Piat', 'Borello', 'Garnier', 'Frochot'].concat(_NOMS_AUTEUR).forEach(n => assert.ok(!tout.includes(n), n));
   // aucun lien entre des comptes du meme joueur
   assert.ok(!/ocj94|spmichel|guru_ajna/i.test(tout));
   const i = _SRC_INDEX.indexOf('BIBLIOTHEQUE : LES PARTIES MIGS CITEES'), entete = _SRC_INDEX.slice(i, _SRC_INDEX.indexOf('const PARTIES_TRACES', i));
-  assert.doesNotMatch(entete, /Olivier|Charles-Joseph/);
+  _NOMS_AUTEUR.forEach(n => assert.ok(!entete.includes(n), 'en-tete du module'));
+});
+
+// ═══════════════════════════════════════════
+// 80. v2.88 : sur le site, l'auteur signe ocj94 -- son vrai nom n'apparait nulle part
+// ═══════════════════════════════════════════
+test('v2.88 : le vrai nom de l auteur n apparait ni sur le site, ni dans les sources, ni dans la documentation', () => {
+  const fs = require('fs'), path = require('path'), racine = path.join(__dirname, '..');
+  const fichiers = require('child_process').execFileSync('git', ['ls-files'], { cwd: racine, encoding: 'utf8' }).split('\n').filter(Boolean);
+  assert.ok(fichiers.includes('index.html') && fichiers.includes('ecosysteme.html') && fichiers.includes('CITATION.cff'));
+  let lus = 0;
+  fichiers.forEach(f => {
+    let s; try { s = fs.readFileSync(path.join(racine, f), 'utf8'); } catch (e) { return; }
+    if (s.indexOf('\u0000') >= 0) return;   // fichier binaire
+    lus++;
+    _NOMS_AUTEUR.forEach(n => assert.ok(!s.includes(n), f));
+  });
+  assert.ok(lus > 100);
+  // le Hall of Fame et le compte de demonstration montrent le pseudo
+  assert.match(_SRC_INDEX, />ocj94<\/div>/);
+  assert.ok(_r63('compareProfiles').ocj94);
 });
