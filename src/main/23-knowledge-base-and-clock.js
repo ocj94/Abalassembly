@@ -29,11 +29,11 @@ const ABALONE_KB_TOPICS = [
 
   { id:'champions',
     kw:['champion','champions','palmares','frochot','vincent','vainqueur','gagnant','mso','pearce','kang','borello','schnider','titre','mondial','monde'],
-    a:`Le championnat du monde se dispute au <b>Mind Sports Olympiad (MSO)</b>, à Londres chaque août, depuis 1997. Le joueur le plus titré est de très loin le Français <b>Vincent Frochot</b> (10 titres mondiaux). Champions récents : <b>2025 David Pearce</b> (Angleterre), <b>2024 Kyungmin Kang</b> (Corée du Sud — 1re victoire coréenne), 2022-2023 Vincent Frochot, 2020-2021 Alex Borello.` },
+    a:`Le championnat du monde se dispute au <b>Mind Sports Olympiad (MSO)</b>, à Londres chaque août, depuis 1997. Le joueur le plus titré est de très loin le Français <b>Vincent Frochot</b> (11 titres mondiaux, de 2007 à 2026, d'après le palmarès de Wikipédia). Champions récents : <b>2026 Vincent Frochot</b>, <b>2025 David Pearce</b> (Angleterre), <b>2024 Kyungmin Kang</b> (Corée du Sud — 1re victoire coréenne), 2022-2023 Vincent Frochot, 2020-2021 Alex Borello.` },
 
   { id:'joueurs',
     kw:['joueur','joueurs','meilleur','meilleurs','classement','classements','elo','glicko','grandmaster','niveau','fort','forts','ranking'],
-    a:`Figures du haut niveau : <b>Vincent Frochot</b> (FR, 10× champion du monde, créateur d'abal.online), <b>David Pearce</b> (Angleterre), <b>Alex Borello</b> (FR), Gert Schnider (AT), Jan Šťastna (CZ), Marc Tastet (FR). Forte montée de l'école <b>sud-coréenne</b> depuis 2019, surtout chez les juniors. Les classements se font en ELO (Board Game Arena) ou Glicko (PlayStrategy).` },
+    a:`Figures du haut niveau : <b>Vincent Frochot</b> (FR, 11× champion du monde, créateur d'abal.online et de l'Abalone de PlayStrategy), <b>David Pearce</b> (Angleterre), <b>Alex Borello</b> (FR), Gert Schnider (AT), Jan Šťastna (CZ), Marc Tastet (FR). Forte montée de l'école <b>sud-coréenne</b> depuis 2019, surtout chez les juniors. Les classements se font en ELO (Board Game Arena) ou Glicko (PlayStrategy).` },
 
   { id:'tournois',
     kw:['tournoi','tournois','competition','competitions','championnat','mso','msodb','national','flip','parthenay','icga'],

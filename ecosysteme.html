@@ -98,6 +98,15 @@
     line-height:1.32;margin:0;max-width:26ch;font-variation-settings:'SOFT' 40,'WONK' 1}
   .thesis strong{font-weight:600;color:var(--amber)}
 
+  .annu{margin:0 0 40px}
+  .annu h2{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:clamp(24px,4.4vw,32px);margin:0 0 8px}
+  .annu-lede{color:#cfc5b4;font-size:14.5px;max-width:62ch;margin:0 0 18px}
+  .annu a{color:var(--bone);text-decoration:underline;text-decoration-color:var(--rule);text-underline-offset:3px}
+  .annu a:hover{color:var(--amber);text-decoration-color:var(--amber)}
+  .annu-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px 28px}
+  .annu h3{font-family:'Spline Sans Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin:0 0 8px;font-weight:600}
+  .annu ul{list-style:none;margin:0;padding:0}
+  .annu li{font-size:14px;color:#cfc5b4;padding:5px 0;border-bottom:1px solid var(--rule)}
   footer{border-top:1px solid var(--rule);padding:24px 0 64px;font-family:'Spline Sans Mono',monospace;
     font-size:11.5px;color:var(--ash);line-height:1.85}
 </style>
@@ -153,8 +162,47 @@
     <p>Vingt ans plus tard, <strong>personne ne finance encore la couche communautaire</strong>. C'est la seule réponse honnête à la question.</p>
   </div>
 
+  <section class="annu" aria-labelledby="annu-t">
+    <h2 id="annu-t">Annuaire</h2>
+    <p class="annu-lede">Tout ce qui existe autour du jeu, même ce qui n'a pas sa bille sur le plateau. La version complète, avec les codes des variantes de MiGs : <a href="https://github.com/ocj94/Abalassembly/blob/main/docs-fr/Ressources.fr.md">la page Ressources du wiki</a>.</p>
+    <div class="annu-g">
+      <div><h3>Jouer</h3><ul>
+        <li><a href="https://en.boardgamearena.com/gamepanel?game=abalone">Board Game Arena</a></li>
+        <li><a href="https://playstrategy.org">PlayStrategy</a> — tournois, Grand Prix MSO</li>
+        <li><a href="https://abal.online">abal.online</a></li>
+        <li><a href="https://saabalone.github.io/KAAH_Test/">KAAH</a></li>
+        <li><a href="https://www.playabalone.com">PlayAbalone</a></li>
+        <li><a href="https://abalone.stellarflow.fr/">abalone.stellarflow.fr</a> — à deux, par code</li>
+        <li><a href="https://store.steampowered.com/app/279480/Abalone/">Abalone sur Steam</a></li>
+      </ul></div>
+      <div><h3>Compétitions</h3><ul>
+        <li><a href="https://mindsportsolympiad.com">Mind Sports Olympiad</a> — le championnat du monde, depuis 1997</li>
+        <li><a href="https://en.wikipedia.org/wiki/Abalone_(board_game)">Le palmarès jusqu'en 2026</a> (Wikipédia)</li>
+        <li><a href="https://icga.org/icga/news/Olympiad/Olympiad2003/results/Abalone/abalone.htm">Computer Olympiad 2003</a> — AbaPro bat Nacre 8 à 0</li>
+      </ul></div>
+      <div><h3>Programmes</h3><ul>
+        <li>ABA-PRO (Tino Werner), Nacre (Peer Sommerlund), MLA (l'IA de MiGs)</li>
+        <li><a href="https://iadabalone.wordpress.com/">ULA et la programmation d'Abalone</a> (Laurent Pagli)</li>
+        <li><a href="https://github.com/saabalone/KAAH_Test">KAAH et KAI++</a> (Saab)</li>
+        <li><a href="https://github.com/towzeur/gym-abalone">gym-abalone</a> — 60 positions de départ, licence MIT</li>
+      </ul></div>
+      <div><h3>Lire</h3><ul>
+        <li><a href="https://fr.wikipedia.org/wiki/Abalone_(jeu)">Wikipédia en français</a> · <a href="https://en.wikipedia.org/wiki/Abalone_(board_game)">en anglais</a></li>
+        <li><a href="https://boardgamegeek.com/boardgame/526/abalone">BoardGameGeek</a></li>
+        <li><a href="https://fr.vikidia.org/wiki/Abalone">Vikidia</a> — deux erreurs de règle à corriger</li>
+        <li><a href="https://abalone-online.over-blog.com/">Le premier blog Abalone Online</a> (over-blog)</li>
+        <li>Articles : <i>Algorithmic Fun — Abalone</i> (Aichholzer, Aurenhammer, Werner, 2002), <i>Abalearn</i> (Campos, Langlois), <i>Constructing an Abalone Game-Playing Agent</i> (Lemmens, 2005)</li>
+      </ul></div>
+      <div><h3>Archives</h3><ul>
+        <li><a href="https://web.archive.org/web/20030218145130/http://fr.abalonegames.com/">abalonegames.com en 2003</a> (Wayback Machine)</li>
+        <li><a href="https://github.com/ocj94/Abalassembly/tree/main/games">Les parties publiées par Abalassembly</a> (APGN)</li>
+      </ul></div>
+    </div>
+  </section>
+
   <footer>
     Sources : Board Game Arena, Wikipédia (Asmodee), blog Abalone Online, recherches du 24 juillet 2026.<br>
+    Mise à jour du 29 octobre 2026 : PlayStrategy (son annonce du 9 janvier 2025), KAAH (son dépôt), palmarès du MSO (Wikipédia en anglais), annuaire.<br>
     Le Discord a été vérifié le 24/07/2026 : ⚫Abalone⚪ By the fans for the fans, 127 membres.<br>
     Les trois groupes Facebook ont été fournis par ocj94 ; Facebook interdit<br>
     la vérification automatique, leurs intitulés restent donc à nommer. Aucune chaîne YouTube<br>
@@ -181,15 +229,15 @@ const NODES = [
     meta:"Date d'ouverture approximative" },
   { id:'mso', kind:'vol', x:300, y:72, r:30, from:2005,
     name:'Mind Sports Olympiad', l1:'MSO', l2:'CHAMPIONNAT',
-    desc:"Organise le championnat du monde d'Abalone. <b>Vincent Frochot</b> l'a remporté huit fois, dont 2019 à Londres. La compétition officielle existe — elle est simplement séparée du jeu en ligne.",
-    meta:'Titres de V. Frochot : 2007, 2010, 2011, 2015 à 2019' , links:[{t:'Boardability — archives des anciens MSO',u:'http://www.boardability.com/home.php'}] },
+    desc:"Organise le championnat du monde d'Abalone depuis 1997, en ligne en 2020 et 2021. <b>Vincent Frochot</b> l'a remporté onze fois de 2007 à 2026. Depuis 2025, son Grand Prix en ligne passe aussi par PlayStrategy.",
+    meta:'Titres de V. Frochot : 2007, 2010, 2011, 2015 à 2019, 2022, 2023, 2026 (palmarès de Wikipédia en anglais)' , links:[{t:'Boardability — archives des anciens MSO',u:'http://www.boardability.com/home.php'}] },
   { id:'bgg', kind:'vol', x:454, y:150, r:30, from:2005,
     name:'BoardGameGeek', l1:'BGG', l2:'RÉFÉRENCE',
     desc:"La fiche de référence du jeu et son forum. Utile pour la documentation, mais on n'y joue pas et on n'y archive pas de parties.",
     meta:'Fiche jeu n° 526' , links:[{t:'Fiche BoardGameGeek',u:'https://boardgamegeek.com/boardgame/526/abalone'}] },
   { id:'abalonline', kind:'vol', x:146, y:150, r:30, from:2020,
     name:'abal.online', l1:'ABAL.ONLINE', l2:'1 BÉNÉVOLE',
-    desc:"Le site de <b>Vincent Frochot</b>. Rouvre le jeu en ligne en novembre 2020, trois ans après la fermeture de MiGs, et héberge le championnat du monde en ligne la même année. Détient 1 891 parties qu'Abalassembly ne republie pas, faute d'accord.",
+    desc:"Le site de <b>Vincent Frochot</b>. Rouvre le jeu en ligne à l'été 2020 — ses plus anciennes parties connues datent du 31 juillet —, trois ans après la fermeture de MiGs, et héberge le championnat du monde en ligne la même année. Détient 1 891 parties qu'Abalassembly ne republie pas, faute d'accord.",
     meta:'Statut 2026 : à vérifier · ma requête a renvoyé un code inhabituel' , links:[{t:'abal.online',u:'https://abal.online'}] },
   { id:'groupes', kind:'vol', x:300, y:340, r:30, from:2015,
     name:'Groupes de joueurs', l1:'GROUPES', l2:'FB · WA · DISCORD',
@@ -208,8 +256,8 @@ const NODES = [
     meta:'Dates approximatives · durée de vie courte' },
   { id:'abalassembly', kind:'vol', x:146, y:330, r:32, from:2026, ring:true,
     name:'Abalassembly', l1:'ABALASSEMBLY', l2:'1 FICHIER · GPL',
-    desc:"Un fichier HTML, zéro dépendance, hors-ligne, GPL v3. Embarque <b>4 480 parties</b>, le format APGN et un moteur qui valide chaque partie. <b>Le seul projet de la carte qui conserve et republie des parties.</b>",
-    meta:'2 589 parties MiGs sauvées de la disparition' , links:[{t:'Jouer',u:'https://ocj94.github.io/Abalassembly'},{t:'Le dépôt',u:'https://github.com/ocj94/Abalassembly'}] },
+    desc:"Un fichier HTML, zéro dépendance, hors-ligne, GPL v3. Embarque <b>4 580 parties</b>, 60 positions de départ, le format APGN et un moteur qui valide chaque partie. <b>Le seul projet de la carte qui rassemble et republie les parties des autres sites.</b>",
+    meta:'2 589 parties MiGs sauvées de la disparition · 93 du tournoi Yearly de PlayStrategy' , links:[{t:'Jouer',u:'https://ocj94.github.io/Abalassembly'},{t:'Le dépôt',u:'https://github.com/ocj94/Abalassembly'}] },
   { id:'outils', kind:'vol', x:230, y:300, r:28, from:2010,
     name:'Les outils des joueurs', l1:'OUTILS', l2:'ULA · REPLAYER',
     desc:"<b>ULA</b>, conçu par Laurent Pagli, sert de référence pour la notation — c'est sur lui que Saab a vérifié l'export Aba-Pro d'Abalassembly. Le replayer de <b>Nicolas Fiorini</b> rejoue les parties dans le navigateur. Des outils faits par des joueurs, pour des joueurs.",
@@ -223,6 +271,16 @@ const NODES = [
     name:'Blog Abalone Online', l1:'BLOG', l2:'DOCUMENTATION',
     desc:"A documenté la communauté pendant plus de dix ans, d'abord sur over-blog puis sur WordPress. Publication arrêtée pour une durée indéterminée. Remercie Vincent Frochot et <b>ocj94</b>, l’auteur d’Abalassembly.",
     meta:"~2021 · date d'arrêt approximative" , links:[{t:'Le blog, en français',u:'https://onlineabalone.wordpress.com/'},{t:'The blog, in English',u:'https://abaloneonline.wordpress.com/'},{t:'Sa page de liens — le meilleur annuaire existant',u:'https://onlineabalone.wordpress.com/liens/'}] },
+  { id:'playstrategy', kind:'vol', x:454, y:240, r:30, from:2025,
+    name:'PlayStrategy', l1:'PLAYSTRAT.', l2:'TOURNOIS',
+    desc:"Site gratuit et libre de jeux de stratégie, fondé par Etan Ilfeld sur le modèle de lichess. <b>Abalone y arrive le 9 janvier 2025</b>, développé surtout par Vincent Frochot : partie en direct ou par correspondance, tournois Arena, Grand Prix en ligne du MSO, et des bots d'entraînement. On peut exporter les parties d'un tournoi.",
+    meta:'93 parties du tournoi Yearly 2026 publiées en APGN par Abalassembly' ,
+    links:[{t:'PlayStrategy',u:'https://playstrategy.org'},{t:'L\u2019annonce du 9 janvier 2025',u:'https://playstrategy.org/blog/Z34_ChIAACcA884u/abalone-has-arrived'}] },
+  { id:'kaah', kind:'vol', x:376, y:318, r:26, from:2026,
+    name:'KAAH', l1:'KAAH', l2:'APPLI DE SAAB',
+    desc:"L'application d'Abalone de <b>Saab</b>, avec son IA KAI++, jouable dans le navigateur. Son dépôt public existe depuis septembre 2026 ; l'application, elle, en est à sa 90<sup>e</sup> version.",
+    meta:'Un développeur · code ouvert sur GitHub' ,
+    links:[{t:'Jouer à KAAH',u:'https://saabalone.github.io/KAAH_Test/'},{t:'Le dépôt',u:'https://github.com/saabalone/KAAH_Test'}] },
   { id:'netabalone', kind:'vol', x:370, y:150, r:28, from:2005, to:2012, slot:2,
     name:'Netabalone', l1:'NETABA', l2:'AVANT MiGs',
     desc:"Le serveur qui précédait MiGs, cité par les joueurs de l'époque comme plus ergonomique. Disparu avant lui, sans archive connue.",
@@ -232,9 +290,10 @@ const NODES = [
 const EVENTS = {
   2017:'30 mai — MiGs ferme. Plus aucun serveur d\u2019Abalone en ligne.',
   2019:'Vincent Frochot remporte son huitième titre mondial.',
-  2020:'Novembre — abal.online rouvre le jeu. Championnat du monde en ligne.',
+  2020:'Été — abal.online rouvre le jeu (plus ancienne partie connue : 31 juillet). Championnat du monde en ligne.',
   2021:'Février — Asmodee rachète Board Game Arena.',
-  2026:'Abalassembly publie l\u2019APGN et sauve 2 589 parties de MiGs.'
+  2025:'9 janvier — Abalone arrive sur PlayStrategy, développé par Vincent Frochot.',
+  2026:'Abalassembly publie l\u2019APGN et sauve 2 589 parties de MiGs. Saab ouvre le code de KAAH.'
 };
 
 const GUTTER = [{x:63,y:200},{x:63,y:252},{x:63,y:304}];

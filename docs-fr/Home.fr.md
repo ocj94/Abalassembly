@@ -17,6 +17,7 @@ Un jeu d'Abalone complet dans un seul fichier HTML : zéro dépendance, hors-lig
 - **[Architecture](Architecture.fr.md)** — quatre schémas : moteur, données, modes de jeu, tables de finale.
 - **[Calcul distribué](Calcul-distribue.fr.md)** — pourquoi il n'y a pas de grille de calcul volontaire.
 - **[Moteur multi-worker](Moteur-multi-worker.fr.md)** — ce qui marche, et une vraie limite non résolue, documentée honnêtement.
+- **[Ressources](Ressources.fr.md)** — tout ce qui existe autour du jeu : où jouer, serveurs disparus, compétitions, programmes, articles, encyclopédies, codes des variantes de MiGs.
 - **[Variantes](Variantes.fr.md)** — jouables contre documentées seulement, à travers les trois endroits du site qui en parlent.
 - **[Glossaire des fonctions](Glossaire-fonctions.fr.md)** — 1236 fonctions extraites du code réel, classées par lettre avec leur section de code.
 

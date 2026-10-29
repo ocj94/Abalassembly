@@ -9,6 +9,34 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.95]
+
+### Added — everything that exists around the game
+Requested by the author: complete the pages with what we found (PDFs,
+GitHub repositories, sites, apps, tournaments).
+- **A "Resources" page in the project wiki** (French and English): where to
+  play, servers that disappeared, competitions, programs, papers,
+  encyclopedias, the community, open data. With the list of the 42 MiGs
+  variant codes FightClub sent in 2019.
+- **The Ecosystem page** gets two new actors, **PlayStrategy** (Abalone
+  arrived there on 9 January 2025, mostly developed by Vincent Frochot) and
+  **KAAH**, Saab's app, plus a **directory** under the board. The winners
+  list is updated: eleven world titles for Vincent Frochot, from 2007 to
+  2026, according to the English Wikipedia.
+- **Starting positions carry their MiGs name** when known: Couronne, Croix,
+  Forçage, Labyrinthe, Mosaïque, Pieuvre, Roue, Tranchée, Je suis un robot,
+  Vraie marguerite, Domination vs Marguerite, Def or Atak, MQuorric1. The 23
+  positions on the MiGs list say so on their card, with their code.
+  Wikipedia confirms the Sibe's 15 marbles.
+- **The documents library** adds *Abalearn* (Campos, Langlois) and dates
+  Lemmens's thesis (18 June 2005).
+
+### Fixed
+- **abal.online did not reopen in November 2020**: its oldest known games
+  date from 31 July 2020. Ecosystem page and wiki fixed.
+- The site's knowledge base counted 10 world titles for Vincent Frochot; he
+  has 11.
+
 ## [v2.94]
 
 ### Added — The Arrow, thanks to Wikipedia
