@@ -19,9 +19,14 @@
    septembre 2016). Les 3 dont le blog publie les coups (« publies ») pourront
    etre reprises et verifiees par le moteur des qu'on aura leur texte.
    [numero MiGs, date (AAAA-MM-JJ, AAAA-MM ou '' inconnue), Noirs, Blancs,
-    disposition (cle de HEAT_VARIANT_LABEL, nom MiGs en clair, ou '' inconnue), source, 'publies' ?]
+    disposition (cle de HEAT_VARIANT_LABEL, nom MiGs en clair, ou '' inconnue), source, 'publies' ?, note]
+   v2.92 : les deux plus anciennes, d'apres la page du blog qui presente l'historique de MiGs : la 159
+   (15 octobre 2006, la premiere gardee) et la 357 (29 octobre 2006, la premiere complete). MiGs ne gardait
+   pas toutes les parties avant fevrier 2008.
 ═══════════════════════════════════════════ */
 const PARTIES_TRACES = [
+  [159, '2006-10-15', '', '', '', 'historique', '', 'la plus ancienne partie gardée par MiGs'],   // v2.92
+  [357, '2006-10-29', 'CH4', 'floopy', '', 'historique', '', 'la plus ancienne partie complète gardée par MiGs, finie 6-4 en 73 coups'],
   [427, '2006-11-07', 'turlututu', 'picasso', 'Marguerite irlandaise', 'variantes'],
   [614, '2006-12-14', '', '', 'Cœurs croisés', 'variantes'],
   [2218, '2009-01-29', '', '', 'Damier', 'variantes'],
@@ -74,6 +79,7 @@ function _ptSource(t){
   if (t[5] === 'variantes') return _tr('bibliothèque des variantes du blog', 'the blog’s variants library');
   if (t[5] === 'article') return _tr('article du blog', 'blog article');
   if (t[5] === 'records') return _tr('rubrique Records du blog', 'the blog’s Records section');
+  if (t[5] === 'historique') return _tr('page du blog sur l’historique de MiGs', 'the blog’s page on the MiGs history');
   return t[5] ? _tr('problème du mois « ', 'problem of the month “') + t[5] + _tr(' »', '”') : _tr('citée par le blog', 'cited by the blog');
 }
 // le petit repere des parties de la bibliotheque citees par le blog
@@ -92,17 +98,19 @@ function _ptHtml(q, variantFilter, lengthFilter){
   const avec = T.filter(function(t){ return _ptRang(t[0]) >= 0; }).length;
   let h = '<details' + (q ? ' open' : '') + ' style="margin:2px 4px 8px;border:1px solid var(--border);border-radius:8px;padding:6px 8px"><summary style="cursor:pointer;font-size:12px;color:var(--gold)">📜 '
     + _tr('Parties de MiGs citées par le blog Abalone Online', 'MiGs games cited by the Abalone Online blog') + ' · ' + T.length + (avec ? _tr(' (dont ' + avec + ' avec leurs coups)', ' (' + avec + ' with their moves)') : '') + '</summary>'
-    + '<div style="font-size:11px;color:var(--muted);margin:6px 4px">' + _tr('Le serveur MiGs a fermé en 2017 avec sa base de parties : plus de 12 000 en 2012, près de 40 000 à la fin. Ces parties citées sur le blog sont gardées en trace : numéro, date, joueurs. Si leurs coups sont retrouvés, elles pourront être rejouées.',
-      'The MiGs server closed in 2017 along with its game database: over 12,000 games in 2012, nearly 40,000 by the end. These games cited on the blog are kept as a trace: number, date, players. If their moves are found, they can be replayed.') + '</div>';
+    + '<div style="font-size:11px;color:var(--muted);margin:6px 4px">' + _tr('Le serveur MiGs a fermé en 2017 avec sa base de parties : gardées systématiquement à partir de février 2008, plus de 12 000 en 2012, près de 40 000 à la fin. Ces parties citées sur le blog sont gardées en trace : numéro, date, joueurs. Si leurs coups sont retrouvés, elles pourront être rejouées.',
+      'The MiGs server closed in 2017 along with its game database: kept systematically from February 2008, over 12,000 games in 2012, nearly 40,000 by the end. These games cited on the blog are kept as a trace: number, date, players. If their moves are found, they can be replayed.') + '</div>';
   T.forEach(function(t){
     const r = _ptRang(t[0]), joueurs = (t[2] || t[3]) ? (typeof _iaNom === 'function' ? _iaNom(t[2] || '?') : escapeHtml(t[2] || '?')) + ' <span style="color:var(--muted)">vs</span> ' + (typeof _iaNom === 'function' ? _iaNom(t[3] || '?') : escapeHtml(t[3] || '?')) : '<span style="color:var(--muted)">' + _tr('joueurs inconnus', 'unknown players') + '</span>';
     const date = t[1] ? t[1].split('-').reverse().join('/') : _tr('date inconnue', 'unknown date');
     // v2.89 : « perdus » seulement quand on le sait ; les coups publies sur le blog attendent d'etre repris
     const etat = t[6] === 'publies' ? _tr('coups publiés sur le blog, pas encore repris', 'moves published on the blog, not yet added')
-      : t[5] === 'variantes' ? _tr('coups non retrouvés', 'moves not found') : _tr('coups perdus', 'moves lost');
+      : (t[5] === 'variantes' || t[5] === 'historique') ? _tr('coups non retrouvés', 'moves not found') : _tr('coups perdus', 'moves lost');
+    const note = t[7] ? ' · ' + escapeHtml(_tr(t[7], ({ 'la plus ancienne partie gardée par MiGs': 'the oldest game kept by MiGs',
+      'la plus ancienne partie complète gardée par MiGs, finie 6-4 en 73 coups': 'the oldest complete game kept by MiGs, ended 6-4 in 73 moves' })[t[7]] || t[7])) : '';
     const dispo = t[4] ? (HEAT_VARIANT_LABEL[t[4]] || t[4]) : _tr('disposition inconnue', 'unknown layout');
     const droite = '<span style="color:var(--muted);font-size:11px;white-space:nowrap">N° ' + t[0] + ' · ' + escapeHtml(date) + '</span>';
-    const sous = '<div style="color:var(--muted);font-size:11px">' + escapeHtml(dispo) + ' · ' + escapeHtml(_ptSource(t)) + ' · ' + (r >= 0 ? '<span style="color:var(--gold)">▶ ' + _tr('rejouable', 'replayable') + '</span>' : etat) + '</div>';
+    const sous = '<div style="color:var(--muted);font-size:11px">' + escapeHtml(dispo) + ' · ' + escapeHtml(_ptSource(t)) + note + ' · ' + (r >= 0 ? '<span style="color:var(--gold)">▶ ' + _tr('rejouable', 'replayable') + '</span>' : etat) + '</div>';
     h += r >= 0
       ? '<div class="pt-trace" onclick="loadMigsGame(' + r + ')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:7px 8px;border-radius:6px;cursor:pointer;font-size:13px"><div style="display:flex;justify-content:space-between;gap:10px"><span>' + joueurs + '</span>' + droite + '</div>' + sous + '</div>'
       : '<div class="pt-trace pt-perdue" style="padding:7px 8px;font-size:13px;opacity:.75"><div style="display:flex;justify-content:space-between;gap:10px"><span>' + joueurs + '</span>' + droite + '</div>' + sous + '</div>';

@@ -9,6 +9,17 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.92]
+
+### Ajouté — les deux plus anciennes parties de MiGs
+- **La n° 159** (15 octobre 2006), la première partie gardée par MiGs, et
+  **la n° 357** (29 octobre 2006), CH4 contre floopy, la première partie
+  complète (finie 6-4 en 73 coups). Elles viennent de la page du blog Abalone
+  Online qui présente l'historique de MiGs. La section 📜 de la bibliothèque
+  en garde maintenant 40.
+- Sa présentation précise que MiGs ne gardait pas toutes les parties avant
+  février 2008.
+
 ## [v2.91]
 
 ### Ajouté — humains et programmes
