@@ -9,6 +9,28 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.89]
+
+### Added — 12 more MiGs games cited by the blog
+Further searches of the Abalone Online blog (its variants library, its
+articles, its Records section) found 12 more games. The library's 📜
+section now keeps 37 as a trace.
+- **The oldest on the site**: no. 427 (Irish Daisy, 7 November 2006) and
+  no. 614 (Cœurs croisés, December 2006).
+- **Layouts we had no MiGs game for**: Damier, Def or Attack, Alliances,
+  Aliennage, Boutonnière, Snakes, Alitration, Face à face.
+- **Dates checked against our own games**: MiGs numbers follow time, and
+  each number does fall on the stated day between our neighbouring games
+  (no. 33456 between two games of 17 January 2017, for example). When the
+  blog only gives the year, the month comes from those neighbours. A test
+  checks it for every game.
+- **What remains**: for 3 of them (nos. 4916, 18416 and 33456) the blog
+  publishes the moves. They are marked "moves published on the blog, not
+  yet added": getting that text is enough to check them with the engine
+  and make them replayable. The others say "moves not found" rather than
+  "lost", since the blog's variants library sometimes offers them as PDFs.
+- The search also finds the layout's name ("face à face").
+
 ## [v2.88]
 
 ### Changed — the author signs ocj94, everywhere
