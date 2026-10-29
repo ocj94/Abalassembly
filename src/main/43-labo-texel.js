@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════
    LABO : LA METHODE TEXEL (v2.70)
-   Demande d'Olivier : « les 6 » -- 1er outil, « apprendre des vraies parties en
+   Demande d'ocj94 : « les 6 » -- 1er outil, « apprendre des vraies parties en
    quelques minutes ». La methode des regleurs de moteurs d'echecs (Texel) :
    sur des positions de vraies parties dont on connait le gagnant, on cherche
    les poids pour lesquels l'evaluation de l'IA devine le mieux qui va gagner.
@@ -54,7 +54,7 @@ function _txEtape(D, R, s, st){
   }
 }
 const TEXEL_ETAPES = 800;
-/* v2.71, les reglages (demande d'Olivier : « plus de parametres ») : quelles positions (disposition,
+/* v2.71, les reglages (demande d'ocj94 : « plus de parametres ») : quelles positions (disposition,
    moment de la partie), la force du rappel vers les poids du champion, le nombre d'etapes. */
 const TEXEL_CFG_DEFAUT = { dispo: 'tout', phase: 'tout', rappel: 0, etapes: 800 };
 const TEXEL_PHASES = { debut: [0, 30], milieu: [30, 70], fin: [70, 999] };

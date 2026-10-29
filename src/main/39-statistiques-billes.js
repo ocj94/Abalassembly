@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════
    LES BILLES QUI TOMBENT, CE QUI FAIT GAGNER, COMMENT JOUENT LES VRAIS JOUEURS (v2.63)
-   Demande d'Olivier, apres un coup d'oeil a ClickHouse : reprendre l'idee de
+   Demande d'ocj94, apres un coup d'oeil a ClickHouse : reprendre l'idee de
    ses fonctions d'analyse de sequences (sequenceMatch, windowFunnel) -- suivre
    les enchainements d'evenements d'une partie -- et l'appliquer aux vraies
    parties, sans rien installer. Dix statistiques :
@@ -24,7 +24,7 @@
    parties : une partie ajoutee ou modifiee sans relancer l'outil le fait echouer.
    La page n'a plus qu'a additionner (quelques millisecondes).
 
-   v2.65, demande d'Olivier : « fais-le pour toutes les billes ». La carte
+   v2.65, demande d'ocj94 : « fais-le pour toutes les billes ». La carte
    « a quel coup tombe la premiere bille » devient « a quel coup tombent les
    billes » : de la 1re a la 11e bille de la partie, plus la derniere (la 6e
    du vainqueur, celle qui finit la partie). Rien a recalculer hors ligne : le
@@ -125,7 +125,7 @@ function _sbClasser(t, mv, info){
   else t[n === 1 ? 0 : (n === 2 ? 1 : 2)]++;
   if (info.type === 'push') t[5]++;
 }
-/* v2.80 (demande d'Olivier, « les types de sumito ») : le type d'une poussee -- 0 : 2 contre 1, 1 : 3 contre 1,
+/* v2.80 (demande d'ocj94, « les types de sumito ») : le type d'une poussee -- 0 : 2 contre 1, 1 : 3 contre 1,
    2 : 3 contre 2 ; -1 pour un coup qui ne pousse pas. info.push : le nombre de billes adverses poussees. */
 function _sbTypePoussee(mv, info){
   if (!info || info.type !== 'push') return -1;
@@ -414,7 +414,7 @@ function _sbAgreger(f){
     dims: _SB_ETAPES.map(function(){ const t = []; for (let j = 0; j < nDims; j++) t.push({ n: 0, g: 0 }); return t; }),
     nDimsParties: _SB_ETAPES.map(function(){ return 0; }),
     camp: { ej: 0, camps: 0, premiereSomme: 0, premiereN: 0, phases: { ouverture: 0, milieu: 0, finale: 0 } },
-    // v2.85 (demande d'Olivier, « comme sur BGA ») : les memes comptes pour le seul camp vainqueur (parties au vainqueur connu)
+    // v2.85 (demande d'ocj94, « comme sur BGA ») : les memes comptes pour le seul camp vainqueur (parties au vainqueur connu)
     gagnants: { types: [0, 0, 0, 0, 0, 0, 0, 0], ej: 0, camps: 0, premiereSomme: 0, premiereN: 0, phases: { ouverture: 0, milieu: 0, finale: 0 } },
     cartes: cartes, quandParDispo: quandParDispo, dispos: D.dispos,
     poussees: { types: [0, 0, 0, 0, 0, 0], plus: [{ n: 0, g: 0 }, { n: 0, g: 0 }, { n: 0, g: 0 }] }   // v2.80
@@ -614,7 +614,7 @@ function _sbCarteSVG(cnt, nombres, aria){
   const m = R + 3, vw = x1 - x0 + 2 * m, vh = y1 - y0 + 2 * m;
   return '<svg viewBox="' + (x0 - m).toFixed(1) + ' ' + (y0 - m).toFixed(1) + ' ' + vw.toFixed(1) + ' ' + vh.toFixed(1) + '" role="img" aria-label="' + aria + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:' + Math.round(vw) + 'px;height:auto;display:block;margin:0 auto">' + s + '</svg>';
 }
-/* Les graduations de l'echelle de couleurs (v2.65, demande d'Olivier) : 0, quelques valeurs
+/* Les graduations de l'echelle de couleurs (v2.65, demande d'ocj94) : 0, quelques valeurs
    rondes, le maximum. Placees la ou heatColor met leur couleur : le nombre c est a (c / max)^0,6
    de la largeur (le meme gamma 0,6 qui etale le bas de l'echelle). Jusqu'a 6, chaque nombre ;
    au-dela, trois valeurs au plus, visees au quart, a la moitie et aux trois quarts de la barre :

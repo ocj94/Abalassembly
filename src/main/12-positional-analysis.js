@@ -869,7 +869,7 @@ function calculerProfilDecision(color) {
    le bon coup plus souvent quand c'est facile ou quand c'est dispute. */
 const SEUIL_ECART_DECISION_DISPUTEE = 100; // points d'evaluateBoard -- choix documente, pas calibre
 /* ═══════════════════════════════════════════
-   STATISTIQUES D'EJECTION — demande d'Olivier suite a une revue externe.
+   STATISTIQUES D'EJECTION — demande d'ocj94 suite a une revue externe.
    Reutilise exactement la meme methode que computeDecisionProfile()
    (gameCodeParse + rejeu isole, sauvegarde/restauration systematique de
    l'etat) : chaque statistique ci-dessous precise sa source de donnee

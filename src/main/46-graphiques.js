@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════
    GRAPHIQUES (v2.71) -- communs au Labo, aux Stats du corpus et a Mes statistiques
-   Demande d'Olivier : « plus de parametres, de graphiques, de metriques pour le
+   Demande d'ocj94 : « plus de parametres, de graphiques, de metriques pour le
    Labo, le corpus et les profils ».
 
    Regles suivies partout (methode « dataviz ») :

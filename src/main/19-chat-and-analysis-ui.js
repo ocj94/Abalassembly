@@ -314,7 +314,7 @@ function runAnalysis() {
   const advPct = Math.min(100, Math.max(0, 50 + advantage*8));
   // Coups reellement calcules sur la position courante (voir computeTopMoves).
   // Cette liste etait auparavant ecrite en dur et affichait toujours les memes
-  // quatre coups, quelle que soit la partie — signale par Olivier.
+  // quatre coups, quelle que soit la partie — signale par ocj94.
   const moves = computeTopMoves(CurrentTurn.get(), 3);
   // Comparaison a la base historique reconstruite (voir calculerAnalyseHistorique) :
   // percentile de la position sur quelques dimensions cles + positions reelles les

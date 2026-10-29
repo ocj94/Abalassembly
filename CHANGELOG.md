@@ -9,6 +9,19 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.88]
+
+### Modifié — l'auteur signe ocj94, partout
+Demande de l'auteur : sur le site, son nom de joueur est ocj94, et c'est le
+seul nom qui doit apparaître.
+- **Le Hall of Fame** affiche ocj94, comme le compte de démonstration de la
+  page Comparer.
+- **La page Écosystème**, le fichier de citation (`CITATION.cff`), la
+  mention de copyright, ce journal, la documentation et les commentaires du
+  code : même chose.
+- Un test vérifie désormais que le vrai nom de l'auteur n'apparaît dans
+  aucun fichier du dépôt.
+
 ## [v2.87]
 
 ### Ajouté — les parties de MiGs citées par le blog, gardées en trace
@@ -41,7 +54,7 @@ avons 2 589 sur au moins 39 517. Le blog Abalone Online en citait 25 (sa
 ## [v2.86]
 
 ### Ajouté — la matrice des 12 dimensions, les dimensions au fil de la partie, le point de non-retour
-Demande d'Olivier (« Go ») : les trois idées qui n'étaient pas déjà sur le
+Demande d'ocj94 (« Go ») : les trois idées qui n'étaient pas déjà sur le
 site, après l'audit d'une nouvelle liste proposée par une autre IA. Le
 script qu'elle fournissait n'était pas utilisable : il n'était pas relié au
 moteur, ses voisins de case étaient faux, et il aurait compté presque tous
@@ -68,7 +81,7 @@ les coups comme des éjections.
 ## [v2.85]
 
 ### Ajouté — Mes statistiques : la colonne « les gagnants » et les coups d'une seule bille, comme sur Board Game Arena
-Demande d'Olivier, après avoir comparé son profil de joueur sur BGA.
+Demande d'ocj94, après avoir comparé son profil de joueur sur BGA.
 - Le tableau **Toi face aux vrais joueurs** a une 3ᵉ colonne, **Les
   gagnants** : le seul camp qui a gagné, dans les 3 163 parties du corpus au
   vainqueur connu. Pour chaque ligne, on voit où l'on se situe entre
@@ -85,7 +98,7 @@ Demande d'Olivier, après avoir comparé son profil de joueur sur BGA.
 ## [v2.84]
 
 ### Ajouté — les positions critiques
-Le point 7 de la demande d'Olivier (« Toute »), après les six de la v2.83.
+Le point 7 de la demande d'ocj94 (« Toute »), après les six de la v2.83.
 - **Une position critique** : le joueur au trait ne peut pas éjecter, et
   **un seul** de ses coups ne laisse à l'adversaire aucune éjection possible.
   Elle est vérifiée coup par coup, sans évaluation. C'est le cas de 2,1 %
@@ -116,7 +129,7 @@ Le point 7 de la demande d'Olivier (« Toute »), après les six de la v2.83.
 ## [v2.83]
 
 ### Ajouté — temps morts, sortie du corpus, positions déjà vues, billes seules, contacts, ce qui se dégrade avant une bille perdue
-Demande d'Olivier (« Toute ») : les idées retenues après l'audit de deux
+Demande d'ocj94 (« Toute ») : les idées retenues après l'audit de deux
 listes proposées par une autre IA. Elles étaient en partie déjà sur le site,
 et leurs chiffres étaient des paris. Ici, tout est compté sur les vraies
 parties.
@@ -177,7 +190,7 @@ une fois de temps en temps (v2.73, v2.76, v2.77, v2.81).
 ## [v2.81]
 
 ### Ajouté — l'avantage du trait par disposition, le jeu au fil des années, la première poussée de chaque type, les positions répétées, les coups possibles
-Demande d'Olivier (« Je veux tout ») : les cinq propositions, sur la page
+Demande d'ocj94 (« Je veux tout ») : les cinq propositions, sur la page
 Statistiques du jeu. Toutes suivent les filtres 🔎.
 - **L'avantage du trait, disposition par disposition**, avec la marge
   d'erreur de chacune. Les Noirs gagnent 53,7 % des parties en tout, 55,6 %
@@ -218,7 +231,7 @@ Statistiques du jeu. Toutes suivent les filtres 🔎.
 ## [v2.80]
 
 ### Ajouté — l'explorateur d'ouvertures du corpus, les types de poussée, la longueur selon le premier coup
-Suite de la demande d'Olivier (« 4, 1, 2 et 3 ») : les points 1, 2 et 3,
+Suite de la demande d'ocj94 (« 4, 1, 2 et 3 ») : les points 1, 2 et 3,
 sur la page Statistiques du jeu.
 - **Les poussées par type** (dans « Comment jouent les vrais joueurs ») :
   - 2 contre 1 : 46 % des poussées ;
@@ -253,7 +266,7 @@ sur la page Statistiques du jeu.
 ## [v2.79]
 
 ### Ajouté — tes billes offertes et ta conversion de l'avance, face aux vrais joueurs
-Demande d'Olivier, à partir de deux propositions d'IA (« 4, 1, 2 et 3 ») :
+Demande d'ocj94, à partir de deux propositions d'IA (« 4, 1, 2 et 3 ») :
 le point 4 d'abord.
 - **Ma qualité de jeu face aux vrais joueurs**, nouvelle carte de Mes
   statistiques, avec deux colonnes « Toi » et « Vrais joueurs » :
@@ -278,7 +291,7 @@ le point 4 d'abord.
 ## [v2.78]
 
 ### Ajouté — la qualité des coups des vrais joueurs
-Point 4 de l'audit des statistiques choisi par Olivier. Chacun des 418 046
+Point 4 de l'audit des statistiques choisi par ocj94. Chacun des 418 046
 coups des 4 247 parties jouées depuis une position de départ a été analysé
 à l'avance par le moteur du site (31 minutes de calcul,
 `tools/qualite-coups.js`).
@@ -315,7 +328,7 @@ et le système de la machine, pour le trouver à la prochaine occurrence.
 ## [v2.77]
 
 ### Ajouté — des statistiques du corpus plus fiables, et l'explorateur des scores
-Suite à l'audit des statistiques fait par ChatGPT pour Olivier (« 1 2 3 et
+Suite à l'audit des statistiques fait par ChatGPT pour ocj94 (« 1 2 3 et
 4 », plus la spécification de l'explorateur). Le point 4, la qualité des
 coups, suit en v2.78 : il demande un long calcul fait à l'avance.
 - **Les marges d'erreur** : les pourcentages du corpus montrent leur marge à
@@ -354,7 +367,7 @@ coups, suit en v2.78 : il demande un long calcul fait à l'avance.
 ## [v2.76]
 
 ### Modifié — le Labo part des poids Texel
-Demande d'Olivier (« Commence par le 1 ») : depuis la v2.75, l'IA joue avec
+Demande d'ocj94 (« Commence par le 1 ») : depuis la v2.75, l'IA joue avec
 les poids Texel à partir du niveau 4, mais l'auto-amélioration du Labo
 cherchait encore à améliorer les anciens poids « Équilibré », que presque
 plus personne n'affronte à ces niveaux.
@@ -385,7 +398,7 @@ plus personne n'affronte à ces niveaux.
 ## [v2.75]
 
 ### Modifié — à partir du niveau 4, une IA réglée sur les vraies parties
-Choix d'Olivier (« Ok pour la 2 ») : les poids trouvés par la **méthode
+Choix d'ocj94 (« Ok pour la 2 ») : les poids trouvés par la **méthode
 Texel** du Labo, seulement pour les niveaux 4 et plus.
 - **Ce qui change** : à partir du **niveau 4**, en style **Auto** ou
   **Équilibré**, l'IA juge les positions avec les poids Texel. Ils misent
@@ -423,7 +436,7 @@ Texel** du Labo, seulement pour les niveaux 4 et plus.
 ## [v2.74]
 
 ### Corrigé — la page Statistiques du jeu en anglais
-Signalé par Olivier : « Je suis sur la partie corpus. En anglais mais cela
+Signalé par ocj94 : « Je suis sur la partie corpus. En anglais mais cela
 reste en français ».
 - **Tout est traduit** : le titre et l'introduction de la page, les cartes
   « L'avantage du premier joueur », « Durée d'une partie », « Comment se
@@ -452,7 +465,7 @@ reste en français ».
 ## [v2.73]
 
 ### Ajouté — Mes statistiques et le Profil, filtrés et en graphiques
-Troisième partie de la demande d'Olivier (« plus de paramètres, de
+Troisième partie de la demande d'ocj94 (« plus de paramètres, de
 graphiques, de métriques… »), après le Labo et le corpus.
 - **Les filtres filtrent** : les onglets de période (7 jours, 30 jours,
   90 jours, 1 an, Tout) ne faisaient qu'afficher un message ; ils filtrent
@@ -484,7 +497,7 @@ graphiques, de métriques… »), après le Labo et le corpus.
 ## [v2.72]
 
 ### Ajouté — les Statistiques du jeu, filtrées et en graphiques
-Deuxième partie de la demande d'Olivier (« plus de paramètres, de
+Deuxième partie de la demande d'ocj94 (« plus de paramètres, de
 graphiques, de métriques… »), après le Labo.
 - **Des filtres** en tête de page : **source** (MIGS, AbalOnline,
   PlayStrategy, parties de référence), **disposition**, **longueur** (moins
@@ -510,7 +523,7 @@ graphiques, de métriques… »), après le Labo.
 ## [v2.71]
 
 ### Ajouté — le Labo en graphiques et en réglages
-Demande d'Olivier : « plus de paramètres, de graphiques, de métriques… pour le
+Demande d'ocj94 : « plus de paramètres, de graphiques, de métriques… pour le
 Labo, le corpus et les profils ». Première partie : le Labo.
 - **📊 Tableau de bord** (nouvel onglet) : parties jouées (Labo, bancs, test
   KAAH), temps de calcul, parties par heure, tests tranchés (adoptés,
@@ -545,7 +558,7 @@ Labo, le corpus et les profils ». Première partie : le Labo.
 ## [v2.70]
 
 ### Ajouté — le Labo IA, six outils de plus
-Demande d'Olivier : « amélioration du Labo », puis « les 6 ». La page Labo IA
+Demande d'ocj94 : « amélioration du Labo », puis « les 6 ». La page Labo IA
 passe en **onglets**, un par outil.
 - **📐 Méthode Texel** : sur 18 855 positions de vraies parties dont on
   connaît le gagnant, les poids pour lesquels l'évaluation de l'IA **devine
@@ -612,7 +625,7 @@ passe en **onglets**, un par outil.
 ### Ajouté — synchroniser mes appareils
 - **🔄 Synchroniser mes appareils** (Historique ou Paramètres, adresse
   `#synchroniser`) : deux appareils, ou deux navigateurs, **fusionnent**
-  leurs données de jeu. Demande d'Olivier : « comment faire pour que tous les
+  leurs données de jeu. Demande d'ocj94 : « comment faire pour que tous les
   navigateurs aient les mêmes données ? ».
   - **En direct** : les deux ouverts, un code dans chaque sens (Copier ou
     Partager), puis une connexion directe entre les navigateurs, comme la
@@ -982,7 +995,7 @@ passe en **onglets**, un par outil.
   journal en texte, numéroté 1x, 1y… comme dans ULA.
 - **Importer une partie (Aba-Pro)** accepte la Liste et le journal de
   commentaires d'ULA collés tels quels (majuscules, numéros de coup, scores
-  « (1-1) », coups repris). La partie d'ULA envoyée par Olivier (Marguerite
+  « (1-1) », coups repris). La partie d'ULA envoyée par ocj94 (Marguerite
   belge, 217 coups) se rejoue en entier : éjections aux mêmes coups, 6-2.
 
 ### Corrigé
@@ -1092,7 +1105,7 @@ passe en **onglets**, un par outil.
   d'exemplaires, plus de trente pays en 2011, l'un des premiers prix Mensa
   Select en 1990) ; la disposition standard n'est pas « dite Belgique » et
   compte 5 + 6 + 3 billes par camp.
-- **Partie** : la carte du joueur affichait « Vous (Olivier) » pour tout le
+- **Partie** : la carte du joueur affichait « Vous (ocj94) » pour tout le
   monde et « Vos billes : Noires » même avec les Blancs.
 - **Niveau** : un nouveau joueur voyait « -50 / 102 XP » ; le niveau 1
   commence maintenant à 0.

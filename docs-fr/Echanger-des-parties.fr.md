@@ -8,7 +8,7 @@ Une partie en différé, par simple échange de texte. Vous jouez, vous copiez l
 
 Le code porte la partie entière depuis le premier coup — variante, historique des coups, et désormais l'identité des deux joueurs (`ABAL1:variante:nomNoir|nomBlanc:coups`). Celui qui le reçoit rejoue tout contre le moteur et refuse le code au premier coup illégal, plutôt que de faire confiance. Les codes générés avant cet ajout (sans nom) restent lisibles.
 
-Un champ « Ton nom » (mémorisé d'une partie à l'autre) et un choix de couleur apparaissent dans le modal. Dès que les deux noms sont connus, ils s'affichent en tête : « ⚫ Olivier vs ⚪ Saab ».
+Un champ « Ton nom » (mémorisé d'une partie à l'autre) et un choix de couleur apparaissent dans le modal. Dès que les deux noms sont connus, ils s'affichent en tête : « ⚫ ocj94 vs ⚪ Saab ».
 
 Menu du jeu → **Partie par code**.
 

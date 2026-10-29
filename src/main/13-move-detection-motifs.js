@@ -382,7 +382,7 @@ function undoMove(undo){
 }
 const EVAL_CENTER={q:0,r:0};
 function axHexDist(a,b){return(Math.abs(a.q-b.q)+Math.abs(a.q+a.r-b.q-b.r)+Math.abs(a.r-b.r))/2;}
-/* ── Criteres de KAAH (demande d'Olivier : « les integrer au moteur, tests au
+/* ── Criteres de KAAH (demande d'ocj94 : « les integrer au moteur, tests au
    Labo »). Reimplementes ici d'apres leurs DEFINITIONS (le code de KAAH, sans
    licence, n'est pas recopie) :
      scGain / scPerte : la k-ieme ejection vaut k-1 fois le poids de plus ;
@@ -477,7 +477,7 @@ function evalDetail(color){
     bordM:-myEdge*EVAL_W.edge,bordA:enEdge*EVAL_W.edge,sumito:K.sumito,menace:K.menace,fourch:K.fourch,piege:K.piege,
     mob:(myMob-enMob)*EVAL_W.mob,iso:(enIso-myIso)*EVAL_W.iso,dng:(enDng-myDng)*EVAL_W.dng,chaine:(myChain-enChain)*EVAL_W.chain,fort:(myFort-enFort)*EVAL_W.fortress};
 }
-/* Tableau « Reflexion IA » (demande d'Olivier, sur le modele de KAAH) : evalDetail
+/* Tableau « Reflexion IA » (demande d'ocj94, sur le modele de KAAH) : evalDetail
    est une copie EXACTE de evaluateBoard ci-dessus, qui renvoie chaque critere
    pondere au lieu du total (leur somme = evaluateBoard). La suite prevue suit les
    meilleurs coups gardes dans la table de transposition ; la cle d'une position

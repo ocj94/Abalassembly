@@ -178,7 +178,7 @@
 /* .bg-swatch n'avait AUCUNE regle CSS definie nulle part dans le fichier —
    seulement des usages avec un style="background:..." inline. Un <button>
    vide (sans texte ni enfant) retombe sur la taille minuscule par defaut du
-   navigateur : illisible, comme signale par Olivier (capture d'ecran a
+   navigateur : illisible, comme signale par ocj94 (capture d'ecran a
    l'appui — de minuscules triangles sombres, impossibles a distinguer).
    Taille et forme explicites ici ; l'anneau dore sur .active reprend le
    meme langage visuel que les autres etats "selectionne" de l'app. */

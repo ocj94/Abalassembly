@@ -148,7 +148,7 @@ function exportGameNotation() {
   const notation = buildGameNotation(system, bound);
   var scB = CapturedByBlack.get(), scW = CapturedByWhite.get();
   if (inReplay) {
-    /* CORRECTIF (signale par Olivier) : au chargement d'une partie depuis
+    /* CORRECTIF (signale par ocj94) : au chargement d'une partie depuis
        l'historique, le replay se positionne desormais AU DEBUT (v2.30) --
        replayCurrentIdx vaut donc -1, et cette branche forçait le score a
        0-0 alors que la sequence exportee, elle, est COMPLETE. Resultat :
@@ -172,7 +172,7 @@ function exportGameNotation() {
   const p2 = function(v){ return String(v).padStart(2, '0'); };
   const stamp = p2(d.getFullYear() % 100) + p2(d.getMonth() + 1) + p2(d.getDate())
               + p2(d.getHours()) + p2(d.getMinutes());
-  /* En-tete enrichi (demande d'Olivier) : la date, la variante, le style et
+  /* En-tete enrichi (demande d'ocj94) : la date, la variante, le style et
      le niveau de l'IA, le moteur utilise et le nombre de coups etaient
      affiches dans l'historique mais ABSENTS de l'export -- l'information
      etait donc perdue des qu'on partageait une partie. Chaque ligne n'est

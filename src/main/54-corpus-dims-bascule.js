@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════
    STATISTIQUES DU JEU : LA MATRICE DES 12 DIMENSIONS, LES DIMENSIONS AU FIL
    DE LA PARTIE, LE POINT DE NON-RETOUR (v2.86)
-   Demande d'Olivier (« Go »), apres l'audit d'une nouvelle liste d'idees
+   Demande d'ocj94 (« Go »), apres l'audit d'une nouvelle liste d'idees
    d'une autre IA : les trois qui n'etaient pas deja sur le site.
    1. la matrice complete des correlations des 12 dimensions (avant : les 5
       liens les plus forts seulement) ;

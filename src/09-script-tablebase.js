@@ -14,7 +14,7 @@ window.setBoardView = function(view) {
      que la 2D (ou la bascule de vue elle-meme, au prochain retour en 3D)
      reprenne exactement la ou l'utilisateur avait laisse la camera. Sans
      ce report, tourner la vue en 3D n'aurait aucun effet une fois revenu
-     en 2D — exactement le decalage qu'Olivier a signale. */
+     en 2D — exactement le decalage qu'ocj94 a signale. */
   if (previousView === '3d' && window._three3d && typeof theta3DToBoardRotation === 'function') {
     window.boardRotation = theta3DToBoardRotation(window._three3d.getTheta());
   }
@@ -36,7 +36,7 @@ window.setBoardView = function(view) {
      jusqu'en haut a gauche, et la bascule recouvrait les rangees I et H. On
      la colle donc dans l'angle, et le texte demarre sous elle — la decaler
      seulement vers la gauche n'aurait pas suffi sur un ecran etroit, ou elle
-     est plus large que la marge disponible. Signale par Olivier. */
+     est plus large que la marge disponible. Signale par ocj94. */
   const bascule = document.getElementById('view-toggle');
   if (bascule) {
     bascule.style.top  = (view === '1d') ? '30px' : '11%';
@@ -48,7 +48,7 @@ window.setBoardView = function(view) {
      du centre reel au lieu de l'y laisser. La bascule a deja ete descendue
      (30px) lors d'une demande precedente ; si un chevauchement reapparait a
      l'usage sur un ecran etroit, le reglage se fera sur la bascule elle-meme,
-     pas en recreant ce hack. Signale par Olivier. */
+     pas en recreant ce hack. Signale par ocj94. */
   if (view === '3d') {
     activate(btn3d, true); activate(btn2d, false); if (btn1d) activate(btn1d, false);
     canvas2d.style.display = 'none';
@@ -61,7 +61,7 @@ window.setBoardView = function(view) {
        ouverture — ce cas est deja couvert par l'angle de depart de
        start3DScene), on pousse la rotation 2D en cours dans la camera,
        pour qu'il n'y ait jamais de decalage visuel au changement de vue.
-       Signale par Olivier. */
+       Signale par ocj94. */
     if (window._three3d && typeof boardRotationToTheta3D === 'function') {
       window._three3d.setTheta(boardRotationToTheta3D(window.boardRotation || 0));
     }
@@ -160,7 +160,7 @@ window.render1D = function () {
      bloc, on y centre le champ de 17 caracteres qu'occupent les cases, puis
      on pose chaque etiquette juste avant sa rangee. Les etiquettes suivent
      alors le bord gauche de l'hexagone, ce qui est aussi plus lisible.
-     Signale par Olivier. */
+     Signale par ocj94. */
   /* Largeur du bloc FIXE. Si on la deduisait des lignes d'information, elle
      changerait avec elles — la ligne d'aide n'apparait qu'une fois une bille
      choisie — et l'hexagone sauterait lateralement a chaque selection.
@@ -185,7 +185,7 @@ window.render1D = function () {
      (ses propres billes en bas). Un joueur blanc veut l'inverse : ses
      propres billes en bas, l'adversaire qui joue en premier (noir) en
      haut. Meme famille de bug que "noir = moi" trouvee ailleurs cette
-     session, ici sur la vue 1D specifiquement. Demande d'Olivier,
+     session, ici sur la vue 1D specifiquement. Demande d'ocj94,
      confirmee par la position reelle de LAYOUTS.standard avant d'ecrire
      ce code (noir en r=6..8, blanc en r=0..2), pas supposee a l'aveugle.
      Les data-r/data-c de chaque case restent les VRAIES coordonnees (pour
@@ -208,7 +208,7 @@ window.render1D = function () {
     const cOrder = flip ? Array.from({length: rows[r]}, function(_, i){ return rows[r]-1-i; }) : Array.from({length: rows[r]}, function(_, i){ return i; });
     for (const c of cOrder) {
       const v = board[r + ',' + c];
-      // O = noirs, @ = blancs (convention retenue par Olivier)
+      // O = noirs, @ = blancs (convention retenue par ocj94)
       const ch = (v === 'black') ? 'O' : (v === 'white') ? '@' : '.';
       let cls = 'c1d';
       if (estSel(r, c)) {
@@ -231,7 +231,7 @@ window.render1D = function () {
        diagonale 9 finit en e9 : son repere tombe donc au bout de la ligne de
        la rangee D, pas de celle de E. De meme 8 au bout de C, 7 au bout de B,
        6 au bout de A, et 5 en pied. Les reperes longent ainsi exactement le
-       bord bas-droit du plateau. Signale par Olivier. */
+       bord bas-droit du plateau. Signale par ocj94. */
     if (coordsOn && r >= 5) { line += ' ' + (14 - r); visible += 2; }
     /* Complete a largeur VISIBLE fixe (W=35 caracteres), en comptant les
        glyphes reellement affiches — pas les caracteres de la chaine HTML.
@@ -242,7 +242,7 @@ window.render1D = function () {
        (colonne 17) qui suppose une largeur de 35. Un espace de fin occupe
        bien une cellule dans un <pre> monospace (white-space:pre les
        preserve) : completer redonne a la boite sa largeur prevue, quel que
-       soit le contenu affiche par ailleurs. Signale par Olivier — corrige
+       soit le contenu affiche par ailleurs. Signale par ocj94 — corrige
        apres avoir constate que la premiere version comparait par erreur
        W a la longueur de la chaine HTML (200-400+ caracteres a cause des
        balises <span>), qui ne declenchait donc jamais le complement. */
@@ -254,14 +254,14 @@ window.render1D = function () {
        case de sa diagonale — un cran plus bas, un cran plus a droite — et non
        a l'aplomb de la case : c'est ainsi que les reperes sortent du plateau,
        le long du bord. Le 5 tombe alors pile dans l'angle bas-droit, dans le
-       prolongement de a5. Signale par Olivier. */
+       prolongement de a5. Signale par ocj94. */
     let pied = ' '.repeat(BORD + 5);
     for (let n = 1; n <= 5; n++) pied += (n > 1 ? ' ' : '') + n;
     L.push(pied.length < W ? pied + ' '.repeat(W - pied.length) : pied);
   }
   /* Le plateau est le SEUL contenu de cette vue desormais : la legende, les
      ejections, le trait, la selection et l'invite ont ete retires — demande
-     d'Olivier. */
+     d'ocj94. */
   pre.className = 'plateau1d';
   pre.innerHTML = L.join('\n');
   pre.classList.toggle('jouable', jouable);
@@ -655,7 +655,7 @@ function start3DScene() {
      du degrade 2D (reflet simule / ombre simulee) que la vraie lumiere 3D
      recree deja par elle-meme. Les veines dorees (kintsugi) et le nacrage
      restent des effets 2D uniquement — hors de portee d'une simple couleur
-     de base. Signale par Olivier. */
+     de base. Signale par ocj94. */
   const matBlack = new THREE.MeshStandardMaterial({ color: 0x16161a, roughness: 0.22, metalness: 0.15 });
   const matWhite = new THREE.MeshStandardMaterial({ color: 0xeceff4, roughness: 0.22, metalness: 0.1 });
   function syncMarbleColors() {
@@ -723,14 +723,14 @@ function start3DScene() {
   // theta = azimut (rotation autour de Y, horizontale), phi = elevation
   // (incline autour de X), radius = distance (zoom). roll s'y ajoute : une
   // rotation autour de Z (l'axe de visee lui-meme), absente jusqu'ici — la
-  // camera ne pouvait tourner que sur 2 des 3 axes. Demande d'Olivier.
+  // camera ne pouvait tourner que sur 2 des 3 axes. Demande d'ocj94.
   /* Angle de depart : derive de window.boardRotation (la rotation 2D en
      cours), pas d'une valeur fixe — si le plateau a deja ete pivote en 2D
      avant la toute premiere ouverture de la 3D, la camera doit demarrer
      sur ce MEME angle plutot que sur l'orientation par defaut, sinon un
      decalage apparaitrait des la premiere fois. boardRotationToTheta3D est
      declare dans l'autre bloc <script> (function = toujours globale,
-     window. inutile pour la lire). Signale par Olivier. */
+     window. inutile pour la lire). Signale par ocj94. */
   let theta = (typeof boardRotationToTheta3D === 'function') ? boardRotationToTheta3D(window.boardRotation || 0) : Math.PI*0.25;
   /* Verrou "vue du dessus", ACTIF PAR DEFAUT : phi et radius demarrent donc
      sur les valeurs du preregle ⬆ Vue de dessus (0.12 / 26), pas sur la vue
@@ -738,16 +738,16 @@ function start3DScene() {
      doit deja s'y trouver, pas juste l'autoriser plus tard. theta n'est PAS
      touche : il reste sur l'angle synchronise avec la 2D (ci-dessus), seul
      axe que le verrou laisse toujours libre, avec le zoom. Signale par
-     Olivier. */
+     ocj94. */
   let topLocked = true;
   let phi = topLocked ? 0.12 : Math.PI*0.34, radius = topLocked ? 26 : 22, roll = 0;
   let tTheta = theta, tPhi = phi, tRadius = radius, tRoll = 0;
   /* auto=false par defaut : le bouton 🔄 qui permettait de (re)activer la
      rotation automatique a ete retire du panneau (v1.36, sur demande
-     d'Olivier). Depuis, plus AUCUN code ne remet jamais auto a true — seul
+     d'ocj94). Depuis, plus AUCUN code ne remet jamais auto a true — seul
      ce point de depart le faisait, ce qui faisait tourner le plateau tout
      seul a chaque nouvelle partie, sans aucun moyen de l'arreter avant de
-     cliquer sur autre chose. Signale par Olivier. */
+     cliquer sur autre chose. Signale par ocj94. */
   let auto = false, running = true;
   /* Boutons ⚫/⚪ (cote Noirs/Blancs) et leur synchro de couleur : declares
      ICI (portee de start3DScene, pas a l'interieur du bloc de construction
@@ -773,7 +773,7 @@ function start3DScene() {
      couleurs des deux cotes, pas une seconde palette inventee. Le bois
      reste un CAS A PART (comme en 2D) : un traitement plus riche (grain,
      rivieres de resine) qui ne se resume pas a deux couleurs. Signale par
-     Olivier — complete une base deja posee (BOARD_SURFACE_THEMES,
+     ocj94 — complete une base deja posee (BOARD_SURFACE_THEMES,
      boardTheme.theme) mais dont seule la 2D avait ete cablee jusqu'ici. */
   /* Texture procedurale bois + rivieres d'epoxy pour la VRAIE surface du
      plateau (top, l'hexagone extrude qui sert de plan de jeu — pas les
@@ -783,7 +783,7 @@ function start3DScene() {
      contrainte zero-dependance du fichier (aucune image externe). Construite
      UNE SEULE FOIS et mise en cache (woodTexture) : sync() tourne a chaque
      coup, refaire ce dessin a chaque fois serait couteux pour rien — seul
-     un changement REEL de theme doit la (re)generer. Signale par Olivier. */
+     un changement REEL de theme doit la (re)generer. Signale par ocj94. */
   let woodTexture = null;
   let woodNormalMap = null;
 
@@ -793,7 +793,7 @@ function start3DScene() {
        rendu 2D (hexCoord utilise cx=cy=320) — le grain occupe donc les
        memes proportions du plateau des deux cotes. Les rivieres d'epoxy ne
        sont PLUS peintes ici : une texture plate n'est pas un relief, ce
-       qu'Olivier a signale a raison. Elles sont desormais une vraie
+       qu'ocj94 a signale a raison. Elles sont desormais une vraie
        geometrie 3D, voir getRiverMeshes() juste en dessous. */
     const cv = document.createElement('canvas');
     cv.width = 640; cv.height = 640;
@@ -834,7 +834,7 @@ function start3DScene() {
      lieu d'un degrade uni, meme esprit que le grain du bois ci-dessus.
      Verifiees d'abord dans un apercu Three.js reel (deux allers-retours :
      couleurs re-echantillonnees sur une vraie photo pour Volcanique, puis
-     les 6 textures ensemble). Signale par Olivier — "je veux ca pour
+     les 6 textures ensemble). Signale par ocj94 — "je veux ca pour
      chaque theme".
      Generees par le meme moteur generique a couches que la 2D
      (window.THEME_RECIPES / window.peindreCouches, definis dans le bloc
@@ -881,7 +881,7 @@ function start3DScene() {
   }
   /* Rivieres d'epoxy : VRAIE geometrie 3D (un ruban extrude par riviere),
      pas une texture plate — corrige une premiere version qui les peignait
-     sur la surface, signalee a raison par Olivier ("il faut des sinusoides
+     sur la surface, signalee a raison par ocj94 ("il faut des sinusoides
      d'epoxy EN 3D"). Meme tracé sinusoïdal EXACT que la 2D (memes y/amp/w/
      phase, meme formule riverY), converti de l'espace pixel 2D (canvas
      640x640, centre 320,320) vers l'espace monde 3D par un simple facteur
@@ -1009,7 +1009,7 @@ function start3DScene() {
     /* Lueur (emissive) : Volcanique seulement pour l'instant (les 5 autres
        themes n'en ont pas — meme logique progressive que jour/nuit, "on
        fera les autres apres"). Jour discret, nuit intense — valeurs
-       reprises de la proposition d'Olivier (0.25 / 1.2), verifiees d'abord
+       reprises de la proposition d'ocj94 (0.25 / 1.2), verifiees d'abord
        dans l'apercu avant d'etre integrees ici. */
     if (nom === 'volcanique') {
       top.material.emissive.set(estNuit ? '#ff3300' : '#ff2200');
@@ -1073,7 +1073,7 @@ function start3DScene() {
        reellement demandes : la camera partait presque a l'oppose avant de
        revenir, ce qui ressemblait a un retour a l'etat initial. Enrouler
        l'ecart lui-meme (pas seulement theta) force l'interpolation a
-       toujours prendre le chemin le plus court. Signale par Olivier. */
+       toujours prendre le chemin le plus court. Signale par ocj94. */
     theta += wrapAngle(tTheta-theta)*0.1; phi += (tPhi-phi)*0.1; radius += (tRadius-radius)*0.1;
     /* Meme raisonnement pour le roulis (roll) : tRoll s'enroule aussi dans
        (-pi, pi] (voir les boutons Z↶/Z↷), donc sujet exactement au meme
@@ -1146,7 +1146,7 @@ function start3DScene() {
        accidentels. movedDist, lui, continue d'etre suivi meme verrouille :
        necessaire a la distinction tap/glisser pour la selection d'une
        bille au relachement, sans rapport avec la camera. Signale par
-       Olivier. */
+       ocj94. */
     if (!topLocked) {
       tTheta -= (e.clientX-lx)*0.008;
       tPhi = Math.max(0.15, Math.min(Math.PI*0.49, tPhi - (e.clientY-ly)*0.008));
@@ -1162,7 +1162,7 @@ function start3DScene() {
   // (mêmes coordonnées que le drag manuel : theta = azimut, phi = hauteur)
   const DEFAULT_VIEW = { theta: Math.PI*0.25, phi: Math.PI*0.34, radius: 22 };
   /* ⟲ (vue cavaliere), 🔄 (rotation auto) et ⬆ (vue de dessus) retires —
-     demande d'Olivier. ⬆ etait devenu redondant : le verrou "vue du
+     demande d'ocj94. ⬆ etait devenu redondant : le verrou "vue du
      dessus" impose deja exactement les memes valeurs (tPhi=0.12,
      tRadius=26, voir plus bas) des qu'il est active, ce qui est le cas par
      defaut. */
@@ -1231,7 +1231,7 @@ function start3DScene() {
        d'elevation, donc plus de raison de faire bouger phi/radius ici non
        plus. TOUJOURS ACTIFS, jamais grises par le verrou : meme categorie
        que Y. Colores selon le skin actif (pas noir/blanc fige) — voir
-       syncSideButtonColors3D(). Signale par Olivier. */
+       syncSideButtonColors3D(). Signale par ocj94. */
     function actionCote(side) {
       return function(){
         auto = false;
@@ -1260,7 +1260,7 @@ function start3DScene() {
        Place a l'emplacement libre (colonne 3, rangee 3, sous ⚪) plutot que
        colonne 4 : ⬆ (vue de dessus), qui occupait la colonne 4, a ete
        retire — redondant avec ce que le verrou impose deja par defaut.
-       Signale par Olivier. */
+       Signale par ocj94. */
     function applyLockUI() {
       lockableBtns.forEach(function(b){
         b.style.opacity = topLocked ? '0.35' : '1';

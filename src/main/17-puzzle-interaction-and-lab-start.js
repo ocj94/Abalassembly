@@ -104,7 +104,7 @@ function puzzleQuit(){
 
 // ── 🧪 LABO D'AUTO-AMÉLIORATION RÉCURSIVE ──
 // De VRAIS duels moteur contre moteur, dans des fils de calcul dedies (plusieurs a la fois).
-// v4 (demande d'Olivier : « ameliorer le Labo » -- verdicts fiables, plus rapide, criteres de KAAH) :
+// v4 (demande d'ocj94 : « ameliorer le Labo » -- verdicts fiables, plus rapide, criteres de KAAH) :
 //  - PAIRES d'ouvertures : chaque ouverture tiree au sort est jouee deux fois, couleurs
 //    inversees, et le verdict compte des PAIRES (0, ½, 1, 1½ ou 2 points) -- l'avantage
 //    qu'une ouverture donne a une couleur s'annule dans la paire ;
@@ -133,7 +133,7 @@ function _labComplet(w){
   LAB_CLES_BASE.concat(LAB_CLES_KAAH).forEach(function(k){ const v=w?w[k]:undefined; o[k]=(typeof v==='number' && isFinite(v) && v>=0) ? v : LAB_ORIGINE[k]; });
   return o;
 }
-/* v2.76 (demande d'Olivier : « faire partir le Labo des poids Texel ») : depuis la v2.75, l'IA joue
+/* v2.76 (demande d'ocj94 : « faire partir le Labo des poids Texel ») : depuis la v2.75, l'IA joue
    avec les poids Texel a partir du niveau 4. Le Labo part donc d'eux (etat v6, base « texel ») : ce
    qu'il adopte les remplace a ces niveaux (preset « labo », voir _aiPoidsTexel), et ses bilans
    mesurent le champion contre ce point de depart. Les niveaux 1 a 3 gardent les poids d'origine. */
@@ -1256,7 +1256,7 @@ function closeLabReplay(){
 }
 
 /* ═══ TEST AU LABO : LES CRITERES DE KAAH RENDENT-ILS L'IA PLUS FORTE ? ═══
-   Demande d'Olivier (« les integrer au moteur, tests au Labo »). Duels moteur contre
+   Demande d'ocj94 (« les integrer au moteur, tests au Labo »). Duels moteur contre
    moteur (le meme duelGame que le Labo, sur ses fils de calcul -- jamais en meme temps
    que lui) : « IA actuelle + criteres de KAAH » contre « IA actuelle seule ».
    v4 : par PAIRES sur la meme ouverture (la version avec KAAH joue Noirs puis Blancs),
@@ -1546,7 +1546,7 @@ function tourneyMatchEnd(winner, reason){
    Avant : le bouton « Proposer nulle » affichait « Demande de nulle envoyee »
    et ne faisait RIEN d'autre -- aucune proposition, aucune nulle possible (seul
    le duel de robots constatait la triple repetition, sans l'enregistrer).
-   Maintenant (demande d'Olivier, sur le modele de KAAH) :
+   Maintenant (demande d'ocj94, sur le modele de KAAH) :
    - proposer la nulle : contre l'IA, elle accepte si elle n'a pas l'avantage ;
      a deux sur le meme ecran, l'autre joueur repond ; a distance, la proposition
      part chez l'adversaire (messages NULLE:offre / accepte / refuse) ;

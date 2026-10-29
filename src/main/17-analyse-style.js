@@ -101,7 +101,7 @@ function styleBar(name, val, color){
    toute la partie. Rend un plateau SVG en losange où l'intensité de couleur
    traduit la fréquence : là où ça a le plus / le moins joué. 100% local,
    reconstruit à partir de boardSnapshots (aucune donnée supplémentaire à
-   stocker). Idée d'Olivier (fin de partie + stats). */
+   stocker). Idée d'ocj94 (fin de partie + stats). */
 function computeGameHeatmap(snapshots, forColor) {
   // forColor : la couleur a cartographier, quelle qu'elle soit. Ne suppose
   // PAS que noir est le joueur -- renderHeatmapCard() la derive de

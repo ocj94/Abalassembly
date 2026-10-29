@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════
    STATISTIQUES DU JEU : LA QUALITE DES COUPS (v2.78)
-   Demande d'Olivier (audit des statistiques du corpus, point 4) : pour chaque
+   Demande d'ocj94 (audit des statistiques du corpus, point 4) : pour chaque
    vrai coup du corpus, est-il proche du meilleur coup du moteur, et offre-t-il
    une bille a l'adversaire ?
    - « Proche du meilleur » : EXACTEMENT la mesure de la precision de Mes
@@ -172,7 +172,7 @@ function _qcNote(){
   return _tr('Mesuré hors ligne sur chaque coup des parties jouées depuis une position de départ, avec le moteur du site regardant <b>un demi-coup</b> : chaque coup légal est évalué, et le coup joué compte comme « proche du meilleur » à ' + SEUIL_PROCHE_MEILLEUR + ' points ou moins du meilleur. C’est exactement la précision de <a href="#" onclick="showPage(\'stats\');return false;" style="color:var(--gold)">Mes statistiques</a> : les deux se comparent. Limite : à un demi-coup, le moteur ne voit pas les plans ; un coup « loin du meilleur » peut être un bon coup à long terme. Les billes offertes distinguent mieux les joueurs forts que la précision. Une bille « offerte » est vérifiée exactement : après le coup, l’adversaire peut l’éjecter, alors qu’un autre coup légal l’évitait (un échange, où le coup joué éjecte lui-même, ne compte pas).',
     'Measured offline on every move of the games played from a starting position, with the site’s engine looking <b>one ply</b> ahead: every legal move is evaluated, and the move played counts as “close to the best” within ' + SEUIL_PROCHE_MEILLEUR + ' points of the best. It is exactly the accuracy of <a href="#" onclick="showPage(\'stats\');return false;" style="color:var(--gold)">My statistics</a>: the two compare. Limit: one ply ahead, the engine does not see plans; a move “far from the best” may be good in the long run. Offered marbles tell strong players apart better than accuracy does. An “offered” marble is checked exactly: after the move, the opponent can push it off, when another legal move avoided it (a trade, where the move played pushes one off itself, does not count).');
 }
-/* ─── v2.84 : les positions critiques (demande d'Olivier : « les positions tranchantes ») ───
+/* ─── v2.84 : les positions critiques (demande d'ocj94 : « les positions tranchantes ») ───
    Un seul coup legal evite de perdre une bille au coup suivant de l'adversaire. Exact : aucune
    evaluation n'entre dans la mesure. L'ecart entre le meilleur et le 2e coup de l'evaluation a un
    demi-coup a ete essaye, puis ecarte : il n'est grand que quand un coup ejecte une bille (alors

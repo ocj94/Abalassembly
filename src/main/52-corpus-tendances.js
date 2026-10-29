@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════
    STATISTIQUES DU JEU : LE TRAIT, LES ANNEES, LES PREMIERES POUSSEES,
    LES REPETITIONS, LES COUPS POSSIBLES (v2.81)
-   Demande d'Olivier (« Je veux tout », sur cinq propositions) :
+   Demande d'ocj94 (« Je veux tout », sur cinq propositions) :
    1. l'avantage du trait disposition par disposition, avec sa marge ;
    2. le jeu au fil des annees : part gagnee par les Noirs, duree mediane,
       parties finies a 6 billes ;

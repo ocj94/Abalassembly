@@ -143,7 +143,7 @@ function gameCodeLoad(code) {
   if (typeof currentLayout !== 'undefined') currentLayout = parsed.layout;
   if (typeof resetGame === 'function') resetGame();
   else { initBoardState(); boardSnapshots = []; CapturedByBlack.set(0); CapturedByWhite.set(0); }
-  /* CORRECTIF (signale par Olivier) : gameCodeLoad() a sa propre boucle de
+  /* CORRECTIF (signale par ocj94) : gameCodeLoad() a sa propre boucle de
      rejeu, separee de _replaySeqToSnapshots() -- elle ne renseignait jamais
      _replayStartBoard, dont loadSnapshot(-1) a besoin pour afficher la
      position de depart. Sans lui, loadSnapshot(-1) ne fait RIEN (garde
@@ -313,7 +313,7 @@ function _rtcSetupChannelHandlers(ch){
   ch.onmessage = function(e){ _rtcHandleMessage(e.data); };
 }
 function _rtcSetupPeerHandlers(peer){
-  /* CORRECTIF (signale par Olivier, teste sur deux vrais telephones) :
+  /* CORRECTIF (signale par ocj94, teste sur deux vrais telephones) :
      "Connexion perdue" s'affichait alors qu'AUCUNE connexion n'avait jamais
      ete etablie. Cause : 'disconnected' etait traite comme un echec
      definitif et declenchait rtcClose(), qui detruit le peer -- or c'est un

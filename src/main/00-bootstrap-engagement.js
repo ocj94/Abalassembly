@@ -4,9 +4,9 @@
    (doit correspondre exactement au tag de la derniere release publiee).
    Affichee dans le pied de page (footer-bottom). Rien n'affichait la
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
-   la tracait, invisible pour qui n'y va jamais. Signale par Olivier.
+   la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.87';
+const APP_VERSION = 'v2.88';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -385,7 +385,7 @@ function isMyColor(color) {
    comptabilise deux fois : dans le cumul GLOBAL (me_black / me_white) et dans
    le seau de la variante en cours (me_black@belgian, etc.). On peut ainsi
    comparer ses habitudes selon la position de depart, qui change beaucoup le
-   jeu. Demande d'Olivier. */
+   jeu. Demande d'ocj94. */
 const HEAT_VARIANTS = ['standard','belgian','german','dutch','swiss','decouverte','69','fujiyama','the_wall','star','face_a_face','alliances','domination','atomouche','centrifuge','snakes_variant','snakes','alien','korean_daisy','anglattack','alitration','pyramide','french'];
 const HEAT_VARIANT_LABEL = { standard:'Standard', belgian:'Belgian Daisy', german:'German Daisy',
   dutch:'Dutch Daisy', swiss:'Swiss Daisy', decouverte:'D\u00e9couverte', '69':'69', fujiyama:'Fujiyama', the_wall:'The Wall', star:'Star', face_a_face:'Face à face', alliances:'Alliances', domination:'Domination', atomouche:'Atomouche', centrifuge:'Centrifugeuse', snakes_variant:'Snakes variant', snakes:'Snakes', alien:'Alien', korean_daisy:'Korean Daisy', anglattack:'Anglattack', alitration:'Alitration', pyramide:'Pyramide', french:'Marguerite fran\u00e7aise' };

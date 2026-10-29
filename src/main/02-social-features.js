@@ -493,7 +493,7 @@ function renderEngageBar() {
   quickLinks.forEach(function(q){
     // "Jouer" doit passer par la configuration de partie (openGameSetup),
     // pas sauter dessus -- meme comportement que le lien equivalent dans
-    // la barre laterale (sidebarNav('setup',...)). Signale par Olivier :
+    // la barre laterale (sidebarNav('setup',...)). Signale par ocj94 :
     // la carte d'accueil demarrait une partie directement avec les
     // derniers reglages, sans jamais repasser par l'ecran de configuration.
     const handler = (q.page === 'game') ? 'openGameSetup()' : ('showPage(\''+q.page+'\')');

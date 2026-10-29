@@ -294,7 +294,7 @@ check('analyse d\'apres-partie : l\'etat du jeu est restaure', () => {
   return /finally/.test(b) || 'pas de restauration garantie de board / captures';
 });
 
-/* Bug Saab/Olivier : quand le joueur tenait les blancs, l'onglet « Vous »
+/* Bug Saab/ocj94 : quand le joueur tenait les blancs, l'onglet « Vous »
    de la carte de fin de partie affichait la carte du bot, et inversement.
    Tout le pipeline supposait « noir = moi ». */
 check('carte de fin de partie : les onglets suivent humanColor', () => {

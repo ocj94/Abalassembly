@@ -346,7 +346,7 @@ function renderCompare() {
 
   const btns = document.getElementById('compare-friends-btns');
   if (btns && btns.children.length===0) {
-    ['Bord (démo)','Sumito (démo)','Olivier_CJ','Daisy (démo)'].forEach(function(name) {
+    ['Bord (démo)','Sumito (démo)','ocj94','Daisy (démo)'].forEach(function(name) {
       const p = compareProfiles[name];
       const btn = document.createElement('button');
       btn.style.cssText='padding:7px 14px;background:none;border:1px solid var(--border);color:var(--text);border-radius:20px;cursor:pointer;font-size:12px;font-family:DM Sans,sans-serif;transition:all 0.15s';

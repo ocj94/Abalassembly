@@ -9,6 +9,18 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.88]
+
+### Changed — the author signs ocj94, everywhere
+Requested by the author: on the site, his player name is ocj94, and it is
+the only name that should appear.
+- **The Hall of Fame** shows ocj94, as does the demo account on the Compare
+  page.
+- **The Ecosystem page**, the citation file (`CITATION.cff`), the copyright
+  notice, this changelog, the documentation and the code comments: same.
+- A test now checks that the author's real name appears in no file of the
+  repository.
+
 ## [v2.87]
 
 ### Added — the MiGs games cited by the blog, kept as a trace
@@ -39,7 +51,7 @@ hold 2,589 of at least 39,517. The Abalone Online blog cited 25 of them
 ## [v2.86]
 
 ### Added — the matrix of the 12 dimensions, the dimensions through the game, the point of no return
-Olivier's request ("Go"): the three ideas that were not already on the site,
+ocj94's request ("Go"): the three ideas that were not already on the site,
 after auditing a new list proposed by another AI. The script it provided was
 not usable: it was not wired to the engine, its cell neighbours were wrong,
 and it would have counted almost every move as an ejection.
@@ -63,7 +75,7 @@ and it would have counted almost every move as an ejection.
 ## [v2.85]
 
 ### Added — My statistics: the "winners" column and single-marble moves, as on Board Game Arena
-Olivier's request, after comparing his player profile on BGA.
+ocj94's request, after comparing his player profile on BGA.
 - The **You against real players** table has a 3rd column, **The winners**:
   only the side that won, in the 3,163 corpus games with a known winner. For
   each row, you see where you stand between all players and those who win.
@@ -78,7 +90,7 @@ Olivier's request, after comparing his player profile on BGA.
 ## [v2.84]
 
 ### Added — critical positions
-Item 7 of Olivier's request ("All of them"), after the six of v2.83.
+Item 7 of ocj94's request ("All of them"), after the six of v2.83.
 - **A critical position**: the player to move cannot push a marble off, and
   **only one** of their moves leaves the opponent no possible ejection. It is
   checked move by move, with no evaluation. That is 2.1 % of the corpus's
@@ -108,7 +120,7 @@ Item 7 of Olivier's request ("All of them"), after the six of v2.83.
 ## [v2.83]
 
 ### Added — quiet stretches, leaving the corpus, positions already seen, lone marbles, contacts, what deteriorates before a lost marble
-Olivier's request ("All of them"): the ideas kept after auditing two lists
+ocj94's request ("All of them"): the ideas kept after auditing two lists
 proposed by another AI. They were partly on the site already, and their
 figures were guesses. Here everything is counted on the real games.
 - **The quiet stretches** 🔎: the longest stretch without a marble falling
@@ -164,7 +176,7 @@ happened now and then (v2.73, v2.76, v2.77, v2.81).
 ## [v2.81]
 
 ### Added — the first-move advantage by layout, the game over the years, the first push of each kind, repeated positions, possible moves
-Olivier's request ("I want everything"): all five proposals, on the Game
+ocj94's request ("I want everything"): all five proposals, on the Game
 statistics page. They all follow the 🔎 filters.
 - **The first-move advantage, layout by layout**, each with its margin of
   error. Black wins 53.7 % of all games, 55.6 % in Belgian Daisy and 55.1 %
@@ -200,7 +212,7 @@ statistics page. They all follow the 🔎 filters.
 ## [v2.80]
 
 ### Added — the corpus opening explorer, push types, game length by first move
-Continuing Olivier's request ("4, 1, 2 and 3"): points 1, 2 and 3, on the
+Continuing ocj94's request ("4, 1, 2 and 3"): points 1, 2 and 3, on the
 Game statistics page.
 - **Pushes by type** (in "How real players play"):
   - 2 against 1: 46 % of pushes;
@@ -233,7 +245,7 @@ Game statistics page.
 ## [v2.79]
 
 ### Added — your offered marbles and your lead conversion, against real players
-Olivier's request, from two AI proposals ("4, 1, 2 and 3"): point 4 first.
+ocj94's request, from two AI proposals ("4, 1, 2 and 3"): point 4 first.
 - **My quality of play against real players**, a new card in My statistics,
   with two columns, "You" and "Real players":
   - your moves close to the best, with their margin of error;
@@ -257,7 +269,7 @@ Olivier's request, from two AI proposals ("4, 1, 2 and 3"): point 4 first.
 ## [v2.78]
 
 ### Added — the quality of real players' moves
-Point 4 of the statistics audit chosen by Olivier. Each of the 418,046 moves
+Point 4 of the statistics audit chosen by ocj94. Each of the 418,046 moves
 of the 4,247 games played from a starting position was analysed in advance
 by the site's engine (31 minutes of computation, `tools/qualite-coups.js`).
 - **Moves close to the best**: one ply ahead, every legal move is
@@ -291,7 +303,7 @@ catch it next time.
 ## [v2.77]
 
 ### Added — more reliable corpus statistics, and the score explorer
-Following the statistics audit ChatGPT made for Olivier ("1 2 3 and 4", plus
+Following the statistics audit ChatGPT made for ocj94 ("1 2 3 and 4", plus
 the explorer specification). Point 4, the quality of moves, follows in v2.78:
 it needs a long computation done in advance.
 - **Margins of error**: the corpus percentages show their 95 % margin ("53.7 %
@@ -327,7 +339,7 @@ it needs a long computation done in advance.
 ## [v2.76]
 
 ### Changed — the Lab starts from the Texel weights
-Olivier's request ("Start with 1"): since v2.75 the AI plays with the Texel
+ocj94's request ("Start with 1"): since v2.75 the AI plays with the Texel
 weights from level 4, but the Lab's self-improvement was still trying to
 improve the old "Balanced" weights, which almost nobody faces at those
 levels any more.
@@ -356,7 +368,7 @@ levels any more.
 ## [v2.75]
 
 ### Changed — from level 4, an AI tuned on real games
-Olivier's choice ("OK for option 2"): the weights found by the Lab's
+ocj94's choice ("OK for option 2"): the weights found by the Lab's
 **Texel method**, only for levels 4 and up.
 - **What changes**: from **level 4**, in **Auto** or **Balanced** style, the
   AI judges positions with the Texel weights. They put much more weight on
@@ -394,7 +406,7 @@ Olivier's choice ("OK for option 2"): the weights found by the Lab's
 ## [v2.74]
 
 ### Fixed — the Game statistics page in English
-Reported by Olivier: "I'm on the corpus page. In English, but it stays in
+Reported by ocj94: "I'm on the corpus page. In English, but it stays in
 French".
 - **Everything is translated**: the page title and introduction, the cards
   "The first player's advantage", "Length of a game", "How games end", "Most
@@ -421,7 +433,7 @@ French".
 ## [v2.73]
 
 ### Added — My statistics and the Profile, filtered and in charts
-Third part of Olivier's request ("more settings, charts, metrics…"), after
+Third part of ocj94's request ("more settings, charts, metrics…"), after
 the Lab and the corpus.
 - **The filters filter**: the period tabs (7 days, 30 days, 90 days, 1
   year, All) only showed a message; they now filter the whole page, with a
@@ -451,7 +463,7 @@ the Lab and the corpus.
 ## [v2.72]
 
 ### Added — Game statistics, filtered and in charts
-Second part of Olivier's request ("more settings, charts, metrics…"), after
+Second part of ocj94's request ("more settings, charts, metrics…"), after
 the Lab.
 - **Filters** at the top of the page: **source** (MIGS, AbalOnline,
   PlayStrategy, reference games), **layout**, **length** (under 60 plies, 60
@@ -475,7 +487,7 @@ the Lab.
 ## [v2.71]
 
 ### Added — the Lab in charts and settings
-Olivier's request: "more settings, charts, metrics… for the Lab, the corpus
+ocj94's request: "more settings, charts, metrics… for the Lab, the corpus
 and the profiles". First part: the Lab.
 - **📊 Dashboard** (new tab): games played (Lab, benches, KAAH test),
   computing time, games per hour, decided tests (adopted, rejected,
@@ -508,7 +520,7 @@ and the profiles". First part: the Lab.
 ## [v2.70]
 
 ### Added — the AI Lab, six more tools
-Olivier's request: "improve the Lab", then "all 6". The AI Lab page now has
+ocj94's request: "improve the Lab", then "all 6". The AI Lab page now has
 **tabs**, one per tool.
 - **📐 Texel method**: over 18,855 positions from real games whose winner is
   known, the weights for which the AI's evaluation **best guesses who will
@@ -566,7 +578,7 @@ Olivier's request: "improve the Lab", then "all 6". The AI Lab page now has
 
 ### Added — sync my devices
 - **🔄 Sync my devices** (History or Settings, address `#sync`): two devices,
-  or two browsers, **merge** their game data. Olivier's request: "how do I get
+  or two browsers, **merge** their game data. ocj94's request: "how do I get
   the same data in every browser?".
   - **Live**: both open, one code each way (Copy or Share), then a direct
     connection between the browsers, like the live game. No account, no
@@ -916,7 +928,7 @@ Olivier's request: "improve the Lab", then "all 6". The AI Lab page now has
   as in ULA.
 - **Import a game (Aba-Pro)** accepts ULA's List and comment log pasted as they
   are (capitals, move numbers, "(1-1)" scores, taken-back moves). The ULA game
-  Olivier sent (Belgian Daisy, 217 moves) replays in full: ejections on the same
+  ocj94 sent (Belgian Daisy, 217 moves) replays in full: ejections on the same
   moves, 6-2.
 
 ### Fixed
@@ -1015,7 +1027,7 @@ Olivier's request: "improve the Lab", then "all 6". The AI Lab page now has
   sourced facts (over 4.5 million copies, more than thirty countries as of
   2011, one of the first Mensa Select awards in 1990); the standard layout is
   not "the Belgian" and has 5 + 6 + 3 marbles per side.
-- **Game**: the player card showed "You (Olivier)" to everyone, and "Your
+- **Game**: the player card showed "You (ocj94)" to everyone, and "Your
   marbles: Black" even when playing White.
 - **Level**: a new player saw "-50 / 102 XP"; level 1 now starts at 0.
 - **Menus**: the language and Help menus no longer overflow a phone screen.

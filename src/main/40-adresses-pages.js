@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════
    UNE ADRESSE PAR PAGE (v2.64)
-   Demande d'Olivier : chaque entree du menu a son adresse, par exemple
+   Demande d'ocj94 : chaque entree du menu a son adresse, par exemple
    https://ocj94.github.io/Abalassembly/#corpus pour les Stats du corpus.
    - Ouvrir une page met son adresse dans la barre (history.pushState) : le
      bouton Retour du navigateur ou du telephone revient a la page d'avant.

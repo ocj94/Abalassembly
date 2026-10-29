@@ -232,7 +232,7 @@ const MOVE_LIST_HEADER = '<div class="move-head"><span></span><span></span><span
 
 // Ajoute une ligne de coup : numéro · pastille couleur · Aba-Pro (gauche) · Nacre (droite)
 /* ═══ POSITION ET EVALUATION, COUP PAR COUP ═══
-   Demande d'Olivier, sur le modele de KAAH :
+   Demande d'ocj94, sur le modele de KAAH :
    - le CODE DE LA POSITION affichee, au format de KAAH/KAAWA ("0a12b123..._0a45...":
      billes noires puis blanches, chaque moitie precedee du nombre de billes
      EJECTEES de ce camp, cases triees et groupees par rangee) -- copiable, et
@@ -411,7 +411,7 @@ function codePosition(plateau, ejNoires, ejBlanches) {
   };
   return moitie('black', ejNoires) + '_' + moitie('white', ejBlanches);
 }
-/* ── Permutations d'une position, comme dans KAAH (demande d'Olivier) ──
+/* ── Permutations d'une position, comme dans KAAH (demande d'ocj94) ──
    Les 12 symetries du plateau hexagonal, avec la NUMEROTATION DE KAAH, retrouvee
    en comparant nos calculs aux permutations affichees par KAAH lui-meme :
      0 a 5    : rotation de n sixiemes de tour ;
@@ -517,7 +517,7 @@ function appendMoveRow(list, moveInfo, fallbackLabel, color, plyNum) {
   const row = document.createElement('div');
   row.className = 'move-item current';
   /* Ligne cliquable : affiche la position APRES ce coup sur le plateau
-     (demande d'Olivier). Reutilise loadSnapshot(), deja utilise par la
+     (demande d'ocj94). Reutilise loadSnapshot(), deja utilise par la
      navigation replay -- aucun nouveau chemin d'affichage, donc aucun
      risque de divergence entre les deux facons de naviguer.
      plyNum est le rang du coup (1-based) alors que boardSnapshots est
@@ -545,7 +545,7 @@ function _gotoMoveFromHistory(idx){
   if (typeof boardSnapshots === 'undefined' || !boardSnapshots.length) return;
   idx = Math.max(-1, Math.min(boardSnapshots.length - 1, idx));
   if (typeof replayMode !== 'undefined' && !replayMode) {
-    /* Relecture possible MEME en pleine partie (demande d'Olivier).
+    /* Relecture possible MEME en pleine partie (demande d'ocj94).
        L'etat reel est mis de cote AVANT de charger l'instantane, et
        restaure a la sortie du replay -- sans quoi la partie en cours
        serait perdue (bug preexistant sur toggleReplay, corrige en meme

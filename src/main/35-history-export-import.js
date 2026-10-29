@@ -229,7 +229,7 @@ function _parseBulkHistoryText(text, monPseudo){
    depart des billes deplacees, cf. recordPlayerMove), memes cartes : 'me',
    'me_<couleur>' et 'me_<couleur>@<variante>'. Uniquement TES parties (jamais une
    partie consultee), et une seule fois par partie : la marque `chaleur` l'empeche
-   d'etre recomptee. Demande d'Olivier. Renvoie le nombre de coups comptes. */
+   d'etre recomptee. Demande d'ocj94. Renvoie le nombre de coups comptes. */
 function _chaleurDepuisImport(e) {
   if (!e || e.spectateur || e.chaleur || e.mode !== 'import' || (e.humanColor !== 'black' && e.humanColor !== 'white') || !e.code) return 0;
   const g = gameCodeParse(e.code);

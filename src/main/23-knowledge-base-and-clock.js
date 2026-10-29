@@ -397,7 +397,7 @@ let gameTimerBudget = 1200;        // budget par defaut : 20 minutes
 /* Le chronometre est un DECOMPTE : on veut savoir combien de temps il reste,
    pas combien s'est ecoule. Le budget suit la cadence choisie quand il y en a
    une (« 10 min + 5 s » -> 600 s) ; sinon 20 minutes par defaut.
-   Demande d'Olivier. */
+   Demande d'ocj94. */
 function _gameTimerBudgetFromControl() {
   // la cadence deja lue (tous modes, y compris 'D300+5') plutot qu'un decoupage maison du code
   if (typeof _timeCtlBase !== 'undefined' && _timeCtlBase > 0) return _timeCtlBase;
@@ -413,7 +413,7 @@ function startGameTimer() {
   const box = document.getElementById('game-timer-box');
   // Cadence libre (_timeCtlBase===0) : pas de decompte a afficher, la pendule
   // ne fait rien perdre au temps dans ce mode — l'afficher quand meme
-  // laissait croire a une limite qui n'existe pas. Signale par Olivier.
+  // laissait croire a une limite qui n'existe pas. Signale par ocj94.
   if (typeof _timeCtlBase !== 'undefined' && _timeCtlBase === 0) {
     if (box) box.style.display = 'none';
     return;

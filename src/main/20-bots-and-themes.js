@@ -202,7 +202,7 @@ function applyMarbleSkin() {
    la personne reconnaisse tout de suite quelle couleur elle va jouer.
    Étendu à l'Éditeur de position et à Analyse de partie (« Comprendre la
    position ») : mêmes emojis fixes noir/blanc au même défaut, et labels
-   "Noir"/"Blanc" remplacés par "Joueur 1"/"Joueur 2" (demande d'Olivier —
+   "Noir"/"Blanc" remplacés par "Joueur 1"/"Joueur 2" (demande d'ocj94 —
    ces pages servent aussi à préparer des positions où "noir"/"blanc" n'a
    pas toujours de sens, ex. positions personnalisées). */
 function _marbleSwatch(stops, size) {
@@ -627,7 +627,7 @@ document.addEventListener('DOMContentLoaded', function() {
    rien (avec message clair) si ce theme n'a pas encore de variante nuit —
    seul Volcanique en a une pour l'instant, les 5 autres viendront plus
    tard un par un. Redessine 2D et resynchronise la 3D si elle est ouverte,
-   comme n'importe quel autre changement de theme. Signale par Olivier. */
+   comme n'importe quel autre changement de theme. Signale par ocj94. */
 function toggleThemeNight() {
   const t = BOARD_SURFACE_THEMES[boardTheme.theme];
   if (!t || !t.night) { showToast('🌞 Ce thème n\'a pas encore de variante nuit'); return; }

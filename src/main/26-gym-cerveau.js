@@ -397,7 +397,7 @@ function gymStartFlexibility(level){
 /* ─── 7. SPATIAL — rotation mentale 60° horaire, N billes (via axiales) ─── */
 /* Exercice spatial : rotation autour d'un centre.
    Version initiale limitee a 60° et aux seules cases VOISINES du centre.
-   Etendue (demande d'Olivier) : n'importe quel multiple de 60° (60 a 300)
+   Etendue (demande d'ocj94) : n'importe quel multiple de 60° (60 a 300)
    et des billes placees a distance variable, pas seulement collees au
    centre. Sur une grille hexagonale, toute rotation multiple de 60°
    autour d'une case tombe exactement sur une autre case, quelle que soit
@@ -887,7 +887,7 @@ function gymStartMat(level){
 
 /* ═══════════════════════════════════════════
    DUEL CERVEAU — exercices de vitesse contre un autre joueur, en direct
-   (demande d'Olivier, sur le modele de Brain Wars). Deux appareils relies par la
+   (demande d'ocj94, sur le modele de Brain Wars). Deux appareils relies par la
    connexion « En direct » (un code echange une fois, aucun compte, aucun serveur
    de jeu) ; 3 manches tirees parmi 5 exercices courts. Chaque manche : le
    meilleur score gagne, a score egal le plus rapide. Chacun mesure SON temps

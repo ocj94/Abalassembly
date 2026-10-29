@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════
    LABO : LE TABLEAU DE BORD (v2.71)
-   Demande d'Olivier : « plus de parametres, de graphiques, de metriques ».
+   Demande d'ocj94 : « plus de parametres, de graphiques, de metriques ».
    Les totaux du Labo (parties, temps de calcul, tests tranches, gain mesure),
    les poids du champion au fil des adoptions, et les graphiques du journal
    des parties (les 2 000 dernieres) : parties par jour, longueur, fins,

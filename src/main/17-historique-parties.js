@@ -73,7 +73,7 @@ function getMesParties(){ const L = getGameHistory().filter(estMaPartie); return
    (partie consultee, partie a deux sur le meme ecran, resultat inconnu).
    Avant, seules les parties contre l'IA en avaient un : une partie importee
    ou l'on sait quel camp tu tenais et qui a gagne (KAAH...) affichait « — ».
-   Signale par Olivier, capture a l'appui. */
+   Signale par ocj94, capture a l'appui. */
 function _histMonResultat(e){
   if (!e || e.spectateur) return null;
   if (e.mode === 'ai') return !e.winner ? 'nulle' : (e.winner === e.humanColor ? 'victoire' : 'defaite');
@@ -182,7 +182,7 @@ function triggerWin(winner, reason) {
   /* Le joueur n'a pas toujours les Noirs. Avant : "Noirs = moi" code en dur ici --
      une victoire AVEC LES BLANCS s'affichait « Défaite… » et comptait comme une
      DEFAITE (ELO, XP, serie, conversion, badge). Constate par simulation et
-     signale a Olivier, qui joue souvent les Blancs. On suit monCamp(), le point
+     signale a ocj94, qui joue souvent les Blancs. On suit monCamp(), le point
      de verite unique du camp tenu (mode IA : la couleur choisie ; deux joueurs
      sur le meme ecran : convention Noirs = joueur local, comme partout ailleurs). */
   const moi = (typeof monCamp === 'function') ? monCamp() : 'black';
@@ -236,7 +236,7 @@ function triggerWin(winner, reason) {
     onGamePlayed(jeGagne);
   }
   // Partie sans aucun coup joué (abandon immédiat, annulation) : aucun ELO
-  // retiré, aucune stat comptée — idée d'Olivier. On informe juste discrètement.
+  // retiré, aucune stat comptée — idée d'ocj94. On informe juste discrètement.
   if (typeof MoveCount !== 'undefined' && MoveCount.get() === 0) {
     if (typeof showToast === 'function') showToast('Partie annulée — aucun coup joué, ELO inchangé');
   }

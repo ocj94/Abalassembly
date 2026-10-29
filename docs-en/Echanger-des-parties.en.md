@@ -8,7 +8,7 @@ An asynchronous game via a simple text exchange. You play, copy the code, send i
 
 The code carries the entire game from the first move — variant, move history, and now the identity of both players (`ABAL1:variant:blackName|whiteName:moves`). Whoever receives it replays everything against the engine and rejects the code at the first illegal move, rather than trusting it blindly. Codes generated before this addition (with no names) remain readable.
 
-A "Your name" field (remembered from one game to the next) and a color choice appear in the modal. As soon as both names are known, they're shown at the top: "⚫ Olivier vs ⚪ Saab".
+A "Your name" field (remembered from one game to the next) and a color choice appear in the modal. As soon as both names are known, they're shown at the top: "⚫ ocj94 vs ⚪ Saab".
 
 Game menu → **Game by code**.
 

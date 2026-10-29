@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════
    STATISTIQUES DU JEU : TEMPS MORTS, SORTIE DU CORPUS, POSITIONS DEJA VUES,
    BILLES SEULES, CONTACTS, CE QUI SE DEGRADE AVANT UNE BILLE PERDUE (v2.83)
-   Demande d'Olivier (« Toute ») : les propositions retenues apres l'audit de
+   Demande d'ocj94 (« Toute ») : les propositions retenues apres l'audit de
    deux listes d'idees d'une autre IA (les chiffres annonces y etaient des
    paris ; ici, tout est compte sur les vraies parties).
    1. la plus longue periode sans bille tombee ;

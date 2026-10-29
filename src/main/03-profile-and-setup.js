@@ -286,7 +286,7 @@ let _setupCfgTimeBeforeRtc;
 
 /* Bouton parent "Deux joueurs" : deplie la sous-section (Meme appareil /
    En direct) plutot que de choisir directement un mode -- demande
-   d'Olivier, ces deux choix sont des declinaisons de "jouer a deux",
+   d'ocj94, ces deux choix sont des declinaisons de "jouer a deux",
    pas un troisieme mode independant au meme niveau que "Contre l'IA". */
 function setupPickTwoPlayers(){
   const subSection = document.getElementById('setup-mode-2p-sub');
@@ -302,7 +302,7 @@ function setupPickTwoPlayers(){
 /* Miniature de la disposition de depart, affichee quand on choisit une
    variante en configuration. Reutilise gymMarbleGradient() TEL QUEL : les
    billes de la miniature suivent donc le VRAI skin actif choisi par la
-   personne, pas un noir/blanc fixe -- Olivier a explicitement demande que
+   personne, pas un noir/blanc fixe -- ocj94 a explicitement demande que
    seul l'EXPORT garde les couleurs officielles rigides, pas l'affichage. */
 function setupRenderLayoutThumb(layoutKey, labelText){
   const box = document.getElementById('setup-layout-thumb');
@@ -339,7 +339,7 @@ function _miniDispositionHTML(layoutKey, cell){
 }
 
 /* Dedie au menu deroulant des dispositions (21 entrees -- trop pour des
-   boutons individuels, demande d'Olivier). Fonction SEPAREE de setupPick()
+   boutons individuels, demande d'ocj94). Fonction SEPAREE de setupPick()
    plutot que de la reutiliser telle quelle : setupPick() attend un bouton
    avec .parentElement et des .setup-opt freres a desactiver, ce qu'un
    <select> n'a pas. Meme principe que le commentaire de setupPick() pour
@@ -386,7 +386,7 @@ function setupPick(group, value, btn) {
   }
   /* En deux joueurs local, « qui commence » et le style IA n'ont pas de sens
      (les deux joueurs sont sur le meme ecran). En revanche, en partie EN
-     DIRECT il faut pouvoir choisir son camp -- demande d'Olivier. */
+     DIRECT il faut pouvoir choisir son camp -- demande d'ocj94. */
   if (group === 'mode') {
     const isAI = value === 'ai';
     const isLocal2p = value === 'local';
@@ -422,7 +422,7 @@ function setupPick(group, value, btn) {
        manuel des codes de connexion peut prendre plusieurs minutes (copier-
        coller entre deux appareils) -- une pendule qui tourne pendant ce
        temps ferait perdre au temps avant meme le premier coup. Signale par
-       Olivier. Le choix est restaure des qu'on repasse sur un autre mode. */
+       ocj94. Le choix est restaure des qu'on repasse sur un autre mode. */
     const timeCard = document.getElementById('setup-time-card');
     if (timeCard) timeCard.style.display = isRtc ? 'none' : '';
     if (isRtc) {
@@ -450,7 +450,7 @@ function setupPick(group, value, btn) {
   /* Indication reelle (profondeur + budget temps) sous les boutons de niveau —
      memes chiffres EXACTS que ceux que l'IA va vraiment utiliser (meme table
      AI_DIFFICULTY_CONFIG), pas une description vague inventee a part.
-     Demande d'Olivier : des niveaux plus progressifs + voir ce qui change. */
+     Demande d'ocj94 : des niveaux plus progressifs + voir ce qui change. */
   if (group === 'diff') _setupReflexionDefaut(value);
   if (group === 'style') _setupReflexionInfo();   // v2.75 : la phrase Texel depend aussi du style
 }
@@ -548,7 +548,7 @@ function startConfiguredGame() {
   /* Le moteur ne connait que 'ai' et 'local'. Le mode 'rtc' (partie en
      direct) est un mode local du point de vue du jeu -- aucune IA ne joue --
      mais avec un camp choisi et le panneau de connexion ouvert au
-     lancement. Demande d'Olivier : le choisir comme un adversaire, pas
+     lancement. Demande d'ocj94 : le choisir comme un adversaire, pas
      comme une action en cours de partie. */
   const _isRtc = (c.mode === 'rtc');
   step(function(){ if (typeof GameMode !== 'undefined') GameMode.set(_isRtc ? 'local' : c.mode); });
