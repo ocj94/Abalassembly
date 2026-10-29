@@ -9,6 +9,22 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.94]
+
+### Ajouté — The Arrow, grâce à Wikipédia
+L'auteur a trouvé sur Wikipédia les images de deux positions que la v2.93
+avait écartées.
+- **The Arrow** : l'image « Abalone arrow » est identique, case par case, au
+  relevé de gym-abalone, y compris ses 13 billes blanches. Deux sources qui
+  s'accordent : 14 noires contre 13 blanches est la position publiée, pas
+  une erreur de lecture. Elle est ajoutée (60 positions de départ) : c'est
+  la seule disposition du jeu aux camps inégaux, et sa fiche le dit.
+- **Snakes variation** : l'image est notre Snakes variant, à qui gym-abalone
+  avait fait perdre une bille noire. Rien à ajouter, mais c'est une
+  troisième confirmation de cette position, après le corpus AbalOnline et
+  l'image du blog. Sa fiche le mentionne.
+- Restent à vérifier : food-mill et windmill.
+
 ## [v2.93]
 
 ### Ajouté — 36 positions de départ, de 23 à 59

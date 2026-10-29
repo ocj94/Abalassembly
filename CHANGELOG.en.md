@@ -9,6 +9,22 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.94]
+
+### Added — The Arrow, thanks to Wikipedia
+The author found on Wikipedia the images of two positions v2.93 had left
+out.
+- **The Arrow**: the "Abalone arrow" image is identical, cell by cell, to
+  gym-abalone's reading, its 13 white marbles included. Two sources that
+  agree: 14 black against 13 white is the published position, not a
+  misreading. It is added (60 starting positions): it is the only layout
+  with unequal sides, and its card says so.
+- **Snakes variation**: the image is our Snakes variant, which gym-abalone
+  had lost a black marble from. Nothing to add, but it is a third
+  confirmation of that position, after the AbalOnline corpus and the blog's
+  image. Its card mentions it.
+- Still to check: food-mill and windmill.
+
 ## [v2.93]
 
 ### Added — 36 starting positions, from 23 to 59

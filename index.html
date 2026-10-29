@@ -4329,6 +4329,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
           <option value="trench" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Trench</option>
           <option value="true_daisy" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">True Daisy</option>
           <option value="wheel" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Wheel</option>
+          <option value="the_arrow" title="Position du blog Abalone Online relevee par gym-abalone, identique a l'image de Wikipedia -- 14 noires contre 13 blanches">The Arrow</option>
           <option value="xmas_star" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Xmas Star</option>
         </optgroup>
         <option value="random" title="Tire une vraie disposition au hasard parmi celles disponibles">🎲 Aléatoire</option>
@@ -8709,7 +8710,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.93';
+const APP_VERSION = 'v2.94';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -9090,10 +9091,10 @@ function isMyColor(color) {
    comparer ses habitudes selon la position de depart, qui change beaucoup le
    jeu. Demande d'ocj94. */
 const HEAT_VARIANTS = ['standard','belgian','german','dutch','swiss','decouverte','69','fujiyama','the_wall','star','face_a_face','alliances','domination','atomouche','centrifuge','snakes_variant','snakes','alien','korean_daisy','anglattack','alitration','pyramide','french',
-  /* v2.93 : les 36 positions de gym-abalone (07-board-engine-core.js) */ 'aliennage','april_fish','boutonniere','damier','corners','cross','coeurs_croises','crown','def_or_attack','domination_vs_daisy','duel','forcing','fracture','king_cake','horseshoes','infiltralien','infiltration','intimidation','irish_daisy','robot','labyrinth','mosaic','mquorric','neko','oath','octopus','scottish_daisy','sibe','slaloms','snowflake','araignee','tinsels','trench','true_daisy','wheel','xmas_star'];
+  /* v2.93 : les 36 positions de gym-abalone (07-board-engine-core.js) */ 'aliennage','april_fish','boutonniere','damier','corners','cross','coeurs_croises','crown','def_or_attack','domination_vs_daisy','duel','forcing','fracture','king_cake','horseshoes','infiltralien','infiltration','intimidation','irish_daisy','robot','labyrinth','mosaic','mquorric','neko','oath','octopus','scottish_daisy','sibe','slaloms','snowflake','araignee','tinsels','trench','true_daisy','wheel','xmas_star','the_arrow'];
 const HEAT_VARIANT_LABEL = { standard:'Standard', belgian:'Belgian Daisy', german:'German Daisy',
   dutch:'Dutch Daisy', swiss:'Swiss Daisy', decouverte:'D\u00e9couverte', '69':'69', fujiyama:'Fujiyama', the_wall:'The Wall', star:'Star', face_a_face:'Face à face', alliances:'Alliances', domination:'Domination', atomouche:'Atomouche', centrifuge:'Centrifugeuse', snakes_variant:'Snakes variant', snakes:'Snakes', alien:'Alien', korean_daisy:'Korean Daisy', anglattack:'Anglattack', alitration:'Alitration', pyramide:'Pyramide', french:'Marguerite fran\u00e7aise' ,
-  aliennage:'Aliennage', april_fish:'April Fish', boutonniere:'Boutonnière', damier:'Damier', corners:'Corners', cross:'Cross', coeurs_croises:'Cœurs croisés', crown:'Crown', def_or_attack:'Def or Attack', domination_vs_daisy:'Domination vs Daisy', duel:'Duel', forcing:'Forcing', fracture:'Fracture', king_cake:'French King Cake', horseshoes:'Horseshoes', infiltralien:'Infiltralien', infiltration:'Infiltration', intimidation:'Intimidation', irish_daisy:'Marguerite irlandaise', robot:'I\'m a Robot', labyrinth:'Labyrinth', mosaic:'Mosaic', mquorric:'Mquorric', neko:'Neko', oath:'Oath', octopus:'Octopus', scottish_daisy:'Scottish Daisy', sibe:'Sibe', slaloms:'Slaloms', snowflake:'Snowflake', araignee:'Araignée', tinsels:'Tinsels', trench:'Trench', true_daisy:'True Daisy', wheel:'Wheel', xmas_star:'Xmas Star' };
+  aliennage:'Aliennage', april_fish:'April Fish', boutonniere:'Boutonnière', damier:'Damier', corners:'Corners', cross:'Cross', coeurs_croises:'Cœurs croisés', crown:'Crown', def_or_attack:'Def or Attack', domination_vs_daisy:'Domination vs Daisy', duel:'Duel', forcing:'Forcing', fracture:'Fracture', king_cake:'French King Cake', horseshoes:'Horseshoes', infiltralien:'Infiltralien', infiltration:'Infiltration', intimidation:'Intimidation', irish_daisy:'Marguerite irlandaise', robot:'I\'m a Robot', labyrinth:'Labyrinth', mosaic:'Mosaic', mquorric:'Mquorric', neko:'Neko', oath:'Oath', octopus:'Octopus', scottish_daisy:'Scottish Daisy', sibe:'Sibe', slaloms:'Slaloms', snowflake:'Snowflake', araignee:'Araignée', tinsels:'Tinsels', trench:'Trench', true_daisy:'True Daisy', wheel:'Wheel', xmas_star:'Xmas Star', the_arrow:'The Arrow' };
 
 function recordMyHeat(color, cells) {
   if (typeof isMyColor === 'function' && !isMyColor(color)) return;
@@ -13361,6 +13362,8 @@ const LAYOUTS = {
     // CONFIRME UNE SECONDE FOIS par une image independante
     // (onlineabalone.wordpress.com/.../snakes-variante.png) : lecture
     // pixel par pixel identique, case pour case, sur les deux camps.
+    // v2.94 : CONFIRME UNE TROISIEME FOIS par l'image « Abalone snakes
+    // variation » de Wikipedia (fr.wikipedia.org), identique case par case.
     // A NE PAS CONFONDRE avec "snakes" (ci-dessous) : deux positions
     // distinctes malgre la ressemblance des noms, verifie explicitement.
     black: [[5,1],[5,2],[5,3],[5,4],[5,5],[4,1],[3,0],[2,0],[1,0],[0,0],[0,1],[0,2],[0,3],[0,4]],
@@ -13500,8 +13503,18 @@ const LAYOUTS = {
      depart des vraies parties AbalOnline -- 22 confirmations. Une erreur
      connue : sa « snakes-variation » a perdu une bille (13 contre 14).
      ECARTEES ici, a verifier sur les images du blog : snakes-variation
-     (13/14), the-arrow (14/13), et food-mill et windmill, symetriques a une
-     bille pres -- la marque d'une case mal lue.
+     (13/14), et food-mill et windmill, symetriques a une bille pres -- la
+     marque d'une case mal lue.
+     v2.94 : deux images de Wikipedia envoyees par ocj94 (« Abalone arrow »
+     et « Abalone snakes variation », fr.wikipedia.org) tranchent deux cas :
+     - snakes-variation est notre snakes_variant, a qui gym-abalone a fait
+       perdre une bille noire (la case r5 c5) : troisieme confirmation de
+       snakes_variant, rien a ajouter ;
+     - the-arrow : l'image de Wikipedia est IDENTIQUE, case par case, au
+       releve de gym-abalone, 13 blanches comprises. Deux sources qui
+       s'accordent : 14 noires contre 13 blanches est la position publiee,
+       pas une erreur de lecture. Ajoutee (the_arrow), seule disposition du
+       jeu aux camps inegaux -- exception nommee dans le test des billes.
      Chaque position retenue : billes en nombre egal, aucune collision,
      symetries calculees (tests). Sauf Corners et Duel, une seule source.
      Licence de la source :
@@ -13666,6 +13679,10 @@ const LAYOUTS = {
   wheel: {   // gym « wheel »
     black: [[3,3],[3,5],[4,0],[4,1],[4,3],[4,6],[5,3],[5,5],[6,2],[6,4],[7,1],[7,4],[8,0],[8,4]],
     white: [[0,0],[0,4],[1,1],[1,4],[2,2],[2,4],[3,2],[3,4],[4,2],[4,5],[4,7],[4,8],[5,2],[5,4]]
+  },
+  the_arrow: {   // gym « the-arrow » = image « Abalone arrow » de Wikipedia, case par case -- 14 noires, 13 blanches
+    black: [[0, 0], [0, 1], [1, 0], [1, 1], [2, 2], [3, 3], [3, 4], [4, 3], [5, 4], [6, 4], [7, 4], [7, 5], [8, 3], [8, 4]],
+    white: [[0, 2], [0, 3], [2, 0], [2, 3], [2, 4], [3, 0], [3, 2], [4, 2], [4, 4], [4, 5], [5, 3], [6, 5], [7, 3]]
   },
   xmas_star: {   // gym « xmas-star »
     black: [[2,0],[2,1],[2,4],[2,5],[2,6],[3,1],[3,2],[3,5],[3,6],[4,2],[6,4],[7,2],[7,3],[8,2]],
@@ -30165,7 +30182,7 @@ const variantsData = [
     desc:'Deux anneaux imbriqués. 39 parties dans le corpus AbalOnline : 24 gagnées par les Noirs, 15 par les Blancs, en 72 coups en médiane. Deux symétries échangent exactement les camps.',
     origin:'Variante communautaire, position confirmée case par case sur le corpus AbalOnline' },
   { id:'snakes-variant', name:'Snakes variant', emoji:'🐉', players:'2', duration:'65 coups (médiane)', diff:'Non évaluée', src:'AbalOnline',
-    desc:'Deux spirales entrelacées — à ne pas confondre avec Snakes, une position différente malgré le nom. 17 parties dans le corpus AbalOnline : 7 gagnées par les Noirs, 9 par les Blancs, en 65 coups en médiane. Une symétrie échange exactement les deux camps.',
+    desc:'Deux spirales entrelacées — à ne pas confondre avec Snakes, une position différente malgré le nom. 17 parties dans le corpus AbalOnline : 7 gagnées par les Noirs, 9 par les Blancs, en 65 coups en médiane. Une symétrie échange exactement les deux camps. Confirmée aussi, case par case, par l\'image « Abalone snakes variation » de Wikipédia.',
     origin:'Variante communautaire, position prise directement dans le corpus AbalOnline' },
   { id:'korean-daisy', name:'Korean Daisy', emoji:'🌸', players:'2', duration:'Non mesurée', diff:'Non évaluée', src:'abaloneonline.wordpress.com',
     desc:'En haut, deux groupes qui échangent leurs couleurs au contact ; en bas, deux blocs. Deux symétries échangent exactement les camps. Aucune partie sous ce nom dans le corpus AbalOnline.',
@@ -30281,6 +30298,9 @@ const variantsData = [
   { id:'wheel', name:'Wheel', emoji:'🎡', players:'2', duration:'Non mesurée', diff:'Non évaluée', src:'gym-abalone',
     desc:'Position de départ publiée sur le blog Abalone Online, relevée automatiquement sur ses images par le projet gym-abalone. 14 billes par camp. Une symétrie échange exactement les deux camps. Aucune partie connue dans le corpus : la position n\'a qu\'une source et reste à confirmer sur l\'image du blog.',
     origin:'Position du blog Abalone Online, relevée par gym-abalone (licence MIT)' },
+  { id:'the-arrow', name:'The Arrow', emoji:'🏹', players:'2', duration:'Non mesurée', diff:'Non évaluée', src:'gym-abalone · Wikipédia',
+    desc:'Position de départ publiée sur le blog Abalone Online, relevée par le projet gym-abalone et identique, case par case, à l\'image « Abalone arrow » de Wikipédia. Particularité, la même dans les deux sources : 14 billes noires contre 13 blanches, la seule disposition du jeu aux camps inégaux. Aucune symétrie n\'échange les couleurs : les deux camps n\'ont même pas le même nombre de billes. Aucune partie connue dans le corpus.',
+    origin:'Position du blog Abalone Online, relevée par gym-abalone (licence MIT), confirmée par l\'image de Wikipédia' },
   { id:'xmas-star', name:'Xmas Star', emoji:'🎄', players:'2', duration:'Non mesurée', diff:'Non évaluée', src:'gym-abalone',
     desc:'Position de départ publiée sur le blog Abalone Online, relevée automatiquement sur ses images par le projet gym-abalone. 14 billes par camp. Une symétrie échange exactement les deux camps. Aucune partie connue dans le corpus : la position n\'a qu\'une source et reste à confirmer sur l\'image du blog.',
     origin:'Position du blog Abalone Online, relevée par gym-abalone (licence MIT)' }
@@ -30298,7 +30318,7 @@ const VARIANTE_DISPOSITION = {
   'french-daisy':'french', 'decouverte':'decouverte', '69':'69', 'star':'star', 'alliances':'alliances',
   'domination':'domination', 'atomouche':'atomouche', 'centrifugeuse':'centrifuge', 'snakes-variant':'snakes_variant',
   'korean-daisy':'korean_daisy', 'anglattack':'anglattack',
-  'aliennage':'aliennage', 'april-fish':'april_fish', 'boutonniere':'boutonniere', 'damier':'damier', 'corners':'corners', 'cross':'cross', 'coeurs-croises':'coeurs_croises', 'crown':'crown', 'def-or-attack':'def_or_attack', 'domination-vs-daisy':'domination_vs_daisy', 'duel':'duel', 'forcing':'forcing', 'fracture':'fracture', 'king-cake':'king_cake', 'horseshoes':'horseshoes', 'infiltralien':'infiltralien', 'infiltration':'infiltration', 'intimidation':'intimidation', 'irish-daisy':'irish_daisy', 'robot':'robot', 'labyrinth':'labyrinth', 'mosaic':'mosaic', 'mquorric':'mquorric', 'neko':'neko', 'oath':'oath', 'octopus':'octopus', 'scottish-daisy':'scottish_daisy', 'sibe':'sibe', 'slaloms':'slaloms', 'snowflake':'snowflake', 'araignee':'araignee', 'tinsels':'tinsels', 'trench':'trench', 'true-daisy':'true_daisy', 'wheel':'wheel', 'xmas-star':'xmas_star'
+  'aliennage':'aliennage', 'april-fish':'april_fish', 'boutonniere':'boutonniere', 'damier':'damier', 'corners':'corners', 'cross':'cross', 'coeurs-croises':'coeurs_croises', 'crown':'crown', 'def-or-attack':'def_or_attack', 'domination-vs-daisy':'domination_vs_daisy', 'duel':'duel', 'forcing':'forcing', 'fracture':'fracture', 'king-cake':'king_cake', 'horseshoes':'horseshoes', 'infiltralien':'infiltralien', 'infiltration':'infiltration', 'intimidation':'intimidation', 'irish-daisy':'irish_daisy', 'robot':'robot', 'labyrinth':'labyrinth', 'mosaic':'mosaic', 'mquorric':'mquorric', 'neko':'neko', 'oath':'oath', 'octopus':'octopus', 'scottish-daisy':'scottish_daisy', 'sibe':'sibe', 'slaloms':'slaloms', 'snowflake':'snowflake', 'araignee':'araignee', 'tinsels':'tinsels', 'trench':'trench', 'true-daisy':'true_daisy', 'wheel':'wheel', 'xmas-star':'xmas_star', 'the-arrow':'the_arrow'
 };
 
 /* Depuis la galerie : ouvre "Configurer avant de jouer" avec la variante

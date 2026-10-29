@@ -812,6 +812,7 @@
           <option value="trench" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Trench</option>
           <option value="true_daisy" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">True Daisy</option>
           <option value="wheel" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Wheel</option>
+          <option value="the_arrow" title="Position du blog Abalone Online relevee par gym-abalone, identique a l'image de Wikipedia -- 14 noires contre 13 blanches">The Arrow</option>
           <option value="xmas_star" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Xmas Star</option>
         </optgroup>
         <option value="random" title="Tire une vraie disposition au hasard parmi celles disponibles">🎲 Aléatoire</option>
