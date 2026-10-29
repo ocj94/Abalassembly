@@ -9,6 +9,33 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.87]
+
+### Added — the MiGs games cited by the blog, kept as a trace
+Requested by the author: "Even if we don't have the moves, mark the games:
+the numbers, the usernames and the dates, at least that will leave a
+trace." The MiGs server closed in 2017 along with its game database; we
+hold 2,589 of at least 39,517. The Abalone Online blog cited 25 of them
+(its "Abalone bank" and its problems of the month).
+- **In the library** (📚 Games), a collapsed section at the top: MiGs
+  number, date, players (usernames only), layout and what cites it on the
+  blog. 23 no longer have their moves: they are kept as they are, in case
+  the database turns up one day.
+- **2 are here with their moves** and open with one click: no. 26599
+  (problem of the month "Restons simples !") and no. 33170 ("Il peut le
+  faire !"). Checked: same players, same date, and the game does reach the
+  problem's move (for no. 33170, at the 5-5 score the blog gives). A 📌 also marks them in the
+  MiGs list.
+- The section follows the search and the layout filter; it disappears when
+  filtering by length (the lost games' length is unknown).
+- The heading counts the 23 games "cited without their moves".
+
+### Fixed
+- **Search by number**: the field said "Search a player or a no.", but the
+  MiGs list only searched players. It now searches the number too.
+- **Library heading on phone**: the ✕ button went past the frame. The
+  buttons move under the title, the count onto its own line.
+
 ## [v2.86]
 
 ### Added — the matrix of the 12 dimensions, the dimensions through the game, the point of no return

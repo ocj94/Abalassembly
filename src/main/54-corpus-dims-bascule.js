@@ -151,4 +151,3 @@ function _cdRendreTout(){
   }
   grSurRedim('corpus-cd', 'corpus-bascule', function(){ const el = document.getElementById('corpus-bascule'); if (el && STATS_PARTIES) el.innerHTML = _cdHtmlBascule(_cfParties(), grLargeur(el, 640) - 40); });
 }
-</script>

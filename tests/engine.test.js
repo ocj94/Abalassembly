@@ -5895,3 +5895,67 @@ test('corpus v2.86 : matrice des correlations, dimensions au fil de la partie, e
     }
   } finally { if (avant === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avant); }
 });
+
+// ═══════════════════════════════════════════
+// 79. v2.87 : bibliotheque -- les parties de MiGs citees par le blog, gardees en trace meme sans leurs coups
+// ═══════════════════════════════════════════
+function _biblio79(recherche, variante, longueur) {
+  const els = {}, opts = [{ value: '' }];
+  const origine = ctx.document.getElementById, origineCreate = ctx.document.createElement;
+  els['migs-search'] = { value: recherche || '' }; els['migs-filter-length'] = { value: longueur || '' };
+  els['migs-filter-variant'] = { value: variante || '', options: opts, appendChild(o){ opts.push(o); } };
+  els['migs-list'] = { innerHTML: '' }; els['migs-entete'] = { textContent: '' };
+  ctx.document.getElementById = id => els[id] || null;
+  ctx.document.createElement = () => ({});
+  try { ctx.renderMigsList(); } finally { ctx.document.getElementById = origine; ctx.document.createElement = origineCreate; }
+  return { html: els['migs-list'].innerHTML, entete: els['migs-entete'].textContent };
+}
+
+test('bibliotheque v2.87 : 25 parties de MiGs citees par le blog, dont 2 rejouables, cherchables par numero', async () => {
+  assert.ok(await ctx.ensureGameBanks());
+  const T = _r63('PARTIES_TRACES');
+  assert.strictEqual(T.length, 25);
+  assert.strictEqual(new Set(T.map(t => t[0])).size, 25, 'pas de doublon');
+  T.forEach(t => { assert.ok(t[0] > 0 && t[0] <= 39517, 'numero MiGs ' + t[0]); assert.ok(t[1] === '' || /^20(1[1-7])-\d\d-\d\d$/.test(t[1]), 'date ' + t[1]); });
+  // les deux parties presentes : memes joueurs et meme date que chez nous, avec leurs coups
+  const chez = T.filter(t => ctx._ptRang(t[0]) >= 0).map(t => t[0]);
+  assert.deepStrictEqual(Array.from(chez), [26599, 33170]);
+  chez.forEach(n => { const t = T.find(x => x[0] === n), g = ctx.MIGS_GAMES[ctx._ptRang(n)];
+    assert.deepStrictEqual([g[1], g[2], g[3]], [t[1], t[2], t[3]], 'partie ' + n); assert.ok(g[5].length > 100); });
+  // la bibliotheque : la section en tete, 23 traces non cliquables, 2 qui ouvrent la partie
+  const b = _biblio79();
+  assert.match(b.html, /Parties de MiGs citées par le blog Abalone Online · 25 \(dont 2 avec leurs coups\)/);
+  assert.strictEqual((b.html.match(/class="pt-trace pt-perdue"/g) || []).length, 23);
+  assert.ok(b.html.includes('loadMigsGame(' + ctx._ptRang(33170) + ')'));
+  assert.match(b.html, /N° 5567 · 24\/03\/2011/); assert.match(b.html, /problème du mois « Il peut le faire ! »/);
+  assert.match(b.entete, /\+ 23 citées sans leurs coups$/);
+  // recherche par numero : la trace et la partie elle-meme (la liste MIGS cherche aussi le numero), avec son repere
+  const r = _biblio79('33170');
+  assert.match(r.html, /· 1 \(dont 1 avec leurs coups\)/);
+  assert.strictEqual((r.html.match(/loadMigsGame\(/g) || []).length, 2, 'la trace et la ligne de la liste');
+  assert.match(r.html, /📌/);
+  assert.strictEqual((_biblio79('boulet').html.match(/class="pt-trace/g) || []).length, 5);
+  // le score au coup du probleme (ejections avant ce demi-coup, d'apres STATS_PARTIES)
+  assert.ok(await ctx.ensureStatsParties());
+  const score = (n, ply) => { const ej = _r63('STATS_PARTIES').p[ctx._ptRang(n)][4], s = [0, 0];
+    for (let i = 0; i < ej.length; i += 2) if (ej[i] < ply) s[ej[i + 1] & 1]++; return s.join('-') + ' / ' + _r63('STATS_PARTIES').p[ctx._ptRang(n)][1]; };
+  assert.strictEqual(score(33170, 149), '5-5 / 187', 'n° 33170, coup 75 : 5-5 comme sur le blog');
+  assert.ok(_r63('STATS_PARTIES').p[ctx._ptRang(26599)][1] >= 169, 'n° 26599 : la partie va au-dela du coup 85 des Noirs');
+  // filtres : la variante filtre aussi les traces ; une longueur les cache (on ne la connait pas)
+  assert.strictEqual((_biblio79('', 'star').html.match(/class="pt-trace/g) || []).length, 1);
+  assert.doesNotMatch(_biblio79('', 'belgian', 'short').html, /pt-trace/);
+  assert.doesNotMatch(_biblio79('', 'pyramide').html, /pt-trace/);
+  // en anglais
+  const avant = ctx.localStorage.getItem('abalone_lang');
+  try { ctx.localStorage.setItem('abalone_lang', 'EN'); assert.match(_biblio79().html, /MiGs games cited by the Abalone Online blog · 25 \(2 with their moves\)/); }
+  finally { if (avant === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avant); }
+});
+
+test('bibliotheque v2.87 : les traces ne citent que des pseudos, jamais de nom reel', () => {
+  const T = _r63('PARTIES_TRACES'), tout = JSON.stringify(T) + _SRC_INDEX.slice(_SRC_INDEX.indexOf('const PARTIES_TRACES'), _SRC_INDEX.indexOf('let _ptRangs'));
+  ['Alfaro', 'Piat', 'Borello', 'Garnier', 'Frochot', 'Charles-Joseph', 'Olivier'].forEach(n => assert.ok(!tout.includes(n), n));
+  // aucun lien entre des comptes du meme joueur
+  assert.ok(!/ocj94|spmichel|guru_ajna/i.test(tout));
+  const i = _SRC_INDEX.indexOf('BIBLIOTHEQUE : LES PARTIES MIGS CITEES'), entete = _SRC_INDEX.slice(i, _SRC_INDEX.indexOf('const PARTIES_TRACES', i));
+  assert.doesNotMatch(entete, /Olivier|Charles-Joseph/);
+});

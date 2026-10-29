@@ -87,6 +87,7 @@ main/51-explorateur-ouvertures.js
 main/52-corpus-tendances.js
 main/53-corpus-tactique.js
 main/54-corpus-dims-bascule.js
+main/55-parties-traces.js
 08-html.part
 09-script-tablebase.js
 10-html.part
