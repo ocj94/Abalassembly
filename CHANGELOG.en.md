@@ -9,6 +9,14 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.90]
+
+### Added — a 38th MiGs game cited by the blog
+- **No. 21470, in Araignée** (24 February 2014), found in the Abalone
+  Online blog's variants library. Its date does fall between those of the
+  neighbouring games already kept (no. 21001 of 1 December 2013 and
+  no. 21764 of 26 March 2014).
+
 ## [v2.89]
 
 ### Added — 12 more MiGs games cited by the blog

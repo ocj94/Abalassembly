@@ -9,6 +9,14 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.90]
+
+### Ajouté — une 38e partie de MiGs citée par le blog
+- **La n° 21470, en Araignée** (24 février 2014), relevée dans la
+  bibliothèque des variantes du blog Abalone Online. Sa date tombe bien
+  entre celles des parties voisines déjà gardées (n° 21001 du 1er décembre
+  2013 et n° 21764 du 26 mars 2014).
+
 ## [v2.89]
 
 ### Ajouté — 12 parties de MiGs citées par le blog, de plus
