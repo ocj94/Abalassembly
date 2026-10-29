@@ -51,7 +51,12 @@ manque une n'est pas de l'APGN valide.
 
 Balises facultatives, dans cet ordre quand elles sont présentes :
 `SetUp`, `Position`, `Termination`, `Plies`, `Source`, `BlackElo`, `WhiteElo`,
-`TimeControl`, `Annotator`.
+`BlackType`, `WhiteType`, `TimeControl`, `Annotator`.
+
+`BlackType` et `WhiteType` valent `program` quand le camp est tenu par un
+programme (une IA, un bot), comme en PGN. On ne les écrit que dans ce cas :
+absentes, le camp est humain ou on ne le sait pas. Elles permettent de
+séparer les parties entre humains de celles jouées contre une machine.
 
 ## 3. Variantes
 

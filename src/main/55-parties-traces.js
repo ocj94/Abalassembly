@@ -95,7 +95,7 @@ function _ptHtml(q, variantFilter, lengthFilter){
     + '<div style="font-size:11px;color:var(--muted);margin:6px 4px">' + _tr('Le serveur MiGs a fermé en 2017 avec sa base de parties : plus de 12 000 en 2012, près de 40 000 à la fin. Ces parties citées sur le blog sont gardées en trace : numéro, date, joueurs. Si leurs coups sont retrouvés, elles pourront être rejouées.',
       'The MiGs server closed in 2017 along with its game database: over 12,000 games in 2012, nearly 40,000 by the end. These games cited on the blog are kept as a trace: number, date, players. If their moves are found, they can be replayed.') + '</div>';
   T.forEach(function(t){
-    const r = _ptRang(t[0]), joueurs = (t[2] || t[3]) ? escapeHtml(t[2] || '?') + ' <span style="color:var(--muted)">vs</span> ' + escapeHtml(t[3] || '?') : '<span style="color:var(--muted)">' + _tr('joueurs inconnus', 'unknown players') + '</span>';
+    const r = _ptRang(t[0]), joueurs = (t[2] || t[3]) ? (typeof _iaNom === 'function' ? _iaNom(t[2] || '?') : escapeHtml(t[2] || '?')) + ' <span style="color:var(--muted)">vs</span> ' + (typeof _iaNom === 'function' ? _iaNom(t[3] || '?') : escapeHtml(t[3] || '?')) : '<span style="color:var(--muted)">' + _tr('joueurs inconnus', 'unknown players') + '</span>';
     const date = t[1] ? t[1].split('-').reverse().join('/') : _tr('date inconnue', 'unknown date');
     // v2.89 : « perdus » seulement quand on le sait ; les coups publies sur le blog attendent d'etre repris
     const etat = t[6] === 'publies' ? _tr('coups publiés sur le blog, pas encore repris', 'moves published on the blog, not yet added')
@@ -109,4 +109,3 @@ function _ptHtml(q, variantFilter, lengthFilter){
   });
   return h + '</details>';
 }
-</script>

@@ -51,7 +51,12 @@ not valid APGN.
 
 Optional tags, in this order when present:
 `SetUp`, `Position`, `Termination`, `Plies`, `Source`, `BlackElo`, `WhiteElo`,
-`TimeControl`, `Annotator`.
+`BlackType`, `WhiteType`, `TimeControl`, `Annotator`.
+
+`BlackType` and `WhiteType` are `program` when the side is played by a
+program (an AI, a bot), as in PGN. They are only written in that case:
+when absent, the side is human or unknown. They separate games between
+humans from games played against a machine.
 
 ## 3. Variants
 

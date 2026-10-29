@@ -9,6 +9,39 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.91]
+
+### Added — humans and programs
+Requested by the author ("Go"). On MiGs, 1,431 of the 2,589 games have an AI
+on one side; in PlayStrategy's Yearly tournament, 73 of the 93.
+- **Game statistics, new "Players" filter**: all, human against human
+  (2,735 games) or with a program (1,512). Every 🔎 card follows. Between
+  humans, Black wins 53.1% of games (out of 2,222 with a known winner).
+- **My statistics, "Real players"**: only the sides played by humans are
+  counted, over all games. Before, MLA, which plays more than half of the MiGs
+  games, weighed in as a player. The "Winners" column also keeps human
+  winners only.
+- **The library** marks programs with 🤖.
+- **How they are recognised**: by their exact name — "MLA (IA) - …",
+  "IA de lolo", "π #0ABA10" (to be confirmed), the AIs of the reference
+  games — and, on PlayStrategy, by the export's BOT mark (the PST-Greedy-Tom
+  bot). AbalOnline's program accounts are not known: its games count as
+  human.
+
+### Added — the 93 Yearly games in APGN
+- **`games/playstrategy-yearly-2026.apgn`**: the games of the
+  18 September 2026 tournament, published with Vincent's consent. Aba-Pro
+  notation (PlayStrategy has its own notation, which is not Nacre), 93 out
+  of 93 replay. The ending is read from the replay: of the 91 games
+  PlayStrategy calls "Normal", 5 did not go to 6 marbles.
+- **New APGN tags `BlackType` / `WhiteType`** `"program"`, as in PGN, for a
+  program's side. The MiGs file now carries them too (1,454 sides).
+
+### Fixed
+- **`tools/to-apgn.js` no longer replayed any game** since the engine
+  started counting pushed-off marbles differently. It is repaired, and a
+  test now checks that the files in `games/` are exactly what it produces.
+
 ## [v2.90]
 
 ### Added — a 38th MiGs game cited by the blog

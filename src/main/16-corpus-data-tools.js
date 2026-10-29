@@ -763,7 +763,7 @@ function renderPSGamesList(){
   listEl.innerHTML = entete + PS_GAMES.map(function(g, idx){
     const moveCount = _migsMoveCount(g[5]);
     return '<div onclick="loadPSGame(' + idx + ')" style="padding:10px 12px;border-radius:8px;cursor:pointer;border:1px solid var(--border);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'transparent\'">'
-      + '<div><div style="font-size:13px;font-weight:600;color:var(--text)">' + escapeHtml(g[2]) + ' vs ' + escapeHtml(g[3]) + '</div>'
+      + '<div><div style="font-size:13px;font-weight:600;color:var(--text)">' + (typeof _iaNom === 'function' ? _iaNom(g[2]) : escapeHtml(g[2])) + ' vs ' + (typeof _iaNom === 'function' ? _iaNom(g[3]) : escapeHtml(g[3])) + '</div>'
       + '<div style="font-size:11px;color:var(--muted)">' + escapeHtml(g[1]) + ' · ' + escapeHtml(g[4]) + ' · ' + (moveCount ? moveCount + ' plis' : 'abandonnée avant le premier coup') + '</div></div>'
       + '<span style="color:var(--gold);font-size:12px">▶</span>'
       + '</div>';
@@ -847,7 +847,7 @@ function renderMigsList(){
     if(variantFilter && g[4]!==variantFilter) continue;
     if(!lengthMatches(g[6])) continue;
     const vl=(HEAT_VARIANT_LABEL[g[4]]||g[4]);
-    html+='<div onclick="loadRefGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px" title="Partie de référence -- source : '+escapeHtml(g[5])+'"><span>📜 '+escapeHtml(g[1])+' <span style="color:var(--muted)">vs</span> '+escapeHtml(g[2])+'</span><span style="color:var(--gold);font-size:11px;white-space:nowrap">'+escapeHtml(vl)+' · '+escapeHtml(g[0])+'</span></div>';
+    html+='<div onclick="loadRefGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px" title="Partie de référence -- source : '+escapeHtml(g[5])+'"><span>📜 '+(typeof _iaNom === 'function' ? _iaNom(g[1]) : escapeHtml(g[1]))+' <span style="color:var(--muted)">vs</span> '+(typeof _iaNom === 'function' ? _iaNom(g[2]) : escapeHtml(g[2]))+'</span><span style="color:var(--gold);font-size:11px;white-space:nowrap">'+escapeHtml(vl)+' · '+escapeHtml(g[0])+'</span></div>';
   }
   // Variété AbalOnline ensuite (autres variantes) — max 180
   if (!variantFilter || variantFilter !== 'belgian') {
@@ -857,7 +857,7 @@ function renderMigsList(){
       if(variantFilter && g[4]!==variantFilter) continue;
       if(!lengthMatches(g[6])) continue;
       const vl=g[4].replace('_daisy',' daisy');
-      html+='<div onclick="loadAOGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px"><span>'+escapeHtml(g[1])+' <span style="color:var(--muted)">vs</span> '+escapeHtml(g[2])+'</span><span style="color:var(--gold);font-size:11px;white-space:nowrap">'+escapeHtml(vl)+' · '+escapeHtml(g[0])+'</span></div>';
+      html+='<div onclick="loadAOGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px"><span>'+(typeof _iaNom === 'function' ? _iaNom(g[1]) : escapeHtml(g[1]))+' <span style="color:var(--muted)">vs</span> '+(typeof _iaNom === 'function' ? _iaNom(g[2]) : escapeHtml(g[2]))+'</span><span style="color:var(--gold);font-size:11px;white-space:nowrap">'+escapeHtml(vl)+' · '+escapeHtml(g[0])+'</span></div>';
       a++;
     }
   }
@@ -867,7 +867,7 @@ function renderMigsList(){
       const g=MIGS_GAMES[i]; // [n,date,b,w,res,seq]
       if(q && (g[0]+' '+g[2]+' '+g[3]+' belgian').toLowerCase().indexOf(q)===-1) continue;   // v2.87 : aussi par numero (le champ le promettait)
       if(!lengthMatches(g[5])) continue;
-      html+='<div onclick="loadMigsGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px"><span>'+escapeHtml(g[2])+' <span style="color:var(--muted)">vs</span> '+escapeHtml(g[3])+(typeof _ptBadge === 'function' ? _ptBadge(g[0]) : '')+'</span><span style="color:var(--muted);font-size:11px;white-space:nowrap">belgian · '+escapeHtml(g[1])+'</span></div>';
+      html+='<div onclick="loadMigsGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px"><span>'+(typeof _iaNom === 'function' ? _iaNom(g[2]) : escapeHtml(g[2]))+' <span style="color:var(--muted)">vs</span> '+(typeof _iaNom === 'function' ? _iaNom(g[3]) : escapeHtml(g[3]))+(typeof _ptBadge === 'function' ? _ptBadge(g[0]) : '')+'</span><span style="color:var(--muted);font-size:11px;white-space:nowrap">belgian · '+escapeHtml(g[1])+'</span></div>';
       m++;
     }
   }

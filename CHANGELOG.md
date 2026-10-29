@@ -9,6 +9,41 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.91]
+
+### Ajouté — humains et programmes
+Demande de l'auteur (« Go »). Sur MiGs, 1 431 des 2 589 parties ont une IA
+dans un camp ; dans le tournoi Yearly de PlayStrategy, 73 des 93.
+- **Statistiques du jeu, nouveau filtre « Joueurs »** : tous, humains contre
+  humains (2 735 parties) ou avec un programme (1 512). Toutes les cartes 🔎
+  suivent. Entre humains, les Noirs gagnent 53,1 % des parties (sur 2 222 au
+  vainqueur connu).
+- **Mes statistiques, « Vrais joueurs »** : seuls les camps tenus par des
+  humains sont comptés, sur toutes les parties. Avant, MLA, qui joue plus de
+  la moitié des parties MiGs, pesait comme un joueur. La colonne « Les
+  gagnants » ne garde, elle aussi, que les gagnants humains.
+- **La bibliothèque** signale les programmes par un 🤖.
+- **Comment on les reconnaît** : par leur nom exact — « MLA (IA) - … »,
+  « IA de lolo », « π #0ABA10 » (à confirmer), les IA des parties de
+  référence — et, sur PlayStrategy, par la marque BOT de l'export (le bot
+  PST-Greedy-Tom). Les comptes de programmes d'AbalOnline ne sont pas connus
+  : ses parties comptent comme humaines.
+
+### Ajouté — les 93 parties du Yearly en APGN
+- **`games/playstrategy-yearly-2026.apgn`** : les parties du tournoi du
+  18 septembre 2026, publiées avec l'accord de Vincent. Notation Aba-Pro
+  (PlayStrategy a sa propre notation, qui n'est pas du Nacre), 93 sur 93
+  rejouent. La fin de partie est lue dans le rejeu : sur les 91 parties que
+  PlayStrategy dit « Normal », 5 ne sont pas allées jusqu'à 6 billes.
+- **Nouvelles balises APGN `BlackType` / `WhiteType`** `"program"`, comme
+  en PGN, pour le camp d'un programme. Le fichier MiGs les porte aussi
+  désormais (1 454 camps).
+
+### Corrigé
+- **`tools/to-apgn.js` ne rejouait plus aucune partie** depuis que le moteur
+  compte les billes tombées autrement. Il a été réparé, et un test vérifie
+  maintenant que les fichiers de `games/` sont exactement ce qu'il produit.
+
 ## [v2.90]
 
 ### Ajouté — une 38e partie de MiGs citée par le blog

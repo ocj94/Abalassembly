@@ -419,6 +419,8 @@ function _sbAgreger(f){
     cartes: cartes, quandParDispo: quandParDispo, dispos: D.dispos,
     poussees: { types: [0, 0, 0, 0, 0, 0], plus: [{ n: 0, g: 0 }, { n: 0, g: 0 }, { n: 0, g: 0 }] }   // v2.80
   };
+  // v2.91 : f.joueurs === 'camps' (Mes statistiques) -- toutes les parties, mais les comptes par camp sans le camp d'un programme
+  const campsH = !!(cleF && f.joueurs === 'camps');
   D.p.forEach(function(p, k){
     const gagnant = p[0], complet = p[2], dispo = D.dispos[p[3]], ej = p[4], dims = p[7];
     if (_sbEstDoublon(k)) return;   // v2.77 : un doublon ne compte qu'une fois
@@ -427,16 +429,17 @@ function _sbAgreger(f){
     v.nComplets++;
     const decide = (gagnant === 1 || gagnant === 2);
     if (decide) v.nDecides++;
-    for (let k = 0; k < 8; k++) v.types[k] += p[5][k] + p[6][k];
+    const ia = campsH ? _cfCampsIA(k) : 0, hN = !(ia & 1), hB = !(ia & 2), hG = gagnant === 1 ? hN : hB;   // camps humains (tous sans 'camps')
+    for (let k = 0; k < 8; k++) v.types[k] += (hN ? p[5][k] : 0) + (hB ? p[6][k] : 0);
     /* v2.80 : les poussees par type ; et, partie par partie, le camp qui en a fait le plus de ce type
        (sans compter celles qui ejectent : la bille tombee dirait deja qui gagne) a-t-il gagne ? */
     if (p[8]) for (let t = 0; t < 6; t++) {
-      v.poussees.types[t] += p[8][t] + p[8][t + 6];
+      v.poussees.types[t] += (hN ? p[8][t] : 0) + (hB ? p[8][t + 6] : 0);
       if (decide && t < 3) { const a = p[8][t] - p[8][t + 3], b = p[8][6 + t] - p[8][6 + t + 3]; if (a !== b) { const c = v.poussees.plus[t]; c.n++; if ((a > b ? 1 : 2) === gagnant) c.g++; } }
     }
-    v.camp.camps += 2; v.camp.ej += ej.length / 2;
+    v.camp.camps += hN + hB; if (!campsH) v.camp.ej += ej.length / 2;
     const G = v.gagnants;
-    if (decide) { const tg = gagnant === 1 ? p[5] : p[6]; for (let t = 0; t < 8; t++) G.types[t] += tg[t]; G.camps++; }
+    if (decide && hG) { const tg = gagnant === 1 ? p[5] : p[6]; for (let t = 0; t < 8; t++) G.types[t] += tg[t]; G.camps++; }
     const carte = cartes[dispo] || (cartes[dispo] = new Array(61).fill(0));
     const parDispo = billesParDispo[dispo] || (billesParDispo[dispo] = billes.map(function(){ return []; }));
     let nb = 0, nw = 0, premN = 0, premB = 0, fin = 0;
@@ -444,8 +447,10 @@ function _sbAgreger(f){
       const ply = ej[i], code = ej[i + 1], blancheTombe = code & 1, idx = code >> 1;
       // phase AVANT ce coup, meme regle que la carte Ejections de Mes statistiques
       const phase = (nb === 0 && nw === 0) ? 'ouverture' : (Math.max(nb, nw) >= 3 ? 'finale' : 'milieu');
-      v.camp.phases[phase]++;
-      if (decide && (blancheTombe ? 1 : 2) === gagnant) { G.ej++; G.phases[phase]++; }   // une ejection du futur vainqueur
+      const parHumain = blancheTombe ? hN : hB;   // une blanche tombe : c'est une ejection des Noirs
+      if (parHumain) v.camp.phases[phase]++;
+      if (campsH && parHumain) v.camp.ej++;
+      if (decide && hG && (blancheTombe ? 1 : 2) === gagnant) { G.ej++; G.phases[phase]++; }   // une ejection du futur vainqueur
       if (blancheTombe) { nb++; if (!premN) premN = ply; } else { nw++; if (!premB) premB = ply; }
       // la (i/2 + 1)e bille de la partie, et la 6e d'un camp : celle qui finit la partie
       if (i / 2 < _SB_DERNIERE) { billes[i / 2].push(ply); parDispo[i / 2].push(ply); }
@@ -457,9 +462,9 @@ function _sbAgreger(f){
         e.n++; if ((nb > nw ? 1 : 2) === gagnant) e.g++;
       }
     }
-    if (premN) { v.camp.premiereSomme += premN; v.camp.premiereN++; }
-    if (premB) { v.camp.premiereSomme += premB; v.camp.premiereN++; }
-    if (decide) { const pg = gagnant === 1 ? premN : premB; if (pg) { G.premiereSomme += pg; G.premiereN++; } }
+    if (premN && hN) { v.camp.premiereSomme += premN; v.camp.premiereN++; }
+    if (premB && hB) { v.camp.premiereSomme += premB; v.camp.premiereN++; }
+    if (decide && hG) { const pg = gagnant === 1 ? premN : premB; if (pg) { G.premiereSomme += pg; G.premiereN++; } }
     if (fin) { billes[_SB_DERNIERE].push(fin); parDispo[_SB_DERNIERE].push(fin); }
     if (ej.length) {
       v.nAvecEj++;
@@ -975,7 +980,8 @@ window.addEventListener('resize', function(){
 ═══════════════════════════════════════════ */
 function _sbHtmlPerso(s){
   if (!s) return '';
-  const v = STATS_PARTIES ? _sbAgreger() : null;
+  // v2.91 : les vrais joueurs sont les humains -- le camp d'un programme (MLA...) n'est plus compte
+  const v = STATS_PARTIES ? _sbAgreger(typeof SB_CAMPS_HUMAINS !== 'undefined' ? SB_CAMPS_HUMAINS : undefined) : null;
   const attente = '<span style="color:var(--muted)">…</span>';
   const pct = function(a, b){ return b ? _sbPct(a / b * 100) : '—'; };
   // v2.85 : un 4e argument -- la colonne « les gagnants » (le seul camp vainqueur des vrais joueurs), comme sur BGA
@@ -1009,8 +1015,8 @@ function _sbHtmlPerso(s){
     + ligne(_tr('Déplacements de côté', 'Sideways moves'), pct(S[3] + S[4], coups), T ? pct(T[3] + T[4], coupsV) : '', TG ? pct(TG[3] + TG[4], coupsG) : '—')
     + ligne(_tr('Poussées (sumito)', 'Pushes (sumito)'), pct(S[5], coups), T ? pct(T[5], coupsV) : '', TG ? pct(TG[5], coupsG) : '—')
     + ligne(_tr('Éjections : ouverture / milieu / finale', 'Ejections: opening / middle / endgame'), trois(ph, phT), phV ? trois(phV, phVT) : '', phG ? trois(phG, phGT) : '—')
-    + '</div><div style="font-size:11px;color:var(--muted);margin-top:6px">' + _tr('Vrais joueurs : les ' + (v ? _dimNb(v.nComplets) + ' ' : '') + 'parties du corpus jouées depuis une position de départ, les deux camps comptés. Les gagnants : le seul camp qui a gagné, dans les ' + (v ? _dimNb(v.nDecides) + ' ' : '') + 'parties au vainqueur connu — comme la colonne « Moyenne des gagnants » de Board Game Arena. Mêmes définitions partout : occasion = un coup permettait de faire tomber une bille ; phases comme ci-dessus ; les parts sont celles de tous les coups joués.',
-                                                                              'Real players: the ' + (v ? _dimNb(v.nComplets) + ' ' : '') + 'corpus games played from a starting position, both sides counted. The winners: only the side that won, in the ' + (v ? _dimNb(v.nDecides) + ' ' : '') + 'games with a known winner — like Board Game Arena’s “winners’ average” column. Same definitions everywhere: chance = a move could push a marble off; phases as above; shares are of all moves played.') + '</div></div>';
+    + '</div><div style="font-size:11px;color:var(--muted);margin-top:6px">' + _tr('Vrais joueurs : les ' + (v ? _dimNb(v.nComplets) + ' ' : '') + 'parties du corpus jouées depuis une position de départ, sans le camp des programmes (' + (v ? _dimNb(v.camp.camps) + ' camps humains' : '') + '). Les gagnants : le seul camp qui a gagné, s’il est humain, dans les ' + (v ? _dimNb(v.nDecides) + ' ' : '') + 'parties au vainqueur connu — comme la colonne « Moyenne des gagnants » de Board Game Arena. Mêmes définitions partout : occasion = un coup permettait de faire tomber une bille ; phases comme ci-dessus ; les parts sont celles de tous les coups joués.',
+                                                                              'Real players: the ' + (v ? _dimNb(v.nComplets) + ' ' : '') + 'corpus games played from a starting position, without the programs’ sides (' + (v ? _dimNb(v.camp.camps) + ' human sides' : '') + '). The winners: only the side that won, if human, in the ' + (v ? _dimNb(v.nDecides) + ' ' : '') + 'games with a known winner — like Board Game Arena’s “winners’ average” column. Same definitions everywhere: chance = a move could push a marble off; phases as above; shares are of all moves played.') + '</div></div>';
   // 3. ou tombent tes billes
   const cnt = s.carteSubies || new Array(61).fill(0), lc = _sbLireCarte(cnt);
   h += '<div class="sb-perso"><div class="sb-perso-titre">' + _tr('Où tombent tes billes', 'Where your marbles fall') + '</div>';
