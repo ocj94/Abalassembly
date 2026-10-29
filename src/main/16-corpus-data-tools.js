@@ -825,7 +825,9 @@ function renderMigsList(){
     PARTIES_REFERENCE.forEach(function(g){ vs.add(g[4]); });
     const n = MIGS_GAMES.length + AO_GAMES.length + PARTIES_REFERENCE.length;
     entete.textContent = n.toLocaleString('fr-FR') + ' parties · ' + vs.size + ' variantes (MIGS, AbalOnline'
-      + (PARTIES_REFERENCE.length ? ', ' + PARTIES_REFERENCE.length + ' de référence' : '') + ')';
+      + (PARTIES_REFERENCE.length ? ', ' + PARTIES_REFERENCE.length + ' de référence' : '') + ')'
+      // v2.87 : + les parties citees par le blog dont on n'a plus les coups (traces)
+      + (typeof PARTIES_TRACES !== 'undefined' ? ' + ' + PARTIES_TRACES.filter(function(t){ return _ptRang(t[0]) < 0; }).length + ' citées sans leurs coups' : '');
   }
   function lengthMatches(seq){
     if (!lengthFilter) return true;
@@ -836,6 +838,8 @@ function renderMigsList(){
     return true;
   }
   let html='', a=0, m=0;
+  // v2.87 : en tete, les parties de MiGs citees par le blog Abalone Online, meme sans leurs coups (55-parties-traces.js)
+  if (typeof _ptHtml === 'function') html += _ptHtml(q, variantFilter, lengthFilter);
   // Parties de reference des variantes d'abord (peu nombreuses, verifiees)
   for(let i=0;i<PARTIES_REFERENCE.length;i++){
     const g=PARTIES_REFERENCE[i];
@@ -861,9 +865,9 @@ function renderMigsList(){
   if (!variantFilter || variantFilter === 'belgian') {
     for(let i=0;i<MIGS_GAMES.length && m<120;i++){
       const g=MIGS_GAMES[i]; // [n,date,b,w,res,seq]
-      if(q && (g[2]+' '+g[3]+' belgian').toLowerCase().indexOf(q)===-1) continue;
+      if(q && (g[0]+' '+g[2]+' '+g[3]+' belgian').toLowerCase().indexOf(q)===-1) continue;   // v2.87 : aussi par numero (le champ le promettait)
       if(!lengthMatches(g[5])) continue;
-      html+='<div onclick="loadMigsGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px"><span>'+escapeHtml(g[2])+' <span style="color:var(--muted)">vs</span> '+escapeHtml(g[3])+'</span><span style="color:var(--muted);font-size:11px;white-space:nowrap">belgian · '+escapeHtml(g[1])+'</span></div>';
+      html+='<div onclick="loadMigsGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px"><span>'+escapeHtml(g[2])+' <span style="color:var(--muted)">vs</span> '+escapeHtml(g[3])+(typeof _ptBadge === 'function' ? _ptBadge(g[0]) : '')+'</span><span style="color:var(--muted);font-size:11px;white-space:nowrap">belgian · '+escapeHtml(g[1])+'</span></div>';
       m++;
     }
   }

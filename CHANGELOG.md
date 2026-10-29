@@ -9,6 +9,35 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.87]
+
+### Ajouté — les parties de MiGs citées par le blog, gardées en trace
+Demande de l'auteur : « Même si nous n'avons pas les coups, marque les
+parties : les numéros, les pseudos et les dates, au moins cela laissera une
+trace. » Le serveur MiGs a fermé en 2017 avec sa base de parties ; nous en
+avons 2 589 sur au moins 39 517. Le blog Abalone Online en citait 25 (sa
+« banque abalonienne » et ses problèmes du mois).
+- **Dans la bibliothèque** (📚 Parties), une section repliée en tête :
+  numéro MiGs, date, joueurs (pseudos seulement), disposition et ce qui la
+  cite sur le blog. 23 n'ont plus leurs coups : elles sont gardées telles
+  quelles, en attendant qu'on retrouve un jour la base.
+- **2 sont chez nous avec leurs coups** et s'ouvrent d'un clic : la n° 26599
+  (problème du mois « Restons simples ! ») et la n° 33170 (« Il peut le
+  faire ! »). Vérifiées : mêmes joueurs, même date, et la partie va bien
+  jusqu'au coup du problème (pour la n° 33170, au score de 5-5 que donne le
+  blog). Un 📌 les signale aussi
+  dans la liste MiGs.
+- La section suit la recherche et le filtre de disposition ; elle disparaît
+  quand on filtre par longueur (on ne connaît pas celle des parties perdues).
+- L'en-tête compte les 23 parties « citées sans leurs coups ».
+
+### Corrigé
+- **Recherche par numéro** : le champ annonçait « Rechercher un joueur ou un
+  N° », mais la liste MiGs ne cherchait que les joueurs. Elle cherche
+  maintenant aussi le numéro.
+- **En-tête de la bibliothèque sur téléphone** : le bouton ✕ sortait du
+  cadre. Les boutons passent sous le titre, le compte sur sa propre ligne.
+
 ## [v2.86]
 
 ### Ajouté — la matrice des 12 dimensions, les dimensions au fil de la partie, le point de non-retour
