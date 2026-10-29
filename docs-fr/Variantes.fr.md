@@ -9,14 +9,14 @@ directement dans le code à chaque révision, jamais supposé.
 
 ## 1. La galerie « Variantes » face à l'écran de configuration
 
-**La galerie** (menu → Explorer → Variantes) est une encyclopédie de 69
+**La galerie** (menu → Explorer → Variantes) est une encyclopédie de 70
 fiches — nom, joueurs, durée, difficulté, description, source historique.
-Toucher une fiche ouvre ses explications juste en dessous. Pour les 59
+Toucher une fiche ouvre ses explications juste en dessous. Pour les 60
 fiches jouables, s'y ajoutent le plateau de départ, dessiné depuis la vraie
 position du moteur, et un bouton **« ▶ Jouer cette variante »** qui ouvre la
 configuration avec la variante déjà choisie.
 
-**L'écran de configuration** (Jouer → Disposition de départ) propose 59
+**L'écran de configuration** (Jouer → Disposition de départ) propose 60
 positions de départ réelles dans son menu déroulant, chacune avec sa
 propre miniature — c'est ce que le moteur sait effectivement charger.
 (Jusqu'ici ce document annonçait ce chiffre alors que le menu n'en
@@ -32,7 +32,7 @@ et durée médiane dans le corpus AbalOnline, symétries calculées. Aucune
 difficulté n'est inventée : faute de donnée, elle est marquée « Non
 évaluée ».
 
-### Réellement jouables (59 sur 69)
+### Réellement jouables (60 sur 70)
 
 | Galerie | Configuration |
 |---|---|
@@ -73,14 +73,21 @@ erreur connue : sa « snakes-variation » a perdu une bille.
 36 positions retenues, chacune avec sa fiche et son entrée dans le menu de
 configuration (groupe « Positions du blog Abalone Online ») : Aliennage, April Fish, Boutonnière, Damier, Corners, Cross, Cœurs croisés, Crown, Def or Attack, Domination vs Daisy, Duel, Forcing, Fracture, French King Cake, Horseshoes, Infiltralien, Infiltration, Intimidation, Marguerite irlandaise, I'm a Robot, Labyrinth, Mosaic, Mquorric, Neko, Oath, Octopus, Scottish Daisy, Sibe, Slaloms, Snowflake, Araignée, Tinsels, Trench, True Daisy, Wheel, Xmas Star.
 
-Écartées, à vérifier sur les images du blog : snakes-variation (13 billes
-contre 14), the-arrow (14 contre 13), food-mill et windmill (symétriques à
-une bille près, la marque d'une case mal lue).
+Écartées, à vérifier sur les images du blog : food-mill et windmill
+(symétriques à une bille près, la marque d'une case mal lue).
+
+En v2.94, deux images de Wikipédia (« Abalone arrow » et « Abalone snakes
+variation ») ont tranché les deux autres cas. **The Arrow** y est identique,
+case par case, au relevé de gym-abalone, 13 blanches comprises : 14 noires
+contre 13 blanches est donc la position publiée. Elle est ajoutée, seule
+disposition aux camps inégaux. **snakes-variation** est notre Snakes
+variant, à qui gym-abalone avait fait perdre une bille : rien à ajouter, et
+une troisième confirmation pour Snakes variant.
 
 Sauf Corners et Duel, confirmées par 32 et 21 parties AbalOnline, chacune
 n'a qu'une source : leurs fiches le disent.
 
-### Documentées seulement (10 sur 69)
+### Documentées seulement (10 sur 70)
 
 - **The Pillar** — sa description mentionne une bille neutre inamovible au
   centre : un troisième type de pièce que le moteur ne gère pas (seuls
@@ -91,12 +98,12 @@ n'a qu'une source : leurs fiches le disent.
 - **Concours-Blitz**, **Misère** — "blitz" existe ailleurs dans le code,
   mais uniquement comme filtre sur une page de classement de démonstration
   — pas comme mode de partie réel.
-- **3, 4, 5, 6 joueurs** — les 59 positions de `LAYOUTS` sont toutes à 2
+- **3, 4, 5, 6 joueurs** — les 60 positions de `LAYOUTS` sont toutes à 2
   camps (noir/blanc) ; un mode à plusieurs joueurs demanderait une
   structure de plateau différente. Voir la section 2 : ce mode a en fait
   sa propre page dédiée, distincte de ces fiches de galerie.
 
-### Et dans l'autre sens : jouables mais pas dans la galerie (0 sur 59)
+### Et dans l'autre sens : jouables mais pas dans la galerie (0 sur 60)
 
 Il y en avait dix — Découverte, 69, Star, Alliances, Domination, Atomouche,
 Centrifugeuse, Snakes variant, Korean Daisy, Anglattack. Elles ont toutes

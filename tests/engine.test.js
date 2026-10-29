@@ -228,6 +228,9 @@ test('les dispositions de depart ont toutes le meme nombre de billes par camp', 
   assert.ok(cles.length >= 20, 'au moins 20 dispositions attendues, trouve ' + cles.length);
   for (const k of cles) {
     const L = ctx.LAYOUTS[k];
+    // v2.94 : une seule exception, nommee -- The Arrow, 14 noires contre 13 blanches dans ses DEUX sources
+    // (releve gym-abalone et image « Abalone arrow » de Wikipedia, identiques case par case)
+    if (k === 'the_arrow') { assert.strictEqual(L.black.length, 14); assert.strictEqual(L.white.length, 13); continue; }
     assert.strictEqual(L.black.length, L.white.length,
       'disposition desequilibree : ' + k + ' (' + L.black.length + ' vs ' + L.white.length + ')');
   }
@@ -837,9 +840,9 @@ const _SRC_INDEX = require('fs').readFileSync(require('path').join(__dirname, '.
 const _NOMS_AUTEUR = ['T2xpdmllcg==', 'Q2hhcmxlcy1Kb3NlcGg='].map(b => Buffer.from(b, 'base64').toString('utf8'));
 
 
-test('correspondance : 59 fiches jouables, chacune reliee a une disposition du moteur ET du menu Jouer', () => {
+test('correspondance : 60 fiches jouables, chacune reliee a une disposition du moteur ET du menu Jouer', () => {
   const m = ctx.VARIANTE_DISPOSITION;
-  assert.strictEqual(Object.keys(m).length, 59);
+  assert.strictEqual(Object.keys(m).length, 60);
   assert.deepStrictEqual([...new Set(Object.values(m))].sort(), Object.keys(ctx.LAYOUTS).sort(), 'TOUTES les dispositions ont une fiche');
   for (const [id, lay] of Object.entries(m)) {
     assert.ok(ctx.variantsData.some(v => v.id === id), 'fiche ' + id);
@@ -966,9 +969,9 @@ test('les symetries annoncees dans les fiches sont celles que le calcul trouve',
   }
 });
 
-test('exactement 9 dispositions sur 59 sans symetrie echangeant les camps : Domination, Marguerite francaise et 7 de gym-abalone', () => {
+test('exactement 10 dispositions sur 60 sans symetrie echangeant les camps : Domination, Marguerite francaise et 8 de gym-abalone', () => {
   const sans = Object.keys(ctx.LAYOUTS).filter(k => _echanges(k) === 0).sort();
-  assert.deepStrictEqual(sans, ['def_or_attack', 'domination', 'domination_vs_daisy', 'french', 'horseshoes', 'irish_daisy', 'mquorric', 'robot', 'true_daisy']);
+  assert.deepStrictEqual(sans, ['def_or_attack', 'domination', 'domination_vs_daisy', 'french', 'horseshoes', 'irish_daisy', 'mquorric', 'robot', 'the_arrow', 'true_daisy']);
 });
 
 test('nombres de billes annonces : Atomouche 12, Decouverte 7, coins de Decouverte a1 et i5', () => {
@@ -6084,11 +6087,11 @@ test('v2.93 : Corners et Duel sont identiques aux positions de depart des vraies
   assert.strictEqual(ctx.LAYOUTS.corners.black.length, 13, 'Corners : 13 billes par camp, comme sur AbalOnline');
 });
 
-test('v2.93 : les 36 positions ajoutees -- fiche, menu, libelle, cases valides ; les parties en trace retrouvent leur disposition', () => {
+test('v2.93-v2.94 : les 37 positions ajoutees -- fiche, menu, libelle, cases valides ; les parties en trace retrouvent leur disposition', () => {
   const ajout = ['aliennage', 'april_fish', 'boutonniere', 'damier', 'corners', 'cross', 'coeurs_croises', 'crown', 'def_or_attack', 'domination_vs_daisy', 'duel',
     'forcing', 'fracture', 'king_cake', 'horseshoes', 'infiltralien', 'infiltration', 'intimidation', 'irish_daisy', 'robot', 'labyrinth', 'mosaic', 'mquorric',
-    'neko', 'oath', 'octopus', 'scottish_daisy', 'sibe', 'slaloms', 'snowflake', 'araignee', 'tinsels', 'trench', 'true_daisy', 'wheel', 'xmas_star'];
-  assert.strictEqual(ajout.length, 36); assert.strictEqual(Object.keys(ctx.LAYOUTS).length, 59);
+    'neko', 'oath', 'octopus', 'scottish_daisy', 'sibe', 'slaloms', 'snowflake', 'araignee', 'tinsels', 'trench', 'true_daisy', 'wheel', 'xmas_star', 'the_arrow'];
+  assert.strictEqual(ajout.length, 37); assert.strictEqual(Object.keys(ctx.LAYOUTS).length, 60);
   const fiches = Object.values(ctx.VARIANTE_DISPOSITION);
   ajout.forEach(k => { const L = ctx.LAYOUTS[k]; assert.ok(L, k);
     [...L.black, ...L.white].forEach(([r, c]) => assert.ok(r >= 0 && r < 9 && c >= 0 && c < ctx.ROWS[r], k + ' ' + r + ',' + c));
@@ -6096,7 +6099,14 @@ test('v2.93 : les 36 positions ajoutees -- fiche, menu, libelle, cases valides ;
     const id = Object.keys(ctx.VARIANTE_DISPOSITION).find(i => ctx.VARIANTE_DISPOSITION[i] === k);
     assert.match(_carte(id).desc, /gym-abalone/); });
   // les ecartees ne sont pas la (a une bille pres, ou billes inegales)
-  ['snakes_variation', 'the_arrow', 'food_mill', 'windmill'].forEach(k => assert.ok(!ctx.LAYOUTS[k], k));
+  ['snakes_variation', 'food_mill', 'windmill'].forEach(k => assert.ok(!ctx.LAYOUTS[k], k));
+  // v2.94 : l'image « Abalone snakes variation » de Wikipedia = notre snakes_variant ; gym-abalone lui avait fait perdre la bille noire r5 c5
+  const sv = ctx.LAYOUTS.snakes_variant, cles = l => l.map(p => p[0] + ',' + p[1]).sort().join(' ');
+  assert.strictEqual(cles(sv.black), cles([[0,0],[0,1],[0,2],[0,3],[0,4],[1,0],[2,0],[3,0],[4,1],[5,1],[5,2],[5,3],[5,4],[5,5]]));
+  assert.strictEqual(cles(sv.white), cles([[3,2],[3,3],[3,4],[3,5],[3,6],[4,7],[5,7],[6,6],[7,5],[8,0],[8,1],[8,2],[8,3],[8,4]]));
+  // The Arrow, lue sur l'image de Wikipedia, rangee par rangee depuis le haut
+  assert.strictEqual(cles(ctx.LAYOUTS.the_arrow.black), cles([[0,0],[0,1],[1,0],[1,1],[2,2],[3,3],[3,4],[4,3],[5,4],[6,4],[7,4],[7,5],[8,3],[8,4]]));
+  assert.strictEqual(cles(ctx.LAYOUTS.the_arrow.white), cles([[0,2],[0,3],[2,0],[2,3],[2,4],[3,0],[3,2],[4,2],[4,4],[4,5],[5,3],[6,5],[7,3]]));
   // licence MIT de la source, embarquee avec les donnees
   assert.ok(_SRC_INDEX.includes('Copyright (c) 2021 Nicolas Larue'));
   // les parties MiGs en trace : leur disposition est maintenant jouable

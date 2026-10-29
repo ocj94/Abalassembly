@@ -103,7 +103,7 @@ const variantsData = [
     desc:'Deux anneaux imbriqués. 39 parties dans le corpus AbalOnline : 24 gagnées par les Noirs, 15 par les Blancs, en 72 coups en médiane. Deux symétries échangent exactement les camps.',
     origin:'Variante communautaire, position confirmée case par case sur le corpus AbalOnline' },
   { id:'snakes-variant', name:'Snakes variant', emoji:'🐉', players:'2', duration:'65 coups (médiane)', diff:'Non évaluée', src:'AbalOnline',
-    desc:'Deux spirales entrelacées — à ne pas confondre avec Snakes, une position différente malgré le nom. 17 parties dans le corpus AbalOnline : 7 gagnées par les Noirs, 9 par les Blancs, en 65 coups en médiane. Une symétrie échange exactement les deux camps.',
+    desc:'Deux spirales entrelacées — à ne pas confondre avec Snakes, une position différente malgré le nom. 17 parties dans le corpus AbalOnline : 7 gagnées par les Noirs, 9 par les Blancs, en 65 coups en médiane. Une symétrie échange exactement les deux camps. Confirmée aussi, case par case, par l\'image « Abalone snakes variation » de Wikipédia.',
     origin:'Variante communautaire, position prise directement dans le corpus AbalOnline' },
   { id:'korean-daisy', name:'Korean Daisy', emoji:'🌸', players:'2', duration:'Non mesurée', diff:'Non évaluée', src:'abaloneonline.wordpress.com',
     desc:'En haut, deux groupes qui échangent leurs couleurs au contact ; en bas, deux blocs. Deux symétries échangent exactement les camps. Aucune partie sous ce nom dans le corpus AbalOnline.',
@@ -219,6 +219,9 @@ const variantsData = [
   { id:'wheel', name:'Wheel', emoji:'🎡', players:'2', duration:'Non mesurée', diff:'Non évaluée', src:'gym-abalone',
     desc:'Position de départ publiée sur le blog Abalone Online, relevée automatiquement sur ses images par le projet gym-abalone. 14 billes par camp. Une symétrie échange exactement les deux camps. Aucune partie connue dans le corpus : la position n\'a qu\'une source et reste à confirmer sur l\'image du blog.',
     origin:'Position du blog Abalone Online, relevée par gym-abalone (licence MIT)' },
+  { id:'the-arrow', name:'The Arrow', emoji:'🏹', players:'2', duration:'Non mesurée', diff:'Non évaluée', src:'gym-abalone · Wikipédia',
+    desc:'Position de départ publiée sur le blog Abalone Online, relevée par le projet gym-abalone et identique, case par case, à l\'image « Abalone arrow » de Wikipédia. Particularité, la même dans les deux sources : 14 billes noires contre 13 blanches, la seule disposition du jeu aux camps inégaux. Aucune symétrie n\'échange les couleurs : les deux camps n\'ont même pas le même nombre de billes. Aucune partie connue dans le corpus.',
+    origin:'Position du blog Abalone Online, relevée par gym-abalone (licence MIT), confirmée par l\'image de Wikipédia' },
   { id:'xmas-star', name:'Xmas Star', emoji:'🎄', players:'2', duration:'Non mesurée', diff:'Non évaluée', src:'gym-abalone',
     desc:'Position de départ publiée sur le blog Abalone Online, relevée automatiquement sur ses images par le projet gym-abalone. 14 billes par camp. Une symétrie échange exactement les deux camps. Aucune partie connue dans le corpus : la position n\'a qu\'une source et reste à confirmer sur l\'image du blog.',
     origin:'Position du blog Abalone Online, relevée par gym-abalone (licence MIT)' }
@@ -236,7 +239,7 @@ const VARIANTE_DISPOSITION = {
   'french-daisy':'french', 'decouverte':'decouverte', '69':'69', 'star':'star', 'alliances':'alliances',
   'domination':'domination', 'atomouche':'atomouche', 'centrifugeuse':'centrifuge', 'snakes-variant':'snakes_variant',
   'korean-daisy':'korean_daisy', 'anglattack':'anglattack',
-  'aliennage':'aliennage', 'april-fish':'april_fish', 'boutonniere':'boutonniere', 'damier':'damier', 'corners':'corners', 'cross':'cross', 'coeurs-croises':'coeurs_croises', 'crown':'crown', 'def-or-attack':'def_or_attack', 'domination-vs-daisy':'domination_vs_daisy', 'duel':'duel', 'forcing':'forcing', 'fracture':'fracture', 'king-cake':'king_cake', 'horseshoes':'horseshoes', 'infiltralien':'infiltralien', 'infiltration':'infiltration', 'intimidation':'intimidation', 'irish-daisy':'irish_daisy', 'robot':'robot', 'labyrinth':'labyrinth', 'mosaic':'mosaic', 'mquorric':'mquorric', 'neko':'neko', 'oath':'oath', 'octopus':'octopus', 'scottish-daisy':'scottish_daisy', 'sibe':'sibe', 'slaloms':'slaloms', 'snowflake':'snowflake', 'araignee':'araignee', 'tinsels':'tinsels', 'trench':'trench', 'true-daisy':'true_daisy', 'wheel':'wheel', 'xmas-star':'xmas_star'
+  'aliennage':'aliennage', 'april-fish':'april_fish', 'boutonniere':'boutonniere', 'damier':'damier', 'corners':'corners', 'cross':'cross', 'coeurs-croises':'coeurs_croises', 'crown':'crown', 'def-or-attack':'def_or_attack', 'domination-vs-daisy':'domination_vs_daisy', 'duel':'duel', 'forcing':'forcing', 'fracture':'fracture', 'king-cake':'king_cake', 'horseshoes':'horseshoes', 'infiltralien':'infiltralien', 'infiltration':'infiltration', 'intimidation':'intimidation', 'irish-daisy':'irish_daisy', 'robot':'robot', 'labyrinth':'labyrinth', 'mosaic':'mosaic', 'mquorric':'mquorric', 'neko':'neko', 'oath':'oath', 'octopus':'octopus', 'scottish-daisy':'scottish_daisy', 'sibe':'sibe', 'slaloms':'slaloms', 'snowflake':'snowflake', 'araignee':'araignee', 'tinsels':'tinsels', 'trench':'trench', 'true-daisy':'true_daisy', 'wheel':'wheel', 'xmas-star':'xmas_star', 'the-arrow':'the_arrow'
 };
 
 /* Depuis la galerie : ouvre "Configurer avant de jouer" avec la variante
