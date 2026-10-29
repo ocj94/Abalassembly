@@ -9,6 +9,30 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.89]
+
+### Ajouté — 12 parties de MiGs citées par le blog, de plus
+D'autres recherches sur le blog Abalone Online (sa bibliothèque des
+variantes, ses articles, sa rubrique Records) ont relevé 12 parties de plus.
+La section 📜 de la bibliothèque en garde maintenant 37 en trace.
+- **Les plus anciennes du site** : la n° 427 (Marguerite irlandaise,
+  7 novembre 2006) et la n° 614 (Cœurs croisés, décembre 2006).
+- **Des dispositions que nous n'avions pas en MiGs** : Damier, Def or
+  Attack, Alliances, Aliennage, Boutonnière, Snakes, Alitration, Face à
+  face.
+- **Dates contrôlées sur nos propres parties** : les numéros MiGs suivent le
+  temps, et chaque numéro tombe bien le jour annoncé entre nos parties
+  voisines (la n° 33456 entre deux parties du 17 janvier 2017, par
+  exemple). Quand le blog ne donne que l'année, le mois vient de ces
+  voisines. Un test le vérifie pour chaque partie.
+- **Ce qui reste à faire** : pour 3 d'entre elles (n° 4916, 18416 et 33456),
+  le blog publie les coups. Elles sont marquées « coups publiés sur le
+  blog, pas encore repris » : il suffira de récupérer ce texte pour les
+  vérifier au moteur et les rendre rejouables. Les autres disent « coups
+  non retrouvés » plutôt que « perdus », car la bibliothèque des variantes
+  du blog en propose parfois en PDF.
+- La recherche trouve aussi le nom de la disposition (« face à face »).
+
 ## [v2.88]
 
 ### Modifié — l'auteur signe ocj94, partout

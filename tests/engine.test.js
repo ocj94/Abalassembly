@@ -5914,12 +5914,19 @@ function _biblio79(recherche, variante, longueur) {
   return { html: els['migs-list'].innerHTML, entete: els['migs-entete'].textContent };
 }
 
-test('bibliotheque v2.87 : 25 parties de MiGs citees par le blog, dont 2 rejouables, cherchables par numero', async () => {
+test('bibliotheque v2.87-v2.89 : 37 parties de MiGs citees par le blog, dont 2 rejouables, cherchables par numero', async () => {
   assert.ok(await ctx.ensureGameBanks());
   const T = _r63('PARTIES_TRACES');
-  assert.strictEqual(T.length, 25);
-  assert.strictEqual(new Set(T.map(t => t[0])).size, 25, 'pas de doublon');
-  T.forEach(t => { assert.ok(t[0] > 0 && t[0] <= 39517, 'numero MiGs ' + t[0]); assert.ok(t[1] === '' || /^20(1[1-7])-\d\d-\d\d$/.test(t[1]), 'date ' + t[1]); });
+  assert.strictEqual(T.length, 37);
+  assert.strictEqual(new Set(T.map(t => t[0])).size, 37, 'pas de doublon');
+  T.forEach((t, i) => { assert.ok(t[0] > 0 && t[0] <= 39517, 'numero MiGs ' + t[0]); assert.ok(t[1] === '' || /^20(0[6-9]|1[0-7])-\d\d(-\d\d)?$/.test(t[1]), 'date ' + t[1]);
+    if (i) assert.ok(t[0] > T[i - 1][0], 'rangees par numero'); });
+  // les numeros MiGs suivent le temps : chaque date connue est entre celles des traces voisines
+  const datees = T.filter(t => t[1]); datees.forEach((t, i) => { if (i) assert.ok(t[1] >= datees[i - 1][1].slice(0, t[1].length), t[0] + ' ' + t[1]); });
+  // v2.89 : chaque date controlee sur nos parties MiGs voisines (le numero tombe le jour annonce)
+  const M = ctx.MIGS_GAMES.map(g => [+g[0], g[1]]).sort((a, b) => a[0] - b[0]);
+  T.filter(t => t[0] > M[0][0] && t[1]).forEach(t => { const av = M.filter(x => x[0] <= t[0]).pop(), ap = M.find(x => x[0] >= t[0]);
+    assert.ok(av[1].slice(0, t[1].length) <= t[1] && t[1] <= ap[1].slice(0, t[1].length), t[0] + ' : ' + t[1] + ' hors de ' + av[1] + '..' + ap[1]); });
   // les deux parties presentes : memes joueurs et meme date que chez nous, avec leurs coups
   const chez = T.filter(t => ctx._ptRang(t[0]) >= 0).map(t => t[0]);
   assert.deepStrictEqual(Array.from(chez), [26599, 33170]);
@@ -5927,17 +5934,22 @@ test('bibliotheque v2.87 : 25 parties de MiGs citees par le blog, dont 2 rejouab
     assert.deepStrictEqual([g[1], g[2], g[3]], [t[1], t[2], t[3]], 'partie ' + n); assert.ok(g[5].length > 100); });
   // la bibliotheque : la section en tete, 23 traces non cliquables, 2 qui ouvrent la partie
   const b = _biblio79();
-  assert.match(b.html, /Parties de MiGs citées par le blog Abalone Online · 25 \(dont 2 avec leurs coups\)/);
-  assert.strictEqual((b.html.match(/class="pt-trace pt-perdue"/g) || []).length, 23);
+  assert.match(b.html, /Parties de MiGs citées par le blog Abalone Online · 37 \(dont 2 avec leurs coups\)/);
+  assert.strictEqual((b.html.match(/class="pt-trace pt-perdue"/g) || []).length, 35);
+  assert.strictEqual((b.html.match(/coups publiés sur le blog, pas encore repris/g) || []).length, 3);
+  assert.strictEqual((b.html.match(/coups perdus/g) || []).length, 23);
+  assert.match(b.html, /Marguerite irlandaise · bibliothèque des variantes du blog · coups non retrouvés/);
+  assert.match(b.html, /N° 29345 · 09\/2016/);
   assert.ok(b.html.includes('loadMigsGame(' + ctx._ptRang(33170) + ')'));
   assert.match(b.html, /N° 5567 · 24\/03\/2011/); assert.match(b.html, /problème du mois « Il peut le faire ! »/);
-  assert.match(b.entete, /\+ 23 citées sans leurs coups$/);
+  assert.match(b.entete, /\+ 35 citées sans leurs coups$/);
   // recherche par numero : la trace et la partie elle-meme (la liste MIGS cherche aussi le numero), avec son repere
   const r = _biblio79('33170');
   assert.match(r.html, /· 1 \(dont 1 avec leurs coups\)/);
   assert.strictEqual((r.html.match(/loadMigsGame\(/g) || []).length, 2, 'la trace et la ligne de la liste');
   assert.match(r.html, /📌/);
-  assert.strictEqual((_biblio79('boulet').html.match(/class="pt-trace/g) || []).length, 5);
+  assert.strictEqual((_biblio79('boulet').html.match(/class="pt-trace/g) || []).length, 6);
+  assert.strictEqual((_biblio79('face à face').html.match(/class="pt-trace/g) || []).length, 1, 'recherche par le nom de la disposition');
   // le score au coup du probleme (ejections avant ce demi-coup, d'apres STATS_PARTIES)
   assert.ok(await ctx.ensureStatsParties());
   const score = (n, ply) => { const ej = _r63('STATS_PARTIES').p[ctx._ptRang(n)][4], s = [0, 0];
@@ -5950,7 +5962,7 @@ test('bibliotheque v2.87 : 25 parties de MiGs citees par le blog, dont 2 rejouab
   assert.doesNotMatch(_biblio79('', 'pyramide').html, /pt-trace/);
   // en anglais
   const avant = ctx.localStorage.getItem('abalone_lang');
-  try { ctx.localStorage.setItem('abalone_lang', 'EN'); assert.match(_biblio79().html, /MiGs games cited by the Abalone Online blog · 25 \(2 with their moves\)/); }
+  try { ctx.localStorage.setItem('abalone_lang', 'EN'); assert.match(_biblio79().html, /MiGs games cited by the Abalone Online blog · 37 \(2 with their moves\)/); }
   finally { if (avant === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avant); }
 });
 
