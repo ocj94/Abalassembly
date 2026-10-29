@@ -9,14 +9,14 @@ revision, never assumed.
 
 ## 1. The "Variants" gallery versus the setup screen
 
-**The gallery** (menu → Explore → Variants) is an encyclopedia of 33
+**The gallery** (menu → Explore → Variants) is an encyclopedia of 69
 cards — name, players, duration, difficulty, description, historical
-source. Tapping a card opens its explanation right below it. For the 23
+source. Tapping a card opens its explanation right below it. For the 59
 playable cards, it also shows the starting board, drawn from the engine's
 actual position, and a **"▶ Jouer cette variante"** (play this variant)
 button that opens the setup screen with the variant already selected.
 
-**The setup screen** (Play → Starting layout) offers 23 real starting
+**The setup screen** (Play → Starting layout) offers 59 real starting
 positions in its dropdown, each with its own thumbnail — this is what the
 engine can actually load. (This document previously stated that number
 while the dropdown only had 22: Découverte, the reduced board of Kids
@@ -30,7 +30,7 @@ sources and on measurements: number of games, wins and median length in
 the AbalOnline corpus, computed symmetries. No difficulty is made up: when
 there's no data, it's marked "Non évaluée" (not rated).
 
-### Genuinely playable (23 of 33)
+### Genuinely playable (59 of 69)
 
 | Gallery | Setup screen |
 |---|---|
@@ -58,7 +58,27 @@ there's no data, it's marked "Non évaluée" (not rated).
 | Korean Daisy | Korean Daisy |
 | Anglattack | Anglattack |
 
-### Documented only (10 of 33)
+### Added in v2.93: 36 positions from the Abalone Online blog, read by gym-abalone
+
+The open-source project [gym-abalone](https://github.com/towzeur/gym-abalone)
+(Nicolas Larue, MIT licence) automatically read 60 starting positions from
+the Abalone Online blog's images. Before adding a single one, its
+reliability was measured: 20 of the 23 positions already here are identical
+cell by cell, colours included, and Corners and Duel are identical to the
+starting positions of real AbalOnline games. One known error: its
+"snakes-variation" lost a marble.
+
+36 positions kept, each with its card and its entry in the setup menu
+("Positions du blog Abalone Online" group): Aliennage, April Fish, Boutonnière, Damier, Corners, Cross, Cœurs croisés, Crown, Def or Attack, Domination vs Daisy, Duel, Forcing, Fracture, French King Cake, Horseshoes, Infiltralien, Infiltration, Intimidation, Marguerite irlandaise, I'm a Robot, Labyrinth, Mosaic, Mquorric, Neko, Oath, Octopus, Scottish Daisy, Sibe, Slaloms, Snowflake, Araignée, Tinsels, Trench, True Daisy, Wheel, Xmas Star.
+
+Left out, to be checked against the blog's images: snakes-variation (13
+marbles against 14), the-arrow (14 against 13), food-mill and windmill
+(symmetric but for one marble, the sign of a misread cell).
+
+Except Corners and Duel, confirmed by 32 and 21 AbalOnline games, each has
+a single source: their cards say so.
+
+### Documented only (10 of 69)
 
 - **The Pillar** — its description mentions an immovable neutral piece at
   the center: a third piece type the engine doesn't support (only black
@@ -69,12 +89,12 @@ there's no data, it's marked "Non évaluée" (not rated).
 - **Blitz Contest**, **Misère** — "blitz" does exist elsewhere in the
   code, but only as a filter on a demo leaderboard page — not as an
   actual game mode you can start.
-- **3, 4, 5, 6 players** — all 23 `LAYOUTS` positions are 2-sided
+- **3, 4, 5, 6 players** — all 59 `LAYOUTS` positions are 2-sided
   (black/white); a multiplayer mode would need a different board
   structure. See section 2: this mode actually has its own dedicated
   page, separate from these gallery cards.
 
-### And the other way around: playable but not in the gallery (0 of 23)
+### And the other way around: playable but not in the gallery (0 of 59)
 
 There used to be ten — Découverte, 69, Star, Alliances, Domination,
 Atomouche, Centrifugeuse, Snakes variant, Korean Daisy, Anglattack. They all

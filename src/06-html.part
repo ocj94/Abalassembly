@@ -776,6 +776,44 @@
         <option value="alitration" title="Disposition attestee (onlineabalone.wordpress.com, creee par Joey pour MiGs) -- verifiee en rejouant integralement une vraie partie MiGs (122 demi-coups) depuis cette position jusqu'a sa conclusion">Alitration</option>
         <option value="pyramide" title="Disposition attestee (onlineabalone.wordpress.com) -- verifiee en rejouant integralement une vraie partie (83 demi-coups) depuis cette position jusqu'a sa conclusion">Pyramide</option>
         <option value="french" title="Disposition attestee (onlineabalone.wordpress.com) -- variante DESEQUILIBREE en faveur des Noirs -- verifiee en rejouant integralement une vraie partie MiGs (31 demi-coups)">Marguerite française</option>
+        <optgroup label="Positions du blog Abalone Online (gym-abalone)">
+          <option value="aliennage" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Aliennage</option>
+          <option value="april_fish" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">April Fish</option>
+          <option value="boutonniere" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Boutonnière</option>
+          <option value="damier" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Damier</option>
+          <option value="corners" title="Position du blog Abalone Online (gym-abalone), confirmee par 32 parties AbalOnline -- 13 billes par camp">Corners</option>
+          <option value="cross" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Cross</option>
+          <option value="coeurs_croises" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Cœurs croisés</option>
+          <option value="crown" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Crown</option>
+          <option value="def_or_attack" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Def or Attack</option>
+          <option value="domination_vs_daisy" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Domination vs Daisy</option>
+          <option value="duel" title="Position du blog Abalone Online (gym-abalone), confirmee par 21 parties AbalOnline">Duel</option>
+          <option value="forcing" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Forcing</option>
+          <option value="fracture" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Fracture</option>
+          <option value="king_cake" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">French King Cake</option>
+          <option value="horseshoes" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Horseshoes</option>
+          <option value="infiltralien" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Infiltralien</option>
+          <option value="infiltration" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Infiltration</option>
+          <option value="intimidation" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Intimidation</option>
+          <option value="irish_daisy" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Marguerite irlandaise</option>
+          <option value="robot" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">I'm a Robot</option>
+          <option value="labyrinth" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Labyrinth</option>
+          <option value="mosaic" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Mosaic</option>
+          <option value="mquorric" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Mquorric</option>
+          <option value="neko" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Neko</option>
+          <option value="oath" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Oath</option>
+          <option value="octopus" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Octopus</option>
+          <option value="scottish_daisy" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Scottish Daisy</option>
+          <option value="sibe" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue -- 15 billes par camp">Sibe</option>
+          <option value="slaloms" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Slaloms</option>
+          <option value="snowflake" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Snowflake</option>
+          <option value="araignee" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Araignée</option>
+          <option value="tinsels" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Tinsels</option>
+          <option value="trench" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Trench</option>
+          <option value="true_daisy" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">True Daisy</option>
+          <option value="wheel" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Wheel</option>
+          <option value="xmas_star" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Xmas Star</option>
+        </optgroup>
         <option value="random" title="Tire une vraie disposition au hasard parmi celles disponibles">🎲 Aléatoire</option>
         </select>
       </div>

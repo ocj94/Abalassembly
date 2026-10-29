@@ -9,6 +9,42 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.93]
+
+### Ajouté — 36 positions de départ, de 23 à 59
+Demande de l'auteur (« Ajoute ce qui est possible »). Source : le projet
+libre gym-abalone (Nicolas Larue, licence MIT), qui a relevé
+automatiquement 60 positions de départ sur les images du blog Abalone
+Online.
+- **Fiabilité mesurée avant d'ajouter quoi que ce soit** : 20 des 23
+  positions déjà présentes y sont identiques case par case, couleurs
+  comprises, et Corners et Duel sont identiques aux positions de départ des
+  vraies parties AbalOnline. Une erreur connue : sa « snakes-variation » a
+  perdu une bille.
+- **36 retenues**, chacune avec sa fiche dans la galerie Variantes et son
+  entrée dans le menu de configuration (groupe « Positions du blog Abalone
+  Online ») : Aliennage, April Fish, Boutonnière, Damier, Corners, Cross, Cœurs croisés, Crown, Def or Attack, Domination vs Daisy, Duel, Forcing, Fracture, French King Cake, Horseshoes, Infiltralien, Infiltration, Intimidation, Marguerite irlandaise, I'm a Robot, Labyrinth, Mosaic, Mquorric, Neko, Oath, Octopus, Scottish Daisy, Sibe, Slaloms, Snowflake, Araignée, Tinsels, Trench, True Daisy, Wheel, Xmas Star.
+- **Les fiches ne disent que ce qui est vérifié** : nombre de billes,
+  symétries calculées et, pour Corners (32 parties) et Duel (21), les
+  résultats du corpus AbalOnline. Les 34 autres n'ont qu'une source, et
+  leur fiche le dit. Corners a 13 billes par camp et Sibe 15 : ce sont des
+  particularités de ces positions, pas des erreurs (pour Corners, confirmé
+  par les parties AbalOnline).
+- **Écartées, à vérifier sur les images du blog** : snakes-variation (13
+  billes contre 14), the-arrow (14 contre 13), food-mill et windmill
+  (symétriques à une bille près, la marque d'une case mal lue).
+- **Les parties MiGs en trace retrouvent leur disposition** : Marguerite
+  irlandaise (n° 427), Cœurs croisés (614), Damier (2218), Def or Attack
+  (10537), Araignée (21470), Aliennage (29333) et Boutonnière (29713) sont
+  maintenant jouables. Si leurs coups sont retrouvés, ces parties pourront
+  être rejouées.
+- La licence MIT de gym-abalone est reproduite avec les données.
+
+### Retiré
+- **Le dossier `undefined/`**, ajouté par erreur en v2.69 : des captures et
+  un fichier de synchronisation de test, écrits par un script dont le
+  chemin n'était pas défini. Aucune donnée personnelle.
+
 ## [v2.92]
 
 ### Ajouté — les deux plus anciennes parties de MiGs
