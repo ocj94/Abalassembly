@@ -9,6 +9,38 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.93]
+
+### Added — 36 starting positions, from 23 to 59
+Requested by the author ("Add what's possible"). Source: the open-source
+project gym-abalone (Nicolas Larue, MIT licence), which automatically read
+60 starting positions from the Abalone Online blog's images.
+- **Reliability measured before adding anything**: 20 of the 23 positions
+  already here are identical cell by cell, colours included, and Corners
+  and Duel are identical to the starting positions of real AbalOnline
+  games. One known error: its "snakes-variation" lost a marble.
+- **36 kept**, each with its card in the Variants gallery and its entry in
+  the setup menu ("Positions du blog Abalone Online" group): Aliennage, April Fish, Boutonnière, Damier, Corners, Cross, Cœurs croisés, Crown, Def or Attack, Domination vs Daisy, Duel, Forcing, Fracture, French King Cake, Horseshoes, Infiltralien, Infiltration, Intimidation, Marguerite irlandaise, I'm a Robot, Labyrinth, Mosaic, Mquorric, Neko, Oath, Octopus, Scottish Daisy, Sibe, Slaloms, Snowflake, Araignée, Tinsels, Trench, True Daisy, Wheel, Xmas Star.
+- **The cards only state what is checked**: number of marbles, computed
+  symmetries and, for Corners (32 games) and Duel (21), the AbalOnline
+  corpus results. The other 34 have a single source, and their card says
+  so. Corners has 13 marbles per side and Sibe 15: these are features of
+  those positions, not errors (for Corners, confirmed by the AbalOnline
+  games).
+- **Left out, to be checked against the blog's images**: snakes-variation
+  (13 marbles against 14), the-arrow (14 against 13), food-mill and
+  windmill (symmetric but for one marble, the sign of a misread cell).
+- **The MiGs games kept as a trace get their layout back**: Irish Daisy
+  (no. 427), Cœurs croisés (614), Damier (2218), Def or Attack (10537),
+  Araignée (21470), Aliennage (29333) and Boutonnière (29713) are now
+  playable. If their moves are found, those games can be replayed.
+- gym-abalone's MIT licence is reproduced with the data.
+
+### Removed
+- **The `undefined/` folder**, added by mistake in v2.69: screenshots and a
+  test sync file, written by a script whose path was undefined. No personal
+  data.
+
 ## [v2.92]
 
 ### Added — the two oldest MiGs games

@@ -516,7 +516,7 @@ const LAYOUTS = {
     // - AUCUNE symetrie n'echange Noirs et Blancs : les deux camps ne partent
     //   pas de la meme forme. PAS la seule du jeu dans ce cas, contrairement a
     //   ce qu'affirmait le premier jet de ce commentaire : Domination non plus
-    //   (verifie sur les 23 dispositions, fige par un test). Et ce n'est pas a
+    //   (verifie sur les 23 dispositions d'alors, fige par un test ; v2.93 : 9 sur 59 avec celles de gym-abalone). Et ce n'est pas a
     //   lui seul un desequilibre : Domination est equilibree en pratique (16
     //   a 17 sur 33 parties AbalOnline). Le desequilibre de la Marguerite est
     //   celui que decrit l'article ; une seule partie ne permet pas de le mesurer ;
@@ -556,6 +556,191 @@ const LAYOUTS = {
     // korean_daisy.
     black: [[0,3],[0,4],[1,1],[1,5],[2,2],[4,1],[4,2],[4,5],[4,8],[6,2],[7,1],[7,5],[8,3],[8,4]],
     white: [[0,0],[0,1],[1,0],[1,4],[2,4],[4,0],[4,3],[4,6],[4,7],[6,4],[7,0],[7,4],[8,0],[8,1]]
+  },
+  /* ── v2.93 : 36 POSITIONS DU BLOG ABALONE ONLINE, RELEVEES PAR GYM-ABALONE ──
+     Demande d'ocj94 (« Ajoute ce qui est possible »). Source : le fichier
+     gym_abalone/game/assets/variants.json du projet gym-abalone
+     (github.com/towzeur/gym-abalone, commit b2091980, 21/08/2021), dont
+     l'auteur a releve automatiquement les positions sur les images de la
+     rubrique « starting positions » du blog Abalone Online. Indexation 0-60
+     rangee par rangee depuis le haut, premier camp = Noirs : la meme formule
+     que pour centrifuge et snakes ci-dessus.
+     FIABILITE MESUREE avant d'ajouter quoi que ce soit : 20 des 23
+     dispositions deja presentes ici s'y retrouvent IDENTIQUES case par case,
+     couleurs comprises, et Corners et Duel sont identiques aux positions de
+     depart des vraies parties AbalOnline -- 22 confirmations. Une erreur
+     connue : sa « snakes-variation » a perdu une bille (13 contre 14).
+     ECARTEES ici, a verifier sur les images du blog : snakes-variation
+     (13/14), the-arrow (14/13), et food-mill et windmill, symetriques a une
+     bille pres -- la marque d'une case mal lue.
+     Chaque position retenue : billes en nombre egal, aucune collision,
+     symetries calculees (tests). Sauf Corners et Duel, une seule source.
+     Licence de la source :
+     MIT License
+
+     Copyright (c) 2021 Nicolas Larue
+
+     Permission is hereby granted, free of charge, to any person obtaining a copy
+     of this software and associated documentation files (the "Software"), to deal
+     in the Software without restriction, including without limitation the rights
+     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+     copies of the Software, and to permit persons to whom the Software is
+     furnished to do so, subject to the following conditions:
+
+     The above copyright notice and this permission notice shall be included in all
+     copies or substantial portions of the Software.
+
+     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+     SOFTWARE.
+  */
+  aliennage: {   // gym « aliening » -- partie MiGs 29333 en trace
+    black: [[1,1],[1,2],[1,3],[1,4],[2,1],[2,5],[3,0],[3,2],[3,5],[3,7],[5,1],[5,6],[6,3],[8,2]],
+    white: [[0,2],[2,3],[3,1],[3,6],[5,0],[5,2],[5,5],[5,7],[6,1],[6,5],[7,1],[7,2],[7,3],[7,4]]
+  },
+  april_fish: {   // gym « april-fish »
+    black: [[1,4],[5,3],[6,1],[6,2],[6,3],[6,5],[7,0],[7,2],[7,3],[7,4],[8,0],[8,1],[8,2],[8,4]],
+    white: [[0,0],[0,2],[0,3],[0,4],[1,1],[1,2],[1,3],[1,5],[2,1],[2,3],[2,4],[2,5],[3,4],[7,1]]
+  },
+  boutonniere: {   // gym « buttonhole » -- partie MiGs 29713 en trace
+    black: [[1,3],[1,4],[3,0],[3,1],[3,4],[4,0],[4,2],[4,5],[4,7],[5,0],[5,1],[5,4],[7,3],[7,4]],
+    white: [[1,1],[1,2],[3,3],[3,6],[3,7],[4,1],[4,3],[4,6],[4,8],[5,3],[5,6],[5,7],[7,1],[7,2]]
+  },
+  damier: {   // gym « checkerboard » -- partie MiGs 2218 en trace
+    black: [[1,0],[1,2],[1,4],[3,1],[3,3],[3,5],[3,7],[5,0],[5,2],[5,4],[5,6],[7,1],[7,3],[7,5]],
+    white: [[1,1],[1,3],[1,5],[3,0],[3,2],[3,4],[3,6],[5,1],[5,3],[5,5],[5,7],[7,0],[7,2],[7,4]]
+  },
+  corners: {   // gym « corners » -- confirmee par 32 parties AbalOnline
+    black: [[0,0],[0,1],[1,0],[1,4],[3,3],[3,7],[4,1],[4,8],[5,7],[7,0],[7,4],[8,0],[8,1]],
+    white: [[0,3],[0,4],[1,1],[1,5],[3,0],[4,0],[4,7],[5,0],[5,4],[7,1],[7,5],[8,3],[8,4]]
+  },
+  cross: {   // gym « cross »
+    black: [[0,0],[0,1],[1,0],[1,2],[2,1],[3,2],[4,3],[5,2],[5,3],[6,1],[7,0],[7,2],[8,0],[8,1]],
+    white: [[0,3],[0,4],[1,3],[1,5],[2,5],[3,4],[3,5],[4,5],[5,5],[6,5],[7,3],[7,5],[8,3],[8,4]]
+  },
+  coeurs_croises: {   // gym « crossed-hearts » -- partie MiGs 614 en trace
+    black: [[0,0],[0,1],[0,3],[0,4],[1,0],[1,2],[1,3],[1,5],[2,1],[2,5],[3,2],[3,5],[4,3],[5,3]],
+    white: [[3,4],[4,5],[5,2],[5,5],[6,1],[6,5],[7,0],[7,2],[7,3],[7,5],[8,0],[8,1],[8,3],[8,4]]
+  },
+  crown: {   // gym « crown »
+    black: [[0,2],[1,0],[1,2],[1,3],[1,5],[2,1],[2,2],[2,4],[2,5],[3,2],[3,3],[3,4],[3,5],[6,3]],
+    white: [[2,3],[5,2],[5,3],[5,4],[5,5],[6,1],[6,2],[6,4],[6,5],[7,0],[7,2],[7,3],[7,5],[8,2]]
+  },
+  def_or_attack: {   // gym « def-or-atak » -- partie MiGs 10537 en trace
+    black: [[1,0],[1,2],[2,0],[2,1],[2,2],[2,3],[2,6],[3,2],[5,5],[6,0],[6,4],[6,5],[7,3],[7,5]],
+    white: [[1,1],[1,5],[2,5],[3,5],[3,6],[3,7],[4,1],[5,0],[5,1],[5,2],[6,1],[7,0],[7,1],[7,4]]
+  },
+  domination_vs_daisy: {   // gym « domination-vs-daisy »
+    black: [[1,5],[2,5],[2,6],[3,5],[3,6],[3,7],[4,3],[4,5],[5,0],[5,1],[5,2],[6,0],[6,1],[7,0]],
+    white: [[1,0],[1,1],[2,0],[2,1],[2,2],[3,1],[3,2],[5,5],[5,6],[6,4],[6,5],[6,6],[7,4],[7,5]]
+  },
+  duel: {   // gym « duel » -- confirmee par 21 parties AbalOnline
+    black: [[0,3],[1,3],[1,4],[1,5],[2,4],[3,0],[4,0],[4,1],[5,0],[6,4],[7,3],[7,4],[7,5],[8,3]],
+    white: [[0,1],[1,0],[1,1],[1,2],[2,2],[3,7],[4,7],[4,8],[5,7],[6,2],[7,0],[7,1],[7,2],[8,1]]
+  },
+  forcing: {   // gym « forcing »
+    black: [[2,4],[3,0],[3,4],[3,5],[3,6],[4,0],[4,1],[4,2],[4,5],[5,0],[5,4],[5,5],[5,6],[6,4]],
+    white: [[2,2],[3,1],[3,2],[3,3],[3,7],[4,3],[4,6],[4,7],[4,8],[5,1],[5,2],[5,3],[5,7],[6,2]]
+  },
+  fracture: {   // gym « fracture »
+    black: [[0,2],[2,4],[2,5],[2,6],[3,4],[4,1],[4,5],[4,6],[5,0],[5,1],[5,2],[5,5],[6,4],[7,3]],
+    white: [[1,2],[2,2],[3,2],[3,5],[3,6],[3,7],[4,2],[4,3],[4,7],[5,3],[6,0],[6,1],[6,2],[8,2]]
+  },
+  king_cake: {   // gym « french-king-cake1 »
+    black: [[0,2],[0,3],[0,4],[1,2],[4,0],[5,0],[5,2],[5,5],[5,6],[6,0],[6,1],[6,6],[7,5],[8,4]],
+    white: [[0,0],[1,0],[2,0],[2,5],[2,6],[3,1],[3,2],[3,5],[3,7],[4,8],[7,3],[8,0],[8,1],[8,2]]
+  },
+  horseshoes: {   // gym « horseshoes »
+    black: [[0,0],[0,1],[1,0],[1,2],[2,0],[2,2],[3,2],[5,5],[6,4],[6,6],[7,3],[7,5],[8,3],[8,4]],
+    white: [[0,2],[0,3],[0,4],[1,5],[2,3],[2,4],[2,5],[6,1],[6,2],[6,3],[7,0],[8,0],[8,1],[8,2]]
+  },
+  infiltralien: {   // gym « infiltralien »
+    black: [[0,1],[0,3],[2,2],[2,3],[2,4],[5,3],[5,4],[7,1],[7,2],[7,3],[7,4],[8,0],[8,2],[8,4]],
+    white: [[0,0],[0,2],[0,4],[1,1],[1,2],[1,3],[1,4],[3,3],[3,4],[6,2],[6,3],[6,4],[8,1],[8,3]]
+  },
+  infiltration: {   // gym « infiltration »
+    black: [[0,1],[0,3],[1,1],[1,2],[1,3],[1,4],[2,1],[2,3],[2,5],[3,1],[3,6],[6,2],[6,4],[8,2]],
+    white: [[0,2],[2,2],[2,4],[5,1],[5,6],[6,1],[6,3],[6,5],[7,1],[7,2],[7,3],[7,4],[8,1],[8,3]]
+  },
+  intimidation: {   // gym « intimidation »
+    black: [[1,0],[2,0],[2,1],[3,0],[3,1],[3,2],[6,2],[6,3],[6,4],[7,2],[7,3],[8,1],[8,2],[8,3]],
+    white: [[0,1],[0,2],[0,3],[1,2],[1,3],[2,2],[2,3],[2,4],[5,5],[5,6],[5,7],[6,5],[6,6],[7,5]]
+  },
+  irish_daisy: {   // gym « irish-daisy » -- partie MiGs 427 en trace
+    black: [[2,3],[3,1],[3,2],[3,5],[3,6],[4,1],[4,3],[4,5],[4,7],[5,1],[5,2],[5,5],[5,6],[6,3]],
+    white: [[1,2],[1,3],[2,2],[2,4],[3,3],[3,4],[4,2],[4,6],[5,3],[5,4],[6,2],[6,4],[7,2],[7,3]]
+  },
+  robot: {   // gym « i_m-a-robot »
+    black: [[0,0],[0,1],[0,2],[0,3],[0,4],[1,2],[1,3],[3,3],[3,4],[4,4],[5,1],[5,2],[5,5],[5,6]],
+    white: [[1,0],[1,5],[2,1],[2,3],[2,5],[3,2],[3,5],[5,3],[5,4],[6,3],[7,2],[7,3],[8,1],[8,3]]
+  },
+  labyrinth: {   // gym « labyrinth »
+    black: [[0,2],[0,4],[1,5],[2,2],[2,6],[4,3],[4,7],[5,0],[5,3],[5,6],[6,3],[6,5],[7,4],[8,1]],
+    white: [[0,3],[1,1],[2,1],[2,3],[3,1],[3,4],[3,7],[4,1],[4,5],[6,0],[6,4],[7,0],[8,0],[8,2]]
+  },
+  mosaic: {   // gym « mosaic »
+    black: [[1,1],[1,2],[1,3],[1,4],[3,3],[3,4],[6,2],[6,3],[6,4],[8,0],[8,1],[8,2],[8,3],[8,4]],
+    white: [[0,0],[0,1],[0,2],[0,3],[0,4],[2,2],[2,3],[2,4],[5,3],[5,4],[7,1],[7,2],[7,3],[7,4]]
+  },
+  mquorric: {   // gym « mquorric-1 »
+    black: [[1,1],[1,2],[1,3],[2,1],[2,4],[3,1],[3,5],[4,2],[4,5],[5,2],[5,3],[5,4],[6,5],[7,3]],
+    white: [[2,2],[2,3],[3,2],[3,3],[3,4],[4,3],[4,4],[6,4],[6,6],[7,4],[7,5],[8,2],[8,3],[8,4]]
+  },
+  neko: {   // gym « neko »
+    black: [[1,3],[2,5],[4,2],[5,1],[5,2],[6,0],[6,2],[6,3],[6,4],[7,0],[7,3],[8,0],[8,1],[8,2]],
+    white: [[0,2],[0,3],[0,4],[1,2],[1,5],[2,2],[2,3],[2,4],[2,6],[3,5],[3,6],[4,6],[6,1],[7,2]]
+  },
+  oath: {   // gym « oath »
+    black: [[0,4],[1,3],[1,4],[2,5],[3,1],[3,4],[4,0],[4,1],[5,1],[5,3],[6,5],[7,3],[7,4],[8,4]],
+    white: [[0,0],[1,1],[1,2],[2,1],[3,3],[3,6],[4,7],[4,8],[5,4],[5,6],[6,1],[7,1],[7,2],[8,0]]
+  },
+  octopus: {   // gym « octopus »
+    black: [[0,1],[1,0],[2,2],[3,6],[4,6],[5,5],[6,1],[6,2],[6,3],[6,5],[6,6],[7,3],[8,2],[8,4]],
+    white: [[0,0],[0,2],[1,2],[2,0],[2,1],[2,3],[2,4],[2,5],[3,2],[4,2],[5,1],[6,4],[7,5],[8,3]]
+  },
+  scottish_daisy: {   // gym « scottish-daisy »
+    black: [[0,1],[0,4],[1,0],[1,3],[1,4],[2,2],[2,5],[6,1],[6,4],[7,1],[7,2],[7,5],[8,0],[8,3]],
+    white: [[0,0],[0,3],[1,1],[1,2],[1,5],[2,1],[2,4],[6,2],[6,5],[7,0],[7,3],[7,4],[8,1],[8,4]]
+  },
+  sibe: {   // gym « sibe »
+    black: [[0,3],[0,4],[1,5],[2,6],[3,3],[3,7],[4,3],[4,8],[5,3],[5,7],[6,6],[7,5],[8,2],[8,3],[8,4]],
+    white: [[0,0],[0,1],[0,2],[1,0],[2,0],[3,0],[3,4],[4,0],[4,5],[5,0],[5,4],[6,0],[7,0],[8,0],[8,1]]
+  },
+  slaloms: {   // gym « slaloms »
+    black: [[4,1],[4,2],[4,3],[5,0],[6,0],[6,1],[6,2],[6,3],[6,4],[7,4],[8,0],[8,1],[8,2],[8,3]],
+    white: [[0,1],[0,2],[0,3],[0,4],[1,1],[2,2],[2,3],[2,4],[2,5],[2,6],[3,7],[4,5],[4,6],[4,7]]
+  },
+  snowflake: {   // gym « snowflake »
+    black: [[0,1],[1,0],[1,4],[2,4],[3,3],[3,7],[4,2],[4,7],[5,4],[5,7],[6,4],[7,0],[7,1],[8,1]],
+    white: [[0,3],[1,1],[1,5],[2,2],[3,0],[3,4],[4,1],[4,6],[5,0],[5,3],[6,2],[7,4],[7,5],[8,3]]
+  },
+  araignee: {   // gym « spider » -- partie MiGs 21470 en trace
+    black: [[4,0],[4,1],[4,2],[4,3],[5,2],[5,3],[5,4],[5,5],[6,2],[6,4],[7,1],[7,4],[8,0],[8,4]],
+    white: [[0,0],[0,4],[1,1],[1,4],[2,2],[2,4],[3,2],[3,3],[3,4],[3,5],[4,5],[4,6],[4,7],[4,8]]
+  },
+  tinsels: {   // gym « tinsels »
+    black: [[0,1],[0,3],[2,2],[2,4],[2,6],[4,2],[4,5],[4,7],[5,0],[6,1],[6,3],[7,4],[8,0],[8,2]],
+    white: [[0,2],[0,4],[1,1],[2,3],[2,5],[3,7],[4,1],[4,3],[4,6],[6,0],[6,2],[6,4],[8,1],[8,3]]
+  },
+  trench: {   // gym « trench »
+    black: [[2,1],[2,2],[2,3],[2,4],[2,5],[5,3],[5,4],[5,5],[7,0],[7,1],[7,2],[7,3],[7,4],[7,5]],
+    white: [[1,0],[1,1],[1,2],[1,3],[1,4],[1,5],[3,2],[3,3],[3,4],[6,1],[6,2],[6,3],[6,4],[6,5]]
+  },
+  true_daisy: {   // gym « true-daisy »
+    black: [[3,3],[4,4],[4,5],[5,4],[6,0],[6,3],[7,0],[7,2],[7,5],[8,0],[8,1],[8,2],[8,3],[8,4]],
+    white: [[0,0],[0,1],[1,0],[1,1],[1,2],[1,4],[1,5],[2,1],[2,2],[2,4],[2,5],[2,6],[3,5],[3,6]]
+  },
+  wheel: {   // gym « wheel »
+    black: [[3,3],[3,5],[4,0],[4,1],[4,3],[4,6],[5,3],[5,5],[6,2],[6,4],[7,1],[7,4],[8,0],[8,4]],
+    white: [[0,0],[0,4],[1,1],[1,4],[2,2],[2,4],[3,2],[3,4],[4,2],[4,5],[4,7],[4,8],[5,2],[5,4]]
+  },
+  xmas_star: {   // gym « xmas-star »
+    black: [[2,0],[2,1],[2,4],[2,5],[2,6],[3,1],[3,2],[3,5],[3,6],[4,2],[6,4],[7,2],[7,3],[8,2]],
+    white: [[0,2],[1,2],[1,3],[2,2],[4,6],[5,1],[5,2],[5,5],[5,6],[6,0],[6,1],[6,2],[6,5],[6,6]]
   }
 };
 

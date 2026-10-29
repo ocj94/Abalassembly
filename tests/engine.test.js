@@ -837,9 +837,9 @@ const _SRC_INDEX = require('fs').readFileSync(require('path').join(__dirname, '.
 const _NOMS_AUTEUR = ['T2xpdmllcg==', 'Q2hhcmxlcy1Kb3NlcGg='].map(b => Buffer.from(b, 'base64').toString('utf8'));
 
 
-test('correspondance : 23 fiches jouables, chacune reliee a une disposition du moteur ET du menu Jouer', () => {
+test('correspondance : 59 fiches jouables, chacune reliee a une disposition du moteur ET du menu Jouer', () => {
   const m = ctx.VARIANTE_DISPOSITION;
-  assert.strictEqual(Object.keys(m).length, 23);
+  assert.strictEqual(Object.keys(m).length, 59);
   assert.deepStrictEqual([...new Set(Object.values(m))].sort(), Object.keys(ctx.LAYOUTS).sort(), 'TOUTES les dispositions ont une fiche');
   for (const [id, lay] of Object.entries(m)) {
     assert.ok(ctx.variantsData.some(v => v.id === id), 'fiche ' + id);
@@ -926,7 +926,7 @@ test('"Jouer cette variante" ouvre la configuration avec la variante deja choisi
 
 /* ─── 23. Les dix fiches ajoutees : chaque chiffre ecrit est verifie ─── */
 
-const _AO_FICHES = { star:'star', alliances:'alliances', domination:'domination', atomouche:'atomouche', centrifuge:'centrifugeuse', snakes_variant:'snakes_variant' };
+const _AO_FICHES = { star:'star', alliances:'alliances', domination:'domination', atomouche:'atomouche', centrifuge:'centrifugeuse', snakes_variant:'snakes_variant', corners:'corners', duel:'duel' };
 const _cubeF = k => { const [r, c] = k.split(',').map(Number); const a = ctx.rcToAxial(r, c); return [a.q, -a.q - a.r, a.r]; };
 const _cleF = ([x, , z]) => { const rc = ctx.axialToRc(x, z); return rc ? rc.r + ',' + rc.c : null; };
 const _rotF = ([x, y, z]) => [-z, -x, -y], _reflF = ([x, y, z]) => [x, z, y];
@@ -966,9 +966,9 @@ test('les symetries annoncees dans les fiches sont celles que le calcul trouve',
   }
 });
 
-test('exactement 2 dispositions sur 23 sans symetrie echangeant les camps : Domination et Marguerite francaise', () => {
+test('exactement 9 dispositions sur 59 sans symetrie echangeant les camps : Domination, Marguerite francaise et 7 de gym-abalone', () => {
   const sans = Object.keys(ctx.LAYOUTS).filter(k => _echanges(k) === 0).sort();
-  assert.deepStrictEqual(sans, ['domination', 'french']);
+  assert.deepStrictEqual(sans, ['def_or_attack', 'domination', 'domination_vs_daisy', 'french', 'horseshoes', 'irish_daisy', 'mquorric', 'robot', 'true_daisy']);
 });
 
 test('nombres de billes annonces : Atomouche 12, Decouverte 7, coins de Decouverte a1 et i5', () => {
@@ -6059,4 +6059,48 @@ test('v2.91 : fichiers APGN -- les 93 parties du Yearly et les programmes, ident
     const mi = fs.readFileSync(path.join(racine, 'games', 'migs-2016-2017.apgn'), 'utf8');
     assert.strictEqual((mi.match(/^\[(Black|White)Type "program"\]$/gm) || []).length, 1454);
   } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
+// ═══════════════════════════════════════════
+// 82. v2.93 : 36 positions du blog Abalone Online relevees par gym-abalone
+// ═══════════════════════════════════════════
+test('v2.93 : Corners et Duel sont identiques aux positions de depart des vraies parties AbalOnline', async () => {
+  assert.ok(await ctx.ensureGameBanks());
+  // les 12 symetries de l'hexagone, avec ou sans echange des couleurs
+  const pos = (noir, blanc) => { const m = {}; noir.forEach(p => m[p[0] + ',' + p[1]] = 'black'); blanc.forEach(p => m[p[0] + ',' + p[1]] = 'white'); return m; };
+  const egales = (A, B) => { const inv = { black: 'white', white: 'black' }; let f = p => p;
+    for (let i = 0; i < 6; i++) { for (const t of [f, p => _reflF(f(p))]) for (const echange of [false, true]) {
+        if (Object.keys(A).length !== Object.keys(B).length) return false;
+        if (Object.entries(A).every(([q, v]) => B[_cleF(t(_cubeF(q)))] === (echange ? inv[v] : v))) return true; }
+      const g = f; f = p => _rotF(g(p)); }
+    return false; };
+  for (const k of ['corners', 'duel']) {
+    const departs = [...new Set(ctx.AO_GAMES.filter(g => g[4] === k).map(g => g[5]))];
+    assert.ok(departs.length >= 2, k);
+    const L = ctx.LAYOUTS[k], ref = pos(L.black, L.white);
+    departs.forEach(d => { const [n, b] = d.split(',').map(s => (s.slice(1).match(/[a-i][1-9]/g) || []).map(c => { const q = ctx.abaproToRc(c); return [q.r, q.c]; }));
+      assert.ok(egales(pos(n, b), ref), k + ' : ' + d); });
+  }
+  assert.strictEqual(ctx.LAYOUTS.corners.black.length, 13, 'Corners : 13 billes par camp, comme sur AbalOnline');
+});
+
+test('v2.93 : les 36 positions ajoutees -- fiche, menu, libelle, cases valides ; les parties en trace retrouvent leur disposition', () => {
+  const ajout = ['aliennage', 'april_fish', 'boutonniere', 'damier', 'corners', 'cross', 'coeurs_croises', 'crown', 'def_or_attack', 'domination_vs_daisy', 'duel',
+    'forcing', 'fracture', 'king_cake', 'horseshoes', 'infiltralien', 'infiltration', 'intimidation', 'irish_daisy', 'robot', 'labyrinth', 'mosaic', 'mquorric',
+    'neko', 'oath', 'octopus', 'scottish_daisy', 'sibe', 'slaloms', 'snowflake', 'araignee', 'tinsels', 'trench', 'true_daisy', 'wheel', 'xmas_star'];
+  assert.strictEqual(ajout.length, 36); assert.strictEqual(Object.keys(ctx.LAYOUTS).length, 59);
+  const fiches = Object.values(ctx.VARIANTE_DISPOSITION);
+  ajout.forEach(k => { const L = ctx.LAYOUTS[k]; assert.ok(L, k);
+    [...L.black, ...L.white].forEach(([r, c]) => assert.ok(r >= 0 && r < 9 && c >= 0 && c < ctx.ROWS[r], k + ' ' + r + ',' + c));
+    assert.ok(fiches.includes(k), 'fiche ' + k); assert.ok(_r63('HEAT_VARIANT_LABEL')[k], 'libelle ' + k); assert.ok(_r63('HEAT_VARIANTS').includes(k), 'carte de chaleur ' + k);
+    const id = Object.keys(ctx.VARIANTE_DISPOSITION).find(i => ctx.VARIANTE_DISPOSITION[i] === k);
+    assert.match(_carte(id).desc, /gym-abalone/); });
+  // les ecartees ne sont pas la (a une bille pres, ou billes inegales)
+  ['snakes_variation', 'the_arrow', 'food_mill', 'windmill'].forEach(k => assert.ok(!ctx.LAYOUTS[k], k));
+  // licence MIT de la source, embarquee avec les donnees
+  assert.ok(_SRC_INDEX.includes('Copyright (c) 2021 Nicolas Larue'));
+  // les parties MiGs en trace : leur disposition est maintenant jouable
+  const T = _r63('PARTIES_TRACES');
+  [[427, 'irish_daisy'], [614, 'coeurs_croises'], [2218, 'damier'], [10537, 'def_or_attack'], [21470, 'araignee'], [29333, 'aliennage'], [29713, 'boutonniere']]
+    .forEach(([n, k]) => { const t = T.find(x => x[0] === n); assert.strictEqual(t[4], k, String(n)); assert.ok(ctx.LAYOUTS[k]); });
 });
