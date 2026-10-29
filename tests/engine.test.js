@@ -6114,3 +6114,29 @@ test('v2.93-v2.94 : les 37 positions ajoutees -- fiche, menu, libelle, cases val
   [[427, 'irish_daisy'], [614, 'coeurs_croises'], [2218, 'damier'], [10537, 'def_or_attack'], [21470, 'araignee'], [29333, 'aliennage'], [29713, 'boutonniere']]
     .forEach(([n, k]) => { const t = T.find(x => x[0] === n); assert.strictEqual(t[4], k, String(n)); assert.ok(ctx.LAYOUTS[k]); });
 });
+
+// ═══════════════════════════════════════════
+// 83. v2.95 : ressources -- page du wiki, annuaire de l'Ecosysteme, noms et codes des variantes de MiGs
+// ═══════════════════════════════════════════
+test('v2.95 : la page Ressources du wiki, l annuaire de l Ecosysteme, les noms MiGs des positions', () => {
+  const fs = require('fs'), path = require('path'), R = f => fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
+  for (const [page, home] of [['docs-fr/Ressources.fr.md', 'docs-fr/Home.fr.md'], ['docs-en/Ressources.en.md', 'docs-en/Home.en.md']]) {
+    const s = R(page); assert.match(R(home), /Ressources\.(fr|en)\.md/, home);
+    ['playstrategy.org', 'icga.org', 'boardgamearena', 'gym-abalone', 'KAAH', 'MQuorric1', 'INFATION'].forEach(t => assert.ok(s.includes(t), page + ' : ' + t));
+    // la liste des codes de MiGs : 42 variantes, chacune dans une case du tableau
+    const codes = '69 ALC ALG ALN ALT AR BOUT CC CENT COUR CRX DA DoA DOM DUEL DvsM ET F2F FOR FUJI INFALIEN INFATION INTI LAB MA MB MF MH MI MO MQ MS PVR PYRA ROBOT ROUE SNK SNKV ST TRA VM WALL'.split(' ');
+    assert.strictEqual(codes.length, 42);
+    codes.forEach(c => assert.ok(s.includes('| ' + c + ' |'), page + ' : code ' + c));
+  }
+  const eco = R('ecosysteme.html');
+  assert.match(eco, /id:'playstrategy'/); assert.match(eco, /id:'kaah'/); assert.match(eco, /class="annu"/);
+  assert.doesNotMatch(eco, /novembre 2020/, 'abal.online : ses parties commencent le 31 juillet 2020');
+  // aucun courriel ne fuit de la liste de FightClub
+  [eco, R('docs-fr/Ressources.fr.md'), R('docs-en/Ressources.en.md'), _SRC_INDEX].forEach(t => assert.doesNotMatch(t, /fightclub\d*@/i));
+  // les positions qui figurent dans la liste de MiGs portent son nom et son code
+  const nomMiGs = { crown: 'Couronne', cross: 'Croix', trench: 'Tranchée', wheel: 'Roue', octopus: 'Pieuvre', true_daisy: 'Vraie marguerite', robot: 'Je suis un robot' };
+  for (const [k, n] of Object.entries(nomMiGs)) { const id = Object.keys(ctx.VARIANTE_DISPOSITION).find(i => ctx.VARIANTE_DISPOSITION[i] === k);
+    assert.strictEqual(_carte(id).name, n, k); assert.strictEqual(_r63('HEAT_VARIANT_LABEL')[k], n, k); assert.match(_carte(id).desc, /liste des variantes du serveur MiGs, sous le code « [A-Za-z]+ »/, k); }
+  assert.strictEqual(Object.values(ctx.VARIANTE_DISPOSITION).filter(k => /sous le code « /.test(_carte(Object.keys(ctx.VARIANTE_DISPOSITION).find(i => ctx.VARIANTE_DISPOSITION[i] === k)).desc)).length, 23);
+  assert.match(_carte('sibe').desc, /départ à 15 billes, impossible avec un seul jeu/);
+});

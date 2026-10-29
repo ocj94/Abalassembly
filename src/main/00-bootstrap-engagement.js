@@ -6,7 +6,7 @@
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.94';
+const APP_VERSION = 'v2.95';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -390,7 +390,7 @@ const HEAT_VARIANTS = ['standard','belgian','german','dutch','swiss','decouverte
   /* v2.93 : les 36 positions de gym-abalone (07-board-engine-core.js) */ 'aliennage','april_fish','boutonniere','damier','corners','cross','coeurs_croises','crown','def_or_attack','domination_vs_daisy','duel','forcing','fracture','king_cake','horseshoes','infiltralien','infiltration','intimidation','irish_daisy','robot','labyrinth','mosaic','mquorric','neko','oath','octopus','scottish_daisy','sibe','slaloms','snowflake','araignee','tinsels','trench','true_daisy','wheel','xmas_star','the_arrow'];
 const HEAT_VARIANT_LABEL = { standard:'Standard', belgian:'Belgian Daisy', german:'German Daisy',
   dutch:'Dutch Daisy', swiss:'Swiss Daisy', decouverte:'D\u00e9couverte', '69':'69', fujiyama:'Fujiyama', the_wall:'The Wall', star:'Star', face_a_face:'Face à face', alliances:'Alliances', domination:'Domination', atomouche:'Atomouche', centrifuge:'Centrifugeuse', snakes_variant:'Snakes variant', snakes:'Snakes', alien:'Alien', korean_daisy:'Korean Daisy', anglattack:'Anglattack', alitration:'Alitration', pyramide:'Pyramide', french:'Marguerite fran\u00e7aise' ,
-  aliennage:'Aliennage', april_fish:'April Fish', boutonniere:'Boutonnière', damier:'Damier', corners:'Corners', cross:'Cross', coeurs_croises:'Cœurs croisés', crown:'Crown', def_or_attack:'Def or Attack', domination_vs_daisy:'Domination vs Daisy', duel:'Duel', forcing:'Forcing', fracture:'Fracture', king_cake:'French King Cake', horseshoes:'Horseshoes', infiltralien:'Infiltralien', infiltration:'Infiltration', intimidation:'Intimidation', irish_daisy:'Marguerite irlandaise', robot:'I\'m a Robot', labyrinth:'Labyrinth', mosaic:'Mosaic', mquorric:'Mquorric', neko:'Neko', oath:'Oath', octopus:'Octopus', scottish_daisy:'Scottish Daisy', sibe:'Sibe', slaloms:'Slaloms', snowflake:'Snowflake', araignee:'Araignée', tinsels:'Tinsels', trench:'Trench', true_daisy:'True Daisy', wheel:'Wheel', xmas_star:'Xmas Star', the_arrow:'The Arrow' };
+  aliennage:'Aliennage', april_fish:'April Fish', boutonniere:'Boutonnière', damier:'Damier', corners:'Corners', cross:'Croix', coeurs_croises:'Cœurs croisés', crown:'Couronne', def_or_attack:'Def or Atak', domination_vs_daisy:'Domination vs Marguerite', duel:'Duel', forcing:'Forçage', fracture:'Fracture', king_cake:'French King Cake', horseshoes:'Horseshoes', infiltralien:'Infiltralien', infiltration:'Infiltration', intimidation:'Intimidation', irish_daisy:'Marguerite irlandaise', robot:'Je suis un robot', labyrinth:'Labyrinthe', mosaic:'Mosaïque', mquorric:'MQuorric1', neko:'Neko', oath:'Oath', octopus:'Pieuvre', scottish_daisy:'Scottish Daisy', sibe:'Sibe', slaloms:'Slaloms', snowflake:'Snowflake', araignee:'Araignée', tinsels:'Tinsels', trench:'Tranchée', true_daisy:'Vraie marguerite', wheel:'Roue', xmas_star:'Xmas Star', the_arrow:'The Arrow' };
 
 function recordMyHeat(color, cells) {
   if (typeof isMyColor === 'function' && !isMyColor(color)) return;

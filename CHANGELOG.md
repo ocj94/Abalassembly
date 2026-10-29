@@ -9,6 +9,36 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.95]
+
+### Ajouté — tout ce qui existe autour du jeu
+Demande de l'auteur : compléter les pages avec ce qu'on a trouvé (PDF,
+dépôts GitHub, sites, applis, tournois).
+- **Une page « Ressources » dans le wiki du projet** (français et anglais) :
+  où jouer, les serveurs disparus, les compétitions, les programmes, les
+  articles, les encyclopédies, la communauté, les données ouvertes. Avec la
+  liste des 42 codes des variantes de MiGs, que FightClub avait envoyée en
+  2019.
+- **La page Écosystème** gagne deux acteurs, **PlayStrategy** (Abalone y
+  est arrivé le 9 janvier 2025, développé surtout par Vincent Frochot) et
+  **KAAH**, l'application de Saab, ainsi qu'un **annuaire** sous le
+  plateau. Le palmarès est mis à jour : onze titres mondiaux pour Vincent
+  Frochot, de 2007 à 2026, d'après Wikipédia en anglais.
+- **Les positions de départ portent leur nom de MiGs** quand il est connu :
+  Couronne, Croix, Forçage, Labyrinthe, Mosaïque, Pieuvre, Roue, Tranchée,
+  Je suis un robot, Vraie marguerite, Domination vs Marguerite, Def or
+  Atak, MQuorric1. Les 23 positions de la liste de MiGs le disent sur leur
+  fiche, avec leur code. Wikipédia confirme les 15 billes de la Sibe.
+- **La bibliothèque de documents** ajoute *Abalearn* (Campos, Langlois) et
+  date le mémoire de Lemmens (18 juin 2005).
+
+### Corrigé
+- **abal.online n'a pas rouvert en novembre 2020** : ses plus anciennes
+  parties connues datent du 31 juillet 2020. Page Écosystème et wiki
+  corrigés.
+- La base de connaissances du site comptait 10 titres mondiaux pour Vincent
+  Frochot ; il en a 11.
+
 ## [v2.94]
 
 ### Ajouté — The Arrow, grâce à Wikipédia
