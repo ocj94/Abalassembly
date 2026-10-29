@@ -9,6 +9,33 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.86]
+
+### Ajouté — la matrice des 12 dimensions, les dimensions au fil de la partie, le point de non-retour
+Demande d'Olivier (« Go ») : les trois idées qui n'étaient pas déjà sur le
+site, après l'audit d'une nouvelle liste proposée par une autre IA. Le
+script qu'elle fournissait n'était pas utilisable : il n'était pas relié au
+moteur, ses voisins de case étaient faux, et il aurait compté presque tous
+les coups comme des éjections.
+- **Toutes les paires de dimensions** : sous les 5 liens les plus forts, la
+  matrice complète des corrélations, en carte de chaleur.
+- **Les 12 dimensions au fil de la partie** 🔎 : une petite courbe par
+  dimension, demi-coup par demi-coup, pour le camp qui va gagner et celui qui
+  va perdre. Entre les demi-coups 20 et 29, avant que les billes ne tombent
+  vraiment, le futur vainqueur subit déjà moins de menaces (−0,35
+  écart-type), a plus de potentiel de poussée (+0,29) et moins de billes au
+  bord (−0,25).
+- **Le point de non-retour** 🔎 : la bille après laquelle le futur vainqueur
+  mène au score jusqu'à la fin, sans jamais être rejoint.
+  - Il arrive au 51ᵉ demi-coup en médiane, à 61 % de la partie.
+  - Dans 39 % des parties, c'est la toute première bille : 1-0, et le
+    vainqueur n'est plus jamais rejoint.
+  - Dans 11 %, c'est la dernière : 5-5, puis 6-5.
+  - 10 % des parties sont gagnées sans mener au score à la fin.
+- Les petits graphiques (`grMultiples`) acceptent une deuxième série sur la
+  même échelle.
+- **Tests** : 2 de plus (304).
+
 ## [v2.85]
 
 ### Ajouté — Mes statistiques : la colonne « les gagnants » et les coups d'une seule bille, comme sur Board Game Arena

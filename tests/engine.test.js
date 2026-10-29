@@ -5846,3 +5846,52 @@ test('mes stats v2.85 : la colonne des gagnants -- le seul camp vainqueur, memes
   assert.strictEqual((h.match(/sb-cmp-l sb-cmp-4/g) || []).length, 10, 'l en-tete et 9 lignes a quatre colonnes');
   assert.doesNotMatch(h, /NaN|undefined/);
 });
+
+/* ─── 78. v2.86 : matrice des 12 dimensions, dimensions au fil de la partie, point de non-retour ─── */
+
+test('corpus v2.86 : le point de non-retour -- sur des parties construites a la main', () => {
+  const pt = p => JSON.parse(JSON.stringify(ctx._cdPointPartie(p)));
+  // les Noirs gagnent : 1-0 (10), rejoints 1-1 (15), puis 2-1 (20) pour de bon
+  assert.deepStrictEqual(pt([1, 30, 1, 0, [10, 1, 15, 0, 20, 1]]), { ply: 20, w: 2, l: 1 });
+  // les Blancs gagnent, jamais rejoints : le point est la premiere bille
+  assert.deepStrictEqual(pt([2, 40, 1, 0, [5, 0, 9, 0]]), { ply: 5, w: 1, l: 0 });
+  // gagne en etant mene a la fin (abandon) : pas de point ; vainqueur inconnu : rien
+  assert.strictEqual(ctx._cdPointPartie([1, 30, 1, 0, [5, 0]]), null);
+  assert.strictEqual(ctx._cdPointPartie([0, 30, 1, 0, [5, 1]]), null);
+  // a egalite a la fin : pas de point
+  assert.strictEqual(ctx._cdPointPartie([1, 30, 1, 0, [5, 1, 8, 0]]), null);
+  const L = [[1, 30, 1, 0, [10, 1, 15, 0, 20, 1]], [2, 40, 1, 0, [5, 0, 9, 0]], [1, 30, 1, 0, [5, 0]], [0, 10, 1, 0, []]].map((p, k) => ({ k, p }));
+  const r = JSON.parse(JSON.stringify(ctx._cdBascule(L)));
+  assert.strictEqual(r.n, 3); assert.strictEqual(r.sans, 1); assert.deepStrictEqual(r.plies, [20, 5]); assert.strictEqual(r.premiere, 1);
+  assert.deepStrictEqual(r.scores, { '2-1': 1, '1-0': 1 });
+});
+
+test('corpus v2.86 : matrice des correlations, dimensions au fil de la partie, en francais et en anglais', async () => {
+  await ctx.ensureGameBanks(); assert.ok(await ctx.ensureStatsParties());
+  assert.ok(await ctx.ensureEmpreintesHistoriques()); await ctx.ensureEmpreintesComplement();
+  const corr = ctx.computeDimensionCorrelations();
+  const m = await _enFrancais54(() => ctx._cdMatrice(corr));
+  assert.strictEqual((m.match(/<tr>/g) || []).length, 13, 'en-tete et 12 lignes');
+  assert.match(m, /12\. Mobilité/); assert.doesNotMatch(m, /NaN|undefined/);
+  _r63("_corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: 'tout' }; _cdEvoCache = null");
+  const E = ctx._cdEvolution(ctx._cfParties()), C = Array.from(_r63('EMPREINTES_CHAMPS'));
+  assert.ok(E.n > 100000); assert.strictEqual(E.dims.length, 12);
+  const a20 = (ch, s) => E.dims[C.indexOf(ch)][s].find(p => p[0] === 20)[1];
+  assert.ok(a20('menaceRatio', 'v') < a20('menaceRatio', 'p'), 'le futur vainqueur subit moins de menaces');
+  E.dims[C.indexOf('materialDiff')].v.forEach((p, i) => { if (p[0] >= 30) assert.ok(p[1] > E.dims[C.indexOf('materialDiff')].p[i][1], 'en avance au score, tranche ' + p[0]); });
+  // deux series sur la meme echelle
+  const g = ctx.grMultiples(0, [{ nom: 'x', pts: [[0, 1], [10, 2]], pts2: [[0, 3], [10, 1]] }], { couleurs: ['#111', '#222'] });
+  assert.strictEqual((g.match(/<path /g) || []).length, 2);
+  const avant = ctx.localStorage.getItem('abalone_lang');
+  try {
+    for (const lang of ['FR', 'EN']) {
+      ctx.localStorage.setItem('abalone_lang', lang);
+      _r63('_cdEvoCache = null');
+      await _dom54(async els => {
+        ctx._cdRendreTout();
+        ['corpus-bascule', 'dims-evolution'].forEach(id => { const h = els[id].innerHTML; assert.ok(h.length > 1000, id); assert.doesNotMatch(h, /NaN|undefined|Infinity/, id + ' ' + lang); });
+        assert.match(els['corpus-bascule'].innerHTML, lang === 'EN' ? /point of no return/ : /point de non-retour/);
+      });
+    }
+  } finally { if (avant === null) ctx.localStorage.removeItem('abalone_lang'); else ctx.localStorage.setItem('abalone_lang', avant); }
+});

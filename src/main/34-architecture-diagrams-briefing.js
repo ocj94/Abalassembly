@@ -328,10 +328,10 @@ async function renderCorpusStatsPage(){
   host.innerHTML = '<div id="corpus-filtres"></div><div id="corpus-resume"></div>'
     + '<div id="corpus-autres"><div style="font-size:13px;color:var(--muted);margin-bottom:16px" id="corpus-progress">' + _tr('Calcul en cours (première fois seulement — mis en cache ensuite)…', 'Computing (first time only — cached afterwards)…') + '</div></div>'
     + '<div id="corpus-trait"></div><div id="corpus-annees"></div>'   // v2.81 : apres l'avantage du premier joueur (dans corpus-autres)
-    + '<div id="billes-section"></div><div id="corpus-tempsmorts"></div><div id="corpus-avance"></div><div id="corpus-explorateur"></div><div id="corpus-ouvertures"></div><div id="corpus-explorateur-ouv"></div><div id="corpus-sortie"></div><div id="corpus-dejavues"></div><div id="corpus-occupation"></div><div id="corpus-variantes"></div>'
+    + '<div id="billes-section"></div><div id="corpus-tempsmorts"></div><div id="corpus-avance"></div><div id="corpus-bascule"></div><div id="corpus-explorateur"></div><div id="corpus-ouvertures"></div><div id="corpus-explorateur-ouv"></div><div id="corpus-sortie"></div><div id="corpus-dejavues"></div><div id="corpus-occupation"></div><div id="corpus-variantes"></div>'
     + '<div id="dims-carte">' + _carteStats(_tr('Les 12 dimensions, mesurées sur tout le corpus', 'The 12 dimensions, measured over the whole corpus'),
       '<div style="font-size:12px;color:var(--muted)">' + _tr('Chargement des positions mesurées…', 'Loading the measured positions…') + '</div>') + '</div>'
-    + '<div id="gagner-section"></div><div id="dims-corr"></div><div id="jeu-section"></div><div id="corpus-premieres"></div><div id="corpus-repetitions"></div><div id="corpus-branchement"></div><div id="corpus-seules"></div><div id="corpus-contacts"></div><div id="corpus-avantperte"></div><div id="corpus-qualite"></div><div id="corpus-critiques"></div>';   // v2.84 : les positions critiques
+    + '<div id="gagner-section"></div><div id="dims-corr"></div><div id="dims-evolution"></div><div id="jeu-section"></div><div id="corpus-premieres"></div><div id="corpus-repetitions"></div><div id="corpus-branchement"></div><div id="corpus-seules"></div><div id="corpus-contacts"></div><div id="corpus-avantperte"></div><div id="corpus-qualite"></div><div id="corpus-critiques"></div>';   // v2.84 : les positions critiques
   if (typeof _sbRendreCorpus === 'function') _sbRendreCorpus().catch(function(e){ console.warn('billes qui tombent :', e); });
   if (typeof corpusPlusRendre === 'function') corpusPlusRendre().catch(function(e){ console.warn('filtres du corpus :', e); });
   /* Les dimensions d'abord (moins d'une seconde une fois les positions chargees),
@@ -649,7 +649,8 @@ function _dimsCorrelations(){
   const groupe = ['cohesionMoyenne', 'soutienMoyen', 'proportionSansSoutien'];
   let rMax = 0;
   corr.pairs.forEach(function(pr){ if (groupe.indexOf(pr.a) >= 0 && groupe.indexOf(pr.b) >= 0) rMax = Math.max(rMax, Math.abs(pr.r)); });
-  host.innerHTML = _carteStats(_tr('Ces dimensions sont-elles indépendantes ?', 'Are these dimensions independent?'), top,
+  // v2.86 : sous les 5 liens les plus forts, la matrice de toutes les paires (54-corpus-dims-bascule.js)
+  host.innerHTML = _carteStats(_tr('Ces dimensions sont-elles indépendantes ?', 'Are these dimensions independent?'), top + (typeof _cdMatrice === 'function' ? _cdMatrice(corr) : ''),
     _tr('Corrélation de Pearson mesurée sur les ' + _dimNb(corr.n) + ' positions. Cohésion, soutien et billes sans soutien mesurent largement la même chose (jusqu’à ' + _dimDec(rMax) + ') : ces trois axes bougent ensemble, il ne faut pas les lire comme trois informations distinctes. Aucune dimension n’est constante, donc aucune n’est inutile — mais ce groupe est redondant.',
         'Pearson correlation measured over the ' + _dimNb(corr.n) + ' positions. Cohesion, support and unsupported marbles largely measure the same thing (up to ' + _dimDec(rMax) + '): these three axes move together and should not be read as three separate pieces of information. No dimension is constant, so none is useless — but this group is redundant.'));
 }

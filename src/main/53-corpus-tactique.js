@@ -304,4 +304,3 @@ function _c3RendreTout(){
   }
   grSurRedim('corpus-c3', 'corpus-tempsmorts', function(){ _c3RendreTout(); });
 }
-</script>

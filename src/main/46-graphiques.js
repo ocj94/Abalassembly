@@ -284,22 +284,29 @@ function grPlateau(W, val, o){
 /* ─── Petits multiples : une petite courbe par element (meme forme, meme couleur) ───
    La grille se fait en CSS (autant de colonnes de 140 px que la place le permet) ; chaque courbe garde
    sa hauteur, quelle que soit sa largeur (trait non deforme). */
+/* v2.86 : it.pts2 (facultatif) -- une 2e serie sur la meme echelle (couleurs o.couleurs = [1re, 2e]) ;
+   o.fmt : le format des valeurs (titre et bulle) */
 function grMultiples(W, items, o){
   o = o || {};
-  const w = 140, h = o.h || 56;
+  const w = 140, h = o.h || 56, C = o.couleurs || [GR_OR, GR_SERIES[0]], fmt = o.fmt || function(v){ return grNb(v); };
   let s = '<div class="gr-multiples">';
   items.forEach(function(it){
-    const P = it.pts || []; let mn = Infinity, mx = -Infinity; P.forEach(function(p){ mn = Math.min(mn, p[1]); mx = Math.max(mx, p[1]); });
+    const P = it.pts || [], P2 = it.pts2 || []; let mn = Infinity, mx = -Infinity;
+    P.concat(P2).forEach(function(p){ mn = Math.min(mn, p[1]); mx = Math.max(mx, p[1]); });
     if (it.min != null) mn = Math.min(mn, it.min);
     if (it.max != null) mx = Math.max(mx, it.max);
     if (!(mx > mn)) { mx = (isFinite(mx) ? mx : 0) + 1; mn = (isFinite(mn) ? mn : 0) - 1; }
-    const x0 = P.length ? P[0][0] : 0, x1 = P.length ? P[P.length - 1][0] : 1, ex = (x1 - x0) || 1;
+    const xs = P.concat(P2).map(function(p){ return p[0]; }), x0 = xs.length ? Math.min.apply(null, xs) : 0, x1 = xs.length ? Math.max.apply(null, xs) : 1, ex = (x1 - x0) || 1;
     const X = function(x){ return 2 + (x - x0) / ex * (w - 4); }, Y = function(y){ return 5 + (1 - (y - mn) / (mx - mn)) * (h - 10); };
-    let svg = '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" width="100%" height="' + h + '" xmlns="http://www.w3.org/2000/svg" style="display:block">';
-    if (P.length > 1) { let d = ''; P.forEach(function(p, k){ d += (k ? 'H' + X(p[0]).toFixed(1) + 'V' : 'M' + X(p[0]).toFixed(1) + ',') + Y(p[1]).toFixed(1); }); svg += '<path d="' + d + '" fill="none" stroke="' + GR_OR + '" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>'; }
-    else if (P.length === 1) svg += '<line x1="2" x2="' + (w - 2) + '" y1="' + Y(P[0][1]).toFixed(1) + '" y2="' + Y(P[0][1]).toFixed(1) + '" stroke="' + GR_OR + '" stroke-width="2" vector-effect="non-scaling-stroke"/>';
-    svg += '</svg>';
-    s += '<div class="gr-multiple"' + _grTip([it.nom].concat(P.map(function(p){ return (o.nomX || '') + grNb(p[0]) + _dimDp() + grNb(p[1]); }).slice(-8))) + '><div class="gr-multiple-t"><span>' + grEchapper(it.nom) + '</span><b>' + (P.length ? grNb(P[P.length - 1][1]) : '—') + '</b></div>' + svg + '</div>';
+    const trace = function(Q, couleur){
+      if (Q.length > 1) { let d = ''; Q.forEach(function(p, k){ d += (k ? 'H' + X(p[0]).toFixed(1) + 'V' : 'M' + X(p[0]).toFixed(1) + ',') + Y(p[1]).toFixed(1); }); return '<path d="' + d + '" fill="none" stroke="' + couleur + '" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>'; }
+      if (Q.length === 1) return '<line x1="2" x2="' + (w - 2) + '" y1="' + Y(Q[0][1]).toFixed(1) + '" y2="' + Y(Q[0][1]).toFixed(1) + '" stroke="' + couleur + '" stroke-width="2" vector-effect="non-scaling-stroke"/>';
+      return '';
+    };
+    let svg = '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" width="100%" height="' + h + '" xmlns="http://www.w3.org/2000/svg" style="display:block">' + trace(P, C[0]) + trace(P2, C[1]) + '</svg>';
+    const bulle = [it.nom].concat(P.map(function(p){ const q = P2.find(function(r){ return r[0] === p[0]; }); return (o.nomX || '') + grNb(p[0]) + _dimDp() + fmt(p[1]) + (q ? ' · ' + fmt(q[1]) : ''); }).slice(-8));
+    const fin = !P.length ? '<b>—</b>' : (P2.length ? '<b style="color:' + C[0] + '">' + fmt(P[P.length - 1][1]) + '</b> <b style="color:' + C[1] + '">' + fmt(P2[P2.length - 1][1]) + '</b>' : '<b>' + fmt(P[P.length - 1][1]) + '</b>');
+    s += '<div class="gr-multiple"' + _grTip(bulle) + '><div class="gr-multiple-t"><span>' + grEchapper(it.nom) + '</span><span>' + fin + '</span></div>' + svg + '</div>';
   });
   return s + '</div>';
 }

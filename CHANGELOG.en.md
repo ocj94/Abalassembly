@@ -9,6 +9,30 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.86]
+
+### Added — the matrix of the 12 dimensions, the dimensions through the game, the point of no return
+Olivier's request ("Go"): the three ideas that were not already on the site,
+after auditing a new list proposed by another AI. The script it provided was
+not usable: it was not wired to the engine, its cell neighbours were wrong,
+and it would have counted almost every move as an ejection.
+- **Every pair of dimensions**: under the 5 strongest links, the full
+  correlation matrix, as a heat map.
+- **The 12 dimensions through the game** 🔎: a small curve per dimension,
+  ply by ply, for the side that will win and the one that will lose. Between
+  plies 20 and 29, before marbles really start falling, the future winner
+  already faces fewer threats (−0.35 standard deviation), has more push
+  potential (+0.29) and fewer marbles on the edge (−0.25).
+- **The point of no return** 🔎: the marble after which the future winner
+  leads on the score to the end, never caught up again.
+  - It comes at ply 51 as a median, 61 % into the game.
+  - In 39 % of games it is the very first marble: 1-0, and the winner is
+    never caught up again.
+  - In 11 % it is the last one: 5-5, then 6-5.
+  - 10 % of games are won without leading on the score at the end.
+- Small charts (`grMultiples`) accept a second series on the same scale.
+- **Tests**: 2 more (304).
+
 ## [v2.85]
 
 ### Added — My statistics: the "winners" column and single-marble moves, as on Board Game Arena
