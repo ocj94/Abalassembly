@@ -8671,7 +8671,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.90';
+const APP_VERSION = 'v2.91';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -22757,7 +22757,7 @@ function renderPSGamesList(){
   listEl.innerHTML = entete + PS_GAMES.map(function(g, idx){
     const moveCount = _migsMoveCount(g[5]);
     return '<div onclick="loadPSGame(' + idx + ')" style="padding:10px 12px;border-radius:8px;cursor:pointer;border:1px solid var(--border);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'transparent\'">'
-      + '<div><div style="font-size:13px;font-weight:600;color:var(--text)">' + escapeHtml(g[2]) + ' vs ' + escapeHtml(g[3]) + '</div>'
+      + '<div><div style="font-size:13px;font-weight:600;color:var(--text)">' + (typeof _iaNom === 'function' ? _iaNom(g[2]) : escapeHtml(g[2])) + ' vs ' + (typeof _iaNom === 'function' ? _iaNom(g[3]) : escapeHtml(g[3])) + '</div>'
       + '<div style="font-size:11px;color:var(--muted)">' + escapeHtml(g[1]) + ' · ' + escapeHtml(g[4]) + ' · ' + (moveCount ? moveCount + ' plis' : 'abandonnée avant le premier coup') + '</div></div>'
       + '<span style="color:var(--gold);font-size:12px">▶</span>'
       + '</div>';
@@ -22841,7 +22841,7 @@ function renderMigsList(){
     if(variantFilter && g[4]!==variantFilter) continue;
     if(!lengthMatches(g[6])) continue;
     const vl=(HEAT_VARIANT_LABEL[g[4]]||g[4]);
-    html+='<div onclick="loadRefGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px" title="Partie de référence -- source : '+escapeHtml(g[5])+'"><span>📜 '+escapeHtml(g[1])+' <span style="color:var(--muted)">vs</span> '+escapeHtml(g[2])+'</span><span style="color:var(--gold);font-size:11px;white-space:nowrap">'+escapeHtml(vl)+' · '+escapeHtml(g[0])+'</span></div>';
+    html+='<div onclick="loadRefGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px" title="Partie de référence -- source : '+escapeHtml(g[5])+'"><span>📜 '+(typeof _iaNom === 'function' ? _iaNom(g[1]) : escapeHtml(g[1]))+' <span style="color:var(--muted)">vs</span> '+(typeof _iaNom === 'function' ? _iaNom(g[2]) : escapeHtml(g[2]))+'</span><span style="color:var(--gold);font-size:11px;white-space:nowrap">'+escapeHtml(vl)+' · '+escapeHtml(g[0])+'</span></div>';
   }
   // Variété AbalOnline ensuite (autres variantes) — max 180
   if (!variantFilter || variantFilter !== 'belgian') {
@@ -22851,7 +22851,7 @@ function renderMigsList(){
       if(variantFilter && g[4]!==variantFilter) continue;
       if(!lengthMatches(g[6])) continue;
       const vl=g[4].replace('_daisy',' daisy');
-      html+='<div onclick="loadAOGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px"><span>'+escapeHtml(g[1])+' <span style="color:var(--muted)">vs</span> '+escapeHtml(g[2])+'</span><span style="color:var(--gold);font-size:11px;white-space:nowrap">'+escapeHtml(vl)+' · '+escapeHtml(g[0])+'</span></div>';
+      html+='<div onclick="loadAOGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px"><span>'+(typeof _iaNom === 'function' ? _iaNom(g[1]) : escapeHtml(g[1]))+' <span style="color:var(--muted)">vs</span> '+(typeof _iaNom === 'function' ? _iaNom(g[2]) : escapeHtml(g[2]))+'</span><span style="color:var(--gold);font-size:11px;white-space:nowrap">'+escapeHtml(vl)+' · '+escapeHtml(g[0])+'</span></div>';
       a++;
     }
   }
@@ -22861,7 +22861,7 @@ function renderMigsList(){
       const g=MIGS_GAMES[i]; // [n,date,b,w,res,seq]
       if(q && (g[0]+' '+g[2]+' '+g[3]+' belgian').toLowerCase().indexOf(q)===-1) continue;   // v2.87 : aussi par numero (le champ le promettait)
       if(!lengthMatches(g[5])) continue;
-      html+='<div onclick="loadMigsGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px"><span>'+escapeHtml(g[2])+' <span style="color:var(--muted)">vs</span> '+escapeHtml(g[3])+(typeof _ptBadge === 'function' ? _ptBadge(g[0]) : '')+'</span><span style="color:var(--muted);font-size:11px;white-space:nowrap">belgian · '+escapeHtml(g[1])+'</span></div>';
+      html+='<div onclick="loadMigsGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px"><span>'+(typeof _iaNom === 'function' ? _iaNom(g[2]) : escapeHtml(g[2]))+' <span style="color:var(--muted)">vs</span> '+(typeof _iaNom === 'function' ? _iaNom(g[3]) : escapeHtml(g[3]))+(typeof _ptBadge === 'function' ? _ptBadge(g[0]) : '')+'</span><span style="color:var(--muted);font-size:11px;white-space:nowrap">belgian · '+escapeHtml(g[1])+'</span></div>';
       m++;
     }
   }
@@ -40618,6 +40618,8 @@ function _sbAgreger(f){
     cartes: cartes, quandParDispo: quandParDispo, dispos: D.dispos,
     poussees: { types: [0, 0, 0, 0, 0, 0], plus: [{ n: 0, g: 0 }, { n: 0, g: 0 }, { n: 0, g: 0 }] }   // v2.80
   };
+  // v2.91 : f.joueurs === 'camps' (Mes statistiques) -- toutes les parties, mais les comptes par camp sans le camp d'un programme
+  const campsH = !!(cleF && f.joueurs === 'camps');
   D.p.forEach(function(p, k){
     const gagnant = p[0], complet = p[2], dispo = D.dispos[p[3]], ej = p[4], dims = p[7];
     if (_sbEstDoublon(k)) return;   // v2.77 : un doublon ne compte qu'une fois
@@ -40626,16 +40628,17 @@ function _sbAgreger(f){
     v.nComplets++;
     const decide = (gagnant === 1 || gagnant === 2);
     if (decide) v.nDecides++;
-    for (let k = 0; k < 8; k++) v.types[k] += p[5][k] + p[6][k];
+    const ia = campsH ? _cfCampsIA(k) : 0, hN = !(ia & 1), hB = !(ia & 2), hG = gagnant === 1 ? hN : hB;   // camps humains (tous sans 'camps')
+    for (let k = 0; k < 8; k++) v.types[k] += (hN ? p[5][k] : 0) + (hB ? p[6][k] : 0);
     /* v2.80 : les poussees par type ; et, partie par partie, le camp qui en a fait le plus de ce type
        (sans compter celles qui ejectent : la bille tombee dirait deja qui gagne) a-t-il gagne ? */
     if (p[8]) for (let t = 0; t < 6; t++) {
-      v.poussees.types[t] += p[8][t] + p[8][t + 6];
+      v.poussees.types[t] += (hN ? p[8][t] : 0) + (hB ? p[8][t + 6] : 0);
       if (decide && t < 3) { const a = p[8][t] - p[8][t + 3], b = p[8][6 + t] - p[8][6 + t + 3]; if (a !== b) { const c = v.poussees.plus[t]; c.n++; if ((a > b ? 1 : 2) === gagnant) c.g++; } }
     }
-    v.camp.camps += 2; v.camp.ej += ej.length / 2;
+    v.camp.camps += hN + hB; if (!campsH) v.camp.ej += ej.length / 2;
     const G = v.gagnants;
-    if (decide) { const tg = gagnant === 1 ? p[5] : p[6]; for (let t = 0; t < 8; t++) G.types[t] += tg[t]; G.camps++; }
+    if (decide && hG) { const tg = gagnant === 1 ? p[5] : p[6]; for (let t = 0; t < 8; t++) G.types[t] += tg[t]; G.camps++; }
     const carte = cartes[dispo] || (cartes[dispo] = new Array(61).fill(0));
     const parDispo = billesParDispo[dispo] || (billesParDispo[dispo] = billes.map(function(){ return []; }));
     let nb = 0, nw = 0, premN = 0, premB = 0, fin = 0;
@@ -40643,8 +40646,10 @@ function _sbAgreger(f){
       const ply = ej[i], code = ej[i + 1], blancheTombe = code & 1, idx = code >> 1;
       // phase AVANT ce coup, meme regle que la carte Ejections de Mes statistiques
       const phase = (nb === 0 && nw === 0) ? 'ouverture' : (Math.max(nb, nw) >= 3 ? 'finale' : 'milieu');
-      v.camp.phases[phase]++;
-      if (decide && (blancheTombe ? 1 : 2) === gagnant) { G.ej++; G.phases[phase]++; }   // une ejection du futur vainqueur
+      const parHumain = blancheTombe ? hN : hB;   // une blanche tombe : c'est une ejection des Noirs
+      if (parHumain) v.camp.phases[phase]++;
+      if (campsH && parHumain) v.camp.ej++;
+      if (decide && hG && (blancheTombe ? 1 : 2) === gagnant) { G.ej++; G.phases[phase]++; }   // une ejection du futur vainqueur
       if (blancheTombe) { nb++; if (!premN) premN = ply; } else { nw++; if (!premB) premB = ply; }
       // la (i/2 + 1)e bille de la partie, et la 6e d'un camp : celle qui finit la partie
       if (i / 2 < _SB_DERNIERE) { billes[i / 2].push(ply); parDispo[i / 2].push(ply); }
@@ -40656,9 +40661,9 @@ function _sbAgreger(f){
         e.n++; if ((nb > nw ? 1 : 2) === gagnant) e.g++;
       }
     }
-    if (premN) { v.camp.premiereSomme += premN; v.camp.premiereN++; }
-    if (premB) { v.camp.premiereSomme += premB; v.camp.premiereN++; }
-    if (decide) { const pg = gagnant === 1 ? premN : premB; if (pg) { G.premiereSomme += pg; G.premiereN++; } }
+    if (premN && hN) { v.camp.premiereSomme += premN; v.camp.premiereN++; }
+    if (premB && hB) { v.camp.premiereSomme += premB; v.camp.premiereN++; }
+    if (decide && hG) { const pg = gagnant === 1 ? premN : premB; if (pg) { G.premiereSomme += pg; G.premiereN++; } }
     if (fin) { billes[_SB_DERNIERE].push(fin); parDispo[_SB_DERNIERE].push(fin); }
     if (ej.length) {
       v.nAvecEj++;
@@ -41174,7 +41179,8 @@ window.addEventListener('resize', function(){
 ═══════════════════════════════════════════ */
 function _sbHtmlPerso(s){
   if (!s) return '';
-  const v = STATS_PARTIES ? _sbAgreger() : null;
+  // v2.91 : les vrais joueurs sont les humains -- le camp d'un programme (MLA...) n'est plus compte
+  const v = STATS_PARTIES ? _sbAgreger(typeof SB_CAMPS_HUMAINS !== 'undefined' ? SB_CAMPS_HUMAINS : undefined) : null;
   const attente = '<span style="color:var(--muted)">…</span>';
   const pct = function(a, b){ return b ? _sbPct(a / b * 100) : '—'; };
   // v2.85 : un 4e argument -- la colonne « les gagnants » (le seul camp vainqueur des vrais joueurs), comme sur BGA
@@ -41208,8 +41214,8 @@ function _sbHtmlPerso(s){
     + ligne(_tr('Déplacements de côté', 'Sideways moves'), pct(S[3] + S[4], coups), T ? pct(T[3] + T[4], coupsV) : '', TG ? pct(TG[3] + TG[4], coupsG) : '—')
     + ligne(_tr('Poussées (sumito)', 'Pushes (sumito)'), pct(S[5], coups), T ? pct(T[5], coupsV) : '', TG ? pct(TG[5], coupsG) : '—')
     + ligne(_tr('Éjections : ouverture / milieu / finale', 'Ejections: opening / middle / endgame'), trois(ph, phT), phV ? trois(phV, phVT) : '', phG ? trois(phG, phGT) : '—')
-    + '</div><div style="font-size:11px;color:var(--muted);margin-top:6px">' + _tr('Vrais joueurs : les ' + (v ? _dimNb(v.nComplets) + ' ' : '') + 'parties du corpus jouées depuis une position de départ, les deux camps comptés. Les gagnants : le seul camp qui a gagné, dans les ' + (v ? _dimNb(v.nDecides) + ' ' : '') + 'parties au vainqueur connu — comme la colonne « Moyenne des gagnants » de Board Game Arena. Mêmes définitions partout : occasion = un coup permettait de faire tomber une bille ; phases comme ci-dessus ; les parts sont celles de tous les coups joués.',
-                                                                              'Real players: the ' + (v ? _dimNb(v.nComplets) + ' ' : '') + 'corpus games played from a starting position, both sides counted. The winners: only the side that won, in the ' + (v ? _dimNb(v.nDecides) + ' ' : '') + 'games with a known winner — like Board Game Arena’s “winners’ average” column. Same definitions everywhere: chance = a move could push a marble off; phases as above; shares are of all moves played.') + '</div></div>';
+    + '</div><div style="font-size:11px;color:var(--muted);margin-top:6px">' + _tr('Vrais joueurs : les ' + (v ? _dimNb(v.nComplets) + ' ' : '') + 'parties du corpus jouées depuis une position de départ, sans le camp des programmes (' + (v ? _dimNb(v.camp.camps) + ' camps humains' : '') + '). Les gagnants : le seul camp qui a gagné, s’il est humain, dans les ' + (v ? _dimNb(v.nDecides) + ' ' : '') + 'parties au vainqueur connu — comme la colonne « Moyenne des gagnants » de Board Game Arena. Mêmes définitions partout : occasion = un coup permettait de faire tomber une bille ; phases comme ci-dessus ; les parts sont celles de tous les coups joués.',
+                                                                              'Real players: the ' + (v ? _dimNb(v.nComplets) + ' ' : '') + 'corpus games played from a starting position, without the programs’ sides (' + (v ? _dimNb(v.camp.camps) + ' human sides' : '') + '). The winners: only the side that won, if human, in the ' + (v ? _dimNb(v.nDecides) + ' ' : '') + 'games with a known winner — like Board Game Arena’s “winners’ average” column. Same definitions everywhere: chance = a move could push a marble off; phases as above; shares are of all moves played.') + '</div></div>';
   // 3. ou tombent tes billes
   const cnt = s.carteSubies || new Array(61).fill(0), lc = _sbLireCarte(cnt);
   h += '<div class="sb-perso"><div class="sb-perso-titre">' + _tr('Où tombent tes billes', 'Where your marbles fall') + '</div>';
@@ -43817,11 +43823,11 @@ function renderLabTableau(){
 const CF_SOURCES = ['MIGS', 'AbalOnline', 'PlayStrategy', 'Référence'];
 function _cfNomSource(i){ return i === 3 ? _tr('Parties de référence', 'Reference games') : CF_SOURCES[i]; }
 const CF_LONGUEURS = { courte: [0, 60], moyenne: [60, 120], longue: [120, 1e9] };
-let _corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: 'tout' };
+let _corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: 'tout', joueurs: 'tout' };
 try { const f = JSON.parse(localStorage.getItem('abaCorpusFiltre') || 'null'); if (f) _corpusFiltre = Object.assign(_corpusFiltre, f); } catch (e) {}
-function _cfCle(f){ return f.source + '|' + f.dispo + '|' + f.longueur + '|' + (f.periode || 'tout'); }
+function _cfCle(f){ return f.source + '|' + f.dispo + '|' + f.longueur + '|' + (f.periode || 'tout') + '|' + (f.joueurs || 'tout'); }
 // le filtre actif, ou null quand rien n'est filtre (le cache commun de _sbAgreger sert alors)
-function _cfActif(){ const f = _corpusFiltre; return (f.source === 'tout' && f.dispo === 'tout' && f.longueur === 'tout' && (f.periode || 'tout') === 'tout') ? null : f; }
+function _cfActif(){ const f = _corpusFiltre; return (f.source === 'tout' && f.dispo === 'tout' && f.longueur === 'tout' && (f.periode || 'tout') === 'tout' && (f.joueurs || 'tout') === 'tout') ? null : f; }
 /* v2.77 (audit des statistiques, point 3) : l'annee de chaque partie, lue dans sa banque (MIGS : 2016-2017,
    AbalOnline : 2020-2023, PlayStrategy : 2026, reference : selon la partie). Rang = ordre de STATS_PARTIES. */
 let _cfAnneesCache = null;
@@ -43841,6 +43847,9 @@ function _cfGarder(k, p, D, f){
   if (f.dispo !== 'tout' && D.dispos[p[3]] !== f.dispo) return false;
   const L = CF_LONGUEURS[f.longueur]; if (L && !(p[1] >= L[0] && p[1] < L[1])) return false;
   if (f.periode && f.periode !== 'tout' && _cfAnnee(k) !== f.periode) return false;
+  // v2.91 : humains contre humains, ou parties avec un programme (56-humains-programmes.js) ; 'camps' garde tout (Mes statistiques)
+  if (f.joueurs === 'humains' && _cfCampsIA(k)) return false;
+  if (f.joueurs === 'ia' && !_cfCampsIA(k)) return false;
   return true;
 }
 function corpusFiltrer(k, v){
@@ -43857,7 +43866,8 @@ function _cfBarre(){
   const D = STATS_PARTIES; if (!D) return '';
   const f = _corpusFiltre, n = {};
   const an = {};
-  D.p.forEach(function(p, k){ if (p[2] && !_sbEstDoublon(k)) { n[D.dispos[p[3]]] = (n[D.dispos[p[3]]] || 0) + 1; const y = _cfAnnee(k); an[y] = (an[y] || 0) + 1; } });
+  let nH = 0, nIA = 0;
+  D.p.forEach(function(p, k){ if (p[2] && !_sbEstDoublon(k)) { n[D.dispos[p[3]]] = (n[D.dispos[p[3]]] || 0) + 1; const y = _cfAnnee(k); an[y] = (an[y] || 0) + 1; if (_cfCampsIA(k)) nIA++; else nH++; } });
   const annees = Object.keys(an).filter(function(y){ return y !== '?'; }).sort();
   const dispos = Object.keys(n).sort(function(a, b){ return n[b] - n[a]; });
   const sel = function(k, O){ return '<select onchange="corpusFiltrer(\'' + k + '\',this.value)">' + O.map(function(o){ return '<option value="' + o[0] + '"' + (String(f[k]) === String(o[0]) ? ' selected' : '') + '>' + grEchapper(o[1]) + '</option>'; }).join('') + '</select>'; };
@@ -43865,9 +43875,11 @@ function _cfBarre(){
     + '<label>' + _tr('Source', 'Source') + ' ' + sel('source', [['tout', _tr('toutes', 'all')]].concat(CF_SOURCES.map(function(s, i){ return [String(i), _cfNomSource(i)]; }))) + '</label>'
     + '<label>' + _tr('Disposition', 'Layout') + ' ' + sel('dispo', [['tout', _tr('toutes', 'all')]].concat(dispos.map(function(d){ return [d, _cfNomDispo(d) + ' (' + n[d] + ')']; }))) + '</label>'
     + '<label>' + _tr('Longueur', 'Length') + ' ' + sel('longueur', [['tout', _tr('toutes', 'all')], ['courte', _tr('moins de 60 demi-coups', 'under 60 plies')], ['moyenne', _tr('60 à 119', '60 to 119')], ['longue', _tr('120 et plus', '120 and more')]]) + '</label>'
-    + '<label>' + _tr('Année', 'Year') + ' ' + sel('periode', [['tout', _tr('toutes', 'all')]].concat(annees.map(function(y){ return [y, y + ' (' + an[y] + ')']; }))) + '</label>';
-  if (_cfActif()) h += '<button class="ctrl-btn cf-tout" onclick="corpusFiltrer(\'source\',\'tout\');corpusFiltrer(\'dispo\',\'tout\');corpusFiltrer(\'longueur\',\'tout\');corpusFiltrer(\'periode\',\'tout\')">' + _tr('Tout le corpus', 'Whole corpus') + '</button>';
+    + '<label>' + _tr('Année', 'Year') + ' ' + sel('periode', [['tout', _tr('toutes', 'all')]].concat(annees.map(function(y){ return [y, y + ' (' + an[y] + ')']; }))) + '</label>'
+    + '<label>' + _tr('Joueurs', 'Players') + ' ' + sel('joueurs', [['tout', _tr('tous', 'all')], ['humains', _tr('humains contre humains', 'human against human') + ' (' + nH + ')'], ['ia', _tr('avec un programme', 'with a program') + ' (' + nIA + ')']]) + '</label>';
+  if (_cfActif()) h += '<button class="ctrl-btn cf-tout" onclick="corpusFiltrer(\'source\',\'tout\');corpusFiltrer(\'dispo\',\'tout\');corpusFiltrer(\'longueur\',\'tout\');corpusFiltrer(\'periode\',\'tout\');corpusFiltrer(\'joueurs\',\'tout\')">' + _tr('Tout le corpus', 'Whole corpus') + '</button>';
   h += '</div><div class="gr-sous">' + _tr('Les filtres recalculent les cartes marquées 🔎 (les autres, comme les 12 dimensions, portent toujours sur tout le corpus).', 'The filters recompute the cards marked 🔎 (the others, like the 12 dimensions, always cover the whole corpus).') + '</div>';
+  if (f.joueurs && f.joueurs !== 'tout') h += '<div class="gr-sous">🤖 ' + _tr('Programmes reconnus : MLA, l’IA de lolo et π #0ABA10 sur MiGs, le bot PST-Greedy-Tom sur PlayStrategy, les IA des parties de référence. Sur AbalOnline, les comptes de programmes ne sont pas connus : ses parties comptent comme humaines.', 'Programs recognised: MLA, lolo’s AI and π #0ABA10 on MiGs, the PST-Greedy-Tom bot on PlayStrategy, the AIs of the reference games. On AbalOnline, program accounts are not known: its games count as human.') + '</div>';
   return h;
 }
 
@@ -45674,7 +45686,7 @@ function _ptHtml(q, variantFilter, lengthFilter){
     + '<div style="font-size:11px;color:var(--muted);margin:6px 4px">' + _tr('Le serveur MiGs a fermé en 2017 avec sa base de parties : plus de 12 000 en 2012, près de 40 000 à la fin. Ces parties citées sur le blog sont gardées en trace : numéro, date, joueurs. Si leurs coups sont retrouvés, elles pourront être rejouées.',
       'The MiGs server closed in 2017 along with its game database: over 12,000 games in 2012, nearly 40,000 by the end. These games cited on the blog are kept as a trace: number, date, players. If their moves are found, they can be replayed.') + '</div>';
   T.forEach(function(t){
-    const r = _ptRang(t[0]), joueurs = (t[2] || t[3]) ? escapeHtml(t[2] || '?') + ' <span style="color:var(--muted)">vs</span> ' + escapeHtml(t[3] || '?') : '<span style="color:var(--muted)">' + _tr('joueurs inconnus', 'unknown players') + '</span>';
+    const r = _ptRang(t[0]), joueurs = (t[2] || t[3]) ? (typeof _iaNom === 'function' ? _iaNom(t[2] || '?') : escapeHtml(t[2] || '?')) + ' <span style="color:var(--muted)">vs</span> ' + (typeof _iaNom === 'function' ? _iaNom(t[3] || '?') : escapeHtml(t[3] || '?')) : '<span style="color:var(--muted)">' + _tr('joueurs inconnus', 'unknown players') + '</span>';
     const date = t[1] ? t[1].split('-').reverse().join('/') : _tr('date inconnue', 'unknown date');
     // v2.89 : « perdus » seulement quand on le sait ; les coups publies sur le blog attendent d'etre repris
     const etat = t[6] === 'publies' ? _tr('coups publiés sur le blog, pas encore repris', 'moves published on the blog, not yet added')
@@ -45688,6 +45700,55 @@ function _ptHtml(q, variantFilter, lengthFilter){
   });
   return h + '</details>';
 }
+/* ═══════════════════════════════════════════
+   HUMAINS ET PROGRAMMES (v2.91)
+   Demande d'ocj94 (« Go ») : reconnaitre les parties jouees contre un
+   programme, pour pouvoir ne garder que les humains. 1 431 des 2 589 parties
+   MiGs ont une IA dans un camp, et 73 des 93 parties du tournoi Yearly de
+   PlayStrategy.
+   Ce qui est reconnu, et d'ou on le sait :
+   - PlayStrategy : l'export marque ses bots (P1Title / P2Title "BOT"). Dans
+     le Yearly 2026, un seul : PST-Greedy-Tom. Les bots officiels du site
+     s'appellent PS-... ou PST-... ;
+   - MiGs : les comptes « MLA (IA) - max / medium / easy » et « IA de lolo »,
+     qui le disent dans leur nom, et « π #0ABA10 » (un numero, 33 parties en
+     9 jours, dont 8 contre MLA) -- celui-la reste a confirmer ;
+   - parties de reference : Aba-Pro 8 (IA), MLAIA-max, les IA de KAAH.
+   - AbalOnline : les comptes de programmes ne sont pas connus (Abadeus ?
+     Trainer aba ?). Ses parties comptent comme humaines tant que Vincent ne
+     l'a pas dit.
+   Un compte dont le nom contient seulement « mla » (visiteurmla, mlachevrie)
+   est un humain : la regle ne se fie qu'aux noms exacts ci-dessus.
+═══════════════════════════════════════════ */
+const IA_COMPTES = ['PST-Greedy-Tom', 'π #0ABA10', 'MLAIA-max'];
+function estIA(nom){
+  const n = String(nom || '');
+  if (/\(IA\)/.test(n) || /^IA de /.test(n) || /^KAI\+\+ de KAAH/.test(n) || /^PST?-/.test(n)) return true;
+  return IA_COMPTES.indexOf(n) >= 0;
+}
+// un nom de joueur pour la bibliotheque, suivi de 🤖 si c'est un programme
+function _iaNom(nom){
+  return escapeHtml(nom) + (estIA(nom) ? ' <span title="' + escapeHtml(_tr('Programme (IA)', 'Program (AI)')) + '">🤖</span>' : '');
+}
+/* Partie k de STATS_PARTIES (meme ordre que _sbBanques) : 1 si les Noirs sont un programme, 2 les Blancs,
+   3 les deux, 0 aucun. Calcule une fois pour toutes les parties. */
+let _iaCampsCache = null;
+function _cfCampsIA(k){
+  const B = _sbBanques(), cle = B.map(function(b){ return b.length; }).join('-');
+  if (!_iaCampsCache || _iaCampsCache.cle !== cle) {
+    const a = [];
+    B.forEach(function(banque, s){ banque.forEach(function(g){
+      const n = (s === 0 || s === 2) ? g[2] : g[1], b = (s === 0 || s === 2) ? g[3] : g[2];
+      a.push((estIA(n) ? 1 : 0) + (estIA(b) ? 2 : 0));
+    }); });
+    _iaCampsCache = { cle: cle, a: a };
+  }
+  return _iaCampsCache.a[k] || 0;
+}
+/* Mes statistiques : « les vrais joueurs » ne comptent que les camps tenus par des humains -- toutes les
+   parties, mais pas le camp d'un programme (sinon MLA, qui joue la moitie des parties MiGs, pesait autant que
+   tous les humains reunis). Voir _sbAgreger. */
+const SB_CAMPS_HUMAINS = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: 'tout', joueurs: 'camps' };
 </script>
 
 

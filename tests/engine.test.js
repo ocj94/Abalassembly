@@ -3931,7 +3931,7 @@ test('v2.63 Mes statistiques : tes remontées, tes billes tombées et tes coups,
       const h = els['ejection-stats-personal'].innerHTML;
       ['Tes remontées', 'Toi face aux vrais joueurs', 'Où tombent tes billes', 'Victoires après avoir perdu la 1ʳᵉ bille', 'Occasions d’éjection saisies'].forEach(t => assert.ok(h.indexOf(t) > 0, t));
       assert.doesNotMatch(h, /NaN|undefined|…/);
-      const v = ctx._sbAgreger();
+      const v = ctx._sbAgreger(_r63('SB_CAMPS_HUMAINS'));   // v2.91 : les vrais joueurs sont les camps humains
       assert.ok(h.indexOf(ctx._dimDec(v.camp.ej / v.camp.camps, 2)) > 0, 'ejections par partie des vrais joueurs');
     }));
   } finally { if (sauve === null) ctx.localStorage.removeItem(ctx.GAME_HISTORY_KEY); else ctx.localStorage.setItem(ctx.GAME_HISTORY_KEY, sauve); }
@@ -5993,4 +5993,69 @@ test('v2.88 : le vrai nom de l auteur n apparait ni sur le site, ni dans les sou
   // le Hall of Fame et le compte de demonstration montrent le pseudo
   assert.match(_SRC_INDEX, />ocj94<\/div>/);
   assert.ok(_r63('compareProfiles').ocj94);
+});
+
+// ═══════════════════════════════════════════
+// 81. v2.91 : humains et programmes -- filtre « humains contre humains », camps humains dans Mes statistiques,
+//     bots marques dans la bibliotheque et dans les fichiers APGN ; les 93 parties du Yearly en APGN
+// ═══════════════════════════════════════════
+test('v2.91 : reconnaitre les programmes, par leur nom exact', () => {
+  ['MLA (IA) - max', 'MLA (IA) - medium', 'MLA (IA) - easy', 'IA de lolo', 'π #0ABA10', 'PST-Greedy-Tom', 'PS-Random-Mover',
+   'Aba-Pro 8 (IA)', 'MLAIA-max', 'IA de KAAH (niveau 3, agressive)', 'KAI++ de KAAH (niveau 8, agressif v2)'].forEach(n => assert.ok(ctx.estIA(n), n));
+  ['visiteurmla', 'mlachevrie', 'Nabotléon', 'ocj94', 'boulet', 'Abadeus', 'Trainer aba', '', undefined].forEach(n => assert.ok(!ctx.estIA(n), String(n)));
+});
+
+test('v2.91 : filtre Joueurs de la page Statistiques du jeu, et vrais joueurs humains dans Mes statistiques', async () => {
+  await ctx.ensureGameBanks(); assert.ok(await ctx.ensureStatsParties());
+  // par banque : MiGs 1 431 parties avec une IA, PlayStrategy 73, reference 8, AbalOnline aucune (ses bots ne sont pas connus)
+  const D = _r63('STATS_PARTIES'), par = [[0, 0], [0, 0], [0, 0], [0, 0]];
+  D.p.forEach((p, k) => { par[ctx._cfSourceDe(k, D)][ctx._cfCampsIA(k) ? 1 : 0]++; });
+  assert.deepStrictEqual(par[0], [1158, 1431]); assert.strictEqual(par[1][1], 0); assert.deepStrictEqual(par[2], [20, 73]); assert.deepStrictEqual(par[3], [0, 8]);
+  const avant = JSON.stringify(_r63('_corpusFiltre'));
+  try {
+    _r63("_corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: 'tout', joueurs: 'humains' }");
+    const H = ctx._cfParties(); assert.strictEqual(H.length, 2735); assert.ok(H.every(x => !ctx._cfCampsIA(x.k)));
+    _r63("_corpusFiltre.joueurs = 'ia'");
+    const I = ctx._cfParties(); assert.strictEqual(I.length, 1512); assert.ok(I.every(x => ctx._cfCampsIA(x.k)));
+    const barre = await _enFrancais54(() => ctx._cfBarre());
+    assert.match(barre, /humains contre humains \(2735\)/); assert.match(barre, /avec un programme \(1512\)/); assert.match(barre, /Programmes reconnus/);
+    assert.match(barre, /corpusFiltrer\(\\?'joueurs\\?',\\?'tout\\?'\)/, 'le bouton Tout le corpus remet aussi les joueurs');
+    _r63("_corpusFiltre.joueurs = 'tout'"); assert.strictEqual(ctx._cfActif(), null);
+  } finally { _r63('_corpusFiltre = ' + avant); }
+  // Mes statistiques : toutes les parties, mais pas le camp des programmes
+  const tous = ctx._sbAgreger(), h = ctx._sbAgreger(_r63('SB_CAMPS_HUMAINS'));
+  assert.strictEqual(h.nComplets, tous.nComplets); assert.strictEqual(tous.camp.camps, 2 * tous.nComplets);
+  assert.strictEqual(h.camp.camps, 6959, '8 494 camps moins les 1 535 tenus par un programme');
+  assert.ok(h.gagnants.camps < tous.gagnants.camps && h.camp.ej < tous.camp.ej);
+  const s = (v, i) => v.types[i] / (v.types[0] + v.types[1] + v.types[2] + v.types[3] + v.types[4]);
+  assert.ok(Math.abs(s(h, 0) - s(tous, 0)) > 0.001, 'les parts changent sans MLA');
+  const html = await _enFrancais54(() => ctx._sbHtmlPerso({ parPartie: 2, sortes: [10, 5, 3, 2, 1, 4, 3, 6], byPhase: { ouverture: 1, milieu: 2, finale: 3 } }));
+  assert.match(html, /sans le camp des programmes \(6[\s  ]?959 camps humains\)/);
+});
+
+test('v2.91 : la bibliotheque marque les programmes 🤖', async () => {
+  assert.ok(await ctx.ensureGameBanks());
+  const b = _biblio79('MLA (IA) - max');
+  assert.match(b.html, /MLA \(IA\) - max <span title="Programme \(IA\)">🤖<\/span>/);
+  assert.doesNotMatch(_biblio79('visiteurmla').html, /🤖/);
+  assert.match(_biblio79('KAAH').html, /🤖/, 'parties de reference');
+});
+
+test('v2.91 : fichiers APGN -- les 93 parties du Yearly et les programmes, identiques a ce que produit l outil', () => {
+  const fs = require('fs'), path = require('path'), os = require('os'), { execFileSync } = require('child_process');
+  const racine = path.join(__dirname, '..'), tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'apgn-'));
+  try {
+    for (const [src, f] of [['ps', 'playstrategy-yearly-2026.apgn'], ['migs', 'migs-2016-2017.apgn']]) {
+      const sortie = execFileSync(process.execPath, [path.join(racine, 'tools', 'to-apgn.js'), '--source', src, '--out', path.join(tmp, f)], { encoding: 'utf8', timeout: 240000 });
+      assert.match(sortie, /parties rejetees  : 0/, src);
+      assert.ok(fs.readFileSync(path.join(tmp, f), 'utf8') === fs.readFileSync(path.join(racine, 'games', f), 'utf8'), 'games/' + f + ' a jour');
+    }
+    const ps = fs.readFileSync(path.join(racine, 'games', 'playstrategy-yearly-2026.apgn'), 'utf8');
+    assert.strictEqual((ps.match(/^\[Event /gm) || []).length, 93);
+    assert.strictEqual((ps.match(/^\[Notation "Aba-Pro"\]$/gm) || []).length, 93);
+    assert.strictEqual((ps.match(/^\[(Black|White)Type "program"\]$/gm) || []).length, 73);
+    assert.strictEqual((ps.match(/^\[Termination "Au score"\]$/gm) || []).length, 86);
+    const mi = fs.readFileSync(path.join(racine, 'games', 'migs-2016-2017.apgn'), 'utf8');
+    assert.strictEqual((mi.match(/^\[(Black|White)Type "program"\]$/gm) || []).length, 1454);
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
 });

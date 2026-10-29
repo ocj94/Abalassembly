@@ -15,11 +15,11 @@
 const CF_SOURCES = ['MIGS', 'AbalOnline', 'PlayStrategy', 'Référence'];
 function _cfNomSource(i){ return i === 3 ? _tr('Parties de référence', 'Reference games') : CF_SOURCES[i]; }
 const CF_LONGUEURS = { courte: [0, 60], moyenne: [60, 120], longue: [120, 1e9] };
-let _corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: 'tout' };
+let _corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: 'tout', joueurs: 'tout' };
 try { const f = JSON.parse(localStorage.getItem('abaCorpusFiltre') || 'null'); if (f) _corpusFiltre = Object.assign(_corpusFiltre, f); } catch (e) {}
-function _cfCle(f){ return f.source + '|' + f.dispo + '|' + f.longueur + '|' + (f.periode || 'tout'); }
+function _cfCle(f){ return f.source + '|' + f.dispo + '|' + f.longueur + '|' + (f.periode || 'tout') + '|' + (f.joueurs || 'tout'); }
 // le filtre actif, ou null quand rien n'est filtre (le cache commun de _sbAgreger sert alors)
-function _cfActif(){ const f = _corpusFiltre; return (f.source === 'tout' && f.dispo === 'tout' && f.longueur === 'tout' && (f.periode || 'tout') === 'tout') ? null : f; }
+function _cfActif(){ const f = _corpusFiltre; return (f.source === 'tout' && f.dispo === 'tout' && f.longueur === 'tout' && (f.periode || 'tout') === 'tout' && (f.joueurs || 'tout') === 'tout') ? null : f; }
 /* v2.77 (audit des statistiques, point 3) : l'annee de chaque partie, lue dans sa banque (MIGS : 2016-2017,
    AbalOnline : 2020-2023, PlayStrategy : 2026, reference : selon la partie). Rang = ordre de STATS_PARTIES. */
 let _cfAnneesCache = null;
@@ -39,6 +39,9 @@ function _cfGarder(k, p, D, f){
   if (f.dispo !== 'tout' && D.dispos[p[3]] !== f.dispo) return false;
   const L = CF_LONGUEURS[f.longueur]; if (L && !(p[1] >= L[0] && p[1] < L[1])) return false;
   if (f.periode && f.periode !== 'tout' && _cfAnnee(k) !== f.periode) return false;
+  // v2.91 : humains contre humains, ou parties avec un programme (56-humains-programmes.js) ; 'camps' garde tout (Mes statistiques)
+  if (f.joueurs === 'humains' && _cfCampsIA(k)) return false;
+  if (f.joueurs === 'ia' && !_cfCampsIA(k)) return false;
   return true;
 }
 function corpusFiltrer(k, v){
@@ -55,7 +58,8 @@ function _cfBarre(){
   const D = STATS_PARTIES; if (!D) return '';
   const f = _corpusFiltre, n = {};
   const an = {};
-  D.p.forEach(function(p, k){ if (p[2] && !_sbEstDoublon(k)) { n[D.dispos[p[3]]] = (n[D.dispos[p[3]]] || 0) + 1; const y = _cfAnnee(k); an[y] = (an[y] || 0) + 1; } });
+  let nH = 0, nIA = 0;
+  D.p.forEach(function(p, k){ if (p[2] && !_sbEstDoublon(k)) { n[D.dispos[p[3]]] = (n[D.dispos[p[3]]] || 0) + 1; const y = _cfAnnee(k); an[y] = (an[y] || 0) + 1; if (_cfCampsIA(k)) nIA++; else nH++; } });
   const annees = Object.keys(an).filter(function(y){ return y !== '?'; }).sort();
   const dispos = Object.keys(n).sort(function(a, b){ return n[b] - n[a]; });
   const sel = function(k, O){ return '<select onchange="corpusFiltrer(\'' + k + '\',this.value)">' + O.map(function(o){ return '<option value="' + o[0] + '"' + (String(f[k]) === String(o[0]) ? ' selected' : '') + '>' + grEchapper(o[1]) + '</option>'; }).join('') + '</select>'; };
@@ -63,9 +67,11 @@ function _cfBarre(){
     + '<label>' + _tr('Source', 'Source') + ' ' + sel('source', [['tout', _tr('toutes', 'all')]].concat(CF_SOURCES.map(function(s, i){ return [String(i), _cfNomSource(i)]; }))) + '</label>'
     + '<label>' + _tr('Disposition', 'Layout') + ' ' + sel('dispo', [['tout', _tr('toutes', 'all')]].concat(dispos.map(function(d){ return [d, _cfNomDispo(d) + ' (' + n[d] + ')']; }))) + '</label>'
     + '<label>' + _tr('Longueur', 'Length') + ' ' + sel('longueur', [['tout', _tr('toutes', 'all')], ['courte', _tr('moins de 60 demi-coups', 'under 60 plies')], ['moyenne', _tr('60 à 119', '60 to 119')], ['longue', _tr('120 et plus', '120 and more')]]) + '</label>'
-    + '<label>' + _tr('Année', 'Year') + ' ' + sel('periode', [['tout', _tr('toutes', 'all')]].concat(annees.map(function(y){ return [y, y + ' (' + an[y] + ')']; }))) + '</label>';
-  if (_cfActif()) h += '<button class="ctrl-btn cf-tout" onclick="corpusFiltrer(\'source\',\'tout\');corpusFiltrer(\'dispo\',\'tout\');corpusFiltrer(\'longueur\',\'tout\');corpusFiltrer(\'periode\',\'tout\')">' + _tr('Tout le corpus', 'Whole corpus') + '</button>';
+    + '<label>' + _tr('Année', 'Year') + ' ' + sel('periode', [['tout', _tr('toutes', 'all')]].concat(annees.map(function(y){ return [y, y + ' (' + an[y] + ')']; }))) + '</label>'
+    + '<label>' + _tr('Joueurs', 'Players') + ' ' + sel('joueurs', [['tout', _tr('tous', 'all')], ['humains', _tr('humains contre humains', 'human against human') + ' (' + nH + ')'], ['ia', _tr('avec un programme', 'with a program') + ' (' + nIA + ')']]) + '</label>';
+  if (_cfActif()) h += '<button class="ctrl-btn cf-tout" onclick="corpusFiltrer(\'source\',\'tout\');corpusFiltrer(\'dispo\',\'tout\');corpusFiltrer(\'longueur\',\'tout\');corpusFiltrer(\'periode\',\'tout\');corpusFiltrer(\'joueurs\',\'tout\')">' + _tr('Tout le corpus', 'Whole corpus') + '</button>';
   h += '</div><div class="gr-sous">' + _tr('Les filtres recalculent les cartes marquées 🔎 (les autres, comme les 12 dimensions, portent toujours sur tout le corpus).', 'The filters recompute the cards marked 🔎 (the others, like the 12 dimensions, always cover the whole corpus).') + '</div>';
+  if (f.joueurs && f.joueurs !== 'tout') h += '<div class="gr-sous">🤖 ' + _tr('Programmes reconnus : MLA, l’IA de lolo et π #0ABA10 sur MiGs, le bot PST-Greedy-Tom sur PlayStrategy, les IA des parties de référence. Sur AbalOnline, les comptes de programmes ne sont pas connus : ses parties comptent comme humaines.', 'Programs recognised: MLA, lolo’s AI and π #0ABA10 on MiGs, the PST-Greedy-Tom bot on PlayStrategy, the AIs of the reference games. On AbalOnline, program accounts are not known: its games count as human.') + '</div>';
   return h;
 }
 

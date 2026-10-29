@@ -6,11 +6,19 @@
  * rejet, avec le numero du coup fautif. Un format d'echange qui accepterait
  * des parties fausses ne vaudrait rien.
  *
- * Usage :  node tools/to-apgn.js [--source migs|ao|all] [--out f.apgn] [--limit N]
+ * Usage :  node tools/to-apgn.js [--source migs|ao|ps|all] [--out f.apgn] [--limit N]
  *
  * --source migs : les 2589 parties du serveur MiGs, ferme le 30/05/2017.
  * --source ao   : les parties AbalOnline. NE PAS diffuser sans l'accord de
  *                 Vincent Frochot, qui administre le site.
+ * --source ps   : v2.91, les 93 parties du tournoi Yearly Abalone Arena de
+ *                 PlayStrategy (18/09/2026), publiees avec l'accord de
+ *                 Vincent. Coups deja convertis de la notation PlayStrategy en
+ *                 Aba-Pro (psConvertirSequence, verifies un a un).
+ *
+ * v2.91 : un camp tenu par un programme (estIA, 56-humains-programmes.js)
+ * porte la balise BlackType / WhiteType "program", comme en PGN. Absente :
+ * humain, ou inconnu (AbalOnline ne marque pas ses programmes).
  */
 
 'use strict';
@@ -66,6 +74,11 @@ const ENG = (function () {
     Object.defineProperty(globalThis,'board',{get:getB,set:setB,configurable:true});
     Object.defineProperty(globalThis,'capturedByBlack',{get:()=>getC('b'),set:v=>setC('b',v),configurable:true});
     Object.defineProperty(globalThis,'capturedByWhite',{get:()=>getC('w'),set:v=>setC('w',v),configurable:true});
+    // v2.91 : le moteur compte desormais les billes par deux objets (07-board-engine-core.js) -- l'outil
+    // ne rejouait plus rien depuis ; memes compteurs, sous leur nouvelle forme
+    const _compteur = k => ({ get: () => getC(k), set: v => setC(k, v),
+      inc: () => { setC(k, getC(k) + 1); return getC(k); }, dec: () => { setC(k, getC(k) - 1); return getC(k); } });
+    const CapturedByBlack = _compteur('b'), CapturedByWhite = _compteur('w');
     ${parts}
     return { validateMove, applyMove, coordToABAPRO, abaproToRc,
              resolveAbaProToken, getAllMovesForColor };
@@ -174,6 +187,30 @@ function movetext(tokens, result) {
 
 function tag(k, v) { return '[' + k + ' "' + String(v).replace(/"/g, "'") + '"]'; }
 
+/* v2.91 : les programmes, avec la regle du jeu lui-meme */
+const estIA = new Function(grabConstDecl('IA_COMPTES') + '\n' + grabFn('estIA') + '\nreturn estIA;')();
+function typesCamps(noir, blanc) {
+  const t = [];
+  if (estIA(noir)) t.push(tag('BlackType', 'program'));
+  if (estIA(blanc)) t.push(tag('WhiteType', 'program'));
+  return t;
+}
+/* un tableau litteral du jeu (const NOM = [ ... ];), lu crochet par crochet en sautant les chaines */
+function grabArray(name) {
+  const i = SRC.indexOf('const ' + name + ' = [');
+  if (i < 0) throw new Error('tableau introuvable : ' + name);
+  const o = SRC.indexOf('[', i);
+  let d = 0, q = null;
+  for (let k = o; k < SRC.length; k++) {
+    const c = SRC[k];
+    if (q) { if (c === '\\') k++; else if (c === q) q = null; continue; }
+    if (c === '"' || c === "'") q = c;
+    else if (c === '[') d++;
+    else if (c === ']') { d--; if (!d) return JSON.parse(SRC.slice(o, k + 1)); }
+  }
+  throw new Error('crochets : ' + name);
+}
+
 /* ── Conversion ───────────────────────────────────────────────────────── */
 
 const args = process.argv.slice(2);
@@ -181,8 +218,8 @@ const outPath = (args.indexOf('--out') >= 0) ? args[args.indexOf('--out') + 1]
   : path.join(ROOT, 'games', 'abalassembly.apgn');
 const limit = (args.indexOf('--limit') >= 0) ? parseInt(args[args.indexOf('--limit') + 1], 10) : Infinity;
 const source = (args.indexOf('--source') >= 0) ? args[args.indexOf('--source') + 1] : 'all';
-if (['migs', 'ao', 'all'].indexOf(source) < 0) {
-  console.error("--source doit valoir migs, ao ou all"); process.exit(2);
+if (['migs', 'ao', 'ps', 'all'].indexOf(source) < 0) {
+  console.error("--source doit valoir migs, ao, ps ou all"); process.exit(2);
 }
 
 const MIGS = JSON.parse(zlib.inflateRawSync(Buffer.from(grabB64('MIGS_B64'), 'base64')).toString('utf8'));
@@ -193,7 +230,7 @@ const rejected = [];
 let n = 0;
 
 /* MIGS — [id, date, noir, blanc, fin, sequence], disposition belge. */
-for (const g of (source === 'ao' ? [] : MIGS)) {
+for (const g of ((source === 'migs' || source === 'all') ? MIGS : [])) {
   if (n++ >= limit) break;
   const start = boardFromLayout('belgian');
   const r = replay(start, g[5], 0, 0);
@@ -209,11 +246,11 @@ for (const g of (source === 'ao' ? [] : MIGS)) {
     tag('Termination', g[4]),
     tag('Plies', r.played.length),
     tag('Source', 'MIGS')
-  ].join('\n') + '\n\n' + movetext(r.played, res));
+  ].concat(typesCamps(g[2], g[3])).join('\n') + '\n\n' + movetext(r.played, res));
 }
 
 /* AbalOnline — [date, j1, j2, vainqueur, variante, depart, sequence]. */
-for (const g of (source === 'migs' ? [] : AO)) {
+for (const g of ((source === 'ao' || source === 'all') ? AO : [])) {
   if (n++ >= limit) break;
   const v = String(g[4]).replace('_daisy', '_daisy');
   const st = boardFromAOStart(g[5]);
@@ -233,8 +270,33 @@ for (const g of (source === 'migs' ? [] : AO)) {
     tag('Position', positionString(st.board, 'black', st.capturedByWhite, st.capturedByBlack)),
     tag('Plies', r.played.length),
     tag('Source', 'AbalOnline')
-  ];
+  ].concat(typesCamps(g[1], g[2]));
   games.push(hdr.join('\n') + '\n\n' + movetext(r.played, res));
+}
+
+/* PlayStrategy (v2.91) — [id, date, noir, blanc, "X gagne", sequence Aba-Pro], disposition belge
+   (« Abalone » sur PlayStrategy : verifie sur les 7 705 demi-coups du tournoi). Le resultat est celui
+   enregistre par PlayStrategy ; la fin se lit dans le rejeu : 6 billes = au score, sinon abandon
+   (dont 3 parties sans un seul coup). « Normal » chez PlayStrategy ne veut pas dire 6 billes. */
+const PS = (source === 'ps' || source === 'all') ? grabArray('PS_TOURNOI_YEARLY_2026') : [];
+for (const g of PS) {
+  if (n++ >= limit) break;
+  const r = replay(boardFromLayout('belgian'), g[5], 0, 0);
+  if (!r.ok) { rejected.push({ src: 'PlayStrategy ' + g[0], ply: r.ply, token: r.token }); continue; }
+  const res = (g[4] === g[2] + ' gagne') ? '1-0' : (g[4] === g[3] + ' gagne') ? '0-1' : '*';
+  const fin = (r.capB >= 6 || r.capW >= 6) ? 'Au score' : 'Abandon';
+  if (fin === 'Au score' && res !== (r.capB >= 6 ? '1-0' : '0-1')) { rejected.push({ src: 'PlayStrategy ' + g[0], ply: r.played.length, token: 'resultat contraire au rejeu' }); continue; }
+  games.push([
+    tag('Event', 'Yearly Abalone Arena (PlayStrategy ' + g[0] + ')'),
+    tag('Date', String(g[1]).replace(/-/g, '.')),
+    tag('Black', g[2]), tag('White', g[3]),
+    tag('Variant', 'belgian'),
+    tag('Result', res),
+    tag('Notation', 'Aba-Pro'),
+    tag('Termination', fin),
+    tag('Plies', r.played.length),
+    tag('Source', 'PlayStrategy')
+  ].concat(typesCamps(g[2], g[3])).join('\n') + '\n\n' + movetext(r.played, res));
 }
 
 fs.mkdirSync(path.dirname(outPath), { recursive: true });
