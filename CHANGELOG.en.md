@@ -9,6 +9,16 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.92]
+
+### Added — the two oldest MiGs games
+- **No. 159** (15 October 2006), the first game kept by MiGs, and
+  **no. 357** (29 October 2006), CH4 against floopy, the first complete
+  game (ended 6-4 in 73 moves). They come from the Abalone Online blog's page
+  presenting the MiGs history. The library's 📜 section now keeps 40.
+- Its introduction now says MiGs did not keep every game before February
+  2008.
+
 ## [v2.91]
 
 ### Added — humans and programs
