@@ -9,6 +9,17 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.99]
+
+### Fixed — privacy
+- FightClub's card, in the Hall of Fame and among the links, showed a name
+  presented as his. It is published nowhere else: the site now shows only
+  his username, as for every player.
+- The repository history was rewritten: the author's real name, that name
+  and the phone number an old version displayed are gone from it, in every
+  past version of the files and every commit message. A test checks they
+  come back in no file.
+
 ## [v2.98]
 
 ### Added — Saab's notation: the KAAH and KAAWA position code
