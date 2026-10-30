@@ -4,7 +4,7 @@
 
 Quatre cartes pour comprendre comment Abalassembly est construit. Elles sont **écrites à la main** et doivent être mises à jour quand l'architecture change — contrairement à la « Fiche pour IA » du site, qui compte tout à l'exécution. La page Architecture du site en donne la version courte, en français et en anglais.
 
-Vérifié contre le code en v2.66. Les chiffres de la page du site sont regroupés dans `ARCHI_CHIFFRES` (`src/main/34-architecture-diagrams-briefing.js`), et un test les compare aux données embarquées : une partie ou un problème de plus, et le test demande la mise à jour.
+Vérifié contre le code en v2.96 (avant : v2.66 ; il manquait les poids Texel, la qualité des coups, les humains et les programmes, les 60 positions de départ, les parties citées sans leurs coups et les fichiers APGN, et la règle de sécurité bloquait PlayStrategy). Les chiffres de la page du site sont regroupés dans `ARCHI_CHIFFRES` (`src/main/34-architecture-diagrams-briefing.js`), et un test les compare aux données embarquées : une partie ou un problème de plus, et le test demande la mise à jour.
 
 ---
 
@@ -24,7 +24,7 @@ flowchart TD
     D -->|oui| D1[Coup du livre]
     D -->|non| E{Q5 — Niveau 1 ?}
     E -->|oui| E1[Coup au hasard parmi les 4 premiers :<br/>éjections, poussées, déplacements]
-    E -->|non| F[Recherche alpha-bêta,<br/>poids du style de l'IA]
+    E -->|non| F[Recherche alpha-bêta,<br/>poids du style de l'IA<br/>Texel dès le niveau 4<br/>en Auto ou Équilibré]
     F --> G{Plusieurs cœurs<br/>disponibles ?}
     G -->|oui| G1[Recherche répartie<br/>sur plusieurs workers]
     G -->|non| G2[Recherche sur un worker]
@@ -49,6 +49,7 @@ flowchart TD
 - **Jamais un coup qui revient en arrière** (v2.60) : aux questions 2, 3 et 4, un coup qui ramène une position déjà vue ou défait le coup précédent du même camp n'est jamais retenu ; au niveau 1, seulement s'il n'y a pas d'autre choix parmi les 4.
 - **Le repli par les parties réelles** (question 3), entre les deux livres, est facile à oublier : il ne s'active que dans les vingt premiers coups, quand le livre principal a perdu la trace de la partie mais que la **même** position (atteinte dans un autre ordre) existe dans une partie MIGS ou AbalOnline. Les empreintes ne servent qu'à trouver les candidates : chacune est vérifiée en rejouant sa partie. Jusqu'à la v2.59, ce repli prenait la position historique *la plus proche*, sans seuil : il jouait des coups d'autres parties, souvent d'une autre disposition, et faisait des allers-retours (h9g8 puis g8h9).
 - **Le niveau 1** ne tire pas parmi les 4 *meilleurs* coups : il trie la liste par sorte (éjections d'abord, puis poussées, puis déplacements) et tire parmi les 4 premiers.
+- **Les poids Texel** (v2.75) : en style Auto ou Équilibré, à partir du niveau 4, la recherche utilise les poids que la méthode Texel du Labo a appris sur 15 036 positions calmes de vraies parties (3 819 autres pour vérifier). Ils devinent mieux le gagnant et gagnent leurs duels contre « équilibré ». En option : le style KAAH (les critères de l'appli de Saab : sumito, menace, fourchette, piège, compacité) et le moteur NNUE expérimental, jamais par défaut.
 - **Le style** : la recherche utilise les poids du style choisi pour l'IA, ou, en mode adaptatif, celui déduit de ta façon de jouer (tu exposes tes billes : l'IA divise ; tu attaques fort : elle se solidifie ; tu joues passif : elle presse).
 
 ---
@@ -69,7 +70,14 @@ flowchart LR
     C --> R[Chaque partie rejouée<br/>coup par coup, hors ligne]
     C --> P[Problèmes<br/>138, chacun sourcé]
     C --> LP[Positions du Labo<br/>25 204 calmes + 3 866 départs]
-    C --> L[Bibliothèque de parties]
+    C --> L[Bibliothèque de parties<br/>+ 40 parties citées<br/>sans leurs coups]
+    C --> Q[Qualité des coups<br/>analyse hors ligne]
+    C --> HP[Humains ou programmes<br/>par nom, ou marque BOT]
+    C --> AP[games/ : MiGs et PlayStrategy<br/>en APGN, programmes marqués]
+    D[60 positions de départ<br/>dont 37 de gym-abalone] --> V[Jouer, Variantes, Éditeur]
+    Q --> ST
+    HP --> ST
+    HP --> MS
 
     O --> AI[IA]
     E --> AI
@@ -79,6 +87,7 @@ flowchart LR
     R --> MS[Mes statistiques,<br/>écran de fin de partie]
     P --> PB[Problèmes,<br/>Défi du jour]
     LP --> LAB[Labo IA : duels,<br/>Texel, comme les humains]
+    LAB -->|poids Texel| AI
 
     style C fill:#3a3a1a,color:#f0ead6
     style AI fill:#1a3a3a,color:#f0ead6
@@ -90,6 +99,12 @@ flowchart LR
 - **Chaque partie rejouée** : `tools/stats-parties.js` rejoue hors ligne, avec le vrai moteur, les 4 580 parties (éjections, sortes de coups, occasions, les 12 dimensions des deux camps aux 20ᵉ, 40ᵉ et 60ᵉ coups) ; le résultat est embarqué compressé. Il nourrit la page Statistiques du jeu (les billes qui tombent, ce qui fait gagner, comment jouent les vrais joueurs — v2.63 à v2.65), les comparaisons de Mes statistiques et la ligne de l'écran de fin de partie. Un test rejoue un échantillon et compare.
 
 - **Positions du Labo** (v2.70) : `tools/labo-positions.js` rejoue hors ligne les parties complètes et garde, pour chacune, jusqu'à 6 positions calmes (aucune éjection possible pour le camp au trait), avec le coup joué et le résultat, et une position de départ entre le 8ᵉ et le 16ᵉ demi-coup, à 0-0. Les duels du Labo partent de ces positions (Marguerite belge par défaut) ; la méthode Texel règle les poids sur les résultats ; « Comme les humains » et « Contre toi » sur les coups joués. Un test vérifie qu'elles suivent le corpus.
+
+- **Qualité des coups** (v2.78) : `tools/qualite-coups.js` analyse hors ligne chaque partie avec le moteur (environ une demi-heure) : billes offertes et prises, coups critiques (un seul coup sûr), coups trouvés. Résultat embarqué compressé, lu par la page Statistiques du jeu.
+- **Humains ou programmes** (v2.91) : `estIA` reconnaît un camp tenu par un programme à son nom exact (MLA, l'IA de lolo, les IA des parties de référence) ou, sur PlayStrategy, à la marque BOT de l'export. D'où le filtre « humains contre humains », les « vrais joueurs » de Mes statistiques (camps humains seulement) et le 🤖 de la bibliothèque.
+- **Les 60 positions de départ** : 23 relues une à une (images, corpus AbalOnline, parties rejouées), et 37 relevées par le projet gym-abalone puis vérifiées (v2.93-v2.94).
+- **Les 40 parties citées sans leurs coups** (v2.87-v2.92) : des traces dans la bibliothèque (numéro MiGs, date, joueurs), dont 2 que le corpus a avec leurs coups.
+- **Les fichiers publiés** : `tools/to-apgn.js` refait `games/migs-2016-2017.apgn` et `games/playstrategy-yearly-2026.apgn` en rejouant chaque partie ; un test vérifie que les fichiers du dépôt sont exactement ce qu'il produit, balises `BlackType` / `WhiteType` des programmes comprises.
 
 Le corpus n'est pas seulement une bibliothèque à consulter : il alimente directement le jeu de l'IA, l'analyse et les statistiques.
 
@@ -132,7 +147,7 @@ Le site n'a pas de serveur de jeu. Le code de partie, les liens, l'image, les ex
 
 - **La partie en direct** relie les deux navigateurs directement (WebRTC). Les codes de connexion s'échangent à la main ; un serveur public (STUN) aide seulement les deux appareils à se trouver.
 - **Synchroniser mes appareils** (v2.69) : la même connexion directe que la partie en direct, ou un fichier. Les deux appareils fusionnent leurs données de jeu (historique, progression, problèmes, cartes de chaleur…) : les parties s'ajoutent sans doublon, une suppression se propage, et chaque compteur garde la part de chaque appareil (un compteur « G-counter ») pour que rien ne soit compté deux fois. Les réglages, le Labo et la partie en cours restent sur chaque appareil.
-- **PlayStrategy** (v2.48) : suivre une partie en direct, voir les tournois, en importer un. Le site interroge le serveur de PlayStrategy en lecture seule ; il n'envoie rien d'autre qu'un pseudo ou un lien.
+- **PlayStrategy** (v2.48) : suivre une partie en direct, voir les tournois, en importer un. Le site interroge le serveur de PlayStrategy en lecture seule ; il n'envoie rien d'autre qu'un pseudo ou un lien. Jusqu'à la v2.95, la règle de sécurité du site (`connect-src 'self'`) bloquait pourtant ces connexions : depuis la v2.96, elle autorise `https://playstrategy.org`, et lui seul.
 
 ---
 

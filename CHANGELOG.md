@@ -9,6 +9,33 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.96]
+
+### Modifié — la page Architecture remise à jour
+Demande de l'auteur : « la partie Architecture correspond-elle à ce qu'il y a
+maintenant ? ». Non : elle avait été vérifiée en v2.66.
+- **Comment l'IA choisit son coup** : la recherche utilise, en style Auto ou
+  Équilibré et à partir du niveau 4, les poids que la méthode Texel a
+  appris sur 15 036 positions de vraies parties (v2.75). En option : le
+  style KAAH et le moteur NNUE expérimental.
+- **D'où viennent les données** : s'ajoutent la qualité des coups (chaque
+  partie analysée hors ligne par le moteur), les humains et les programmes,
+  les 60 positions de départ (dont 37 de gym-abalone), les 40 parties citées
+  sans leurs coups et les fichiers APGN publiés dans `games/`.
+- Les mêmes ajouts dans `docs-fr/Architecture.fr.md` et
+  `docs-en/Architecture.en.md`, schémas compris. Deux nouveaux chiffres
+  (positions de départ, parties citées) sont vérifiés par le test.
+
+### Corrigé — PlayStrategy était bloqué par le site lui-même
+- La page promettait de suivre une partie PlayStrategy en direct, de voir
+  ses tournois et d'en importer un. Mais la règle de sécurité du site
+  n'autorisait aucune connexion vers un autre site : vérifié dans un
+  navigateur, ces fonctions étaient bloquées depuis leur ajout. Elle
+  autorise maintenant `https://playstrategy.org`, et lui seul. Le site n'y
+  envoie toujours qu'un pseudo ou un lien. Reste une inconnue, impossible à
+  tester d'ici : que PlayStrategy accepte les requêtes venant d'un autre
+  site. Sinon, le message d'erreur le dit.
+
 ## [v2.95]
 
 ### Ajouté — tout ce qui existe autour du jeu

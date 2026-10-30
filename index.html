@@ -17,7 +17,10 @@
 <head>
 <meta charset="UTF-8">
 <!-- Politique de sécurité du contenu (limite les injections de script tierces) -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self'; base-uri 'self'; form-action 'self'">
+<!-- v2.96 : connect-src ouvert a playstrategy.org, et a lui seul. Les fonctions PlayStrategy (partie en direct,
+     tournois, import par lien) etaient bloquees par cette regle depuis leur ajout ; le site n'y envoie qu'un pseudo
+     ou un lien, en lecture seule. Si PlayStrategy refuse les requetes venant d'un autre site (CORS), le message le dit. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://playstrategy.org; base-uri 'self'; form-action 'self'">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#151918">
@@ -8710,7 +8713,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.95';
+const APP_VERSION = 'v2.96';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -37905,6 +37908,15 @@ function _historySetFilter(key, value){
    a jour. Le reste (l'ordre des questions de l'IA, les echanges) se relit a
    la main a chaque changement d'architecture, avec docs-fr/Architecture.fr.md
    et docs-en/Architecture.en.md.
+   v2.96, meme demande (« la partie Architecture correspond a ce qu'il y a
+   maintenant ? ») : non, encore. Manquaient depuis la v2.66 les poids Texel
+   (v2.75, a partir du niveau 4), le style KAAH et le moteur NNUE
+   experimental ; la qualite des coups (v2.78), les humains et les programmes
+   (v2.91), les 60 positions de depart (v2.93), les parties citees sans leurs
+   coups (v2.87) et les fichiers APGN publies (v2.91). Et la carte des
+   echanges promettait PlayStrategy alors que la regle de securite du site
+   (connect-src 'self') bloquait toute connexion vers lui : ouverte a
+   playstrategy.org en meme temps.
 ═══════════════════════════════════════════ */
 const ARCHI_CHIFFRES = {
   migs: 2589, ao: 1890, ps: 93, ref: 8,        // parties de chaque source (_sbBanques)
@@ -37912,6 +37924,8 @@ const ARCHI_CHIFFRES = {
   dispositionsLivre: 13,                        // dispositions de l'arbre d'ouvertures (OPENING_TREES)
   puzzles: 138,                                 // PUZZLES
   historique: 200,                              // HIST_MAX
+  dispositions: 60,                             // v2.96 : LAYOUTS (23 + 37 relevees par gym-abalone)
+  traces: 40,                                   // v2.96 : PARTIES_TRACES, citees par le blog sans leurs coups
   positions4v2: 140575680, demiCoups4v2: 97     // tablebase/RESULTS.md
 };
 function _archiN(x){ return '<b class="archi-chiffre">' + _dimNb(x) + '</b>'; }
@@ -37946,8 +37960,8 @@ function _archiCarteIA(){
       + _archiBranche(_tr('oui', 'yes'), e[1], 'archi-r') + '</div>'
       + '<div class="archi-non"><span>' + _tr('non', 'no') + ' <span aria-hidden="true">↓</span></span></div>';
   });
-  h += '<div class="archi-boite archi-c">' + _tr('Sinon : recherche alpha-bêta, avec les poids du style de l’IA (choisi, ou déduit de ta façon de jouer), répartie sur plusieurs cœurs si l’appareil en a',
-                                                 'Otherwise: alpha-beta search, with the weights of the AI’s style (chosen, or deduced from how you play), spread over several cores if the device has them') + '</div></div>'
+  h += '<div class="archi-boite archi-c">' + _tr('Sinon : recherche alpha-bêta, avec les poids du style de l’IA (choisi, ou déduit de ta façon de jouer), répartie sur plusieurs cœurs si l’appareil en a. En style Auto ou Équilibré, à partir du niveau 4, ces poids sont ceux que la méthode Texel a appris sur 15 036 positions de vraies parties. En option : le style KAAH (les critères de l’appli de Saab) et un moteur NNUE expérimental.',
+                                                 'Otherwise: alpha-beta search, with the weights of the AI’s style (chosen, or deduced from how you play), spread over several cores if the device has them. In Auto or Balanced style, from level 4, those weights are the ones the Texel method learned from 15,036 positions of real games. As options: the KAAH style (the criteria of Saab’s app) and an experimental NNUE engine.') + '</div></div>'
     + '<p class="archi-regle">' + _tr('Aux questions 2 à 4, jamais un coup qui revient en arrière (une position déjà vue, un aller-retour) ; au niveau 1, seulement s’il n’y a pas d’autre choix. Depuis la v2.60.',
                                       'For questions 2 to 4, never a move that goes backwards (a position already seen, a back-and-forth); at level 1, only when there is no other choice. Since v2.60.') + '</p>';
   return _archiCarte(_tr('Comment l’IA choisit son coup', 'How the AI picks its move'),
@@ -37970,11 +37984,19 @@ function _archiCarteDonnees(){
     [_tr('Chaque partie rejouée coup par coup, hors ligne : billes tombées, sortes de coups, camps comparés', 'Every game replayed move by move, offline: marbles pushed off, kinds of moves, sides compared'),
      _tr('Statistiques du jeu, Mes statistiques, l’écran de fin de partie', 'Game statistics, My statistics, the end-of-game screen')],
     [_tr('Positions du Labo : des positions calmes avec le coup joué et le résultat, et des positions de départ pour les duels', 'Lab positions: quiet positions with the move played and the result, and starting positions for the duels'),
-     _tr('Labo IA : duels, méthode Texel, comme les humains', 'AI Lab: duels, Texel method, like humans')],
+     _tr('Labo IA : duels, méthode Texel (dont les poids de l’IA à partir du niveau 4), comme les humains', 'AI Lab: duels, Texel method (including the AI’s weights from level 4), like humans')],
+    [_tr('Qualité des coups : chaque partie analysée hors ligne par le moteur (billes offertes, coups critiques)', 'Move quality: every game analysed offline by the engine (marbles offered, critical moves)'),
+     _tr('Statistiques du jeu', 'Game statistics')],
+    [_tr('Humains ou programmes : chaque camp reconnu par le nom de son joueur, ou par la marque BOT de PlayStrategy', 'Humans or programs: each side recognised by its player’s name, or by PlayStrategy’s BOT mark'),
+     _tr('Filtre « humains contre humains », Mes statistiques, 🤖 dans la bibliothèque', '“Human against human” filter, My statistics, 🤖 in the library')],
     [_tr(_archiN(C.puzzles) + ' problèmes, chacun avec sa partie d’origine', _archiN(C.puzzles) + ' puzzles, each with the game it comes from'),
      _tr('Problèmes, Défi du jour', 'Puzzles, Daily puzzle')],
-    [_tr('Les parties elles-mêmes', 'The games themselves'),
-     _tr('Bibliothèque de parties : rejouer, filtrer', 'Game library: replay, filter')]
+    [_tr('Les parties elles-mêmes, et ' + _archiN(C.traces) + ' parties de MiGs citées par le blog, gardées en trace sans leurs coups', 'The games themselves, and ' + _archiN(C.traces) + ' MiGs games cited by the blog, kept as a trace without their moves'),
+     _tr('Bibliothèque de parties : rejouer, filtrer', 'Game library: replay, filter')],
+    [_tr('Les parties MiGs et PlayStrategy en APGN, refaites par un outil et vérifiées par un test', 'The MiGs and PlayStrategy games in APGN, rebuilt by a tool and checked by a test'),
+     _tr('Le dossier games/ du dépôt, pour les autres programmes', 'The repository’s games/ folder, for other programs')],
+    [_tr(_archiN(C.dispositions) + ' positions de départ, dont 37 relevées par le projet gym-abalone et vérifiées case par case', _archiN(C.dispositions) + ' starting positions, 37 of them read by the gym-abalone project and checked cell by cell'),
+     _tr('Jouer, Variantes, Éditeur', 'Play, Variants, Editor')]
   ];
   h += '<div class="archi-usages">' + usages.map(function(u){
     return '<div class="archi-usage"><div class="archi-boite archi-c">' + u[0] + '</div>' + _archiBranche('', u[1], 'archi-dest') + '</div>';
@@ -38006,8 +38028,8 @@ function _archiCarteEchanges(){
     + '<div class="archi-boite archi-c">' + _tr('Connexion directe entre les deux navigateurs (WebRTC). Les codes de connexion s’échangent à la main ; un serveur public (STUN) aide seulement les deux appareils à se trouver. La synchro en direct de tes appareils passe par le même chemin.',
                                                'Direct connection between the two browsers (WebRTC). The connection codes are exchanged by hand; a public server (STUN) only helps the two devices find each other. Syncing your devices live takes the same path.') + '</div></div>'
     + '<div class="archi-groupe"><div class="archi-groupe-titre">' + _tr('Avec un serveur extérieur, en lecture seule', 'With an outside server, read-only') + '</div>'
-    + '<div class="archi-boite archi-ext">' + _tr('PlayStrategy : suivre une partie en direct, voir les tournois, en importer un. Le site lit les parties, il n’envoie rien d’autre qu’un pseudo ou un lien.',
-                                                 'PlayStrategy: follow a game live, see the tournaments, import one. The site reads the games; it sends nothing but a username or a link.') + '</div></div>';
+    + '<div class="archi-boite archi-ext">' + _tr('PlayStrategy : suivre une partie en direct, voir les tournois, en importer un. Le site lit les parties, il n’envoie rien d’autre qu’un pseudo ou un lien. C’est le seul site extérieur dont sa règle de sécurité le laisse lire des données (depuis la v2.96 : avant, elle bloquait aussi celui-là).',
+                                                 'PlayStrategy: follow a game live, see the tournaments, import one. The site reads the games; it sends nothing but a username or a link. It is the only outside site its security rule lets it read data from (since v2.96: before, the rule blocked this one too).') + '</div></div>';
   return _archiCarte(_tr('Les modes de jeu et les échanges', 'Game modes and exchanges'),
     _tr('Le site n’a pas de serveur de jeu : une partie se transmet par un texte, une adresse, une image ou un fichier, que tu envoies toi-même.', 'The site has no game server: a game travels as a text, an address, an image or a file, which you send yourself.'), h);
 }
@@ -38035,8 +38057,8 @@ function renderArchiPage(){
   const lien = currentLang() === 'EN'
     ? '<a href="https://github.com/ocj94/Abalassembly/blob/main/docs-en/Architecture.en.md" target="_blank" rel="noopener noreferrer">docs-en/Architecture.en.md</a>'
     : '<a href="https://github.com/ocj94/Abalassembly/blob/main/docs-fr/Architecture.fr.md" target="_blank" rel="noopener noreferrer">docs-fr/Architecture.fr.md</a>';
-  host.innerHTML = '<p class="archi-intro">' + _tr('Quatre cartes pour comprendre le fonctionnement interne, vérifiées contre le code en v2.66. Version détaillée, avec les schémas : ' + lien + ' sur le dépôt.',
-                                                  'Four cards to understand how it works inside, checked against the code in v2.66. Detailed version, with the diagrams: ' + lien + ' in the repository.') + '</p>'
+  host.innerHTML = '<p class="archi-intro">' + _tr('Quatre cartes pour comprendre le fonctionnement interne, vérifiées contre le code en v2.96. Version détaillée, avec les schémas : ' + lien + ' sur le dépôt.',
+                                                  'Four cards to understand how it works inside, checked against the code in v2.96. Detailed version, with the diagrams: ' + lien + ' in the repository.') + '</p>'
     + _archiCarteIA() + _archiCarteDonnees() + _archiCarteEchanges() + _archiCarteTables();
 }
 

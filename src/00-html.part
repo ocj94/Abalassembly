@@ -17,7 +17,10 @@
 <head>
 <meta charset="UTF-8">
 <!-- Politique de sécurité du contenu (limite les injections de script tierces) -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self'; base-uri 'self'; form-action 'self'">
+<!-- v2.96 : connect-src ouvert a playstrategy.org, et a lui seul. Les fonctions PlayStrategy (partie en direct,
+     tournois, import par lien) etaient bloquees par cette regle depuis leur ajout ; le site n'y envoie qu'un pseudo
+     ou un lien, en lecture seule. Si PlayStrategy refuse les requetes venant d'un autre site (CORS), le message le dit. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://playstrategy.org; base-uri 'self'; form-action 'self'">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#151918">
