@@ -838,6 +838,11 @@ const _SRC_INDEX = require('fs').readFileSync(require('path').join(__dirname, '.
 // v2.88 : le vrai nom de l'auteur, qui ne doit apparaitre nulle part -- sur le site il signe ocj94.
 // Encode ici pour ne pas l'ecrire en clair dans les tests non plus.
 const _NOMS_AUTEUR = ['T2xpdmllcg==', 'Q2hhcmxlcy1Kb3NlcGg='].map(b => Buffer.from(b, 'base64').toString('utf8'));
+// v2.99 : le nom que le site donnait a FightClub, et son ancien numero (jamais en clair, ni ici ni sur le site) :
+// le nom de famille, le nom complet sans accent, et les chiffres du numero
+const _NOMS_PRIVES = ['R2Fybmllcg==', 'RnJlZGVyaWMgR2Fybmllcg==', 'NjYxODg2OTg1'].map(b => Buffer.from(b, 'base64').toString('utf8'));
+const _PRIVE_NOM = new RegExp(_NOMS_PRIVES[0], 'i');
+const _PRIVE_TEL = (d => new RegExp('(\\+33 ?|\\b0)' + d[0] + '[ .-]?' + d.slice(1, 3) + '[ .-]?' + d.slice(3, 5) + '[ .-]?' + d.slice(5, 7) + '[ .-]?' + d.slice(7, 9)))(_NOMS_PRIVES[2]);
 
 
 test('correspondance : 60 fiches jouables, chacune reliee a une disposition du moteur ET du menu Jouer', () => {
@@ -3031,7 +3036,7 @@ test('v2.57 partage : le message suit la vraie fin de partie (plus de « Je vien
 
 test('v2.57 comptes : un profil local a un vrai mot de passe ; plus de compte « fightclub », de Google ou Discord factices, ni d e-mail « envoye »', async () => {
   const src = _SRC();
-  ["'fightclub':", 'FightClub (Frederic Garnier)', 'Email de réinitialisation envoyé', "showToast('🔗 Connexion Google", "showToast('🔗 Inscription Discord",
+  ["'fightclub':", 'FightClub (' + _NOMS_PRIVES[1] + ')', 'Email de réinitialisation envoyé', "showToast('🔗 Connexion Google", "showToast('🔗 Inscription Discord",
    'Visible par les autres joueurs', 'Rejoignez Abalone', 'compte Abalone', 'id="spanel-writer"', 'function publishArticle'].forEach(t => assert.strictEqual(src.indexOf(t), -1, 'encore present : ' + t));
   const u0 = ctx.currentUser, sess = ctx.localStorage.getItem('abalone_session'), reg = ctx.localStorage.getItem('abalone_profils');
   try {
@@ -5980,7 +5985,7 @@ test('bibliotheque v2.87-v2.92 : 40 parties de MiGs citees par le blog, dont 2 r
 
 test('bibliotheque v2.87 : les traces ne citent que des pseudos, jamais de nom reel', () => {
   const T = _r63('PARTIES_TRACES'), tout = JSON.stringify(T) + _SRC_INDEX.slice(_SRC_INDEX.indexOf('const PARTIES_TRACES'), _SRC_INDEX.indexOf('let _ptRangs'));
-  ['Alfaro', 'Piat', 'Borello', 'Garnier', 'Frochot'].concat(_NOMS_AUTEUR).forEach(n => assert.ok(!tout.includes(n), n));
+  ['Alfaro', 'Piat', 'Borello', _NOMS_PRIVES[0], 'Frochot'].concat(_NOMS_AUTEUR).forEach(n => assert.ok(!tout.includes(n), n));
   // aucun lien entre des comptes du meme joueur
   assert.ok(!/ocj94|spmichel|guru_ajna/i.test(tout));
   const i = _SRC_INDEX.indexOf('BIBLIOTHEQUE : LES PARTIES MIGS CITEES'), entete = _SRC_INDEX.slice(i, _SRC_INDEX.indexOf('const PARTIES_TRACES', i));
@@ -6000,6 +6005,9 @@ test('v2.88 : le vrai nom de l auteur n apparait ni sur le site, ni dans les sou
     if (s.indexOf('\u0000') >= 0) return;   // fichier binaire
     lus++;
     _NOMS_AUTEUR.forEach(n => assert.ok(!s.includes(n), f));
+    // v2.99 : ni le nom que le site donnait a FightClub, ni son numero de telephone, sous aucune forme
+    assert.ok(!_PRIVE_NOM.test(s), f + ' : nom de FightClub');
+    assert.ok(!_PRIVE_TEL.test(s), f + ' : numero');
   });
   assert.ok(lus > 100);
   // le Hall of Fame et le compte de demonstration montrent le pseudo

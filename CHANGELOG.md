@@ -9,6 +9,17 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.99]
+
+### Corrigé — vie privée
+- La carte de FightClub, dans le Hall of Fame et parmi les liens, montrait
+  un nom présenté comme le sien. Il n'est publié nulle part ailleurs : le
+  site ne montre plus que son pseudo, comme pour tous les joueurs.
+- L'historique du dépôt a été réécrit : le vrai nom de l'auteur, ce nom et
+  le numéro de téléphone qu'une ancienne version affichait n'y figurent
+  plus, dans aucune version passée des fichiers ni dans aucun message de
+  commit. Un test vérifie qu'ils ne reviennent dans aucun fichier.
+
 ## [v2.98]
 
 ### Ajouté — la notation de Saab : le code de position de KAAH et KAAWA
