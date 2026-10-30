@@ -147,3 +147,28 @@ sans description détaillée ailleurs sur le site :
 Ces trois-là n'ont pas de fiche galerie, pas de section Apprendre dédiée,
 et pas de position jouable : un simple nom cité en réponse à une question,
 rien de plus pour l'instant.
+
+## 4. Combien de positions de départ peut-il exister ?
+
+Avec 14 billes noires, 14 blanches et 61 trous (v3.00, aussi sur la page
+Variantes du site) :
+
+| Ce qu'on compte | Nombre |
+|---|---:|
+| Toutes les façons de poser les 28 billes | 7 691 345 017 184 661 959 133 000, environ 7,7 × 10²⁴ |
+| Les formes vraiment différentes, en regroupant celles qui se déduisent l'une de l'autre en tournant ou en retournant le plateau (12 symétries) | environ 6,4 × 10²³ |
+| Les départs **équitables** : les Blancs sont l'image exacte des Noirs vus de l'autre côté du plateau, comme la Standard ou la Marguerite belge | 2 382 605 107 200, environ 2 400 milliards |
+| Les mêmes, en regroupant celles qui se déduisent l'une de l'autre en tournant ou en retournant le plateau | 198 550 991 616, environ 200 milliards |
+
+Pour les départs équitables, le calcul est simple : le plateau se partage en
+30 paires de cases face à face, plus la case du centre, qui ne peut servir à
+aucun camp. On choisit 14 de ces paires (C(30, 14)), puis, dans chacune,
+laquelle des deux cases reçoit la bille noire (2¹⁴). Les formes « vraiment
+différentes » sont comptées exactement, en faisant la moyenne, sur les 12
+symétries, du nombre de positions que chacune laisse inchangées (lemme de
+Burnside) ; le test du site refait le calcul.
+
+Ces nombres comptent aussi des positions absurdes : une éjection possible dès
+le premier coup, des camps tout collés… Toute l'histoire de l'Abalone n'a
+utilisé qu'une centaine de positions de départ : MiGs en proposait 42,
+Abalassembly en propose 60.

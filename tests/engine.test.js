@@ -6448,3 +6448,59 @@ test('v2.98 Saab : les boutons, l\'import, les traductions et le wiki', () => {
     const s = fs.readFileSync(path.join(__dirname, '..', f), 'utf8'); mots.forEach(t => assert.ok(s.includes(t), f + ' : ' + t));
   }
 });
+
+/* ─── 86. v3.00 : les nombres des pages Variantes et Tables de finale, recalcules ─── */
+test('v3.00 : le nombre de positions de depart possibles, recalcule (lemme de Burnside), est celui des pages', () => {
+  const cells = []; for (let x = -4; x <= 4; x++) for (let y = -4; y <= 4; y++) if (Math.abs(-x - y) <= 4) cells.push([x, y, -x - y]);
+  assert.strictEqual(cells.length, 61);
+  const K = c => c.join(','), rot = c => [-c[2], -c[0], -c[1]], ref = c => [c[1], c[0], c[2]], demi = c => [-c[0], -c[1], -c[2]];
+  const G = []; for (let m = 0; m < 2; m++) for (let k = 0; k < 6; k++) G.push(c => { let d = m ? ref(c) : c; for (let i = 0; i < k; i++) d = rot(d); return d; });
+  const fact = n => { let r = 1n; for (let i = 2n; i <= BigInt(n); i++) r *= i; return r; };
+  const cycles = g => { const vu = new Set(), L = []; cells.forEach(c => { if (vu.has(K(c))) return; let n = 0, d = c; while (!vu.has(K(d))) { vu.add(K(d)); d = g(d); n++; } L.push(n); }); return L; };
+  // colorations a 14 noires et 14 blanches qui ne changent pas par g : une couleur par cycle
+  const fixes = L => { let dp = new Map([['0,0', 1n]]);
+    L.forEach(n => { const nd = new Map(); dp.forEach((v, key) => { const [i, j] = key.split(',').map(Number);
+      [[0, 0], [n, 0], [0, n]].forEach(([a, b]) => { if (i + a <= 14 && j + b <= 14) { const k2 = (i + a) + ',' + (j + b); nd.set(k2, (nd.get(k2) || 0n) + v); } }); }); dp = nd; });
+    return dp.get('14,14') || 0n; };
+  const total = fact(61) / (fact(14) * fact(14) * fact(33));
+  assert.strictEqual(total, 7691345017184661959133000n);
+  const distinctes = G.reduce((s, g) => s + fixes(cycles(g)), 0n) / 12n;
+  assert.strictEqual(Number(distinctes).toExponential(1), '6.4e+23');
+  // equitables : 14 des 30 paires de cases face a face, et la case noire de chaque paire
+  const C = (n, k) => fact(n) / (fact(k) * fact(n - k));
+  assert.strictEqual(C(30, 14) * (2n ** 14n), 2382605107200n);
+  // les memes, a symetrie pres : <g, demi-tour> ; un demi-tour echange les couleurs
+  const fixesEq = g => { const vu = new Map(), orb = [];
+    cells.forEach(c => { if (vu.has(K(c))) return; vu.set(K(c), 0); const pile = [c]; let ok = true, n = 0;
+      while (pile.length) { const x = pile.pop(); n++; const p = vu.get(K(x));
+        [[g(x), p], [demi(x), 1 - p]].forEach(([y, q]) => { if (vu.has(K(y))) { if (vu.get(K(y)) !== q) ok = false; } else { vu.set(K(y), q); pile.push(y); } }); }
+      orb.push([n, ok]); });
+    let dp = new Map([[0, 1n]]);
+    orb.forEach(([n, ok]) => { const nd = new Map(dp); if (ok) dp.forEach((v, k) => { if (k + n / 2 <= 14) nd.set(k + n / 2, (nd.get(k + n / 2) || 0n) + 2n * v); }); dp = nd; });
+    return dp.get(14) || 0n; };
+  assert.strictEqual(fixesEq(G[0]), 2382605107200n);
+  assert.strictEqual(G.reduce((s, g) => s + fixesEq(g), 0n) / 12n, 198550991616n);
+  // sur la page Variantes et dans le wiki
+  ['7 691 345 017 184 661 959 133 000', '6,4 × 10²³', '2 382 605 107 200', '198 550 991 616'].forEach(t => assert.ok(_SRC_INDEX.includes(t), t));
+  const fs = require('fs'), path = require('path');
+  assert.ok(fs.readFileSync(path.join(__dirname, '..', 'docs-fr/Variantes.fr.md'), 'utf8').includes('198 550 991 616'));
+  assert.ok(fs.readFileSync(path.join(__dirname, '..', 'docs-en/Variantes.en.md'), 'utf8').includes('198,550,991,616'));
+});
+
+test('v3.00 : les finales de 14 contre 9 a 9 contre 9 -- leurs tailles, recalculees, sont celles de la page Tables de finale', () => {
+  const fact = n => { let r = 1n; for (let i = 2n; i <= BigInt(n); i++) r *= i; return r; };
+  const C = (n, k) => fact(n) / (fact(k) * fact(n - k));
+  const attendu = { 9: '1,1 × 10¹⁹', 10: '4,6 × 10¹⁹', 11: '1,7 × 10²⁰', 12: '6 × 10²⁰', 13: '1,8 × 10²¹', 14: '5,1 × 10²¹' };
+  let somme = 0;
+  for (const k of [9, 10, 11, 12, 13, 14]) {
+    const pos = Number(C(61, k) * C(61 - k, 9) * 2n) / 12;   // les deux camps, le trait, les 12 symetries
+    const [m, e] = pos.toExponential(1).split('e+'), txt = (m.endsWith('.0') ? m.slice(0, -2) : m.replace('.', ',')) + ' × 10' + e.split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'[ch]).join('');
+    assert.strictEqual(txt, attendu[k], k + ' contre 9'); assert.ok(_SRC_INDEX.includes(txt), txt);
+    somme += pos;
+  }
+  assert.strictEqual(somme.toExponential(1), '7.8e+21');
+  assert.ok(Math.abs(somme * 2 / 8 / 1e21 - 2) < 0.1, 'environ 2 zettaoctets a 2 bits par position');
+  ['environ 2 zettaoctets', '423 836 835 667 331', 'El Capitan', 'vers 2075-2080', 'La table couvre les finales à 2 contre 2, 3 contre 2 et 4 contre 2'].forEach(t => assert.ok(_SRC_INDEX.includes(t), t));
+  assert.ok(!_SRC_INDEX.includes('~185 M') && !_SRC_INDEX.includes('n\'a pas besoin de tables de finale'), 'les anciens chiffres faux sont partis');
+  assert.match(require('fs').readFileSync(require('path').join(__dirname, '..', 'tablebase/RESULTS.md'), 'utf8'), /## Et en Abalone normal \?/);
+});
