@@ -123,21 +123,25 @@ function playFromEditor() {
     showToast('⚠️ Maximum 14 billes par couleur');
     return;
   }
-  // copie la position dans le plateau de jeu
-  showPage('game');
-  setTimeout(function() {
-    board = JSON.parse(JSON.stringify(editorBoard));
-    CapturedByWhite.set(editorCapturedWhite); CapturedByBlack.set(editorCapturedBlack);
-    CurrentTurn.set('black'); MoveCount.set(0); GameOver.set(false);
-    // la position de depart de cette partie est celle de l'editeur (rejeu ⏮, Liste, regle de repetition)
-    _replayStartBoard = JSON.parse(JSON.stringify(board));
-    if (typeof _replayStartCaptures !== 'undefined') _replayStartCaptures = { b: editorCapturedBlack, w: editorCapturedWhite };
-    selected = [];
-    if (typeof updateCaptures === 'function') updateCaptures();
-    if (typeof updateStatus === 'function') updateStatus();
-    drawBoard();
-    showToast('▶ Position chargée — à toi de jouer !');
-  }, 150);
+  /* v2.98 : la partie part du code de la position (la notation de Saab) -- meme chemin que « Jouer
+     cette position » : nouvelle partie propre (l'ancien historique de coups restait affiche), compteurs
+     dans le bon sens (les billes noires deja perdues sont le score de Blanc : ils etaient inverses), et
+     une partie que l'historique sait rejouer, puisque son code porte sa position de depart. */
+  jouerDepuisCode(codePosition(editorBoard, editorCapturedBlack, editorCapturedWhite));
+}
+
+/* v2.98 : charge dans l'editeur une position ecrite dans la notation de Saab (KAAH, KAAWA). */
+function chargerCodeEditeur(code) {
+  const el = document.getElementById('editor-code');
+  const L = lireCodePosition(code !== undefined ? code : (el ? el.value : ''));
+  if (!L) { showToast('⚠️ ' + _saabRaisonCode(null)); return false; }
+  editorBoard = L.plateau;
+  editorCapturedBlack = Math.min(EDITOR_MAX_CAPTURED, L.ejNoires); editorCapturedWhite = Math.min(EDITOR_MAX_CAPTURED, L.ejBlanches);
+  const cb = document.getElementById('editor-captured-black'); if (cb) cb.textContent = String(editorCapturedBlack);
+  const cw = document.getElementById('editor-captured-white'); if (cw) cw.textContent = String(editorCapturedWhite);
+  drawEditorBoard();
+  updateEditorStatus();
+  return true;
 }
 
 // Tester la position comme puzzle (vérifie qu'une éjection est possible)
@@ -177,17 +181,12 @@ function testAsPuzzle() {
 
 // Exporter la position sous forme de code (liste de coordonnées)
 function exportEditorPosition() {
-  const blacks = Object.keys(editorBoard).filter(k=>editorBoard[k]==='black').map(k=>{const[r,c]=k.split(',').map(Number);return coordToABAPRO(r,c);});
-  const whites = Object.keys(editorBoard).filter(k=>editorBoard[k]==='white').map(k=>{const[r,c]=k.split(',').map(Number);return coordToABAPRO(r,c);});
-  const code = 'Noirs: ' + (blacks.join(' ') || '(aucun')+'\nBlancs: ' + (whites.join(' ') || '(aucun)');
-  // copie dans le presse-papier
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(code).then(function(){
-      showToast('📋 Position copiée (notation A-I / 1-9)');
-    }, function(){ showToast(code); });
-  } else {
-    showToast('📋 ' + code);
-  }
+  /* v2.98 : le code de la position, dans la notation de Saab (KAAH, KAAWA), que l'on recolle ici, dans
+     « Importer » ou dans la fenetre des permutations. (Avant : la liste des cases, « Noirs: a1 a2... ».) */
+  const code = codePosition(editorBoard, editorCapturedBlack, editorCapturedWhite);
+  const el = document.getElementById('editor-code'); if (el) el.value = code;
+  _copierTexte(code, '📋 ' + _tr('Code de la position copié', 'Position code copied'));
+  return code;
 }
 
 // Clic sur le plateau de l'éditeur

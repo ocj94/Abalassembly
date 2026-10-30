@@ -114,6 +114,7 @@ function _setupFromAOStart(startStr){
 // Rejoue une séquence ABA-PRO sur le plateau courant et bascule en mode rejeu
 function _replaySeqToSnapshots(seq, labelText, startColor){
   boardSnapshots=[]; _bookNode=null;
+  if (typeof departPosition !== 'undefined') departPosition = null;   // v2.98 : chargerPartieKAAH la remet apres
   /* Les billes ejectees de la partie precedente restaient dessinees dans la
      gouttiere pendant tout le rejeu : un score fantome sans rapport avec la
      partie chargee. Signale par Saab. */

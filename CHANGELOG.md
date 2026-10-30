@@ -9,6 +9,41 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.98]
+
+### Ajouté — la notation de Saab : le code de position de KAAH et KAAWA
+Demande de l'auteur, après l'explication de Saab : « ce n'est pas une
+notation de coup, c'est la notation de la position complète compressée ».
+Le code lui-même s'affichait déjà sous le plateau ; il devient une vraie
+notation, qu'on lit autant qu'on l'écrit.
+- **La posRef de KAAH** : la fenêtre *Permutations* met en évidence la
+  posRef, la forme sous laquelle KAAH range une position (le camp qui a le
+  plus de billes devant, puis la position dont les billes sont le plus près
+  de a1, a2, a3…), avec son `code_permut_Ref_Orig`. Le calcul est celui de
+  KAAH, comparé à son propre code sur 2 885 positions : zéro écart.
+  L'ancienne « forme canonique » (le plus petit des 12 codes) n'était la
+  sienne que dans 57 % des positions.
+- **La fenêtre Permutations** : le code y est modifiable (on colle n'importe
+  quelle position), *Copier tout* écrit le même texte que KAAH, et *Jouer
+  cette position* lance une partie depuis là.
+- **Jouer depuis un code** : aussi dans *Importer* et dans l'éditeur de
+  position (« Ou un code de position »), dont *Copier le code de position*
+  copie désormais ce code. Le code de partie (`ABAL1`) porte alors la
+  position de départ, `pos_` et le code, à la place du nom de la
+  disposition : l'historique et la *Partie par code* la rejouent.
+- **Les fichiers de partie de KAAH et KAAWA (.json)** : *Importer* → *Fichier
+  de partie KAAH / KAAWA*, et *💾 Fichier KAAH (.json)* dans la partie.
+  Chaque coup y porte sa position : c'est elle qui désigne le coup à la
+  lecture, l'idée même de Saab. Vérifié dans les deux sens : 40 parties
+  écrites par Abalassembly relues par le chargeur de KAAH à l'identique,
+  et deux vrais fichiers de KAAWA relus ici jusqu'à la même position finale.
+
+### Corrigé — l'éditeur de position
+- *Jouer cette position* inversait les billes déjà éjectées : les billes
+  noires perdues devenaient le score de Noir au lieu de celui de Blanc.
+- Il gardait aussi l'historique des coups de la partie précédente. Il passe
+  désormais par le code de la position, comme le reste.
+
 ## [v2.97]
 
 ### Ajouté — les notations de Marc Ghigou, et le principe de Michael Frank

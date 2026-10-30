@@ -221,6 +221,7 @@ function resetGame() {
   if (typeof pauseCountdown !== 'undefined') clearInterval(pauseCountdown);
   replayMode = false;
   replayCurrentIdx = -1;
+  departPosition = null;   // v2.98 : une nouvelle partie repart d'une disposition (jouerDepuisCode la remplace ensuite)
   initBoardState();
   /* position de depart de CETTE partie, pour le rejeu (⏮) et la regle de repetition : sans
      ca, celle d'une partie importee avant restait en place (v2.58) */

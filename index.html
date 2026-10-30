@@ -3343,7 +3343,11 @@ const I18N_EN = {
   // v2.97 : notations historiques
   'Notation historique': 'Historical notation', '(sous chaque coup)': '(under each move)', 'Aucune': 'None',
   "📜 Les notations d'avant Aba-Pro : plateaux et histoire": '📜 Notations from before Aba-Pro: boards and history',
-  'Notations historiques': 'Historical notations'
+  'Notations historiques': 'Historical notations',
+  // v2.98 : la notation de Saab
+  'Ou un code de position (KAAH) :': 'Or a position code (KAAH):', 'Charger': 'Load', '💾 Fichier KAAH (.json)': '💾 KAAH file (.json)',
+  'Ou une position, dans la notation de Saab (KAAH) :': 'Or a position, in Saab’s notation (KAAH):', '▶ Jouer': '▶ Play',
+  '📂 Fichier de partie KAAH / KAAWA (.json)': '📂 KAAH / KAAWA game file (.json)'
 };
 function _i18nCle(s) { const t = String(s).trim(); return /\s\s|[\t\n\r\u00a0\u202f]/.test(t) ? t.replace(/\s+/g, ' ') : t; }
 function _i18nDict(k) { return Object.prototype.hasOwnProperty.call(I18N_EN, k) ? I18N_EN[k] : null; }
@@ -4696,6 +4700,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
           <button class="ctrl-btn" onclick="exportGameNotation()" style="margin-top:8px;width:100%">📋 Exporter la partie</button>
           <button class="ctrl-btn" onclick="openGameCodePanel()" style="margin-top:8px;width:100%" title="Jouer par echange de code, sans compte ni serveur">Partie par code</button>
           <button class="ctrl-btn" onclick="exportGameAbaPro()" style="margin-top:8px;width:100%" title="Copie les coups de la partie en notation Aba-Pro standard, lisible par un moteur externe">Copier les coups (Aba-Pro)</button>
+          <button class="ctrl-btn" onclick="telechargerPartieKAAH()" style="margin-top:8px;width:100%" title="La partie au format des fichiers de KAAH et KAAWA : chaque coup avec sa position">💾 Fichier KAAH (.json)</button>
           <button class="ctrl-btn" onclick="openApgnImportModal()" style="margin-top:8px;width:100%" title="Colle une sequence de coups en notation Aba-Pro pour la rejouer -- raccourci vers le meme import que dans le menu">Importer une partie (Aba-Pro)</button>
           <button class="ctrl-btn" onclick="openExternalEnginePanel()" style="margin-top:8px;width:100%" title="Faire jouer un autre programme contre l IA de ce site, en relayant les coups a la main">Duel moteur externe 🧪</button>
           <button class="ctrl-btn" onclick="openRtcPanel()" style="margin-top:8px;width:100%" title="Connexion directe en temps reel entre deux navigateurs, experimental">Partie en direct 🧪</button>
@@ -6796,6 +6801,12 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
             <button onclick="loadEditorPreset('german')" class="editor-preset-btn">🌻 German Daisy</button>
             <button onclick="loadEditorPreset('empty')" class="editor-preset-btn">⬜ Plateau vide</button>
           </div>
+          <!-- v2.98 : une position ecrite dans la notation de Saab (KAAH, KAAWA) -->
+          <div style="font-size:11px;color:var(--muted);margin:12px 0 4px">Ou un code de position (KAAH) :</div>
+          <div style="display:flex;gap:6px">
+            <input id="editor-code" placeholder="0a12b123c23g78h789i89_0a45b456c56g45h456i56" spellcheck="false" onkeydown="if(event.key==='Enter')chargerCodeEditeur()" style="flex:1;min-width:0;font-family:'DM Mono',monospace;font-size:11px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px">
+            <button onclick="chargerCodeEditeur()" class="ctrl-btn" style="width:auto;padding:6px 10px;font-size:12px">Charger</button>
+          </div>
         </div>
 
         <!-- Actions -->
@@ -8736,7 +8747,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.97';
+const APP_VERSION = 'v2.98';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -15966,6 +15977,7 @@ function resetGame() {
   if (typeof pauseCountdown !== 'undefined') clearInterval(pauseCountdown);
   replayMode = false;
   replayCurrentIdx = -1;
+  departPosition = null;   // v2.98 : une nouvelle partie repart d'une disposition (jouerDepuisCode la remplace ensuite)
   initBoardState();
   /* position de depart de CETTE partie, pour le rejeu (⏮) et la regle de repetition : sans
      ca, celle d'une partie importee avant restait en place (v2.58) */
@@ -22376,6 +22388,7 @@ function _setupFromAOStart(startStr){
 // Rejoue une séquence ABA-PRO sur le plateau courant et bascule en mode rejeu
 function _replaySeqToSnapshots(seq, labelText, startColor){
   boardSnapshots=[]; _bookNode=null;
+  if (typeof departPosition !== 'undefined') departPosition = null;   // v2.98 : chargerPartieKAAH la remet apres
   /* Les billes ejectees de la partie precedente restaient dessinees dans la
      gouttiere pendant tout le rejeu : un score fantome sans rapport avec la
      partie chargee. Signale par Saab. */
@@ -26546,8 +26559,9 @@ function codePosition(plateau, ejNoires, ejBlanches) {
      0 a 5    : rotation de n sixiemes de tour ;
      10 a 15  : miroir, puis rotation ;
      100 et + : les memes, camps echanges (les deux moitiees du code inversees).
-   La forme canonique -- le plus petit des 12 codes -- est mise en evidence, comme
-   dans KAAH (c'est celle qu'il surligne). */
+   v2.98 : la position mise en evidence est la posRef de KAAH (posRefKAAH, la notation
+   de Saab) -- l'ancienne « forme canonique », le plus petit des 12 codes, n'etait la
+   sienne que dans 57 % des positions. */
 function _symAxiale(n) {
   const rot = function(a){ return { q: a.r + a.q, r: -a.q }; };   // un sixieme de tour, dans le sens de KAAH
   const mir = function(a){ return { q: a.r, r: a.q }; };
@@ -26570,30 +26584,51 @@ function permutationsPosition(plateau, ejNoires, ejBlanches) {
     }
     out.push({ num: n, code: codePosition(t, ejNoires, ejBlanches) });
   });
-  const canonique = out.map(function(x){ return x.code; }).sort()[0];
   const echange = out.map(function(x){ const m = x.code.split('_'); return { num: x.num + 100, code: m[1] + '_' + m[0] }; });
-  return { permut: out, camp: echange, canonique: canonique };
+  const ref = posRefKAAH(out[0].code);
+  return { permut: out, camp: echange, canonique: ref.posRef, posRef: ref.posRef, codePermut: ref.codePermut };
 }
-function ouvrirPermutations() {
-  const code = codePosition(board, CapturedByWhite.get(), CapturedByBlack.get());
-  const P = permutationsPosition(board, CapturedByWhite.get(), CapturedByBlack.get());
+/* La fenetre des permutations, comme celle de KAAH : le code est modifiable (on y colle n'importe
+   quelle position), la posRef est surlignee, « Copier tout » ecrit le meme texte que KAAH. */
+function _permutContenu(code) {
+  const L = lireCodePosition(code);
+  if (!L) return { ok: false, html: '<div style="color:var(--danger,#e57373);font-size:12px">' + _saabRaisonCode(null) + '</div>', tout: '' };
+  const P = permutationsPosition(L.plateau, L.ejNoires, L.ejBlanches);
+  const ligne = function(x){ const ref = x.code === P.posRef;
+    return '<div onclick="_copierTexte(\'' + x.code + '\')" title="' + _tr('Toucher pour copier', 'Tap to copy') + '" style="cursor:pointer;margin-bottom:10px;font-family:\'DM Mono\',monospace;font-size:12px;word-break:break-all;color:' + (ref ? 'var(--gold)' : 'var(--text)') + (ref ? ';font-weight:700' : '') + '">'
+      + x.num + ' : ' + x.code + (ref ? ' ★' : '') + '</div>'; };
+  const html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><div style="font-size:12px;color:var(--muted);margin-bottom:6px">Permut</div>' + P.permut.map(ligne).join('') + '</div>'
+    + '<div><div style="font-size:12px;color:var(--muted);margin-bottom:6px">Camp_Permut</div>' + P.camp.map(ligne).join('') + '</div></div>'
+    + '<div style="font-family:\'DM Mono\',monospace;font-size:12px;word-break:break-all;color:var(--gold);margin:4px 0 10px">PosRef = ' + P.posRef + ' · code_permut_Ref_Orig = ' + P.codePermut + '</div>';
+  const tout = ['posOrig = ' + code, ''].concat(P.permut.map(function(x, i){ return x.num + ' : ' + x.code + '    ' + P.camp[i].num + ' : ' + P.camp[i].code; }))
+    .concat(['', 'PosRef = ' + P.posRef + '    code_permut_Ref_Orig = ' + P.codePermut]).join('\n');
+  return { ok: true, html: html, tout: tout, P: P };
+}
+function _permutMaj(code) {
+  const m = document.getElementById('permut-modal'), c = document.getElementById('permut-corps');
+  const r = _permutContenu(String(code || '').trim());
+  if (c) c.innerHTML = r.html;
+  if (m) m.dataset.tout = r.tout;
+}
+function ouvrirPermutations(codeDonne) {
+  const code = codeDonne || codePosition(board, CapturedByWhite.get(), CapturedByBlack.get());
+  const r = _permutContenu(code);
   let m = document.getElementById('permut-modal'); if (m) m.remove();
   m = document.createElement('div'); m.id = 'permut-modal';
   m.style.cssText = 'position:fixed;inset:0;z-index:3600;background:rgba(13,15,14,0.92);display:flex;align-items:center;justify-content:center;padding:16px';
-  const ligne = function(x){ const can = x.code === P.canonique;
-    return '<div onclick="_copierTexte(\'' + x.code + '\')" title="Toucher pour copier" style="cursor:pointer;margin-bottom:10px;font-family:\'DM Mono\',monospace;font-size:12px;word-break:break-all;color:' + (can ? 'var(--gold)' : 'var(--text)') + '">'
-      + x.num + ' : ' + x.code + (can ? ' ★' : '') + '</div>'; };
-  m.innerHTML = '<div style="max-width:620px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:20px;max-height:90vh;overflow-y:auto">'
+  m.innerHTML = '<div style="max-width:640px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:20px;max-height:90vh;overflow-y:auto">'
     + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:8px">Permutations</h3>'
-    + '<div style="font-size:12px;color:var(--muted)">Position</div><div style="font-family:\'DM Mono\',monospace;font-size:13px;word-break:break-all;margin-bottom:12px">' + code + '</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><div style="font-size:12px;color:var(--muted);margin-bottom:6px">Permut</div>' + P.permut.map(ligne).join('') + '</div>'
-    + '<div><div style="font-size:12px;color:var(--muted);margin-bottom:6px">Camp_Permut</div>' + P.camp.map(ligne).join('') + '</div></div>'
-    + '<div style="font-size:11px;color:var(--muted);margin:4px 0 12px">0 à 5 : rotations ; 10 à 15 : miroir puis rotation ; 100 et plus : camps échangés (numérotation de KAAH). ★ forme canonique : le plus petit des 12 codes. Touche un code pour le copier.</div>'
-    + '<button class="ctrl-btn" onclick="_copierTexte(document.getElementById(\'permut-modal\').dataset.tout)" style="width:auto;padding:6px 12px;margin-right:8px">Copier tout</button>'
-    + '<button class="ctrl-btn" onclick="document.getElementById(\'permut-modal\').remove()" style="width:auto;padding:6px 12px">Fermer</button></div>';
-  m.dataset.tout = 'Position : ' + code + '\n' + P.permut.concat(P.camp).map(function(x){ return x.num + ' : ' + x.code; }).join('\n');
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:4px">' + _tr('Position (notation de Saab, KAAH) — collez-en une autre pour la lire', 'Position (Saab’s notation, KAAH) — paste another one to read it') + '</div>'
+    + '<input id="permut-code" value="' + escapeHtml(code) + '" onchange="_permutMaj(this.value)" onkeydown="if(event.key===\'Enter\')_permutMaj(this.value)" spellcheck="false" style="width:100%;box-sizing:border-box;font-family:\'DM Mono\',monospace;font-size:13px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px;margin-bottom:12px">'
+    + '<div id="permut-corps">' + r.html + '</div>'
+    + '<div style="font-size:11px;color:var(--muted);margin:4px 0 12px;line-height:1.5">' + _tr('Le code donne la position entière : chaque camp, précédé du nombre de ses billes perdues, ses cases groupées par rangée (a1 a2 b1 → a12b1). 0 à 5 : rotations ; 10 à 15 : miroir puis rotation ; 100 et plus : camps échangés (numérotation de KAAH). ★ posRef, la forme sous laquelle KAAH range la position : le camp qui a le plus de billes passe devant, puis la position dont les billes sont le plus près de a1, a2, a3… Le code_permut dit quelle symétrie y mène (+100 : camps échangés). Touchez un code pour le copier.',
+      'The code gives the whole position: each side, preceded by its number of lost marbles, its cells grouped by row (a1 a2 b1 → a12b1). 0 to 5: rotations; 10 to 15: mirror then rotation; 100 and up: sides swapped (KAAH’s numbering). ★ posRef, the form under which KAAH files the position: the side with more marbles comes first, then the position whose marbles are closest to a1, a2, a3… The code_permut tells which symmetry leads there (+100: sides swapped). Tap a code to copy it.') + '</div>'
+    + '<button class="ctrl-btn" onclick="_copierTexte(document.getElementById(\'permut-modal\').dataset.tout)" style="width:auto;padding:6px 12px;margin-right:8px">' + _tr('Copier tout', 'Copy all') + '</button>'
+    + '<button class="ctrl-btn" onclick="jouerDepuisCode(document.getElementById(\'permut-code\').value)" style="width:auto;padding:6px 12px;margin-right:8px">▶ ' + _tr('Jouer cette position', 'Play this position') + '</button>'
+    + '<button class="ctrl-btn" onclick="document.getElementById(\'permut-modal\').remove()" style="width:auto;padding:6px 12px">' + _tr('Fermer', 'Close') + '</button></div>';
+  m.dataset.tout = r.tout;
   document.body.appendChild(m);
-  return P;
+  return r.P;
 }
 /* Copie dans le presse-papier (partagee par les codes de position, le partage de partie et
    le defi du jour). msg : le message affiche une fois copie. Sans presse-papier (page non
@@ -31533,8 +31568,8 @@ const ABALONE_KB_TOPICS = [
     a:`Position classique : <b>5-6-3</b>, mais elle mène souvent à des nulles. En tournoi, l'ouverture de référence depuis 1999 est la <b>Belgian Daisy</b> (marguerite belge, billes en losanges) — bien plus dynamique. La <b>German Daisy</b> est plus défensive/positionnelle. Il existe des dizaines d'autres marguerites (Dutch, Swiss…) et de configurations expérimentales.` },
 
   { id:'notation',
-    kw:['notation','notations','noter','aba-pro','abapro','nacre','playstrategy','coordonnee','coordonnees','coup','transcription','ghigou','frank','hemge','historique'],
-    a:`Trois systèmes coexistent. <b>Aba-Pro</b> : départ+arrivée de la bille « moteur » (ex. <code>e5e6</code>), robuste et indépendant du plateau. <b>Nacre</b> : départ d'une bille + arrivée d'une autre (ex. <code>e5h8</code>), plus descriptive des latéraux. <b>PlayStrategy</b> : Nacre étendue avec symbole d'éjection × (ex. <code>e5×i9</code>). Coordonnées : lettres <b>A–I</b> (lignes), chiffres <b>1–9</b> (diagonales). Avant eux, la Fédération française a proposé les deux systèmes de <b>Marc Ghigou</b> : en 1989, 24 lettres sur le bord (ex. <code>AB-M</code>) ; en 1990, des rangées A–I numérotées depuis l'Ouest (ex. <code>A1-B2</code>). Tu peux les afficher sous chaque coup : Paramètres → Notation historique. <b>Michael Frank</b> (MIT) a eu l'idée du repère x, y que reprend Aba-Pro, sans aboutir à une notation des coups.` },
+    kw:['notation','notations','noter','aba-pro','abapro','nacre','playstrategy','coordonnee','coordonnees','coup','transcription','ghigou','frank','hemge','historique','saab','kaah','kaawa','posref','permutation','permutations'],
+    a:`Trois systèmes coexistent. <b>Aba-Pro</b> : départ+arrivée de la bille « moteur » (ex. <code>e5e6</code>), robuste et indépendant du plateau. <b>Nacre</b> : départ d'une bille + arrivée d'une autre (ex. <code>e5h8</code>), plus descriptive des latéraux. <b>PlayStrategy</b> : Nacre étendue avec symbole d'éjection × (ex. <code>e5×i9</code>). Coordonnées : lettres <b>A–I</b> (lignes), chiffres <b>1–9</b> (diagonales). Avant eux, la Fédération française a proposé les deux systèmes de <b>Marc Ghigou</b> : en 1989, 24 lettres sur le bord (ex. <code>AB-M</code>) ; en 1990, des rangées A–I numérotées depuis l'Ouest (ex. <code>A1-B2</code>). Tu peux les afficher sous chaque coup : Paramètres → Notation historique. <b>Michael Frank</b> (MIT) a eu l'idée du repère x, y que reprend Aba-Pro, sans aboutir à une notation des coups. Enfin, <b>Saab</b> (KAAH, KAAWA) note la <b>position entière</b>, « factorisée » : <code>0a12b123c23g78h789i89_0a45b456c56g45h456i56</code>, chaque camp précédé de ses billes perdues ; sa <b>posRef</b> la range quelle que soit son orientation (fenêtre Permutations, sous le plateau).` },
 
   { id:'champions',
     kw:['champion','champions','palmares','frochot','vincent','vainqueur','gagnant','mso','pearce','kang','borello','schnider','titre','mondial','monde'],
@@ -36109,21 +36144,25 @@ function playFromEditor() {
     showToast('⚠️ Maximum 14 billes par couleur');
     return;
   }
-  // copie la position dans le plateau de jeu
-  showPage('game');
-  setTimeout(function() {
-    board = JSON.parse(JSON.stringify(editorBoard));
-    CapturedByWhite.set(editorCapturedWhite); CapturedByBlack.set(editorCapturedBlack);
-    CurrentTurn.set('black'); MoveCount.set(0); GameOver.set(false);
-    // la position de depart de cette partie est celle de l'editeur (rejeu ⏮, Liste, regle de repetition)
-    _replayStartBoard = JSON.parse(JSON.stringify(board));
-    if (typeof _replayStartCaptures !== 'undefined') _replayStartCaptures = { b: editorCapturedBlack, w: editorCapturedWhite };
-    selected = [];
-    if (typeof updateCaptures === 'function') updateCaptures();
-    if (typeof updateStatus === 'function') updateStatus();
-    drawBoard();
-    showToast('▶ Position chargée — à toi de jouer !');
-  }, 150);
+  /* v2.98 : la partie part du code de la position (la notation de Saab) -- meme chemin que « Jouer
+     cette position » : nouvelle partie propre (l'ancien historique de coups restait affiche), compteurs
+     dans le bon sens (les billes noires deja perdues sont le score de Blanc : ils etaient inverses), et
+     une partie que l'historique sait rejouer, puisque son code porte sa position de depart. */
+  jouerDepuisCode(codePosition(editorBoard, editorCapturedBlack, editorCapturedWhite));
+}
+
+/* v2.98 : charge dans l'editeur une position ecrite dans la notation de Saab (KAAH, KAAWA). */
+function chargerCodeEditeur(code) {
+  const el = document.getElementById('editor-code');
+  const L = lireCodePosition(code !== undefined ? code : (el ? el.value : ''));
+  if (!L) { showToast('⚠️ ' + _saabRaisonCode(null)); return false; }
+  editorBoard = L.plateau;
+  editorCapturedBlack = Math.min(EDITOR_MAX_CAPTURED, L.ejNoires); editorCapturedWhite = Math.min(EDITOR_MAX_CAPTURED, L.ejBlanches);
+  const cb = document.getElementById('editor-captured-black'); if (cb) cb.textContent = String(editorCapturedBlack);
+  const cw = document.getElementById('editor-captured-white'); if (cw) cw.textContent = String(editorCapturedWhite);
+  drawEditorBoard();
+  updateEditorStatus();
+  return true;
 }
 
 // Tester la position comme puzzle (vérifie qu'une éjection est possible)
@@ -36163,17 +36202,12 @@ function testAsPuzzle() {
 
 // Exporter la position sous forme de code (liste de coordonnées)
 function exportEditorPosition() {
-  const blacks = Object.keys(editorBoard).filter(k=>editorBoard[k]==='black').map(k=>{const[r,c]=k.split(',').map(Number);return coordToABAPRO(r,c);});
-  const whites = Object.keys(editorBoard).filter(k=>editorBoard[k]==='white').map(k=>{const[r,c]=k.split(',').map(Number);return coordToABAPRO(r,c);});
-  const code = 'Noirs: ' + (blacks.join(' ') || '(aucun')+'\nBlancs: ' + (whites.join(' ') || '(aucun)');
-  // copie dans le presse-papier
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(code).then(function(){
-      showToast('📋 Position copiée (notation A-I / 1-9)');
-    }, function(){ showToast(code); });
-  } else {
-    showToast('📋 ' + code);
-  }
+  /* v2.98 : le code de la position, dans la notation de Saab (KAAH, KAAWA), que l'on recolle ici, dans
+     « Importer » ou dans la fenetre des permutations. (Avant : la liste des cases, « Noirs: a1 a2... ».) */
+  const code = codePosition(editorBoard, editorCapturedBlack, editorCapturedWhite);
+  const el = document.getElementById('editor-code'); if (el) el.value = code;
+  _copierTexte(code, '📋 ' + _tr('Code de la position copié', 'Position code copied'));
+  return code;
 }
 
 // Clic sur le plateau de l'éditeur
@@ -37152,7 +37186,10 @@ let gcBlackName = '', gcWhiteName = '';
 
 function gameCodeEncode() {
   if (typeof boardSnapshots === 'undefined' || !boardSnapshots.length) return null;
-  const layout = (typeof currentLayout !== 'undefined') ? currentLayout : 'standard';
+  /* v2.98 : une partie partie d'un code de position (jouerDepuisCode) porte ce code a la place du nom de la
+     disposition -- « pos_0a12..._0a45... », que la meme expression [a-z0-9_]+ accepte a la relecture. */
+  const layout = (typeof departPosition !== 'undefined' && departPosition) ? 'pos_' + departPosition
+               : (typeof currentLayout !== 'undefined') ? currentLayout : 'standard';
   let body = '';
   for (let i = 0; i < boardSnapshots.length; i++) {
     const mi = boardSnapshots[i].moveInfo;
@@ -37220,9 +37257,13 @@ function gameCodeLoad(code) {
   gcWhiteName = parsed.whiteName || gcWhiteName;
 
   const savedLayout = (typeof currentLayout !== 'undefined') ? currentLayout : 'standard';
-  if (typeof currentLayout !== 'undefined') currentLayout = parsed.layout;
+  const depart = /^pos_/.test(parsed.layout) ? parsed.layout.slice(4) : null;   // v2.98 : partie partie d'un code de position
+  const departL = depart ? lireCodePosition(depart) : null;
+  if (depart && (!departL || _saabRaisonCode(departL))) return { ok: false, reason: 'position de depart illisible' };
+  if (typeof currentLayout !== 'undefined' && !depart) currentLayout = parsed.layout;
   if (typeof resetGame === 'function') resetGame();
   else { initBoardState(); boardSnapshots = []; CapturedByBlack.set(0); CapturedByWhite.set(0); }
+  if (departL) _saabPoser(departL, depart);
   /* CORRECTIF (signale par ocj94) : gameCodeLoad() a sa propre boucle de
      rejeu, separee de _replaySeqToSnapshots() -- elle ne renseignait jamais
      _replayStartBoard, dont loadSnapshot(-1) a besoin pour afficher la
@@ -39224,6 +39265,13 @@ function openApgnImportModal(){
     + '</div>'
     + '<textarea id="apgn-import-text" placeholder="e5f6 c3b2 d1e3..." style="width:100%;height:100px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:12px;box-sizing:border-box"></textarea>'
     + '<div id="apgn-import-status" style="font-size:12px;margin:8px 0;min-height:16px"></div>'
+    /* v2.98 : la notation de Saab -- une position seule, ou un fichier de partie de KAAH / KAAWA */
+    + '<div style="border-top:1px solid var(--border);margin:10px 0 0;padding-top:10px">'
+      + '<div style="font-size:12px;color:var(--muted);margin-bottom:6px">Ou une position, dans la notation de Saab (KAAH) :</div>'
+      + '<div style="display:flex;gap:6px;margin-bottom:10px"><input id="apgn-import-pos" placeholder="0a12b123c23g78h789i89_0a45b456c56g45h456i56" spellcheck="false" style="flex:1;min-width:0;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:\'DM Mono\',monospace;font-size:11px">'
+      + '<button class="ctrl-btn" onclick="jouerDepuisCode(document.getElementById(\'apgn-import-pos\').value)" style="width:auto;padding:6px 10px">▶ Jouer</button></div>'
+      + '<label class="ctrl-btn" style="display:block;text-align:center;cursor:pointer;margin-bottom:10px">📂 Fichier de partie KAAH / KAAWA (.json)<input type="file" accept=".json,application/json" style="display:none" onchange="importerFichierKAAH(this)"></label>'
+    + '</div>'
     + '<div style="display:flex;gap:8px">'
       + '<button class="ctrl-btn" onclick="_doApgnImport()" style="flex:1">Importer</button>'
       + '<button onclick="document.getElementById(\'apgn-import-modal\').remove()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 16px;cursor:pointer">Fermer</button>'
@@ -46428,6 +46476,231 @@ function ouvrirNotationsHistoriques() {
   if (typeof openModal === 'function') openModal('notations-historiques');
 }
 try { syncNotationHistorique(); document.addEventListener('DOMContentLoaded', syncNotationHistorique); } catch (e) {}
+/* ═══════════════════════════════════════════
+   LA NOTATION DE SAAB (v2.98) : le code de position de KAAH et KAAWA
+   Demande d'ocj94, apres l'explication de Saab (30/10/2026) :
+   « ce n'est pas une notation de coup, c'est la notation de la position
+   complete compressee » -- plutot « factorisee » : a1 a2 b1 b2 b3 devient
+   a12b123. Devant chaque camp, le nombre de SES billes manquantes ; les deux
+   camps separes par « _ ». Belgian Daisy : 0a12b123c23g78h789i89_0a45b456c56g45h456i56 ;
+   en mort subite (5 billes deja perdues de chaque cote) : 5a12..._5a45...
+   Deux positions qui se suivent donnent le coup, dans n'importe quelle
+   notation ; une position seule s'affiche sans rejouer la partie.
+
+   Ce que ce module ajoute (le code lui-meme, codePosition, existe depuis v2.6x) :
+   - lireCodePosition : le chemin inverse, controle (cases existantes, sans doublon) ;
+   - posRefKAAH : la « posRef », la forme sous laquelle KAAH range une position
+     quelle que soit son orientation. Saab : « le camp qui a le plus de billes
+     est toujours Noir, ensuite la position est toujours celle qui a les billes
+     les plus proches de a1, sinon a2, a3, b2... ». Port exact de
+     positionCanonique (KAAH, moteur/permutations.js) : parmi les 12 symetries
+     -- et les camps echanges quand ils ont autant de billes --, la plus petite
+     liste de cases triees ; a egalite, la premiere rencontree. Le
+     « code_permut_Ref_Orig » dit laquelle des 12 y mene (0 a 11), +100 si
+     les camps ont ete echanges. Compare au code de KAAH sur 480 positions de
+     six dispositions : zero ecart (l'ancienne « forme canonique », le plus
+     petit des 12 codes, differait dans 43 % des cas) ;
+   - jouerDepuisCode : une partie qui part de n'importe quelle position, que
+     l'historique et la « Partie par code » savent rejouer (le code de partie
+     porte alors sa position de depart, « pos_<code> », a la place du nom
+     de la disposition) ;
+   - les fichiers de partie de KAAH et KAAWA (.json) : chaque coup y porte sa
+     position (« pos »). A la lecture, c'est elle qui designe le coup, parmi
+     les coups legaux -- exactement l'idee de Saab ; le texte Nacre ne sert
+     qu'en secours. A l'ecriture, les champs que lit KAAH (Tree, pos, nacre,
+     is_origin, Players, Eject, Winner, Term, Timer), verifies en relisant les
+     fichiers produits avec son propre chargeur (donneesVersArbre).
+═══════════════════════════════════════════ */
+function _saabComprimer(noms) {
+  let t = '', prec = '';
+  noms.slice().sort().forEach(function (nm) { if (nm[0] !== prec) { t += nm[0]; prec = nm[0]; } t += nm.slice(1); });
+  return t;
+}
+/* Le code d'une position -> { plateau, ejNoires, ejBlanches }, ou null s'il est illisible. */
+function lireCodePosition(code) {
+  const m = /^(\d)((?:[a-i]\d+)*)_(\d)((?:[a-i]\d+)*)$/.exec(String(code || '').trim().replace(/\s+/g, ''));
+  if (!m) return null;
+  const plateau = {};
+  let ok = true;
+  [[m[2], 'black'], [m[4], 'white']].forEach(function (p) {   // pas de plafond a 14 : la Sibe part a 15
+    (p[0].match(/[a-i]\d+/g) || []).forEach(function (g) {
+      for (const ch of g.slice(1)) {
+        const rc = abaproToRc(g[0] + ch);
+        if (!rc || plateau[rc.r + ',' + rc.c]) { ok = false; return; }
+        plateau[rc.r + ',' + rc.c] = p[1];
+      }
+    });
+  });
+  return ok ? { plateau: plateau, ejNoires: +m[1], ejBlanches: +m[3] } : null;
+}
+function _saabCases(plateau, couleur) {
+  return Object.keys(plateau).filter(function (k) { return plateau[k] === couleur; })
+    .map(function (k) { const p = k.split(',').map(Number); return String(coordToABAPRO(p[0], p[1])); }).sort();
+}
+/* L'image d'une case par la symetrie n° index de KAAH (0-5 : rotations ; 6-11 : miroir puis rotation,
+   affichees 10-15). Les memes que permutationsPosition, verifiees case par case contre KAAH. */
+function _saabImage(nom, index) {
+  const rc = abaproToRc(nom), c0 = rcToAxial(4, 4), a = rcToAxial(rc.r, rc.c);
+  const b = _symAxiale(index < 6 ? index : index + 4)({ q: a.q - c0.q, r: a.r - c0.r });
+  const t = axialToRc(b.q + c0.q, b.r + c0.r);
+  return String(coordToABAPRO(t.r, t.c));
+}
+function posRefKAAH(code) {
+  const L = lireCodePosition(code);
+  if (!L) return null;
+  let A = _saabCases(L.plateau, 'black'), B = _saabCases(L.plateau, 'white'), eA = L.ejNoires, eB = L.ejBlanches, inv = false;
+  if (B.length > A.length) { const t = A; A = B; B = t; const e = eA; eA = eB; eB = e; inv = true; }   // le camp qui a le plus de billes devant
+  const sym = [];
+  for (let i = 0; i < 12; i++) sym.push({ p: A.map(function (n) { return _saabImage(n, i); }).sort(), s: B.map(function (n) { return _saabImage(n, i); }).sort(), i: i });
+  const cand = sym.map(function (x) { return { p: x.p, s: x.s, i: x.i, inv: false }; });
+  if (A.length === B.length) sym.forEach(function (x) { cand.push({ p: x.s, s: x.p, i: x.i, inv: true }); });
+  let best = null;
+  cand.forEach(function (c) { c.cle = c.p.join('') + '_' + c.s.join(''); if (!best || c.cle < best.cle) best = c; });
+  const invF = inv || best.inv, ej = best.inv ? [eB, eA] : [eA, eB];
+  return { posRef: ej[0] + _saabComprimer(best.p) + '_' + ej[1] + _saabComprimer(best.s),
+           index: best.i, inverses: invF, codePermut: best.i + (invF ? 100 : 0) };
+}
+
+/* ── Une partie depuis n'importe quelle position ── */
+var departPosition = null;   // le code de la position de depart de la partie en cours, si ce n'est pas une disposition (remis a null par resetGame)
+function _saabPoser(L, code) {
+  board = JSON.parse(JSON.stringify(L.plateau));
+  CapturedByWhite.set(L.ejNoires); CapturedByBlack.set(L.ejBlanches);   // billes noires perdues = score de Blanc
+  _replayStartBoard = JSON.parse(JSON.stringify(board));
+  if (typeof _replayStartCaptures !== 'undefined') _replayStartCaptures = { b: L.ejBlanches, w: L.ejNoires };
+  if (typeof _bookNode !== 'undefined') _bookNode = null;   // le livre d'ouvertures ne connait pas cette position
+  departPosition = code;
+}
+function _saabRaisonCode(L) {
+  if (!L) return _tr('Code de position illisible (format : 0a12b123..._0a45b456...)', 'Unreadable position code (format: 0a12b123..._0a45b456...)');
+  const v = Object.values(L.plateau);
+  if (v.indexOf('black') < 0 || v.indexOf('white') < 0) return _tr('Il faut des billes des deux couleurs', 'Both colours need marbles');
+  if (L.ejNoires >= 6 || L.ejBlanches >= 6) return _tr('Six billes perdues : cette partie est déjà finie', 'Six marbles lost: this game is already over');
+  return '';
+}
+function jouerDepuisCode(code) {
+  code = String(code || '').trim().replace(/\s+/g, '');
+  const L = lireCodePosition(code), raison = _saabRaisonCode(L);
+  if (raison) { if (typeof showToast === 'function') showToast('⚠️ ' + raison); return false; }
+  ['permut-modal', 'apgn-import-modal'].forEach(function (id) { const m = document.getElementById(id); if (m && m.remove) m.remove(); });
+  if (typeof showPage === 'function') showPage('game');
+  if (typeof resetGame === 'function') resetGame();
+  _saabPoser(L, code);
+  selected = [];
+  if (typeof drawBoard === 'function') drawBoard();
+  if (typeof updateCaptures === 'function') updateCaptures();
+  if (typeof updateStatus === 'function') updateStatus();
+  if (typeof _majCodePosition === 'function') _majCodePosition();
+  if (typeof GameMode !== 'undefined' && GameMode.get() === 'ai' && CurrentTurn.get() !== HumanColor.get() && typeof aiMove === 'function')
+    setTimeout(function () { if (!GameOver.get() && CurrentTurn.get() !== HumanColor.get()) aiMove(); }, 700);
+  if (typeof showToast === 'function') showToast(_tr('▶ Position chargée — les noirs jouent', '▶ Position loaded — Black to play'));
+  return true;
+}
+
+/* ── Les fichiers de partie de KAAH et KAAWA (.json) ── */
+function _saabCodeApres(m, couleur) {
+  const undo = applyMove(m, couleur);
+  try { return codePosition(board, CapturedByWhite.get(), CapturedByBlack.get()); } finally { undoMove(undo); }
+}
+/* Lit un fichier de partie (l'objet JSON) : la ligne reellement jouee (les noeuds is_origin), chaque coup
+   retrouve par la position qu'il produit. Ne touche pas a la partie en cours. */
+function lirePartieKAAH(d) {
+  if (!d || !d.Tree || typeof d.Tree.pos !== 'string') return { ok: false, raison: _tr('ce n’est pas un fichier de partie KAAH ou KAAWA (pas de Tree.pos)', 'this is not a KAAH or KAAWA game file (no Tree.pos)') };
+  const depart = d.Tree.pos.trim(), L = lireCodePosition(depart);
+  if (!L) return { ok: false, raison: _tr('position de départ illisible', 'unreadable starting position') };
+  const sb = board, scb = CapturedByBlack.get(), scw = CapturedByWhite.get(), coups = [];
+  let noeud = d.Tree, couleur = 'black', raison = '';
+  try {
+    board = JSON.parse(JSON.stringify(L.plateau)); CapturedByWhite.set(L.ejNoires); CapturedByBlack.set(L.ejBlanches);
+    for (let i = 0; i < 1000; i++) {
+      const enf = Array.isArray(noeud.children) ? noeud.children : [];
+      if (!enf.length) break;
+      const suiv = enf.find(function (e) { return e && e.is_origin; }) || enf[0];
+      const ms = getAllMovesForColor(couleur);
+      let m = null;
+      if (typeof suiv.pos === 'string') { const p = suiv.pos.trim(); m = ms.find(function (x) { return _saabCodeApres(x, couleur) === p; }) || null; }
+      if (!m && suiv.nacre) m = ms.find(function (x) { return moveToNACRE(x.cells, x.dir, x.info.type) === String(suiv.nacre).toLowerCase(); }) || null;
+      if (!m) { raison = _tr('coup ', 'move ') + (i + 1) + ' (' + (suiv.nacre || '?') + ') ' + _tr('introuvable dans la position', 'not found in the position'); break; }
+      coups.push({ cells: m.cells, dir: m.dir, type: m.info.type, ejection: !!(m.info.type === 'push' && m.info.ejection), aba: moveToABAPRO(m.cells, m.dir, m.info.type) });
+      applyMove(m, couleur);
+      couleur = couleur === 'black' ? 'white' : 'black';
+      noeud = suiv;
+    }
+  } finally { board = sb; CapturedByBlack.set(scb); CapturedByWhite.set(scw); }
+  const J = d.Players || {};
+  return { ok: !raison, raison: raison, depart: depart, coups: coups,
+           noir: String(J.P1_black || ''), blanc: String(J.P2_white || ''), date: String(d.Date || ''), evenement: String(d.Event || ''),
+           term: String(d.Term || ''), vainqueur: String(d.Winner || '') };
+}
+/* Ouvre un fichier de partie dans le rejeu, comme une partie de la bibliotheque. */
+function chargerPartieKAAH(d) {
+  const P = lirePartieKAAH(d);
+  if (!P.coups.length && !P.ok) { if (typeof showToast === 'function') showToast('⚠️ ' + P.raison); return P; }
+  ['apgn-import-modal'].forEach(function (id) { const m = document.getElementById(id); if (m && m.remove) m.remove(); });
+  if (typeof showPage === 'function') showPage('game');
+  const L = lireCodePosition(P.depart);
+  if (typeof resetGame === 'function') resetGame();
+  _saabPoser(L, P.depart);
+  if (typeof gcBlackName !== 'undefined') { gcBlackName = P.noir; gcWhiteName = P.blanc; }
+  const titre = (P.noir || _tr('Noirs', 'Black')) + ' vs ' + (P.blanc || _tr('Blancs', 'White')) + ' (KAAH' + (P.date ? ' · ' + P.date : '') + ')';
+  _replaySeqToSnapshots(P.coups.map(function (c) { return c.aba; }).join(' '), titre, 'black');
+  departPosition = P.depart;
+  if (!P.ok && typeof showToast === 'function') setTimeout(function () { showToast('⚠️ ' + P.raison); }, 1200);
+  return P;
+}
+function importerFichierKAAH(input) {
+  const f = input && input.files && input.files[0];
+  if (!f) return;
+  const lr = new FileReader();
+  lr.onload = function () {
+    let d = null;
+    try { d = JSON.parse(String(lr.result)); } catch (e) { showToast('⚠️ ' + _tr('Fichier illisible (JSON attendu)', 'Unreadable file (JSON expected)')); return; }
+    chargerPartieKAAH(d);
+  };
+  lr.readAsText(f);
+  input.value = '';
+}
+function _saabStamp(d) {
+  const p2 = function (v) { return String(v).padStart(2, '0'); };
+  return p2(d.getFullYear() % 100) + p2(d.getMonth() + 1) + p2(d.getDate()) + p2(d.getHours()) + p2(d.getMinutes());
+}
+function _saabNom(n) { return String(n || '').replace(/[,\n\r]/g, ' ').trim(); }
+/* La partie affichee, au format des fichiers de KAAWA (ligne jouee seulement, sans pendule). */
+function partieVersKAAH(snaps, opts) {
+  opts = opts || {};
+  snaps = (snaps || (typeof boardSnapshots !== 'undefined' ? boardSnapshots : [])).filter(function (s) { return s && s.color && s.moveInfo && s.moveInfo.cells; });
+  const b0 = opts.depart || (typeof _replayStartBoard !== 'undefined' && _replayStartBoard) || board;
+  const c0 = opts.departCaptures || (typeof _replayStartCaptures !== 'undefined' && _replayStartCaptures) || { b: 0, w: 0 };
+  const ia = (typeof GameMode !== 'undefined' && GameMode.get() === 'ai') ? (typeof HumanColor !== 'undefined' && HumanColor.get() === 'black' ? 'white' : 'black') : null;
+  const noir = _saabNom(opts.noir !== undefined ? opts.noir : ((typeof gcBlackName !== 'undefined' && gcBlackName) || (ia === 'black' ? 'Abalassembly (IA)' : 'Noirs')));
+  const blanc = _saabNom(opts.blanc !== undefined ? opts.blanc : ((typeof gcWhiteName !== 'undefined' && gcWhiteName) || (ia === 'white' ? 'Abalassembly (IA)' : 'Blancs')));
+  const racine = { pos: codePosition(b0, c0.w, c0.b), nacre: 'START', comment: '', children: [], is_origin: true, index: 0, eject_b: c0.w, eject_w: c0.b, clock: [0, 0], date: '' };
+  let cur = racine, ejN = c0.w, ejB = c0.b, fin = '_', vainqueur = 'None';
+  snaps.forEach(function (s, i) {
+    const n = { nacre: moveToNACRE(s.moveInfo.cells, s.moveInfo.dir, s.moveInfo.type), index: i + 1, children: [], is_origin: true,
+                pos: codePosition(s.board, s.capturedByWhite, s.capturedByBlack), eject_b: s.capturedByWhite, eject_w: s.capturedByBlack, comment: '', date: '' };
+    ejN = s.capturedByWhite; ejB = s.capturedByBlack;
+    if (fin === '_' && (ejN >= 6 || ejB >= 6)) { fin = 'N'; vainqueur = ejB >= 6 ? noir : blanc; n.term_status = 'N'; n.winner = vainqueur; }
+    cur.children.push(n); cur = n;
+  });
+  const lay = (typeof currentLayout !== 'undefined' && currentLayout) || 'standard';
+  const nomDispo = departPosition ? 'Position' : ((typeof HEAT_VARIANT_LABEL !== 'undefined' && HEAT_VARIANT_LABEL[lay]) || lay);
+  return { Date: opts.date || _saabStamp(new Date()), Event: 'Abalassembly', VariantName: _saabNom(nomDispo),
+           Players: { P1_black: noir, P2_white: blanc }, History: [racine.pos], Tree: racine,
+           Winner: vainqueur, Eject: { P1: ejN, P2: ejB }, Term: fin,
+           Timer: { mode: 'chrono', durations: snaps.map(function () { return 0; }),
+                    settings: { p1_initial: 0, p2_initial: 0, p1_bonus: 0, p2_bonus: 0, p1_bonus_eject: 0, p2_bonus_eject: 0 } },
+           Chrono: { total_p1_remaining: 0, total_p2_remaining: 0 } };
+}
+function telechargerPartieKAAH() {
+  const snaps = (typeof boardSnapshots !== 'undefined' ? boardSnapshots : []).filter(function (s) { return s && s.color && s.moveInfo; });
+  if (!snaps.length) { showToast('⚠️ ' + _tr('Aucun coup à exporter — jouez d’abord', 'No move to export — play first')); return null; }
+  const d = partieVersKAAH(snaps);
+  const nom = 'partie_abalassembly_' + d.Date + '.json';
+  if (typeof _scanDownload === 'function') _scanDownload(nom, JSON.stringify(d), 'application/json');
+  showToast('💾 ' + nom + ' — ' + _tr('fichier de partie au format de KAAH', 'game file in KAAH’s format'));
+  return d;
+}
 </script>
 
 

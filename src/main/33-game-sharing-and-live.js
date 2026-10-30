@@ -72,7 +72,10 @@ let gcBlackName = '', gcWhiteName = '';
 
 function gameCodeEncode() {
   if (typeof boardSnapshots === 'undefined' || !boardSnapshots.length) return null;
-  const layout = (typeof currentLayout !== 'undefined') ? currentLayout : 'standard';
+  /* v2.98 : une partie partie d'un code de position (jouerDepuisCode) porte ce code a la place du nom de la
+     disposition -- « pos_0a12..._0a45... », que la meme expression [a-z0-9_]+ accepte a la relecture. */
+  const layout = (typeof departPosition !== 'undefined' && departPosition) ? 'pos_' + departPosition
+               : (typeof currentLayout !== 'undefined') ? currentLayout : 'standard';
   let body = '';
   for (let i = 0; i < boardSnapshots.length; i++) {
     const mi = boardSnapshots[i].moveInfo;
@@ -140,9 +143,13 @@ function gameCodeLoad(code) {
   gcWhiteName = parsed.whiteName || gcWhiteName;
 
   const savedLayout = (typeof currentLayout !== 'undefined') ? currentLayout : 'standard';
-  if (typeof currentLayout !== 'undefined') currentLayout = parsed.layout;
+  const depart = /^pos_/.test(parsed.layout) ? parsed.layout.slice(4) : null;   // v2.98 : partie partie d'un code de position
+  const departL = depart ? lireCodePosition(depart) : null;
+  if (depart && (!departL || _saabRaisonCode(departL))) return { ok: false, reason: 'position de depart illisible' };
+  if (typeof currentLayout !== 'undefined' && !depart) currentLayout = parsed.layout;
   if (typeof resetGame === 'function') resetGame();
   else { initBoardState(); boardSnapshots = []; CapturedByBlack.set(0); CapturedByWhite.set(0); }
+  if (departL) _saabPoser(departL, depart);
   /* CORRECTIF (signale par ocj94) : gameCodeLoad() a sa propre boucle de
      rejeu, separee de _replaySeqToSnapshots() -- elle ne renseignait jamais
      _replayStartBoard, dont loadSnapshot(-1) a besoin pour afficher la
