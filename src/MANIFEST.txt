@@ -89,6 +89,7 @@ main/53-corpus-tactique.js
 main/54-corpus-dims-bascule.js
 main/55-parties-traces.js
 main/56-humains-programmes.js
+main/57-notations-historiques.js
 08-html.part
 09-script-tablebase.js
 10-html.part

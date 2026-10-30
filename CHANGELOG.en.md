@@ -9,6 +9,39 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.97]
+
+### Added — Marc Ghigou's notations, and Michael Frank's principle
+Requested by the author: "add Marc Ghigou's notation to the site, and
+Michael Frank's".
+- **Settings → Move notation → Historical notation**: one of the two
+  systems of the French Abalone federation appears under each move of the
+  history, besides Aba-Pro and Nacre.
+  - **1990, called "Hemgé"** (*Jeux & Stratégie* no. 7, signed Barlerin
+    "with the complicity of Marc Ghigou"): rows A to I, cells numbered from
+    the West, `A1-B2`, `C3-D4, D5, D6`, `(e)`.
+  - **1989, the 24 letters** (*Jeux & Stratégie* no. 1, credited to Marc
+    Ghigou by the Abalone Online blog): letters on the edge, no W; an inner
+    cell bears two letters (`BD`); `A-M`, `AC-SR`, and the rank of the
+    ejected marble, `(eI)` in Roman for Black, `(e2)` for White.
+- **A window** (button under the setting) draws both boards from the
+  tables themselves, explains the rules, gives the current game in both
+  systems, and tells Michael Frank's (MIT) principle: locating each cell by
+  x and y, the idea Aba-Pro took up. Frank never finished a move notation:
+  there is nothing of his to show move by move, and his exchanges are
+  archived at MIT.
+- **Checked** against the articles: the 1990 example game (10 plies), the
+  1989 one (9) and the first 17 moves of a solution published in 1990
+  replay with the real engine, and each published move is the only legal
+  move written that way. Those games settled two points: there is no W (the
+  game writes `AYX` and `Y-N`), and median cells follow the examples (`MO`,
+  `MN`) rather than the text's sentence. On paper, the same 1989 broadside
+  writing can point to two groups; never in the same position, where both
+  moves cannot be legal together (checked). Aba-Pro remains the notation of
+  exports and imports.
+- The wiki: a "Notation systems" section in Resources (Ghigou, Frank, LMU,
+  OKUN, Aba-Pro, Nacre), and the knowledge base.
+
 ## [v2.96]
 
 ### Changed — the Architecture page brought up to date

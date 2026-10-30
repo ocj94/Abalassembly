@@ -47,4 +47,3 @@ function _cfCampsIA(k){
    parties, mais pas le camp d'un programme (sinon MLA, qui joue la moitie des parties MiGs, pesait autant que
    tous les humains reunis). Voir _sbAgreger. */
 const SB_CAMPS_HUMAINS = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: 'tout', joueurs: 'camps' };
-</script>

@@ -2759,6 +2759,16 @@
             <input type="checkbox" id="settings-nacre-toggle" onchange="toggleNotationNacre(this.checked);syncNotationToggles()">
             <span class="setup-sw"></span>
           </label>
+          <!-- v2.97 : une notation historique en plus, sous chaque coup (Marc Ghigou, 1989 ou 1990) -->
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 0">
+            <span style="font-size:13px;color:var(--text)">Notation historique <span style="color:var(--muted);font-size:11px">(sous chaque coup)</span></span>
+            <select id="settings-notation-historique" onchange="choisirNotationHistorique(this.value)" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:12px;padding:5px 8px;cursor:pointer">
+              <option value="">Aucune</option>
+              <option value="ghigou90">Marc Ghigou, 1990 (A1-B2)</option>
+              <option value="ghigou89">Marc Ghigou, 1989 (AB-M)</option>
+            </select>
+          </div>
+          <button class="ctrl-btn" onclick="ouvrirNotationsHistoriques()" style="width:auto;padding:5px 12px;font-size:12px">📜 Les notations d'avant Aba-Pro : plateaux et histoire</button>
         </div>
 
 
@@ -5136,6 +5146,15 @@
      MODAL — MOT DE PASSE OUBLIÉ
      Avant (v2.57) : un e-mail de réinitialisation soi-disant envoyé, sans qu'aucun ne parte.
 ══════════════════════════════════════════ -->
+<!-- v2.97 : les notations historiques (Marc Ghigou 1989 et 1990, Michael Frank), ecrites par renderNotationsHistoriques() -->
+<div class="modal-overlay" id="modal-notations-historiques">
+  <div class="modal" style="width:720px;max-width:96vw;max-height:90vh;overflow-y:auto">
+    <button class="modal-close" onclick="closeModal('notations-historiques')">×</button>
+    <h3>Notations historiques</h3>
+    <div id="nh-contenu"></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-forgot">
   <div class="modal" style="width:420px">
     <button class="modal-close" onclick="closeModal('forgot')">×</button>
