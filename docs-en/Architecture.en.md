@@ -4,7 +4,7 @@
 
 Four maps for understanding how Abalassembly is built. They are **written by hand** and need to be updated when the architecture changes — unlike the site's own "AI briefing" page, which computes everything at runtime. The site's Architecture page gives the short version, in French and in English.
 
-Checked against the code in v2.66. The figures on the site page are gathered in `ARCHI_CHIFFRES` (`src/main/34-architecture-diagrams-briefing.js`), and a test compares them with the embedded data: one more game or puzzle, and the test asks for the update.
+Checked against the code in v2.96 (before: v2.66; the Texel weights, move quality, humans and programs, the 60 starting positions, the games cited without their moves and the APGN files were missing, and the security rule blocked PlayStrategy). The figures on the site page are gathered in `ARCHI_CHIFFRES` (`src/main/34-architecture-diagrams-briefing.js`), and a test compares them with the embedded data: one more game or puzzle, and the test asks for the update.
 
 ---
 
@@ -24,7 +24,7 @@ flowchart TD
     D -->|yes| D1[Book move]
     D -->|no| E{Q5 — Level 1?}
     E -->|yes| E1[Random move among the first 4:<br/>ejections, pushes, plain moves]
-    E -->|no| F[Alpha-beta search,<br/>weights of the AI's style]
+    E -->|no| F[Alpha-beta search,<br/>weights of the AI's style<br/>Texel from level 4<br/>in Auto or Balanced]
     F --> G{Several cores<br/>available?}
     G -->|yes| G1[Search spread<br/>over several workers]
     G -->|no| G2[Search on one worker]
@@ -49,6 +49,7 @@ flowchart TD
 - **Never a move that goes backwards** (v2.60): for questions 2, 3 and 4, a move that brings back a position already seen, or undoes the same side's previous move, is never chosen; at level 1, only when there is no other choice among the 4.
 - **The real-games fallback** (question 3), between the two books, is easy to forget: it only kicks in during the first twenty moves, when the main book has lost track of the game but the **same** position (reached in a different order) exists in a MIGS or AbalOnline game. The fingerprints are only used to find candidates: each one is checked by replaying its game. Until v2.59 this fallback took the *closest* historical position, with no threshold: it played moves from other games, often from another layout, and went back and forth (h9g8 then g8h9).
 - **Level 1** does not draw among the 4 *best* moves: it sorts the list by kind (ejections first, then pushes, then plain moves) and draws among the first 4.
+- **The Texel weights** (v2.75): in Auto or Balanced style, from level 4, the search uses the weights the Lab's Texel method learned from 15,036 quiet positions of real games (3,819 more to check them). They guess the winner better and win their duels against "balanced". As options: the KAAH style (the criteria of Saab's app: sumito, threat, fork, trap, compactness) and the experimental NNUE engine, never by default.
 - **The style**: the search uses the weights of the style chosen for the AI or, in adaptive mode, the one deduced from how you play (you expose your marbles: the AI divides; you attack hard: it gets solid; you play passively: it presses).
 
 ---
@@ -69,7 +70,14 @@ flowchart LR
     C --> R[Every game replayed<br/>move by move, offline]
     C --> P[Puzzles<br/>138, each sourced]
     C --> LP[Lab positions<br/>25,204 quiet + 3,866 starts]
-    C --> L[Game library]
+    C --> L[Game library<br/>+ 40 games cited<br/>without their moves]
+    C --> Q[Move quality<br/>offline analysis]
+    C --> HP[Humans or programs<br/>by name, or BOT mark]
+    C --> AP[games/: MiGs and PlayStrategy<br/>in APGN, programs marked]
+    D[60 starting positions<br/>37 of them from gym-abalone] --> V[Play, Variants, Editor]
+    Q --> ST
+    HP --> ST
+    HP --> MS
 
     O --> AI[AI]
     E --> AI
@@ -79,6 +87,7 @@ flowchart LR
     R --> MS[My statistics,<br/>end-of-game screen]
     P --> PB[Puzzles,<br/>Daily puzzle]
     LP --> LAB[AI Lab: duels,<br/>Texel, like humans]
+    LAB -->|Texel weights| AI
 
     style C fill:#3a3a1a,color:#f0ead6
     style AI fill:#1a3a3a,color:#f0ead6
@@ -90,6 +99,12 @@ flowchart LR
 - **Every game replayed**: `tools/stats-parties.js` replays offline, with the real engine, the 4,580 games (ejections, kinds of moves, chances, the 12 dimensions of both sides at moves 20, 40 and 60); the result is embedded compressed. It feeds the Game statistics page (falling marbles, what wins games, how real players play — v2.63 to v2.65), the comparisons in My statistics and the line on the end-of-game screen. A test replays a sample and compares.
 
 - **Lab positions** (v2.70): `tools/labo-positions.js` replays the complete games offline and keeps, for each one, up to 6 quiet positions (no ejection possible for the side to move), with the move played and the result, and one starting position between plies 8 and 16, at 0-0. The Lab's duels start from these positions (Belgian Daisy by default); the Texel method tunes the weights on the results; "Like humans" and "Against you" on the moves played. A test checks that they follow the corpus.
+
+- **Move quality** (v2.78): `tools/qualite-coups.js` analyses every game offline with the engine (about half an hour): marbles offered and taken, critical moves (only one safe move), moves found. The result is embedded compressed, read by the Game statistics page.
+- **Humans or programs** (v2.91): `estIA` recognises a side played by a program from its exact name (MLA, lolo's AI, the reference games' AIs) or, on PlayStrategy, from the export's BOT mark. Hence the "human against human" filter, the "real players" of My statistics (human sides only) and the library's 🤖.
+- **The 60 starting positions**: 23 read one by one (images, AbalOnline corpus, replayed games), and 37 read by the gym-abalone project then checked (v2.93-v2.94).
+- **The 40 games cited without their moves** (v2.87-v2.92): traces in the library (MiGs number, date, players), 2 of which the corpus holds with their moves.
+- **The published files**: `tools/to-apgn.js` rebuilds `games/migs-2016-2017.apgn` and `games/playstrategy-yearly-2026.apgn` by replaying every game; a test checks that the repository's files are exactly what it produces, programs' `BlackType` / `WhiteType` tags included.
 
 The corpus is not only a library to browse: it directly feeds the AI's play, the analysis and the statistics.
 
@@ -132,7 +147,7 @@ The site has no game server. The game code, the links, the image, the exports an
 
 - **The live game** connects the two browsers directly (WebRTC). The connection codes are exchanged by hand; a public server (STUN) only helps the two devices find each other.
 - **Sync my devices** (v2.69): the same direct connection as the live game, or a file. Both devices merge their game data (history, progress, puzzles, heat maps…): games are added without duplicates, a deletion spreads, and each counter keeps every device's share (a "G-counter") so nothing is counted twice. Settings, the Lab and the game in progress stay on each device.
-- **PlayStrategy** (v2.48): follow a game live, see the tournaments, import one. The site queries PlayStrategy's server read-only; it sends nothing but a username or a link.
+- **PlayStrategy** (v2.48): follow a game live, see the tournaments, import one. The site queries PlayStrategy's server read-only; it sends nothing but a username or a link. Up to v2.95, though, the site's security rule (`connect-src 'self'`) blocked those connections: since v2.96 it allows `https://playstrategy.org`, and that site only.
 
 ---
 

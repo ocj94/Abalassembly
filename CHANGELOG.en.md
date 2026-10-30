@@ -9,6 +9,33 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.96]
+
+### Changed — the Architecture page brought up to date
+Requested by the author: "does the Architecture section match what exists
+now?". No: it had been checked in v2.66.
+- **How the AI picks its move**: in Auto or Balanced style, from level 4,
+  the search uses the weights the Texel method learned from 15,036
+  positions of real games (v2.75). As options: the KAAH style and the
+  experimental NNUE engine.
+- **Where the data comes from**: adds move quality (every game analysed
+  offline by the engine), humans and programs, the 60 starting positions
+  (37 of them from gym-abalone), the 40 games cited without their moves and
+  the APGN files published in `games/`.
+- The same additions in `docs-fr/Architecture.fr.md` and
+  `docs-en/Architecture.en.md`, diagrams included. Two new figures
+  (starting positions, cited games) are checked by the test.
+
+### Fixed — PlayStrategy was blocked by the site itself
+- The page promised to follow a PlayStrategy game live, see its tournaments
+  and import one. But the site's security rule allowed no connection to any
+  other site: checked in a browser, those features had been blocked since
+  they were added. It now allows `https://playstrategy.org`, and that site
+  only. The site still sends it nothing but a username or a link. One
+  unknown remains, impossible to test from here: whether PlayStrategy
+  accepts requests coming from another site. If not, the error message says
+  so.
+
 ## [v2.95]
 
 ### Added — everything that exists around the game

@@ -4295,6 +4295,8 @@ test('v2.66 Architecture : chaque chiffre écrit à la main est celui des donné
   assert.strictEqual(A.dispositionsLivre, _r60('Object.keys(OPENING_TREES).length'), 'dispositions du livre');
   assert.strictEqual(A.puzzles, _r60('PUZZLES.length'), 'problemes');
   assert.strictEqual(A.historique, _r60('HIST_MAX'), 'historique local');
+  assert.strictEqual(A.dispositions, _r60('Object.keys(LAYOUTS).length'), 'v2.96 : positions de depart');
+  assert.strictEqual(A.traces, _r60('PARTIES_TRACES.length'), 'v2.96 : parties citees sans leurs coups');
   const R = require('fs').readFileSync(require('path').join(__dirname, '..', 'tablebase', 'RESULTS.md'), 'utf8');
   assert.ok(R.indexOf(A.positions4v2.toLocaleString('fr-FR').replace(/\s/g, ' ') + ' positions légales') >= 0, 'positions 4 contre 2');
   assert.ok(R.indexOf('**' + A.demiCoups4v2 + ' demi-coups au plus**') >= 0, 'demi-coups 4 contre 2');
@@ -6139,4 +6141,13 @@ test('v2.95 : la page Ressources du wiki, l annuaire de l Ecosysteme, les noms M
     assert.strictEqual(_carte(id).name, n, k); assert.strictEqual(_r63('HEAT_VARIANT_LABEL')[k], n, k); assert.match(_carte(id).desc, /liste des variantes du serveur MiGs, sous le code « [A-Za-z]+ »/, k); }
   assert.strictEqual(Object.values(ctx.VARIANTE_DISPOSITION).filter(k => /sous le code « /.test(_carte(Object.keys(ctx.VARIANTE_DISPOSITION).find(i => ctx.VARIANTE_DISPOSITION[i] === k)).desc)).length, 23);
   assert.match(_carte('sibe').desc, /départ à 15 billes, impossible avec un seul jeu/);
+});
+
+test('v2.96 : la regle de securite laisse lire PlayStrategy, et lui seul ; la page Architecture le dit', async () => {
+  const m = _SRC_INDEX.match(/Content-Security-Policy" content="([^"]*)"/); assert.ok(m);
+  const cs = m[1].split(';').map(x => x.trim()).find(x => x.indexOf('connect-src') === 0);
+  assert.strictEqual(cs, "connect-src 'self' https://playstrategy.org");
+  await _enFrancais54(() => _dom54(async els => { ctx.renderArchiPage(); const h = els['archi-diagrams'].innerHTML;
+    assert.match(h, /vérifiées contre le code en v2\.96/); assert.match(h, /méthode Texel a appris sur 15[\s\u00a0\u202f]036 positions/);
+    assert.match(h, /Humains ou programmes/); assert.match(h, /gym-abalone/); assert.match(h, /seul site extérieur/); }));
 });
