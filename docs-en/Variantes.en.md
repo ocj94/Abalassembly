@@ -144,3 +144,26 @@ detailed description anywhere else on the site:
 These three have no gallery card, no dedicated Learn section, and no
 playable position: just a name mentioned in answer to a question, nothing
 more for now.
+
+## 4. How many starting positions can exist?
+
+With 14 black marbles, 14 white ones and 61 holes (v3.00, also on the site's
+Variants page):
+
+| What is counted | Number |
+|---|---:|
+| Every way to place the 28 marbles | 7,691,345,017,184,661,959,133,000, about 7.7 × 10²⁴ |
+| Truly different shapes, grouping those that turn into each other by rotating or flipping the board (12 symmetries) | about 6.4 × 10²³ |
+| **Fair** starts: White is the exact image of Black seen from the other side of the board, like the Standard or the Belgian Daisy | 2,382,605,107,200, about 2.4 trillion |
+| The same, grouping those that turn into each other by rotating or flipping the board | 198,550,991,616, about 200 billion |
+
+For fair starts the count is simple: the board splits into 30 pairs of
+facing cells, plus the centre cell, which neither side can use. Pick 14 of
+those pairs (C(30, 14)), then, in each, which of the two cells gets the black
+marble (2¹⁴). The "truly different" shapes are counted exactly, by averaging
+over the 12 symmetries the number of positions each one leaves unchanged
+(Burnside's lemma); the site's test redoes the computation.
+
+These numbers also count absurd positions: an ejection possible on move one,
+sides squashed together… The whole history of Abalone has used only about a
+hundred starting positions: MiGs offered 42, Abalassembly offers 60.

@@ -151,3 +151,43 @@ brute, avant symétrie.
 | 4 vs 2 | 140,6 M légales | **résolue** : le camp fort au trait gagne toujours |
 | 5 vs 2 | ~1,8 G | faisable sur 3 Go de mémoire en ne stockant que la profondeur (le statut s'en déduit par sa parité) ; dépend du 4v2 |
 | 4 vs 3 | ~2,5 G | demande une machine plus grosse ; dépend du 3v3 et du 4v2 |
+
+## Et en Abalone normal ? Les finales à une bille de la fin (v3.00)
+
+En partie normale, un camp perd à sa 6ᵉ bille éjectée. Les finales les plus
+courtes sont celles où un camp n'a plus que 9 billes. Leur taille, en comptant
+les 12 symétries et le camp au trait, et la place à 2 bits par position :
+
+| Finale | Positions | Place nécessaire |
+|---|---:|---:|
+| 9 contre 9 | 1,1 × 10¹⁹ | ~3 millions de To |
+| 10 contre 9 | 4,6 × 10¹⁹ | ~11 millions de To |
+| 11 contre 9 | 1,7 × 10²⁰ | ~44 millions de To |
+| 12 contre 9 | 6 × 10²⁰ | ~150 millions de To |
+| 13 contre 9 | 1,8 × 10²¹ | ~460 millions de To |
+| 14 contre 9 | 5,1 × 10²¹ | ~1,3 milliard de To |
+| **Les six ensemble** | **7,8 × 10²¹** | **~2 zettaoctets** |
+
+Elles dépendent les unes des autres (le camp fort qui perd une bille descend
+d'une ligne) : il faudrait les calculer ensemble. Pour comparer, les tables à
+7 pièces des échecs, les plus grosses jamais calculées : 423 836 835 667 331
+positions, 18,4 To ([lichess](https://lichess.org/blog/W3WeMyQAACQAdfAL/7-piece-syzygy-tablebases-are-complete)).
+Le seul 9 contre 9 est environ 25 000 fois plus gros.
+
+**La mémoire disponible.** En disques : 6,8 Zo de stockage installé dans le
+monde en 2020 selon IDC, environ +18 % par an
+([SDxCentral](https://www.sdxcentral.com/news/stored-data-doubling-every-4-years-idc-says/)),
+soit de l'ordre de 18 Zo en 2026 en prolongeant ce rythme : la table prendrait
+un dixième de tous les disques de la planète, et un calcul sur disque serait
+trop lent. En mémoire vive : 5,4 Po pour El Capitan, le plus puissant
+supercalculateur ([Wikipédia](https://en.wikipedia.org/wiki/El_Capitan_(supercomputer))),
+il en faudrait environ 370 000 fois plus.
+
+**Dans combien d'années ?** Au rythme passé (un doublement tous les 3 ans
+environ pour les supercalculateurs, 3 à 4 ans pour un ordinateur personnel) :
+une cinquantaine d'années pour le plus gros supercalculateur, plus d'un siècle
+pour un PC de 32 Go. Estimation optimiste : la mémoire double de moins en moins
+vite. Une table compressée gagnerait un facteur 10 à 100 (10 à 20 ans), et même
+avec la mémoire, chaque passage sur toutes les positions prendrait de l'ordre
+de dix ans à la vitesse d'El Capitan aujourd'hui. La table de toute la partie
+(10²⁴ positions ou plus) reste hors de portée pour très longtemps.

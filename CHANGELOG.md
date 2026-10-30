@@ -9,6 +9,32 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.00]
+
+### Ajouté — les grands nombres de l'Abalone
+Demande de l'auteur : « marque-le dans Variantes, et les nombres énormes et la
+quantité de mémoire dans la partie Tables de finale ».
+- **Variantes** : combien de positions de départ peuvent exister avec 28
+  billes et 61 trous. 7,7 × 10²⁴ en tout ; environ 6,4 × 10²³ vraiment
+  différentes (12 symétries du plateau) ; 2 382 605 107 200 départs
+  équitables, comme la Standard ou la Marguerite belge, dont 198 550 991 616
+  vraiment différents. Le test refait le calcul.
+- **Tables de finale** : les finales à une bille de la fin en Abalone normal,
+  de 14 contre 9 à 9 contre 9. 7,8 × 10²¹ positions, environ 2 zettaoctets.
+  La comparaison avec les tables d'échecs à 7 pièces. La mémoire disponible
+  aujourd'hui (disques dans le monde, El Capitan). Dans combien d'années on
+  pourrait les calculer, avec les réserves.
+
+### Corrigé — la page Tables de finale
+- Elle ne parlait que du 2 contre 2 et du 3 contre 2 : le 4 contre 2 (résolu
+  en v2.49) et le 3 contre 3 (calculé) y sont, et la consultation dit qu'elle
+  couvre le 4 contre 2.
+- Le tableau « Pour aller plus loin » donnait les anciennes tailles, décalées
+  d'une ligne (3 contre 3 « ~185 M », 4 contre 3 « ~30 G ») ; il donne
+  maintenant celles de `tablebase/RESULTS.md`, avec le 5 contre 2.
+- « Abalone n'a pas besoin de tables de finale » ne tenait plus depuis le
+  4 contre 2 : le texte dit ce que chaque table a appris.
+
 ## [v2.99]
 
 ### Corrigé — vie privée

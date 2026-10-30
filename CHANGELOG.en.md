@@ -9,6 +9,32 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.00]
+
+### Added — Abalone's big numbers
+Requested by the author: "put it in Variants, and the huge numbers and the
+amount of memory in the Endgame tables part".
+- **Variants**: how many starting positions can exist with 28 marbles and
+  61 holes. 7.7 × 10²⁴ in all; about 6.4 × 10²³ truly different (12 board
+  symmetries); 2,382,605,107,200 fair starts, like the Standard or the
+  Belgian Daisy, of which 198,550,991,616 truly different. The test redoes
+  the computation.
+- **Endgame tables**: the endings one marble from the end in normal Abalone,
+  from 14 against 9 to 9 against 9. 7.8 × 10²¹ positions, about 2 zettabytes.
+  The comparison with chess 7-piece tables. The memory available today
+  (disks worldwide, El Capitan). In how many years they could be computed,
+  with the caveats.
+
+### Fixed — the Endgame tables page
+- It only covered 2 against 2 and 3 against 2: 4 against 2 (solved in v2.49)
+  and 3 against 3 (computed) are there, and the lookup says it covers 4
+  against 2.
+- The "Going further" table gave the old sizes, shifted by one row (3 against
+  3 "~185 M", 4 against 3 "~30 G"); it now gives those of
+  `tablebase/RESULTS.md`, with 5 against 2.
+- "Abalone does not need endgame tables" no longer held since 4 against 2:
+  the text says what each table taught.
+
 ## [v2.99]
 
 ### Fixed — privacy
