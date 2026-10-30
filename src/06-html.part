@@ -1172,6 +1172,7 @@
           <button class="ctrl-btn" onclick="exportGameNotation()" style="margin-top:8px;width:100%">📋 Exporter la partie</button>
           <button class="ctrl-btn" onclick="openGameCodePanel()" style="margin-top:8px;width:100%" title="Jouer par echange de code, sans compte ni serveur">Partie par code</button>
           <button class="ctrl-btn" onclick="exportGameAbaPro()" style="margin-top:8px;width:100%" title="Copie les coups de la partie en notation Aba-Pro standard, lisible par un moteur externe">Copier les coups (Aba-Pro)</button>
+          <button class="ctrl-btn" onclick="telechargerPartieKAAH()" style="margin-top:8px;width:100%" title="La partie au format des fichiers de KAAH et KAAWA : chaque coup avec sa position">💾 Fichier KAAH (.json)</button>
           <button class="ctrl-btn" onclick="openApgnImportModal()" style="margin-top:8px;width:100%" title="Colle une sequence de coups en notation Aba-Pro pour la rejouer -- raccourci vers le meme import que dans le menu">Importer une partie (Aba-Pro)</button>
           <button class="ctrl-btn" onclick="openExternalEnginePanel()" style="margin-top:8px;width:100%" title="Faire jouer un autre programme contre l IA de ce site, en relayant les coups a la main">Duel moteur externe 🧪</button>
           <button class="ctrl-btn" onclick="openRtcPanel()" style="margin-top:8px;width:100%" title="Connexion directe en temps reel entre deux navigateurs, experimental">Partie en direct 🧪</button>
@@ -3271,6 +3272,12 @@
             <button onclick="loadEditorPreset('belgian')" class="editor-preset-btn">🌼 Belgian Daisy</button>
             <button onclick="loadEditorPreset('german')" class="editor-preset-btn">🌻 German Daisy</button>
             <button onclick="loadEditorPreset('empty')" class="editor-preset-btn">⬜ Plateau vide</button>
+          </div>
+          <!-- v2.98 : une position ecrite dans la notation de Saab (KAAH, KAAWA) -->
+          <div style="font-size:11px;color:var(--muted);margin:12px 0 4px">Ou un code de position (KAAH) :</div>
+          <div style="display:flex;gap:6px">
+            <input id="editor-code" placeholder="0a12b123c23g78h789i89_0a45b456c56g45h456i56" spellcheck="false" onkeydown="if(event.key==='Enter')chargerCodeEditeur()" style="flex:1;min-width:0;font-family:'DM Mono',monospace;font-size:11px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px">
+            <button onclick="chargerCodeEditeur()" class="ctrl-btn" style="width:auto;padding:6px 10px;font-size:12px">Charger</button>
           </div>
         </div>
 

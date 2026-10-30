@@ -151,6 +151,7 @@ qui dessine leurs plateaux.
 | OKUN | | Cases numérotées de 1 à 61. |
 | Aba-Pro | | Rangées a à i, diagonales 1 à 9 : la notation de référence, celle des exports. |
 | Nacre | | Les mêmes cases ; en flèche, le départ d'une extrémité et l'arrivée de l'autre. |
+| Saab (KAAH, KAAWA) | | Pas une notation de coup : la position entière, « factorisée » (`0a12b123…_0a45b456…`, chaque camp précédé de ses billes perdues) ; sa posRef la range quelle que soit son orientation. Voir [Échanger des parties](Echanger-des-parties.fr.md). |
 
 Sources : *Jeux & Stratégie* n° 1, n° 6 ([avril 1990](http://fr.1001mags.com/parution/jeux-strategie/numero-6-avril-1990/page-54-55-texte-integral))
 et n° 7 ([mai-juin 1990](http://fr.1001mags.com/parution/jeux-strategie/numero-7-mai-jun-1990/page-50-51-texte-integral)) ;

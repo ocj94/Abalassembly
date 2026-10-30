@@ -9,6 +9,39 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v2.98]
+
+### Added — Saab's notation: the KAAH and KAAWA position code
+Requested by the author, after Saab's explanation: "it is not a move
+notation, it is the notation of the whole compressed position". The code
+itself was already shown under the board; it becomes a real notation, read
+as well as written.
+- **KAAH's posRef**: the *Permutations* window highlights the posRef, the
+  form under which KAAH files a position (the side with more marbles first,
+  then the position whose marbles are closest to a1, a2, a3…), with its
+  `code_permut_Ref_Orig`. The computation is KAAH's, compared with its own
+  code on 2,885 positions: zero difference. The old "canonical form" (the
+  smallest of the 12 codes) matched it in only 57% of positions.
+- **The Permutations window**: the code can be edited there (paste any
+  position), *Copy all* writes the same text as KAAH, and *Play this
+  position* starts a game from there.
+- **Playing from a code**: also in *Import* and in the position editor ("Or a
+  position code"), whose *Copy the position code* now copies this code. The
+  game code (`ABAL1`) then carries the starting position, `pos_` and the
+  code, instead of the layout name: the history and *Game by code* replay it.
+- **KAAH and KAAWA game files (.json)**: *Import* → *KAAH / KAAWA game
+  file*, and *💾 KAAH file (.json)* in the game. Each move carries its
+  position: that is what picks the move when reading, Saab's very idea.
+  Checked both ways: 40 games written by Abalassembly read back identically
+  by KAAH's loader, and two real KAAWA files read here up to the same final
+  position.
+
+### Fixed — the position editor
+- *Play this position* swapped the marbles already ejected: Black's lost
+  marbles became Black's score instead of White's.
+- It also kept the previous game's move history. It now goes through the
+  position code, like the rest.
+
 ## [v2.97]
 
 ### Added — Marc Ghigou's notations, and Michael Frank's principle

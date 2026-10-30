@@ -41,6 +41,49 @@ Précision honnête : ce n'est pas un import ciblant un site en particulier. Boa
 
 Si le texte collé contient un coup illisible ou illégal sur le plateau choisi, l'import s'arrête proprement à ce point-là et l'indique clairement (X coups reconnus sur Y) — jamais un import silencieusement tronqué présenté comme complet.
 
+## La notation de Saab : le code de position (KAAH, KAAWA)
+
+Ce n'est pas une notation de coup, mais la **position entière**, « factorisée »
+(l'explication de Saab, l'auteur de KAAH) : les cases de chaque camp groupées
+par rangée (`a1 a2 b1 b2 b3` → `a12b123`), chaque camp précédé du nombre de
+**ses** billes perdues, les deux camps séparés par `_`. La Belgian Daisy :
+
+```
+0a12b123c23g78h789i89_0a45b456c56g45h456i56
+```
+
+En mort subite (5 billes déjà perdues de chaque côté) : `5a12b123c23g78h789i89_5a45b456c56g45h456i56`.
+Une position seule s'affiche sans rejouer la partie, et deux positions qui se
+suivent donnent le coup, dans n'importe quelle notation.
+
+Dans Abalassembly (v2.98) :
+
+- **sous le plateau**, le code de la position affichée : *Copier*, et
+  *Permutations*, la fenêtre de KAAH : le code y est modifiable (collez-en un
+  autre pour le lire), les 12 symétries et les camps échangés, la **posRef**
+  en évidence avec son **code_permut**, *Copier tout* au format de KAAH, et
+  *Jouer cette position* ;
+- la **posRef** est la forme sous laquelle KAAH range une position, quelle
+  que soit son orientation : le camp qui a le plus de billes passe devant,
+  puis, parmi les 12 symétries (et les camps échangés s'ils ont autant de
+  billes), celle dont les billes sont le plus près de a1, puis a2, a3, b2…
+  Le `code_permut_Ref_Orig` dit quelle symétrie y mène (0 à 11, +100 si les
+  camps ont été échangés). C'est le calcul de KAAH lui-même, comparé à son
+  code sur 2 885 positions sans un écart ;
+- **jouer depuis un code** : menu → *Importer* (champ « Ou une position »),
+  la fenêtre *Permutations*, ou l'éditeur de position (« Ou un code de
+  position », et *Copier le code de position*). La partie part de cette
+  position, noirs au trait. Son code de partie (`ABAL1`) porte alors sa
+  position de départ à la place du nom de la disposition — `pos_` suivi du
+  code — pour que l'historique et la *Partie par code* la rejouent ;
+- **les fichiers de partie de KAAH et KAAWA** (`.json`) : menu → *Importer* →
+  *Fichier de partie KAAH / KAAWA*, et le bouton *💾 Fichier KAAH (.json)* de
+  la partie. Chaque coup y porte sa position (`pos`) : à la lecture, c'est
+  elle qui désigne le coup parmi les coups légaux (le texte Nacre ne sert
+  qu'en secours), en suivant la ligne réellement jouée (`is_origin`). Les
+  fichiers écrits par Abalassembly ont été relus par le chargeur de KAAH
+  lui-même, à l'identique ; les branches et les pendules ne sont pas écrites.
+
 ## Différence entre les deux
 
 Le code de partie (`ABAL1`) est compact, fait pour transiter par SMS pendant une partie. L'APGN est fait pour archiver et partager une partie terminée.

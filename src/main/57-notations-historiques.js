@@ -263,4 +263,3 @@ function ouvrirNotationsHistoriques() {
   if (typeof openModal === 'function') openModal('notations-historiques');
 }
 try { syncNotationHistorique(); document.addEventListener('DOMContentLoaded', syncNotationHistorique); } catch (e) {}
-</script>

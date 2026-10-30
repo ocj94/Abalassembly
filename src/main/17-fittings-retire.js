@@ -417,8 +417,9 @@ function codePosition(plateau, ejNoires, ejBlanches) {
      0 a 5    : rotation de n sixiemes de tour ;
      10 a 15  : miroir, puis rotation ;
      100 et + : les memes, camps echanges (les deux moitiees du code inversees).
-   La forme canonique -- le plus petit des 12 codes -- est mise en evidence, comme
-   dans KAAH (c'est celle qu'il surligne). */
+   v2.98 : la position mise en evidence est la posRef de KAAH (posRefKAAH, la notation
+   de Saab) -- l'ancienne « forme canonique », le plus petit des 12 codes, n'etait la
+   sienne que dans 57 % des positions. */
 function _symAxiale(n) {
   const rot = function(a){ return { q: a.r + a.q, r: -a.q }; };   // un sixieme de tour, dans le sens de KAAH
   const mir = function(a){ return { q: a.r, r: a.q }; };
@@ -441,30 +442,51 @@ function permutationsPosition(plateau, ejNoires, ejBlanches) {
     }
     out.push({ num: n, code: codePosition(t, ejNoires, ejBlanches) });
   });
-  const canonique = out.map(function(x){ return x.code; }).sort()[0];
   const echange = out.map(function(x){ const m = x.code.split('_'); return { num: x.num + 100, code: m[1] + '_' + m[0] }; });
-  return { permut: out, camp: echange, canonique: canonique };
+  const ref = posRefKAAH(out[0].code);
+  return { permut: out, camp: echange, canonique: ref.posRef, posRef: ref.posRef, codePermut: ref.codePermut };
 }
-function ouvrirPermutations() {
-  const code = codePosition(board, CapturedByWhite.get(), CapturedByBlack.get());
-  const P = permutationsPosition(board, CapturedByWhite.get(), CapturedByBlack.get());
+/* La fenetre des permutations, comme celle de KAAH : le code est modifiable (on y colle n'importe
+   quelle position), la posRef est surlignee, « Copier tout » ecrit le meme texte que KAAH. */
+function _permutContenu(code) {
+  const L = lireCodePosition(code);
+  if (!L) return { ok: false, html: '<div style="color:var(--danger,#e57373);font-size:12px">' + _saabRaisonCode(null) + '</div>', tout: '' };
+  const P = permutationsPosition(L.plateau, L.ejNoires, L.ejBlanches);
+  const ligne = function(x){ const ref = x.code === P.posRef;
+    return '<div onclick="_copierTexte(\'' + x.code + '\')" title="' + _tr('Toucher pour copier', 'Tap to copy') + '" style="cursor:pointer;margin-bottom:10px;font-family:\'DM Mono\',monospace;font-size:12px;word-break:break-all;color:' + (ref ? 'var(--gold)' : 'var(--text)') + (ref ? ';font-weight:700' : '') + '">'
+      + x.num + ' : ' + x.code + (ref ? ' ★' : '') + '</div>'; };
+  const html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><div style="font-size:12px;color:var(--muted);margin-bottom:6px">Permut</div>' + P.permut.map(ligne).join('') + '</div>'
+    + '<div><div style="font-size:12px;color:var(--muted);margin-bottom:6px">Camp_Permut</div>' + P.camp.map(ligne).join('') + '</div></div>'
+    + '<div style="font-family:\'DM Mono\',monospace;font-size:12px;word-break:break-all;color:var(--gold);margin:4px 0 10px">PosRef = ' + P.posRef + ' · code_permut_Ref_Orig = ' + P.codePermut + '</div>';
+  const tout = ['posOrig = ' + code, ''].concat(P.permut.map(function(x, i){ return x.num + ' : ' + x.code + '    ' + P.camp[i].num + ' : ' + P.camp[i].code; }))
+    .concat(['', 'PosRef = ' + P.posRef + '    code_permut_Ref_Orig = ' + P.codePermut]).join('\n');
+  return { ok: true, html: html, tout: tout, P: P };
+}
+function _permutMaj(code) {
+  const m = document.getElementById('permut-modal'), c = document.getElementById('permut-corps');
+  const r = _permutContenu(String(code || '').trim());
+  if (c) c.innerHTML = r.html;
+  if (m) m.dataset.tout = r.tout;
+}
+function ouvrirPermutations(codeDonne) {
+  const code = codeDonne || codePosition(board, CapturedByWhite.get(), CapturedByBlack.get());
+  const r = _permutContenu(code);
   let m = document.getElementById('permut-modal'); if (m) m.remove();
   m = document.createElement('div'); m.id = 'permut-modal';
   m.style.cssText = 'position:fixed;inset:0;z-index:3600;background:rgba(13,15,14,0.92);display:flex;align-items:center;justify-content:center;padding:16px';
-  const ligne = function(x){ const can = x.code === P.canonique;
-    return '<div onclick="_copierTexte(\'' + x.code + '\')" title="Toucher pour copier" style="cursor:pointer;margin-bottom:10px;font-family:\'DM Mono\',monospace;font-size:12px;word-break:break-all;color:' + (can ? 'var(--gold)' : 'var(--text)') + '">'
-      + x.num + ' : ' + x.code + (can ? ' ★' : '') + '</div>'; };
-  m.innerHTML = '<div style="max-width:620px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:20px;max-height:90vh;overflow-y:auto">'
+  m.innerHTML = '<div style="max-width:640px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:20px;max-height:90vh;overflow-y:auto">'
     + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:8px">Permutations</h3>'
-    + '<div style="font-size:12px;color:var(--muted)">Position</div><div style="font-family:\'DM Mono\',monospace;font-size:13px;word-break:break-all;margin-bottom:12px">' + code + '</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><div style="font-size:12px;color:var(--muted);margin-bottom:6px">Permut</div>' + P.permut.map(ligne).join('') + '</div>'
-    + '<div><div style="font-size:12px;color:var(--muted);margin-bottom:6px">Camp_Permut</div>' + P.camp.map(ligne).join('') + '</div></div>'
-    + '<div style="font-size:11px;color:var(--muted);margin:4px 0 12px">0 à 5 : rotations ; 10 à 15 : miroir puis rotation ; 100 et plus : camps échangés (numérotation de KAAH). ★ forme canonique : le plus petit des 12 codes. Touche un code pour le copier.</div>'
-    + '<button class="ctrl-btn" onclick="_copierTexte(document.getElementById(\'permut-modal\').dataset.tout)" style="width:auto;padding:6px 12px;margin-right:8px">Copier tout</button>'
-    + '<button class="ctrl-btn" onclick="document.getElementById(\'permut-modal\').remove()" style="width:auto;padding:6px 12px">Fermer</button></div>';
-  m.dataset.tout = 'Position : ' + code + '\n' + P.permut.concat(P.camp).map(function(x){ return x.num + ' : ' + x.code; }).join('\n');
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:4px">' + _tr('Position (notation de Saab, KAAH) — collez-en une autre pour la lire', 'Position (Saab’s notation, KAAH) — paste another one to read it') + '</div>'
+    + '<input id="permut-code" value="' + escapeHtml(code) + '" onchange="_permutMaj(this.value)" onkeydown="if(event.key===\'Enter\')_permutMaj(this.value)" spellcheck="false" style="width:100%;box-sizing:border-box;font-family:\'DM Mono\',monospace;font-size:13px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px;margin-bottom:12px">'
+    + '<div id="permut-corps">' + r.html + '</div>'
+    + '<div style="font-size:11px;color:var(--muted);margin:4px 0 12px;line-height:1.5">' + _tr('Le code donne la position entière : chaque camp, précédé du nombre de ses billes perdues, ses cases groupées par rangée (a1 a2 b1 → a12b1). 0 à 5 : rotations ; 10 à 15 : miroir puis rotation ; 100 et plus : camps échangés (numérotation de KAAH). ★ posRef, la forme sous laquelle KAAH range la position : le camp qui a le plus de billes passe devant, puis la position dont les billes sont le plus près de a1, a2, a3… Le code_permut dit quelle symétrie y mène (+100 : camps échangés). Touchez un code pour le copier.',
+      'The code gives the whole position: each side, preceded by its number of lost marbles, its cells grouped by row (a1 a2 b1 → a12b1). 0 to 5: rotations; 10 to 15: mirror then rotation; 100 and up: sides swapped (KAAH’s numbering). ★ posRef, the form under which KAAH files the position: the side with more marbles comes first, then the position whose marbles are closest to a1, a2, a3… The code_permut tells which symmetry leads there (+100: sides swapped). Tap a code to copy it.') + '</div>'
+    + '<button class="ctrl-btn" onclick="_copierTexte(document.getElementById(\'permut-modal\').dataset.tout)" style="width:auto;padding:6px 12px;margin-right:8px">' + _tr('Copier tout', 'Copy all') + '</button>'
+    + '<button class="ctrl-btn" onclick="jouerDepuisCode(document.getElementById(\'permut-code\').value)" style="width:auto;padding:6px 12px;margin-right:8px">▶ ' + _tr('Jouer cette position', 'Play this position') + '</button>'
+    + '<button class="ctrl-btn" onclick="document.getElementById(\'permut-modal\').remove()" style="width:auto;padding:6px 12px">' + _tr('Fermer', 'Close') + '</button></div>';
+  m.dataset.tout = r.tout;
   document.body.appendChild(m);
-  return P;
+  return r.P;
 }
 /* Copie dans le presse-papier (partagee par les codes de position, le partage de partie et
    le defi du jour). msg : le message affiche une fois copie. Sans presse-papier (page non

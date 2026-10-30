@@ -1931,7 +1931,7 @@ test('permutations : identiques, numero par numero, a celles affichees par KAAH'
   const P = ctx.permutationsPosition(b, 2, 3);
   const tous = {}; P.permut.concat(P.camp).forEach(x => { tous[x.num] = x.code; });
   for (const [n, code] of Object.entries(KAAH)) assert.strictEqual(tous[n], code, 'permutation ' + n);
-  assert.strictEqual(P.canonique, KAAH[10], 'forme canonique = celle que KAAH surligne');
+  assert.strictEqual(P.posRef, KAAH[10], 'posRef = celle que KAAH surligne'); assert.strictEqual(P.canonique, P.posRef);
   assert.strictEqual(P.permut.length, 12); assert.strictEqual(P.camp.length, 12);
 });
 
@@ -1945,9 +1945,15 @@ test('permutations : la fenetre affiche les deux colonnes et copie tout', () => 
     const P = ctx.ouvrirPermutations();
     assert.strictEqual(ajoutes.length, 1);
     assert.match(ajoutes[0].innerHTML, /Permut<\/div>[\s\S]*Camp_Permut/);
-    assert.match(ajoutes[0].dataset.tout, /^Position : /);
-    assert.strictEqual(ajoutes[0].dataset.tout.split('\n').length, 25, 'position + 24 codes');
-    assert.ok(ajoutes[0].innerHTML.includes(P.canonique + ' ★'));
+    // v2.98 : « Copier tout » ecrit le texte de KAAH (posOrig, les 12 paires, la posRef et son code)
+    const tout = ajoutes[0].dataset.tout.split('\n');
+    assert.match(tout[0], /^posOrig = /);
+    assert.strictEqual(tout.length, 16, 'posOrig, 12 paires, PosRef');
+    assert.match(tout[2], /^0 : \S+    100 : \S+$/);
+    assert.strictEqual(tout[15], 'PosRef = ' + P.posRef + '    code_permut_Ref_Orig = ' + P.codePermut);
+    assert.ok(ajoutes[0].innerHTML.includes(P.posRef + ' ★'));
+    assert.match(ajoutes[0].innerHTML, /id="permut-code"[^>]*onchange="_permutMaj\(this\.value\)"/);
+    assert.match(ajoutes[0].innerHTML, /jouerDepuisCode\(document\.getElementById\('permut-code'\)\.value\)/);
   } finally { ctx.document.body = sB; ctx.document.createElement = sC; ctx.document.getElementById = sG; }
 });
 
@@ -6291,6 +6297,146 @@ test('v2.97 Ghigou : le reglage, la ligne sous le coup, la fenetre, les Parametr
   const fs = require('fs'), path = require('path');
   for (const [f, mots] of [['docs-fr/Ressources.fr.md', ['## 9. Les systèmes de notation', 'Hemgé', 'Michael Frank', 'LMU', 'OKUN', 'sans W']],
     ['docs-en/Ressources.en.md', ['## 9. Notation systems', 'Hemgé', 'Michael Frank', 'LMU', 'OKUN', 'no W']]]) {
+    const s = fs.readFileSync(path.join(__dirname, '..', f), 'utf8'); mots.forEach(t => assert.ok(s.includes(t), f + ' : ' + t));
+  }
+});
+
+/* ─── 85. La notation de Saab (v2.98) : le code de position de KAAH, sa posRef, ses fichiers de partie ─── */
+test('v2.98 Saab : le code se relit -- les exemples de Saab, les 60 dispositions, et les codes faux refuses', () => {
+  const mb = ctx.lireCodePosition('0a12b123c23g78h789i89_0a45b456c56g45h456i56');
+  assert.ok(mb); assert.strictEqual(mb.ejNoires, 0);
+  const b = {}; ctx.LAYOUTS.belgian.black.forEach(p => { b[p[0] + ',' + p[1]] = 'black'; }); ctx.LAYOUTS.belgian.white.forEach(p => { b[p[0] + ',' + p[1]] = 'white'; });
+  assert.deepStrictEqual(Object.keys(mb.plateau).sort(), Object.keys(b).sort());
+  Object.keys(b).forEach(k => assert.strictEqual(mb.plateau[k], b[k]));
+  const ms = ctx.lireCodePosition('5a12b123c23g78h789i89_5a45b456c56g45h456i56');   // la mort subite de Saab : 5 billes deja perdues
+  assert.strictEqual(ms.ejNoires + ms.ejBlanches, 10); assert.strictEqual(Object.keys(ms.plateau).length, 28);
+  for (const k of Object.keys(ctx.LAYOUTS)) {
+    const p = {}; ctx.LAYOUTS[k].black.forEach(q => { p[q[0] + ',' + q[1]] = 'black'; }); ctx.LAYOUTS[k].white.forEach(q => { p[q[0] + ',' + q[1]] = 'white'; });
+    const code = ctx.codePosition(p, 1, 2), L = ctx.lireCodePosition(code);
+    assert.ok(L, k); assert.strictEqual(ctx.codePosition(L.plateau, L.ejNoires, L.ejBlanches), code, k);
+  }
+  ['', '0a12', 'a12_0b3', '0a9_0b1', '0a11_0b1', '0a1_0a1', '0j1_0a1', '10a1_0b1'].forEach(c => assert.strictEqual(ctx.lireCodePosition(c), null, c));
+  assert.ok(ctx.lireCodePosition('  0a1_0i9 '), 'les espaces autour ne genent pas');
+});
+
+test('v2.98 Saab : la posRef et le code_permut sont ceux de KAAH (vecteurs calcules par son propre code)', () => {
+  // [position, posRef, code_permut_Ref_Orig] -- positionCanonique de KAAH (moteur/permutations.js), 30/10/2026
+  const V = [['0a1345b123456c2467_0f45g36h456789i6789', '0a1234b123456c47d56_0g3468h456789i5679', 103],
+    ['0a2b123c23d4f789g7h89i8_0a345b56c45g45h567i56', '0a123b12c34g78h678i89_0a4b456c56d5f234g5h45i6', 107],
+    ['0b12c123d23e78f9g78h78_0b56c567d67f345g36h5i5', '0a13b24c4d34g67h678i78_0c67d2678e2378f3g5h45', 102],
+    ['0d2e24f256g36h567i569_0a45b2346c7d458e68f8g8', '0a1234b15c26d2457e24_0e69f5678g48h589i679', 105],
+    ['0a5b45c56d5f5g56h456i56_0b3d36e2356f34g7h7i78', '0a12b123c34d4f6g78h78i9_0a34b4c5d23e2356f47h6', 10],
+    ['0a1b1c12d23e46f89g679h9_0b6c567d578f245g34i56', '0a123b34c4d5f57g7h6i678_0b6c7d67e3469f239g34h4', 6],
+    ['0b135c124d5g78h569i89_0a45b246c56e23f5h48i56', '0a12b135c23e78f6h59i89_0b246c467d4g45h478i56', 107],
+    ['0a12b123c23g78h789i89_0a45b456c56g45h456i56', '0a12b123c23g78h789i89_0a45b456c56g45h456i56', 0],
+    ['5a12b123c23g78h789i89_5a45b456c56g45h456i56', '5a12b123c23g78h789i89_5a45b456c56g45h456i56', 0],
+    ['0e5_0e6', '0d4_0e5', 104], ['2a1b2_0e567', '0c3d4e5_2e89', 108], ['3c34d5_1a1i9h89', '1a12b2i9_3e6f7g7', 109]];
+  V.forEach(([c, ref, n]) => { const r = ctx.posRefKAAH(c); assert.strictEqual(r.posRef, ref, c); assert.strictEqual(r.codePermut, n, c); });
+  // la regle de Saab : le camp qui a le plus de billes passe devant ; la posRef est l'une des 24 permutations affichees
+  const r = ctx.posRefKAAH('2a1b2_0e567'); assert.strictEqual(r.inverses, true); assert.strictEqual(r.posRef.split('_')[0], '0c3d4e5');
+  for (const [c] of V) {
+    const L = ctx.lireCodePosition(c), P = ctx.permutationsPosition(L.plateau, L.ejNoires, L.ejBlanches);
+    assert.ok(P.permut.concat(P.camp).some(x => x.code === P.posRef), c);
+    assert.strictEqual(ctx.posRefKAAH(P.posRef).posRef, P.posRef, 'une posRef est sa propre posRef');
+  }
+  assert.strictEqual(ctx.posRefKAAH('0a9_0b1'), null);
+});
+
+test('v2.98 Saab : jouer depuis un code -- nouvelle partie, compteurs, et un code de partie qui porte sa position de depart', () => {
+  ['drawBoard', 'updateStatus', 'updateCaptures', 'showToast', 'showPage', 'startGameTimer', 'clearSavedGame', 'resetGutterPositions', '_majOngletsPartieBientot', '_clockPaint', 'scrollMoveListToEnd'].forEach(n => { ctx[n] = () => {}; });
+  const avant = ctx.GameMode.get(); ctx.GameMode.set('local');
+  const _gid = ctx.document.getElementById; ctx.document.getElementById = () => null;   // pas de page a l'ecran (des tests plus haut laissent un faux element)
+  try {
+    const code = '2a1b2c3_1e5f6i9';
+    assert.strictEqual(ctx.jouerDepuisCode('0a9_0b1'), false);
+    assert.strictEqual(ctx.jouerDepuisCode('6a1_0b1'), false, 'six billes perdues : partie finie');
+    assert.strictEqual(ctx.jouerDepuisCode(code), true);
+    assert.strictEqual(ctx.departPosition, code);
+    assert.strictEqual(ctx.codePosition(ctx.board, ctx.CapturedByWhite.get(), ctx.CapturedByBlack.get()), code);
+    assert.strictEqual(ctx.CapturedByWhite.get(), 2, 'les billes noires perdues sont le score de Blanc');
+    assert.strictEqual(ctx.boardSnapshots.length, 0); assert.strictEqual(ctx.CurrentTurn.get(), 'black');
+    assert.strictEqual(ctx.codePosition(ctx._replayStartBoard, 2, 1), code);
+    // un coup, puis le code de partie : il porte la position de depart et se relit
+    const m = ctx.getAllMovesForColor('black')[0];
+    ctx.applyMove(m, 'black');
+    ctx.boardSnapshots.push({ board: JSON.parse(JSON.stringify(ctx.board)), capturedByBlack: 1, capturedByWhite: 2, color: 'black', moveInfo: { cells: m.cells, dir: m.dir, type: m.info.type, ejection: false } });
+    const apres = ctx.codePosition(ctx.board, 2, 1), gc = ctx.gameCodeEncode();
+    assert.ok(gc.indexOf(':pos_' + code + ':') > 0, gc);
+    ctx.resetGame(); assert.strictEqual(ctx.departPosition, null, 'une nouvelle partie repart d\'une disposition');
+    const r = ctx.gameCodeLoad(gc);
+    assert.ok(r.ok, r.reason);
+    assert.strictEqual(ctx.codePosition(ctx.board, ctx.CapturedByWhite.get(), ctx.CapturedByBlack.get()), apres);
+    assert.strictEqual(ctx.departPosition, code);
+  } finally { ctx.GameMode.set(avant); ctx.resetGame(); ctx.document.getElementById = _gid; }
+});
+
+test('v2.98 Saab : l\'editeur lit et ecrit le code ; « Jouer cette position » passe par lui, compteurs dans le bon sens', () => {
+  const vus = []; const orig = ctx.jouerDepuisCode;
+  ['drawEditorBoard', 'updateEditorStatus', 'showToast', '_copierTexte'].forEach(n => { ctx[n] = () => {}; });
+  ctx.jouerDepuisCode = c => { vus.push(c); return true; };
+  try {
+    assert.strictEqual(ctx.chargerCodeEditeur('2a1b2c3_1e5f6i9'), true);
+    assert.strictEqual(_r63('editorCapturedBlack'), 2); assert.strictEqual(_r63('editorCapturedWhite'), 1);
+    assert.strictEqual(ctx.exportEditorPosition(), '2a1b2c3_1e5f6i9');
+    ctx.playFromEditor();
+    assert.deepStrictEqual(vus, ['2a1b2c3_1e5f6i9']);
+    assert.strictEqual(ctx.chargerCodeEditeur('n importe quoi'), false);
+  } finally { ctx.jouerDepuisCode = orig; }
+});
+
+test('v2.98 Saab : un fichier de partie de KAAWA se relit par ses positions ; le notre se relit a l\'identique', () => {
+  // les 6 premiers coups d'un vrai fichier de KAAWA (Belgian Daisy), tels quels : nacre + position apres le coup
+  const coups = [['i9f6', '0a12b123c23f6g78h789i8_0a45b456c56g45h456i56'], ['i5f5', '0a12b123c23f6g78h789i8_0a45b456c56f5g45h456i6'],
+    ['i8g6', '0a12b123c23f6g678h789_0a45b456c56f5g45h456i6'], ['h5e5', '0a12b123c23f6g678h789_0a45b456c56e5f5g45h46i6'],
+    ['h7f5', '0a12b123c23f56g678h89_0a45b456c56e45g45h46i6'], ['h4f4', '0a12b123c23f56g678h89_0a45b456c56e45f4g45h6i6']];
+  const fichier = coups => { const racine = { pos: '0a12b123c23g78h789i89_0a45b456c56g45h456i56', nacre: 'START', children: [], is_origin: true }; let n = racine;
+    coups.forEach(([nacre, pos]) => { const e = { nacre, pos, is_origin: true, children: [] }; n.children.push({ nacre: 'a1a2', is_origin: false, children: [] }, e); n = e; });
+    return { Date: '2608292349', Players: { P1_black: 'Alex', P2_white: 'Bob' }, Tree: racine, Term: 'T', Winner: 'Alex' }; };
+  const P = ctx.lirePartieKAAH(fichier(coups));
+  assert.ok(P.ok, P.raison); assert.strictEqual(P.coups.length, 6, 'la ligne jouee (is_origin), pas les branches');
+  assert.strictEqual(P.noir + '/' + P.blanc, 'Alex/Bob');
+  // le premier coup : les trois billes noires de i9 vers f6, en ligne
+  assert.strictEqual(P.coups[0].aba, 'i9h8');
+  // sans position, le texte Nacre sert de secours ; ni l'un ni l'autre : on le dit
+  const sansPos = fichier(coups.map(([n]) => [n, undefined])); assert.strictEqual(ctx.lirePartieKAAH(sansPos).coups.length, 6);
+  const faux = ctx.lirePartieKAAH(fichier([['i9f6', 'nimporte'], ['a1a1', 'nimporte']]));
+  assert.strictEqual(faux.ok, false); assert.strictEqual(faux.coups.length, 1); assert.match(faux.raison, /coup 2/);
+  assert.strictEqual(ctx.lirePartieKAAH({ Moves: [] }).ok, false);
+  // l'aller-retour : une partie jouee jusqu'a 6 ejections, ecrite au format de KAAWA puis relue
+  require('./harness').poserDisposition(ctx, 'belgian');
+  const depart = JSON.parse(JSON.stringify(ctx.board)), snaps = []; let col = 'black', cb = 0, cw = 0;
+  for (let i = 0; i < 300 && cb < 6 && cw < 6; i++) {
+    const ms = ctx.getAllMovesForColor(col), ej = ms.filter(m => m.info.type === 'push' && m.info.ejection);
+    const m = (ej.length && i % 3 === 0) ? ej[0] : ms[(i * 7919) % ms.length];
+    ctx.applyMove(m, col); if (m.info.type === 'push' && m.info.ejection) { if (col === 'black') cb++; else cw++; }
+    snaps.push({ board: JSON.parse(JSON.stringify(ctx.board)), capturedByBlack: cb, capturedByWhite: cw, color: col, moveInfo: { cells: m.cells, dir: m.dir, type: m.info.type, ejection: m.info.type === 'push' && !!m.info.ejection } });
+    col = col === 'black' ? 'white' : 'black';
+  }
+  assert.ok(cb >= 6 || cw >= 6, 'la partie doit aller au bout');
+  const d = JSON.parse(JSON.stringify(ctx.partieVersKAAH(snaps, { depart, departCaptures: { b: 0, w: 0 }, noir: 'Alex', blanc: 'Bob', date: '2610301200' })));
+  ['Date', 'Event', 'VariantName', 'Players', 'History', 'Tree', 'Winner', 'Eject', 'Term', 'Timer'].forEach(k => assert.ok(k in d, k));
+  assert.strictEqual(d.Tree.nacre, 'START'); assert.strictEqual(d.Tree.pos, d.History[0]);
+  assert.strictEqual(d.Term, 'N'); assert.strictEqual(d.Winner, cb >= 6 ? 'Alex' : 'Bob');
+  assert.deepStrictEqual(d.Eject, { P1: cw, P2: cb });
+  let n = d.Tree, k = 0; while (n.children.length) { n = n.children[0]; k++; assert.ok(n.is_origin && /^[a-i]\d[a-i]\d$/.test(n.nacre) && ctx.lireCodePosition(n.pos), 'noeud ' + k); }
+  assert.strictEqual(k, snaps.length); assert.strictEqual(n.term_status, 'N');
+  const R = ctx.lirePartieKAAH(d);
+  assert.ok(R.ok, R.raison);
+  assert.strictEqual(JSON.stringify(R.coups.map(c => c.aba)), JSON.stringify(snaps.map(s => ctx.moveToABAPRO(s.moveInfo.cells, s.moveInfo.dir, s.moveInfo.type))));
+});
+
+test('v2.98 Saab : les boutons, l\'import, les traductions et le wiki', () => {
+  assert.match(_SRC_INDEX, /onclick="telechargerPartieKAAH\(\)"/);
+  assert.match(_SRC_INDEX, /id="editor-code"[^>]*>[\s\S]{0,400}chargerCodeEditeur\(\)/);
+  const ajoutes = []; const sB = ctx.document.body, sC = ctx.document.createElement, sG = ctx.document.getElementById;
+  ctx.document.getElementById = () => null; ctx.document.createElement = () => ({ style: {}, dataset: {}, remove() {} });
+  ctx.document.body = { appendChild: el => ajoutes.push(el) };
+  try { ctx.openApgnImportModal(); } finally { ctx.document.body = sB; ctx.document.createElement = sC; ctx.document.getElementById = sG; }
+  assert.match(ajoutes[0].innerHTML, /id="apgn-import-pos"/); assert.match(ajoutes[0].innerHTML, /onchange="importerFichierKAAH\(this\)"/);
+  assert.strictEqual(_r63("I18N_EN['💾 Fichier KAAH (.json)']"), '💾 KAAH file (.json)');
+  const fs = require('fs'), path = require('path');
+  for (const [f, mots] of [['docs-fr/Echanger-des-parties.fr.md', ['posRef', 'code_permut', 'KAAWA', 'pos_']], ['docs-en/Echanger-des-parties.en.md', ['posRef', 'code_permut', 'KAAWA', 'pos_']],
+    ['docs-fr/Ressources.fr.md', ['Saab (KAAH, KAAWA)']], ['docs-en/Ressources.en.md', ['Saab (KAAH, KAAWA)']]]) {
     const s = fs.readFileSync(path.join(__dirname, '..', f), 'utf8'); mots.forEach(t => assert.ok(s.includes(t), f + ' : ' + t));
   }
 });

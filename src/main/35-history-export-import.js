@@ -333,6 +333,13 @@ function openApgnImportModal(){
     + '</div>'
     + '<textarea id="apgn-import-text" placeholder="e5f6 c3b2 d1e3..." style="width:100%;height:100px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:12px;box-sizing:border-box"></textarea>'
     + '<div id="apgn-import-status" style="font-size:12px;margin:8px 0;min-height:16px"></div>'
+    /* v2.98 : la notation de Saab -- une position seule, ou un fichier de partie de KAAH / KAAWA */
+    + '<div style="border-top:1px solid var(--border);margin:10px 0 0;padding-top:10px">'
+      + '<div style="font-size:12px;color:var(--muted);margin-bottom:6px">Ou une position, dans la notation de Saab (KAAH) :</div>'
+      + '<div style="display:flex;gap:6px;margin-bottom:10px"><input id="apgn-import-pos" placeholder="0a12b123c23g78h789i89_0a45b456c56g45h456i56" spellcheck="false" style="flex:1;min-width:0;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:\'DM Mono\',monospace;font-size:11px">'
+      + '<button class="ctrl-btn" onclick="jouerDepuisCode(document.getElementById(\'apgn-import-pos\').value)" style="width:auto;padding:6px 10px">▶ Jouer</button></div>'
+      + '<label class="ctrl-btn" style="display:block;text-align:center;cursor:pointer;margin-bottom:10px">📂 Fichier de partie KAAH / KAAWA (.json)<input type="file" accept=".json,application/json" style="display:none" onchange="importerFichierKAAH(this)"></label>'
+    + '</div>'
     + '<div style="display:flex;gap:8px">'
       + '<button class="ctrl-btn" onclick="_doApgnImport()" style="flex:1">Importer</button>'
       + '<button onclick="document.getElementById(\'apgn-import-modal\').remove()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 16px;cursor:pointer">Fermer</button>'

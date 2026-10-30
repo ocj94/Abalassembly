@@ -149,6 +149,7 @@ notation → Historical notation), with a window that draws their boards.
 | OKUN | | Cells numbered 1 to 61. |
 | Aba-Pro | | Rows a to i, diagonals 1 to 9: the reference notation, used for exports. |
 | Nacre | | The same cells; a broadside writes one end's start and the other end's arrival. |
+| Saab (KAAH, KAAWA) | | Not a move notation: the whole position, "factorised" (`0a12b123…_0a45b456…`, each side preceded by its lost marbles); its posRef files it whatever its orientation. See [Exchanging games](Echanger-des-parties.en.md). |
 
 Sources: *Jeux & Stratégie* no. 1, no. 6 ([April 1990](http://fr.1001mags.com/parution/jeux-strategie/numero-6-avril-1990/page-54-55-texte-integral))
 and no. 7 ([May-June 1990](http://fr.1001mags.com/parution/jeux-strategie/numero-7-mai-jun-1990/page-50-51-texte-integral));
