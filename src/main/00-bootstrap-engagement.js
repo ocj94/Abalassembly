@@ -6,7 +6,7 @@
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v2.96';
+const APP_VERSION = 'v2.97';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;

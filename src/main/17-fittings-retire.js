@@ -530,6 +530,8 @@ function appendMoveRow(list, moveInfo, fallbackLabel, color, plyNum) {
     + '<span class="move-dot" style="background:' + dot + '"></span>'
     + '<span class="move-aba">' + aba + ejx + '</span>'
     + '<span class="move-nacre">' + nac + ejx + '</span>';
+  // v2.97 : une notation historique (Marc Ghigou, 1989 ou 1990) sous le coup, si elle est choisie dans Parametres
+  if (typeof ligneNotationHistorique === 'function') row.innerHTML += ligneNotationHistorique(moveInfo, color, plyNum);
   const _snapEval = (typeof boardSnapshots !== 'undefined') ? boardSnapshots[plyNum - 1] : null;
   if (_snapEval && _snapEval.ia) row.innerHTML += '<span class="move-eval" title="' + (_snapEval.ia.detail ? 'Voir la réflexion de l\u2019IA pour ce coup' : 'Évaluation de l\u2019IA : phase, score de son point de vue, profondeur atteinte, temps de réflexion') + '"'
     + (_snapEval.ia.detail ? ' onclick="event.stopPropagation();ouvrirReflexionIA(' + (plyNum - 1) + ')"' : '')

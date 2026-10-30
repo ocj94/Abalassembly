@@ -6151,3 +6151,146 @@ test('v2.96 : la regle de securite laisse lire PlayStrategy, et lui seul ; la pa
     assert.match(h, /vérifiées contre le code en v2\.96/); assert.match(h, /méthode Texel a appris sur 15[\s\u00a0\u202f]036 positions/);
     assert.match(h, /Humains ou programmes/); assert.match(h, /gym-abalone/); assert.match(h, /seul site extérieur/); }));
 });
+
+/* ─── 84. Notations historiques (v2.97) : Marc Ghigou 1989 et 1990, le principe de Michael Frank ─── */
+const _AP84 = s => ctx.abaproToRc(s);
+const _DIR84 = { E: { q: 1, r: 0 }, O: { q: -1, r: 0 }, NO: { q: 0, r: -1 }, NE: { q: 1, r: -1 }, SE: { q: 0, r: 1 }, SO: { q: -1, r: 1 } };
+/* Rejoue une partie publiee avec le vrai moteur : chaque jeton doit etre le SEUL coup legal qui s'ecrive ainsi.
+   ecrit(m, couleur, rang) -> liste des ecritures admises pour le coup m. Rend les instantanes (comme boardSnapshots). */
+function _rejouer84(dispo, coups, ecrit) {
+  require('./harness').poserDisposition(ctx, dispo);
+  const cpt = { black: 0, white: 0 }, snaps = [];
+  for (const [couleur, jeton] of coups) {
+    const ej = m => !!(m.info.type === 'push' && m.info.ejection);
+    const ok = ctx.getAllMovesForColor(couleur).filter(m => ecrit(m, couleur, ej(m) ? cpt[couleur] + 1 : 0).includes(jeton));
+    assert.strictEqual(ok.length, 1, jeton + ' : ' + ok.length + ' coup(s) legal(aux) s\'ecrivent ainsi');
+    const m = ok[0];
+    ctx.applyMove(m, couleur);
+    if (ej(m)) cpt[couleur]++;
+    snaps.push({ color: couleur, capturedByBlack: cpt.black, capturedByWhite: cpt.white, moveInfo: { cells: m.cells, dir: m.dir, type: m.info.type, ejection: ej(m) } });
+  }
+  return snaps;
+}
+const _g90 = (m, c) => [ctx.moveToGHIGOU90(m.cells, m.dir, m.info.type, !!(m.info.type === 'push' && m.info.ejection))];
+const _g89 = (m, c, rang) => [ctx.moveToGHIGOU89(m.cells, m.dir, m.info.type, !!(m.info.type === 'push' && m.info.ejection), rang, c)];
+
+test('v2.97 Ghigou : les tables -- 61 noms distincts par systeme, 24 lettres sans W, les cases des articles', () => {
+  const T = ctx._ghTables();
+  assert.strictEqual(T.cases.length, 61);
+  assert.strictEqual(new Set(Object.values(T.nom90)).size, 61);
+  assert.strictEqual(new Set(Object.values(T.nom89)).size, 61, 'deux cases portent le meme nom en 1989');
+  assert.strictEqual(Object.keys(T.lettre).length, 24);
+  assert.strictEqual(Object.values(T.lettre).sort().join(''), 'ABCDEFGHIJKLMNOPQRSTUVXY', 'pas de W');
+  const n89 = s => { const x = _AP84(s); return ctx.caseGhigou89(x.r, x.c); }, n90 = s => { const x = _AP84(s); return ctx.caseGhigou90(x.r, x.c); };
+  // les coins, le bord de Noir et celui de Blanc
+  assert.deepStrictEqual(['a1', 'a5', 'e9', 'i9', 'i5', 'e1'].map(n89), ['A', 'E', 'I', 'M', 'Q', 'U']);
+  assert.deepStrictEqual(['a2', 'a3', 'a4', 'i8', 'i7', 'i6', 'b1', 'c1', 'd1'].map(n89), ['B', 'C', 'D', 'N', 'O', 'P', 'Y', 'X', 'V']);
+  // n° 1 : « Noir se note BD », « la position centrale se nomme AE », figures 4 a 6 ; la partie d'exemple : MO, MN
+  assert.deepStrictEqual(['c4', 'e5', 'g4', 'd6', 'g8', 'c3', 'g7', 'h8'].map(n89), ['BD', 'AE', 'RS', 'FH', 'KL', 'AC', 'MO', 'MN']);
+  // les medianes : une base de depart (AE, MQ) l'emporte, sinon l'alphabet (FI en e6, OQ en g5 : la solution de 1990)
+  assert.deepStrictEqual(['b2', 'b5', 'e6', 'g5', 'f6', 'e3'].map(n89), ['AB', 'DE', 'FI', 'OQ', 'MP', 'UX']);
+  // 1990 : rangees depuis la base de Noir, cases depuis l'Ouest ; E2 et F1 sur la meme transversale (le defaut releve par le blog)
+  assert.deepStrictEqual(['a1', 'a5', 'e1', 'e9', 'f2', 'i5', 'i9'].map(n90), ['A1', 'A5', 'E1', 'E9', 'F1', 'I1', 'I5']);
+  assert.strictEqual(ctx.coordToABAPRO(_AP84('e2').r, _AP84('e2').c).slice(1), '2');
+  assert.strictEqual(n90('e2') + n90('f2'), 'E2F1');
+});
+
+test('v2.97 Ghigou 1990 : la partie de Jeux & Strategie n° 7 se rejoue, coup pour coup, et se recopie a l\'identique', () => {
+  const pub = '1/A1-B2/I5-H5 2/B2-C3/I4-H5 3/A2-B3/I3-H4 4/A3-B4/H3-G4 5/C5-D5/H4-G4';
+  const coups = pub.split(' ').flatMap(t => { const p = t.split('/'); return [['black', p[1]], ['white', p[2]]]; });
+  const snaps = _rejouer84('standard', coups, _g90);
+  assert.strictEqual(ctx.partieGhigou('ghigou90', snaps), pub);
+  assert.strictEqual(_r63('GH_EXEMPLE_1990'), pub);
+  // les deux coups en fleche de l'article, et l'ejection
+  assert.strictEqual(ctx.moveToGHIGOU90(['c3', 'c4', 'c5'].map(_AP84), _DIR84.NE, 'broadside', false), 'C3-D4, D5, D6');
+  assert.strictEqual(ctx.moveToGHIGOU90(['h6', 'h5'].map(_AP84), _DIR84.SE, 'broadside', false), 'H2-G3, G4');
+  assert.strictEqual(ctx.moveToGHIGOU90(['e4'].map(_AP84), _DIR84.NO, 'push', true), 'E4-F3 (e)');   // e4 vers f4 en Aba-Pro : F3, le defaut des transversales
+});
+
+test('v2.97 Ghigou 1989 : la partie de Jeux & Strategie n° 1 se rejoue (pas de W, medianes comme les exemples)', () => {
+  const pub = '1) A-M, MO-AYX ; 2) B-L, MN-AYX ; 3) AB-M, M-AYX ; 4) Y-N, P-V ; 5) D-J';
+  const coups = pub.split(' ; ').flatMap(t => { const p = t.replace(/^\d+\) /, '').split(', '); return p.map((x, i) => [i ? 'white' : 'black', x]); });
+  const snaps = _rejouer84('standard', coups, _g89);
+  assert.strictEqual(ctx.partieGhigou('ghigou89', snaps), pub);
+  assert.strictEqual(_r63('GH_EXEMPLE_1989'), pub);
+  // figures 4 a 6 : FH-P (une bille), KL-B (en ligne), AC-SR (en fleche), AC-S (eI) : le rang de l'ejection, romain pour Noir
+  assert.strictEqual(ctx.moveToGHIGOU89(['d6'].map(_AP84), _DIR84.NO, 'move', false), 'FH-P');
+  assert.strictEqual(ctx.moveToGHIGOU89(['g8', 'f7'].map(_AP84), _DIR84.SO, 'move', false), 'KL-B');
+  assert.strictEqual(ctx.moveToGHIGOU89(['c4', 'c3'].map(_AP84), _DIR84.NO, 'broadside', false), 'AC-SR');
+  assert.strictEqual(ctx.moveToGHIGOU89(['c3', 'd3'].map(_AP84), _DIR84.NO, 'push', true, 1, 'black'), 'AC-S (eI)');
+  assert.strictEqual(ctx.moveToGHIGOU89(['g8'].map(_AP84), _DIR84.SO, 'push', true, 4, 'black'), 'KL-B (eIV)');
+  assert.strictEqual(ctx.moveToGHIGOU89(['g8'].map(_AP84), _DIR84.SO, 'push', true, 2, 'white'), 'KL-B (e2)');
+});
+
+test('v2.97 Ghigou 1989 : les 17 premiers coups de la solution publiee dans Jeux & Strategie n° 6 se rejouent', () => {
+  // L'exercice : Noir joue seul, les 14 blanches ne bougent pas. Le magazine nomme parfois l'AUTRE bout d'un coup
+  // en fleche (DE-JKL, JK-TU) : on admet les deux bouts, c'est le flou du systeme. Les ejections y sont notees (e).
+  const sol = 'A-M;AB-M;AC-M;BD-L;DE-JKL;F-IJK;G-IJK;H-N;HI-N (e);MN-H;AD-M;AE-M (e);JK-TU;GI-O (e);JL-L (e);L-I;K-S'.split(';');
+  const ecrit = m => {
+    const ej = !!(m.info.type === 'push' && m.info.ejection), suf = ej ? ' (e)' : '';
+    if (m.info.type !== 'broadside') return [ctx.moveToGHIGOU89(m.cells, m.dir, m.info.type, false) + suf];
+    const o = ctx._ghOrdre(m.cells);
+    return [ctx._ghEcrire89(o, m.dir), ctx._ghEcrire89(o.slice().reverse(), m.dir)];
+  };
+  const snaps = _rejouer84('standard', sol.map(t => ['black', t]), ecrit);
+  assert.strictEqual(snaps.filter(s => s.moveInfo.ejection).length, 4);
+  // ce que l'on ecrit, nous : l'extremite dont le nom vient en premier
+  assert.strictEqual(ctx.moveToGHIGOU89(snaps[4].moveInfo.cells, snaps[4].moveInfo.dir, 'broadside', false), 'BE-LKJ');
+  assert.strictEqual(ctx.moveToGHIGOU89(snaps[5].moveInfo.cells, snaps[5].moveInfo.dir, 'broadside', false), 'F-IJK');
+});
+
+test('v2.97 Ghigou : dans une position, aucune des deux notations ne confond deux coups legaux ; P-FE vise deux groupes, jamais ensemble', () => {
+  require('./harness').poserDisposition(ctx, 'belgian');
+  let col = 'black', vus = 0;
+  for (let i = 0; i < 60; i++) {
+    const ms = ctx.getAllMovesForColor(col), s90 = new Set(), s89 = new Set();
+    ms.forEach(m => { const a = _g90(m)[0], b = _g89(m, col, 1)[0]; assert.ok(!s90.has(a), a); assert.ok(!s89.has(b), b); s90.add(a); s89.add(b); vus++; });
+    ctx.applyMove(ms[(i * 7919) % ms.length], col); col = col === 'black' ? 'white' : 'black';
+  }
+  assert.ok(vus > 3000, vus);
+  // sur le papier, P-FE vise i5-i6 ou i6-h5 vers le sud-est ; les deux ne sont jamais legaux ensemble (h5 serait a la fois plein et vide)
+  const aba = [];
+  for (const noires of [[[0, 0], [0, 1]], [[0, 1], [1, 1]]]) {
+    require('./harness').poserCases(ctx, noires, []);
+    const fe = ctx.getAllMovesForColor('black').filter(m => _g89(m, 'black', 0)[0] === 'P-FE');
+    assert.strictEqual(fe.length, 1); aba.push(ctx.moveToABAPRO(fe[0].cells, fe[0].dir, fe[0].info.type));
+  }
+  assert.notStrictEqual(aba[0], aba[1]);
+  require('./harness').poserCases(ctx, [[0, 0], [0, 1], [1, 1]], []);
+  assert.strictEqual(ctx.getAllMovesForColor('black').filter(m => _g89(m, 'black', 0)[0] === 'P-FE').length, 1);
+});
+
+test('v2.97 Ghigou : le reglage, la ligne sous le coup, la fenetre, les Parametres et le wiki', async () => {
+  const avant = ctx.notationHistorique;
+  try {
+    const mi = { cells: ['c3', 'd3'].map(_AP84), dir: _DIR84.NO, type: 'push', ejection: true };
+    ctx.notationHistorique = '';
+    assert.strictEqual(ctx.ligneNotationHistorique(mi, 'black', 1), '');
+    ctx.notationHistorique = 'ghigou89';
+    assert.match(ctx.ligneNotationHistorique(mi, 'black', 1), /class="move-hist"[^>]*>AC-S \(e/);
+    ctx.notationHistorique = 'ghigou90';
+    assert.match(ctx.ligneNotationHistorique(mi, 'black', 1), />C3-D3 \(e\)</);
+    ctx.choisirNotationHistorique('nimporte');
+    assert.strictEqual(ctx.notationHistorique, '');
+    assert.strictEqual(ctx.localStorage.getItem('abalone_notation_historique'), '');
+  } finally { ctx.notationHistorique = avant; }
+  await _enFrancais54(() => _dom54(async els => {
+    ctx.renderNotationsHistoriques(); const h = els['nh-contenu'].innerHTML;
+    assert.strictEqual((h.match(/<svg /g) || []).length, 2);
+    assert.strictEqual((h.match(/<circle /g) || []).length, 122);
+    ['Marc Ghigou', 'Hemgé', 'Michael Frank', 'groups.csail.mit.edu/medg/ftp/abalone', 'n° 1 (octobre 1989)', 'n° 7 (mai-juin 1990)', 'AYX', 'C3-D4, D5, D6', 'E2 et F1']
+      .forEach(t => assert.ok(h.includes(t), t));
+  }));
+  // Parametres : le choix et le bouton ; la fenetre existe ; les traductions
+  assert.match(_SRC_INDEX, /id="settings-notation-historique"[^]*?value="ghigou90"[^]*?value="ghigou89"/);
+  assert.match(_SRC_INDEX, /id="modal-notations-historiques"[^]*?id="nh-contenu"/);
+  assert.match(_SRC_INDEX, /onclick="ouvrirNotationsHistoriques\(\)"/);
+  assert.strictEqual(_r63("I18N_EN['Notation historique']"), 'Historical notation');
+  // la base de connaissances et le wiki
+  assert.match(_r63("ABALONE_KB_TOPICS.find(e => e.id === 'notation').a"), /Marc Ghigou/);
+  const fs = require('fs'), path = require('path');
+  for (const [f, mots] of [['docs-fr/Ressources.fr.md', ['## 9. Les systèmes de notation', 'Hemgé', 'Michael Frank', 'LMU', 'OKUN', 'sans W']],
+    ['docs-en/Ressources.en.md', ['## 9. Notation systems', 'Hemgé', 'Michael Frank', 'LMU', 'OKUN', 'no W']]]) {
+    const s = fs.readFileSync(path.join(__dirname, '..', f), 'utf8'); mots.forEach(t => assert.ok(s.includes(t), f + ' : ' + t));
+  }
+});

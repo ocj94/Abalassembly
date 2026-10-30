@@ -4,10 +4,10 @@
 
 Tout ce qui existe autour du jeu, rassemblé en un seul endroit : où jouer,
 les serveurs disparus, les compétitions, les programmes, les articles, les
-encyclopédies, les données ouvertes. Chaque ligne dit d'où vient
+encyclopédies, les données ouvertes, les systèmes de notation. Chaque ligne dit d'où vient
 l'information ; ce qui n'a pas pu être vérifié est signalé comme tel.
 
-Mise à jour : 29 octobre 2026.
+Mise à jour : 30 octobre 2026.
 
 ## 1. Où jouer aujourd'hui
 
@@ -134,6 +134,32 @@ FightClub (blog Abalone Online) en décembre 2019 :
 - [`community-games/`](../community-games/) : les parties apportées par les
   joueurs.
 - Les 60 positions de départ du site : [Variantes](Variantes.fr.md).
+
+## 9. Les systèmes de notation
+
+Avant Aba-Pro et Nacre, d'autres façons d'écrire les coups ont existé. Les
+deux de Marc Ghigou peuvent s'afficher sous chaque coup de l'historique
+(Paramètres → Notation des coups → Notation historique), avec une fenêtre
+qui dessine leurs plateaux.
+
+| Système | Date | Principe |
+|---|---|---|
+| Marc Ghigou, « 1989 » | *Jeux & Stratégie* n° 1, octobre 1989 | 24 lettres sur le bord (A en bas à gauche, sens inverse des aiguilles d'une montre, sans W) ; six bases, Noir sur AE, Blanc sur MQ ; une case intérieure porte deux lettres (c4 = BD, le centre = AE). Coup : la bille de queue puis la lettre visée (`A-M`), en flèche une lettre par bille (`AC-SR`), éjection `(eI)` en romain pour Noir, `(e2)` en arabe pour Blanc. Jugé trop compliqué et ambigu. |
+| Marc Ghigou, « Hemgé » (1990) | *Jeux & Stratégie* n° 7, mai-juin 1990 | Rangées A (base de Noir) à I, cases numérotées depuis l'Ouest (`A1`…`I5`). Coup en ligne : la queue puis sa case d'arrivée (`B2-C3`) ; en flèche : une extrémité puis les cases d'arrivée (`C3-D4, D5, D6`) ; éjection `(e)`. Défaut : E2 et F1 sont sur la même diagonale. |
+| Michael Frank (MIT) | début des années 1990 | L'hexagone inscrit dans un carré, chaque case repérée par x et y, puis les y remplacés par des lettres : le principe d'Aba-Pro. Pas de notation des coups aboutie ([archives au MIT](https://groups.csail.mit.edu/medg/ftp/abalone/)). |
+| LMU | 1994 | Loyola Marymount University : cases numérotées de 0 à 60. |
+| OKUN | | Cases numérotées de 1 à 61. |
+| Aba-Pro | | Rangées a à i, diagonales 1 à 9 : la notation de référence, celle des exports. |
+| Nacre | | Les mêmes cases ; en flèche, le départ d'une extrémité et l'arrivée de l'autre. |
+
+Sources : *Jeux & Stratégie* n° 1, n° 6 ([avril 1990](http://fr.1001mags.com/parution/jeux-strategie/numero-6-avril-1990/page-54-55-texte-integral))
+et n° 7 ([mai-juin 1990](http://fr.1001mags.com/parution/jeux-strategie/numero-7-mai-jun-1990/page-50-51-texte-integral)) ;
+blog Abalone Online, [« Les systèmes de notation »](https://onlineabalone.wordpress.com/2017/03/01/les-systemes-de-notation/)
+(1er mars 2017). Les parties d'exemple des deux articles de Ghigou se
+rejouent coup pour coup dans Abalassembly : chaque coup publié y est le seul
+coup légal qui s'écrive ainsi. Deux points flous du système de 1989 (les
+cases des médianes, l'extrémité nommée en flèche) sont tranchés comme dans
+les exemples publiés.
 
 Pour ajouter une ressource ou corriger une ligne, ouvrez une issue sur le
 dépôt.

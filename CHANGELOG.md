@@ -9,6 +9,40 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v2.97]
+
+### Ajouté — les notations de Marc Ghigou, et le principe de Michael Frank
+Demande de l'auteur : « intègre au site la notation de Marc Ghigou, et
+celle de Michael Frank ».
+- **Paramètres → Notation des coups → Notation historique** : un des deux
+  systèmes de la Fédération française de jeu d'Abalone s'affiche sous chaque
+  coup de l'historique, en plus d'Aba-Pro et de Nacre.
+  - **1990, dit « Hemgé »** (*Jeux & Stratégie* n° 7, signé Barlerin « avec
+    la complicité de Marc Ghigou ») : rangées A à I, cases numérotées
+    depuis l'Ouest, `A1-B2`, `C3-D4, D5, D6`, `(e)`.
+  - **1989, les 24 lettres** (*Jeux & Stratégie* n° 1, attribué à Marc
+    Ghigou par le blog Abalone Online) : lettres sur le bord, sans W ; une
+    case intérieure porte deux lettres (`BD`) ; `A-M`, `AC-SR`, et le rang
+    de la bille éjectée, `(eI)` en romain pour Noir, `(e2)` pour Blanc.
+- **Une fenêtre** (bouton sous le réglage) dessine les deux plateaux à
+  partir des tables mêmes, explique les règles, donne la partie en cours
+  dans les deux systèmes, et raconte le principe de Michael Frank (MIT) :
+  repérer chaque case par x et y, l'idée que reprend Aba-Pro. Frank n'a pas
+  abouti à une notation des coups : il n'y a rien de lui à afficher coup
+  par coup, et ses échanges sont archivés au MIT.
+- **Vérifié** contre les articles : la partie d'exemple de 1990 (10 demi-
+  coups), celle de 1989 (9) et les 17 premiers coups d'une solution publiée
+  en 1990 se rejouent avec le vrai moteur, et chaque coup publié est le
+  seul coup légal qui s'écrive ainsi. Ces parties ont tranché deux points :
+  le W n'existe pas (la partie écrit `AYX` et `Y-N`), et les cases des
+  médianes suivent les exemples (`MO`, `MN`) plutôt que la phrase du texte.
+  Sur le papier, une même écriture en flèche de 1989 peut viser deux
+  groupes ; jamais dans une même position, où les deux coups ne peuvent pas
+  être légaux ensemble (vérifié). L'Aba-Pro reste la notation des exports
+  et des imports.
+- Le wiki : une section « Les systèmes de notation » dans Ressources
+  (Ghigou, Frank, LMU, OKUN, Aba-Pro, Nacre), et la base de connaissances.
+
 ## [v2.96]
 
 ### Modifié — la page Architecture remise à jour

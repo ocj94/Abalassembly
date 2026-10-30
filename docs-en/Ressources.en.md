@@ -4,10 +4,10 @@
 
 Everything that exists around the game, in one place: where to play, the
 servers that disappeared, competitions, programs, papers, encyclopedias,
-open data. Each line says where the information comes from; what could not
+open data, notation systems. Each line says where the information comes from; what could not
 be checked is flagged as such.
 
-Updated: 29 October 2026.
+Updated: 30 October 2026.
 
 ## 1. Where to play today
 
@@ -133,5 +133,29 @@ blog) in December 2019:
   that mark a program's side.
 - [`community-games/`](../community-games/): games contributed by players.
 - The site's 60 starting positions: [Variants](Variantes.en.md).
+
+## 9. Notation systems
+
+Before Aba-Pro and Nacre, other ways of writing moves existed. Marc
+Ghigou's two can be shown under each move of the history (Settings → Move
+notation → Historical notation), with a window that draws their boards.
+
+| System | Date | Principle |
+|---|---|---|
+| Marc Ghigou, "1989" | *Jeux & Stratégie* no. 1, October 1989 | 24 letters on the edge (A bottom left, counterclockwise, no W); six bases, Black on AE, White on MQ; an inner cell bears two letters (c4 = BD, the centre = AE). Move: the tail marble then the letter aimed at (`A-M`), broadside one letter per marble (`AC-SR`), ejection `(eI)` in Roman for Black, `(e2)` in Arabic for White. Found too complicated and ambiguous. |
+| Marc Ghigou, "Hemgé" (1990) | *Jeux & Stratégie* no. 7, May-June 1990 | Rows A (Black's base) to I, cells numbered from the West (`A1`…`I5`). Inline move: the tail then its arrival cell (`B2-C3`); broadside: an end then the arrival cells (`C3-D4, D5, D6`); ejection `(e)`. Flaw: E2 and F1 are on the same diagonal. |
+| Michael Frank (MIT) | early 1990s | The hexagon fitted in a square, each cell located by x and y, then the y replaced by letters: Aba-Pro's principle. No finished move notation ([archives at MIT](https://groups.csail.mit.edu/medg/ftp/abalone/)). |
+| LMU | 1994 | Loyola Marymount University: cells numbered 0 to 60. |
+| OKUN | | Cells numbered 1 to 61. |
+| Aba-Pro | | Rows a to i, diagonals 1 to 9: the reference notation, used for exports. |
+| Nacre | | The same cells; a broadside writes one end's start and the other end's arrival. |
+
+Sources: *Jeux & Stratégie* no. 1, no. 6 ([April 1990](http://fr.1001mags.com/parution/jeux-strategie/numero-6-avril-1990/page-54-55-texte-integral))
+and no. 7 ([May-June 1990](http://fr.1001mags.com/parution/jeux-strategie/numero-7-mai-jun-1990/page-50-51-texte-integral));
+Abalone Online blog, ["Les systèmes de notation"](https://onlineabalone.wordpress.com/2017/03/01/les-systemes-de-notation/)
+(1 March 2017). The example games of both Ghigou articles replay move by
+move in Abalassembly: each published move is the only legal move written
+that way. Two unclear points of the 1989 system (median cells, which end is
+named in a broadside) are settled as in the published examples.
 
 To add a resource or fix a line, open an issue on the repository.
