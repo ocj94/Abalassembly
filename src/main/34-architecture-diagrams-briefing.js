@@ -36,7 +36,7 @@ const ARCHI_CHIFFRES = {
   dispositionsLivre: 13,                        // dispositions de l'arbre d'ouvertures (OPENING_TREES)
   puzzles: 138,                                 // PUZZLES
   historique: 200,                              // HIST_MAX
-  dispositions: 120,                            // v3.01 : LAYOUTS (23 + 37 relevees par gym-abalone + 60 inventees)
+  dispositions: 140,                            // v3.02 : LAYOUTS (23 + 37 relevees par gym-abalone + 80 inventees)
   traces: 40,                                   // v2.96 : PARTIES_TRACES, citees par le blog sans leurs coups
   positions4v2: 140575680, demiCoups4v2: 97     // tablebase/RESULTS.md
 };
@@ -107,7 +107,7 @@ function _archiCarteDonnees(){
      _tr('Bibliothèque de parties : rejouer, filtrer', 'Game library: replay, filter')],
     [_tr('Les parties MiGs et PlayStrategy en APGN, refaites par un outil et vérifiées par un test', 'The MiGs and PlayStrategy games in APGN, rebuilt by a tool and checked by a test'),
      _tr('Le dossier games/ du dépôt, pour les autres programmes', 'The repository’s games/ folder, for other programs')],
-    [_tr(_archiN(C.dispositions) + ' positions de départ : 37 relevées par le projet gym-abalone et vérifiées case par case, 60 inventées et mesurées par Abalassembly', _archiN(C.dispositions) + ' starting positions: 37 read by the gym-abalone project and checked cell by cell, 60 invented and measured by Abalassembly'),
+    [_tr(_archiN(C.dispositions) + ' positions de départ : 37 relevées par le projet gym-abalone et vérifiées case par case, 80 inventées et mesurées par Abalassembly', _archiN(C.dispositions) + ' starting positions: 37 read by the gym-abalone project and checked cell by cell, 80 invented and measured by Abalassembly'),
      _tr('Jouer, Variantes, Éditeur', 'Play, Variants, Editor')]
   ];
   h += '<div class="archi-usages">' + usages.map(function(u){

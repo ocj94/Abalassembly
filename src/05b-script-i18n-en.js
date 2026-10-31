@@ -519,7 +519,7 @@ const I18N_EN = {
   'Ou une position, dans la notation de Saab (KAAH) :': 'Or a position, in Saab’s notation (KAAH):', '▶ Jouer': '▶ Play',
   '📂 Fichier de partie KAAH / KAAWA (.json)': '📂 KAAH / KAAWA game file (.json)',
   // v3.01 : les departs inventes
-  '🧪 Inventées': '🧪 Invented', '🧪 60 départs inventés par Abalassembly': '🧪 60 starting positions invented by Abalassembly'
+  '🧪 Inventées': '🧪 Invented', '🧪 80 départs inventés par Abalassembly': '🧪 80 starting positions invented by Abalassembly'
 };
 function _i18nCle(s) { const t = String(s).trim(); return /\s\s|[\t\n\r\u00a0\u202f]/.test(t) ? t.replace(/\s+/g, ' ') : t; }
 function _i18nDict(k) { return Object.prototype.hasOwnProperty.call(I18N_EN, k) ? I18N_EN[k] : null; }

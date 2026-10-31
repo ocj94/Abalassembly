@@ -1003,6 +1003,91 @@ const LAYOUTS = {
   eq_envol: {   // v3.01 : L’Envol (serie 3, avantage du trait +50)
     black: [[0,0],[1,0],[2,1],[2,4],[2,5],[2,6],[3,0],[3,3],[4,0],[4,1],[4,3],[7,3],[8,1],[8,2]],
     white: [[0,2],[0,3],[1,2],[4,5],[4,7],[4,8],[5,4],[5,7],[6,0],[6,1],[6,2],[6,5],[7,5],[8,4]]
+  },
+  /* v3.02 : 20 departs « les Blancs prennent de l'avance » (fiches : DEPARTS_AVANCE, 21-variants-and-puzzles.js).
+     Un depart connu (classique ou invente), puis un coup blanc deja joue avant le premier coup des Noirs :
+     des billes avancees vers le centre, ou une poussee blanche deja prete. Les Noirs sont ceux de la base,
+     sans changement. Choisis par l'equilibre que mesure le moteur (moyenne des notes a 2 et 3 demi-coups,
+     qui ne favorise aucun camp ; 0 = equilibre). Demande d'ocj94. */
+  av_flamme_contact: {   // v3.02 : La Flamme · le contact (coup d avance i7h6, equilibre -2)
+    black: [[4,2],[4,3],[5,2],[5,3],[6,2],[6,3],[6,4],[6,5],[7,2],[7,3],[7,4],[7,5],[8,2],[8,3]],
+    white: [[0,1],[1,0],[1,1],[1,2],[1,3],[2,1],[2,2],[2,3],[2,4],[3,2],[3,4],[3,5],[4,5],[4,6]]
+  },
+  av_dalle_avant_garde: {   // v3.02 : La Dalle · l’avant-garde (coup d avance i7h6, equilibre 2)
+    black: [[5,1],[5,2],[5,3],[5,4],[6,1],[6,2],[6,3],[6,4],[7,2],[7,3],[7,4],[8,2],[8,3],[8,4]],
+    white: [[0,0],[0,1],[1,1],[1,2],[1,3],[2,2],[2,3],[2,4],[2,5],[3,2],[3,3],[3,4],[3,5],[3,6]]
+  },
+  av_peigne_avant_garde: {   // v3.02 : Le Peigne · l’avant-garde (coup d avance i6h5, equilibre -2)
+    black: [[5,1],[6,0],[6,1],[6,2],[6,3],[6,4],[6,5],[7,1],[7,2],[7,3],[7,4],[7,5],[8,1],[8,3]],
+    white: [[0,3],[1,0],[1,1],[1,2],[1,3],[1,4],[2,1],[2,2],[2,3],[2,4],[2,5],[2,6],[3,1],[3,6]]
+  },
+  av_escouades_pas_en_avant: {   // v3.02 : Les Escouades · le pas en avant (coup d avance d5d6e5, equilibre -2)
+    black: [[2,6],[3,2],[3,3],[3,6],[3,7],[4,7],[4,8],[6,2],[7,1],[7,4],[7,5],[8,0],[8,1],[8,4]],
+    white: [[0,0],[0,3],[0,4],[1,0],[1,1],[1,4],[2,4],[4,0],[4,1],[4,4],[4,5],[5,0],[5,1],[6,0]]
+  },
+  av_german_pas_en_avant: {   // v3.02 : Marguerite allemande · le pas en avant (coup d avance b6b5, equilibre 3)
+    black: [[1,4],[1,5],[2,4],[2,5],[2,6],[3,5],[3,6],[5,1],[5,2],[6,0],[6,1],[6,2],[7,0],[7,1]],
+    white: [[1,0],[1,1],[2,0],[2,1],[2,2],[3,1],[3,2],[5,5],[5,6],[6,4],[6,5],[6,6],[7,3],[7,4]]
+  },
+  av_escouades_menace: {   // v3.02 : Les Escouades · la menace (coup d avance c1c2, equilibre -3)
+    black: [[2,6],[3,2],[3,3],[3,6],[3,7],[4,7],[4,8],[6,2],[7,1],[7,4],[7,5],[8,0],[8,1],[8,4]],
+    white: [[0,0],[0,3],[0,4],[1,0],[1,1],[1,4],[2,4],[4,0],[4,1],[5,0],[5,1],[5,4],[5,5],[6,1]]
+  },
+  av_belgian_avant_garde: {   // v3.02 : Marguerite belge · l’avant-garde (coup d avance a4b5, equilibre -4)
+    black: [[0,3],[0,4],[1,3],[1,4],[1,5],[2,4],[2,5],[6,1],[6,2],[7,0],[7,1],[7,2],[8,0],[8,1]],
+    white: [[0,0],[0,1],[1,0],[1,1],[1,2],[2,1],[2,2],[5,6],[6,4],[6,5],[7,3],[7,4],[7,5],[8,4]]
+  },
+  av_belgian_eclaireur: {   // v3.02 : Marguerite belge · l’éclaireur (coup d avance c6d6, equilibre -4)
+    black: [[0,3],[0,4],[1,3],[1,4],[1,5],[2,4],[2,5],[6,1],[6,2],[7,0],[7,1],[7,2],[8,0],[8,1]],
+    white: [[0,0],[0,1],[1,0],[1,1],[1,2],[2,1],[2,2],[5,5],[6,4],[7,3],[7,4],[7,5],[8,3],[8,4]]
+  },
+  av_swiss_pas_en_avant: {   // v3.02 : Marguerite suisse · le pas en avant (coup d avance b6b5, equilibre -5)
+    black: [[1,4],[1,5],[2,1],[2,4],[2,6],[3,5],[3,6],[5,1],[5,2],[6,0],[6,2],[6,5],[7,0],[7,1]],
+    white: [[1,0],[1,1],[2,0],[2,2],[2,5],[3,1],[3,2],[5,5],[5,6],[6,1],[6,4],[6,6],[7,3],[7,4]]
+  },
+  av_avant_postes_menace: {   // v3.02 : Les Avant-postes · la menace (coup d avance c3c4b2, equilibre 5)
+    black: [[2,3],[2,4],[3,0],[3,3],[3,4],[4,0],[4,1],[6,5],[7,0],[7,4],[7,5],[8,0],[8,1],[8,4]],
+    white: [[0,0],[0,3],[0,4],[1,0],[1,1],[1,5],[2,1],[4,7],[4,8],[5,3],[5,4],[5,7],[7,1],[7,2]]
+  },
+  av_botte_pas_en_avant: {   // v3.02 : La Botte · le pas en avant (coup d avance g9f8, equilibre 5)
+    black: [[5,1],[5,2],[5,3],[5,4],[5,5],[6,0],[6,1],[6,2],[6,3],[6,4],[6,5],[7,0],[7,1],[8,0]],
+    white: [[0,4],[1,4],[1,5],[2,1],[2,2],[2,3],[2,4],[2,5],[3,2],[3,3],[3,4],[3,5],[3,6],[4,6]]
+  },
+  av_bastion_eclaireur: {   // v3.02 : Le Bastion · l’éclaireur (coup d avance g3f3, equilibre 5)
+    black: [[6,2],[6,3],[6,4],[6,5],[6,6],[7,1],[7,2],[7,3],[7,4],[7,5],[8,1],[8,2],[8,3],[8,4]],
+    white: [[0,0],[0,1],[0,2],[0,3],[1,0],[1,1],[1,2],[1,3],[1,4],[2,1],[2,2],[2,3],[2,4],[3,1]]
+  },
+  av_diademe_pas_en_avant: {   // v3.02 : Le Diadème · le pas en avant (coup d avance f2f3, equilibre 5)
+    black: [[0,1],[0,2],[0,3],[1,1],[1,4],[5,0],[5,1],[5,3],[5,4],[5,6],[5,7],[6,0],[6,3],[6,6]],
+    white: [[2,0],[2,3],[2,6],[3,1],[3,2],[3,3],[3,4],[3,6],[3,7],[7,1],[7,4],[8,1],[8,2],[8,3]]
+  },
+  av_cornes_pas_en_avant: {   // v3.02 : Les Cornes · le pas en avant (coup d avance d1d2, equilibre -5)
+    black: [[1,0],[1,2],[1,3],[1,5],[2,0],[2,1],[2,5],[2,6],[3,0],[3,1],[3,6],[3,7],[5,3],[5,4]],
+    white: [[3,3],[3,4],[5,1],[5,2],[5,6],[5,7],[6,0],[6,1],[6,5],[6,6],[7,0],[7,2],[7,3],[7,5]]
+  },
+  av_patrouille_menace: {   // v3.02 : La Patrouille · la menace (coup d avance f9g9, equilibre 6)
+    black: [[0,0],[0,3],[0,4],[1,0],[1,1],[1,4],[2,0],[4,5],[5,0],[5,1],[5,4],[5,5],[6,0],[6,3]],
+    white: [[1,5],[2,3],[2,6],[3,2],[3,3],[3,6],[4,3],[6,6],[7,1],[7,4],[7,5],[8,0],[8,1],[8,4]]
+  },
+  av_diademe_menace: {   // v3.02 : Le Diadème · la menace (coup d avance f2e2, equilibre -6)
+    black: [[0,1],[0,2],[0,3],[1,1],[1,4],[5,0],[5,1],[5,3],[5,4],[5,6],[5,7],[6,0],[6,3],[6,6]],
+    white: [[2,0],[2,3],[2,6],[3,1],[3,3],[3,4],[3,6],[3,7],[4,1],[7,1],[7,4],[8,1],[8,2],[8,3]]
+  },
+  av_ruche_contact: {   // v3.02 : La Ruche · le contact (coup d avance h9g8, equilibre 6)
+    black: [[5,2],[5,3],[5,4],[5,5],[6,1],[6,2],[6,3],[6,4],[6,5],[7,0],[7,1],[7,2],[7,3],[7,4]],
+    white: [[1,1],[1,2],[1,3],[1,4],[2,1],[2,2],[2,3],[2,4],[2,5],[3,2],[3,3],[3,4],[3,5],[4,5]]
+  },
+  av_eventail_avant_garde: {   // v3.02 : L’Éventail · l’avant-garde (coup d avance h4g4, equilibre -6)
+    black: [[5,3],[5,4],[5,5],[5,6],[5,7],[6,3],[6,4],[6,5],[6,6],[7,3],[7,4],[7,5],[8,3],[8,4]],
+    white: [[0,0],[0,1],[1,1],[1,2],[2,0],[2,1],[2,2],[2,3],[3,0],[3,1],[3,2],[3,3],[3,4],[4,3]]
+  },
+  av_standard_avant_garde: {   // v3.02 : Standard · l’avant-garde (coup d avance i5h5, equilibre 7)
+    black: [[6,2],[6,3],[6,4],[7,0],[7,1],[7,2],[7,3],[7,4],[7,5],[8,0],[8,1],[8,2],[8,3],[8,4]],
+    white: [[0,1],[0,2],[0,3],[0,4],[1,0],[1,1],[1,2],[1,3],[1,4],[1,5],[2,2],[2,3],[2,4],[3,3]]
+  },
+  av_dutch_pas_en_avant: {   // v3.02 : Marguerite hollandaise · le pas en avant (coup d avance b6c6, equilibre -12)
+    black: [[0,3],[0,4],[1,1],[1,3],[1,5],[2,4],[2,5],[6,1],[6,2],[7,0],[7,2],[7,4],[8,0],[8,1]],
+    white: [[0,0],[0,1],[1,0],[1,2],[1,4],[2,1],[2,2],[5,5],[6,4],[6,5],[7,1],[7,3],[8,3],[8,4]]
   }
 };
 

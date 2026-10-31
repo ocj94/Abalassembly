@@ -386,6 +386,69 @@ DEPARTS_INVENTES.forEach(function(d){
   HEAT_VARIANT_LABEL[d.cle] = d.nom;
 });
 
+/* v3.02 : 20 departs ou les Blancs partent avec un coup d'avance (positions : LAYOUTS). « base » : le depart
+   d'origine, dont les Noirs sont repris tels quels ; « coup » : le coup blanc deja joue, en notation Aba-Pro.
+   « equilibre » : moyenne des notes du moteur a 2 et 3 demi-coups (Noirs au trait), qui ne favorise aucun
+   camp : 0 = equilibre, negatif = avantage aux Blancs ; « sansAvance » : la meme mesure pour la base
+   (Standard +19, Marguerite belge +16, Marguerite allemande +25). Verifie par les tests. */
+const DEPARTS_AVANCE = [
+  { cle:"av_flamme_contact", nom:"La Flamme · le contact", emoji:"🔥", base:"eq_flamme", coup:"i7h6", equilibre:-2, sansAvance:10, menace:true,
+    forme:"Comme la Flamme (départ inventé, série 1), mais trois billes blanches avancent d’une case vers le centre avant le premier coup des Noirs : les Blancs peuvent déjà pousser." },
+  { cle:"av_dalle_avant_garde", nom:"La Dalle · l’avant-garde", emoji:"⬜", base:"eq_dalle", coup:"i7h6", equilibre:2, sansAvance:10, menace:false,
+    forme:"Comme la Dalle (départ inventé, série 1), mais trois billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_peigne_avant_garde", nom:"Le Peigne · l’avant-garde", emoji:"🎹", base:"eq_peigne", coup:"i6h5", equilibre:-2, sansAvance:12, menace:false,
+    forme:"Comme le Peigne (départ inventé, série 1), mais trois billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_escouades_pas_en_avant", nom:"Les Escouades · le pas en avant", emoji:"🪖", base:"eq_escouades", coup:"d5d6e5", equilibre:-2, sansAvance:15, menace:false,
+    forme:"Comme les Escouades (départ inventé, série 2), mais deux billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_german_pas_en_avant", nom:"Marguerite allemande · le pas en avant", emoji:"🌸", base:"german", coup:"b6b5", equilibre:3, sansAvance:25, menace:false,
+    forme:"Comme la Marguerite allemande, mais deux billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_escouades_menace", nom:"Les Escouades · la menace", emoji:"🪖", base:"eq_escouades", coup:"c1c2", equilibre:-3, sansAvance:15, menace:true,
+    forme:"Comme les Escouades (départ inventé, série 2), mais une bille blanche avance d’une case vers le centre avant le premier coup des Noirs : les Blancs menacent déjà d’éjecter une bille noire." },
+  { cle:"av_belgian_avant_garde", nom:"Marguerite belge · l’avant-garde", emoji:"🌼", base:"belgian", coup:"a4b5", equilibre:-4, sansAvance:16, menace:false,
+    forme:"Comme la Marguerite belge, mais trois billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_belgian_eclaireur", nom:"Marguerite belge · l’éclaireur", emoji:"🌼", base:"belgian", coup:"c6d6", equilibre:-4, sansAvance:16, menace:false,
+    forme:"Comme la Marguerite belge, mais une bille blanche avance d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_swiss_pas_en_avant", nom:"Marguerite suisse · le pas en avant", emoji:"🏔", base:"swiss", coup:"b6b5", equilibre:-5, sansAvance:16, menace:false,
+    forme:"Comme la Marguerite suisse, mais deux billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_avant_postes_menace", nom:"Les Avant-postes · la menace", emoji:"🏕️", base:"eq_avant_postes", coup:"c3c4b2", equilibre:5, sansAvance:14, menace:true,
+    forme:"Comme les Avant-postes (départ inventé, série 2), mais deux billes blanches reculent d’une case avant le premier coup des Noirs : les Blancs menacent déjà d’éjecter une bille noire." },
+  { cle:"av_botte_pas_en_avant", nom:"La Botte · le pas en avant", emoji:"👢", base:"eq_botte", coup:"g9f8", equilibre:5, sansAvance:9, menace:false,
+    forme:"Comme la Botte (départ inventé, série 1), mais deux billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_bastion_eclaireur", nom:"Le Bastion · l’éclaireur", emoji:"🏰", base:"eq_bastion", coup:"g3f3", equilibre:5, sansAvance:9, menace:false,
+    forme:"Comme le Bastion (départ inventé, série 1), mais une bille blanche avance d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_diademe_pas_en_avant", nom:"Le Diadème · le pas en avant", emoji:"👑", base:"eq_diademe", coup:"f2f3", equilibre:5, sansAvance:16, menace:false,
+    forme:"Comme le Diadème (départ inventé, série 3), mais deux billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_cornes_pas_en_avant", nom:"Les Cornes · le pas en avant", emoji:"🐂", base:"eq_cornes", coup:"d1d2", equilibre:-5, sansAvance:18, menace:false,
+    forme:"Comme les Cornes (départ inventé, série 3), mais deux billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_patrouille_menace", nom:"La Patrouille · la menace", emoji:"🧭", base:"eq_patrouille", coup:"f9g9", equilibre:6, sansAvance:14, menace:true,
+    forme:"Comme la Patrouille (départ inventé, série 3), mais deux billes blanches glissent d’une case sur le côté avant le premier coup des Noirs : les Blancs menacent déjà d’éjecter une bille noire." },
+  { cle:"av_diademe_menace", nom:"Le Diadème · la menace", emoji:"👑", base:"eq_diademe", coup:"f2e2", equilibre:-6, sansAvance:16, menace:true,
+    forme:"Comme le Diadème (départ inventé, série 3), mais une bille blanche avance d’une case vers le centre avant le premier coup des Noirs : les Blancs menacent déjà d’éjecter une bille noire." },
+  { cle:"av_ruche_contact", nom:"La Ruche · le contact", emoji:"🐝", base:"eq_ruche", coup:"h9g8", equilibre:6, sansAvance:6, menace:true,
+    forme:"Comme la Ruche (départ inventé, série 1), mais trois billes blanches avancent d’une case vers le centre avant le premier coup des Noirs : les Blancs peuvent déjà pousser." },
+  { cle:"av_eventail_avant_garde", nom:"L’Éventail · l’avant-garde", emoji:"🎐", base:"eq_eventail", coup:"h4g4", equilibre:-6, sansAvance:10, menace:false,
+    forme:"Comme l’Éventail (départ inventé, série 1), mais trois billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_standard_avant_garde", nom:"Standard · l’avant-garde", emoji:"⚫", base:"standard", coup:"i5h5", equilibre:7, sansAvance:19, menace:false,
+    forme:"Comme la Standard, mais trois billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_dutch_pas_en_avant", nom:"Marguerite hollandaise · le pas en avant", emoji:"🌷", base:"dutch", coup:"b6c6", equilibre:-12, sansAvance:16, menace:false,
+    forme:"Comme la Marguerite hollandaise, mais deux billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." }
+];
+const _signe = function(x){ return x > 0 ? '+' + x : x < 0 ? '−' + (-x) : '0'; };
+function _descAvance(d){
+  return d.forme + ' Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (' + d.coup + '), les Noirs jouent toujours en premier. '
+    + 'Équilibre mesuré par le moteur (moyenne de ses notes à 2 et à 3 demi-coups, qui ne favorise aucun camp ; 0 = équilibré, un nombre négatif donne l’avantage aux Blancs) : '
+    + _signe(d.equilibre) + ', contre ' + _signe(d.sansAvance) + ' sans l’avance. Sur cette échelle, la Standard vaut +19, la Marguerite belge +16 et la Marguerite allemande +25. '
+    + 'C’est une mesure du moteur : aucune partie n’a encore été jouée depuis cette position.';
+}
+DEPARTS_AVANCE.forEach(function(d){
+  const id = d.cle.replace(/_/g, '-');
+  variantsData.push({ id:id, name:d.nom, emoji:d.emoji, players:'2', duration:'Non mesurée', diff:'Non évaluée', src:'Abalassembly', inventee:true,
+    desc:_descAvance(d), origin:'Départ inventé et mesuré par Abalassembly (v3.02), à l’essai : aucune partie connue' });
+  VARIANTE_DISPOSITION[id] = d.cle;
+  if (HEAT_VARIANTS.indexOf(d.cle) < 0) HEAT_VARIANTS.push(d.cle);
+  HEAT_VARIANT_LABEL[d.cle] = d.nom;
+});
+
 /* Depuis la galerie : ouvre "Configurer avant de jouer" avec la variante
    deja choisie. Ouvrir la page ne reinitialise pas la disposition (verifie :
    showPage('setup') ne fait que redessiner la miniature). */
@@ -539,7 +602,7 @@ function _detailJouable(id){
 function filterVariants(players, evt) {
   const _d = document.getElementById('variant-detail'); if (_d) { _d.style.display = 'none'; _d.dataset.id = ''; }
   document.querySelectorAll('.variant-card').forEach(function(c){
-    // v3.01 : « Inventées » montre les 60 departs inventes par Abalassembly
+    // v3.01 : « Inventées » montre les departs inventes par Abalassembly (80 depuis la v3.02)
     const ok = players==='all' || (players==='inventees' ? c.dataset.inventee==='1' : c.dataset.players===players);
     c.style.display=ok?'block':'none';
   });

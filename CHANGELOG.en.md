@@ -9,6 +9,27 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.02]
+
+### Added — White gets a head start
+The author's request: variants where White can reach the centre or eject
+first, to reduce the first player's advantage.
+- **20 more starts**: a known start (the Standard, the Belgian, German,
+  Dutch and Swiss Daisies, or one of the invented starts), and White begins
+  with one move already played, marbles moved towards the centre or a White
+  push set up. Black still moves first and can't push anything on the first
+  move. One group in the setup menu; in the gallery, under "🧪 Invented".
+- **A measure that favours neither side**, since the sides are no longer
+  alike: the average of the engine's scores at 2 and at 3 half-moves. 0 is
+  balance; Standard +19, Belgian Daisy +16, German Daisy +25.
+- Every head start of the five classic layouts was measured. With the right
+  one, the German Daisy goes to +3, the Belgian Daisy to −4, the Standard to
+  +7; 14 of the 20 starts are between −5 and +5.
+- The tests check that each start is its base plus one legal White move,
+  the stated one, that Black can't push on the first move, what the card
+  says (towards the centre, push or ejection set up), and redo one engine
+  measurement.
+
 ## [v3.01]
 
 ### Added — 60 starting positions invented by Abalassembly
