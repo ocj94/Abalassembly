@@ -9,14 +9,14 @@ directement dans le code à chaque révision, jamais supposé.
 
 ## 1. La galerie « Variantes » face à l'écran de configuration
 
-**La galerie** (menu → Explorer → Variantes) est une encyclopédie de 70
+**La galerie** (menu → Explorer → Variantes) est une encyclopédie de 130
 fiches — nom, joueurs, durée, difficulté, description, source historique.
-Toucher une fiche ouvre ses explications juste en dessous. Pour les 60
+Toucher une fiche ouvre ses explications juste en dessous. Pour les 120
 fiches jouables, s'y ajoutent le plateau de départ, dessiné depuis la vraie
 position du moteur, et un bouton **« ▶ Jouer cette variante »** qui ouvre la
 configuration avec la variante déjà choisie.
 
-**L'écran de configuration** (Jouer → Disposition de départ) propose 60
+**L'écran de configuration** (Jouer → Disposition de départ) propose 120
 positions de départ réelles dans son menu déroulant, chacune avec sa
 propre miniature — c'est ce que le moteur sait effectivement charger.
 (Jusqu'ici ce document annonçait ce chiffre alors que le menu n'en
@@ -32,7 +32,7 @@ et durée médiane dans le corpus AbalOnline, symétries calculées. Aucune
 difficulté n'est inventée : faute de donnée, elle est marquée « Non
 évaluée ».
 
-### Réellement jouables (60 sur 70)
+### Réellement jouables (120 sur 130)
 
 | Galerie | Configuration |
 |---|---|
@@ -87,7 +87,49 @@ une troisième confirmation pour Snakes variant.
 Sauf Corners et Duel, confirmées par 32 et 21 parties AbalOnline, chacune
 n'a qu'une source : leurs fiches le disent.
 
-### Documentées seulement (10 sur 70)
+### Ajoutées en v3.01 : 60 départs inventés par Abalassembly
+
+Demandés par ocj94 : des positions de départ nouvelles, plus équilibrées
+entre les deux joueurs. Elles ont été choisies parmi des milliers de
+positions générées au hasard, avec quatre règles : 14 billes par camp ; les
+Blancs sont le demi-tour exact des Noirs (même forme, même place) ; les deux
+camps ne se touchent pas, personne ne peut pousser au premier coup ; aucune
+bille seule. Aucune n'est une position déjà connue, même tournée ou
+retournée (posRef de KAAH, vérifié par les tests).
+
+**La mesure** : l'avantage du trait, le score que le moteur donne aux Noirs
+après leur meilleure suite de 3 demi-coups (recherche à profondeur 3). Plus
+il est proche de 0, plus le départ est équilibré. Pour comparer : Standard
++38, Marguerite belge +32, Marguerite allemande +50. Le test du site refait
+une de ces mesures (Les Tenailles, +28).
+
+| Série | Formes | Avantage du trait | Départs |
+|---|---|---|---|
+| 1 · formes compactes | un ou deux blocs par camp, chacun chez soi | de +12 à +38 | La Ruche, La Botte, Le Bastion, L’Éventail, La Dalle, La Flamme, Le Peigne, Le Donjon, La Fronde, La Vague, Les Tenailles, Le Bouclier, L’Écharpe, La Proue, La Colonne, La Voile, La Barque, Le Fanion, La Catapulte, Le Pavé |
+| 2 · petits groupes | 4 groupes de 2 à 5 billes par camp, mêlés à ceux de l'adversaire | de +24 à +48 | L’Archipel, Les Sentinelles, Les Avant-postes, Les Escouades, Les Dominos, Le Semis, Les Lucioles, La Ronde, La Comète, Le Chapelet, La Garnison, Les Pléiades, La Faucille, Le Losange, Le Croissant, Les Vigies, La Lance, Le Mât, Les Rameaux, La Volée |
+| 3 · petits groupes, suite | 4 ou 5 groupes par camp, dont 7 formes symétriques de gauche à droite | de +28 à +50 | La Patrouille, Le Diadème, Les Cornes, L’Escadrille, Le Trident, Le Javelot, Les Créneaux, La Constellation, Le Fer à cheval, Les Éclaireurs, Le Quinconce, Les Lanternes, Les Ricochets, Le Serpent, La Lyre, La Citadelle, L’Échelle, Le Phare, Les Grêlons, L’Envol |
+
+Ce que la recherche a montré :
+
+- **Plus un camp est compact, moins le premier coup rapporte.** Sur 90
+  formes où chaque camp reste chez soi, l'avantage moyen passe de +51 pour
+  un seul bloc à +72 pour deux et +109 pour trois.
+- **Les petits groupes ne tiennent l'équilibre que mêlés à ceux de
+  l'adversaire.** Gardés chacun dans sa moitié : +52 au mieux, le plus
+  souvent de +80 à +120. Mêlés : 27 formes sur 103 font au plus +50, la
+  meilleure +24.
+- **À 5 groupes par camp, jamais sous +46** (11 formes sur 36 au plus +50).
+
+Ce sont des mesures du moteur, pas des parties : entre humains, dans le
+corpus du site, les Noirs gagnent 53 % des parties. Seul un grand nombre de
+parties dira si ces départs ramènent ce taux à 50 %. Les fiches le disent :
+aucune partie n'a encore été jouée depuis ces positions.
+
+Dans le menu de configuration, elles forment trois groupes « Départs
+inventés par Abalassembly » ; dans la galerie, le bouton « 🧪 Inventées »
+les montre toutes.
+
+### Documentées seulement (10 sur 130)
 
 - **The Pillar** — sa description mentionne une bille neutre inamovible au
   centre : un troisième type de pièce que le moteur ne gère pas (seuls
@@ -98,12 +140,12 @@ n'a qu'une source : leurs fiches le disent.
 - **Concours-Blitz**, **Misère** — "blitz" existe ailleurs dans le code,
   mais uniquement comme filtre sur une page de classement de démonstration
   — pas comme mode de partie réel.
-- **3, 4, 5, 6 joueurs** — les 60 positions de `LAYOUTS` sont toutes à 2
+- **3, 4, 5, 6 joueurs** — les 120 positions de `LAYOUTS` sont toutes à 2
   camps (noir/blanc) ; un mode à plusieurs joueurs demanderait une
   structure de plateau différente. Voir la section 2 : ce mode a en fait
   sa propre page dédiée, distincte de ces fiches de galerie.
 
-### Et dans l'autre sens : jouables mais pas dans la galerie (0 sur 60)
+### Et dans l'autre sens : jouables mais pas dans la galerie (0 sur 120)
 
 Il y en avait dix — Découverte, 69, Star, Alliances, Domination, Atomouche,
 Centrifugeuse, Snakes variant, Korean Daisy, Anglattack. Elles ont toutes
@@ -171,4 +213,4 @@ Burnside) ; le test du site refait le calcul.
 Ces nombres comptent aussi des positions absurdes : une éjection possible dès
 le premier coup, des camps tout collés… Toute l'histoire de l'Abalone n'a
 utilisé qu'une centaine de positions de départ : MiGs en proposait 42,
-Abalassembly en propose 60.
+Abalassembly en propose 120, dont 60 qu'il a inventées (v3.01, section 1).

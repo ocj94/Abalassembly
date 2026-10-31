@@ -815,6 +815,72 @@
           <option value="the_arrow" title="Position du blog Abalone Online relevee par gym-abalone, identique a l'image de Wikipedia -- 14 noires contre 13 blanches">The Arrow</option>
           <option value="xmas_star" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Xmas Star</option>
         </optgroup>
+        <optgroup label="Départs inventés par Abalassembly · formes compactes">
+          <option value="eq_ruche" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +12 (Standard +38), aucune partie jouée">La Ruche</option>
+          <option value="eq_botte" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +18 (Standard +38), aucune partie jouée">La Botte</option>
+          <option value="eq_bastion" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +18 (Standard +38), aucune partie jouée">Le Bastion</option>
+          <option value="eq_eventail" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +20 (Standard +38), aucune partie jouée">L’Éventail</option>
+          <option value="eq_dalle" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +20 (Standard +38), aucune partie jouée">La Dalle</option>
+          <option value="eq_flamme" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +20 (Standard +38), aucune partie jouée">La Flamme</option>
+          <option value="eq_peigne" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +24 (Standard +38), aucune partie jouée">Le Peigne</option>
+          <option value="eq_donjon" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +26 (Standard +38), aucune partie jouée">Le Donjon</option>
+          <option value="eq_fronde" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +26 (Standard +38), aucune partie jouée">La Fronde</option>
+          <option value="eq_vague" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +28 (Standard +38), aucune partie jouée">La Vague</option>
+          <option value="eq_tenailles" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +28 (Standard +38), aucune partie jouée">Les Tenailles</option>
+          <option value="eq_bouclier" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +30 (Standard +38), aucune partie jouée">Le Bouclier</option>
+          <option value="eq_echarpe" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +30 (Standard +38), aucune partie jouée">L’Écharpe</option>
+          <option value="eq_proue" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +30 (Standard +38), aucune partie jouée">La Proue</option>
+          <option value="eq_colonne" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +30 (Standard +38), aucune partie jouée">La Colonne</option>
+          <option value="eq_voile" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +32 (Standard +38), aucune partie jouée">La Voile</option>
+          <option value="eq_barque" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +32 (Standard +38), aucune partie jouée">La Barque</option>
+          <option value="eq_fanion" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +34 (Standard +38), aucune partie jouée">Le Fanion</option>
+          <option value="eq_catapulte" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +36 (Standard +38), aucune partie jouée">La Catapulte</option>
+          <option value="eq_pave" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +38 (Standard +38), aucune partie jouée">Le Pavé</option>
+        </optgroup>
+        <optgroup label="Départs inventés par Abalassembly · petits groupes">
+          <option value="eq_archipel" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +24 (Standard +38), aucune partie jouée">L’Archipel</option>
+          <option value="eq_sentinelles" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +28 (Standard +38), aucune partie jouée">Les Sentinelles</option>
+          <option value="eq_avant_postes" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +28 (Standard +38), aucune partie jouée">Les Avant-postes</option>
+          <option value="eq_escouades" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +30 (Standard +38), aucune partie jouée">Les Escouades</option>
+          <option value="eq_dominos" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +34 (Standard +38), aucune partie jouée">Les Dominos</option>
+          <option value="eq_semis" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +36 (Standard +38), aucune partie jouée">Le Semis</option>
+          <option value="eq_lucioles" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +36 (Standard +38), aucune partie jouée">Les Lucioles</option>
+          <option value="eq_ronde" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +38 (Standard +38), aucune partie jouée">La Ronde</option>
+          <option value="eq_comete" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +38 (Standard +38), aucune partie jouée">La Comète</option>
+          <option value="eq_chapelet" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +40 (Standard +38), aucune partie jouée">Le Chapelet</option>
+          <option value="eq_garnison" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +44 (Standard +38), aucune partie jouée">La Garnison</option>
+          <option value="eq_pleiades" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +44 (Standard +38), aucune partie jouée">Les Pléiades</option>
+          <option value="eq_faucille" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +44 (Standard +38), aucune partie jouée">La Faucille</option>
+          <option value="eq_losange" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +44 (Standard +38), aucune partie jouée">Le Losange</option>
+          <option value="eq_croissant" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +44 (Standard +38), aucune partie jouée">Le Croissant</option>
+          <option value="eq_vigies" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +46 (Standard +38), aucune partie jouée">Les Vigies</option>
+          <option value="eq_lance" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +48 (Standard +38), aucune partie jouée">La Lance</option>
+          <option value="eq_mat" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +48 (Standard +38), aucune partie jouée">Le Mât</option>
+          <option value="eq_rameaux" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +48 (Standard +38), aucune partie jouée">Les Rameaux</option>
+          <option value="eq_volee" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +48 (Standard +38), aucune partie jouée">La Volée</option>
+        </optgroup>
+        <optgroup label="Départs inventés par Abalassembly · petits groupes, suite">
+          <option value="eq_patrouille" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +28 (Standard +38), aucune partie jouée">La Patrouille</option>
+          <option value="eq_diademe" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +32 (Standard +38), aucune partie jouée">Le Diadème</option>
+          <option value="eq_cornes" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +36 (Standard +38), aucune partie jouée">Les Cornes</option>
+          <option value="eq_escadrille" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +38 (Standard +38), aucune partie jouée">L’Escadrille</option>
+          <option value="eq_trident" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +40 (Standard +38), aucune partie jouée">Le Trident</option>
+          <option value="eq_javelot" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +44 (Standard +38), aucune partie jouée">Le Javelot</option>
+          <option value="eq_creneaux" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +46 (Standard +38), aucune partie jouée">Les Créneaux</option>
+          <option value="eq_constellation" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +46 (Standard +38), aucune partie jouée">La Constellation</option>
+          <option value="eq_fer_a_cheval" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +46 (Standard +38), aucune partie jouée">Le Fer à cheval</option>
+          <option value="eq_eclaireurs" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +46 (Standard +38), aucune partie jouée">Les Éclaireurs</option>
+          <option value="eq_quinconce" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +48 (Standard +38), aucune partie jouée">Le Quinconce</option>
+          <option value="eq_lanternes" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +48 (Standard +38), aucune partie jouée">Les Lanternes</option>
+          <option value="eq_ricochets" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +48 (Standard +38), aucune partie jouée">Les Ricochets</option>
+          <option value="eq_serpent" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +48 (Standard +38), aucune partie jouée">Le Serpent</option>
+          <option value="eq_lyre" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +48 (Standard +38), aucune partie jouée">La Lyre</option>
+          <option value="eq_citadelle" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +48 (Standard +38), aucune partie jouée">La Citadelle</option>
+          <option value="eq_echelle" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +50 (Standard +38), aucune partie jouée">L’Échelle</option>
+          <option value="eq_phare" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +50 (Standard +38), aucune partie jouée">Le Phare</option>
+          <option value="eq_grelons" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +50 (Standard +38), aucune partie jouée">Les Grêlons</option>
+          <option value="eq_envol" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +50 (Standard +38), aucune partie jouée">L’Envol</option>
+        </optgroup>
         <option value="random" title="Tire une vraie disposition au hasard parmi celles disponibles">🎲 Aléatoire</option>
         </select>
       </div>
@@ -3454,6 +3520,7 @@
       <button class="filter-btn" onclick="filterVariants('4', event)">♟️ 4 joueurs</button>
       <button class="filter-btn" onclick="filterVariants('5', event)">⭐ 5 joueurs</button>
       <button class="filter-btn" onclick="filterVariants('6', event)">🌟 6 joueurs</button>
+      <button class="filter-btn" onclick="filterVariants('inventees', event)">🧪 Inventées</button>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px" id="variants-grid"></div>
 
@@ -3463,6 +3530,18 @@
       <p style="margin:0 0 12px;font-size:13px;color:var(--muted);line-height:1.7">Avec 14 billes noires, 14 blanches et 61 trous :</p>
       <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="color:var(--gold);text-align:left"><th style="padding:8px 6px">Ce qu’on compte</th><th style="padding:8px 6px">Nombre</th></tr><tr style="border-top:1px solid var(--border)"><td style="padding:8px 6px">Toutes les façons de poser les 28 billes</td><td style="padding:8px 6px">7 691 345 017 184 661 959 133 000, environ 7,7 × 10²⁴</td></tr><tr style="border-top:1px solid var(--border)"><td style="padding:8px 6px">Les formes vraiment différentes, en regroupant celles qui se déduisent l’une de l’autre en tournant ou en retournant le plateau (12 symétries)</td><td style="padding:8px 6px">environ 6,4 × 10²³</td></tr><tr style="border-top:1px solid var(--border)"><td style="padding:8px 6px">Les départs <b>équitables</b> : les Blancs sont l’image exacte des Noirs vus de l’autre côté du plateau, comme la Standard ou la Marguerite belge</td><td style="padding:8px 6px">2 382 605 107 200, environ 2 400 milliards</td></tr><tr style="border-top:1px solid var(--border)"><td style="padding:8px 6px">Les mêmes, en regroupant celles qui se déduisent l’une de l’autre en tournant ou en retournant le plateau</td><td style="padding:8px 6px">198 550 991 616, environ 200 milliards</td></tr></table></div>
       <p style="margin:12px 0 0;font-size:13px;color:var(--muted);line-height:1.7">Pour les départs équitables, le calcul est simple : le plateau se partage en 30 paires de cases face à face, plus la case du centre, qui ne peut servir à aucun camp. On choisit 14 de ces paires, puis, dans chacune, laquelle des deux cases reçoit la bille noire. Ces nombres comptent aussi des positions absurdes (une éjection possible dès le premier coup, des camps tout collés…). Toute l’histoire de l’Abalone n’a utilisé qu’une centaine de positions de départ : MiGs en proposait 42, Abalassembly en propose 60.</p>
+    </div>
+    <!-- v3.01 : les 60 departs inventes par Abalassembly (DEPARTS_INVENTES) -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-top:16px">
+      <h3 style="margin:0 0 12px;color:var(--white);font-size:17px">🧪 60 départs inventés par Abalassembly</h3>
+      <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7">Choisis parmi des milliers de positions générées puis mesurées une à une par le moteur. Dans tous, les Blancs sont le demi-tour exact des Noirs, les deux camps ne se touchent pas, aucune bille n’est seule, et aucun n’est une position déjà connue, même tournée ou retournée. Le bouton « 🧪 Inventées » les montre tous.</p>
+      <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">La mesure :</strong> l’avantage du trait, ce que gagne le camp qui commence après sa meilleure suite de 3 demi-coups, en points du moteur. Plus il est proche de 0, plus le départ est équilibré. Pour comparer : Standard +38, Marguerite belge +32, Marguerite allemande +50.</p>
+      <ul style="margin:0 0 10px;padding-left:20px;font-size:13px;color:var(--muted);line-height:1.7">
+        <li><strong style="color:var(--text)">Série 1, formes compactes</strong> (de La Ruche au Pavé) : un ou deux blocs par camp, chacun chez soi, de +12 à +38.</li>
+        <li><strong style="color:var(--text)">Série 2, petits groupes</strong> (de L’Archipel à La Volée) : 4 groupes de 2 à 5 billes par camp, mêlés à ceux de l’adversaire, de +24 à +48.</li>
+        <li><strong style="color:var(--text)">Série 3, petits groupes, suite</strong> (de La Patrouille à L’Envol) : 4 ou 5 groupes par camp, dont 7 formes symétriques, de +28 à +50.</li>
+      </ul>
+      <p style="margin:0;font-size:13px;color:var(--muted);line-height:1.7">Ce que la recherche a montré : plus un camp est compact, moins le premier coup rapporte. Les petits groupes ne tiennent l’équilibre que mêlés à ceux de l’adversaire ; gardés chacun dans sa moitié, ils donnent une grosse avance au premier joueur (+52 au mieux, le plus souvent +80 à +120). Ce sont des mesures du moteur, pas encore des parties : seules beaucoup de parties diront si ces départs ramènent à 50 % les victoires du premier joueur.</p>
     </div>
     <!-- Positions catalog from onlineabalone.wordpress.com -->
     <div style="margin-top:32px">

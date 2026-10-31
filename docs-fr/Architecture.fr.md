@@ -74,7 +74,7 @@ flowchart LR
     C --> Q[Qualité des coups<br/>analyse hors ligne]
     C --> HP[Humains ou programmes<br/>par nom, ou marque BOT]
     C --> AP[games/ : MiGs et PlayStrategy<br/>en APGN, programmes marqués]
-    D[60 positions de départ<br/>dont 37 de gym-abalone] --> V[Jouer, Variantes, Éditeur]
+    D[120 positions de départ<br/>dont 37 de gym-abalone<br/>et 60 inventées] --> V[Jouer, Variantes, Éditeur]
     Q --> ST
     HP --> ST
     HP --> MS
@@ -102,7 +102,7 @@ flowchart LR
 
 - **Qualité des coups** (v2.78) : `tools/qualite-coups.js` analyse hors ligne chaque partie avec le moteur (environ une demi-heure) : billes offertes et prises, coups critiques (un seul coup sûr), coups trouvés. Résultat embarqué compressé, lu par la page Statistiques du jeu.
 - **Humains ou programmes** (v2.91) : `estIA` reconnaît un camp tenu par un programme à son nom exact (MLA, l'IA de lolo, les IA des parties de référence) ou, sur PlayStrategy, à la marque BOT de l'export. D'où le filtre « humains contre humains », les « vrais joueurs » de Mes statistiques (camps humains seulement) et le 🤖 de la bibliothèque.
-- **Les 60 positions de départ** : 23 relues une à une (images, corpus AbalOnline, parties rejouées), et 37 relevées par le projet gym-abalone puis vérifiées (v2.93-v2.94).
+- **Les 120 positions de départ** : 23 relues une à une (images, corpus AbalOnline, parties rejouées), 37 relevées par le projet gym-abalone puis vérifiées (v2.93-v2.94), et 60 inventées par Abalassembly, choisies parmi des milliers de positions générées et mesurées par son moteur (v3.01).
 - **Les 40 parties citées sans leurs coups** (v2.87-v2.92) : des traces dans la bibliothèque (numéro MiGs, date, joueurs), dont 2 que le corpus a avec leurs coups.
 - **Les fichiers publiés** : `tools/to-apgn.js` refait `games/migs-2016-2017.apgn` et `games/playstrategy-yearly-2026.apgn` en rejouant chaque partie ; un test vérifie que les fichiers du dépôt sont exactement ce qu'il produit, balises `BlackType` / `WhiteType` des programmes comprises.
 

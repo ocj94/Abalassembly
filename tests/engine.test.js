@@ -845,9 +845,9 @@ const _PRIVE_NOM = new RegExp(_NOMS_PRIVES[0], 'i');
 const _PRIVE_TEL = (d => new RegExp('(\\+33 ?|\\b0)' + d[0] + '[ .-]?' + d.slice(1, 3) + '[ .-]?' + d.slice(3, 5) + '[ .-]?' + d.slice(5, 7) + '[ .-]?' + d.slice(7, 9)))(_NOMS_PRIVES[2]);
 
 
-test('correspondance : 60 fiches jouables, chacune reliee a une disposition du moteur ET du menu Jouer', () => {
+test('correspondance : 120 fiches jouables, chacune reliee a une disposition du moteur ET du menu Jouer', () => {
   const m = ctx.VARIANTE_DISPOSITION;
-  assert.strictEqual(Object.keys(m).length, 60);
+  assert.strictEqual(Object.keys(m).length, 120);   // v3.01 : + les 60 departs inventes
   assert.deepStrictEqual([...new Set(Object.values(m))].sort(), Object.keys(ctx.LAYOUTS).sort(), 'TOUTES les dispositions ont une fiche');
   for (const [id, lay] of Object.entries(m)) {
     assert.ok(ctx.variantsData.some(v => v.id === id), 'fiche ' + id);
@@ -974,7 +974,7 @@ test('les symetries annoncees dans les fiches sont celles que le calcul trouve',
   }
 });
 
-test('exactement 10 dispositions sur 60 sans symetrie echangeant les camps : Domination, Marguerite francaise et 8 de gym-abalone', () => {
+test('exactement 10 dispositions sur 120 sans symetrie echangeant les camps : Domination, Marguerite francaise et 8 de gym-abalone', () => {
   const sans = Object.keys(ctx.LAYOUTS).filter(k => _echanges(k) === 0).sort();
   assert.deepStrictEqual(sans, ['def_or_attack', 'domination', 'domination_vs_daisy', 'french', 'horseshoes', 'irish_daisy', 'mquorric', 'robot', 'the_arrow', 'true_daisy']);
 });
@@ -6107,7 +6107,7 @@ test('v2.93-v2.94 : les 37 positions ajoutees -- fiche, menu, libelle, cases val
   const ajout = ['aliennage', 'april_fish', 'boutonniere', 'damier', 'corners', 'cross', 'coeurs_croises', 'crown', 'def_or_attack', 'domination_vs_daisy', 'duel',
     'forcing', 'fracture', 'king_cake', 'horseshoes', 'infiltralien', 'infiltration', 'intimidation', 'irish_daisy', 'robot', 'labyrinth', 'mosaic', 'mquorric',
     'neko', 'oath', 'octopus', 'scottish_daisy', 'sibe', 'slaloms', 'snowflake', 'araignee', 'tinsels', 'trench', 'true_daisy', 'wheel', 'xmas_star', 'the_arrow'];
-  assert.strictEqual(ajout.length, 37); assert.strictEqual(Object.keys(ctx.LAYOUTS).length, 60);
+  assert.strictEqual(ajout.length, 37); assert.strictEqual(Object.keys(ctx.LAYOUTS).length, 120);   // v3.01 : + 60 inventes
   const fiches = Object.values(ctx.VARIANTE_DISPOSITION);
   ajout.forEach(k => { const L = ctx.LAYOUTS[k]; assert.ok(L, k);
     [...L.black, ...L.white].forEach(([r, c]) => assert.ok(r >= 0 && r < 9 && c >= 0 && c < ctx.ROWS[r], k + ' ' + r + ',' + c));
@@ -6503,4 +6503,83 @@ test('v3.00 : les finales de 14 contre 9 a 9 contre 9 -- leurs tailles, recalcul
   ['environ 2 zettaoctets', '423 836 835 667 331', 'El Capitan', 'vers 2075-2080', 'La table couvre les finales à 2 contre 2, 3 contre 2 et 4 contre 2'].forEach(t => assert.ok(_SRC_INDEX.includes(t), t));
   assert.ok(!_SRC_INDEX.includes('~185 M') && !_SRC_INDEX.includes('n\'a pas besoin de tables de finale'), 'les anciens chiffres faux sont partis');
   assert.match(require('fs').readFileSync(require('path').join(__dirname, '..', 'tablebase/RESULTS.md'), 'utf8'), /## Et en Abalone normal \?/);
+});
+
+// ═══════════════════════════════════════════
+// 87. v3.01 : les 60 departs inventes par Abalassembly
+// ═══════════════════════════════════════════
+const _INV = () => JSON.parse(JSON.stringify(_r63('DEPARTS_INVENTES')));
+const _invNom = (r, c) => String(ctx.coordToABAPRO(r, c));
+const _invVoisins = (r, c) => { const a = ctx.rcToAxial(r, c); return [[1, 0], [-1, 0], [0, -1], [1, -1], [0, 1], [-1, 1]].map(([q, s]) => ctx.axialToRc(a.q + q, a.r + s)).filter(Boolean).map(x => x.r + ',' + x.c); };
+test('v3.01 : les 60 departs inventes -- equitables, sans contact, groupes et avantage annonces ; fiche, menu, libelle', () => {
+  const D = _INV();
+  assert.strictEqual(D.length, 60); assert.strictEqual(Object.keys(ctx.LAYOUTS).length, 120);
+  assert.deepStrictEqual([1, 2, 3].map(s => D.filter(d => d.serie === s).length), [20, 20, 20]);
+  assert.strictEqual(new Set(D.map(d => d.cle)).size, 60); assert.strictEqual(new Set(D.map(d => d.nom)).size, 60);
+  const L9 = 'abcdefghi', demiTour = n => L9[8 - L9.indexOf(n[0])] + (10 - +n[1]);
+  const gauchedroite = (r, c) => { const a = ctx.rcToAxial(r, c), q = ctx.axialToRc(-a.q - a.r, a.r); return q.r + ',' + q.c; };
+  let symetriques3 = 0;
+  for (const d of D) {
+    assert.match(d.cle, /^eq_[a-z_]+$/, d.cle);
+    const L = ctx.LAYOUTS[d.cle]; assert.ok(L, d.cle);
+    assert.strictEqual(L.black.length, 14, d.cle); assert.strictEqual(L.white.length, 14, d.cle);
+    [...L.black, ...L.white].forEach(([r, c]) => assert.ok(r >= 0 && r < 9 && c >= 0 && c < ctx.ROWS[r], d.cle + ' ' + r + ',' + c));
+    // equitable : les Blancs sont le demi-tour exact des Noirs
+    assert.deepStrictEqual(L.white.map(([r, c]) => _invNom(r, c)).sort(), L.black.map(([r, c]) => demiTour(_invNom(r, c))).sort(), d.cle + ' : demi-tour');
+    // sans contact : aucune bille noire ne touche une blanche
+    const N = new Set(L.black.map(p => p.join(','))), B = new Set(L.white.map(p => p.join(',')));
+    L.black.forEach(([r, c]) => _invVoisins(r, c).forEach(v => assert.ok(!B.has(v), d.cle + ' : contact en ' + _invNom(r, c))));
+    // les groupes annonces (tailles des groupes de billes noires), jamais une bille seule
+    const reste = new Set(N), tailles = [];
+    while (reste.size) { const pile = [[...reste][0]]; reste.delete(pile[0]); let n = 0;
+      while (pile.length) { const [r, c] = pile.pop().split(',').map(Number); n++; _invVoisins(r, c).forEach(v => { if (reste.has(v)) { reste.delete(v); pile.push(v); } }); }
+      tailles.push(n); }
+    tailles.sort((a, b) => b - a);
+    assert.strictEqual(tailles.join('+'), d.groupes, d.cle + ' : groupes'); assert.ok(tailles.every(t => t >= 2), d.cle + ' : bille seule');
+    if (d.serie === 1) assert.ok(tailles.length <= 2, d.cle);
+    else { assert.ok(tailles.length >= 4 && tailles.length <= 5 && tailles[0] <= 5, d.cle + ' : petits groupes'); }
+    if (d.serie === 3 && L.black.every(([r, c]) => N.has(gauchedroite(r, c)))) symetriques3++;
+    // la fiche, le menu Jouer, la carte de chaleur
+    const id = d.cle.replace(/_/g, '-'), v = _carte(id);
+    assert.ok(v, 'fiche ' + id); assert.strictEqual(ctx.VARIANTE_DISPOSITION[id], d.cle); assert.strictEqual(v.name, d.nom);
+    assert.ok(v.desc.startsWith(d.forme) && v.desc.includes(' : +' + d.avantage + ',') && v.desc.includes('série ' + d.serie), id);
+    assert.ok(_SRC_INDEX.includes('<option value="' + d.cle + '"'), 'menu Jouer : ' + d.cle);
+    assert.strictEqual(_r63('HEAT_VARIANT_LABEL')[d.cle], d.nom); assert.ok(_r63('HEAT_VARIANTS').includes(d.cle));
+  }
+  // les chiffres de la page Variantes
+  const borne = s => { const a = D.filter(d => d.serie === s).map(d => d.avantage); return [Math.min(...a), Math.max(...a)]; };
+  assert.deepStrictEqual([borne(1), borne(2), borne(3)], [[12, 38], [24, 48], [28, 50]]);
+  assert.strictEqual(symetriques3, 7);
+  ['de +12 à +38', 'de +24 à +48', 'dont 7 formes symétriques, de +28 à +50', '🧪 60 départs inventés par Abalassembly'].forEach(t => assert.ok(_SRC_INDEX.includes(t), t));
+  assert.ok(_SRC_INDEX.includes("filterVariants('inventees', event)"));
+  // nouvelles : aucune n'est une autre position du site, meme tournee ou retournee (posRef de KAAH)
+  const ref = k => { const p = {}; ctx.LAYOUTS[k].black.forEach(q => { p[q[0] + ',' + q[1]] = 'black'; }); ctx.LAYOUTS[k].white.forEach(q => { p[q[0] + ',' + q[1]] = 'white'; });
+    return ctx.posRefKAAH(ctx.codePosition(p, 0, 0)).posRef; };
+  const autres = new Map(Object.keys(ctx.LAYOUTS).filter(k => !k.startsWith('eq_')).map(k => [ref(k), k]));
+  const vues = new Set();
+  D.forEach(d => { const r = ref(d.cle); assert.ok(!autres.has(r), d.cle + ' = ' + autres.get(r)); assert.ok(!vues.has(r), d.cle + ' en double'); vues.add(r); });
+});
+
+test('v3.01 : le filtre « Inventees » de la galerie montre les 60 fiches, et elles seules', async () => {
+  await _dom54(async els => {
+    els['variant-detail'] = { style: {}, dataset: {} };
+    const cartes = ctx.variantsData.map(v => ({ dataset: { players: v.players, inventee: v.inventee ? '1' : undefined }, style: {} }));
+    const doc = ctx.document, qsa = doc.querySelectorAll;
+    doc.querySelectorAll = sel => sel === '.variant-card' ? cartes : [];
+    try {
+      ctx.filterVariants('inventees', { target: { classList: { add() {} } } });
+      assert.strictEqual(cartes.filter(c => c.style.display === 'block').length, 60);
+      ctx.filterVariants('all', { target: { classList: { add() {} } } });
+      assert.strictEqual(cartes.filter(c => c.style.display === 'block').length, ctx.variantsData.length);
+    } finally { doc.querySelectorAll = qsa; }
+  });
+});
+
+test('v3.01 : l’avantage du trait annonce est celui que mesure le moteur (Les Tenailles, profondeur 3)', () => {
+  const { ev } = _filKaah();
+  const b = {}; ctx.LAYOUTS.eq_tenailles.black.forEach(p => { b[p[0] + ',' + p[1]] = 'black'; }); ctx.LAYOUTS.eq_tenailles.white.forEach(p => { b[p[0] + ',' + p[1]] = 'white'; });
+  ev('board = ' + JSON.stringify(b) + '; capturedByBlack = 0; capturedByWhite = 0;');
+  ev('searchBestMove("black", 3, 120000, [])');
+  assert.strictEqual(ev('_metrics.depth'), 3);
+  assert.strictEqual(ev('_metrics.bestScore'), _INV().find(d => d.cle === 'eq_tenailles').avantage);
 });

@@ -9,6 +9,32 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.01]
+
+### Added — 60 starting positions invented by Abalassembly
+The author's request: "yes, add them" (the 60 invented and measured shapes,
+with their names).
+- **60 new starting positions**, playable from the setup menu (three
+  "Départs inventés par Abalassembly" groups) and the Variants gallery,
+  where the "🧪 Invented" button shows them all. Each has its card: its
+  shape, its groups of marbles, and the first-move advantage measured by
+  the engine.
+- The selection rules: 14 marbles per side; White is the exact half-turn of
+  Black; the two sides don't touch; no lone marble; none is an
+  already-known position, even rotated or mirrored.
+- **Series 1, compact shapes** (La Ruche… Le Pavé): first-move advantage
+  +12 to +38. **Series 2, small groups** mixed with the opponent's
+  (L'Archipel… La Volée): +24 to +48. **Series 3, small groups continued**
+  (La Patrouille… L'Envol), 7 of them symmetric: +28 to +50. For
+  comparison: Standard +38, Belgian Daisy +32, German Daisy +50.
+- A card on the Variants page and a wiki section
+  ([Variants](docs-en/Variantes.en.md)) explain the measure and what the
+  search showed: the more scattered a side, the more the first move is
+  worth, unless its small groups are mixed with the opponent's. These are
+  engine measurements: no game has been played from these positions yet.
+- The tests check every card: fairness, no contact, the stated groups,
+  novelty (KAAH's posRef), and redo one engine measurement.
+
 ## [v3.00]
 
 ### Added — Abalone's big numbers

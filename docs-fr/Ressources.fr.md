@@ -20,7 +20,7 @@ Mise à jour : 30 octobre 2026.
 | [PlayAbalone](https://www.playabalone.com) | Version gratuite dans le navigateur, contre des IA (cité par Wikipédia en anglais). |
 | [abalone.stellarflow.fr](https://abalone.stellarflow.fr/) | Version non officielle pour jouer à deux : un salon, un code à partager. Ni historique, ni export. |
 | Application officielle d'Asmodee · [Steam](https://store.steampowered.com/app/279480/Abalone/) | Les versions de l'éditeur : en ligne, mais fermées (ni export, ni base de parties). |
-| [Abalassembly](https://ocj94.github.io/Abalassembly/) | Ce projet : un seul fichier, hors ligne, 60 positions de départ, 4 580 vraies parties. |
+| [Abalassembly](https://ocj94.github.io/Abalassembly/) | Ce projet : un seul fichier, hors ligne, 120 positions de départ, 4 580 vraies parties. |
 
 ## 2. Les serveurs disparus
 
@@ -133,7 +133,7 @@ FightClub (blog Abalone Online) en décembre 2019 :
   `WhiteType` qui marquent le camp d'un programme.
 - [`community-games/`](../community-games/) : les parties apportées par les
   joueurs.
-- Les 60 positions de départ du site : [Variantes](Variantes.fr.md).
+- Les 120 positions de départ du site, dont les 60 qu'il a inventées : [Variantes](Variantes.fr.md).
 
 ## 9. Les systèmes de notation
 

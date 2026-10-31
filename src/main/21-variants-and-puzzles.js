@@ -242,6 +242,150 @@ const VARIANTE_DISPOSITION = {
   'aliennage':'aliennage', 'april-fish':'april_fish', 'boutonniere':'boutonniere', 'damier':'damier', 'corners':'corners', 'cross':'cross', 'coeurs-croises':'coeurs_croises', 'crown':'crown', 'def-or-attack':'def_or_attack', 'domination-vs-daisy':'domination_vs_daisy', 'duel':'duel', 'forcing':'forcing', 'fracture':'fracture', 'king-cake':'king_cake', 'horseshoes':'horseshoes', 'infiltralien':'infiltralien', 'infiltration':'infiltration', 'intimidation':'intimidation', 'irish-daisy':'irish_daisy', 'robot':'robot', 'labyrinth':'labyrinth', 'mosaic':'mosaic', 'mquorric':'mquorric', 'neko':'neko', 'oath':'oath', 'octopus':'octopus', 'scottish-daisy':'scottish_daisy', 'sibe':'sibe', 'slaloms':'slaloms', 'snowflake':'snowflake', 'araignee':'araignee', 'tinsels':'tinsels', 'trench':'trench', 'true-daisy':'true_daisy', 'wheel':'wheel', 'xmas-star':'xmas_star', 'the-arrow':'the_arrow'
 };
 
+/* v3.01 : les 60 departs inventes par Abalassembly (positions : LAYOUTS, 07-board-engine-core.js).
+   Une seule table : la fiche de la galerie, le lien vers la disposition et le libelle de la carte de
+   chaleur en sont tires. « avantage » : l'avantage du trait mesure par le moteur (score de la meilleure
+   suite de 3 demi-coups des Noirs, recherche a profondeur 3 ; Standard +38, Marguerite belge +32,
+   Marguerite allemande +50). « groupes » : tailles des groupes de billes d'un camp. Verifie par les tests. */
+const DEPARTS_INVENTES = [
+  { cle:"eq_ruche", nom:"La Ruche", emoji:"🐝", serie:1, avantage:12, groupes:"14",
+    forme:"Trois rangées en biais au centre du camp." },
+  { cle:"eq_botte", nom:"La Botte", emoji:"👢", serie:1, avantage:18, groupes:"14",
+    forme:"Une longue bande de deux rangées, le pied posé dans le coin gauche." },
+  { cle:"eq_bastion", nom:"Le Bastion", emoji:"🏰", serie:1, avantage:18, groupes:"14",
+    forme:"Trois rangées serrées dans le coin, décalées vers la droite." },
+  { cle:"eq_eventail", nom:"L’Éventail", emoji:"🎐", serie:1, avantage:20, groupes:"14",
+    forme:"Un coin qui s’ouvre vers le centre, collé au bord droit." },
+  { cle:"eq_dalle", nom:"La Dalle", emoji:"⬜", serie:1, avantage:20, groupes:"14",
+    forme:"Un parallélogramme de quatre rangées qui penche vers la gauche." },
+  { cle:"eq_flamme", nom:"La Flamme", emoji:"🔥", serie:1, avantage:20, groupes:"14",
+    forme:"Une forme haute et étroite qui monte jusqu’à la ligne du milieu." },
+  { cle:"eq_peigne", nom:"Le Peigne", emoji:"🎹", serie:1, avantage:24, groupes:"14",
+    forme:"Une large bande de deux rangées, avec deux dents vers le fond." },
+  { cle:"eq_donjon", nom:"Le Donjon", emoji:"🗼", serie:1, avantage:26, groupes:"14",
+    forme:"Un bloc dressé dans le coin gauche, une vigie au sommet." },
+  { cle:"eq_fronde", nom:"La Fronde", emoji:"🪃", serie:1, avantage:26, groupes:"10+4",
+    forme:"Un arc de dix billes à droite et une pierre de quatre en haut à gauche." },
+  { cle:"eq_vague", nom:"La Vague", emoji:"🌊", serie:1, avantage:28, groupes:"14",
+    forme:"Un bloc à droite qui déferle en diagonale vers le centre." },
+  { cle:"eq_tenailles", nom:"Les Tenailles", emoji:"🦀", serie:1, avantage:28, groupes:"8+6",
+    forme:"Deux groupes collés aux deux bords, prêts à se refermer : 8 à gauche, 6 à droite." },
+  { cle:"eq_bouclier", nom:"Le Bouclier", emoji:"🛡️", serie:1, avantage:30, groupes:"14",
+    forme:"Un bloc large sur la gauche, qui monte jusqu’à la ligne du milieu." },
+  { cle:"eq_echarpe", nom:"L’Écharpe", emoji:"🧣", serie:1, avantage:30, groupes:"14",
+    forme:"Une bande qui part du coin gauche et remonte vers la droite." },
+  { cle:"eq_proue", nom:"La Proue", emoji:"🚢", serie:1, avantage:30, groupes:"14",
+    forme:"Un bloc en pointe dans le coin gauche, tourné vers l’adversaire." },
+  { cle:"eq_colonne", nom:"La Colonne", emoji:"🏛️", serie:1, avantage:30, groupes:"14",
+    forme:"Une colonne qui monte du coin gauche jusqu’au centre." },
+  { cle:"eq_voile", nom:"La Voile", emoji:"⛵", serie:1, avantage:32, groupes:"14",
+    forme:"Un mât dans le coin gauche et une voile gonflée vers le centre." },
+  { cle:"eq_barque", nom:"La Barque", emoji:"🛶", serie:1, avantage:32, groupes:"14",
+    forme:"Une coque de trois rangées au milieu, la poupe vers le fond." },
+  { cle:"eq_fanion", nom:"Le Fanion", emoji:"🚩", serie:1, avantage:34, groupes:"14",
+    forme:"Un drapeau en haut à gauche, tenu par un mât de six billes." },
+  { cle:"eq_catapulte", nom:"La Catapulte", emoji:"🪨", serie:1, avantage:36, groupes:"10+4",
+    forme:"Un bras de dix billes à droite et un boulet de quatre en haut à gauche." },
+  { cle:"eq_pave", nom:"Le Pavé", emoji:"🟫", serie:1, avantage:38, groupes:"14",
+    forme:"Un bloc compact au milieu du camp, quatre rangées pleines." },
+  { cle:"eq_archipel", nom:"L’Archipel", emoji:"🏝️", serie:2, avantage:24, groupes:"5+4+3+2",
+    forme:"Quatre îlots : une paire sous le centre, quatre billes au bord gauche, deux groupes tout en haut." },
+  { cle:"eq_sentinelles", nom:"Les Sentinelles", emoji:"💂", serie:2, avantage:28, groupes:"5+4+3+2",
+    forme:"Une colonne de quatre au centre, une paire dans le coin, un trio à droite, cinq billes en haut." },
+  { cle:"eq_avant_postes", nom:"Les Avant-postes", emoji:"🏕️", serie:2, avantage:28, groupes:"4+4+3+3",
+    forme:"Les deux coins du bas tenus, un trio au bord gauche, une avant-garde de quatre au-dessus du centre." },
+  { cle:"eq_escouades", nom:"Les Escouades", emoji:"🪖", serie:2, avantage:30, groupes:"5+4+3+2",
+    forme:"Deux équipes dans les coins du bas, cinq billes au bord droit, une paire au-dessus du centre." },
+  { cle:"eq_dominos", nom:"Les Dominos", emoji:"🎲", serie:2, avantage:34, groupes:"5+5+2+2",
+    forme:"Deux blocs de cinq, dans le coin gauche et au bord droit, et deux paires lancées vers le haut." },
+  { cle:"eq_semis", nom:"Le Semis", emoji:"🌱", serie:2, avantage:36, groupes:"5+4+3+2",
+    forme:"Cinq billes au bord gauche, un trio en bas à droite, une paire au cœur, quatre billes en haut à droite." },
+  { cle:"eq_lucioles", nom:"Les Lucioles", emoji:"✨", serie:2, avantage:36, groupes:"5+4+3+2",
+    forme:"Une ligne de cinq en bas à gauche, une paire au bord droit, deux groupes perchés tout en haut." },
+  { cle:"eq_ronde", nom:"La Ronde", emoji:"🔄", serie:2, avantage:38, groupes:"4+4+3+3",
+    forme:"Quatre billes juste sous le centre, un trio au bord gauche, deux groupes dans les coins du haut." },
+  { cle:"eq_comete", nom:"La Comète", emoji:"☄️", serie:2, avantage:38, groupes:"5+4+3+2",
+    forme:"Une traînée de quatre billes file vers le haut ; cinq billes au bord droit, deux petits groupes en bas." },
+  { cle:"eq_chapelet", nom:"Le Chapelet", emoji:"📿", serie:2, avantage:40, groupes:"5+3+3+3",
+    forme:"Trois trios égrenés, au centre, au bord droit et dans le coin du haut ; cinq billes en bas à droite." },
+  { cle:"eq_garnison", nom:"La Garnison", emoji:"⚔️", serie:2, avantage:44, groupes:"4+4+3+3",
+    forme:"Deux trios gardent les coins du bas ; deux groupes de quatre, au bord gauche et au-dessus du centre." },
+  { cle:"eq_pleiades", nom:"Les Pléiades", emoji:"🌌", serie:2, avantage:44, groupes:"5+3+3+3",
+    forme:"Cinq billes en bas à droite, et trois trios : au bord gauche, au centre, dans le coin du haut." },
+  { cle:"eq_faucille", nom:"La Faucille", emoji:"🌙", serie:2, avantage:44, groupes:"5+4+3+2",
+    forme:"Une faucille de cinq remonte vers le centre ; quatre billes en bas à gauche, une paire, un trio en haut." },
+  { cle:"eq_losange", nom:"Le Losange", emoji:"🔷", serie:2, avantage:44, groupes:"5+4+3+2",
+    forme:"Un losange de quatre au-dessus du centre, cinq billes au bord gauche, un trio à droite, une paire en bas." },
+  { cle:"eq_croissant", nom:"Le Croissant", emoji:"🥐", serie:2, avantage:44, groupes:"5+4+3+2",
+    forme:"Un croissant de cinq au fond, deux groupes qui montent le long du bord gauche, une paire au-dessus du centre." },
+  { cle:"eq_vigies", nom:"Les Vigies", emoji:"🔭", serie:2, avantage:46, groupes:"5+3+3+3",
+    forme:"Deux trios postés dans les coins du haut, une ligne de trois vers le centre, cinq billes au bord droit." },
+  { cle:"eq_lance", nom:"La Lance", emoji:"🗡️", serie:2, avantage:48, groupes:"5+4+3+2",
+    forme:"Une lance de cinq billes pointée du bord gauche vers le centre ; deux groupes en bas, une paire en haut." },
+  { cle:"eq_mat", nom:"Le Mât", emoji:"⚓", serie:2, avantage:48, groupes:"5+4+3+2",
+    forme:"Un mât de cinq billes du centre jusqu’au coin du haut ; une paire en bas, deux groupes à droite." },
+  { cle:"eq_rameaux", nom:"Les Rameaux", emoji:"🌿", serie:2, avantage:48, groupes:"4+4+4+2",
+    forme:"Deux branches de quatre partent vers le haut ; quatre billes en bas à gauche, une paire au bord gauche." },
+  { cle:"eq_volee", nom:"La Volée", emoji:"🕊️", serie:2, avantage:48, groupes:"5+4+3+2",
+    forme:"Une diagonale de cinq file jusqu’au coin du haut ; quatre billes en bas à droite, deux petits groupes à gauche." },
+  { cle:"eq_patrouille", nom:"La Patrouille", emoji:"🧭", serie:3, avantage:28, groupes:"4+4+3+3",
+    forme:"Deux groupes de quatre, au centre et en haut à gauche ; deux trios, au bord gauche et dans le coin du haut." },
+  { cle:"eq_diademe", nom:"Le Diadème", emoji:"👑", serie:3, avantage:32, groupes:"5+3+3+3",
+    forme:"Trois trios alignés en travers du bas, et une couronne de cinq billes tout en haut. Symétrique." },
+  { cle:"eq_cornes", nom:"Les Cornes", emoji:"🐂", serie:3, avantage:36, groupes:"5+5+2+2",
+    forme:"Deux blocs de cinq sur les flancs du haut, une paire au sommet, une autre sous le centre. Symétrique." },
+  { cle:"eq_escadrille", nom:"L’Escadrille", emoji:"✈️", serie:3, avantage:38, groupes:"5+4+3+2",
+    forme:"Cinq billes tout en haut, une ligne de quatre sous le centre, un trio au bord gauche, une paire à droite." },
+  { cle:"eq_trident", nom:"Le Trident", emoji:"🔱", serie:3, avantage:40, groupes:"4+4+3+3",
+    forme:"Trois pointes au-dessus du centre, à gauche, au milieu et à droite, et un trio au fond. Symétrique." },
+  { cle:"eq_javelot", nom:"Le Javelot", emoji:"🎯", serie:3, avantage:44, groupes:"5+4+3+2",
+    forme:"Un javelot de cinq part du coin en bas à gauche vers le centre ; un losange au bord droit, une paire, un trio en haut." },
+  { cle:"eq_creneaux", nom:"Les Créneaux", emoji:"🏯", serie:3, avantage:46, groupes:"3+3+3+3+2",
+    forme:"Deux trios dans les coins du bas, et trois groupes en rang au-dessus du centre. Symétrique." },
+  { cle:"eq_constellation", nom:"La Constellation", emoji:"🌠", serie:3, avantage:46, groupes:"3+3+3+3+2",
+    forme:"Cinq petits groupes : trois autour du bas, une paire sous le centre, un trio dans le coin du haut." },
+  { cle:"eq_fer_a_cheval", nom:"Le Fer à cheval", emoji:"🐎", serie:3, avantage:46, groupes:"3+3+3+3+2",
+    forme:"Quatre trios en fer à cheval autour du bas, et une paire au-dessus du centre. Symétrique." },
+  { cle:"eq_eclaireurs", nom:"Les Éclaireurs", emoji:"🔦", serie:3, avantage:46, groupes:"3+3+3+3+2",
+    forme:"Une diagonale de trois part du coin en bas à gauche ; deux trios au bord droit, une paire au centre, un trio en haut." },
+  { cle:"eq_quinconce", nom:"Le Quinconce", emoji:"🌳", serie:3, avantage:48, groupes:"3+3+3+3+2",
+    forme:"Deux trios dans les coins du bas, une paire au centre, deux trios sur les flancs du haut." },
+  { cle:"eq_lanternes", nom:"Les Lanternes", emoji:"🏮", serie:3, avantage:48, groupes:"3+3+3+3+2",
+    forme:"Deux trios dans les coins du bas, un trio au bord gauche, une paire à droite du centre, un trio en haut." },
+  { cle:"eq_ricochets", nom:"Les Ricochets", emoji:"🌀", serie:3, avantage:48, groupes:"4+3+3+2+2",
+    forme:"Deux paires, au bord gauche et au centre ; quatre billes en bas à droite ; deux trios dans les coins du haut." },
+  { cle:"eq_serpent", nom:"Le Serpent", emoji:"🐍", serie:3, avantage:48, groupes:"5+5+2+2",
+    forme:"Un serpent de cinq billes remonte le bord gauche ; un bloc de cinq au fond, deux paires à droite." },
+  { cle:"eq_lyre", nom:"La Lyre", emoji:"🎵", serie:3, avantage:48, groupes:"5+5+2+2",
+    forme:"Deux bras de cinq montent vers les coins du haut ; une paire entre eux, une autre au fond. Symétrique." },
+  { cle:"eq_citadelle", nom:"La Citadelle", emoji:"🧱", serie:3, avantage:48, groupes:"5+5+2+2",
+    forme:"Deux murs de cinq le long des bords du bas, et deux paires l’une au-dessus de l’autre en haut. Symétrique." },
+  { cle:"eq_echelle", nom:"L’Échelle", emoji:"🪜", serie:3, avantage:50, groupes:"3+3+3+3+2",
+    forme:"Trois trios en échelle le long du bord gauche, une paire au centre, un trio en haut à droite." },
+  { cle:"eq_phare", nom:"Le Phare", emoji:"💡", serie:3, avantage:50, groupes:"4+3+3+2+2",
+    forme:"Une tour de quatre en haut à gauche, deux trios en bas à gauche, deux paires au centre et à droite." },
+  { cle:"eq_grelons", nom:"Les Grêlons", emoji:"🧊", serie:3, avantage:50, groupes:"3+3+3+3+2",
+    forme:"Cinq petits groupes semés : au fond, au bord gauche, près du centre et dans les deux coins du haut." },
+  { cle:"eq_envol", nom:"L’Envol", emoji:"🦅", serie:3, avantage:50, groupes:"3+3+3+3+2",
+    forme:"Une ligne de trois au bord droit, trois trios à gauche et au fond, une paire près du centre." }
+];
+const _SERIES_INVENTEES = { 1:'formes compactes, chaque camp chez soi', 2:'petits groupes mêlés à ceux de l’adversaire', 3:'petits groupes mêlés, suite' };
+function _descInventee(d){
+  const g = d.groupes.split('+');
+  return d.forme + ' Départ inventé par Abalassembly (v3.01, série ' + d.serie + ' : ' + _SERIES_INVENTEES[d.serie] + ') : 14 billes par camp, '
+    + (g.length === 1 ? 'en un seul groupe' : 'en ' + g.length + ' groupes (' + g.join(' + ') + ')')
+    + ' ; les Blancs sont le demi-tour exact des Noirs et les deux camps ne se touchent pas. Avantage du trait mesuré par le moteur (meilleure suite de 3 demi-coups) : +'
+    + d.avantage + ', contre +38 pour la Standard, +32 pour la Marguerite belge et +50 pour la Marguerite allemande. C’est une mesure du moteur : aucune partie n’a encore été jouée depuis cette position.';
+}
+DEPARTS_INVENTES.forEach(function(d){
+  const id = d.cle.replace(/_/g, '-');
+  variantsData.push({ id:id, name:d.nom, emoji:d.emoji, players:'2', duration:'Non mesurée', diff:'Non évaluée', src:'Abalassembly', inventee:true,
+    desc:_descInventee(d), origin:'Départ inventé et mesuré par Abalassembly (v3.01), à l’essai : aucune partie connue' });
+  VARIANTE_DISPOSITION[id] = d.cle;
+  if (HEAT_VARIANTS.indexOf(d.cle) < 0) HEAT_VARIANTS.push(d.cle);
+  HEAT_VARIANT_LABEL[d.cle] = d.nom;
+});
+
 /* Depuis la galerie : ouvre "Configurer avant de jouer" avec la variante
    deja choisie. Ouvrir la page ne reinitialise pas la disposition (verifie :
    showPage('setup') ne fait que redessiner la miniature). */
@@ -324,7 +468,7 @@ function renderVariants() {
   if (!grid || grid.children.length > 0) return;
   grid.innerHTML = variantsData.map(function(v) {
     const dc = v.diff==='Débutant'?'#4a9463':v.diff==='Facile'?'var(--accent-green-light)':v.diff==='Moyen'?'var(--gold)':v.diff==='Non évaluée'?'var(--muted)':'#e05c4b';
-    return '<div class="variant-card" data-id="'+v.id+'" data-players="'+v.players+'" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:all 0.2s" onclick="showVariantDetail(\''+v.id+'\')" onmouseover="this.style.borderColor=\'var(--gold-dim)\';this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.transform=\'none\'">'
+    return '<div class="variant-card" data-id="'+v.id+'" data-players="'+v.players+'"'+(v.inventee?' data-inventee="1"':'')+' style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:all 0.2s" onclick="showVariantDetail(\''+v.id+'\')" onmouseover="this.style.borderColor=\'var(--gold-dim)\';this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.transform=\'none\'">'
       +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
       +'<div style="font-size:28px">'+v.emoji+'</div>'
       +'<div style="font-size:11px;padding:2px 8px;border-radius:12px;background:rgba(0,0,0,0.3);color:'+dc+';border:1px solid '+dc+'44">'+v.diff+'</div>'
@@ -395,7 +539,9 @@ function _detailJouable(id){
 function filterVariants(players, evt) {
   const _d = document.getElementById('variant-detail'); if (_d) { _d.style.display = 'none'; _d.dataset.id = ''; }
   document.querySelectorAll('.variant-card').forEach(function(c){
-    c.style.display=(players==='all'||c.dataset.players===players)?'block':'none';
+    // v3.01 : « Inventées » montre les 60 departs inventes par Abalassembly
+    const ok = players==='all' || (players==='inventees' ? c.dataset.inventee==='1' : c.dataset.players===players);
+    c.style.display=ok?'block':'none';
   });
   document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
   // utilise l'événement passé en paramètre, sinon retombe sur l'event global (compat)

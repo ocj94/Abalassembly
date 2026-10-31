@@ -3347,7 +3347,9 @@ const I18N_EN = {
   // v2.98 : la notation de Saab
   'Ou un code de position (KAAH) :': 'Or a position code (KAAH):', 'Charger': 'Load', '💾 Fichier KAAH (.json)': '💾 KAAH file (.json)',
   'Ou une position, dans la notation de Saab (KAAH) :': 'Or a position, in Saab’s notation (KAAH):', '▶ Jouer': '▶ Play',
-  '📂 Fichier de partie KAAH / KAAWA (.json)': '📂 KAAH / KAAWA game file (.json)'
+  '📂 Fichier de partie KAAH / KAAWA (.json)': '📂 KAAH / KAAWA game file (.json)',
+  // v3.01 : les departs inventes
+  '🧪 Inventées': '🧪 Invented', '🧪 60 départs inventés par Abalassembly': '🧪 60 starting positions invented by Abalassembly'
 };
 function _i18nCle(s) { const t = String(s).trim(); return /\s\s|[\t\n\r\u00a0\u202f]/.test(t) ? t.replace(/\s+/g, ' ') : t; }
 function _i18nDict(k) { return Object.prototype.hasOwnProperty.call(I18N_EN, k) ? I18N_EN[k] : null; }
@@ -4342,6 +4344,72 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
           <option value="wheel" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Roue</option>
           <option value="the_arrow" title="Position du blog Abalone Online relevee par gym-abalone, identique a l'image de Wikipedia -- 14 noires contre 13 blanches">The Arrow</option>
           <option value="xmas_star" title="Position du blog Abalone Online relevee par gym-abalone -- une seule source, aucune partie connue">Xmas Star</option>
+        </optgroup>
+        <optgroup label="Départs inventés par Abalassembly · formes compactes">
+          <option value="eq_ruche" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +12 (Standard +38), aucune partie jouée">La Ruche</option>
+          <option value="eq_botte" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +18 (Standard +38), aucune partie jouée">La Botte</option>
+          <option value="eq_bastion" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +18 (Standard +38), aucune partie jouée">Le Bastion</option>
+          <option value="eq_eventail" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +20 (Standard +38), aucune partie jouée">L’Éventail</option>
+          <option value="eq_dalle" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +20 (Standard +38), aucune partie jouée">La Dalle</option>
+          <option value="eq_flamme" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +20 (Standard +38), aucune partie jouée">La Flamme</option>
+          <option value="eq_peigne" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +24 (Standard +38), aucune partie jouée">Le Peigne</option>
+          <option value="eq_donjon" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +26 (Standard +38), aucune partie jouée">Le Donjon</option>
+          <option value="eq_fronde" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +26 (Standard +38), aucune partie jouée">La Fronde</option>
+          <option value="eq_vague" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +28 (Standard +38), aucune partie jouée">La Vague</option>
+          <option value="eq_tenailles" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +28 (Standard +38), aucune partie jouée">Les Tenailles</option>
+          <option value="eq_bouclier" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +30 (Standard +38), aucune partie jouée">Le Bouclier</option>
+          <option value="eq_echarpe" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +30 (Standard +38), aucune partie jouée">L’Écharpe</option>
+          <option value="eq_proue" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +30 (Standard +38), aucune partie jouée">La Proue</option>
+          <option value="eq_colonne" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +30 (Standard +38), aucune partie jouée">La Colonne</option>
+          <option value="eq_voile" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +32 (Standard +38), aucune partie jouée">La Voile</option>
+          <option value="eq_barque" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +32 (Standard +38), aucune partie jouée">La Barque</option>
+          <option value="eq_fanion" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +34 (Standard +38), aucune partie jouée">Le Fanion</option>
+          <option value="eq_catapulte" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +36 (Standard +38), aucune partie jouée">La Catapulte</option>
+          <option value="eq_pave" title="Départ inventé par Abalassembly (v3.01), série 1 : avantage du trait mesuré par le moteur +38 (Standard +38), aucune partie jouée">Le Pavé</option>
+        </optgroup>
+        <optgroup label="Départs inventés par Abalassembly · petits groupes">
+          <option value="eq_archipel" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +24 (Standard +38), aucune partie jouée">L’Archipel</option>
+          <option value="eq_sentinelles" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +28 (Standard +38), aucune partie jouée">Les Sentinelles</option>
+          <option value="eq_avant_postes" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +28 (Standard +38), aucune partie jouée">Les Avant-postes</option>
+          <option value="eq_escouades" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +30 (Standard +38), aucune partie jouée">Les Escouades</option>
+          <option value="eq_dominos" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +34 (Standard +38), aucune partie jouée">Les Dominos</option>
+          <option value="eq_semis" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +36 (Standard +38), aucune partie jouée">Le Semis</option>
+          <option value="eq_lucioles" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +36 (Standard +38), aucune partie jouée">Les Lucioles</option>
+          <option value="eq_ronde" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +38 (Standard +38), aucune partie jouée">La Ronde</option>
+          <option value="eq_comete" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +38 (Standard +38), aucune partie jouée">La Comète</option>
+          <option value="eq_chapelet" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +40 (Standard +38), aucune partie jouée">Le Chapelet</option>
+          <option value="eq_garnison" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +44 (Standard +38), aucune partie jouée">La Garnison</option>
+          <option value="eq_pleiades" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +44 (Standard +38), aucune partie jouée">Les Pléiades</option>
+          <option value="eq_faucille" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +44 (Standard +38), aucune partie jouée">La Faucille</option>
+          <option value="eq_losange" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +44 (Standard +38), aucune partie jouée">Le Losange</option>
+          <option value="eq_croissant" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +44 (Standard +38), aucune partie jouée">Le Croissant</option>
+          <option value="eq_vigies" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +46 (Standard +38), aucune partie jouée">Les Vigies</option>
+          <option value="eq_lance" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +48 (Standard +38), aucune partie jouée">La Lance</option>
+          <option value="eq_mat" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +48 (Standard +38), aucune partie jouée">Le Mât</option>
+          <option value="eq_rameaux" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +48 (Standard +38), aucune partie jouée">Les Rameaux</option>
+          <option value="eq_volee" title="Départ inventé par Abalassembly (v3.01), série 2 : avantage du trait mesuré par le moteur +48 (Standard +38), aucune partie jouée">La Volée</option>
+        </optgroup>
+        <optgroup label="Départs inventés par Abalassembly · petits groupes, suite">
+          <option value="eq_patrouille" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +28 (Standard +38), aucune partie jouée">La Patrouille</option>
+          <option value="eq_diademe" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +32 (Standard +38), aucune partie jouée">Le Diadème</option>
+          <option value="eq_cornes" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +36 (Standard +38), aucune partie jouée">Les Cornes</option>
+          <option value="eq_escadrille" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +38 (Standard +38), aucune partie jouée">L’Escadrille</option>
+          <option value="eq_trident" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +40 (Standard +38), aucune partie jouée">Le Trident</option>
+          <option value="eq_javelot" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +44 (Standard +38), aucune partie jouée">Le Javelot</option>
+          <option value="eq_creneaux" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +46 (Standard +38), aucune partie jouée">Les Créneaux</option>
+          <option value="eq_constellation" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +46 (Standard +38), aucune partie jouée">La Constellation</option>
+          <option value="eq_fer_a_cheval" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +46 (Standard +38), aucune partie jouée">Le Fer à cheval</option>
+          <option value="eq_eclaireurs" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +46 (Standard +38), aucune partie jouée">Les Éclaireurs</option>
+          <option value="eq_quinconce" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +48 (Standard +38), aucune partie jouée">Le Quinconce</option>
+          <option value="eq_lanternes" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +48 (Standard +38), aucune partie jouée">Les Lanternes</option>
+          <option value="eq_ricochets" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +48 (Standard +38), aucune partie jouée">Les Ricochets</option>
+          <option value="eq_serpent" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +48 (Standard +38), aucune partie jouée">Le Serpent</option>
+          <option value="eq_lyre" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +48 (Standard +38), aucune partie jouée">La Lyre</option>
+          <option value="eq_citadelle" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +48 (Standard +38), aucune partie jouée">La Citadelle</option>
+          <option value="eq_echelle" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +50 (Standard +38), aucune partie jouée">L’Échelle</option>
+          <option value="eq_phare" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +50 (Standard +38), aucune partie jouée">Le Phare</option>
+          <option value="eq_grelons" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +50 (Standard +38), aucune partie jouée">Les Grêlons</option>
+          <option value="eq_envol" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +50 (Standard +38), aucune partie jouée">L’Envol</option>
         </optgroup>
         <option value="random" title="Tire une vraie disposition au hasard parmi celles disponibles">🎲 Aléatoire</option>
         </select>
@@ -6982,6 +7050,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
       <button class="filter-btn" onclick="filterVariants('4', event)">♟️ 4 joueurs</button>
       <button class="filter-btn" onclick="filterVariants('5', event)">⭐ 5 joueurs</button>
       <button class="filter-btn" onclick="filterVariants('6', event)">🌟 6 joueurs</button>
+      <button class="filter-btn" onclick="filterVariants('inventees', event)">🧪 Inventées</button>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px" id="variants-grid"></div>
 
@@ -6991,6 +7060,18 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
       <p style="margin:0 0 12px;font-size:13px;color:var(--muted);line-height:1.7">Avec 14 billes noires, 14 blanches et 61 trous :</p>
       <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="color:var(--gold);text-align:left"><th style="padding:8px 6px">Ce qu’on compte</th><th style="padding:8px 6px">Nombre</th></tr><tr style="border-top:1px solid var(--border)"><td style="padding:8px 6px">Toutes les façons de poser les 28 billes</td><td style="padding:8px 6px">7 691 345 017 184 661 959 133 000, environ 7,7 × 10²⁴</td></tr><tr style="border-top:1px solid var(--border)"><td style="padding:8px 6px">Les formes vraiment différentes, en regroupant celles qui se déduisent l’une de l’autre en tournant ou en retournant le plateau (12 symétries)</td><td style="padding:8px 6px">environ 6,4 × 10²³</td></tr><tr style="border-top:1px solid var(--border)"><td style="padding:8px 6px">Les départs <b>équitables</b> : les Blancs sont l’image exacte des Noirs vus de l’autre côté du plateau, comme la Standard ou la Marguerite belge</td><td style="padding:8px 6px">2 382 605 107 200, environ 2 400 milliards</td></tr><tr style="border-top:1px solid var(--border)"><td style="padding:8px 6px">Les mêmes, en regroupant celles qui se déduisent l’une de l’autre en tournant ou en retournant le plateau</td><td style="padding:8px 6px">198 550 991 616, environ 200 milliards</td></tr></table></div>
       <p style="margin:12px 0 0;font-size:13px;color:var(--muted);line-height:1.7">Pour les départs équitables, le calcul est simple : le plateau se partage en 30 paires de cases face à face, plus la case du centre, qui ne peut servir à aucun camp. On choisit 14 de ces paires, puis, dans chacune, laquelle des deux cases reçoit la bille noire. Ces nombres comptent aussi des positions absurdes (une éjection possible dès le premier coup, des camps tout collés…). Toute l’histoire de l’Abalone n’a utilisé qu’une centaine de positions de départ : MiGs en proposait 42, Abalassembly en propose 60.</p>
+    </div>
+    <!-- v3.01 : les 60 departs inventes par Abalassembly (DEPARTS_INVENTES) -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-top:16px">
+      <h3 style="margin:0 0 12px;color:var(--white);font-size:17px">🧪 60 départs inventés par Abalassembly</h3>
+      <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7">Choisis parmi des milliers de positions générées puis mesurées une à une par le moteur. Dans tous, les Blancs sont le demi-tour exact des Noirs, les deux camps ne se touchent pas, aucune bille n’est seule, et aucun n’est une position déjà connue, même tournée ou retournée. Le bouton « 🧪 Inventées » les montre tous.</p>
+      <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">La mesure :</strong> l’avantage du trait, ce que gagne le camp qui commence après sa meilleure suite de 3 demi-coups, en points du moteur. Plus il est proche de 0, plus le départ est équilibré. Pour comparer : Standard +38, Marguerite belge +32, Marguerite allemande +50.</p>
+      <ul style="margin:0 0 10px;padding-left:20px;font-size:13px;color:var(--muted);line-height:1.7">
+        <li><strong style="color:var(--text)">Série 1, formes compactes</strong> (de La Ruche au Pavé) : un ou deux blocs par camp, chacun chez soi, de +12 à +38.</li>
+        <li><strong style="color:var(--text)">Série 2, petits groupes</strong> (de L’Archipel à La Volée) : 4 groupes de 2 à 5 billes par camp, mêlés à ceux de l’adversaire, de +24 à +48.</li>
+        <li><strong style="color:var(--text)">Série 3, petits groupes, suite</strong> (de La Patrouille à L’Envol) : 4 ou 5 groupes par camp, dont 7 formes symétriques, de +28 à +50.</li>
+      </ul>
+      <p style="margin:0;font-size:13px;color:var(--muted);line-height:1.7">Ce que la recherche a montré : plus un camp est compact, moins le premier coup rapporte. Les petits groupes ne tiennent l’équilibre que mêlés à ceux de l’adversaire ; gardés chacun dans sa moitié, ils donnent une grosse avance au premier joueur (+52 au mieux, le plus souvent +80 à +120). Ce sont des mesures du moteur, pas encore des parties : seules beaucoup de parties diront si ces départs ramènent à 50 % les victoires du premier joueur.</p>
     </div>
     <!-- Positions catalog from onlineabalone.wordpress.com -->
     <div style="margin-top:32px">
@@ -8757,7 +8838,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v3.00';
+const APP_VERSION = 'v3.01';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -13734,6 +13815,252 @@ const LAYOUTS = {
   xmas_star: {   // gym « xmas-star »
     black: [[2,0],[2,1],[2,4],[2,5],[2,6],[3,1],[3,2],[3,5],[3,6],[4,2],[6,4],[7,2],[7,3],[8,2]],
     white: [[0,2],[1,2],[1,3],[2,2],[4,6],[5,1],[5,2],[5,5],[5,6],[6,0],[6,1],[6,2],[6,5],[6,6]]
+  },
+  /* v3.01 : 60 departs inventes par Abalassembly (fiches : DEPARTS_INVENTES, 21-variants-and-puzzles.js).
+     Choisis parmi des milliers de positions generees : 14 billes par camp, les Blancs sont le demi-tour
+     exact des Noirs, aucun contact entre camps au depart, aucune bille seule, aucune n'est une position
+     deja connue (meme tournee ou retournee). Classes par l'avantage du trait que mesure le moteur
+     (meilleure suite de 3 demi-coups ; Standard +38). Serie 1 : formes compactes, chaque camp chez soi ;
+     series 2 et 3 : 4 ou 5 petits groupes par camp, meles a ceux de l'adversaire. Demande d'ocj94. */
+  eq_ruche: {   // v3.01 : La Ruche (serie 1, avantage du trait +12)
+    black: [[5,2],[5,3],[5,4],[5,5],[6,1],[6,2],[6,3],[6,4],[6,5],[7,0],[7,1],[7,2],[7,3],[7,4]],
+    white: [[1,1],[1,2],[1,3],[1,4],[1,5],[2,1],[2,2],[2,3],[2,4],[2,5],[3,2],[3,3],[3,4],[3,5]]
+  },
+  eq_botte: {   // v3.01 : La Botte (serie 1, avantage du trait +18)
+    black: [[5,1],[5,2],[5,3],[5,4],[5,5],[6,0],[6,1],[6,2],[6,3],[6,4],[6,5],[7,0],[7,1],[8,0]],
+    white: [[0,4],[1,4],[1,5],[2,1],[2,2],[2,3],[2,4],[2,5],[2,6],[3,2],[3,3],[3,4],[3,5],[3,6]]
+  },
+  eq_bastion: {   // v3.01 : Le Bastion (serie 1, avantage du trait +18)
+    black: [[6,2],[6,3],[6,4],[6,5],[6,6],[7,1],[7,2],[7,3],[7,4],[7,5],[8,1],[8,2],[8,3],[8,4]],
+    white: [[0,0],[0,1],[0,2],[0,3],[1,0],[1,1],[1,2],[1,3],[1,4],[2,0],[2,1],[2,2],[2,3],[2,4]]
+  },
+  eq_eventail: {   // v3.01 : L’Éventail (serie 1, avantage du trait +20)
+    black: [[5,3],[5,4],[5,5],[5,6],[5,7],[6,3],[6,4],[6,5],[6,6],[7,3],[7,4],[7,5],[8,3],[8,4]],
+    white: [[0,0],[0,1],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2],[2,3],[3,0],[3,1],[3,2],[3,3],[3,4]]
+  },
+  eq_dalle: {   // v3.01 : La Dalle (serie 1, avantage du trait +20)
+    black: [[5,1],[5,2],[5,3],[5,4],[6,1],[6,2],[6,3],[6,4],[7,2],[7,3],[7,4],[8,2],[8,3],[8,4]],
+    white: [[0,0],[0,1],[0,2],[1,1],[1,2],[1,3],[2,2],[2,3],[2,4],[2,5],[3,3],[3,4],[3,5],[3,6]]
+  },
+  eq_flamme: {   // v3.01 : La Flamme (serie 1, avantage du trait +20)
+    black: [[4,2],[4,3],[5,2],[5,3],[6,2],[6,3],[6,4],[6,5],[7,2],[7,3],[7,4],[7,5],[8,2],[8,3]],
+    white: [[0,1],[0,2],[1,0],[1,1],[1,2],[1,3],[2,1],[2,2],[2,3],[2,4],[3,4],[3,5],[4,5],[4,6]]
+  },
+  eq_peigne: {   // v3.01 : Le Peigne (serie 1, avantage du trait +24)
+    black: [[5,1],[6,0],[6,1],[6,2],[6,3],[6,4],[6,5],[7,1],[7,2],[7,3],[7,4],[7,5],[8,1],[8,3]],
+    white: [[0,1],[0,3],[1,0],[1,1],[1,2],[1,3],[1,4],[2,1],[2,2],[2,3],[2,4],[2,5],[2,6],[3,6]]
+  },
+  eq_donjon: {   // v3.01 : Le Donjon (serie 1, avantage du trait +26)
+    black: [[4,2],[5,0],[5,1],[5,2],[6,0],[6,1],[6,2],[7,0],[7,1],[7,2],[7,3],[8,0],[8,1],[8,2]],
+    white: [[0,2],[0,3],[0,4],[1,2],[1,3],[1,4],[1,5],[2,4],[2,5],[2,6],[3,5],[3,6],[3,7],[4,6]]
+  },
+  eq_fronde: {   // v3.01 : La Fronde (serie 1, avantage du trait +26)
+    black: [[4,0],[4,1],[5,0],[5,1],[5,4],[6,3],[6,4],[6,5],[6,6],[7,3],[7,4],[7,5],[8,3],[8,4]],
+    white: [[0,0],[0,1],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2],[2,3],[3,3],[3,6],[3,7],[4,7],[4,8]]
+  },
+  eq_vague: {   // v3.01 : La Vague (serie 1, avantage du trait +28)
+    black: [[5,3],[5,4],[5,5],[5,6],[6,3],[6,4],[6,5],[7,2],[7,3],[7,4],[7,5],[8,2],[8,3],[8,4]],
+    white: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[1,3],[2,1],[2,2],[2,3],[3,1],[3,2],[3,3],[3,4]]
+  },
+  eq_tenailles: {   // v3.01 : Les Tenailles (serie 1, avantage du trait +28)
+    black: [[4,1],[5,0],[5,1],[5,4],[6,0],[6,1],[6,4],[6,5],[7,0],[7,1],[7,3],[7,4],[8,0],[8,4]],
+    white: [[0,0],[0,4],[1,1],[1,2],[1,4],[1,5],[2,1],[2,2],[2,5],[2,6],[3,3],[3,6],[3,7],[4,7]]
+  },
+  eq_bouclier: {   // v3.01 : Le Bouclier (serie 1, avantage du trait +30)
+    black: [[4,1],[4,2],[4,3],[5,0],[5,1],[5,2],[5,3],[6,0],[6,1],[6,2],[6,3],[7,0],[7,1],[7,2]],
+    white: [[1,3],[1,4],[1,5],[2,3],[2,4],[2,5],[2,6],[3,4],[3,5],[3,6],[3,7],[4,5],[4,6],[4,7]]
+  },
+  eq_echarpe: {   // v3.01 : L’Écharpe (serie 1, avantage du trait +30)
+    black: [[5,2],[5,3],[5,4],[5,5],[5,6],[6,1],[6,2],[6,3],[6,4],[6,5],[6,6],[7,0],[7,1],[8,0]],
+    white: [[0,4],[1,4],[1,5],[2,0],[2,1],[2,2],[2,3],[2,4],[2,5],[3,1],[3,2],[3,3],[3,4],[3,5]]
+  },
+  eq_proue: {   // v3.01 : La Proue (serie 1, avantage du trait +30)
+    black: [[5,1],[5,2],[5,3],[6,1],[6,2],[6,3],[7,1],[7,2],[7,3],[7,4],[8,0],[8,1],[8,2],[8,3]],
+    white: [[0,1],[0,2],[0,3],[0,4],[1,1],[1,2],[1,3],[1,4],[2,3],[2,4],[2,5],[3,4],[3,5],[3,6]]
+  },
+  eq_colonne: {   // v3.01 : La Colonne (serie 1, avantage du trait +30)
+    black: [[4,2],[4,3],[5,1],[5,2],[5,3],[6,1],[6,2],[6,3],[7,0],[7,1],[7,2],[7,3],[8,0],[8,1]],
+    white: [[0,3],[0,4],[1,2],[1,3],[1,4],[1,5],[2,3],[2,4],[2,5],[3,4],[3,5],[3,6],[4,5],[4,6]]
+  },
+  eq_voile: {   // v3.01 : La Voile (serie 1, avantage du trait +32)
+    black: [[4,1],[4,2],[4,3],[5,1],[5,2],[5,3],[6,0],[6,1],[6,2],[6,3],[6,4],[7,0],[7,1],[8,0]],
+    white: [[0,4],[1,4],[1,5],[2,2],[2,3],[2,4],[2,5],[2,6],[3,4],[3,5],[3,6],[4,5],[4,6],[4,7]]
+  },
+  eq_barque: {   // v3.01 : La Barque (serie 1, avantage du trait +32)
+    black: [[5,3],[5,4],[5,5],[6,2],[6,3],[6,4],[6,5],[7,1],[7,2],[7,3],[7,4],[7,5],[8,1],[8,2]],
+    white: [[0,2],[0,3],[1,0],[1,1],[1,2],[1,3],[1,4],[2,1],[2,2],[2,3],[2,4],[3,2],[3,3],[3,4]]
+  },
+  eq_fanion: {   // v3.01 : Le Fanion (serie 1, avantage du trait +34)
+    black: [[4,0],[4,1],[4,2],[4,3],[5,0],[5,1],[5,2],[5,3],[6,2],[6,3],[7,2],[7,3],[8,2],[8,3]],
+    white: [[0,1],[0,2],[1,2],[1,3],[2,3],[2,4],[3,4],[3,5],[3,6],[3,7],[4,5],[4,6],[4,7],[4,8]]
+  },
+  eq_catapulte: {   // v3.01 : La Catapulte (serie 1, avantage du trait +36)
+    black: [[4,0],[4,1],[5,0],[5,1],[5,4],[5,5],[6,4],[6,5],[7,3],[7,4],[7,5],[8,2],[8,3],[8,4]],
+    white: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,1],[2,2],[3,2],[3,3],[3,6],[3,7],[4,7],[4,8]]
+  },
+  eq_pave: {   // v3.01 : Le Pavé (serie 1, avantage du trait +38)
+    black: [[5,2],[5,3],[5,4],[5,5],[6,2],[6,3],[6,4],[6,5],[7,2],[7,3],[7,4],[8,2],[8,3],[8,4]],
+    white: [[0,0],[0,1],[0,2],[1,1],[1,2],[1,3],[2,1],[2,2],[2,3],[2,4],[3,2],[3,3],[3,4],[3,5]]
+  },
+  eq_archipel: {   // v3.01 : L’Archipel (serie 2, avantage du trait +24)
+    black: [[0,0],[0,1],[0,4],[1,0],[1,4],[1,5],[2,4],[2,5],[4,0],[4,1],[4,2],[5,0],[5,4],[6,4]],
+    white: [[2,2],[3,3],[3,7],[4,6],[4,7],[4,8],[6,1],[6,2],[7,0],[7,1],[7,5],[8,0],[8,3],[8,4]]
+  },
+  eq_sentinelles: {   // v3.01 : Les Sentinelles (serie 2, avantage du trait +28)
+    black: [[0,2],[0,3],[0,4],[1,3],[1,4],[3,2],[4,3],[4,7],[4,8],[5,2],[5,3],[5,7],[7,4],[8,4]],
+    white: [[0,0],[1,1],[3,0],[3,4],[3,5],[4,0],[4,1],[4,5],[5,5],[7,1],[7,2],[8,0],[8,1],[8,2]]
+  },
+  eq_avant_postes: {   // v3.01 : Les Avant-postes (serie 2, avantage du trait +28)
+    black: [[2,3],[2,4],[3,0],[3,3],[3,4],[4,0],[4,1],[6,5],[7,0],[7,4],[7,5],[8,0],[8,1],[8,4]],
+    white: [[0,0],[0,3],[0,4],[1,0],[1,1],[1,5],[2,1],[4,7],[4,8],[5,3],[5,4],[5,7],[6,2],[6,3]]
+  },
+  eq_escouades: {   // v3.01 : Les Escouades (serie 2, avantage du trait +30)
+    black: [[2,6],[3,2],[3,3],[3,6],[3,7],[4,7],[4,8],[6,2],[7,1],[7,4],[7,5],[8,0],[8,1],[8,4]],
+    white: [[0,0],[0,3],[0,4],[1,0],[1,1],[1,4],[2,4],[4,0],[4,1],[5,0],[5,1],[5,4],[5,5],[6,0]]
+  },
+  eq_dominos: {   // v3.01 : Les Dominos (serie 2, avantage du trait +34)
+    black: [[1,0],[1,1],[3,3],[3,4],[3,7],[4,7],[4,8],[5,6],[5,7],[7,0],[7,1],[7,2],[8,0],[8,1]],
+    white: [[0,3],[0,4],[1,3],[1,4],[1,5],[3,0],[3,1],[4,0],[4,1],[5,0],[5,3],[5,4],[7,4],[7,5]]
+  },
+  eq_semis: {   // v3.01 : Le Semis (serie 2, avantage du trait +36)
+    black: [[0,3],[0,4],[1,3],[1,4],[4,0],[4,1],[4,5],[5,0],[5,1],[5,4],[6,0],[6,5],[6,6],[7,5]],
+    white: [[1,0],[2,0],[2,1],[2,6],[3,3],[3,6],[3,7],[4,3],[4,7],[4,8],[7,1],[7,2],[8,0],[8,1]]
+  },
+  eq_lucioles: {   // v3.01 : Les Lucioles (serie 2, avantage du trait +36)
+    black: [[0,0],[0,3],[0,4],[1,0],[1,1],[1,4],[2,2],[5,0],[5,1],[5,2],[5,3],[5,6],[5,7],[6,0]],
+    white: [[2,6],[3,0],[3,1],[3,4],[3,5],[3,6],[3,7],[6,4],[7,1],[7,4],[7,5],[8,0],[8,1],[8,4]]
+  },
+  eq_ronde: {   // v3.01 : La Ronde (serie 2, avantage du trait +38)
+    black: [[0,0],[0,3],[1,0],[1,1],[1,4],[1,5],[2,5],[4,0],[4,1],[5,0],[5,3],[5,4],[5,5],[6,3]],
+    white: [[2,3],[3,2],[3,3],[3,4],[3,7],[4,7],[4,8],[6,1],[7,0],[7,1],[7,4],[7,5],[8,1],[8,4]]
+  },
+  eq_comete: {   // v3.01 : La Comète (serie 2, avantage du trait +38)
+    black: [[0,3],[1,3],[2,3],[3,3],[3,7],[4,6],[4,7],[4,8],[5,7],[6,1],[7,0],[7,4],[8,3],[8,4]],
+    white: [[0,0],[0,1],[1,1],[1,5],[2,5],[3,0],[4,0],[4,1],[4,2],[5,0],[5,4],[6,3],[7,2],[8,1]]
+  },
+  eq_chapelet: {   // v3.01 : Le Chapelet (serie 2, avantage du trait +40)
+    black: [[0,3],[0,4],[1,4],[3,2],[3,3],[3,7],[4,3],[4,7],[4,8],[7,3],[7,4],[7,5],[8,3],[8,4]],
+    white: [[0,0],[0,1],[1,0],[1,1],[1,2],[4,0],[4,1],[4,5],[5,0],[5,4],[5,5],[7,1],[8,0],[8,1]]
+  },
+  eq_garnison: {   // v3.01 : La Garnison (serie 2, avantage du trait +44)
+    black: [[2,3],[3,1],[3,4],[3,5],[4,0],[4,1],[4,5],[5,0],[7,1],[7,4],[7,5],[8,0],[8,1],[8,4]],
+    white: [[0,0],[0,3],[0,4],[1,0],[1,1],[1,4],[3,7],[4,3],[4,7],[4,8],[5,2],[5,3],[5,6],[6,3]]
+  },
+  eq_pleiades: {   // v3.01 : Les Pléiades (serie 2, avantage du trait +44)
+    black: [[0,3],[0,4],[1,4],[3,4],[3,5],[4,0],[4,1],[4,5],[5,0],[6,4],[6,5],[7,4],[7,5],[8,4]],
+    white: [[0,0],[1,0],[1,1],[2,1],[2,2],[3,7],[4,3],[4,7],[4,8],[5,2],[5,3],[7,1],[8,0],[8,1]]
+  },
+  eq_faucille: {   // v3.01 : La Faucille (serie 2, avantage du trait +44)
+    black: [[0,1],[0,2],[1,2],[4,0],[4,1],[4,5],[5,5],[6,2],[6,5],[6,6],[7,0],[7,1],[7,5],[8,0]],
+    white: [[0,4],[1,0],[1,4],[1,5],[2,0],[2,1],[2,4],[3,2],[4,3],[4,7],[4,8],[7,3],[8,2],[8,3]]
+  },
+  eq_losange: {   // v3.01 : Le Losange (serie 2, avantage du trait +44)
+    black: [[2,2],[2,3],[3,3],[3,4],[5,0],[5,1],[5,6],[5,7],[6,0],[6,1],[6,6],[7,0],[8,2],[8,3]],
+    white: [[0,1],[0,2],[1,5],[2,0],[2,5],[2,6],[3,0],[3,1],[3,6],[3,7],[5,3],[5,4],[6,3],[6,4]]
+  },
+  eq_croissant: {   // v3.01 : Le Croissant (serie 2, avantage du trait +44)
+    black: [[2,2],[3,0],[3,1],[3,3],[4,0],[4,1],[6,0],[6,1],[7,0],[7,2],[7,5],[8,2],[8,3],[8,4]],
+    white: [[0,0],[0,1],[0,2],[1,0],[1,3],[1,5],[2,5],[2,6],[4,7],[4,8],[5,4],[5,6],[5,7],[6,4]]
+  },
+  eq_vigies: {   // v3.01 : Les Vigies (serie 2, avantage du trait +46)
+    black: [[0,0],[0,3],[0,4],[1,0],[1,1],[1,4],[3,7],[4,3],[4,7],[4,8],[5,3],[5,6],[5,7],[6,3]],
+    white: [[2,3],[3,0],[3,1],[3,4],[4,0],[4,1],[4,5],[5,0],[7,1],[7,4],[7,5],[8,0],[8,1],[8,4]]
+  },
+  eq_lance: {   // v3.01 : La Lance (serie 2, avantage du trait +48)
+    black: [[2,5],[2,6],[3,3],[4,0],[4,1],[4,2],[4,3],[6,5],[6,6],[7,2],[7,5],[8,0],[8,1],[8,2]],
+    white: [[0,2],[0,3],[0,4],[1,0],[1,3],[2,0],[2,1],[4,5],[4,6],[4,7],[4,8],[5,4],[6,0],[6,1]]
+  },
+  eq_mat: {   // v3.01 : Le Mât (serie 2, avantage du trait +48)
+    black: [[0,0],[0,4],[1,1],[1,5],[2,2],[2,5],[3,3],[4,3],[4,8],[5,6],[5,7],[6,6],[7,2],[8,2]],
+    white: [[0,2],[1,3],[2,0],[3,0],[3,1],[4,0],[4,5],[5,4],[6,1],[6,4],[7,0],[7,4],[8,0],[8,4]]
+  },
+  eq_rameaux: {   // v3.01 : Les Rameaux (serie 2, avantage du trait +48)
+    black: [[0,0],[1,0],[1,1],[2,2],[2,5],[2,6],[3,5],[4,0],[4,1],[4,5],[7,2],[8,0],[8,1],[8,2]],
+    white: [[0,2],[0,3],[0,4],[1,3],[4,3],[4,7],[4,8],[5,2],[6,0],[6,1],[6,4],[7,4],[7,5],[8,4]]
+  },
+  eq_volee: {   // v3.01 : La Volée (serie 2, avantage du trait +48)
+    black: [[0,4],[1,4],[2,0],[2,3],[2,4],[3,0],[3,1],[3,4],[5,1],[6,0],[7,4],[8,2],[8,3],[8,4]],
+    white: [[0,0],[0,1],[0,2],[1,1],[2,6],[3,6],[5,3],[5,6],[5,7],[6,2],[6,3],[6,6],[7,1],[8,0]]
+  },
+  eq_patrouille: {   // v3.01 : La Patrouille (serie 3, avantage du trait +28)
+    black: [[0,0],[0,3],[0,4],[1,0],[1,1],[1,4],[2,0],[4,5],[5,0],[5,1],[5,4],[5,5],[6,0],[6,3]],
+    white: [[2,3],[2,6],[3,2],[3,3],[3,6],[3,7],[4,3],[6,6],[7,1],[7,4],[7,5],[8,0],[8,1],[8,4]]
+  },
+  eq_diademe: {   // v3.01 : Le Diadème (serie 3, avantage du trait +32)
+    black: [[0,1],[0,2],[0,3],[1,1],[1,4],[5,0],[5,1],[5,3],[5,4],[5,6],[5,7],[6,0],[6,3],[6,6]],
+    white: [[2,0],[2,3],[2,6],[3,0],[3,1],[3,3],[3,4],[3,6],[3,7],[7,1],[7,4],[8,1],[8,2],[8,3]]
+  },
+  eq_cornes: {   // v3.01 : Les Cornes (serie 3, avantage du trait +36)
+    black: [[1,0],[1,2],[1,3],[1,5],[2,0],[2,1],[2,5],[2,6],[3,0],[3,1],[3,6],[3,7],[5,3],[5,4]],
+    white: [[3,3],[3,4],[5,0],[5,1],[5,6],[5,7],[6,0],[6,1],[6,5],[6,6],[7,0],[7,2],[7,3],[7,5]]
+  },
+  eq_escadrille: {   // v3.01 : L’Escadrille (serie 3, avantage du trait +38)
+    black: [[0,0],[0,1],[0,2],[1,1],[1,2],[1,5],[2,6],[3,0],[4,0],[4,1],[5,3],[5,4],[5,5],[6,2]],
+    white: [[2,4],[3,2],[3,3],[3,4],[4,7],[4,8],[5,7],[6,0],[7,0],[7,3],[7,4],[8,2],[8,3],[8,4]]
+  },
+  eq_trident: {   // v3.01 : Le Trident (serie 3, avantage du trait +40)
+    black: [[1,0],[1,5],[2,0],[2,1],[2,3],[2,5],[2,6],[3,1],[3,3],[3,4],[3,6],[8,1],[8,2],[8,3]],
+    white: [[0,1],[0,2],[0,3],[5,1],[5,3],[5,4],[5,6],[6,0],[6,1],[6,3],[6,5],[6,6],[7,0],[7,5]]
+  },
+  eq_javelot: {   // v3.01 : Le Javelot (serie 3, avantage du trait +44)
+    black: [[0,2],[1,2],[2,2],[3,6],[3,7],[4,7],[4,8],[5,3],[6,2],[7,0],[7,1],[7,5],[8,0],[8,4]],
+    white: [[0,0],[0,4],[1,0],[1,4],[1,5],[2,4],[3,4],[4,0],[4,1],[5,0],[5,1],[6,4],[7,3],[8,2]]
+  },
+  eq_creneaux: {   // v3.01 : Les Créneaux (serie 3, avantage du trait +46)
+    black: [[2,0],[2,6],[3,0],[3,1],[3,3],[3,4],[3,6],[3,7],[7,1],[7,4],[8,0],[8,1],[8,3],[8,4]],
+    white: [[0,0],[0,1],[0,3],[0,4],[1,1],[1,4],[5,0],[5,1],[5,3],[5,4],[5,6],[5,7],[6,0],[6,6]]
+  },
+  eq_constellation: {   // v3.01 : La Constellation (serie 3, avantage du trait +46)
+    black: [[0,3],[0,4],[1,3],[5,0],[5,3],[5,4],[5,6],[5,7],[6,0],[6,1],[6,6],[7,4],[8,3],[8,4]],
+    white: [[0,0],[0,1],[1,1],[2,0],[2,5],[2,6],[3,0],[3,1],[3,3],[3,4],[3,7],[7,2],[8,0],[8,1]]
+  },
+  eq_fer_a_cheval: {   // v3.01 : Le Fer à cheval (serie 3, avantage du trait +46)
+    black: [[3,3],[3,4],[5,0],[5,1],[5,6],[5,7],[6,0],[6,6],[7,1],[7,4],[8,0],[8,1],[8,3],[8,4]],
+    white: [[0,0],[0,1],[0,3],[0,4],[1,1],[1,4],[2,0],[2,6],[3,0],[3,1],[3,6],[3,7],[5,3],[5,4]]
+  },
+  eq_eclaireurs: {   // v3.01 : Les Éclaireurs (serie 3, avantage du trait +46)
+    black: [[0,1],[0,2],[1,2],[2,6],[3,3],[3,6],[3,7],[4,3],[6,2],[6,5],[6,6],[7,1],[7,5],[8,0]],
+    white: [[0,4],[1,0],[1,4],[2,0],[2,1],[2,4],[4,5],[5,0],[5,1],[5,4],[6,0],[7,3],[8,2],[8,3]]
+  },
+  eq_quinconce: {   // v3.01 : Le Quinconce (serie 3, avantage du trait +48)
+    black: [[2,0],[2,1],[3,1],[3,6],[3,7],[4,3],[4,8],[5,3],[7,0],[7,1],[7,3],[8,0],[8,3],[8,4]],
+    white: [[0,0],[0,1],[0,4],[1,2],[1,4],[1,5],[3,4],[4,0],[4,5],[5,0],[5,1],[5,6],[6,5],[6,6]]
+  },
+  eq_lanternes: {   // v3.01 : Les Lanternes (serie 3, avantage du trait +48)
+    black: [[0,2],[1,3],[2,3],[4,0],[4,1],[4,5],[5,0],[5,5],[6,1],[7,0],[7,4],[7,5],[8,0],[8,4]],
+    white: [[0,0],[0,4],[1,0],[1,1],[1,5],[2,5],[3,2],[3,7],[4,3],[4,7],[4,8],[6,3],[7,2],[8,2]]
+  },
+  eq_ricochets: {   // v3.01 : Les Ricochets (serie 3, avantage du trait +48)
+    black: [[0,0],[0,1],[0,3],[0,4],[1,2],[1,4],[4,3],[5,0],[5,3],[5,6],[5,7],[6,0],[6,5],[6,6]],
+    white: [[2,0],[2,1],[2,6],[3,0],[3,1],[3,4],[3,7],[4,5],[7,1],[7,3],[8,0],[8,1],[8,3],[8,4]]
+  },
+  eq_serpent: {   // v3.01 : Le Serpent (serie 3, avantage du trait +48)
+    black: [[1,0],[1,5],[2,0],[2,6],[3,0],[3,1],[3,4],[4,0],[4,5],[7,2],[7,3],[8,1],[8,2],[8,3]],
+    white: [[0,1],[0,2],[0,3],[1,2],[1,3],[4,3],[4,8],[5,3],[5,6],[5,7],[6,0],[6,6],[7,0],[7,5]]
+  },
+  eq_lyre: {   // v3.01 : La Lyre (serie 3, avantage du trait +48)
+    black: [[0,0],[0,4],[1,0],[1,5],[2,0],[2,1],[2,5],[2,6],[3,0],[3,3],[3,4],[3,7],[7,2],[7,3]],
+    white: [[1,2],[1,3],[5,0],[5,3],[5,4],[5,7],[6,0],[6,1],[6,5],[6,6],[7,0],[7,5],[8,0],[8,4]]
+  },
+  eq_citadelle: {   // v3.01 : La Citadelle (serie 3, avantage du trait +48)
+    black: [[1,2],[1,3],[3,3],[3,4],[5,0],[5,7],[6,0],[6,1],[6,5],[6,6],[7,0],[7,5],[8,0],[8,4]],
+    white: [[0,0],[0,4],[1,0],[1,5],[2,0],[2,1],[2,5],[2,6],[3,0],[3,7],[5,3],[5,4],[7,2],[7,3]]
+  },
+  eq_echelle: {   // v3.01 : L’Échelle (serie 3, avantage du trait +50)
+    black: [[0,0],[0,2],[0,3],[1,0],[1,1],[1,3],[3,0],[3,1],[4,1],[4,5],[5,4],[6,0],[6,1],[7,0]],
+    white: [[1,5],[2,5],[2,6],[3,3],[4,3],[4,7],[5,6],[5,7],[7,2],[7,4],[7,5],[8,1],[8,2],[8,4]]
+  },
+  eq_phare: {   // v3.01 : Le Phare (serie 3, avantage du trait +50)
+    black: [[0,0],[0,1],[1,1],[2,2],[4,0],[4,3],[5,0],[5,1],[5,3],[5,6],[6,6],[7,1],[8,0],[8,1]],
+    white: [[0,3],[0,4],[1,4],[2,0],[3,1],[3,4],[3,6],[3,7],[4,5],[4,8],[6,4],[7,4],[8,3],[8,4]]
+  },
+  eq_grelons: {   // v3.01 : Les Grêlons (serie 3, avantage du trait +50)
+    black: [[0,0],[0,4],[1,0],[1,4],[1,5],[2,1],[4,0],[4,1],[4,3],[5,0],[5,2],[6,3],[7,3],[8,2]],
+    white: [[0,2],[1,2],[2,3],[3,5],[3,7],[4,5],[4,7],[4,8],[6,5],[7,0],[7,1],[7,5],[8,0],[8,4]]
+  },
+  eq_envol: {   // v3.01 : L’Envol (serie 3, avantage du trait +50)
+    black: [[0,0],[1,0],[2,1],[2,4],[2,5],[2,6],[3,0],[3,3],[4,0],[4,1],[4,3],[7,3],[8,1],[8,2]],
+    white: [[0,2],[0,3],[1,2],[4,5],[4,7],[4,8],[5,4],[5,7],[6,0],[6,1],[6,2],[6,5],[7,5],[8,4]]
   }
 };
 
@@ -30394,6 +30721,150 @@ const VARIANTE_DISPOSITION = {
   'aliennage':'aliennage', 'april-fish':'april_fish', 'boutonniere':'boutonniere', 'damier':'damier', 'corners':'corners', 'cross':'cross', 'coeurs-croises':'coeurs_croises', 'crown':'crown', 'def-or-attack':'def_or_attack', 'domination-vs-daisy':'domination_vs_daisy', 'duel':'duel', 'forcing':'forcing', 'fracture':'fracture', 'king-cake':'king_cake', 'horseshoes':'horseshoes', 'infiltralien':'infiltralien', 'infiltration':'infiltration', 'intimidation':'intimidation', 'irish-daisy':'irish_daisy', 'robot':'robot', 'labyrinth':'labyrinth', 'mosaic':'mosaic', 'mquorric':'mquorric', 'neko':'neko', 'oath':'oath', 'octopus':'octopus', 'scottish-daisy':'scottish_daisy', 'sibe':'sibe', 'slaloms':'slaloms', 'snowflake':'snowflake', 'araignee':'araignee', 'tinsels':'tinsels', 'trench':'trench', 'true-daisy':'true_daisy', 'wheel':'wheel', 'xmas-star':'xmas_star', 'the-arrow':'the_arrow'
 };
 
+/* v3.01 : les 60 departs inventes par Abalassembly (positions : LAYOUTS, 07-board-engine-core.js).
+   Une seule table : la fiche de la galerie, le lien vers la disposition et le libelle de la carte de
+   chaleur en sont tires. « avantage » : l'avantage du trait mesure par le moteur (score de la meilleure
+   suite de 3 demi-coups des Noirs, recherche a profondeur 3 ; Standard +38, Marguerite belge +32,
+   Marguerite allemande +50). « groupes » : tailles des groupes de billes d'un camp. Verifie par les tests. */
+const DEPARTS_INVENTES = [
+  { cle:"eq_ruche", nom:"La Ruche", emoji:"🐝", serie:1, avantage:12, groupes:"14",
+    forme:"Trois rangées en biais au centre du camp." },
+  { cle:"eq_botte", nom:"La Botte", emoji:"👢", serie:1, avantage:18, groupes:"14",
+    forme:"Une longue bande de deux rangées, le pied posé dans le coin gauche." },
+  { cle:"eq_bastion", nom:"Le Bastion", emoji:"🏰", serie:1, avantage:18, groupes:"14",
+    forme:"Trois rangées serrées dans le coin, décalées vers la droite." },
+  { cle:"eq_eventail", nom:"L’Éventail", emoji:"🎐", serie:1, avantage:20, groupes:"14",
+    forme:"Un coin qui s’ouvre vers le centre, collé au bord droit." },
+  { cle:"eq_dalle", nom:"La Dalle", emoji:"⬜", serie:1, avantage:20, groupes:"14",
+    forme:"Un parallélogramme de quatre rangées qui penche vers la gauche." },
+  { cle:"eq_flamme", nom:"La Flamme", emoji:"🔥", serie:1, avantage:20, groupes:"14",
+    forme:"Une forme haute et étroite qui monte jusqu’à la ligne du milieu." },
+  { cle:"eq_peigne", nom:"Le Peigne", emoji:"🎹", serie:1, avantage:24, groupes:"14",
+    forme:"Une large bande de deux rangées, avec deux dents vers le fond." },
+  { cle:"eq_donjon", nom:"Le Donjon", emoji:"🗼", serie:1, avantage:26, groupes:"14",
+    forme:"Un bloc dressé dans le coin gauche, une vigie au sommet." },
+  { cle:"eq_fronde", nom:"La Fronde", emoji:"🪃", serie:1, avantage:26, groupes:"10+4",
+    forme:"Un arc de dix billes à droite et une pierre de quatre en haut à gauche." },
+  { cle:"eq_vague", nom:"La Vague", emoji:"🌊", serie:1, avantage:28, groupes:"14",
+    forme:"Un bloc à droite qui déferle en diagonale vers le centre." },
+  { cle:"eq_tenailles", nom:"Les Tenailles", emoji:"🦀", serie:1, avantage:28, groupes:"8+6",
+    forme:"Deux groupes collés aux deux bords, prêts à se refermer : 8 à gauche, 6 à droite." },
+  { cle:"eq_bouclier", nom:"Le Bouclier", emoji:"🛡️", serie:1, avantage:30, groupes:"14",
+    forme:"Un bloc large sur la gauche, qui monte jusqu’à la ligne du milieu." },
+  { cle:"eq_echarpe", nom:"L’Écharpe", emoji:"🧣", serie:1, avantage:30, groupes:"14",
+    forme:"Une bande qui part du coin gauche et remonte vers la droite." },
+  { cle:"eq_proue", nom:"La Proue", emoji:"🚢", serie:1, avantage:30, groupes:"14",
+    forme:"Un bloc en pointe dans le coin gauche, tourné vers l’adversaire." },
+  { cle:"eq_colonne", nom:"La Colonne", emoji:"🏛️", serie:1, avantage:30, groupes:"14",
+    forme:"Une colonne qui monte du coin gauche jusqu’au centre." },
+  { cle:"eq_voile", nom:"La Voile", emoji:"⛵", serie:1, avantage:32, groupes:"14",
+    forme:"Un mât dans le coin gauche et une voile gonflée vers le centre." },
+  { cle:"eq_barque", nom:"La Barque", emoji:"🛶", serie:1, avantage:32, groupes:"14",
+    forme:"Une coque de trois rangées au milieu, la poupe vers le fond." },
+  { cle:"eq_fanion", nom:"Le Fanion", emoji:"🚩", serie:1, avantage:34, groupes:"14",
+    forme:"Un drapeau en haut à gauche, tenu par un mât de six billes." },
+  { cle:"eq_catapulte", nom:"La Catapulte", emoji:"🪨", serie:1, avantage:36, groupes:"10+4",
+    forme:"Un bras de dix billes à droite et un boulet de quatre en haut à gauche." },
+  { cle:"eq_pave", nom:"Le Pavé", emoji:"🟫", serie:1, avantage:38, groupes:"14",
+    forme:"Un bloc compact au milieu du camp, quatre rangées pleines." },
+  { cle:"eq_archipel", nom:"L’Archipel", emoji:"🏝️", serie:2, avantage:24, groupes:"5+4+3+2",
+    forme:"Quatre îlots : une paire sous le centre, quatre billes au bord gauche, deux groupes tout en haut." },
+  { cle:"eq_sentinelles", nom:"Les Sentinelles", emoji:"💂", serie:2, avantage:28, groupes:"5+4+3+2",
+    forme:"Une colonne de quatre au centre, une paire dans le coin, un trio à droite, cinq billes en haut." },
+  { cle:"eq_avant_postes", nom:"Les Avant-postes", emoji:"🏕️", serie:2, avantage:28, groupes:"4+4+3+3",
+    forme:"Les deux coins du bas tenus, un trio au bord gauche, une avant-garde de quatre au-dessus du centre." },
+  { cle:"eq_escouades", nom:"Les Escouades", emoji:"🪖", serie:2, avantage:30, groupes:"5+4+3+2",
+    forme:"Deux équipes dans les coins du bas, cinq billes au bord droit, une paire au-dessus du centre." },
+  { cle:"eq_dominos", nom:"Les Dominos", emoji:"🎲", serie:2, avantage:34, groupes:"5+5+2+2",
+    forme:"Deux blocs de cinq, dans le coin gauche et au bord droit, et deux paires lancées vers le haut." },
+  { cle:"eq_semis", nom:"Le Semis", emoji:"🌱", serie:2, avantage:36, groupes:"5+4+3+2",
+    forme:"Cinq billes au bord gauche, un trio en bas à droite, une paire au cœur, quatre billes en haut à droite." },
+  { cle:"eq_lucioles", nom:"Les Lucioles", emoji:"✨", serie:2, avantage:36, groupes:"5+4+3+2",
+    forme:"Une ligne de cinq en bas à gauche, une paire au bord droit, deux groupes perchés tout en haut." },
+  { cle:"eq_ronde", nom:"La Ronde", emoji:"🔄", serie:2, avantage:38, groupes:"4+4+3+3",
+    forme:"Quatre billes juste sous le centre, un trio au bord gauche, deux groupes dans les coins du haut." },
+  { cle:"eq_comete", nom:"La Comète", emoji:"☄️", serie:2, avantage:38, groupes:"5+4+3+2",
+    forme:"Une traînée de quatre billes file vers le haut ; cinq billes au bord droit, deux petits groupes en bas." },
+  { cle:"eq_chapelet", nom:"Le Chapelet", emoji:"📿", serie:2, avantage:40, groupes:"5+3+3+3",
+    forme:"Trois trios égrenés, au centre, au bord droit et dans le coin du haut ; cinq billes en bas à droite." },
+  { cle:"eq_garnison", nom:"La Garnison", emoji:"⚔️", serie:2, avantage:44, groupes:"4+4+3+3",
+    forme:"Deux trios gardent les coins du bas ; deux groupes de quatre, au bord gauche et au-dessus du centre." },
+  { cle:"eq_pleiades", nom:"Les Pléiades", emoji:"🌌", serie:2, avantage:44, groupes:"5+3+3+3",
+    forme:"Cinq billes en bas à droite, et trois trios : au bord gauche, au centre, dans le coin du haut." },
+  { cle:"eq_faucille", nom:"La Faucille", emoji:"🌙", serie:2, avantage:44, groupes:"5+4+3+2",
+    forme:"Une faucille de cinq remonte vers le centre ; quatre billes en bas à gauche, une paire, un trio en haut." },
+  { cle:"eq_losange", nom:"Le Losange", emoji:"🔷", serie:2, avantage:44, groupes:"5+4+3+2",
+    forme:"Un losange de quatre au-dessus du centre, cinq billes au bord gauche, un trio à droite, une paire en bas." },
+  { cle:"eq_croissant", nom:"Le Croissant", emoji:"🥐", serie:2, avantage:44, groupes:"5+4+3+2",
+    forme:"Un croissant de cinq au fond, deux groupes qui montent le long du bord gauche, une paire au-dessus du centre." },
+  { cle:"eq_vigies", nom:"Les Vigies", emoji:"🔭", serie:2, avantage:46, groupes:"5+3+3+3",
+    forme:"Deux trios postés dans les coins du haut, une ligne de trois vers le centre, cinq billes au bord droit." },
+  { cle:"eq_lance", nom:"La Lance", emoji:"🗡️", serie:2, avantage:48, groupes:"5+4+3+2",
+    forme:"Une lance de cinq billes pointée du bord gauche vers le centre ; deux groupes en bas, une paire en haut." },
+  { cle:"eq_mat", nom:"Le Mât", emoji:"⚓", serie:2, avantage:48, groupes:"5+4+3+2",
+    forme:"Un mât de cinq billes du centre jusqu’au coin du haut ; une paire en bas, deux groupes à droite." },
+  { cle:"eq_rameaux", nom:"Les Rameaux", emoji:"🌿", serie:2, avantage:48, groupes:"4+4+4+2",
+    forme:"Deux branches de quatre partent vers le haut ; quatre billes en bas à gauche, une paire au bord gauche." },
+  { cle:"eq_volee", nom:"La Volée", emoji:"🕊️", serie:2, avantage:48, groupes:"5+4+3+2",
+    forme:"Une diagonale de cinq file jusqu’au coin du haut ; quatre billes en bas à droite, deux petits groupes à gauche." },
+  { cle:"eq_patrouille", nom:"La Patrouille", emoji:"🧭", serie:3, avantage:28, groupes:"4+4+3+3",
+    forme:"Deux groupes de quatre, au centre et en haut à gauche ; deux trios, au bord gauche et dans le coin du haut." },
+  { cle:"eq_diademe", nom:"Le Diadème", emoji:"👑", serie:3, avantage:32, groupes:"5+3+3+3",
+    forme:"Trois trios alignés en travers du bas, et une couronne de cinq billes tout en haut. Symétrique." },
+  { cle:"eq_cornes", nom:"Les Cornes", emoji:"🐂", serie:3, avantage:36, groupes:"5+5+2+2",
+    forme:"Deux blocs de cinq sur les flancs du haut, une paire au sommet, une autre sous le centre. Symétrique." },
+  { cle:"eq_escadrille", nom:"L’Escadrille", emoji:"✈️", serie:3, avantage:38, groupes:"5+4+3+2",
+    forme:"Cinq billes tout en haut, une ligne de quatre sous le centre, un trio au bord gauche, une paire à droite." },
+  { cle:"eq_trident", nom:"Le Trident", emoji:"🔱", serie:3, avantage:40, groupes:"4+4+3+3",
+    forme:"Trois pointes au-dessus du centre, à gauche, au milieu et à droite, et un trio au fond. Symétrique." },
+  { cle:"eq_javelot", nom:"Le Javelot", emoji:"🎯", serie:3, avantage:44, groupes:"5+4+3+2",
+    forme:"Un javelot de cinq part du coin en bas à gauche vers le centre ; un losange au bord droit, une paire, un trio en haut." },
+  { cle:"eq_creneaux", nom:"Les Créneaux", emoji:"🏯", serie:3, avantage:46, groupes:"3+3+3+3+2",
+    forme:"Deux trios dans les coins du bas, et trois groupes en rang au-dessus du centre. Symétrique." },
+  { cle:"eq_constellation", nom:"La Constellation", emoji:"🌠", serie:3, avantage:46, groupes:"3+3+3+3+2",
+    forme:"Cinq petits groupes : trois autour du bas, une paire sous le centre, un trio dans le coin du haut." },
+  { cle:"eq_fer_a_cheval", nom:"Le Fer à cheval", emoji:"🐎", serie:3, avantage:46, groupes:"3+3+3+3+2",
+    forme:"Quatre trios en fer à cheval autour du bas, et une paire au-dessus du centre. Symétrique." },
+  { cle:"eq_eclaireurs", nom:"Les Éclaireurs", emoji:"🔦", serie:3, avantage:46, groupes:"3+3+3+3+2",
+    forme:"Une diagonale de trois part du coin en bas à gauche ; deux trios au bord droit, une paire au centre, un trio en haut." },
+  { cle:"eq_quinconce", nom:"Le Quinconce", emoji:"🌳", serie:3, avantage:48, groupes:"3+3+3+3+2",
+    forme:"Deux trios dans les coins du bas, une paire au centre, deux trios sur les flancs du haut." },
+  { cle:"eq_lanternes", nom:"Les Lanternes", emoji:"🏮", serie:3, avantage:48, groupes:"3+3+3+3+2",
+    forme:"Deux trios dans les coins du bas, un trio au bord gauche, une paire à droite du centre, un trio en haut." },
+  { cle:"eq_ricochets", nom:"Les Ricochets", emoji:"🌀", serie:3, avantage:48, groupes:"4+3+3+2+2",
+    forme:"Deux paires, au bord gauche et au centre ; quatre billes en bas à droite ; deux trios dans les coins du haut." },
+  { cle:"eq_serpent", nom:"Le Serpent", emoji:"🐍", serie:3, avantage:48, groupes:"5+5+2+2",
+    forme:"Un serpent de cinq billes remonte le bord gauche ; un bloc de cinq au fond, deux paires à droite." },
+  { cle:"eq_lyre", nom:"La Lyre", emoji:"🎵", serie:3, avantage:48, groupes:"5+5+2+2",
+    forme:"Deux bras de cinq montent vers les coins du haut ; une paire entre eux, une autre au fond. Symétrique." },
+  { cle:"eq_citadelle", nom:"La Citadelle", emoji:"🧱", serie:3, avantage:48, groupes:"5+5+2+2",
+    forme:"Deux murs de cinq le long des bords du bas, et deux paires l’une au-dessus de l’autre en haut. Symétrique." },
+  { cle:"eq_echelle", nom:"L’Échelle", emoji:"🪜", serie:3, avantage:50, groupes:"3+3+3+3+2",
+    forme:"Trois trios en échelle le long du bord gauche, une paire au centre, un trio en haut à droite." },
+  { cle:"eq_phare", nom:"Le Phare", emoji:"💡", serie:3, avantage:50, groupes:"4+3+3+2+2",
+    forme:"Une tour de quatre en haut à gauche, deux trios en bas à gauche, deux paires au centre et à droite." },
+  { cle:"eq_grelons", nom:"Les Grêlons", emoji:"🧊", serie:3, avantage:50, groupes:"3+3+3+3+2",
+    forme:"Cinq petits groupes semés : au fond, au bord gauche, près du centre et dans les deux coins du haut." },
+  { cle:"eq_envol", nom:"L’Envol", emoji:"🦅", serie:3, avantage:50, groupes:"3+3+3+3+2",
+    forme:"Une ligne de trois au bord droit, trois trios à gauche et au fond, une paire près du centre." }
+];
+const _SERIES_INVENTEES = { 1:'formes compactes, chaque camp chez soi', 2:'petits groupes mêlés à ceux de l’adversaire', 3:'petits groupes mêlés, suite' };
+function _descInventee(d){
+  const g = d.groupes.split('+');
+  return d.forme + ' Départ inventé par Abalassembly (v3.01, série ' + d.serie + ' : ' + _SERIES_INVENTEES[d.serie] + ') : 14 billes par camp, '
+    + (g.length === 1 ? 'en un seul groupe' : 'en ' + g.length + ' groupes (' + g.join(' + ') + ')')
+    + ' ; les Blancs sont le demi-tour exact des Noirs et les deux camps ne se touchent pas. Avantage du trait mesuré par le moteur (meilleure suite de 3 demi-coups) : +'
+    + d.avantage + ', contre +38 pour la Standard, +32 pour la Marguerite belge et +50 pour la Marguerite allemande. C’est une mesure du moteur : aucune partie n’a encore été jouée depuis cette position.';
+}
+DEPARTS_INVENTES.forEach(function(d){
+  const id = d.cle.replace(/_/g, '-');
+  variantsData.push({ id:id, name:d.nom, emoji:d.emoji, players:'2', duration:'Non mesurée', diff:'Non évaluée', src:'Abalassembly', inventee:true,
+    desc:_descInventee(d), origin:'Départ inventé et mesuré par Abalassembly (v3.01), à l’essai : aucune partie connue' });
+  VARIANTE_DISPOSITION[id] = d.cle;
+  if (HEAT_VARIANTS.indexOf(d.cle) < 0) HEAT_VARIANTS.push(d.cle);
+  HEAT_VARIANT_LABEL[d.cle] = d.nom;
+});
+
 /* Depuis la galerie : ouvre "Configurer avant de jouer" avec la variante
    deja choisie. Ouvrir la page ne reinitialise pas la disposition (verifie :
    showPage('setup') ne fait que redessiner la miniature). */
@@ -30476,7 +30947,7 @@ function renderVariants() {
   if (!grid || grid.children.length > 0) return;
   grid.innerHTML = variantsData.map(function(v) {
     const dc = v.diff==='Débutant'?'#4a9463':v.diff==='Facile'?'var(--accent-green-light)':v.diff==='Moyen'?'var(--gold)':v.diff==='Non évaluée'?'var(--muted)':'#e05c4b';
-    return '<div class="variant-card" data-id="'+v.id+'" data-players="'+v.players+'" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:all 0.2s" onclick="showVariantDetail(\''+v.id+'\')" onmouseover="this.style.borderColor=\'var(--gold-dim)\';this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.transform=\'none\'">'
+    return '<div class="variant-card" data-id="'+v.id+'" data-players="'+v.players+'"'+(v.inventee?' data-inventee="1"':'')+' style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:all 0.2s" onclick="showVariantDetail(\''+v.id+'\')" onmouseover="this.style.borderColor=\'var(--gold-dim)\';this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.transform=\'none\'">'
       +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
       +'<div style="font-size:28px">'+v.emoji+'</div>'
       +'<div style="font-size:11px;padding:2px 8px;border-radius:12px;background:rgba(0,0,0,0.3);color:'+dc+';border:1px solid '+dc+'44">'+v.diff+'</div>'
@@ -30547,7 +31018,9 @@ function _detailJouable(id){
 function filterVariants(players, evt) {
   const _d = document.getElementById('variant-detail'); if (_d) { _d.style.display = 'none'; _d.dataset.id = ''; }
   document.querySelectorAll('.variant-card').forEach(function(c){
-    c.style.display=(players==='all'||c.dataset.players===players)?'block':'none';
+    // v3.01 : « Inventées » montre les 60 departs inventes par Abalassembly
+    const ok = players==='all' || (players==='inventees' ? c.dataset.inventee==='1' : c.dataset.players===players);
+    c.style.display=ok?'block':'none';
   });
   document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
   // utilise l'événement passé en paramètre, sinon retombe sur l'event global (compat)
@@ -38000,7 +38473,7 @@ const ARCHI_CHIFFRES = {
   dispositionsLivre: 13,                        // dispositions de l'arbre d'ouvertures (OPENING_TREES)
   puzzles: 138,                                 // PUZZLES
   historique: 200,                              // HIST_MAX
-  dispositions: 60,                             // v2.96 : LAYOUTS (23 + 37 relevees par gym-abalone)
+  dispositions: 120,                            // v3.01 : LAYOUTS (23 + 37 relevees par gym-abalone + 60 inventees)
   traces: 40,                                   // v2.96 : PARTIES_TRACES, citees par le blog sans leurs coups
   positions4v2: 140575680, demiCoups4v2: 97     // tablebase/RESULTS.md
 };
@@ -38071,7 +38544,7 @@ function _archiCarteDonnees(){
      _tr('Bibliothèque de parties : rejouer, filtrer', 'Game library: replay, filter')],
     [_tr('Les parties MiGs et PlayStrategy en APGN, refaites par un outil et vérifiées par un test', 'The MiGs and PlayStrategy games in APGN, rebuilt by a tool and checked by a test'),
      _tr('Le dossier games/ du dépôt, pour les autres programmes', 'The repository’s games/ folder, for other programs')],
-    [_tr(_archiN(C.dispositions) + ' positions de départ, dont 37 relevées par le projet gym-abalone et vérifiées case par case', _archiN(C.dispositions) + ' starting positions, 37 of them read by the gym-abalone project and checked cell by cell'),
+    [_tr(_archiN(C.dispositions) + ' positions de départ : 37 relevées par le projet gym-abalone et vérifiées case par case, 60 inventées et mesurées par Abalassembly', _archiN(C.dispositions) + ' starting positions: 37 read by the gym-abalone project and checked cell by cell, 60 invented and measured by Abalassembly'),
      _tr('Jouer, Variantes, Éditeur', 'Play, Variants, Editor')]
   ];
   h += '<div class="archi-usages">' + usages.map(function(u){
