@@ -3349,7 +3349,7 @@ const I18N_EN = {
   'Ou une position, dans la notation de Saab (KAAH) :': 'Or a position, in Saab’s notation (KAAH):', '▶ Jouer': '▶ Play',
   '📂 Fichier de partie KAAH / KAAWA (.json)': '📂 KAAH / KAAWA game file (.json)',
   // v3.01 : les departs inventes
-  '🧪 Inventées': '🧪 Invented', '🧪 60 départs inventés par Abalassembly': '🧪 60 starting positions invented by Abalassembly'
+  '🧪 Inventées': '🧪 Invented', '🧪 80 départs inventés par Abalassembly': '🧪 80 starting positions invented by Abalassembly'
 };
 function _i18nCle(s) { const t = String(s).trim(); return /\s\s|[\t\n\r\u00a0\u202f]/.test(t) ? t.replace(/\s+/g, ' ') : t; }
 function _i18nDict(k) { return Object.prototype.hasOwnProperty.call(I18N_EN, k) ? I18N_EN[k] : null; }
@@ -4410,6 +4410,28 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
           <option value="eq_phare" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +50 (Standard +38), aucune partie jouée">Le Phare</option>
           <option value="eq_grelons" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +50 (Standard +38), aucune partie jouée">Les Grêlons</option>
           <option value="eq_envol" title="Départ inventé par Abalassembly (v3.01), série 3 : avantage du trait mesuré par le moteur +50 (Standard +38), aucune partie jouée">L’Envol</option>
+        </optgroup>
+        <optgroup label="Départs inventés par Abalassembly · les Blancs en avance">
+          <option value="av_flamme_contact" title="Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (i7h6) ; équilibre mesuré par le moteur −2 (sans l’avance +10), aucune partie jouée">La Flamme · le contact</option>
+          <option value="av_dalle_avant_garde" title="Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (i7h6) ; équilibre mesuré par le moteur +2 (sans l’avance +10), aucune partie jouée">La Dalle · l’avant-garde</option>
+          <option value="av_peigne_avant_garde" title="Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (i6h5) ; équilibre mesuré par le moteur −2 (sans l’avance +12), aucune partie jouée">Le Peigne · l’avant-garde</option>
+          <option value="av_escouades_pas_en_avant" title="Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (d5d6e5) ; équilibre mesuré par le moteur −2 (sans l’avance +15), aucune partie jouée">Les Escouades · le pas en avant</option>
+          <option value="av_german_pas_en_avant" title="Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (b6b5) ; équilibre mesuré par le moteur +3 (sans l’avance +25), aucune partie jouée">Marguerite allemande · le pas en avant</option>
+          <option value="av_escouades_menace" title="Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (c1c2) ; équilibre mesuré par le moteur −3 (sans l’avance +15), aucune partie jouée">Les Escouades · la menace</option>
+          <option value="av_belgian_avant_garde" title="Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (a4b5) ; équilibre mesuré par le moteur −4 (sans l’avance +16), aucune partie jouée">Marguerite belge · l’avant-garde</option>
+          <option value="av_belgian_eclaireur" title="Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (c6d6) ; équilibre mesuré par le moteur −4 (sans l’avance +16), aucune partie jouée">Marguerite belge · l’éclaireur</option>
+          <option value="av_swiss_pas_en_avant" title="Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (b6b5) ; équilibre mesuré par le moteur −5 (sans l’avance +16), aucune partie jouée">Marguerite suisse · le pas en avant</option>
+          <option value="av_avant_postes_menace" title="Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (c3c4b2) ; équilibre mesuré par le moteur +5 (sans l’avance +14), aucune partie jouée">Les Avant-postes · la menace</option>
+          <option value="av_botte_pas_en_avant" title="Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (g9f8) ; équilibre mesuré par le moteur +5 (sans l’avance +9), aucune partie jouée">La Botte · le pas en avant</option>
+          <option value="av_bastion_eclaireur" title="Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (g3f3) ; équilibre mesuré par le moteur +5 (sans l’avance +9), aucune partie jouée">Le Bastion · l’éclaireur</option>
+          <option value="av_diademe_pas_en_avant" title="Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (f2f3) ; équilibre mesuré par le moteur +5 (sans l’avance +16), aucune partie jouée">Le Diadème · le pas en avant</option>
+          <option value="av_cornes_pas_en_avant" title="Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (d1d2) ; équilibre mesuré par le moteur −5 (sans l’avance +18), aucune partie jouée">Les Cornes · le pas en avant</option>
+          <option value="av_patrouille_menace" title="Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (f9g9) ; équilibre mesuré par le moteur +6 (sans l’avance +14), aucune partie jouée">La Patrouille · la menace</option>
+          <option value="av_diademe_menace" title="Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (f2e2) ; équilibre mesuré par le moteur −6 (sans l’avance +16), aucune partie jouée">Le Diadème · la menace</option>
+          <option value="av_ruche_contact" title="Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (h9g8) ; équilibre mesuré par le moteur +6 (sans l’avance +6), aucune partie jouée">La Ruche · le contact</option>
+          <option value="av_eventail_avant_garde" title="Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (h4g4) ; équilibre mesuré par le moteur −6 (sans l’avance +10), aucune partie jouée">L’Éventail · l’avant-garde</option>
+          <option value="av_standard_avant_garde" title="Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (i5h5) ; équilibre mesuré par le moteur +7 (sans l’avance +19), aucune partie jouée">Standard · l’avant-garde</option>
+          <option value="av_dutch_pas_en_avant" title="Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (b6c6) ; équilibre mesuré par le moteur −12 (sans l’avance +16), aucune partie jouée">Marguerite hollandaise · le pas en avant</option>
         </optgroup>
         <option value="random" title="Tire une vraie disposition au hasard parmi celles disponibles">🎲 Aléatoire</option>
         </select>
@@ -7063,13 +7085,14 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
     </div>
     <!-- v3.01 : les 60 departs inventes par Abalassembly (DEPARTS_INVENTES) -->
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-top:16px">
-      <h3 style="margin:0 0 12px;color:var(--white);font-size:17px">🧪 60 départs inventés par Abalassembly</h3>
-      <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7">Choisis parmi des milliers de positions générées puis mesurées une à une par le moteur. Dans tous, les Blancs sont le demi-tour exact des Noirs, les deux camps ne se touchent pas, aucune bille n’est seule, et aucun n’est une position déjà connue, même tournée ou retournée. Le bouton « 🧪 Inventées » les montre tous.</p>
+      <h3 style="margin:0 0 12px;color:var(--white);font-size:17px">🧪 80 départs inventés par Abalassembly</h3>
+      <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7">Choisis parmi des milliers de positions générées puis mesurées une à une par le moteur. Dans les séries 1 à 3, les Blancs sont le demi-tour exact des Noirs, les deux camps ne se touchent pas, aucune bille n’est seule ; dans la série 4, les Blancs partent avec un coup d’avance. Aucun n’est une position déjà connue, même tournée ou retournée. Le bouton « 🧪 Inventées » les montre tous.</p>
       <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">La mesure :</strong> l’avantage du trait, ce que gagne le camp qui commence après sa meilleure suite de 3 demi-coups, en points du moteur. Plus il est proche de 0, plus le départ est équilibré. Pour comparer : Standard +38, Marguerite belge +32, Marguerite allemande +50.</p>
       <ul style="margin:0 0 10px;padding-left:20px;font-size:13px;color:var(--muted);line-height:1.7">
         <li><strong style="color:var(--text)">Série 1, formes compactes</strong> (de La Ruche au Pavé) : un ou deux blocs par camp, chacun chez soi, de +12 à +38.</li>
         <li><strong style="color:var(--text)">Série 2, petits groupes</strong> (de L’Archipel à La Volée) : 4 groupes de 2 à 5 billes par camp, mêlés à ceux de l’adversaire, de +24 à +48.</li>
         <li><strong style="color:var(--text)">Série 3, petits groupes, suite</strong> (de La Patrouille à L’Envol) : 4 ou 5 groupes par camp, dont 7 formes symétriques, de +28 à +50.</li>
+        <li><strong style="color:var(--text)">Série 4, les Blancs prennent de l’avance</strong> : un départ connu, et un coup blanc déjà joué, des billes avancées vers le centre ou une poussée prête. Les camps n’étant plus pareils, la mesure est la moyenne des notes à 2 et 3 demi-coups, qui ne favorise aucun camp : 0 = équilibré, négatif = avantage aux Blancs. Sur cette échelle : Standard +19, Marguerite belge +16, Marguerite allemande +25 ; avec l’avance, Marguerite allemande +3, Marguerite belge −4, Standard +7, et 14 départs sur 20 entre −5 et +5.</li>
       </ul>
       <p style="margin:0;font-size:13px;color:var(--muted);line-height:1.7">Ce que la recherche a montré : plus un camp est compact, moins le premier coup rapporte. Les petits groupes ne tiennent l’équilibre que mêlés à ceux de l’adversaire ; gardés chacun dans sa moitié, ils donnent une grosse avance au premier joueur (+52 au mieux, le plus souvent +80 à +120). Ce sont des mesures du moteur, pas encore des parties : seules beaucoup de parties diront si ces départs ramènent à 50 % les victoires du premier joueur.</p>
     </div>
@@ -8838,7 +8861,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v3.01';
+const APP_VERSION = 'v3.02';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -14061,6 +14084,91 @@ const LAYOUTS = {
   eq_envol: {   // v3.01 : L’Envol (serie 3, avantage du trait +50)
     black: [[0,0],[1,0],[2,1],[2,4],[2,5],[2,6],[3,0],[3,3],[4,0],[4,1],[4,3],[7,3],[8,1],[8,2]],
     white: [[0,2],[0,3],[1,2],[4,5],[4,7],[4,8],[5,4],[5,7],[6,0],[6,1],[6,2],[6,5],[7,5],[8,4]]
+  },
+  /* v3.02 : 20 departs « les Blancs prennent de l'avance » (fiches : DEPARTS_AVANCE, 21-variants-and-puzzles.js).
+     Un depart connu (classique ou invente), puis un coup blanc deja joue avant le premier coup des Noirs :
+     des billes avancees vers le centre, ou une poussee blanche deja prete. Les Noirs sont ceux de la base,
+     sans changement. Choisis par l'equilibre que mesure le moteur (moyenne des notes a 2 et 3 demi-coups,
+     qui ne favorise aucun camp ; 0 = equilibre). Demande d'ocj94. */
+  av_flamme_contact: {   // v3.02 : La Flamme · le contact (coup d avance i7h6, equilibre -2)
+    black: [[4,2],[4,3],[5,2],[5,3],[6,2],[6,3],[6,4],[6,5],[7,2],[7,3],[7,4],[7,5],[8,2],[8,3]],
+    white: [[0,1],[1,0],[1,1],[1,2],[1,3],[2,1],[2,2],[2,3],[2,4],[3,2],[3,4],[3,5],[4,5],[4,6]]
+  },
+  av_dalle_avant_garde: {   // v3.02 : La Dalle · l’avant-garde (coup d avance i7h6, equilibre 2)
+    black: [[5,1],[5,2],[5,3],[5,4],[6,1],[6,2],[6,3],[6,4],[7,2],[7,3],[7,4],[8,2],[8,3],[8,4]],
+    white: [[0,0],[0,1],[1,1],[1,2],[1,3],[2,2],[2,3],[2,4],[2,5],[3,2],[3,3],[3,4],[3,5],[3,6]]
+  },
+  av_peigne_avant_garde: {   // v3.02 : Le Peigne · l’avant-garde (coup d avance i6h5, equilibre -2)
+    black: [[5,1],[6,0],[6,1],[6,2],[6,3],[6,4],[6,5],[7,1],[7,2],[7,3],[7,4],[7,5],[8,1],[8,3]],
+    white: [[0,3],[1,0],[1,1],[1,2],[1,3],[1,4],[2,1],[2,2],[2,3],[2,4],[2,5],[2,6],[3,1],[3,6]]
+  },
+  av_escouades_pas_en_avant: {   // v3.02 : Les Escouades · le pas en avant (coup d avance d5d6e5, equilibre -2)
+    black: [[2,6],[3,2],[3,3],[3,6],[3,7],[4,7],[4,8],[6,2],[7,1],[7,4],[7,5],[8,0],[8,1],[8,4]],
+    white: [[0,0],[0,3],[0,4],[1,0],[1,1],[1,4],[2,4],[4,0],[4,1],[4,4],[4,5],[5,0],[5,1],[6,0]]
+  },
+  av_german_pas_en_avant: {   // v3.02 : Marguerite allemande · le pas en avant (coup d avance b6b5, equilibre 3)
+    black: [[1,4],[1,5],[2,4],[2,5],[2,6],[3,5],[3,6],[5,1],[5,2],[6,0],[6,1],[6,2],[7,0],[7,1]],
+    white: [[1,0],[1,1],[2,0],[2,1],[2,2],[3,1],[3,2],[5,5],[5,6],[6,4],[6,5],[6,6],[7,3],[7,4]]
+  },
+  av_escouades_menace: {   // v3.02 : Les Escouades · la menace (coup d avance c1c2, equilibre -3)
+    black: [[2,6],[3,2],[3,3],[3,6],[3,7],[4,7],[4,8],[6,2],[7,1],[7,4],[7,5],[8,0],[8,1],[8,4]],
+    white: [[0,0],[0,3],[0,4],[1,0],[1,1],[1,4],[2,4],[4,0],[4,1],[5,0],[5,1],[5,4],[5,5],[6,1]]
+  },
+  av_belgian_avant_garde: {   // v3.02 : Marguerite belge · l’avant-garde (coup d avance a4b5, equilibre -4)
+    black: [[0,3],[0,4],[1,3],[1,4],[1,5],[2,4],[2,5],[6,1],[6,2],[7,0],[7,1],[7,2],[8,0],[8,1]],
+    white: [[0,0],[0,1],[1,0],[1,1],[1,2],[2,1],[2,2],[5,6],[6,4],[6,5],[7,3],[7,4],[7,5],[8,4]]
+  },
+  av_belgian_eclaireur: {   // v3.02 : Marguerite belge · l’éclaireur (coup d avance c6d6, equilibre -4)
+    black: [[0,3],[0,4],[1,3],[1,4],[1,5],[2,4],[2,5],[6,1],[6,2],[7,0],[7,1],[7,2],[8,0],[8,1]],
+    white: [[0,0],[0,1],[1,0],[1,1],[1,2],[2,1],[2,2],[5,5],[6,4],[7,3],[7,4],[7,5],[8,3],[8,4]]
+  },
+  av_swiss_pas_en_avant: {   // v3.02 : Marguerite suisse · le pas en avant (coup d avance b6b5, equilibre -5)
+    black: [[1,4],[1,5],[2,1],[2,4],[2,6],[3,5],[3,6],[5,1],[5,2],[6,0],[6,2],[6,5],[7,0],[7,1]],
+    white: [[1,0],[1,1],[2,0],[2,2],[2,5],[3,1],[3,2],[5,5],[5,6],[6,1],[6,4],[6,6],[7,3],[7,4]]
+  },
+  av_avant_postes_menace: {   // v3.02 : Les Avant-postes · la menace (coup d avance c3c4b2, equilibre 5)
+    black: [[2,3],[2,4],[3,0],[3,3],[3,4],[4,0],[4,1],[6,5],[7,0],[7,4],[7,5],[8,0],[8,1],[8,4]],
+    white: [[0,0],[0,3],[0,4],[1,0],[1,1],[1,5],[2,1],[4,7],[4,8],[5,3],[5,4],[5,7],[7,1],[7,2]]
+  },
+  av_botte_pas_en_avant: {   // v3.02 : La Botte · le pas en avant (coup d avance g9f8, equilibre 5)
+    black: [[5,1],[5,2],[5,3],[5,4],[5,5],[6,0],[6,1],[6,2],[6,3],[6,4],[6,5],[7,0],[7,1],[8,0]],
+    white: [[0,4],[1,4],[1,5],[2,1],[2,2],[2,3],[2,4],[2,5],[3,2],[3,3],[3,4],[3,5],[3,6],[4,6]]
+  },
+  av_bastion_eclaireur: {   // v3.02 : Le Bastion · l’éclaireur (coup d avance g3f3, equilibre 5)
+    black: [[6,2],[6,3],[6,4],[6,5],[6,6],[7,1],[7,2],[7,3],[7,4],[7,5],[8,1],[8,2],[8,3],[8,4]],
+    white: [[0,0],[0,1],[0,2],[0,3],[1,0],[1,1],[1,2],[1,3],[1,4],[2,1],[2,2],[2,3],[2,4],[3,1]]
+  },
+  av_diademe_pas_en_avant: {   // v3.02 : Le Diadème · le pas en avant (coup d avance f2f3, equilibre 5)
+    black: [[0,1],[0,2],[0,3],[1,1],[1,4],[5,0],[5,1],[5,3],[5,4],[5,6],[5,7],[6,0],[6,3],[6,6]],
+    white: [[2,0],[2,3],[2,6],[3,1],[3,2],[3,3],[3,4],[3,6],[3,7],[7,1],[7,4],[8,1],[8,2],[8,3]]
+  },
+  av_cornes_pas_en_avant: {   // v3.02 : Les Cornes · le pas en avant (coup d avance d1d2, equilibre -5)
+    black: [[1,0],[1,2],[1,3],[1,5],[2,0],[2,1],[2,5],[2,6],[3,0],[3,1],[3,6],[3,7],[5,3],[5,4]],
+    white: [[3,3],[3,4],[5,1],[5,2],[5,6],[5,7],[6,0],[6,1],[6,5],[6,6],[7,0],[7,2],[7,3],[7,5]]
+  },
+  av_patrouille_menace: {   // v3.02 : La Patrouille · la menace (coup d avance f9g9, equilibre 6)
+    black: [[0,0],[0,3],[0,4],[1,0],[1,1],[1,4],[2,0],[4,5],[5,0],[5,1],[5,4],[5,5],[6,0],[6,3]],
+    white: [[1,5],[2,3],[2,6],[3,2],[3,3],[3,6],[4,3],[6,6],[7,1],[7,4],[7,5],[8,0],[8,1],[8,4]]
+  },
+  av_diademe_menace: {   // v3.02 : Le Diadème · la menace (coup d avance f2e2, equilibre -6)
+    black: [[0,1],[0,2],[0,3],[1,1],[1,4],[5,0],[5,1],[5,3],[5,4],[5,6],[5,7],[6,0],[6,3],[6,6]],
+    white: [[2,0],[2,3],[2,6],[3,1],[3,3],[3,4],[3,6],[3,7],[4,1],[7,1],[7,4],[8,1],[8,2],[8,3]]
+  },
+  av_ruche_contact: {   // v3.02 : La Ruche · le contact (coup d avance h9g8, equilibre 6)
+    black: [[5,2],[5,3],[5,4],[5,5],[6,1],[6,2],[6,3],[6,4],[6,5],[7,0],[7,1],[7,2],[7,3],[7,4]],
+    white: [[1,1],[1,2],[1,3],[1,4],[2,1],[2,2],[2,3],[2,4],[2,5],[3,2],[3,3],[3,4],[3,5],[4,5]]
+  },
+  av_eventail_avant_garde: {   // v3.02 : L’Éventail · l’avant-garde (coup d avance h4g4, equilibre -6)
+    black: [[5,3],[5,4],[5,5],[5,6],[5,7],[6,3],[6,4],[6,5],[6,6],[7,3],[7,4],[7,5],[8,3],[8,4]],
+    white: [[0,0],[0,1],[1,1],[1,2],[2,0],[2,1],[2,2],[2,3],[3,0],[3,1],[3,2],[3,3],[3,4],[4,3]]
+  },
+  av_standard_avant_garde: {   // v3.02 : Standard · l’avant-garde (coup d avance i5h5, equilibre 7)
+    black: [[6,2],[6,3],[6,4],[7,0],[7,1],[7,2],[7,3],[7,4],[7,5],[8,0],[8,1],[8,2],[8,3],[8,4]],
+    white: [[0,1],[0,2],[0,3],[0,4],[1,0],[1,1],[1,2],[1,3],[1,4],[1,5],[2,2],[2,3],[2,4],[3,3]]
+  },
+  av_dutch_pas_en_avant: {   // v3.02 : Marguerite hollandaise · le pas en avant (coup d avance b6c6, equilibre -12)
+    black: [[0,3],[0,4],[1,1],[1,3],[1,5],[2,4],[2,5],[6,1],[6,2],[7,0],[7,2],[7,4],[8,0],[8,1]],
+    white: [[0,0],[0,1],[1,0],[1,2],[1,4],[2,1],[2,2],[5,5],[6,4],[6,5],[7,1],[7,3],[8,3],[8,4]]
   }
 };
 
@@ -30865,6 +30973,69 @@ DEPARTS_INVENTES.forEach(function(d){
   HEAT_VARIANT_LABEL[d.cle] = d.nom;
 });
 
+/* v3.02 : 20 departs ou les Blancs partent avec un coup d'avance (positions : LAYOUTS). « base » : le depart
+   d'origine, dont les Noirs sont repris tels quels ; « coup » : le coup blanc deja joue, en notation Aba-Pro.
+   « equilibre » : moyenne des notes du moteur a 2 et 3 demi-coups (Noirs au trait), qui ne favorise aucun
+   camp : 0 = equilibre, negatif = avantage aux Blancs ; « sansAvance » : la meme mesure pour la base
+   (Standard +19, Marguerite belge +16, Marguerite allemande +25). Verifie par les tests. */
+const DEPARTS_AVANCE = [
+  { cle:"av_flamme_contact", nom:"La Flamme · le contact", emoji:"🔥", base:"eq_flamme", coup:"i7h6", equilibre:-2, sansAvance:10, menace:true,
+    forme:"Comme la Flamme (départ inventé, série 1), mais trois billes blanches avancent d’une case vers le centre avant le premier coup des Noirs : les Blancs peuvent déjà pousser." },
+  { cle:"av_dalle_avant_garde", nom:"La Dalle · l’avant-garde", emoji:"⬜", base:"eq_dalle", coup:"i7h6", equilibre:2, sansAvance:10, menace:false,
+    forme:"Comme la Dalle (départ inventé, série 1), mais trois billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_peigne_avant_garde", nom:"Le Peigne · l’avant-garde", emoji:"🎹", base:"eq_peigne", coup:"i6h5", equilibre:-2, sansAvance:12, menace:false,
+    forme:"Comme le Peigne (départ inventé, série 1), mais trois billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_escouades_pas_en_avant", nom:"Les Escouades · le pas en avant", emoji:"🪖", base:"eq_escouades", coup:"d5d6e5", equilibre:-2, sansAvance:15, menace:false,
+    forme:"Comme les Escouades (départ inventé, série 2), mais deux billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_german_pas_en_avant", nom:"Marguerite allemande · le pas en avant", emoji:"🌸", base:"german", coup:"b6b5", equilibre:3, sansAvance:25, menace:false,
+    forme:"Comme la Marguerite allemande, mais deux billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_escouades_menace", nom:"Les Escouades · la menace", emoji:"🪖", base:"eq_escouades", coup:"c1c2", equilibre:-3, sansAvance:15, menace:true,
+    forme:"Comme les Escouades (départ inventé, série 2), mais une bille blanche avance d’une case vers le centre avant le premier coup des Noirs : les Blancs menacent déjà d’éjecter une bille noire." },
+  { cle:"av_belgian_avant_garde", nom:"Marguerite belge · l’avant-garde", emoji:"🌼", base:"belgian", coup:"a4b5", equilibre:-4, sansAvance:16, menace:false,
+    forme:"Comme la Marguerite belge, mais trois billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_belgian_eclaireur", nom:"Marguerite belge · l’éclaireur", emoji:"🌼", base:"belgian", coup:"c6d6", equilibre:-4, sansAvance:16, menace:false,
+    forme:"Comme la Marguerite belge, mais une bille blanche avance d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_swiss_pas_en_avant", nom:"Marguerite suisse · le pas en avant", emoji:"🏔", base:"swiss", coup:"b6b5", equilibre:-5, sansAvance:16, menace:false,
+    forme:"Comme la Marguerite suisse, mais deux billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_avant_postes_menace", nom:"Les Avant-postes · la menace", emoji:"🏕️", base:"eq_avant_postes", coup:"c3c4b2", equilibre:5, sansAvance:14, menace:true,
+    forme:"Comme les Avant-postes (départ inventé, série 2), mais deux billes blanches reculent d’une case avant le premier coup des Noirs : les Blancs menacent déjà d’éjecter une bille noire." },
+  { cle:"av_botte_pas_en_avant", nom:"La Botte · le pas en avant", emoji:"👢", base:"eq_botte", coup:"g9f8", equilibre:5, sansAvance:9, menace:false,
+    forme:"Comme la Botte (départ inventé, série 1), mais deux billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_bastion_eclaireur", nom:"Le Bastion · l’éclaireur", emoji:"🏰", base:"eq_bastion", coup:"g3f3", equilibre:5, sansAvance:9, menace:false,
+    forme:"Comme le Bastion (départ inventé, série 1), mais une bille blanche avance d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_diademe_pas_en_avant", nom:"Le Diadème · le pas en avant", emoji:"👑", base:"eq_diademe", coup:"f2f3", equilibre:5, sansAvance:16, menace:false,
+    forme:"Comme le Diadème (départ inventé, série 3), mais deux billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_cornes_pas_en_avant", nom:"Les Cornes · le pas en avant", emoji:"🐂", base:"eq_cornes", coup:"d1d2", equilibre:-5, sansAvance:18, menace:false,
+    forme:"Comme les Cornes (départ inventé, série 3), mais deux billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_patrouille_menace", nom:"La Patrouille · la menace", emoji:"🧭", base:"eq_patrouille", coup:"f9g9", equilibre:6, sansAvance:14, menace:true,
+    forme:"Comme la Patrouille (départ inventé, série 3), mais deux billes blanches glissent d’une case sur le côté avant le premier coup des Noirs : les Blancs menacent déjà d’éjecter une bille noire." },
+  { cle:"av_diademe_menace", nom:"Le Diadème · la menace", emoji:"👑", base:"eq_diademe", coup:"f2e2", equilibre:-6, sansAvance:16, menace:true,
+    forme:"Comme le Diadème (départ inventé, série 3), mais une bille blanche avance d’une case vers le centre avant le premier coup des Noirs : les Blancs menacent déjà d’éjecter une bille noire." },
+  { cle:"av_ruche_contact", nom:"La Ruche · le contact", emoji:"🐝", base:"eq_ruche", coup:"h9g8", equilibre:6, sansAvance:6, menace:true,
+    forme:"Comme la Ruche (départ inventé, série 1), mais trois billes blanches avancent d’une case vers le centre avant le premier coup des Noirs : les Blancs peuvent déjà pousser." },
+  { cle:"av_eventail_avant_garde", nom:"L’Éventail · l’avant-garde", emoji:"🎐", base:"eq_eventail", coup:"h4g4", equilibre:-6, sansAvance:10, menace:false,
+    forme:"Comme l’Éventail (départ inventé, série 1), mais trois billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_standard_avant_garde", nom:"Standard · l’avant-garde", emoji:"⚫", base:"standard", coup:"i5h5", equilibre:7, sansAvance:19, menace:false,
+    forme:"Comme la Standard, mais trois billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"av_dutch_pas_en_avant", nom:"Marguerite hollandaise · le pas en avant", emoji:"🌷", base:"dutch", coup:"b6c6", equilibre:-12, sansAvance:16, menace:false,
+    forme:"Comme la Marguerite hollandaise, mais deux billes blanches avancent d’une case vers le centre avant le premier coup des Noirs." }
+];
+const _signe = function(x){ return x > 0 ? '+' + x : x < 0 ? '−' + (-x) : '0'; };
+function _descAvance(d){
+  return d.forme + ' Départ inventé par Abalassembly (v3.02) : les Blancs partent avec un coup d’avance (' + d.coup + '), les Noirs jouent toujours en premier. '
+    + 'Équilibre mesuré par le moteur (moyenne de ses notes à 2 et à 3 demi-coups, qui ne favorise aucun camp ; 0 = équilibré, un nombre négatif donne l’avantage aux Blancs) : '
+    + _signe(d.equilibre) + ', contre ' + _signe(d.sansAvance) + ' sans l’avance. Sur cette échelle, la Standard vaut +19, la Marguerite belge +16 et la Marguerite allemande +25. '
+    + 'C’est une mesure du moteur : aucune partie n’a encore été jouée depuis cette position.';
+}
+DEPARTS_AVANCE.forEach(function(d){
+  const id = d.cle.replace(/_/g, '-');
+  variantsData.push({ id:id, name:d.nom, emoji:d.emoji, players:'2', duration:'Non mesurée', diff:'Non évaluée', src:'Abalassembly', inventee:true,
+    desc:_descAvance(d), origin:'Départ inventé et mesuré par Abalassembly (v3.02), à l’essai : aucune partie connue' });
+  VARIANTE_DISPOSITION[id] = d.cle;
+  if (HEAT_VARIANTS.indexOf(d.cle) < 0) HEAT_VARIANTS.push(d.cle);
+  HEAT_VARIANT_LABEL[d.cle] = d.nom;
+});
+
 /* Depuis la galerie : ouvre "Configurer avant de jouer" avec la variante
    deja choisie. Ouvrir la page ne reinitialise pas la disposition (verifie :
    showPage('setup') ne fait que redessiner la miniature). */
@@ -31018,7 +31189,7 @@ function _detailJouable(id){
 function filterVariants(players, evt) {
   const _d = document.getElementById('variant-detail'); if (_d) { _d.style.display = 'none'; _d.dataset.id = ''; }
   document.querySelectorAll('.variant-card').forEach(function(c){
-    // v3.01 : « Inventées » montre les 60 departs inventes par Abalassembly
+    // v3.01 : « Inventées » montre les departs inventes par Abalassembly (80 depuis la v3.02)
     const ok = players==='all' || (players==='inventees' ? c.dataset.inventee==='1' : c.dataset.players===players);
     c.style.display=ok?'block':'none';
   });
@@ -38473,7 +38644,7 @@ const ARCHI_CHIFFRES = {
   dispositionsLivre: 13,                        // dispositions de l'arbre d'ouvertures (OPENING_TREES)
   puzzles: 138,                                 // PUZZLES
   historique: 200,                              // HIST_MAX
-  dispositions: 120,                            // v3.01 : LAYOUTS (23 + 37 relevees par gym-abalone + 60 inventees)
+  dispositions: 140,                            // v3.02 : LAYOUTS (23 + 37 relevees par gym-abalone + 80 inventees)
   traces: 40,                                   // v2.96 : PARTIES_TRACES, citees par le blog sans leurs coups
   positions4v2: 140575680, demiCoups4v2: 97     // tablebase/RESULTS.md
 };
@@ -38544,7 +38715,7 @@ function _archiCarteDonnees(){
      _tr('Bibliothèque de parties : rejouer, filtrer', 'Game library: replay, filter')],
     [_tr('Les parties MiGs et PlayStrategy en APGN, refaites par un outil et vérifiées par un test', 'The MiGs and PlayStrategy games in APGN, rebuilt by a tool and checked by a test'),
      _tr('Le dossier games/ du dépôt, pour les autres programmes', 'The repository’s games/ folder, for other programs')],
-    [_tr(_archiN(C.dispositions) + ' positions de départ : 37 relevées par le projet gym-abalone et vérifiées case par case, 60 inventées et mesurées par Abalassembly', _archiN(C.dispositions) + ' starting positions: 37 read by the gym-abalone project and checked cell by cell, 60 invented and measured by Abalassembly'),
+    [_tr(_archiN(C.dispositions) + ' positions de départ : 37 relevées par le projet gym-abalone et vérifiées case par case, 80 inventées et mesurées par Abalassembly', _archiN(C.dispositions) + ' starting positions: 37 read by the gym-abalone project and checked cell by cell, 80 invented and measured by Abalassembly'),
      _tr('Jouer, Variantes, Éditeur', 'Play, Variants, Editor')]
   ];
   h += '<div class="archi-usages">' + usages.map(function(u){

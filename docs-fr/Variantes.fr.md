@@ -9,14 +9,14 @@ directement dans le code à chaque révision, jamais supposé.
 
 ## 1. La galerie « Variantes » face à l'écran de configuration
 
-**La galerie** (menu → Explorer → Variantes) est une encyclopédie de 130
+**La galerie** (menu → Explorer → Variantes) est une encyclopédie de 150
 fiches — nom, joueurs, durée, difficulté, description, source historique.
-Toucher une fiche ouvre ses explications juste en dessous. Pour les 120
+Toucher une fiche ouvre ses explications juste en dessous. Pour les 140
 fiches jouables, s'y ajoutent le plateau de départ, dessiné depuis la vraie
 position du moteur, et un bouton **« ▶ Jouer cette variante »** qui ouvre la
 configuration avec la variante déjà choisie.
 
-**L'écran de configuration** (Jouer → Disposition de départ) propose 120
+**L'écran de configuration** (Jouer → Disposition de départ) propose 140
 positions de départ réelles dans son menu déroulant, chacune avec sa
 propre miniature — c'est ce que le moteur sait effectivement charger.
 (Jusqu'ici ce document annonçait ce chiffre alors que le menu n'en
@@ -32,7 +32,7 @@ et durée médiane dans le corpus AbalOnline, symétries calculées. Aucune
 difficulté n'est inventée : faute de donnée, elle est marquée « Non
 évaluée ».
 
-### Réellement jouables (120 sur 130)
+### Réellement jouables (140 sur 150)
 
 | Galerie | Configuration |
 |---|---|
@@ -129,7 +129,42 @@ Dans le menu de configuration, elles forment trois groupes « Départs
 inventés par Abalassembly » ; dans la galerie, le bouton « 🧪 Inventées »
 les montre toutes.
 
-### Documentées seulement (10 sur 130)
+### Ajoutées en v3.02 : 20 départs où les Blancs prennent de l'avance
+
+Demandés par ocj94 : des départs où les Blancs peuvent atteindre le centre
+ou éjecter les premiers, pour compenser le premier coup des Noirs. On part
+d'un départ connu (la Standard, les Marguerites belge, allemande,
+hollandaise et suisse, ou un des départs inventés), et les Blancs
+commencent avec un coup déjà joué : des billes avancées d'une case vers le
+centre, ou une poussée blanche déjà prête. Les Noirs, eux, sont ceux de la
+base, et ils jouent toujours en premier ; ils ne peuvent pousser aucune
+bille au premier coup.
+
+**La mesure change**, parce que les deux camps ne sont plus pareils : c'est
+la moyenne des notes du moteur à 2 et à 3 demi-coups. À 3 demi-coups, les
+Noirs jouent deux fois et les Blancs une ; à 2, chacun une fois : la
+moyenne ne favorise aucun camp. 0 est l'équilibre, un nombre négatif donne
+l'avantage aux Blancs. Sur cette échelle, la Standard vaut +19, la
+Marguerite belge +16, la Marguerite allemande +25 (la moitié de l'avantage
+du trait des séries 1 à 3). Le test du site refait une de ces mesures
+(Marguerite belge · l'avant-garde, −4).
+
+Tous les coups d'avance possibles des cinq départs classiques ont été
+mesurés. Avec le bon, la Marguerite allemande passe de +25 à +3 et la
+Marguerite belge de +16 à −4 ; la Standard ne descend pas sous +7, et la
+Marguerite hollandaise, faute de mieux, passe de +16 à −12 (trop d'avance
+aux Blancs). Il faut bien le choisir : sur les 22 coups d'avance de la
+Standard, 15 aggravent les choses en défaisant la formation. Au total,
+14 des 20 départs retenus sont entre −5 et +5.
+
+Les 20 : La Flamme · le contact, La Dalle · l’avant-garde, Le Peigne · l’avant-garde, Les Escouades · le pas en avant, Marguerite allemande · le pas en avant, Les Escouades · la menace, Marguerite belge · l’avant-garde, Marguerite belge · l’éclaireur, Marguerite suisse · le pas en avant, Les Avant-postes · la menace, La Botte · le pas en avant, Le Bastion · l’éclaireur, Le Diadème · le pas en avant, Les Cornes · le pas en avant, La Patrouille · la menace, Le Diadème · la menace, La Ruche · le contact, L’Éventail · l’avant-garde, Standard · l’avant-garde, Marguerite hollandaise · le pas en avant.
+
+Dans le menu de configuration, elles forment le groupe « Départs inventés
+par Abalassembly · les Blancs en avance ». Comme les autres, ce sont des
+mesures du moteur : aucune partie n'a encore été jouée depuis ces
+positions.
+
+### Documentées seulement (10 sur 150)
 
 - **The Pillar** — sa description mentionne une bille neutre inamovible au
   centre : un troisième type de pièce que le moteur ne gère pas (seuls
@@ -140,12 +175,12 @@ les montre toutes.
 - **Concours-Blitz**, **Misère** — "blitz" existe ailleurs dans le code,
   mais uniquement comme filtre sur une page de classement de démonstration
   — pas comme mode de partie réel.
-- **3, 4, 5, 6 joueurs** — les 120 positions de `LAYOUTS` sont toutes à 2
+- **3, 4, 5, 6 joueurs** — les 140 positions de `LAYOUTS` sont toutes à 2
   camps (noir/blanc) ; un mode à plusieurs joueurs demanderait une
   structure de plateau différente. Voir la section 2 : ce mode a en fait
   sa propre page dédiée, distincte de ces fiches de galerie.
 
-### Et dans l'autre sens : jouables mais pas dans la galerie (0 sur 120)
+### Et dans l'autre sens : jouables mais pas dans la galerie (0 sur 140)
 
 Il y en avait dix — Découverte, 69, Star, Alliances, Domination, Atomouche,
 Centrifugeuse, Snakes variant, Korean Daisy, Anglattack. Elles ont toutes
@@ -213,4 +248,4 @@ Burnside) ; le test du site refait le calcul.
 Ces nombres comptent aussi des positions absurdes : une éjection possible dès
 le premier coup, des camps tout collés… Toute l'histoire de l'Abalone n'a
 utilisé qu'une centaine de positions de départ : MiGs en proposait 42,
-Abalassembly en propose 120, dont 60 qu'il a inventées (v3.01, section 1).
+Abalassembly en propose 140, dont 80 qu'il a inventées (v3.01-v3.02, section 1).

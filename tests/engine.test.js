@@ -845,9 +845,9 @@ const _PRIVE_NOM = new RegExp(_NOMS_PRIVES[0], 'i');
 const _PRIVE_TEL = (d => new RegExp('(\\+33 ?|\\b0)' + d[0] + '[ .-]?' + d.slice(1, 3) + '[ .-]?' + d.slice(3, 5) + '[ .-]?' + d.slice(5, 7) + '[ .-]?' + d.slice(7, 9)))(_NOMS_PRIVES[2]);
 
 
-test('correspondance : 120 fiches jouables, chacune reliee a une disposition du moteur ET du menu Jouer', () => {
+test('correspondance : 140 fiches jouables, chacune reliee a une disposition du moteur ET du menu Jouer', () => {
   const m = ctx.VARIANTE_DISPOSITION;
-  assert.strictEqual(Object.keys(m).length, 120);   // v3.01 : + les 60 departs inventes
+  assert.strictEqual(Object.keys(m).length, 140);   // v3.01 : + les 60 departs inventes ; v3.02 : + les 20 Blancs en avance
   assert.deepStrictEqual([...new Set(Object.values(m))].sort(), Object.keys(ctx.LAYOUTS).sort(), 'TOUTES les dispositions ont une fiche');
   for (const [id, lay] of Object.entries(m)) {
     assert.ok(ctx.variantsData.some(v => v.id === id), 'fiche ' + id);
@@ -974,8 +974,9 @@ test('les symetries annoncees dans les fiches sont celles que le calcul trouve',
   }
 });
 
-test('exactement 10 dispositions sur 120 sans symetrie echangeant les camps : Domination, Marguerite francaise et 8 de gym-abalone', () => {
-  const sans = Object.keys(ctx.LAYOUTS).filter(k => _echanges(k) === 0).sort();
+test('exactement 10 dispositions sur 140 sans symetrie echangeant les camps (hors les 20 Blancs en avance, qui n en ont aucune) : Domination, Marguerite francaise et 8 de gym-abalone', () => {
+  Object.keys(ctx.LAYOUTS).filter(k => k.startsWith('av_')).forEach(k => assert.strictEqual(_echanges(k), 0, k));
+  const sans = Object.keys(ctx.LAYOUTS).filter(k => !k.startsWith('av_') && _echanges(k) === 0).sort();
   assert.deepStrictEqual(sans, ['def_or_attack', 'domination', 'domination_vs_daisy', 'french', 'horseshoes', 'irish_daisy', 'mquorric', 'robot', 'the_arrow', 'true_daisy']);
 });
 
@@ -6107,7 +6108,7 @@ test('v2.93-v2.94 : les 37 positions ajoutees -- fiche, menu, libelle, cases val
   const ajout = ['aliennage', 'april_fish', 'boutonniere', 'damier', 'corners', 'cross', 'coeurs_croises', 'crown', 'def_or_attack', 'domination_vs_daisy', 'duel',
     'forcing', 'fracture', 'king_cake', 'horseshoes', 'infiltralien', 'infiltration', 'intimidation', 'irish_daisy', 'robot', 'labyrinth', 'mosaic', 'mquorric',
     'neko', 'oath', 'octopus', 'scottish_daisy', 'sibe', 'slaloms', 'snowflake', 'araignee', 'tinsels', 'trench', 'true_daisy', 'wheel', 'xmas_star', 'the_arrow'];
-  assert.strictEqual(ajout.length, 37); assert.strictEqual(Object.keys(ctx.LAYOUTS).length, 120);   // v3.01 : + 60 inventes
+  assert.strictEqual(ajout.length, 37); assert.strictEqual(Object.keys(ctx.LAYOUTS).length, 140);   // v3.01 : + 60 inventes ; v3.02 : + 20
   const fiches = Object.values(ctx.VARIANTE_DISPOSITION);
   ajout.forEach(k => { const L = ctx.LAYOUTS[k]; assert.ok(L, k);
     [...L.black, ...L.white].forEach(([r, c]) => assert.ok(r >= 0 && r < 9 && c >= 0 && c < ctx.ROWS[r], k + ' ' + r + ',' + c));
@@ -6513,7 +6514,7 @@ const _invNom = (r, c) => String(ctx.coordToABAPRO(r, c));
 const _invVoisins = (r, c) => { const a = ctx.rcToAxial(r, c); return [[1, 0], [-1, 0], [0, -1], [1, -1], [0, 1], [-1, 1]].map(([q, s]) => ctx.axialToRc(a.q + q, a.r + s)).filter(Boolean).map(x => x.r + ',' + x.c); };
 test('v3.01 : les 60 departs inventes -- equitables, sans contact, groupes et avantage annonces ; fiche, menu, libelle', () => {
   const D = _INV();
-  assert.strictEqual(D.length, 60); assert.strictEqual(Object.keys(ctx.LAYOUTS).length, 120);
+  assert.strictEqual(D.length, 60); assert.strictEqual(Object.keys(ctx.LAYOUTS).length, 140);   // v3.02 : + 20 Blancs en avance
   assert.deepStrictEqual([1, 2, 3].map(s => D.filter(d => d.serie === s).length), [20, 20, 20]);
   assert.strictEqual(new Set(D.map(d => d.cle)).size, 60); assert.strictEqual(new Set(D.map(d => d.nom)).size, 60);
   const L9 = 'abcdefghi', demiTour = n => L9[8 - L9.indexOf(n[0])] + (10 - +n[1]);
@@ -6550,7 +6551,7 @@ test('v3.01 : les 60 departs inventes -- equitables, sans contact, groupes et av
   const borne = s => { const a = D.filter(d => d.serie === s).map(d => d.avantage); return [Math.min(...a), Math.max(...a)]; };
   assert.deepStrictEqual([borne(1), borne(2), borne(3)], [[12, 38], [24, 48], [28, 50]]);
   assert.strictEqual(symetriques3, 7);
-  ['de +12 à +38', 'de +24 à +48', 'dont 7 formes symétriques, de +28 à +50', '🧪 60 départs inventés par Abalassembly'].forEach(t => assert.ok(_SRC_INDEX.includes(t), t));
+  ['de +12 à +38', 'de +24 à +48', 'dont 7 formes symétriques, de +28 à +50', '🧪 80 départs inventés par Abalassembly'].forEach(t => assert.ok(_SRC_INDEX.includes(t), t));
   assert.ok(_SRC_INDEX.includes("filterVariants('inventees', event)"));
   // nouvelles : aucune n'est une autre position du site, meme tournee ou retournee (posRef de KAAH)
   const ref = k => { const p = {}; ctx.LAYOUTS[k].black.forEach(q => { p[q[0] + ',' + q[1]] = 'black'; }); ctx.LAYOUTS[k].white.forEach(q => { p[q[0] + ',' + q[1]] = 'white'; });
@@ -6560,7 +6561,7 @@ test('v3.01 : les 60 departs inventes -- equitables, sans contact, groupes et av
   D.forEach(d => { const r = ref(d.cle); assert.ok(!autres.has(r), d.cle + ' = ' + autres.get(r)); assert.ok(!vues.has(r), d.cle + ' en double'); vues.add(r); });
 });
 
-test('v3.01 : le filtre « Inventees » de la galerie montre les 60 fiches, et elles seules', async () => {
+test('v3.01 : le filtre « Inventees » de la galerie montre les 80 fiches inventees (60 en v3.01, 20 en v3.02), et elles seules', async () => {
   await _dom54(async els => {
     els['variant-detail'] = { style: {}, dataset: {} };
     const cartes = ctx.variantsData.map(v => ({ dataset: { players: v.players, inventee: v.inventee ? '1' : undefined }, style: {} }));
@@ -6568,7 +6569,7 @@ test('v3.01 : le filtre « Inventees » de la galerie montre les 60 fiches, et e
     doc.querySelectorAll = sel => sel === '.variant-card' ? cartes : [];
     try {
       ctx.filterVariants('inventees', { target: { classList: { add() {} } } });
-      assert.strictEqual(cartes.filter(c => c.style.display === 'block').length, 60);
+      assert.strictEqual(cartes.filter(c => c.style.display === 'block').length, 80);   // v3.02 : + les 20 Blancs en avance
       ctx.filterVariants('all', { target: { classList: { add() {} } } });
       assert.strictEqual(cartes.filter(c => c.style.display === 'block').length, ctx.variantsData.length);
     } finally { doc.querySelectorAll = qsa; }
@@ -6582,4 +6583,72 @@ test('v3.01 : l’avantage du trait annonce est celui que mesure le moteur (Les 
   ev('searchBestMove("black", 3, 120000, [])');
   assert.strictEqual(ev('_metrics.depth'), 3);
   assert.strictEqual(ev('_metrics.bestScore'), _INV().find(d => d.cle === 'eq_tenailles').avantage);
+});
+
+// ═══════════════════════════════════════════
+// 88. v3.02 : les 20 departs ou les Blancs prennent de l'avance
+// ═══════════════════════════════════════════
+const _AV = () => JSON.parse(JSON.stringify(_r63('DEPARTS_AVANCE')));
+test('v3.02 : les 20 departs Blancs en avance -- la base plus un coup blanc legal, le theme, les mesures annoncees ; fiche, menu, libelle', () => {
+  const D = _AV();
+  assert.strictEqual(D.length, 20); assert.strictEqual(new Set(D.map(d => d.cle)).size, 20); assert.strictEqual(new Set(D.map(d => d.nom)).size, 20);
+  const sans = { standard: 19, belgian: 16, german: 25, dutch: 16, swiss: 16 }; _INV().forEach(d => { sans[d.cle] = d.avantage / 2; });
+  const { ev } = _filKaah();
+  const cle = l => l.map(p => p[0] + ',' + p[1]).sort().join(' ');
+  const dist = (r, c) => { const a = ctx.rcToAxial(r, c); return (Math.abs(a.q) + Math.abs(a.r) + Math.abs(a.q + a.r)) / 2; };
+  const pose = (n, b) => { const o = {}; n.forEach(p => { o[p[0] + ',' + p[1]] = 'black'; }); b.forEach(p => { o[p[0] + ',' + p[1]] = 'white'; });
+    ev('board = ' + JSON.stringify(o) + '; capturedByBlack = 0; capturedByWhite = 0;'); };
+  for (const d of D) {
+    const L = ctx.LAYOUTS[d.cle], B = ctx.LAYOUTS[d.base];
+    assert.ok(L && B, d.cle); assert.match(d.cle, /^av_[a-z_]+$/);
+    assert.strictEqual(L.black.length, 14, d.cle); assert.strictEqual(L.white.length, 14, d.cle);
+    assert.strictEqual(cle(L.black), cle(B.black), d.cle + ' : les Noirs sont ceux de la base');
+    // un coup blanc legal depuis la base donne exactement cette position, et il s'ecrit comme annonce
+    pose(B.black, B.white);
+    const coups = JSON.parse(ev('JSON.stringify(getAllMovesForColor("white").map(m => ({ cells: m.cells, dir: m.dir, type: m.type })))'));
+    const trouves = coups.filter((m, i) => { pose(B.black, B.white); ev('applyMove(getAllMovesForColor("white")[' + i + '], "white")');
+      const o = JSON.parse(ev('JSON.stringify(board)')), de = c => Object.keys(o).filter(k => o[k] === c).sort().join(' ');
+      return de('white') === cle(L.white) && de('black') === cle(L.black); });
+    assert.ok(trouves.length >= 1, d.cle + ' : un coup blanc legal');
+    assert.ok(trouves.some(m => ctx.moveToABAPRO(m.cells, m.dir, m.type) === d.coup), d.cle + ' : ' + d.coup);
+    assert.ok(trouves.every(m => m.type !== 'push'), d.cle + ' : le coup d avance ne pousse rien');
+    // le theme : les Noirs ne peuvent pas pousser d'entree ; les Blancs vont vers le centre, ou une poussee blanche est prete
+    pose(L.black, L.white);
+    const mN = JSON.parse(ev('JSON.stringify(getAllMovesForColor("black").map(m => m.type))'));
+    const mB = JSON.parse(ev('JSON.stringify(getAllMovesForColor("white").map(m => [m.type, m.eject]))'));
+    assert.ok(!mN.includes('push'), d.cle + ' : les Noirs ne poussent pas d entree');
+    const gain = B.white.reduce((s, p) => s + dist(p[0], p[1]), 0) - L.white.reduce((s, p) => s + dist(p[0], p[1]), 0);
+    const pousse = mB.some(x => x[0] === 'push'), ejecte = mB.some(x => x[1]);
+    assert.ok(gain > 0 || pousse, d.cle + ' : vers le centre, ou une poussee prete');
+    assert.strictEqual(d.menace, pousse, d.cle + ' : menace');
+    if (/menacent déjà d’éjecter/.test(d.forme)) assert.ok(ejecte, d.cle);
+    if (/peuvent déjà pousser/.test(d.forme)) assert.ok(pousse && !ejecte, d.cle);
+    if (/avancen?t? d’une case vers le centre/.test(d.forme)) assert.ok(gain > 0, d.cle);
+    if (/reculen?t? d’une case/.test(d.forme)) assert.ok(gain < 0, d.cle);
+    assert.strictEqual(d.sansAvance, sans[d.base], d.cle + ' : la mesure de la base');
+    // la fiche, le menu Jouer, la carte de chaleur
+    const id = d.cle.replace(/_/g, '-'), v = _carte(id);
+    assert.ok(v && v.inventee, id); assert.strictEqual(v.name, d.nom); assert.strictEqual(ctx.VARIANTE_DISPOSITION[id], d.cle);
+    assert.ok(v.desc.startsWith(d.forme) && v.desc.includes('(' + d.coup + ')'), id);
+    assert.ok(_SRC_INDEX.includes('<option value="' + d.cle + '"'), 'menu Jouer : ' + d.cle);
+    assert.strictEqual(_r63('HEAT_VARIANT_LABEL')[d.cle], d.nom); assert.ok(_r63('HEAT_VARIANTS').includes(d.cle));
+  }
+  // les chiffres de la page Variantes
+  assert.strictEqual(D.filter(d => Math.abs(d.equilibre) <= 5).length, 14);
+  const de = b => D.filter(d => d.base === b).map(d => d.equilibre);
+  assert.deepStrictEqual([de('german'), de('belgian'), de('standard')], [[3], [-4, -4], [7]]);
+  ['14 départs sur 20 entre −5 et +5', 'Marguerite allemande +3, Marguerite belge −4, Standard +7', '🧪 80 départs inventés par Abalassembly'].forEach(t => assert.ok(_SRC_INDEX.includes(t), t));
+  // nouveaux : aucun n'est une autre position du site, meme tourne ou retourne
+  const ref = k => { const p = {}; ctx.LAYOUTS[k].black.forEach(q => { p[q[0] + ',' + q[1]] = 'black'; }); ctx.LAYOUTS[k].white.forEach(q => { p[q[0] + ',' + q[1]] = 'white'; });
+    return ctx.posRefKAAH(ctx.codePosition(p, 0, 0)).posRef; };
+  const refs = new Map(); Object.keys(ctx.LAYOUTS).forEach(k => { const r = ref(k); if (D.some(d => d.cle === k)) assert.ok(!refs.has(r), k + ' = ' + refs.get(r)); refs.set(r, k); });
+  D.forEach(d => Object.keys(ctx.LAYOUTS).forEach(k => { if (k !== d.cle) assert.notStrictEqual(ref(k), ref(d.cle), d.cle + ' = ' + k); }));
+});
+
+test('v3.02 : l’equilibre annonce est celui que mesure le moteur (Marguerite belge · l’avant-garde, profondeurs 2 et 3)', () => {
+  const { ev } = _filKaah(), L = ctx.LAYOUTS.av_belgian_avant_garde;
+  const b = {}; L.black.forEach(p => { b[p[0] + ',' + p[1]] = 'black'; }); L.white.forEach(p => { b[p[0] + ',' + p[1]] = 'white'; });
+  const note = d => { ev('board = ' + JSON.stringify(b) + '; capturedByBlack = 0; capturedByWhite = 0;'); ev('searchBestMove("black", ' + d + ', 120000, [])');
+    assert.strictEqual(ev('_metrics.depth'), d); return ev('_metrics.bestScore'); };
+  assert.strictEqual((note(2) + note(3)) / 2, _AV().find(d => d.cle === 'av_belgian_avant_garde').equilibre);
 });

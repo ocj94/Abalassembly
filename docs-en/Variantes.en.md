@@ -9,14 +9,14 @@ revision, never assumed.
 
 ## 1. The "Variants" gallery versus the setup screen
 
-**The gallery** (menu → Explore → Variants) is an encyclopedia of 130
+**The gallery** (menu → Explore → Variants) is an encyclopedia of 150
 cards — name, players, duration, difficulty, description, historical
-source. Tapping a card opens its explanation right below it. For the 120
+source. Tapping a card opens its explanation right below it. For the 140
 playable cards, it also shows the starting board, drawn from the engine's
 actual position, and a **"▶ Jouer cette variante"** (play this variant)
 button that opens the setup screen with the variant already selected.
 
-**The setup screen** (Play → Starting layout) offers 120 real starting
+**The setup screen** (Play → Starting layout) offers 140 real starting
 positions in its dropdown, each with its own thumbnail — this is what the
 engine can actually load. (This document previously stated that number
 while the dropdown only had 22: Découverte, the reduced board of Kids
@@ -30,7 +30,7 @@ sources and on measurements: number of games, wins and median length in
 the AbalOnline corpus, computed symmetries. No difficulty is made up: when
 there's no data, it's marked "Non évaluée" (not rated).
 
-### Genuinely playable (120 of 130)
+### Genuinely playable (140 of 150)
 
 | Gallery | Setup screen |
 |---|---|
@@ -125,7 +125,40 @@ been played from these positions yet.
 In the setup menu they form three "Départs inventés par Abalassembly"
 groups; in the gallery, the "🧪 Invented" button shows them all.
 
-### Documented only (10 of 130)
+### Added in v3.02: 20 starts where White gets a head start
+
+Requested by ocj94: starts where White can reach the centre or eject first,
+to make up for Black's first move. We start from a known position (the
+Standard, the Belgian, German, Dutch and Swiss Daisies, or one of the
+invented starts), and White begins with one move already played: marbles
+moved one cell towards the centre, or a White push already set up. Black
+is the base's Black, unchanged, and still moves first; Black can't push
+any marble on the first move.
+
+**The measure changes**, because the two sides are no longer alike: it is
+the average of the engine's scores at 2 and at 3 half-moves. At 3
+half-moves Black plays twice and White once; at 2, each plays once: the
+average favours neither side. 0 is balance, a negative number gives White
+the advantage. On this scale the Standard is +19, the Belgian Daisy +16,
+the German Daisy +25 (half the first-move advantage of series 1 to 3). The
+site's test redoes one of these measurements (Marguerite belge ·
+l'avant-garde, −4).
+
+Every possible head start of the five classic layouts was measured. With
+the right one, the German Daisy goes from +25 to +3 and the Belgian Daisy
+from +16 to −4; the Standard doesn't go below +7, and the Dutch Daisy, for
+want of better, goes from +16 to −12 (too much for White). It has to be
+chosen well: of the Standard's 22 head starts, 15 make things worse by
+breaking the formation. In all, 14 of the 20 chosen starts are between −5
+and +5.
+
+The 20: La Flamme · le contact, La Dalle · l’avant-garde, Le Peigne · l’avant-garde, Les Escouades · le pas en avant, Marguerite allemande · le pas en avant, Les Escouades · la menace, Marguerite belge · l’avant-garde, Marguerite belge · l’éclaireur, Marguerite suisse · le pas en avant, Les Avant-postes · la menace, La Botte · le pas en avant, Le Bastion · l’éclaireur, Le Diadème · le pas en avant, Les Cornes · le pas en avant, La Patrouille · la menace, Le Diadème · la menace, La Ruche · le contact, L’Éventail · l’avant-garde, Standard · l’avant-garde, Marguerite hollandaise · le pas en avant.
+
+In the setup menu they form the "Départs inventés par Abalassembly · les
+Blancs en avance" group. Like the others, these are engine measurements:
+no game has been played from these positions yet.
+
+### Documented only (10 of 150)
 
 - **The Pillar** — its description mentions an immovable neutral piece at
   the center: a third piece type the engine doesn't support (only black
@@ -136,12 +169,12 @@ groups; in the gallery, the "🧪 Invented" button shows them all.
 - **Blitz Contest**, **Misère** — "blitz" does exist elsewhere in the
   code, but only as a filter on a demo leaderboard page — not as an
   actual game mode you can start.
-- **3, 4, 5, 6 players** — all 120 `LAYOUTS` positions are 2-sided
+- **3, 4, 5, 6 players** — all 140 `LAYOUTS` positions are 2-sided
   (black/white); a multiplayer mode would need a different board
   structure. See section 2: this mode actually has its own dedicated
   page, separate from these gallery cards.
 
-### And the other way around: playable but not in the gallery (0 of 120)
+### And the other way around: playable but not in the gallery (0 of 140)
 
 There used to be ten — Découverte, 69, Star, Alliances, Domination,
 Atomouche, Centrifugeuse, Snakes variant, Korean Daisy, Anglattack. They all
@@ -206,4 +239,4 @@ over the 12 symmetries the number of positions each one leaves unchanged
 
 These numbers also count absurd positions: an ejection possible on move one,
 sides squashed together… The whole history of Abalone has used only about a
-hundred starting positions: MiGs offered 42, Abalassembly offers 120, 60 of which it invented (v3.01, section 1).
+hundred starting positions: MiGs offered 42, Abalassembly offers 140, 80 of which it invented (v3.01-v3.02, section 1).

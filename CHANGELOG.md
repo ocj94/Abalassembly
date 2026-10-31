@@ -9,6 +9,28 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.02]
+
+### Ajouté — les Blancs prennent de l'avance
+Demande de l'auteur : des variantes où les Blancs peuvent atteindre le centre
+ou éjecter les premiers, pour réduire l'avantage du premier joueur.
+- **20 départs de plus** : un départ connu (la Standard, les Marguerites
+  belge, allemande, hollandaise et suisse, ou un des départs inventés), et
+  les Blancs commencent avec un coup déjà joué, des billes avancées vers le
+  centre ou une poussée blanche prête. Les Noirs jouent toujours en premier
+  et ne peuvent rien pousser au premier coup. Un groupe du menu de
+  configuration ; dans la galerie, sous « 🧪 Inventées ».
+- **Une mesure qui ne favorise aucun camp**, puisque les camps ne sont plus
+  pareils : la moyenne des notes du moteur à 2 et à 3 demi-coups. 0 est
+  l'équilibre ; Standard +19, Marguerite belge +16, Marguerite allemande +25.
+- Tous les coups d'avance des cinq départs classiques ont été mesurés. Avec
+  le bon, la Marguerite allemande passe à +3, la Marguerite belge à −4, la
+  Standard à +7 ; 14 des 20 départs sont entre −5 et +5.
+- Les tests vérifient que chaque départ est sa base plus un coup blanc
+  légal, celui annoncé, que les Noirs ne peuvent pas pousser d'entrée, ce
+  que dit la fiche (vers le centre, poussée ou éjection prête), et refont une
+  mesure du moteur.
+
 ## [v3.01]
 
 ### Ajouté — 60 départs inventés par Abalassembly

@@ -74,7 +74,7 @@ flowchart LR
     C --> Q[Move quality<br/>offline analysis]
     C --> HP[Humans or programs<br/>by name, or BOT mark]
     C --> AP[games/: MiGs and PlayStrategy<br/>in APGN, programs marked]
-    D[120 starting positions<br/>37 of them from gym-abalone<br/>and 60 invented] --> V[Play, Variants, Editor]
+    D[140 starting positions<br/>37 of them from gym-abalone<br/>and 80 invented] --> V[Play, Variants, Editor]
     Q --> ST
     HP --> ST
     HP --> MS
@@ -102,7 +102,7 @@ flowchart LR
 
 - **Move quality** (v2.78): `tools/qualite-coups.js` analyses every game offline with the engine (about half an hour): marbles offered and taken, critical moves (only one safe move), moves found. The result is embedded compressed, read by the Game statistics page.
 - **Humans or programs** (v2.91): `estIA` recognises a side played by a program from its exact name (MLA, lolo's AI, the reference games' AIs) or, on PlayStrategy, from the export's BOT mark. Hence the "human against human" filter, the "real players" of My statistics (human sides only) and the library's 🤖.
-- **The 120 starting positions**: 23 read one by one (images, AbalOnline corpus, replayed games), 37 read by the gym-abalone project then checked (v2.93-v2.94), and 60 invented by Abalassembly, chosen among thousands of generated positions and measured by its engine (v3.01).
+- **The 140 starting positions**: 23 read one by one (images, AbalOnline corpus, replayed games), 37 read by the gym-abalone project then checked (v2.93-v2.94), and 80 invented by Abalassembly, chosen among thousands of generated positions and measured by its engine (v3.01-v3.02).
 - **The 40 games cited without their moves** (v2.87-v2.92): traces in the library (MiGs number, date, players), 2 of which the corpus holds with their moves.
 - **The published files**: `tools/to-apgn.js` rebuilds `games/migs-2016-2017.apgn` and `games/playstrategy-yearly-2026.apgn` by replaying every game; a test checks that the repository's files are exactly what it produces, programs' `BlackType` / `WhiteType` tags included.
 
