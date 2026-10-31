@@ -9,6 +9,33 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.01]
+
+### Ajouté — 60 départs inventés par Abalassembly
+Demande de l'auteur : « oui ajoute-les » (les 60 formes inventées et
+mesurées, avec leur nom).
+- **60 positions de départ nouvelles**, jouables depuis le menu de
+  configuration (trois groupes « Départs inventés par Abalassembly ») et la
+  galerie Variantes, où le bouton « 🧪 Inventées » les montre toutes. Chacune
+  a sa fiche : sa forme, ses groupes de billes, et l'avantage du trait mesuré
+  par le moteur.
+- Les règles du choix : 14 billes par camp ; les Blancs sont le demi-tour
+  exact des Noirs ; les deux camps ne se touchent pas ; aucune bille seule ;
+  aucune n'est une position déjà connue, même tournée ou retournée.
+- **Série 1, formes compactes** (La Ruche… Le Pavé) : avantage du trait de
+  +12 à +38. **Série 2, petits groupes** mêlés à ceux de l'adversaire
+  (L'Archipel… La Volée) : de +24 à +48. **Série 3, petits groupes, suite**
+  (La Patrouille… L'Envol), dont 7 symétriques : de +28 à +50. Pour
+  comparer : Standard +38, Marguerite belge +32, Marguerite allemande +50.
+- Une carte sur la page Variantes et une section du wiki
+  ([Variantes](docs-fr/Variantes.fr.md)) expliquent la mesure et ce que la
+  recherche a montré : plus un camp est éclaté, plus le premier coup
+  rapporte, sauf si ses petits groupes sont mêlés à ceux de l'adversaire.
+  Ce sont des mesures du moteur : aucune partie n'a encore été jouée depuis
+  ces positions.
+- Les tests vérifient chaque fiche : équité, absence de contact, groupes
+  annoncés, nouveauté (posRef de KAAH), et refont une mesure du moteur.
+
 ## [v3.00]
 
 ### Ajouté — les grands nombres de l'Abalone

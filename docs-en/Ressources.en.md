@@ -20,7 +20,7 @@ Updated: 30 October 2026.
 | [PlayAbalone](https://www.playabalone.com) | Free browser version, against AIs (cited by the English Wikipedia). |
 | [abalone.stellarflow.fr](https://abalone.stellarflow.fr/) | Unofficial version to play with a friend: a lobby, a code to share. No history, no export. |
 | Asmodee's official app · [Steam](https://store.steampowered.com/app/279480/Abalone/) | The publisher's versions: online, but closed (no export, no game database). |
-| [Abalassembly](https://ocj94.github.io/Abalassembly/) | This project: a single file, offline, 60 starting positions, 4,580 real games. |
+| [Abalassembly](https://ocj94.github.io/Abalassembly/) | This project: a single file, offline, 120 starting positions, 4,580 real games. |
 
 ## 2. Servers that disappeared
 
@@ -132,7 +132,7 @@ blog) in December 2019:
 - [APGN](../APGN.en.md): the format, with the `BlackType` / `WhiteType` tags
   that mark a program's side.
 - [`community-games/`](../community-games/): games contributed by players.
-- The site's 60 starting positions: [Variants](Variantes.en.md).
+- The site's 120 starting positions, including the 60 it invented: [Variants](Variantes.en.md).
 
 ## 9. Notation systems
 

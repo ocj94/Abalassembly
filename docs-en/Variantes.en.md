@@ -9,14 +9,14 @@ revision, never assumed.
 
 ## 1. The "Variants" gallery versus the setup screen
 
-**The gallery** (menu → Explore → Variants) is an encyclopedia of 70
+**The gallery** (menu → Explore → Variants) is an encyclopedia of 130
 cards — name, players, duration, difficulty, description, historical
-source. Tapping a card opens its explanation right below it. For the 60
+source. Tapping a card opens its explanation right below it. For the 120
 playable cards, it also shows the starting board, drawn from the engine's
 actual position, and a **"▶ Jouer cette variante"** (play this variant)
 button that opens the setup screen with the variant already selected.
 
-**The setup screen** (Play → Starting layout) offers 60 real starting
+**The setup screen** (Play → Starting layout) offers 120 real starting
 positions in its dropdown, each with its own thumbnail — this is what the
 engine can actually load. (This document previously stated that number
 while the dropdown only had 22: Découverte, the reduced board of Kids
@@ -30,7 +30,7 @@ sources and on measurements: number of games, wins and median length in
 the AbalOnline corpus, computed symmetries. No difficulty is made up: when
 there's no data, it's marked "Non évaluée" (not rated).
 
-### Genuinely playable (60 of 70)
+### Genuinely playable (120 of 130)
 
 | Gallery | Setup screen |
 |---|---|
@@ -85,7 +85,47 @@ confirmation for Snakes variant.
 Except Corners and Duel, confirmed by 32 and 21 AbalOnline games, each has
 a single source: their cards say so.
 
-### Documented only (10 of 70)
+### Added in v3.01: 60 starting positions invented by Abalassembly
+
+Requested by ocj94: new starting positions, better balanced between the two
+players. They were chosen among thousands of randomly generated positions,
+with four rules: 14 marbles per side; White is the exact half-turn of Black
+(same shape, same place); the two sides don't touch, so nobody can push on
+the first move; no lone marble. None of them is an already-known position,
+even rotated or mirrored (KAAH's posRef, checked by the tests).
+
+**The measure**: the first-move advantage, the score the engine gives Black
+after its best sequence of 3 half-moves (depth-3 search). The closer to 0,
+the more balanced the start. For comparison: Standard +38, Belgian Daisy
++32, German Daisy +50. The site's test redoes one of these measurements
+(Les Tenailles, +28).
+
+| Series | Shapes | First-move advantage | Positions |
+|---|---|---|---|
+| 1 · compact shapes | one or two blocks per side, each at home | +12 to +38 | La Ruche, La Botte, Le Bastion, L’Éventail, La Dalle, La Flamme, Le Peigne, Le Donjon, La Fronde, La Vague, Les Tenailles, Le Bouclier, L’Écharpe, La Proue, La Colonne, La Voile, La Barque, Le Fanion, La Catapulte, Le Pavé |
+| 2 · small groups | 4 groups of 2 to 5 marbles per side, mixed with the opponent's | +24 to +48 | L’Archipel, Les Sentinelles, Les Avant-postes, Les Escouades, Les Dominos, Le Semis, Les Lucioles, La Ronde, La Comète, Le Chapelet, La Garnison, Les Pléiades, La Faucille, Le Losange, Le Croissant, Les Vigies, La Lance, Le Mât, Les Rameaux, La Volée |
+| 3 · small groups, continued | 4 or 5 groups per side, 7 of them left-right symmetric | +28 to +50 | La Patrouille, Le Diadème, Les Cornes, L’Escadrille, Le Trident, Le Javelot, Les Créneaux, La Constellation, Le Fer à cheval, Les Éclaireurs, Le Quinconce, Les Lanternes, Les Ricochets, Le Serpent, La Lyre, La Citadelle, L’Échelle, Le Phare, Les Grêlons, L’Envol |
+
+What the search showed:
+
+- **The more compact a side, the less the first move is worth.** Over 90
+  shapes where each side stays at home, the average advantage goes from
+  +51 for a single block to +72 for two and +109 for three.
+- **Small groups only stay balanced when mixed with the opponent's.** Kept
+  each in its own half: +52 at best, usually +80 to +120. Mixed: 27 shapes
+  out of 103 are at most +50, the best +24.
+- **With 5 groups per side, never below +46** (11 shapes out of 36 at most
+  +50).
+
+These are engine measurements, not games: between humans, in the site's
+corpus, Black wins 53% of games. Only a large number of games will tell
+whether these starts bring that rate to 50%. The cards say so: no game has
+been played from these positions yet.
+
+In the setup menu they form three "Départs inventés par Abalassembly"
+groups; in the gallery, the "🧪 Invented" button shows them all.
+
+### Documented only (10 of 130)
 
 - **The Pillar** — its description mentions an immovable neutral piece at
   the center: a third piece type the engine doesn't support (only black
@@ -96,12 +136,12 @@ a single source: their cards say so.
 - **Blitz Contest**, **Misère** — "blitz" does exist elsewhere in the
   code, but only as a filter on a demo leaderboard page — not as an
   actual game mode you can start.
-- **3, 4, 5, 6 players** — all 60 `LAYOUTS` positions are 2-sided
+- **3, 4, 5, 6 players** — all 120 `LAYOUTS` positions are 2-sided
   (black/white); a multiplayer mode would need a different board
   structure. See section 2: this mode actually has its own dedicated
   page, separate from these gallery cards.
 
-### And the other way around: playable but not in the gallery (0 of 60)
+### And the other way around: playable but not in the gallery (0 of 120)
 
 There used to be ten — Découverte, 69, Star, Alliances, Domination,
 Atomouche, Centrifugeuse, Snakes variant, Korean Daisy, Anglattack. They all
@@ -166,4 +206,4 @@ over the 12 symmetries the number of positions each one leaves unchanged
 
 These numbers also count absurd positions: an ejection possible on move one,
 sides squashed together… The whole history of Abalone has used only about a
-hundred starting positions: MiGs offered 42, Abalassembly offers 60.
+hundred starting positions: MiGs offered 42, Abalassembly offers 120, 60 of which it invented (v3.01, section 1).
