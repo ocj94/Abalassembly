@@ -845,9 +845,9 @@ const _PRIVE_NOM = new RegExp(_NOMS_PRIVES[0], 'i');
 const _PRIVE_TEL = (d => new RegExp('(\\+33 ?|\\b0)' + d[0] + '[ .-]?' + d.slice(1, 3) + '[ .-]?' + d.slice(3, 5) + '[ .-]?' + d.slice(5, 7) + '[ .-]?' + d.slice(7, 9)))(_NOMS_PRIVES[2]);
 
 
-test('correspondance : 140 fiches jouables, chacune reliee a une disposition du moteur ET du menu Jouer', () => {
+test('correspondance : 189 fiches jouables, chacune reliee a une disposition du moteur ET du menu Jouer', () => {
   const m = ctx.VARIANTE_DISPOSITION;
-  assert.strictEqual(Object.keys(m).length, 140);   // v3.01 : + les 60 departs inventes ; v3.02 : + les 20 Blancs en avance
+  assert.strictEqual(Object.keys(m).length, 189);   // v3.01 : + les 60 departs inventes ; v3.02 : + les 20 Blancs en avance ; v3.04 : + 49
   assert.deepStrictEqual([...new Set(Object.values(m))].sort(), Object.keys(ctx.LAYOUTS).sort(), 'TOUTES les dispositions ont une fiche');
   for (const [id, lay] of Object.entries(m)) {
     assert.ok(ctx.variantsData.some(v => v.id === id), 'fiche ' + id);
@@ -974,9 +974,11 @@ test('les symetries annoncees dans les fiches sont celles que le calcul trouve',
   }
 });
 
-test('exactement 10 dispositions sur 140 sans symetrie echangeant les camps (hors les 20 Blancs en avance, qui n en ont aucune) : Domination, Marguerite francaise et 8 de gym-abalone', () => {
-  Object.keys(ctx.LAYOUTS).filter(k => k.startsWith('av_')).forEach(k => assert.strictEqual(_echanges(k), 0, k));
-  const sans = Object.keys(ctx.LAYOUTS).filter(k => !k.startsWith('av_') && _echanges(k) === 0).sort();
+test('exactement 10 dispositions sur 189 sans symetrie echangeant les camps (hors les 29 departs ou les Blancs ont un coup d avance, qui n en ont aucune) : Domination, Marguerite francaise et 8 de gym-abalone', () => {
+  const avance = k => k.startsWith('av_') || /^(sr|ce)_\d\d_av$/.test(k);   // v3.04 : + les 9 versions reequilibrees
+  assert.strictEqual(Object.keys(ctx.LAYOUTS).filter(avance).length, 29);
+  Object.keys(ctx.LAYOUTS).filter(avance).forEach(k => assert.strictEqual(_echanges(k), 0, k));
+  const sans = Object.keys(ctx.LAYOUTS).filter(k => !avance(k) && _echanges(k) === 0).sort();
   assert.deepStrictEqual(sans, ['def_or_attack', 'domination', 'domination_vs_daisy', 'french', 'horseshoes', 'irish_daisy', 'mquorric', 'robot', 'the_arrow', 'true_daisy']);
 });
 
@@ -6108,7 +6110,7 @@ test('v2.93-v2.94 : les 37 positions ajoutees -- fiche, menu, libelle, cases val
   const ajout = ['aliennage', 'april_fish', 'boutonniere', 'damier', 'corners', 'cross', 'coeurs_croises', 'crown', 'def_or_attack', 'domination_vs_daisy', 'duel',
     'forcing', 'fracture', 'king_cake', 'horseshoes', 'infiltralien', 'infiltration', 'intimidation', 'irish_daisy', 'robot', 'labyrinth', 'mosaic', 'mquorric',
     'neko', 'oath', 'octopus', 'scottish_daisy', 'sibe', 'slaloms', 'snowflake', 'araignee', 'tinsels', 'trench', 'true_daisy', 'wheel', 'xmas_star', 'the_arrow'];
-  assert.strictEqual(ajout.length, 37); assert.strictEqual(Object.keys(ctx.LAYOUTS).length, 140);   // v3.01 : + 60 inventes ; v3.02 : + 20
+  assert.strictEqual(ajout.length, 37); assert.strictEqual(Object.keys(ctx.LAYOUTS).length, 189);   // v3.01 : + 60 inventes ; v3.02 : + 20 ; v3.04 : + 49
   const fiches = Object.values(ctx.VARIANTE_DISPOSITION);
   ajout.forEach(k => { const L = ctx.LAYOUTS[k]; assert.ok(L, k);
     [...L.black, ...L.white].forEach(([r, c]) => assert.ok(r >= 0 && r < 9 && c >= 0 && c < ctx.ROWS[r], k + ' ' + r + ',' + c));
@@ -6514,7 +6516,7 @@ const _invNom = (r, c) => String(ctx.coordToABAPRO(r, c));
 const _invVoisins = (r, c) => { const a = ctx.rcToAxial(r, c); return [[1, 0], [-1, 0], [0, -1], [1, -1], [0, 1], [-1, 1]].map(([q, s]) => ctx.axialToRc(a.q + q, a.r + s)).filter(Boolean).map(x => x.r + ',' + x.c); };
 test('v3.01 : les 60 departs inventes -- equitables, sans contact, groupes et avantage annonces ; fiche, menu, libelle', () => {
   const D = _INV();
-  assert.strictEqual(D.length, 60); assert.strictEqual(Object.keys(ctx.LAYOUTS).length, 140);   // v3.02 : + 20 Blancs en avance
+  assert.strictEqual(D.length, 60); assert.strictEqual(Object.keys(ctx.LAYOUTS).length, 189);   // v3.02 : + 20 Blancs en avance ; v3.04 : + 49
   assert.deepStrictEqual([1, 2, 3].map(s => D.filter(d => d.serie === s).length), [20, 20, 20]);
   assert.strictEqual(new Set(D.map(d => d.cle)).size, 60); assert.strictEqual(new Set(D.map(d => d.nom)).size, 60);
   const L9 = 'abcdefghi', demiTour = n => L9[8 - L9.indexOf(n[0])] + (10 - +n[1]);
@@ -6551,7 +6553,7 @@ test('v3.01 : les 60 departs inventes -- equitables, sans contact, groupes et av
   const borne = s => { const a = D.filter(d => d.serie === s).map(d => d.avantage); return [Math.min(...a), Math.max(...a)]; };
   assert.deepStrictEqual([borne(1), borne(2), borne(3)], [[12, 38], [24, 48], [28, 50]]);
   assert.strictEqual(symetriques3, 7);
-  ['Avantage du trait de +12 à +38', 'dont 7 formes symétriques ; les Blancs sont le demi-tour exact des Noirs. Avantage du trait de +24 à +50', '🧪 80 départs générés par le LLM Claude Opus 5.5 Extra'].forEach(t => assert.ok(_SRC_INDEX.includes(t), t));   // v3.03 : la carte, en categories
+  ['Avantage du trait de +12 à +38', 'dont 7 formes symétriques ; les Blancs sont le demi-tour exact des Noirs. Avantage du trait de +24 à +50', '🧪 129 départs générés par le LLM Claude Opus 5.5 Extra'].forEach(t => assert.ok(_SRC_INDEX.includes(t), t));   // v3.03 : la carte, en categories
   assert.ok(_SRC_INDEX.includes("filterVariants('inventees', event)"));
   // nouvelles : aucune n'est une autre position du site, meme tournee ou retournee (posRef de KAAH)
   const ref = k => { const p = {}; ctx.LAYOUTS[k].black.forEach(q => { p[q[0] + ',' + q[1]] = 'black'; }); ctx.LAYOUTS[k].white.forEach(q => { p[q[0] + ',' + q[1]] = 'white'; });
@@ -6561,7 +6563,7 @@ test('v3.01 : les 60 departs inventes -- equitables, sans contact, groupes et av
   D.forEach(d => { const r = ref(d.cle); assert.ok(!autres.has(r), d.cle + ' = ' + autres.get(r)); assert.ok(!vues.has(r), d.cle + ' en double'); vues.add(r); });
 });
 
-test('v3.01 : le filtre « Inventees » de la galerie montre les 80 fiches inventees (60 en v3.01, 20 en v3.02), et elles seules', async () => {
+test('v3.01 : le filtre « Inventees » de la galerie montre les 129 fiches generees (60 en v3.01, 20 en v3.02, 49 en v3.04), et elles seules', async () => {
   await _dom54(async els => {
     els['variant-detail'] = { style: {}, dataset: {} };
     const cartes = ctx.variantsData.map(v => ({ dataset: { players: v.players, inventee: v.inventee ? '1' : undefined, categorie: v.categorie }, style: {} }));
@@ -6569,9 +6571,9 @@ test('v3.01 : le filtre « Inventees » de la galerie montre les 80 fiches inven
     doc.querySelectorAll = sel => sel === '.variant-card' ? cartes : [];
     try {
       ctx.filterVariants('inventees', { target: { classList: { add() {} } } });
-      assert.strictEqual(cartes.filter(c => c.style.display === 'block').length, 80);   // v3.02 : + les 20 Blancs en avance
-      // v3.03 : une categorie a la fois
-      for (const [cat, n] of [['compactes', 20], ['petits-groupes', 40], ['avance', 20]]) {
+      assert.strictEqual(cartes.filter(c => c.style.display === 'block').length, 129);   // v3.02 : + les 20 Blancs en avance ; v3.04 : + 49
+      // v3.03 : une categorie a la fois ; v3.04 : + Speed run et Au centre
+      for (const [cat, n] of [['compactes', 20], ['petits-groupes', 40], ['avance', 20], ['speed-run', 24], ['au-centre', 25]]) {
         ctx.filterVariants('cat-' + cat, { target: { classList: { add() {} } } });
         assert.strictEqual(cartes.filter(c => c.style.display === 'block').length, n, cat);
       }
@@ -6642,7 +6644,7 @@ test('v3.02 : les 20 departs Blancs en avance -- la base plus un coup blanc lega
   assert.strictEqual(D.filter(d => Math.abs(d.equilibre) <= 5).length, 14);
   const de = b => D.filter(d => d.base === b).map(d => d.equilibre);
   assert.deepStrictEqual([de('german'), de('belgian'), de('standard')], [[3], [-4, -4], [7]]);
-  ['14 départs sur 20 entre −5 et +5', 'Marguerite allemande +3, Marguerite belge −4, Standard +7', '🧪 80 départs générés par le LLM Claude Opus 5.5 Extra'].forEach(t => assert.ok(_SRC_INDEX.includes(t), t));
+  ['14 départs sur 20 entre −5 et +5', 'Marguerite allemande +3, Marguerite belge −4, Standard +7', '🧪 129 départs générés par le LLM Claude Opus 5.5 Extra'].forEach(t => assert.ok(_SRC_INDEX.includes(t), t));
   // nouveaux : aucun n'est une autre position du site, meme tourne ou retourne
   const ref = k => { const p = {}; ctx.LAYOUTS[k].black.forEach(q => { p[q[0] + ',' + q[1]] = 'black'; }); ctx.LAYOUTS[k].white.forEach(q => { p[q[0] + ',' + q[1]] = 'white'; });
     return ctx.posRefKAAH(ctx.codePosition(p, 0, 0)).posRef; };
@@ -6661,12 +6663,12 @@ test('v3.02 : l’equilibre annonce est celui que mesure le moteur (Marguerite b
 // ═══════════════════════════════════════════
 // 89. v3.03 : les 80 departs generes, en trois categories, credites au LLM Claude Opus 5.5 Extra
 // ═══════════════════════════════════════════
-test('v3.03 : trois categories (menu, galerie, fiches) et le credit « genere par le LLM Claude Opus 5.5 Extra »', () => {
+test('v3.03 : les categories (trois, cinq en v3.04 : menu, galerie, fiches) et le credit « genere par le LLM Claude Opus 5.5 Extra »', () => {
   const G = ctx.variantsData.filter(v => v.inventee), CAT = _r63('CATEGORIES_GENEREES');
-  assert.strictEqual(G.length, 80);
-  assert.deepStrictEqual(Object.keys(CAT), ['compactes', 'petits-groupes', 'avance']);
+  assert.strictEqual(G.length, 129);   // v3.04 : + 49
+  assert.deepStrictEqual(Object.keys(CAT), ['compactes', 'petits-groupes', 'avance', 'speed-run', 'au-centre']);
   const parCat = {}; G.forEach(v => { parCat[v.categorie] = (parCat[v.categorie] || 0) + 1; });
-  assert.deepStrictEqual(parCat, { compactes: 20, 'petits-groupes': 40, avance: 20 });
+  assert.deepStrictEqual(parCat, { compactes: 20, 'petits-groupes': 40, avance: 20, 'speed-run': 24, 'au-centre': 25 });
   // les series 1 a 3 et l'avance vont chacune dans leur categorie
   _INV().forEach(d => assert.strictEqual(_carte(d.cle.replace(/_/g, '-')).categorie, d.serie === 1 ? 'compactes' : 'petits-groupes', d.cle));
   _AV().forEach(d => assert.strictEqual(_carte(d.cle.replace(/_/g, '-')).categorie, 'avance', d.cle));
@@ -6676,9 +6678,129 @@ test('v3.03 : trois categories (menu, galerie, fiches) et le credit « genere pa
   }
   // le menu de configuration : trois groupes, un par categorie, avec leurs departs
   const groupes = [...String(_SRC_INDEX).matchAll(/<optgroup label="([^"]*)">([\s\S]*?)<\/optgroup>/g)].filter(m => /Claude Opus 5\.5 Extra/.test(m[1]));
-  assert.deepStrictEqual(groupes.map(m => m[1]), ['Les formes compactes · générées par le LLM Claude Opus 5.5 Extra', 'Les petits groupes · générés par le LLM Claude Opus 5.5 Extra', 'Les Blancs prennent de l’avance · générés par le LLM Claude Opus 5.5 Extra']);
-  assert.deepStrictEqual(groupes.map(m => (m[2].match(/<option /g) || []).length), [20, 40, 20]);
+  assert.deepStrictEqual(groupes.map(m => m[1]), ['Les formes compactes · générées par le LLM Claude Opus 5.5 Extra', 'Les petits groupes · générés par le LLM Claude Opus 5.5 Extra', 'Les Blancs prennent de l’avance · générés par le LLM Claude Opus 5.5 Extra',
+    'Speed run · générés par le LLM Claude Opus 5.5 Extra', 'Au centre · générés par le LLM Claude Opus 5.5 Extra']);   // v3.04 : + 2 categories
+  assert.deepStrictEqual(groupes.map(m => (m[2].match(/<option /g) || []).length), [20, 40, 20, 24, 25]);
   // la galerie : un bouton par categorie ; et plus aucun « invente par Abalassembly » sur le site
-  ['cat-compactes', 'cat-petits-groupes', 'cat-avance'].forEach(c => assert.ok(_SRC_INDEX.includes("filterVariants('" + c + "', event)"), c));
+  ['cat-compactes', 'cat-petits-groupes', 'cat-avance', 'cat-speed-run', 'cat-au-centre'].forEach(c => assert.ok(_SRC_INDEX.includes("filterVariants('" + c + "', event)"), c));
   assert.ok(!/nventée?s? par Abalassembly|nventé par Abalassembly/.test(_SRC_INDEX), 'ancien credit');
+});
+
+// ═══════════════════════════════════════════
+// 90. v3.04 : 49 departs « Speed run » et « Au centre », et leurs versions reequilibrees
+// ═══════════════════════════════════════════
+const _V304 = () => JSON.parse(JSON.stringify(_r63('DEPARTS_V304')));
+test('v3.04 : les 49 departs Speed run et Au centre -- equitables, aucune ejection au premier coup, groupes, bord, contacts et distance annonces ; fiche, menu, libelle', () => {
+  const D = _V304(), bases = D.filter(d => !d.base), reeq = D.filter(d => d.base);
+  assert.strictEqual(D.length, 49); assert.strictEqual(new Set(D.map(d => d.cle)).size, 49); assert.strictEqual(new Set(D.map(d => d.nom)).size, 49);
+  const n = (c, b) => D.filter(d => d.categorie === c && !!d.base === b).length;
+  assert.deepStrictEqual([n('speed-run', false), n('speed-run', true), n('au-centre', false), n('au-centre', true)], [20, 4, 20, 5]);
+  const { ev } = _filKaah();
+  const L9 = 'abcdefghi', demiTour = x => L9[8 - L9.indexOf(x[0])] + (10 - +x[1]);
+  const dist = (r, c) => { const a = ctx.rcToAxial(r, c); return (Math.abs(a.q) + Math.abs(a.r) + Math.abs(a.q + a.r)) / 2; };
+  const virgule = x => String(x).replace('.', ',');
+  const pose = (nr, bl) => { const o = {}; nr.forEach(p => { o[p[0] + ',' + p[1]] = 'black'; }); bl.forEach(p => { o[p[0] + ',' + p[1]] = 'white'; });
+    ev('board = ' + JSON.stringify(o) + '; capturedByBlack = 0; capturedByWhite = 0;'); };
+  const coups = c => JSON.parse(ev('JSON.stringify(getAllMovesForColor("' + c + '").map(m => [m.type, m.eject]))'));
+  const cle = l => l.map(p => p[0] + ',' + p[1]).sort().join(' ');
+  for (const d of bases) {
+    const L = ctx.LAYOUTS[d.cle]; assert.ok(L, d.cle);
+    assert.match(d.cle, d.categorie === 'speed-run' ? /^sr_\d\d$/ : /^ce_\d\d$/);
+    assert.strictEqual(d.nom, (d.categorie === 'speed-run' ? 'Speed run ' : 'Au centre ') + d.cle.slice(3));
+    assert.strictEqual(L.black.length, 14, d.cle); assert.strictEqual(L.white.length, 14, d.cle);
+    [...L.black, ...L.white].forEach(([r, c]) => assert.ok(r >= 0 && r < 9 && c >= 0 && c < ctx.ROWS[r], d.cle + ' ' + r + ',' + c));
+    // equitable : les Blancs sont le demi-tour exact des Noirs
+    assert.deepStrictEqual(L.white.map(([r, c]) => _invNom(r, c)).sort(), L.black.map(([r, c]) => demiTour(_invNom(r, c))).sort(), d.cle + ' : demi-tour');
+    // les groupes annonces : petits, jamais une bille seule
+    const N = new Set(L.black.map(p => p.join(','))), B = new Set(L.white.map(p => p.join(',')));
+    const reste = new Set(N), tailles = [];
+    while (reste.size) { const pile = [[...reste][0]]; reste.delete(pile[0]); let k = 0;
+      while (pile.length) { const [r, c] = pile.pop().split(',').map(Number); k++; _invVoisins(r, c).forEach(v => { if (reste.has(v)) { reste.delete(v); pile.push(v); } }); }
+      tailles.push(k); }
+    tailles.sort((a, b) => b - a);
+    assert.strictEqual(tailles.join('+'), d.groupes, d.cle + ' : groupes');
+    assert.ok(tailles.every(t => t >= 2 && t <= 5), d.cle + ' : petits groupes');
+    assert.ok(d.categorie === 'speed-run' ? tailles.length >= 4 && tailles.length <= 6 : tailles.length >= 4 && tailles.length <= 5, d.cle + ' : nombre de groupes');
+    // bord, contacts, distance au centre : comme annonces
+    const bord = L.black.filter(([r, c]) => _invVoisins(r, c).length < 6).length;
+    const contacts = L.black.reduce((s, [r, c]) => s + _invVoisins(r, c).filter(v => B.has(v)).length, 0);
+    assert.strictEqual(bord, d.bord, d.cle + ' : bord'); assert.strictEqual(contacts, d.contacts, d.cle + ' : contacts'); assert.ok(contacts > 0, d.cle + ' : au contact');
+    const moy = +(L.black.reduce((s, [r, c]) => s + dist(r, c), 0) / 14).toFixed(2);
+    if (d.categorie === 'au-centre') { assert.strictEqual(moy, d.distance, d.cle + ' : distance'); assert.ok(moy < 2.6, d.cle + ' : serre autour du centre'); }
+    else { assert.ok(bord >= 6, d.cle + ' : beaucoup de billes au bord'); assert.ok(d.premiere > 6 && d.premiere < 17, d.cle); }
+    // personne n'ejecte au premier coup
+    pose(L.black, L.white);
+    assert.ok(!coups('black').some(x => x[1]) && !coups('white').some(x => x[1]), d.cle + ' : ejection au premier coup');
+    // la fiche
+    const v = _carte(d.cle.replace(/_/g, '-'));
+    assert.ok(v.desc.includes(' : +' + d.avantage + ',') && v.desc.startsWith(tailles.length + ' petits groupes (' + tailles.join(' + ') + ') par camp, '), d.cle);
+    assert.ok(v.desc.includes(d.contacts + ' contacts entre billes noires et blanches'), d.cle);
+    if (d.categorie === 'speed-run') assert.ok(v.desc.includes('au demi-coup ' + virgule(d.premiere) + ','), d.cle);
+    else assert.ok(v.desc.includes('à ' + virgule(d.distance) + ' cases du centre en moyenne'), d.cle);
+    assert.ok(v.desc.includes(bord === 0 ? 'aucune bille au bord' : bord === 1 ? 'une seule bille noire sur 14 au bord' : bord + ' billes noires sur 14 au bord'), d.cle);
+  }
+  // les versions reequilibrees : la base plus un coup blanc legal, comme annonce
+  for (const d of reeq) {
+    const b = D.find(x => x.cle === d.base), L = ctx.LAYOUTS[d.cle], LB = ctx.LAYOUTS[d.base];
+    assert.ok(b && L && LB, d.cle); assert.strictEqual(d.cle, d.base + '_av'); assert.strictEqual(d.categorie, b.categorie, d.cle);
+    assert.strictEqual(d.nom, b.nom + ' · rééquilibré'); assert.ok(d.forme.startsWith('Comme ' + b.nom + ', mais '), d.cle);
+    assert.strictEqual(cle(L.black), cle(LB.black), d.cle + ' : les Noirs sont ceux de la base');
+    pose(LB.black, LB.white);
+    const tous = JSON.parse(ev('JSON.stringify(getAllMovesForColor("white").map(m => ({ cells: m.cells, dir: m.dir, type: m.type })))'));
+    const trouves = tous.filter((m, i) => { pose(LB.black, LB.white); ev('applyMove(getAllMovesForColor("white")[' + i + '], "white")');
+      const o = JSON.parse(ev('JSON.stringify(board)')), de = c => Object.keys(o).filter(k => o[k] === c).sort().join(' ');
+      return de('white') === cle(L.white) && de('black') === cle(L.black); });
+    assert.ok(trouves.length >= 1, d.cle + ' : un coup blanc legal');
+    assert.ok(trouves.some(m => ctx.moveToABAPRO(m.cells, m.dir, m.type) === d.coup), d.cle + ' : ' + d.coup);
+    assert.ok(trouves.every(m => m.type !== 'push'), d.cle + ' : le coup d avance ne pousse rien');
+    pose(L.black, L.white);
+    const mB = coups('white'), pousse = mB.some(x => x[0] === 'push'), ejecte = mB.some(x => x[1]);
+    const gain = LB.white.reduce((s, p) => s + dist(p[0], p[1]), 0) - L.white.reduce((s, p) => s + dist(p[0], p[1]), 0);
+    assert.strictEqual(d.menace, pousse, d.cle + ' : menace');
+    assert.strictEqual(/menacent déjà d’éjecter/.test(d.forme), ejecte, d.cle + ' : ejection annoncee');
+    assert.strictEqual(/peuvent déjà pousser/.test(d.forme), pousse && !ejecte, d.cle + ' : poussee annoncee');
+    if (/avancen?t? d’une case vers le centre/.test(d.forme)) assert.ok(gain > 0, d.cle);
+    if (/reculen?t? d’une case/.test(d.forme)) assert.ok(gain < 0, d.cle);
+    if (/glissen?t? d’une case sur le côté/.test(d.forme)) assert.strictEqual(gain, 0, d.cle);
+    assert.strictEqual(d.sansAvance, b.avantage / 2, d.cle + ' : la mesure de la base');
+    assert.ok(Math.abs(d.equilibre) <= 6 && Math.abs(d.equilibre) < d.sansAvance, d.cle + ' : plus equilibre que sa base');
+    const v = _carte(d.cle.replace(/_/g, '-'));
+    assert.ok(v.desc.startsWith(d.forme) && v.desc.includes('(' + d.coup + ')') && v.desc.includes(', version rééquilibrée'), d.cle);
+  }
+  // pour tous : la fiche, le menu Jouer dans le bon groupe et dans l'ordre de la table, la carte de chaleur
+  const CAT = _r63('CATEGORIES_GENEREES');
+  const groupe = c => { const m = String(_SRC_INDEX).match(new RegExp('<optgroup label="' + CAT[c] + ' · générés par le LLM Claude Opus 5\\.5 Extra">([\\s\\S]*?)</optgroup>')); assert.ok(m, c); return [...m[1].matchAll(/<option value="([^"]+)"/g)].map(x => x[1]); };
+  assert.deepStrictEqual(groupe('speed-run'), D.filter(d => d.categorie === 'speed-run').map(d => d.cle));
+  assert.deepStrictEqual(groupe('au-centre'), D.filter(d => d.categorie === 'au-centre').map(d => d.cle));
+  for (const d of D) {
+    const id = d.cle.replace(/_/g, '-'), v = _carte(id);
+    assert.ok(v && v.inventee, id); assert.strictEqual(v.name, d.nom); assert.strictEqual(v.categorie, d.categorie); assert.strictEqual(ctx.VARIANTE_DISPOSITION[id], d.cle);
+    assert.ok(v.desc.includes('Départ généré par le LLM Claude Opus 5.5 Extra (v3.04), catégorie « ' + CAT[d.categorie] + ' »'), id);
+    assert.strictEqual(_r63('HEAT_VARIANT_LABEL')[d.cle], d.nom); assert.ok(_r63('HEAT_VARIANTS').includes(d.cle));
+  }
+  // les chiffres de la page Variantes
+  const borne = (l, k) => { const a = l.map(d => d[k]); return [Math.min(...a), Math.max(...a)]; };
+  const SR = bases.filter(d => d.categorie === 'speed-run'), CE = bases.filter(d => d.categorie === 'au-centre');
+  assert.deepStrictEqual([borne(SR, 'avantage'), borne(SR, 'premiere'), borne(CE, 'avantage'), borne(CE, 'distance'), borne(reeq, 'equilibre'), borne(reeq, 'sansAvance')],
+    [[34, 54], [6.3, 16.5], [26, 46], [2.21, 2.57], [-5, 6], [13, 26]]);
+  ['🧪 129 départs générés par le LLM Claude Opus 5.5 Extra', 'Ils sont rangés en cinq catégories', 'entre le demi-coup 6,3 et le demi-coup 16,5, contre 29,2 pour la Marguerite belge. Avantage du trait de +34 à +54',
+    'les billes à 2,21 à 2,57 cases du centre en moyenne (Standard 3,29)', 'Avantage du trait de +26 à +46', 'équilibre de −5 à +6, contre +13 à +26 sans le coup d’avance',
+    '(24, de Speed run 01 à Speed run 20, et 4 versions rééquilibrées)', '(25, de Au centre 01 à Au centre 20, et 5 versions rééquilibrées)', '<strong style="color:var(--text)">Les versions rééquilibrées</strong> (9,']
+    .forEach(t => assert.ok(_SRC_INDEX.includes(t), t));
+  // la distance de reference : Standard et Marguerite belge 3,29
+  ['standard', 'belgian'].forEach(k => assert.strictEqual((ctx.LAYOUTS[k].black.reduce((s, [r, c]) => s + dist(r, c), 0) / 14).toFixed(2), '3.29', k));
+  // nouveaux : aucun n'est une autre position du site, meme tourne ou retourne (posRef de KAAH)
+  const ref = k => { const p = {}; ctx.LAYOUTS[k].black.forEach(q => { p[q[0] + ',' + q[1]] = 'black'; }); ctx.LAYOUTS[k].white.forEach(q => { p[q[0] + ',' + q[1]] = 'white'; });
+    return ctx.posRefKAAH(ctx.codePosition(p, 0, 0)).posRef; };
+  const refs = new Map(Object.keys(ctx.LAYOUTS).filter(k => !D.some(d => d.cle === k)).map(k => [ref(k), k]));
+  D.forEach(d => { const r = ref(d.cle); assert.ok(!refs.has(r), d.cle + ' = ' + refs.get(r)); refs.set(r, d.cle); });
+});
+
+test('v3.04 : l’avantage du trait et l’equilibre annonces sont ceux que mesure le moteur (Speed run 11, profondeur 3 ; Speed run 10 · reequilibre, profondeurs 2 et 3)', () => {
+  const { ev } = _filKaah(), D = _V304();
+  const note = (k, p) => { const L = ctx.LAYOUTS[k], b = {}; L.black.forEach(q => { b[q[0] + ',' + q[1]] = 'black'; }); L.white.forEach(q => { b[q[0] + ',' + q[1]] = 'white'; });
+    ev('board = ' + JSON.stringify(b) + '; capturedByBlack = 0; capturedByWhite = 0; killerMoves = {}; historyTable = {}; counterMove = {}; TT.clear();');
+    ev('searchBestMove("black", ' + p + ', 120000, [])'); assert.strictEqual(ev('_metrics.depth'), p); return ev('_metrics.bestScore'); };
+  assert.strictEqual(note('sr_11', 3), D.find(d => d.cle === 'sr_11').avantage);
+  assert.strictEqual((note('sr_10_av', 2) + note('sr_10_av', 3)) / 2, D.find(d => d.cle === 'sr_10_av').equilibre);
 });

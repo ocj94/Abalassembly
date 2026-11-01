@@ -9,14 +9,14 @@ directement dans le code à chaque révision, jamais supposé.
 
 ## 1. La galerie « Variantes » face à l'écran de configuration
 
-**La galerie** (menu → Explorer → Variantes) est une encyclopédie de 150
+**La galerie** (menu → Explorer → Variantes) est une encyclopédie de 199
 fiches — nom, joueurs, durée, difficulté, description, source historique.
-Toucher une fiche ouvre ses explications juste en dessous. Pour les 140
+Toucher une fiche ouvre ses explications juste en dessous. Pour les 189
 fiches jouables, s'y ajoutent le plateau de départ, dessiné depuis la vraie
 position du moteur, et un bouton **« ▶ Jouer cette variante »** qui ouvre la
 configuration avec la variante déjà choisie.
 
-**L'écran de configuration** (Jouer → Disposition de départ) propose 140
+**L'écran de configuration** (Jouer → Disposition de départ) propose 189
 positions de départ réelles dans son menu déroulant, chacune avec sa
 propre miniature — c'est ce que le moteur sait effectivement charger.
 (Jusqu'ici ce document annonçait ce chiffre alors que le menu n'en
@@ -32,7 +32,7 @@ et durée médiane dans le corpus AbalOnline, symétries calculées. Aucune
 difficulté n'est inventée : faute de donnée, elle est marquée « Non
 évaluée ».
 
-### Réellement jouables (140 sur 150)
+### Réellement jouables (189 sur 199)
 
 | Galerie | Configuration |
 |---|---|
@@ -183,7 +183,50 @@ Abalassembly ». Leurs noms seront revus : certains reprennent une variante
 qui existe déjà (Le Serpent, Le Fer à cheval, les départs de la série 4
 construits sur une Marguerite).
 
-### Documentées seulement (10 sur 150)
+### Ajoutées en v3.04 : Speed run et Au centre, 49 départs
+
+Demandés par ocj94 : des départs en petits groupes qui facilitent les
+éjections rapides, d'autres qui favorisent la place au centre, et, pour
+certains, une avance réduite pour les Noirs, qui gagnent 53 % des parties
+entre humains dans le corpus du site. Générés par le LLM Claude Opus 5.5
+Extra et mesurés par le moteur, comme les précédents. Mêmes règles :
+14 billes par camp, les Blancs sont le demi-tour exact des Noirs, aucune
+bille seule, aucune position déjà connue ; cette fois les camps se
+touchent, mais personne ne peut éjecter au premier coup. Les noms sont
+provisoires.
+
+| Catégorie | Départs | Forme | Mesures |
+|---|---|---|---|
+| ⚡ Speed run | 20, de Speed run 01 à Speed run 20 | 4 à 6 groupes par camp, 6 à 9 billes sur 14 au bord, au contact de l'adversaire | première éjection en moyenne au demi-coup 6,3 à 16,5 ; avantage du trait de +34 à +54 |
+| 🎯 Au centre | 20, de Au centre 01 à Au centre 20 | 4 ou 5 groupes par camp serrés autour du centre, au contact de l'adversaire | 2,21 à 2,57 cases du centre en moyenne (Standard et Marguerite belge 3,29) ; avantage du trait de +26 à +46 |
+| Versions rééquilibrées | 9 : Speed run 04, 05, 06 et 10, Au centre 02 à 06, suivis de « · rééquilibré » | la même position, plus un coup blanc déjà joué | équilibre de −5 à +6, contre +13 à +26 sans le coup d'avance |
+
+**La vitesse** : le moteur joue contre lui-même, 6 parties de 40
+demi-coups au plus, à profondeur 1, les deux premiers demi-coups tirés au
+hasard (la même graine pour tous les départs). On note le demi-coup de la
+première éjection ; une partie sans éjection compte 41. Pour comparer :
+Marguerite belge 29,2, Marguerite allemande 30,5, et aucune éjection dans
+les 6 parties de la Standard.
+
+Ce que la recherche a montré : les Speed run font sortir la première bille
+bien plus tôt (vers le demi-coup 6 à 17 au lieu de 29 ou 30), mais le
+premier coup y rapporte le plus souvent davantage : leur avantage du trait
+va de +34 à +54, contre +38 pour la Standard. Serrer les groupes autour du
+centre ne descend pas sous +26. Le coup d'avance des Blancs, choisi parmi
+tous les coups possibles comme en v3.02, les ramène près de l'équilibre :
+les 9 versions rééquilibrées vont de −5 à +6, et Au centre 06 · rééquilibré
+est à 0.
+
+Les versions rééquilibrées restent dans la catégorie de leur départ. Dans
+le menu de configuration, chacune suit son départ ; la galerie a un bouton
+par catégorie (« ⚡ Speed run », « 🎯 Au centre »). Les tests refont deux
+mesures (Speed run 11, +34 ; Speed run 10 · rééquilibré, +5) et vérifient
+tout le reste : le demi-tour, les groupes, le bord, les contacts, la
+distance au centre, aucune éjection au premier coup, le coup d'avance
+légal et ce qu'il permet aux Blancs. Comme les autres, ce sont des mesures
+du moteur : aucune partie n'a encore été jouée depuis ces positions.
+
+### Documentées seulement (10 sur 199)
 
 - **The Pillar** — sa description mentionne une bille neutre inamovible au
   centre : un troisième type de pièce que le moteur ne gère pas (seuls
@@ -194,12 +237,12 @@ construits sur une Marguerite).
 - **Concours-Blitz**, **Misère** — "blitz" existe ailleurs dans le code,
   mais uniquement comme filtre sur une page de classement de démonstration
   — pas comme mode de partie réel.
-- **3, 4, 5, 6 joueurs** — les 140 positions de `LAYOUTS` sont toutes à 2
+- **3, 4, 5, 6 joueurs** — les 189 positions de `LAYOUTS` sont toutes à 2
   camps (noir/blanc) ; un mode à plusieurs joueurs demanderait une
   structure de plateau différente. Voir la section 2 : ce mode a en fait
   sa propre page dédiée, distincte de ces fiches de galerie.
 
-### Et dans l'autre sens : jouables mais pas dans la galerie (0 sur 140)
+### Et dans l'autre sens : jouables mais pas dans la galerie (0 sur 189)
 
 Il y en avait dix — Découverte, 69, Star, Alliances, Domination, Atomouche,
 Centrifugeuse, Snakes variant, Korean Daisy, Anglattack. Elles ont toutes
@@ -267,4 +310,4 @@ Burnside) ; le test du site refait le calcul.
 Ces nombres comptent aussi des positions absurdes : une éjection possible dès
 le premier coup, des camps tout collés… Toute l'histoire de l'Abalone n'a
 utilisé qu'une centaine de positions de départ : MiGs en proposait 42,
-Abalassembly en propose 140, dont 80 générées par le LLM Claude Opus 5.5 Extra (v3.01-v3.03, section 1).
+Abalassembly en propose 189, dont 129 générées par le LLM Claude Opus 5.5 Extra (v3.01-v3.04, section 1).

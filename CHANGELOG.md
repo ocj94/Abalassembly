@@ -9,6 +9,31 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.04]
+
+### Ajouté — Speed run et Au centre, 49 départs
+Demande de l'auteur : des départs en petits groupes « qui facilitent des
+éjections rapides », d'autres « qui favorisent la position au centre », et
+certains qui « réduisent l'avance des 53 % des Noirs ». Générés par le LLM
+Claude Opus 5.5 Extra, mesurés par le moteur ; noms provisoires.
+- **⚡ Speed run** (24) : 20 départs, 4 à 6 petits groupes par camp,
+  beaucoup de billes au bord et au contact de l'adversaire, sans éjection
+  possible au premier coup. Quand le moteur joue contre lui-même, la
+  première bille sort en moyenne entre le demi-coup 6,3 et 16,5, contre
+  29,2 pour la Marguerite belge. Avantage du trait de +34 à +54.
+- **🎯 Au centre** (25) : 20 départs, 4 ou 5 petits groupes serrés autour
+  du centre (2,21 à 2,57 cases en moyenne, contre 3,29 pour la Standard),
+  au contact de l'adversaire. Avantage du trait de +26 à +46.
+- **9 versions rééquilibrées** (« · rééquilibré »), rangées avec leur
+  départ : un coup blanc déjà joué ramène l'équilibre entre −5 et +6,
+  contre +13 à +26 sans lui (Standard +19).
+- Deux catégories de plus dans le menu de configuration et la galerie
+  (« ⚡ Speed run », « 🎯 Au centre ») ; 189 positions de départ en tout,
+  dont 129 générées par Claude.
+- Tests : les 49 (demi-tour, groupes, bord, contacts, distance au centre,
+  aucune éjection au premier coup, coup d'avance légal et ce qu'il permet,
+  nouveauté), deux mesures refaites par le moteur ; wiki, README.
+
 ## [v3.03]
 
 ### Modifié — trois catégories, et le nom de qui les a générés
