@@ -369,8 +369,9 @@ const DEPARTS_INVENTES = [
   { cle:"eq_envol", nom:"L’Envol", emoji:"🦅", serie:3, avantage:50, groupes:"3+3+3+3+2",
     forme:"Une ligne de trois au bord droit, trois trios à gauche et au fond, une paire près du centre." }
 ];
-/* v3.03 : les departs generes sont ranges en trois categories (demande d'ocj94) ; les series 2 et 3 forment « Les petits groupes ». */
-const CATEGORIES_GENEREES = { 'compactes':'Les formes compactes', 'petits-groupes':'Les petits groupes', 'avance':'Les Blancs prennent de l’avance' };
+/* v3.03 : les departs generes sont ranges en categories (demande d'ocj94) ; les series 2 et 3 forment « Les petits groupes ».
+   v3.04 : + « Speed run » et « Au centre » (DEPARTS_V304). */
+const CATEGORIES_GENEREES = { 'compactes':'Les formes compactes', 'petits-groupes':'Les petits groupes', 'avance':'Les Blancs prennent de l’avance', 'speed-run':'Speed run', 'au-centre':'Au centre' };
 const GENERE_PAR = 'le LLM Claude Opus 5.5 Extra';
 const _categorieInventee = function(d){ return d.serie === 1 ? 'compactes' : 'petits-groupes'; };
 function _descInventee(d){
@@ -447,6 +448,103 @@ DEPARTS_AVANCE.forEach(function(d){
   const id = d.cle.replace(/_/g, '-');
   variantsData.push({ id:id, name:d.nom, emoji:d.emoji, players:'2', duration:'Non mesurée', diff:'Non évaluée', src:'Claude Opus 5.5 Extra (LLM)', inventee:true, categorie:'avance',
     desc:_descAvance(d), origin:'Généré par ' + GENERE_PAR + ', mesuré par le moteur d’Abalassembly (v3.02) ; à l’essai, aucune partie connue' });
+  VARIANTE_DISPOSITION[id] = d.cle;
+  if (HEAT_VARIANTS.indexOf(d.cle) < 0) HEAT_VARIANTS.push(d.cle);
+  HEAT_VARIANT_LABEL[d.cle] = d.nom;
+});
+
+/* v3.04 : 49 departs generes par le LLM Claude Opus 5.5 Extra, en deux categories (positions : LAYOUTS ; noms provisoires).
+   « Speed run » : des petits groupes au bord et au contact de l'adversaire, pour des ejections rapides ; « premiere » :
+   le demi-coup moyen de la premiere ejection quand le moteur joue contre lui-meme (6 parties de 40 demi-coups au plus,
+   profondeur 1, les deux premiers demi-coups tires au hasard, la meme graine pour tous ; une partie sans ejection
+   compte 41) : Marguerite belge 29,2, Marguerite allemande 30,5, Standard aucune ejection.
+   « Au centre » : des petits groupes serres autour du centre ; « distance » : distance moyenne des billes noires
+   au centre e5, en cases (Standard et Marguerite belge 3,29, Marguerite allemande 3).
+   « bord » : billes noires au bord ; « contacts » : paires de billes noire et blanche voisines ; « avantage » :
+   comme DEPARTS_INVENTES. Les entrees avec « base » sont les versions reequilibrees (un coup blanc d'avance),
+   mesurees comme DEPARTS_AVANCE (« equilibre », « sansAvance ») ; « menace » : les Blancs peuvent deja pousser.
+   Verifie par les tests. */
+const DEPARTS_V304 = [
+  { cle:"sr_01", nom:"Speed run 01", emoji:"⚡", categorie:"speed-run", avantage:52, groupes:"3+3+3+3+2", bord:7, contacts:16, premiere:6.3 },
+  { cle:"sr_02", nom:"Speed run 02", emoji:"⚡", categorie:"speed-run", avantage:38, groupes:"4+3+3+2+2", bord:8, contacts:20, premiere:7.5 },
+  { cle:"sr_03", nom:"Speed run 03", emoji:"⚡", categorie:"speed-run", avantage:54, groupes:"3+3+2+2+2+2", bord:8, contacts:22, premiere:8.3 },
+  { cle:"sr_04", nom:"Speed run 04", emoji:"⚡", categorie:"speed-run", avantage:38, groupes:"4+3+3+2+2", bord:6, contacts:20, premiere:8.5 },
+  { cle:"sr_04_av", nom:"Speed run 04 · rééquilibré", emoji:"⚡", categorie:"speed-run", base:"sr_04", coup:"g6g5", equilibre:6, sansAvance:19, menace:true,
+    forme:"Comme Speed run 04, mais une bille blanche glisse d’une case sur le côté avant le premier coup des Noirs : les Blancs menacent déjà d’éjecter une bille noire." },
+  { cle:"sr_05", nom:"Speed run 05", emoji:"⚡", categorie:"speed-run", avantage:38, groupes:"5+3+2+2+2", bord:8, contacts:24, premiere:9.5 },
+  { cle:"sr_05_av", nom:"Speed run 05 · rééquilibré", emoji:"⚡", categorie:"speed-run", base:"sr_05", coup:"e8f8e7", equilibre:4, sansAvance:19, menace:true,
+    forme:"Comme Speed run 05, mais deux billes blanches avancent d’une case vers le centre avant le premier coup des Noirs : les Blancs menacent déjà d’éjecter une bille noire." },
+  { cle:"sr_06", nom:"Speed run 06", emoji:"⚡", categorie:"speed-run", avantage:52, groupes:"3+3+3+3+2", bord:7, contacts:16, premiere:9.7 },
+  { cle:"sr_06_av", nom:"Speed run 06 · rééquilibré", emoji:"⚡", categorie:"speed-run", base:"sr_06", coup:"e2e3", equilibre:-3, sansAvance:26, menace:true,
+    forme:"Comme Speed run 06, mais une bille blanche avance d’une case vers le centre avant le premier coup des Noirs : les Blancs menacent déjà d’éjecter une bille noire." },
+  { cle:"sr_07", nom:"Speed run 07", emoji:"⚡", categorie:"speed-run", avantage:50, groupes:"4+3+3+2+2", bord:9, contacts:22, premiere:10 },
+  { cle:"sr_08", nom:"Speed run 08", emoji:"⚡", categorie:"speed-run", avantage:40, groupes:"3+3+3+3+2", bord:9, contacts:14, premiere:10.8 },
+  { cle:"sr_09", nom:"Speed run 09", emoji:"⚡", categorie:"speed-run", avantage:52, groupes:"4+3+3+2+2", bord:8, contacts:14, premiere:11.2 },
+  { cle:"sr_10", nom:"Speed run 10", emoji:"⚡", categorie:"speed-run", avantage:50, groupes:"4+3+3+2+2", bord:9, contacts:18, premiere:11.7 },
+  { cle:"sr_10_av", nom:"Speed run 10 · rééquilibré", emoji:"⚡", categorie:"speed-run", base:"sr_10", coup:"i8h7", equilibre:5, sansAvance:25, menace:false,
+    forme:"Comme Speed run 10, mais une bille blanche avance d’une case vers le centre avant le premier coup des Noirs." },
+  { cle:"sr_11", nom:"Speed run 11", emoji:"⚡", categorie:"speed-run", avantage:34, groupes:"5+4+3+2", bord:7, contacts:18, premiere:12.7 },
+  { cle:"sr_12", nom:"Speed run 12", emoji:"⚡", categorie:"speed-run", avantage:46, groupes:"3+3+2+2+2+2", bord:9, contacts:20, premiere:12.7 },
+  { cle:"sr_13", nom:"Speed run 13", emoji:"⚡", categorie:"speed-run", avantage:48, groupes:"4+2+2+2+2+2", bord:8, contacts:26, premiere:14.2 },
+  { cle:"sr_14", nom:"Speed run 14", emoji:"⚡", categorie:"speed-run", avantage:48, groupes:"3+3+2+2+2+2", bord:7, contacts:14, premiere:14.2 },
+  { cle:"sr_15", nom:"Speed run 15", emoji:"⚡", categorie:"speed-run", avantage:46, groupes:"3+3+2+2+2+2", bord:7, contacts:18, premiere:14.5 },
+  { cle:"sr_16", nom:"Speed run 16", emoji:"⚡", categorie:"speed-run", avantage:40, groupes:"3+3+2+2+2+2", bord:7, contacts:16, premiere:15.7 },
+  { cle:"sr_17", nom:"Speed run 17", emoji:"⚡", categorie:"speed-run", avantage:54, groupes:"5+3+3+3", bord:8, contacts:12, premiere:16.2 },
+  { cle:"sr_18", nom:"Speed run 18", emoji:"⚡", categorie:"speed-run", avantage:42, groupes:"4+3+3+2+2", bord:7, contacts:16, premiere:16.3 },
+  { cle:"sr_19", nom:"Speed run 19", emoji:"⚡", categorie:"speed-run", avantage:48, groupes:"4+4+2+2+2", bord:9, contacts:16, premiere:16.3 },
+  { cle:"sr_20", nom:"Speed run 20", emoji:"⚡", categorie:"speed-run", avantage:48, groupes:"4+4+3+3", bord:9, contacts:12, premiere:16.5 },
+  { cle:"ce_01", nom:"Au centre 01", emoji:"🎯", categorie:"au-centre", avantage:26, groupes:"4+4+3+3", bord:0, contacts:30, distance:2.36 },
+  { cle:"ce_02", nom:"Au centre 02", emoji:"🎯", categorie:"au-centre", avantage:26, groupes:"5+3+2+2+2", bord:3, contacts:30, distance:2.57 },
+  { cle:"ce_02_av", nom:"Au centre 02 · rééquilibré", emoji:"🎯", categorie:"au-centre", base:"ce_02", coup:"f5g5e4", equilibre:-1, sansAvance:13, menace:false,
+    forme:"Comme Au centre 02, mais deux billes blanches glissent d’une case sur le côté avant le premier coup des Noirs." },
+  { cle:"ce_03", nom:"Au centre 03", emoji:"🎯", categorie:"au-centre", avantage:26, groupes:"4+4+2+2+2", bord:3, contacts:20, distance:2.57 },
+  { cle:"ce_03_av", nom:"Au centre 03 · rééquilibré", emoji:"🎯", categorie:"au-centre", base:"ce_03", coup:"f5g6", equilibre:-1, sansAvance:13, menace:true,
+    forme:"Comme Au centre 03, mais deux billes blanches reculent d’une case avant le premier coup des Noirs : les Blancs menacent déjà d’éjecter une bille noire." },
+  { cle:"ce_04", nom:"Au centre 04", emoji:"🎯", categorie:"au-centre", avantage:34, groupes:"5+3+3+3", bord:1, contacts:26, distance:2.43 },
+  { cle:"ce_04_av", nom:"Au centre 04 · rééquilibré", emoji:"🎯", categorie:"au-centre", base:"ce_04", coup:"d4d6e4", equilibre:-5, sansAvance:17, menace:true,
+    forme:"Comme Au centre 04, mais trois billes blanches avancent d’une case vers le centre avant le premier coup des Noirs : les Blancs peuvent déjà pousser." },
+  { cle:"ce_05", nom:"Au centre 05", emoji:"🎯", categorie:"au-centre", avantage:34, groupes:"5+4+3+2", bord:1, contacts:24, distance:2.5 },
+  { cle:"ce_05_av", nom:"Au centre 05 · rééquilibré", emoji:"🎯", categorie:"au-centre", base:"ce_05", coup:"g7f6", equilibre:1, sansAvance:17, menace:true,
+    forme:"Comme Au centre 05, mais deux billes blanches avancent d’une case vers le centre avant le premier coup des Noirs : les Blancs peuvent déjà pousser." },
+  { cle:"ce_06", nom:"Au centre 06", emoji:"🎯", categorie:"au-centre", avantage:34, groupes:"4+3+3+2+2", bord:2, contacts:18, distance:2.57 },
+  { cle:"ce_06_av", nom:"Au centre 06 · rééquilibré", emoji:"🎯", categorie:"au-centre", base:"ce_06", coup:"e7e6", equilibre:0, sansAvance:17, menace:true,
+    forme:"Comme Au centre 06, mais deux billes blanches avancent d’une case vers le centre avant le premier coup des Noirs : les Blancs peuvent déjà pousser." },
+  { cle:"ce_07", nom:"Au centre 07", emoji:"🎯", categorie:"au-centre", avantage:36, groupes:"5+3+3+3", bord:1, contacts:24, distance:2.36 },
+  { cle:"ce_08", nom:"Au centre 08", emoji:"🎯", categorie:"au-centre", avantage:40, groupes:"5+4+3+2", bord:0, contacts:36, distance:2.21 },
+  { cle:"ce_09", nom:"Au centre 09", emoji:"🎯", categorie:"au-centre", avantage:40, groupes:"5+4+3+2", bord:1, contacts:24, distance:2.36 },
+  { cle:"ce_10", nom:"Au centre 10", emoji:"🎯", categorie:"au-centre", avantage:40, groupes:"4+3+3+2+2", bord:3, contacts:30, distance:2.5 },
+  { cle:"ce_11", nom:"Au centre 11", emoji:"🎯", categorie:"au-centre", avantage:40, groupes:"4+4+2+2+2", bord:2, contacts:22, distance:2.57 },
+  { cle:"ce_12", nom:"Au centre 12", emoji:"🎯", categorie:"au-centre", avantage:40, groupes:"4+3+3+2+2", bord:3, contacts:18, distance:2.57 },
+  { cle:"ce_13", nom:"Au centre 13", emoji:"🎯", categorie:"au-centre", avantage:42, groupes:"5+5+2+2", bord:2, contacts:14, distance:2.43 },
+  { cle:"ce_14", nom:"Au centre 14", emoji:"🎯", categorie:"au-centre", avantage:42, groupes:"4+3+3+2+2", bord:2, contacts:30, distance:2.5 },
+  { cle:"ce_15", nom:"Au centre 15", emoji:"🎯", categorie:"au-centre", avantage:44, groupes:"4+3+3+2+2", bord:1, contacts:26, distance:2.43 },
+  { cle:"ce_16", nom:"Au centre 16", emoji:"🎯", categorie:"au-centre", avantage:44, groupes:"5+3+2+2+2", bord:2, contacts:24, distance:2.5 },
+  { cle:"ce_17", nom:"Au centre 17", emoji:"🎯", categorie:"au-centre", avantage:44, groupes:"4+4+3+3", bord:2, contacts:22, distance:2.5 },
+  { cle:"ce_18", nom:"Au centre 18", emoji:"🎯", categorie:"au-centre", avantage:46, groupes:"5+4+3+2", bord:2, contacts:26, distance:2.36 },
+  { cle:"ce_19", nom:"Au centre 19", emoji:"🎯", categorie:"au-centre", avantage:46, groupes:"5+3+2+2+2", bord:2, contacts:30, distance:2.36 },
+  { cle:"ce_20", nom:"Au centre 20", emoji:"🎯", categorie:"au-centre", avantage:46, groupes:"5+3+3+3", bord:1, contacts:22, distance:2.36 }
+];
+const _virgule = function(x){ return String(x).replace('.', ','); };
+function _descV304(d){
+  const cat = 'Départ généré par ' + GENERE_PAR + ' (v3.04), catégorie « ' + CATEGORIES_GENEREES[d.categorie] + ' »';
+  const fin = 'C’est une mesure du moteur : aucune partie n’a encore été jouée depuis cette position.';
+  if (d.base) return d.forme + ' ' + cat + ', version rééquilibrée : les Blancs partent avec un coup d’avance (' + d.coup + '), les Noirs jouent toujours en premier. '
+    + 'Équilibre mesuré par le moteur (moyenne de ses notes à 2 et à 3 demi-coups, qui ne favorise aucun camp ; 0 = équilibré, un nombre négatif donne l’avantage aux Blancs) : '
+    + _signe(d.equilibre) + ', contre ' + _signe(d.sansAvance) + ' sans l’avance. Sur cette échelle, la Standard vaut +19, la Marguerite belge +16 et la Marguerite allemande +25. ' + fin;
+  const g = d.groupes.split('+'), grp = g.length + ' petits groupes (' + g.join(' + ') + ') par camp';
+  const bord = d.bord === 0 ? 'aucune bille au bord' : d.bord === 1 ? 'une seule bille noire sur 14 au bord' : d.bord + ' billes noires sur 14 au bord';
+  const credit = cat + ' : 14 billes par camp ; les Blancs sont le demi-tour exact des Noirs, et aucune éjection n’est possible au premier coup. ';
+  const trait = 'Avantage du trait mesuré par le moteur (meilleure suite de 3 demi-coups) : +' + d.avantage + ', contre +38 pour la Standard, +32 pour la Marguerite belge et +50 pour la Marguerite allemande. ' + fin;
+  if (d.categorie === 'speed-run') return grp + ', ' + bord + ', ' + d.contacts + ' contacts entre billes noires et blanches. ' + credit
+    + 'Quand le moteur joue contre lui-même (6 parties courtes), la première éjection arrive en moyenne au demi-coup ' + _virgule(d.premiere)
+    + ', contre 29,2 pour la Marguerite belge et 30,5 pour la Marguerite allemande ; la Standard n’en connaît aucune en 40 demi-coups. ' + trait;
+  return grp + ', serrés autour du centre et au contact de l’adversaire (' + d.contacts + ' contacts entre billes noires et blanches) ; ' + bord + '. ' + credit
+    + 'Les billes noires sont à ' + _virgule(d.distance) + ' cases du centre en moyenne, contre 3,29 pour la Standard et la Marguerite belge. ' + trait;
+}
+DEPARTS_V304.forEach(function(d){
+  const id = d.cle.replace(/_/g, '-');
+  variantsData.push({ id:id, name:d.nom, emoji:d.emoji, players:'2', duration:'Non mesurée', diff:'Non évaluée', src:'Claude Opus 5.5 Extra (LLM)', inventee:true, categorie:d.categorie,
+    desc:_descV304(d), origin:'Généré par ' + GENERE_PAR + ', mesuré par le moteur d’Abalassembly (v3.04) ; à l’essai, aucune partie connue' });
   VARIANTE_DISPOSITION[id] = d.cle;
   if (HEAT_VARIANTS.indexOf(d.cle) < 0) HEAT_VARIANTS.push(d.cle);
   HEAT_VARIANT_LABEL[d.cle] = d.nom;
