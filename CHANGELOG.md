@@ -9,6 +9,23 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.03]
+
+### Modifié — trois catégories, et le nom de qui les a générés
+Demande de l'auteur : « on garde toutes les variantes, mais on les regroupe
+par catégories dans le site » et, au lieu de « fait par Abalassembly »,
+« généré par LLM Claude Opus 5.5 Extra ».
+- Les 80 départs nouveaux (v3.01-v3.02) sont rangés en trois catégories :
+  **Les formes compactes** (20), **Les petits groupes** (40, les séries 2
+  et 3 réunies), **Les Blancs prennent de l'avance** (20). Le menu de
+  configuration a un groupe par catégorie ; la galerie Variantes a un bouton
+  par catégorie, et « 🧪 Générées par Claude » pour les 80.
+- Les fiches, le menu, la carte de la page Variantes et la page
+  Architecture disent « généré par le LLM Claude Opus 5.5 Extra », mesuré
+  par le moteur d'Abalassembly.
+- Les noms ne changent pas encore : ils seront revus.
+- Tests : les trois catégories (fiches, menu, boutons) et le crédit.
+
 ## [v3.02]
 
 ### Ajouté — les Blancs prennent de l'avance

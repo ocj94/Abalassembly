@@ -133,7 +133,7 @@ FightClub (blog Abalone Online) en décembre 2019 :
   `WhiteType` qui marquent le camp d'un programme.
 - [`community-games/`](../community-games/) : les parties apportées par les
   joueurs.
-- Les 140 positions de départ du site, dont les 80 qu'il a inventées : [Variantes](Variantes.fr.md).
+- Les 140 positions de départ du site, dont 80 générées par le LLM Claude Opus 5.5 Extra : [Variantes](Variantes.fr.md).
 
 ## 9. Les systèmes de notation
 

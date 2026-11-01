@@ -6543,7 +6543,7 @@ test('v3.01 : les 60 departs inventes -- equitables, sans contact, groupes et av
     // la fiche, le menu Jouer, la carte de chaleur
     const id = d.cle.replace(/_/g, '-'), v = _carte(id);
     assert.ok(v, 'fiche ' + id); assert.strictEqual(ctx.VARIANTE_DISPOSITION[id], d.cle); assert.strictEqual(v.name, d.nom);
-    assert.ok(v.desc.startsWith(d.forme) && v.desc.includes(' : +' + d.avantage + ',') && v.desc.includes('série ' + d.serie), id);
+    assert.ok(v.desc.startsWith(d.forme) && v.desc.includes(' : +' + d.avantage + ',') && v.desc.includes('catégorie « ' + (d.serie === 1 ? 'Les formes compactes' : 'Les petits groupes') + ' »'), id);   // v3.03 : les categories
     assert.ok(_SRC_INDEX.includes('<option value="' + d.cle + '"'), 'menu Jouer : ' + d.cle);
     assert.strictEqual(_r63('HEAT_VARIANT_LABEL')[d.cle], d.nom); assert.ok(_r63('HEAT_VARIANTS').includes(d.cle));
   }
@@ -6551,7 +6551,7 @@ test('v3.01 : les 60 departs inventes -- equitables, sans contact, groupes et av
   const borne = s => { const a = D.filter(d => d.serie === s).map(d => d.avantage); return [Math.min(...a), Math.max(...a)]; };
   assert.deepStrictEqual([borne(1), borne(2), borne(3)], [[12, 38], [24, 48], [28, 50]]);
   assert.strictEqual(symetriques3, 7);
-  ['de +12 à +38', 'de +24 à +48', 'dont 7 formes symétriques, de +28 à +50', '🧪 80 départs inventés par Abalassembly'].forEach(t => assert.ok(_SRC_INDEX.includes(t), t));
+  ['Avantage du trait de +12 à +38', 'dont 7 formes symétriques ; les Blancs sont le demi-tour exact des Noirs. Avantage du trait de +24 à +50', '🧪 80 départs générés par le LLM Claude Opus 5.5 Extra'].forEach(t => assert.ok(_SRC_INDEX.includes(t), t));   // v3.03 : la carte, en categories
   assert.ok(_SRC_INDEX.includes("filterVariants('inventees', event)"));
   // nouvelles : aucune n'est une autre position du site, meme tournee ou retournee (posRef de KAAH)
   const ref = k => { const p = {}; ctx.LAYOUTS[k].black.forEach(q => { p[q[0] + ',' + q[1]] = 'black'; }); ctx.LAYOUTS[k].white.forEach(q => { p[q[0] + ',' + q[1]] = 'white'; });
@@ -6564,12 +6564,17 @@ test('v3.01 : les 60 departs inventes -- equitables, sans contact, groupes et av
 test('v3.01 : le filtre « Inventees » de la galerie montre les 80 fiches inventees (60 en v3.01, 20 en v3.02), et elles seules', async () => {
   await _dom54(async els => {
     els['variant-detail'] = { style: {}, dataset: {} };
-    const cartes = ctx.variantsData.map(v => ({ dataset: { players: v.players, inventee: v.inventee ? '1' : undefined }, style: {} }));
+    const cartes = ctx.variantsData.map(v => ({ dataset: { players: v.players, inventee: v.inventee ? '1' : undefined, categorie: v.categorie }, style: {} }));
     const doc = ctx.document, qsa = doc.querySelectorAll;
     doc.querySelectorAll = sel => sel === '.variant-card' ? cartes : [];
     try {
       ctx.filterVariants('inventees', { target: { classList: { add() {} } } });
       assert.strictEqual(cartes.filter(c => c.style.display === 'block').length, 80);   // v3.02 : + les 20 Blancs en avance
+      // v3.03 : une categorie a la fois
+      for (const [cat, n] of [['compactes', 20], ['petits-groupes', 40], ['avance', 20]]) {
+        ctx.filterVariants('cat-' + cat, { target: { classList: { add() {} } } });
+        assert.strictEqual(cartes.filter(c => c.style.display === 'block').length, n, cat);
+      }
       ctx.filterVariants('all', { target: { classList: { add() {} } } });
       assert.strictEqual(cartes.filter(c => c.style.display === 'block').length, ctx.variantsData.length);
     } finally { doc.querySelectorAll = qsa; }
@@ -6637,7 +6642,7 @@ test('v3.02 : les 20 departs Blancs en avance -- la base plus un coup blanc lega
   assert.strictEqual(D.filter(d => Math.abs(d.equilibre) <= 5).length, 14);
   const de = b => D.filter(d => d.base === b).map(d => d.equilibre);
   assert.deepStrictEqual([de('german'), de('belgian'), de('standard')], [[3], [-4, -4], [7]]);
-  ['14 départs sur 20 entre −5 et +5', 'Marguerite allemande +3, Marguerite belge −4, Standard +7', '🧪 80 départs inventés par Abalassembly'].forEach(t => assert.ok(_SRC_INDEX.includes(t), t));
+  ['14 départs sur 20 entre −5 et +5', 'Marguerite allemande +3, Marguerite belge −4, Standard +7', '🧪 80 départs générés par le LLM Claude Opus 5.5 Extra'].forEach(t => assert.ok(_SRC_INDEX.includes(t), t));
   // nouveaux : aucun n'est une autre position du site, meme tourne ou retourne
   const ref = k => { const p = {}; ctx.LAYOUTS[k].black.forEach(q => { p[q[0] + ',' + q[1]] = 'black'; }); ctx.LAYOUTS[k].white.forEach(q => { p[q[0] + ',' + q[1]] = 'white'; });
     return ctx.posRefKAAH(ctx.codePosition(p, 0, 0)).posRef; };
@@ -6651,4 +6656,29 @@ test('v3.02 : l’equilibre annonce est celui que mesure le moteur (Marguerite b
   const note = d => { ev('board = ' + JSON.stringify(b) + '; capturedByBlack = 0; capturedByWhite = 0;'); ev('searchBestMove("black", ' + d + ', 120000, [])');
     assert.strictEqual(ev('_metrics.depth'), d); return ev('_metrics.bestScore'); };
   assert.strictEqual((note(2) + note(3)) / 2, _AV().find(d => d.cle === 'av_belgian_avant_garde').equilibre);
+});
+
+// ═══════════════════════════════════════════
+// 89. v3.03 : les 80 departs generes, en trois categories, credites au LLM Claude Opus 5.5 Extra
+// ═══════════════════════════════════════════
+test('v3.03 : trois categories (menu, galerie, fiches) et le credit « genere par le LLM Claude Opus 5.5 Extra »', () => {
+  const G = ctx.variantsData.filter(v => v.inventee), CAT = _r63('CATEGORIES_GENEREES');
+  assert.strictEqual(G.length, 80);
+  assert.deepStrictEqual(Object.keys(CAT), ['compactes', 'petits-groupes', 'avance']);
+  const parCat = {}; G.forEach(v => { parCat[v.categorie] = (parCat[v.categorie] || 0) + 1; });
+  assert.deepStrictEqual(parCat, { compactes: 20, 'petits-groupes': 40, avance: 20 });
+  // les series 1 a 3 et l'avance vont chacune dans leur categorie
+  _INV().forEach(d => assert.strictEqual(_carte(d.cle.replace(/_/g, '-')).categorie, d.serie === 1 ? 'compactes' : 'petits-groupes', d.cle));
+  _AV().forEach(d => assert.strictEqual(_carte(d.cle.replace(/_/g, '-')).categorie, 'avance', d.cle));
+  for (const v of G) {
+    assert.match(v.src, /Claude Opus 5\.5 Extra/, v.id); assert.match(v.origin, /^Généré par le LLM Claude Opus 5\.5 Extra, mesuré par le moteur d’Abalassembly/, v.id);
+    assert.ok(v.desc.includes('Départ généré par le LLM Claude Opus 5.5 Extra') && v.desc.includes('catégorie « ' + CAT[v.categorie] + ' »'), v.id);
+  }
+  // le menu de configuration : trois groupes, un par categorie, avec leurs departs
+  const groupes = [...String(_SRC_INDEX).matchAll(/<optgroup label="([^"]*)">([\s\S]*?)<\/optgroup>/g)].filter(m => /Claude Opus 5\.5 Extra/.test(m[1]));
+  assert.deepStrictEqual(groupes.map(m => m[1]), ['Les formes compactes · générées par le LLM Claude Opus 5.5 Extra', 'Les petits groupes · générés par le LLM Claude Opus 5.5 Extra', 'Les Blancs prennent de l’avance · générés par le LLM Claude Opus 5.5 Extra']);
+  assert.deepStrictEqual(groupes.map(m => (m[2].match(/<option /g) || []).length), [20, 40, 20]);
+  // la galerie : un bouton par categorie ; et plus aucun « invente par Abalassembly » sur le site
+  ['cat-compactes', 'cat-petits-groupes', 'cat-avance'].forEach(c => assert.ok(_SRC_INDEX.includes("filterVariants('" + c + "', event)"), c));
+  assert.ok(!/nventée?s? par Abalassembly|nventé par Abalassembly/.test(_SRC_INDEX), 'ancien credit');
 });
