@@ -6804,3 +6804,27 @@ test('v3.04 : l’avantage du trait et l’equilibre annonces sont ceux que mesu
   assert.strictEqual(note('sr_11', 3), D.find(d => d.cle === 'sr_11').avantage);
   assert.strictEqual((note('sr_10_av', 2) + note('sr_10_av', 3)) / 2, D.find(d => d.cle === 'sr_10_av').equilibre);
 });
+
+// ═══════════════════════════════════════════
+// 91. Le moteur pour carte graphique (tools/gpu) suit le moteur du site
+// ═══════════════════════════════════════════
+test('outil GPU : departs.tsv suit LAYOUTS ; compile pour le processeur, abalone_gpu.cu joue comme le moteur du site (coups, evaluation, notes a profondeur 1 et 2, penalites) et reference.json suit la source', (t) => {
+  const { spawnSync } = require('child_process'), path = require('path'), os = require('os'), fs = require('fs');
+  const racine = path.join(__dirname, '..'), gpu = path.join(racine, 'tools', 'gpu');
+  const dep = spawnSync(process.execPath, [path.join(gpu, 'departs.js'), '--verifier'], { encoding: 'utf8' });
+  assert.strictEqual(dep.status, 0, dep.stdout + dep.stderr);
+  assert.strictEqual(fs.readFileSync(path.join(gpu, 'departs.tsv'), 'utf8').split('\n').filter(l => l && l[0] !== '#').length, Object.keys(ctx.LAYOUTS).length - 1, 'tous les departs sauf Decouverte');
+  if (spawnSync('g++', ['--version']).status !== 0) { t.skip('g++ absent'); return; }
+  const bin = path.join(os.tmpdir(), 'abalone_cpu_test_' + process.pid);
+  const c = spawnSync('g++', ['-O2', '-std=c++17', path.join(gpu, 'test_cpu.cpp'), '-o', bin], { encoding: 'utf8' });
+  assert.strictEqual(c.status, 0, c.stderr);
+  try {
+    const v = spawnSync(process.execPath, [path.join(gpu, 'verifier.js'), bin, '120', '20'], { encoding: 'utf8', maxBuffer: 1 << 26 });
+    assert.strictEqual(v.status, 0, v.stdout + v.stderr); assert.match(v.stdout, /Tout concorde\./);
+    const r = spawnSync(process.execPath, [path.join(gpu, 'reference.js'), bin, '--verifier'], { encoding: 'utf8' });
+    assert.strictEqual(r.status, 0, r.stdout + r.stderr);
+    // le carnet : genere par carnet.py, il controle la carte graphique avec reference.json
+    const nb = JSON.parse(fs.readFileSync(path.join(gpu, 'Abalassembly_GPU.ipynb'), 'utf8')), src = nb.cells.map(x => x.source.join('')).join('\n');
+    assert.ok(src.includes("brut('reference.json')") && src.includes("brut('abalone_gpu.cu')") && src.includes("get_function('parties')"));
+  } finally { try { fs.unlinkSync(bin); } catch (e) {} }
+});
