@@ -758,7 +758,7 @@ const LAYOUTS = {
     black: [[2,0],[2,1],[2,4],[2,5],[2,6],[3,1],[3,2],[3,5],[3,6],[4,2],[6,4],[7,2],[7,3],[8,2]],
     white: [[0,2],[1,2],[1,3],[2,2],[4,6],[5,1],[5,2],[5,5],[5,6],[6,0],[6,1],[6,2],[6,5],[6,6]]
   },
-  /* v3.01 : 60 departs inventes par Abalassembly (fiches : DEPARTS_INVENTES, 21-variants-and-puzzles.js).
+  /* v3.01 : 60 departs generes par le LLM Claude Opus 5.5 Extra, mesures par le moteur (fiches : DEPARTS_INVENTES, 21-variants-and-puzzles.js).
      Choisis parmi des milliers de positions generees : 14 billes par camp, les Blancs sont le demi-tour
      exact des Noirs, aucun contact entre camps au depart, aucune bille seule, aucune n'est une position
      deja connue (meme tournee ou retournee). Classes par l'avantage du trait que mesure le moteur

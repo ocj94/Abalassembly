@@ -87,7 +87,7 @@ une troisième confirmation pour Snakes variant.
 Sauf Corners et Duel, confirmées par 32 et 21 parties AbalOnline, chacune
 n'a qu'une source : leurs fiches le disent.
 
-### Ajoutées en v3.01 : 60 départs inventés par Abalassembly
+### Ajoutées en v3.01 : 60 départs générés par le LLM Claude Opus 5.5 Extra
 
 Demandés par ocj94 : des positions de départ nouvelles, plus équilibrées
 entre les deux joueurs. Elles ont été choisies parmi des milliers de
@@ -125,9 +125,8 @@ corpus du site, les Noirs gagnent 53 % des parties. Seul un grand nombre de
 parties dira si ces départs ramènent ce taux à 50 %. Les fiches le disent :
 aucune partie n'a encore été jouée depuis ces positions.
 
-Dans le menu de configuration, elles forment trois groupes « Départs
-inventés par Abalassembly » ; dans la galerie, le bouton « 🧪 Inventées »
-les montre toutes.
+Elles sont rangées dans deux catégories (v3.03) : « Les formes compactes »
+(série 1) et « Les petits groupes » (séries 2 et 3).
 
 ### Ajoutées en v3.02 : 20 départs où les Blancs prennent de l'avance
 
@@ -159,10 +158,30 @@ Standard, 15 aggravent les choses en défaisant la formation. Au total,
 
 Les 20 : La Flamme · le contact, La Dalle · l’avant-garde, Le Peigne · l’avant-garde, Les Escouades · le pas en avant, Marguerite allemande · le pas en avant, Les Escouades · la menace, Marguerite belge · l’avant-garde, Marguerite belge · l’éclaireur, Marguerite suisse · le pas en avant, Les Avant-postes · la menace, La Botte · le pas en avant, Le Bastion · l’éclaireur, Le Diadème · le pas en avant, Les Cornes · le pas en avant, La Patrouille · la menace, Le Diadème · la menace, La Ruche · le contact, L’Éventail · l’avant-garde, Standard · l’avant-garde, Marguerite hollandaise · le pas en avant.
 
-Dans le menu de configuration, elles forment le groupe « Départs inventés
-par Abalassembly · les Blancs en avance ». Comme les autres, ce sont des
+Elles forment la catégorie « Les Blancs prennent de l'avance » (v3.03).
+Comme les autres, ce sont des
 mesures du moteur : aucune partie n'a encore été jouée depuis ces
 positions.
+
+### v3.03 : trois catégories, et le nom de qui les a générées
+
+Les 80 départs des deux sections précédentes sont rangés en trois
+catégories, dans le menu de configuration comme dans la galerie (un bouton
+par catégorie, et « 🧪 Générées par Claude » pour les 80) :
+
+| Catégorie | Départs | Mesure |
+|---|---|---|
+| 🧱 Les formes compactes | 20 (série 1 de la v3.01) | avantage du trait de +12 à +38 |
+| 🏝️ Les petits groupes | 40 (séries 2 et 3 de la v3.01) | avantage du trait de +24 à +50 |
+| ⏩ Les Blancs prennent de l'avance | 20 (v3.02) | équilibre, 14 sur 20 entre −5 et +5 |
+
+Ces départs ont été générés par le LLM Claude Opus 5.5 Extra, qui a écrit
+les programmes de génération et de choix, puis mesurés par le moteur
+d'Abalassembly : les fiches le disent (« Départ généré par le LLM Claude
+Opus 5.5 Extra »), à la demande d'ocj94, à la place de « inventé par
+Abalassembly ». Leurs noms seront revus : certains reprennent une variante
+qui existe déjà (Le Serpent, Le Fer à cheval, les départs de la série 4
+construits sur une Marguerite).
 
 ### Documentées seulement (10 sur 150)
 
@@ -248,4 +267,4 @@ Burnside) ; le test du site refait le calcul.
 Ces nombres comptent aussi des positions absurdes : une éjection possible dès
 le premier coup, des camps tout collés… Toute l'histoire de l'Abalone n'a
 utilisé qu'une centaine de positions de départ : MiGs en proposait 42,
-Abalassembly en propose 140, dont 80 qu'il a inventées (v3.01-v3.02, section 1).
+Abalassembly en propose 140, dont 80 générées par le LLM Claude Opus 5.5 Extra (v3.01-v3.03, section 1).
