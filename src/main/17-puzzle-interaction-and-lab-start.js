@@ -1911,12 +1911,14 @@ function aiMove() {
     weights: aiW,
     hist: _gameHistKeys(),
     engineMode: _engineMode,
-    nnueWeights: _engineMode ? NNUE_WEIGHTS_CACHE : undefined
+    nnueWeights: _engineMode ? NNUE_WEIGHTS_CACHE : undefined,
+    observe: (typeof obsActif === 'function' && obsActif()) ? 150 : 0   // Observatoire IA : mesures pendant le calcul
   };
+  if (typeof obsDebut === 'function') obsDebut(ai, config);
   const pooledStarted = (typeof requestAIMovePooled === 'function') && requestAIMovePooled(pooledParams, function(chosen, metrics) {
     showAIThinking(false);
     if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
-    if (metrics) { updateAIMetrics(metrics); _releverReflexion(metrics, config); _noterMesuresCoupIA(metrics, ai, config); }
+    if (metrics) { updateAIMetrics(metrics); _releverReflexion(metrics, config); _noterMesuresCoupIA(metrics, ai, config); if (typeof obsFin === 'function') obsFin(metrics, ai, config, chosen); }
     if (GameOver.get()) return;
     if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
     executeAIMove(chosen);
@@ -1929,12 +1931,13 @@ function aiMove() {
     let done = false;
     const onResult = function(e) {
       if (done) return;
+      if (e.data && e.data.progress) { if (typeof obsProgres === 'function') obsProgres(e.data, 1); return; }   // Observatoire IA
       done = true;
       worker.removeEventListener('message', onResult);
       showAIThinking(false);
       if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
       const chosen = e.data && e.data.move;
-      if (e.data) { updateAIMetrics(e.data.metrics); _releverReflexion(e.data.metrics, config); _noterMesuresCoupIA(e.data.metrics, ai, config); }
+      if (e.data) { updateAIMetrics(e.data.metrics); _releverReflexion(e.data.metrics, config); _noterMesuresCoupIA(e.data.metrics, ai, config); if (typeof obsFin === 'function') obsFin(e.data.metrics, ai, config, chosen); }
       if (GameOver.get()) return;
       if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
       executeAIMove(chosen);
@@ -1963,7 +1966,8 @@ function aiMove() {
       weights: aiW,
       hist: _gameHistKeys(),
       engineMode: _engineMode,
-      nnueWeights: _engineMode ? NNUE_WEIGHTS_CACHE : undefined
+      nnueWeights: _engineMode ? NNUE_WEIGHTS_CACHE : undefined,
+      observe: pooledParams.observe
     });
   } else {
     // ── Fallback : pas de worker disponible, calcul synchrone ──

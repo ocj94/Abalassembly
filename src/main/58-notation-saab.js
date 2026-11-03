@@ -223,4 +223,3 @@ function telechargerPartieKAAH() {
   showToast('💾 ' + nom + ' — ' + _tr('fichier de partie au format de KAAH', 'game file in KAAH’s format'));
   return d;
 }
-</script>

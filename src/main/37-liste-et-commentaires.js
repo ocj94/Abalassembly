@@ -89,7 +89,7 @@ function _billesPoussees(avant, cells, dir, col) {
 
 // D'ou vient un coup de l'IA qui n'a pas ete calcule (rempli juste avant executeAIMove)
 var _sourceCoupIA = null;
-function _noterSourceCoupIA(src, couleur) { _sourceCoupIA = { src: src, c: couleur }; }
+function _noterSourceCoupIA(src, couleur) { _sourceCoupIA = { src: src, c: couleur }; if (typeof obsSource === 'function') obsSource(src, couleur); }
 function _texteSourceCoupIA(src) {
   return ({
     table: _tr('Coup parfait de la table de finale (4 contre 2).', 'Perfect move from the endgame table (4 against 2).'),

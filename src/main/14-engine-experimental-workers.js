@@ -148,7 +148,8 @@ self.onmessage=function(e){
     self.postMessage({move:d.move,score:s,nodes:_nodes});
     return;
   }
-  const move=searchBestMove(d.color, d.depth, d.time, d.hist, d.workerIndex, d.workerCount);
+  _obs=(d.observe>0)?d.observe:null;_obsT=0;_obsCtx=null;   // Observatoire IA : mesures en cours de calcul, seulement si demande
+  let move;try{move=searchBestMove(d.color, d.depth, d.time, d.hist, d.workerIndex, d.workerCount);}finally{_obs=null;_obsCtx=null;}
   self.postMessage({move:move, metrics:_metrics});
 };
 `;
@@ -429,6 +430,7 @@ function requestAIMovePooled(params, onDone) {
   workers.forEach(function(w, i) {
     w.onmessage = function(e) {
       if (doneFlag) return;
+      if (e.data && e.data.progress) { if (typeof obsProgres === 'function') obsProgres(e.data, workers.length); return; }   // Observatoire IA : mesure en cours de calcul
       results[i] = e.data;
       remaining--;
       if (remaining <= 0) finish();

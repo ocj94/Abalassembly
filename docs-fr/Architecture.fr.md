@@ -52,6 +52,8 @@ flowchart TD
 - **Les poids Texel** (v2.75) : en style Auto ou Équilibré, à partir du niveau 4, la recherche utilise les poids que la méthode Texel du Labo a appris sur 15 036 positions calmes de vraies parties (3 819 autres pour vérifier). Ils devinent mieux le gagnant et gagnent leurs duels contre « équilibré ». En option : le style KAAH (les critères de l'appli de Saab : sumito, menace, fourchette, piège, compacité) et le moteur NNUE expérimental, jamais par défaut.
 - **Le style** : la recherche utilise les poids du style choisi pour l'IA, ou, en mode adaptatif, celui déduit de ta façon de jouer (tu exposes tes billes : l'IA divise ; tu attaques fort : elle se solidifie ; tu joues passif : elle presse).
 
+**L'Observatoire IA (v3.05)** observe cette recherche sans la changer. Quand son panneau est ouvert, la page ajoute `observe: 150` au message envoyé aux fils de calcul ; chaque fil envoie alors, au plus toutes les 150 ms, un message `{ progress: 1, w, d, max, i, n, nodes, cuts, tt, ms, roots, depths }` (profondeur, positions, coupures, coups de départ déjà notés sous la forme `[clé, note, positions, éjection adverse]`). Le message final est inchangé et le tableau « Réflexion IA » fournit, après le calcul, les suites prévues et les critères. Sans demande, `_obs` vaut `null` : un test par position, aucun message. Le moteur n'est pas un PVS (fenêtre complète pour chaque coup de départ) ; le panneau le dit, et dit aussi que l'arbre complet n'est pas conservé.
+
 ---
 
 ## 2. D'où viennent les données

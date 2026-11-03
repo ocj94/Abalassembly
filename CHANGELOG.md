@@ -9,6 +9,56 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.05]
+
+### Ajouté — l'Observatoire IA
+Idée de l'auteur : voir ce que l'IA calcule pendant la partie. Un panneau à
+activer (bouton « 🔭 Observatoire IA » sous le plateau), à droite sur ordinateur
+et en bas sur téléphone, avec cinq onglets et trois niveaux de détail
+(Spectateur, Analyste, Développeur).
+- **Vue générale** : profondeur atteinte, positions examinées, temps sur le
+  temps accordé, vitesse (courbe en direct), coupures alpha-bêta, part de la
+  table de transposition, meilleur coup profondeur après profondeur (le
+  changement de coup est signalé), élagage par profondeur, détail fil par fil.
+- **Recherche** : les coups de départ au fur et à mesure qu'ils sont notés
+  (note, écart avec le meilleur, effort, ⚠ si l'adversaire a une éjection
+  juste après), flèches sur un plateau, coup choisi tracé sur le plateau de la
+  partie pendant le calcul, variante prévue pas à pas, arbre des lignes
+  principales.
+- **Évaluation** : ce qui compose la note de la position (critères et poids du
+  moteur), l'effet d'un coup choisi, carte des billes (en danger, isolées,
+  forteresses : les définitions de l'évaluation).
+- **Décision** : le coup retenu comparé à ses deux meilleures alternatives, les
+  critères qui font l'écart, « et si l'IA avait joué… ? » (variante du coup
+  écarté).
+- **Historique** : toutes les décisions de l'IA de la partie, courbe de sa
+  note, chute signalée, revue d'un coup dans tous les onglets, et « rejouer ce
+  calcul plus profond » (deux profondeurs de plus, 8 s au plus, dans un fil à
+  part).
+- Un coup joué sans calcul (livre, table de finale, empreinte, niveau 1) est
+  indiqué comme tel.
+
+### Moteur — mesures pendant le calcul, sans changer un choix
+Les fils de calcul envoient, au plus toutes les 150 ms, la profondeur, les
+positions, les coupures et les coups de départ déjà notés ; seulement quand le
+panneau est ouvert (`observe: 150`). Un compteur de coupures s'y ajoute
+(`_cuts`, aussi dans `_metrics.cuts` et `depthInfo[d].cuts`). Un test vérifie
+que le moteur examine exactement les mêmes positions, avec le même résultat,
+avec et sans mesures, et que les coups de départ envoyés sont ceux du moteur.
+Aucun serveur n'est contacté : tout reste dans le navigateur.
+
+### Ce que l'Observatoire ne prétend pas
+- Le moteur n'est **pas un PVS** : alpha-bêta avec approfondissement itératif,
+  table de transposition, coups tueurs et quiescence ; chaque coup de départ
+  est cherché avec une fenêtre complète, donc leurs notes sont exactes. Une
+  coupure ne dit pas qu'un coup est mauvais.
+- L'arbre complet n'est pas conservé (des milliers de positions) : on montre
+  l'arbre des lignes principales des 10 meilleurs coups de départ.
+- Les notes sont en points internes (une bille de plus = 1000, une éjection
+  2000), pas une probabilité de gagner.
+- Les écarts de critères entre deux coups sont reconstitués après le calcul à
+  partir du bout de leur suite prévue, et l'écran le dit.
+
 ## [v3.04]
 
 ### Ajouté — Speed run et Au centre, 49 départs
