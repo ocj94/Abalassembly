@@ -465,13 +465,13 @@ function _obsCss() {
   if (typeof document === 'undefined' || document.getElementById('obs-style')) return;
   const st = document.createElement('style'); st.id = 'obs-style';
   st.textContent = '#obs-panneau{position:fixed;top:64px;right:8px;bottom:8px;width:min(400px,calc(100vw - 16px));z-index:2400;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;display:none;flex-direction:column;box-shadow:0 10px 40px rgba(0,0,0,.55);font-size:12px;color:var(--text)}'
-    + '#obs-panneau.obs-on{display:flex}#obs-panneau header{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--border);flex-wrap:wrap}'
-    + '#obs-panneau header b{font-family:"Playfair Display",serif;color:var(--gold);font-size:14px;margin-right:auto}'
-    + '#obs-panneau nav{display:flex;gap:2px;padding:6px 8px 0;overflow-x:auto;border-bottom:1px solid var(--border)}'
-    + '#obs-panneau nav button{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:5px 8px;cursor:pointer;font-size:12px;white-space:nowrap}#obs-panneau nav button.obs-actif{color:var(--gold);border-bottom-color:var(--gold)}'
+    + '#obs-panneau.obs-on{display:flex}#obs-panneau .obs-entete{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--border);flex-wrap:wrap}'
+    + '#obs-panneau .obs-entete b{font-family:"Playfair Display",serif;color:var(--gold);font-size:14px;margin-right:auto}'
+    + '#obs-panneau .obs-onglets{display:flex;gap:2px;padding:6px 8px 0;overflow-x:auto;border-bottom:1px solid var(--border)}'
+    + '#obs-panneau .obs-onglets button{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:5px 8px;cursor:pointer;font-size:12px;white-space:nowrap}#obs-panneau .obs-onglets button.obs-actif{color:var(--gold);border-bottom-color:var(--gold)}'
     + '#obs-corps{flex:1;overflow:auto;padding:10px 12px}#obs-corps h5{margin:12px 0 5px;color:var(--gold);font-size:12px;font-weight:600}'
     + '.obs-niv{display:inline-flex;border:1px solid var(--border);border-radius:12px;overflow:hidden}.obs-niv button{background:none;border:none;color:var(--muted);padding:3px 8px;cursor:pointer;font-size:11px}.obs-niv button.obs-actif{background:rgba(200,168,75,.2);color:var(--gold)}'
-    + '.obs-btn,.obs-lien,#obs-panneau header .obs-ic{background:rgba(200,168,75,.1);border:1px solid var(--gold-dim);color:var(--gold);border-radius:10px;padding:3px 9px;cursor:pointer;font-size:11px}.obs-lien{background:none;border:none;padding:2px 4px;text-decoration:underline}'
+    + '.obs-btn,.obs-lien,#obs-panneau .obs-entete .obs-ic{background:rgba(200,168,75,.1);border:1px solid var(--gold-dim);color:var(--gold);border-radius:10px;padding:3px 9px;cursor:pointer;font-size:11px}.obs-lien{background:none;border:none;padding:2px 4px;text-decoration:underline}'
     + '.obs-btn:disabled{opacity:.5;cursor:default}'
     + '.obs-grille{display:grid;grid-template-columns:1fr 1fr;gap:6px}.obs-g3{grid-template-columns:repeat(3,1fr);margin-top:6px}.obs-k{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 8px;display:flex;flex-direction:column}'
     + '.obs-k span,.obs-k small{color:var(--muted);font-size:10.5px}.obs-k b{font-size:17px;color:var(--white);font-family:"DM Mono",monospace}'
@@ -510,11 +510,11 @@ function _obsRendu() {
   let corps = '';
   try { corps = onglet === 'general' ? _obsTabGeneral(V) : onglet === 'recherche' ? _obsTabRecherche(V) : onglet === 'evaluation' ? _obsTabEvaluation(V) : onglet === 'decision' ? _obsTabDecision(V) : _obsTabHistorique(); }
   catch (e) { corps = '<div class="obs-vide">' + _obsT('Erreur d’affichage : ', 'Display error: ') + _obsE(e && e.message) + '</div>'; }
-  p.innerHTML = '<header><b>🔭 ' + _obsT('Observatoire IA', 'AI Observatory') + '</b>' + etat
+  p.innerHTML = '<div class="obs-entete"><b>🔭 ' + _obsT('Observatoire IA', 'AI Observatory') + '</b>' + etat
     + '<span class="obs-niv">' + _OBS_NIVEAUX.map(function (n) { return '<button class="' + (OBS.niveau === n[0] ? 'obs-actif' : '') + '" onclick="obsNiveau(\'' + n[0] + '\')">' + _obsT(n[1], n[2]) + '</button>'; }).join('') + '</span>'
     + '<button class="obs-ic" onclick="obsFiger()" title="' + _obsT('Figer l’affichage pendant le calcul', 'Freeze the display while searching') + '">' + (OBS.fige ? '▶' : '⏸') + '</button>'
-    + '<button class="obs-ic" onclick="obsBasculer()" title="' + _obsT('Fermer', 'Close') + '">✕</button></header>'
-    + '<nav>' + _OBS_ONGLETS.map(function (o) { return '<button class="' + (onglet === o[0] ? 'obs-actif' : '') + '" onclick="obsOnglet(\'' + o[0] + '\')">' + _obsT(o[1], o[2]) + '</button>'; }).join('') + '</nav>'
+    + '<button class="obs-ic" onclick="obsBasculer()" title="' + _obsT('Fermer', 'Close') + '">✕</button></div>'
+    + '<div class="obs-onglets" role="tablist">' + _OBS_ONGLETS.map(function (o) { return '<button class="' + (onglet === o[0] ? 'obs-actif' : '') + '" onclick="obsOnglet(\'' + o[0] + '\')">' + _obsT(o[1], o[2]) + '</button>'; }).join('') + '</div>'
     + '<div id="obs-corps">' + corps + '</div>';
   const c = document.getElementById('obs-corps'); if (c) c.scrollTop = haut;
 }

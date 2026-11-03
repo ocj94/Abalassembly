@@ -11,6 +11,10 @@ invisible offline — which contradicts the project's own principle.
 
 ## [v3.05]
 
+### Fixed after release
+- The Observatory tabs left the panel and stuck to the top of the window (the
+  site menu style applied to them). They now stay inside the panel.
+
 ### Added — the AI Observatory
 The author's idea: see what the AI computes during the game. An optional
 panel ("🔭 AI Observatory" button under the board), on the right on desktop

@@ -6877,6 +6877,8 @@ test('Observatoire IA : la page l’integre (panneau, onglets, niveaux, bouton, 
   // le panneau ne contacte aucun serveur
   const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'main', '59-observatoire-ia.js'), 'utf8');
   assert.ok(!/fetch\(|XMLHttpRequest|WebSocket|sendBeacon/.test(src));
+  // pas de balise <nav> ni <header> : le style global du site (nav fixe en haut de page) sortirait les onglets du panneau
+  assert.ok(!/<nav[\s>]|<\/nav>/.test(src) && !/['"]<header/.test(src) && !/#obs-panneau (nav|header)\b/.test(src));
   // le moteur ne demande les mesures que si le panneau est ouvert
   const pg = fs.readFileSync(path.join(__dirname, '..', 'src', 'main', '17-puzzle-interaction-and-lab-start.js'), 'utf8');
   assert.ok(/observe: \(typeof obsActif === 'function' && obsActif\(\)\) \? 150 : 0/.test(pg));

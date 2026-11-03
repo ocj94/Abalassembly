@@ -11,6 +11,11 @@ donc invisible hors ligne — ce qui contredit le principe du projet.
 
 ## [v3.05]
 
+### Corrigé après publication
+- Les onglets de l'Observatoire sortaient du panneau et se collaient en haut
+  de la fenêtre (le style du menu du site s'appliquait à eux). Ils restent
+  maintenant dans le panneau.
+
 ### Ajouté — l'Observatoire IA
 Idée de l'auteur : voir ce que l'IA calcule pendant la partie. Un panneau à
 activer (bouton « 🔭 Observatoire IA » sous le plateau), à droite sur ordinateur
