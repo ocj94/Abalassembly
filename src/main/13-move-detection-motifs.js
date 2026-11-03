@@ -744,9 +744,22 @@ function quiescence(alpha,beta,pov,maxi,qd){
     if(maxi){if(s>alpha)alpha=s;if(alpha>=beta)break;}else{if(s<beta)beta=s;if(beta<=alpha)break;}}
   return maxi?alpha:beta;
 }
-let _nodes=0,_ttLk=0,_ttHit=0,_metrics=null;
+let _nodes=0,_ttLk=0,_ttHit=0,_metrics=null,_cuts=0;
+/* Observatoire IA (v3.05) : quand la page le demande (message { observe: ms }), le fil envoie des
+   mesures PENDANT le calcul. Rien de ce qui suit ne change un choix du moteur : un compteur de
+   coupures, et des envois de mesures espaces (au moins _obs ms) entre deux coups racine, ou tous
+   les 8192 noeuds. Sans demande, _obs vaut null et le seul cout est un test par noeud. */
+let _obs=null,_obsT=0,_obsCtx=null;
+function _obsEnvoie(fin){
+  if(!_obs||!_obsCtx||typeof self==='undefined'||typeof self.postMessage!=='function')return;
+  const now=Date.now();if(!fin&&now-_obsT<_obs)return;_obsT=now;
+  const c=_obsCtx;
+  self.postMessage({progress:1,w:c.w,d:c.d,max:c.max,i:c.i,n:c.n,cur:c.cur,nodes:_nodes,cuts:_cuts,
+    tt:_ttLk?Math.round(100*_ttHit/_ttLk):0,ms:now-c.t0,fin:fin?1:0,roots:c.roots,depths:c.depths});
+}
 function search(depth,alpha,beta,maxi,pov,prevKey){
   _nodes++;
+  if(_obs&&(_nodes&8191)===0)_obsEnvoie(false);
   const ao=alpha;
   if(capturedByWhite>=6)return pov==='white'?100000:-100000;
   if(capturedByBlack>=6)return pov==='black'?100000:-100000;
@@ -762,7 +775,7 @@ function search(depth,alpha,beta,maxi,pov,prevKey){
   let best=maxi?-Infinity:Infinity,bestMove=null;
   for(const m of moves){const mk=moveKey(m);const u=applyMove(m,mc);const s=search(depth-1,alpha,beta,!maxi,pov,mk);undoMove(u);
     if(maxi){if(s>best){best=s;bestMove=m;}if(best>alpha)alpha=best;}else{if(s<best){best=s;bestMove=m;}if(best<beta)beta=best;}
-    if(alpha>=beta){if(!killerMoves[depth])killerMoves[depth]=[];
+    if(alpha>=beta){_cuts++;if(!killerMoves[depth])killerMoves[depth]=[];
       if(killerMoves[depth].indexOf(mk)===-1){killerMoves[depth].unshift(mk);if(killerMoves[depth].length>2)killerMoves[depth].pop();}
       historyTable[mk]=(historyTable[mk]||0)+depth*depth;
       if(prevKey)counterMove[prevKey]=mk;
@@ -783,7 +796,8 @@ function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
   const start=Date.now();let bestMove=null,bestScore=-Infinity,reached=0,lastRoots=null,lastRootsDepth=0;
   const rootsByDepth={},ejCache={},opp=(pov==='black'?'white':'black');
   const depthInfo={},posTerms=evalDetail(pov);   // tableau « Reflexion IA » : bilan par profondeur, criteres de la position
-  killerMoves={};historyTable={};counterMove={};TT.clear();_nodes=0;_ttLk=0;_ttHit=0;
+  killerMoves={};historyTable={};counterMove={};TT.clear();_nodes=0;_ttLk=0;_ttHit=0;_cuts=0;
+  if(_obs)_obsCtx={w:workerIndex||0,d:0,max:maxDepth,i:0,n:0,cur:null,t0:start,roots:[],depths:[]};
   const repCount=_repCountMap(hist),ar=_allerRetourRef(hist,pov);
   const split=(workerCount>1);   // partage des racines entre plusieurs workers (voir requestAIMovePooled)
   for(let d=1;d<=maxDepth;d++){
@@ -821,8 +835,9 @@ function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
        quand la profondeur va au bout). */
     const rang=new Map();moves.forEach(function(m,i){rang.set(m,i);});
     if(bestMove){const bk=moveKey(bestMove);const ip=moves.findIndex(function(m){return moveKey(m)===bk;});if(ip>0)moves.unshift(moves.splice(ip,1)[0]);}
-    let lb=null,ls=-Infinity,alpha=-Infinity,roots=[],cut=false;const _nd0=_nodes,_td0=Date.now();
-    for(const m of moves){const mk=moveKey(m);const _n0=_nodes,_t0=Date.now();const u=applyMove(m,pov);let s=search(d-1,-Infinity,Infinity,false,pov,mk);
+    let lb=null,ls=-Infinity,alpha=-Infinity,roots=[],cut=false;const _nd0=_nodes,_td0=Date.now(),_cu0=_cuts;
+    if(_obsCtx){_obsCtx.d=d;_obsCtx.n=moves.length;_obsCtx.i=0;_obsCtx.roots=[];}
+    for(const m of moves){const mk=moveKey(m);const _n0=_nodes,_t0=Date.now();if(_obsCtx)_obsCtx.cur=mk;const u=applyMove(m,pov);let s=search(d-1,-Infinity,Infinity,false,pov,mk);
       const ck=(repCount||ar)?_repKeyOf(board):null;
       if(repCount){const rc=repCount.get(ck);if(rc)s-=140*rc*rc;}
       if(ar&&_mesBillesCle(ck,pov)===ar.cle)s-=140*ar.n*ar.n;
@@ -841,6 +856,7 @@ function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
       }
       undoMove(u);
       roots.push({cells:m.cells,dir:m.dir,type:m.type,eject:m.eject,score:s,oppEject:ejCache[mk],key:mk,k:_nodes-_n0,ms:Date.now()-_t0,t:Date.now()-start});
+      if(_obsCtx){_obsCtx.i++;_obsCtx.roots.push([mk,s,_nodes-_n0,ejCache[mk]|0]);_obsEnvoie(false);}
       if(s>ls||(s===ls&&lb&&rang.get(m)<rang.get(lb))){ls=s;lb=m;}if(s>alpha)alpha=s;if(Date.now()-start>timeLimit){cut=true;break;}}
     // bestScore=ls (pas lastRoots[0].score) : correct meme si cette profondeur a
     // ete coupee par le minuteur avant d'explorer tous les coups — lastRoots ne
@@ -852,7 +868,8 @@ function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
     // ou complete — pas un bug de calcul, un bug de RAPPORT du score correct.
     if(lb){bestMove=lb;bestScore=ls;reached=d;if(!cut){lastRoots=roots;lastRootsDepth=d;rootsByDepth[d]=roots;
       // profondeur complete : bilan, puis suite prevue et criteres de ses 10 meilleurs coups
-      depthInfo[d]={nodes:_nodes-_nd0,ms:Date.now()-_td0,fin:Date.now()-start};
+      depthInfo[d]={nodes:_nodes-_nd0,ms:Date.now()-_td0,fin:Date.now()-start,cuts:_cuts-_cu0};
+      if(_obsCtx){_obsCtx.depths.push([d,_nodes-_nd0,Date.now()-_td0,_cuts-_cu0,Math.round(ls)]);_obsEnvoie(true);}
       roots.slice().sort((a,b)=>b.score-a.score).slice(0,10).forEach(function(r){const x=_pvEtTermes(r.key,pov,d-1);if(x){r.pv=x.pv;r.terms=x.terms;}});}}
     if(Date.now()-start>timeLimit)break;}
   const top=lastRoots?lastRoots.slice().sort((a,b)=>b.score-a.score).slice(0,5):null;
@@ -862,7 +879,7 @@ function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
      local n'est PAS le top 5 de la position. requestAIMovePooled fusionne ces
      listes a la profondeur commune la plus grande -- melanger des scores
      obtenus a des profondeurs differentes ne voudrait rien dire. */
-  _metrics={nodes:_nodes,depth:reached,time:Date.now()-start,ttHit:_ttLk?Math.round(100*_ttHit/_ttLk):0,rootMoves:top,rootsByDepth:rootsByDepth,rootDepth:lastRootsDepth,bestScore:bestScore,
+  _metrics={nodes:_nodes,cuts:_cuts,depth:reached,time:Date.now()-start,ttHit:_ttLk?Math.round(100*_ttHit/_ttLk):0,rootMoves:top,rootsByDepth:rootsByDepth,rootDepth:lastRootsDepth,bestScore:bestScore,
     depthInfo:depthInfo,posTerms:posTerms,poids:Object.assign({},EVAL_W)};
   return bestMove;
 }

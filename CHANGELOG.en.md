@@ -9,6 +9,54 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.05]
+
+### Added — the AI Observatory
+The author's idea: see what the AI computes during the game. An optional
+panel ("🔭 AI Observatory" button under the board), on the right on desktop
+and at the bottom on phones, with five tabs and three levels of detail
+(Spectator, Analyst, Developer).
+- **Overview**: depth reached, positions searched, time against the time
+  allowed, speed (live curve), alpha-beta cutoffs, transposition-table hits,
+  best move depth after depth (a change of move is flagged), pruning by depth,
+  thread-by-thread detail.
+- **Search**: first moves as they get scored (score, gap to the best, effort,
+  ⚠ if the opponent can eject right after), arrows on a board, the selected
+  move drawn on the game board during the search, expected line step by step,
+  tree of principal lines.
+- **Evaluation**: what makes up the position score (the engine's criteria and
+  weights), the effect of a selected move, marble map (in danger, isolated,
+  fortress: the evaluation's own definitions).
+- **Decision**: the chosen move against its two best alternatives, the
+  criteria that make the gap, "what if the AI had played…?" (line of the
+  rejected move).
+- **History**: every AI decision of the game, its score curve, drops flagged,
+  review of a move across all tabs, and "re-run this search deeper" (two more
+  plies, 8 s at most, in a separate thread).
+- A move played without a search (book, endgame table, fingerprint, level 1)
+  is shown as such.
+
+### Engine — measures during the search, without changing a choice
+The threads send, at most every 150 ms, the depth, positions, cutoffs and the
+first moves already scored; only while the panel is open (`observe: 150`). A
+cutoff counter is added (`_cuts`, also in `_metrics.cuts` and
+`depthInfo[d].cuts`). A test checks that the engine searches exactly the same
+positions with the same result with and without measures, and that the first
+moves sent are the engine's. No server is contacted: everything stays in the
+browser.
+
+### What the Observatory does not claim
+- The engine is **not a PVS**: alpha-beta with iterative deepening,
+  transposition table, killer moves and quiescence; every first move is
+  searched with a full window, so their scores are exact. A cutoff does not
+  mean a move is bad.
+- The full tree is not kept (thousands of positions): the tree of principal
+  lines of the 10 best first moves is shown.
+- Scores are in internal points (one marble ahead = 1000, an ejection 2000),
+  not a win probability.
+- Criterion gaps between two moves are rebuilt after the search from the end
+  of their expected line, and the screen says so.
+
 ## [v3.04]
 
 ### Added — Speed run and In the centre, 49 starts

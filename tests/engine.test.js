@@ -6828,3 +6828,56 @@ test('outil GPU : departs.tsv suit LAYOUTS ; compile pour le processeur, abalone
     assert.ok(src.includes("brut('reference.json')") && src.includes("brut('abalone_gpu.cu')") && src.includes("get_function('parties')"));
   } finally { try { fs.unlinkSync(bin); } catch (e) {} }
 });
+
+// ═══════════════════════════════════════════
+// 92. Observatoire IA (v3.05) : le moteur envoie ses mesures sans changer ses choix
+// ═══════════════════════════════════════════
+test('Observatoire IA : avec ou sans mesures en cours de calcul, le moteur choisit le meme coup avec les memes positions ; les mesures sont completes et rien n’est envoye sans demande', () => {
+  const { w, ev, poser } = _filKaah();
+  const B = ctx.LAYOUTS.belgian, b = {}; B.black.forEach(q => { b[q[0] + ',' + q[1]] = 'black'; }); B.white.forEach(q => { b[q[0] + ',' + q[1]] = 'white'; });
+  const msgs = []; w.postMessage = m => msgs.push(m);
+  const lancer = obs => { msgs.length = 0; w.__d = { board: JSON.parse(JSON.stringify(b)), capturedByBlack: 0, capturedByWhite: 0, color: 'black', depth: 3, time: 1e9, hist: null, observe: obs };   // plateau neuf : le moteur reordonne les cases du sien
+    ev('self.onmessage({ data: __d })'); return msgs.slice(); };
+  const sans = lancer(0), avec = lancer(1);
+  assert.strictEqual(sans.filter(m => m.progress).length, 0, 'rien sans demande');
+  const finSans = sans[sans.length - 1], finAvec = avec[avec.length - 1], key = m => ev('moveKey(' + JSON.stringify({ cells: m.cells, dir: m.dir }) + ')');
+  assert.ok(finSans.move && finAvec.move);
+  assert.strictEqual(key(finAvec.move), key(finSans.move), 'meme coup');
+  assert.strictEqual(finAvec.metrics.nodes, finSans.metrics.nodes, 'memes positions examinees');
+  assert.strictEqual(finAvec.metrics.bestScore, finSans.metrics.bestScore);
+  assert.ok(finAvec.metrics.cuts > 0 && finAvec.metrics.cuts < finAvec.metrics.nodes, 'coupures comptees : ' + finAvec.metrics.cuts);
+  const pr = avec.filter(m => m.progress);
+  assert.ok(pr.length >= 10, 'mesures envoyees : ' + pr.length);
+  pr.forEach(m => { assert.strictEqual(m.w, 0); assert.strictEqual(m.max, 3); assert.ok(m.d >= 1 && m.d <= 3 && m.nodes > 0 && m.ms >= 0 && Array.isArray(m.roots) && Array.isArray(m.depths)); });
+  for (let i = 1; i < pr.length; i++) assert.ok(pr[i].nodes >= pr[i - 1].nodes, 'noeuds croissants');
+  // chaque profondeur terminee : un message « fin » dont les coups racine sont ceux du moteur
+  const fins = pr.filter(m => m.fin), R = finAvec.metrics.rootsByDepth;
+  assert.strictEqual(fins.map(m => m.d).join(), '1,2,3');
+  fins.forEach(m => { const attendu = R[m.d].map(r => [r.key, r.score, r.k, r.oppEject | 0]); assert.strictEqual(JSON.stringify(m.roots), JSON.stringify(attendu), 'profondeur ' + m.d);   // JSON : tableaux nes dans le contexte du fil
+    assert.strictEqual(m.n, attendu.length); assert.strictEqual(m.i, attendu.length); });
+  // les coupures par profondeur s'additionnent au total
+  assert.strictEqual(Object.values(finAvec.metrics.depthInfo).reduce((a, x) => a + x.cuts, 0), finAvec.metrics.cuts);
+  assert.ok(fins[2].depths.length === 3 && fins[2].depths.every(x => x.length === 5));
+  // espace entre deux envois : 150 ms demandees, donc bien moins de messages que de coups racine notes
+  const espaces = lancer(100000).filter(m => m.progress);
+  assert.ok(espaces.length < pr.length && espaces.length >= 1, 'espacement : ' + espaces.length + ' contre ' + pr.length);
+  // l'etat « observation » ne survit pas a la demande
+  assert.strictEqual(ev('_obs'), null);
+});
+
+test('Observatoire IA : la page l’integre (panneau, onglets, niveaux, bouton, crochets du moteur, aucune dependance au serveur)', () => {
+  const fs = require('fs'), path = require('path'), html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  ['obsBasculer', 'obsActif', 'obsDebut', 'obsProgres', 'obsFin', 'obsSource', 'obsReanalyser'].forEach(f => assert.strictEqual(typeof ctx[f], 'function', f));
+  assert.ok(html.includes('id="obs-btn-jeu"'));
+  const lire = n => require('vm').runInContext(n, ctx);
+  ['Vue générale', 'Recherche', 'Évaluation', 'Décision', 'Historique'].forEach(o => assert.ok(lire('_OBS_ONGLETS').some(x => x[1] === o), o));
+  assert.strictEqual(lire('_OBS_NIVEAUX').map(x => x[0]).join(), 'spectateur,analyste,developpeur');
+  // la clé d'un coup racine se relit en cases et direction
+  const x = ctx._obsLireCle('3,2|3,3|3,4>1,0'); assert.deepStrictEqual(JSON.parse(JSON.stringify(x)), { cells: [{ r: 3, c: 2 }, { r: 3, c: 3 }, { r: 3, c: 4 }], dir: { q: 1, r: 0 } });
+  // le panneau ne contacte aucun serveur
+  const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'main', '59-observatoire-ia.js'), 'utf8');
+  assert.ok(!/fetch\(|XMLHttpRequest|WebSocket|sendBeacon/.test(src));
+  // le moteur ne demande les mesures que si le panneau est ouvert
+  const pg = fs.readFileSync(path.join(__dirname, '..', 'src', 'main', '17-puzzle-interaction-and-lab-start.js'), 'utf8');
+  assert.ok(/observe: \(typeof obsActif === 'function' && obsActif\(\)\) \? 150 : 0/.test(pg));
+});

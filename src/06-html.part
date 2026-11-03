@@ -1294,6 +1294,7 @@
           <button class="ctrl-btn" onclick="copierCodePosition()" style="width:auto;padding:2px 8px;font-size:11px">Copier</button>
           <button class="ctrl-btn" onclick="ouvrirPermutations()" style="width:auto;padding:2px 8px;font-size:11px" title="Les 12 symétries de la position et l'échange des camps">Permutations</button>
         </div>
+        <button class="ctrl-btn" id="obs-btn-jeu" onclick="obsBasculer()" style="width:100%;margin-bottom:8px;background:rgba(200,168,75,0.1);border-color:var(--gold-dim);color:var(--gold)" title="Voir ce que l'IA calcule, pendant la partie : profondeur, coups envisagés, évaluation, décision">🔭 Observatoire IA</button>
         <div id="reflexion-panneau" style="margin:0 0 12px">
           <button class="ctrl-btn" onclick="basculerPanneauReflexion()" id="reflexion-panneau-btn" style="width:auto;padding:4px 10px;font-size:12px">▸ Réflexion de l’IA</button>
           <div id="reflexion-panneau-corps" style="display:none;margin-top:6px"></div>

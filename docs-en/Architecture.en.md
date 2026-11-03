@@ -52,6 +52,8 @@ flowchart TD
 - **The Texel weights** (v2.75): in Auto or Balanced style, from level 4, the search uses the weights the Lab's Texel method learned from 15,036 quiet positions of real games (3,819 more to check them). They guess the winner better and win their duels against "balanced". As options: the KAAH style (the criteria of Saab's app: sumito, threat, fork, trap, compactness) and the experimental NNUE engine, never by default.
 - **The style**: the search uses the weights of the style chosen for the AI or, in adaptive mode, the one deduced from how you play (you expose your marbles: the AI divides; you attack hard: it gets solid; you play passively: it presses).
 
+**The AI Observatory (v3.05)** watches this search without changing it. When its panel is open, the page adds `observe: 150` to the message sent to the worker threads; each thread then sends, at most every 150 ms, a `{ progress: 1, w, d, max, i, n, nodes, cuts, tt, ms, roots, depths }` message (depth, positions, cutoffs, first moves already scored as `[key, score, positions, opponent ejection]`). The final message is unchanged, and the "AI reflection" table supplies the expected lines and criteria after the search. Without a request `_obs` is `null`: one test per position, no message. The engine is not a PVS (full window for every first move); the panel says so, and also that the full tree is not kept.
+
 ---
 
 ## 2. Where the data comes from
