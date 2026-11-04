@@ -9,6 +9,30 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.11]
+
+### Fixed — the AI's memory mixed up the two sides
+Found while measuring the spacing of the levels: from level 4 up, the higher
+level no longer beat the one below (4 → 5: 0 Elo, 5 → 6: −99, 6 → 7: −221,
+over 9 game pairs per step).
+
+The transposition table, where the AI stores positions already searched,
+recognised a position by its marbles only, without the side to move. Yet the
+same layout comes back with the other side to move, for instance when a marble
+makes in two moves the trip another line makes in one. The AI then read back a
+score computed for its opponent. Measured without time limit, against the same
+engine without a table (whose scores are exact):
+- three Belgian Daisy starts, depth 3: **118 move scores out of 203 wrong**, by
+  up to 1,957 points (almost 2 marbles);
+- a small position, depth 4: 40 scores out of 43 wrong, and **a different
+  move chosen** than the right one.
+
+The key now includes the side to move (search thread, main thread, and both
+readers of the expected line): no wrong score left, and the search is a little
+faster. The deeper the AI searches, the more it gains. The scores shown by the
+AI Observatory and the AI reflection benefit too. Test added: the scores of
+all root moves equal those of the search without a table.
+
 ## [v3.10]
 
 ### Added — illustrated analysis documentation

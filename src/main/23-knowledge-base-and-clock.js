@@ -288,7 +288,7 @@ function extractPV(rootColor, firstMove, maxLen) {
 
     for (let i = 1; i < maxLen; i++) {
       if (CapturedByBlack.get() >= 6 || CapturedByWhite.get() >= 6) break;
-      const h = hashBoard();
+      const h = hashPos(mover);
       const tt = TT.get(h);
       if (!tt || !tt.move) break;
       const legal = getAllMovesForColor(mover);

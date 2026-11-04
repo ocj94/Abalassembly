@@ -2016,6 +2016,28 @@ function _positionKaah05(ply) {
 }
 const _POIDS_DEFAUT = { center: 6, cohesion: 4, edge: 8, mob: 2, iso: 18, dng: 14, chain: 10, fortress: 20 };
 
+/* Table de transposition : sa cle ne contenait que les billes. La meme disposition atteinte
+   avec l'autre camp au trait (une bille deplacee en deux coups au lieu d'un) relisait la valeur
+   calculee pour l'autre camp : notes des coups racine fausses, et a la profondeur 4 un autre
+   coup que celui du minimax exact. La reference est le meme moteur SANS table : chaque coup
+   racine y est cherche a fenetre pleine, sa note est donc exacte. */
+test('Table de transposition : la cle contient le camp au trait (notes des coups racine = recherche sans table)', () => {
+  const vm = require('vm');
+  const A = _filDeCalcul(true).w, R = _filDeCalcul(true).w;
+  vm.runInContext('search=' + R.search.toString().replace('const tt=TT.get(h);', 'const tt=undefined;').replace('if(TT.size<TT_MAX)TT.set(', 'if(false)TT.set(') + ';', R);
+  assert.ok(/const h=hashPos\(mc\);const tt=TT\.get\(h\);/.test(A.search.toString()), 'la recherche lit la table avec le camp au trait');
+  const bd = {};
+  [[3, 2], [3, 3], [4, 3], [4, 4], [5, 3], [2, 2]].forEach(p => { bd[p[0] + ',' + p[1]] = 'black'; });
+  [[3, 5], [4, 5], [4, 6], [5, 4], [5, 5], [6, 4]].forEach(p => { bd[p[0] + ',' + p[1]] = 'white'; });
+  const notes = w => { vm.runInContext('board=' + JSON.stringify(bd) + ';capturedByBlack=0;capturedByWhite=0;EVAL_W=' + JSON.stringify(_POIDS_DEFAUT) + ';', w);
+    const m = w.searchBestMove('black', 3, 1e9, []), o = {}; vm.runInContext('_metrics', w).rootsByDepth[3].forEach(r => { o[r.key] = r.score; }); return { coup: w.moveKey(m), o }; };
+  const a = notes(A), r = notes(R);
+  assert.notStrictEqual(A.hashPos('black'), A.hashPos('white'), 'meme disposition, autre camp au trait : autre cle');
+  assert.deepStrictEqual(Object.keys(a.o).sort(), Object.keys(r.o).sort());
+  for (const k in r.o) assert.ok(Math.abs(a.o[k] - r.o[k]) < 0.5, k + ' : ' + a.o[k] + ' au lieu de ' + r.o[k]);
+  assert.strictEqual(a.coup, r.coup);
+});
+
 test('reflexion IA (moteur) : chiffres coherents -- positions additionnees, criteres = score, suites legales', () => {
   const s = _positionKaah05(40), fil = _filDeCalcul(true), chercher = fil.chercher, w = fil.w;
   const r = chercher({ board: s.board, capturedByWhite: s.capturedByWhite, capturedByBlack: s.capturedByBlack, color: 'black', depth: 2, time: 60000, weights: _POIDS_DEFAUT, hist: [] });

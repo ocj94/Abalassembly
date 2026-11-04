@@ -9,6 +9,31 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.11]
+
+### Corrigé — la mémoire de l'IA confondait les deux camps
+Trouvé en mesurant l'espacement des niveaux : à partir du niveau 4, le niveau
+supérieur ne battait plus celui du dessous (4 → 5 : 0 Elo, 5 → 6 : −99,
+6 → 7 : −221, sur 9 paires de parties par marche).
+
+La table de transposition, où l'IA range les positions déjà calculées,
+reconnaissait une position à ses billes seulement, sans le camp qui doit
+jouer. Or la même disposition revient avec l'autre camp au trait, par exemple
+quand une bille fait en deux coups le trajet qu'un autre chemin fait en un.
+L'IA relisait alors une note calculée pour l'adversaire. Mesuré sans limite de
+temps, contre le même moteur sans table (dont les notes sont exactes) :
+- trois départs de la Marguerite belge, profondeur 3 : **118 notes de coups sur
+  203 fausses**, jusqu'à 1 957 points (près de 2 billes) ;
+- une petite position, profondeur 4 : 40 notes sur 43 fausses, et **un autre
+  coup choisi** que le bon.
+
+La clé contient maintenant le camp au trait (fil de calcul, fil principal, et
+les deux lectures de la suite prévue) : plus aucune note fausse, et la
+recherche va un peu plus vite. Plus l'IA cherche profond, plus elle y gagne.
+Les notes affichées par l'Observatoire IA et la Réflexion de l'IA en
+profitent aussi. Test ajouté : les notes de tous les coups racine sont égales
+à celles de la recherche sans table.
+
 ## [v3.10]
 
 ### Ajouté — une documentation illustrée de l'analyse
