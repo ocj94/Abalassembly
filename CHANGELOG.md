@@ -9,6 +9,35 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.10]
+
+### Ajouté — une documentation illustrée de l'analyse
+Demande de l'auteur : des photos explicatives dans le wiki pour les parties
+« analyse ». Captures du **vrai site**, prises pendant de vraies parties contre
+l'IA (dossier `docs-img/`), dans les pages du dépôt (`docs-fr/`, `docs-en/`)
+et dans le wiki GitHub :
+- **Observatoire IA** (nouvelle page) : le plateau en direct, chaque onglet, la
+  fiche « Pourquoi pas … ? », deux variantes côte à côte, le panneau réduit, le
+  téléphone ;
+- **Réflexion de l'IA** (page ajoutée au dépôt, image ajoutée au wiki) : le
+  tableau après le coup, avec la suite prévue sur le petit plateau ; une note
+  dit que depuis la v2.75 les poids Texel donnent aussi une valeur à certains
+  critères de KAAH ;
+- **Analyser une partie** (nouvelle page) : « Après la partie », « Analyse de
+  la position », le rapport « Analyser la partie » (précision, catégories,
+  coups à revoir) et la page Analyse. Elle explique aussi pourquoi la courbe de
+  la page Analyse et le rapport classent les coups différemment : ils ne
+  mesurent pas la même chose.
+
+### Corrigé
+- Observatoire : quand plusieurs des 3 meilleurs coups partent de la même
+  bille, leurs pastilles de rang se cachaient l'une l'autre ; la suivante
+  glisse maintenant le long de sa flèche.
+- « Après la partie » et son bouton étaient écrits sans accents (« Apres la
+  partie », « Premiere bille perdue », « Position basculee »…).
+- Observatoire sur téléphone : le bandeau « L'IA réfléchit… » cachait le bas
+  du tiroir (mini plateau, frise) ; il passe maintenant juste au-dessus.
+
 ## [v3.09]
 
 ### Ajouté — l'Observatoire IA, d'après les maquettes « HUD », « timeline » et « courbe par profondeur »

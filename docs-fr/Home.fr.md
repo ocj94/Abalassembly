@@ -12,6 +12,9 @@ Un jeu d'Abalone complet dans un seul fichier HTML : zéro dépendance, hors-lig
 - **[Échanger des parties](Echanger-des-parties.fr.md)** — partie par code, format APGN.
 - **[Puzzles](Puzzles.fr.md)** — comment la bibliothèque est vérifiée contre le moteur.
 - **[Historique](Historique.fr.md)** — tes parties passées, filtrables et rejouables.
+- **[Analyser une partie](Analyse.fr.md)** — après la partie, analyse de la position, rapport coup par coup, page Analyse ; illustré de captures.
+- **[Observatoire IA](Observatoire-IA.fr.md)** — ce que l'IA calcule pendant la partie, et pourquoi elle choisit son coup ; illustré de captures.
+- **[Réflexion de l'IA](Reflexion-IA.fr.md)** — le tableau après le coup : profondeurs, 10 premiers coups, critères, suite prévue.
 - **[Empreintes historiques](Empreintes-historiques.fr.md)** — rareté, trajectoire, corrélations avec la victoire.
 - **[Benchmark moteur](Benchmark-moteur.fr.md)** — méthodologie et chiffres réellement mesurés.
 - **[Architecture](Architecture.fr.md)** — quatre schémas : moteur, données, modes de jeu, tables de finale.

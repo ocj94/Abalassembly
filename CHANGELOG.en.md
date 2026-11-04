@@ -9,6 +9,31 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.10]
+
+### Added — illustrated analysis documentation
+The author asked for explanatory pictures in the wiki for the "analysis"
+parts. Screenshots of the **real site**, taken during real games against the
+AI (folder `docs-img/`), in the repository pages (`docs-fr/`, `docs-en/`) and
+in the GitHub wiki:
+- **AI Observatory** (new page): the live board, every tab, the "Why not …?"
+  card, two lines side by side, the shrunk panel, the phone;
+- **AI reflection** (page added to the repository, picture added to the wiki):
+  the table after the move, with the expected line on the small board; a note
+  says that since v2.75 the Texel weights also give a value to some of KAAH's
+  criteria;
+- **Analysing a game** (new page): "After the game", "Position analysis", the
+  "Analyze the game" report (accuracy, categories, moves to review) and the
+  Analysis page. It also explains why the Analysis page curve and the report
+  classify moves differently: they do not measure the same thing.
+
+### Fixed
+- Observatory: when several of the 3 best moves start from the same marble,
+  their rank badges hid one another; the next one now slides along its arrow.
+- "After the game" and its button were written without French accents.
+- Observatory on a phone: the "AI is thinking…" banner hid the bottom of the
+  drawer (mini board, strip); it now sits just above it.
+
 ## [v3.09]
 
 ### Added — the AI Observatory, from the "HUD", "timeline" and "score by depth" mock-ups

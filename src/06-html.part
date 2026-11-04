@@ -1316,7 +1316,7 @@
           <button class="ctrl-btn" onclick="openApgnImportModal()" style="margin-top:8px;width:100%" title="Colle une sequence de coups en notation Aba-Pro pour la rejouer -- raccourci vers le meme import que dans le menu">Importer une partie (Aba-Pro)</button>
           <button class="ctrl-btn" onclick="openExternalEnginePanel()" style="margin-top:8px;width:100%" title="Faire jouer un autre programme contre l IA de ce site, en relayant les coups a la main">Duel moteur externe 🧪</button>
           <button class="ctrl-btn" onclick="openRtcPanel()" style="margin-top:8px;width:100%" title="Connexion directe en temps reel entre deux navigateurs, experimental">Partie en direct 🧪</button>
-          <button class="ctrl-btn" onclick="showPostGameReview()" style="margin-top:8px;width:100%" title="Ou la partie a bascule">Analyse d'apres-partie</button>
+          <button class="ctrl-btn" onclick="showPostGameReview()" style="margin-top:8px;width:100%" title="Où la partie a basculé">Analyse d'après-partie</button>
           <div id="ai-metrics" style="margin-top:10px;padding:9px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);display:none">
             <div style="color:var(--gold);font-weight:600;margin-bottom:6px">🧠 Dernière recherche IA</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 10px">

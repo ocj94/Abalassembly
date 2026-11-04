@@ -591,12 +591,12 @@ function showPostGameReview() {
   };
   modal.innerHTML =
     '<div style="max-width:460px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:24px">'
-    + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:4px">Apres la partie</h3>'
-    + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Calcule a partir des positions reelles de la partie, avec la meme evaluation que l\'IA.</div>'
-    + line('Coups joues', r.plies)
-    + line('Premiere bille perdue', r.firstLossPly > 0 ? ('coup ' + r.firstLossPly) : 'aucune')
-    + line('Position basculee au', r.turning ? ('coup ' + r.turning.ply + (r.turningLabel ? ' (' + r.turningLabel + ')' : '')) : 'pas de bascule nette')
-    + line('Evaluation debut → fin', Math.round(r.evalStart) + ' → ' + Math.round(r.evalEnd))
+    + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:4px">Après la partie</h3>'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Calculé à partir des positions réelles de la partie, avec la même évaluation que l\'IA.</div>'
+    + line('Coups joués', r.plies)
+    + line('Première bille perdue', r.firstLossPly > 0 ? ('coup ' + r.firstLossPly) : 'aucune')
+    + line('Position basculée au', r.turning ? ('coup ' + r.turning.ply + (r.turningLabel ? ' (' + r.turningLabel + ')' : '')) : 'pas de bascule nette')
+    + line('Évaluation début → fin', Math.round(r.evalStart) + ' → ' + Math.round(r.evalEnd))
     + '<div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end">'
     + '<button class="ctrl-btn" onclick="document.getElementById(\'review-modal\').remove()">Fermer</button>'
     + '</div></div>';

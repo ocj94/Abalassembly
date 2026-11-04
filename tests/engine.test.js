@@ -7012,3 +7012,37 @@ test('Observatoire IA v3.09 : panneau reduit en une ligne, frise des decisions, 
   assert.strictEqual(ctx._obsCourbeProf([{ d: 1, k: 'a', s: 10 }]), '', 'une seule profondeur : pas de courbe');
   lire('OBS.hist = []; OBS.rev = -1');
 });
+
+test('Observatoire IA : deux fleches qui partent de la meme bille ont chacune leur pastille de rang visible', () => {
+  const pris = {}, xy1 = { a: { x: 100, y: 100 }, b: { x: 200, y: 100 } }, xy2 = { a: { x: 100, y: 100 }, b: { x: 100, y: 200 } };
+  const p1 = ctx._obsPastille(xy1, pris), p2 = ctx._obsPastille(xy2, pris);
+  assert.deepStrictEqual([p1.x, p1.y], [100, 100]);
+  assert.deepStrictEqual([p2.x, p2.y], [100, 155], 'la 2e pastille glisse le long de sa fleche');
+  const g = ctx.rcToAxial(4, 0), h = ctx.rcToAxial(4, 1), gauche = { q: g.q - h.q, r: g.r - h.r };
+  const autre = ctx.AX_DIRS.find(d => !(d.q === gauche.q && d.r === gauche.r));
+  const svg = ctx._obsPlateauSVG({}, [{ cells: [{ r: 4, c: 4 }], dir: gauche, col: '#66bb6a', num: 1 }, { cells: [{ r: 4, c: 4 }], dir: autre, col: '#ffb74d', num: 2 }], null, false);
+  const cercles = [...svg.matchAll(/<circle cx="([\d.]+)" cy="([\d.]+)" r="17"/g)].map(m => m[1] + ',' + m[2]);
+  assert.strictEqual(cercles.length, 2); assert.notStrictEqual(cercles[0], cercles[1]);
+});
+
+test('Documentation illustree de l\'analyse : chaque image citee existe et reste legere, chaque page a sa traduction et son lien', () => {
+  const fs = require('fs'), path = require('path'), R = f => path.join(__dirname, '..', f);
+  const pages = [['docs-fr/Observatoire-IA.fr.md', 'docs-en/Observatoire-IA.en.md'], ['docs-fr/Analyse.fr.md', 'docs-en/Analyse.en.md'], ['docs-fr/Reflexion-IA.fr.md', 'docs-en/Reflexion-IA.en.md']];
+  const vues = new Set();
+  pages.forEach(([fr, en]) => {
+    [fr, en].forEach(f => {
+      const t = fs.readFileSync(R(f), 'utf8');
+      const imgs = [...t.matchAll(/!\[[^\]]+\]\(\.\.\/(docs-img\/[^)]+)\)/g)].map(m => m[1]);
+      assert.ok(imgs.length >= 1, f + ' : au moins une capture');
+      imgs.forEach(i => { assert.ok(fs.existsSync(R(i)), f + ' : ' + i); assert.ok(fs.statSync(R(i)).size < 600 * 1024, i + ' trop lourde'); vues.add(i); });
+      // liens entre pages : tous vers des fichiers qui existent
+      [...t.matchAll(/\]\(((?:\.\.\/docs-(?:fr|en)\/)?[A-Za-z-]+\.(?:fr|en)\.md)(?:#[^)]*)?\)/g)].forEach(m => assert.ok(fs.existsSync(path.join(path.dirname(R(f)), m[1])), f + ' -> ' + m[1]));
+    });
+    assert.ok(fs.readFileSync(R(fr), 'utf8').startsWith('🇬🇧 [English version](../' + en + ')'));
+    assert.ok(fs.readFileSync(R(en), 'utf8').startsWith('🇫🇷 [Version française](../' + fr + ')'));
+    assert.ok(fs.readFileSync(R('docs-fr/Home.fr.md'), 'utf8').includes('](' + path.basename(fr) + ')'), 'accueil FR -> ' + fr);
+    assert.ok(fs.readFileSync(R('docs-en/Home.en.md'), 'utf8').includes('](' + path.basename(en) + ')'), 'accueil EN -> ' + en);
+  });
+  // aucune image orpheline dans docs-img
+  fs.readdirSync(R('docs-img')).forEach(f => assert.ok(vues.has('docs-img/' + f), 'image non citee : ' + f));
+});
