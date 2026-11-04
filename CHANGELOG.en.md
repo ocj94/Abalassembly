@@ -9,6 +9,28 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.09]
+
+### Added — the AI Observatory, from the "HUD", "timeline" and "score by depth" mock-ups
+- **Panel shrinks to one line** (— button): depth, positions, time and best
+  move while searching, or the last move played. The game board stays clear,
+  with its arrows and marbles at risk. Clicking the line (or ▢) opens the panel
+  again; the choice is remembered.
+- **Decision strip** at the bottom of the panel, on every tab: one dot per AI
+  move (green, red when the score is negative, ringed orange after a drop of
+  200 points or more, hollow without search), a dot that pulses while
+  searching, ◀ ▶ to step from move to move.
+- **Best move score, depth by depth** (Overview), orange dot when the best move
+  changes.
+
+### Changed
+- The panel header fits on one line again (shorter labels).
+
+### Left out
+Part of the mock-ups described chess (8×8 board, pawns, king, f-file): none of
+it applies. Still no "confidence" percentage, "robustness tested over 100
+games" or "if the opponent had played…" scenario: it would be invented.
+
 ## [v3.08]
 
 ### Added — the AI Observatory, from the "log" and "deliberation" mock-ups

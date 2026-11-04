@@ -9,6 +9,29 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.09]
+
+### Ajouté — l'Observatoire IA, d'après les maquettes « HUD », « timeline » et « courbe par profondeur »
+- **Panneau réductible en une ligne** (bouton —) : profondeur, positions,
+  temps et meilleur coup pendant le calcul, ou le dernier coup joué. Le plateau
+  de la partie reste dégagé, avec ses flèches et ses billes menacées. Un clic
+  sur la ligne (ou ▢) rouvre le panneau ; le choix est retenu.
+- **Frise des décisions** en bas du panneau, dans tous les onglets : un point
+  par coup de l'IA (vert, rouge si la note est négative, cerclé d'orange après
+  une chute d'au moins 200 points, vide sans calcul), un point qui pulse pendant
+  le calcul, ◀ ▶ pour passer d'un coup à l'autre.
+- **Courbe de la note du meilleur coup, profondeur par profondeur** (Vue
+  générale), point orange quand le meilleur coup change.
+
+### Changé
+- L'en-tête du panneau tient de nouveau sur une ligne (étiquettes plus courtes).
+
+### Écarté
+Les maquettes reçues décrivaient en partie des échecs (plateau 8×8, pions,
+roi, colonne F) : rien de cela ne s'applique. Toujours pas de « confiance »
+en pourcentage, de « robustesse testée sur 100 parties » ni de scénario
+« si l'adversaire avait joué… » : ce serait inventé.
+
 ## [v3.08]
 
 ### Ajouté — l'Observatoire IA, d'après les maquettes « journal » et « délibération »
