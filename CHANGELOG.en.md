@@ -9,6 +9,27 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.07]
+
+### Added — the AI Observatory, from the "board + engine choices" mock-up
+- **Arrows over the whole moving group**: inline, from the last marble to the
+  cell where the first one lands; broadside, from the middle of the group to
+  where it lands. **Numbered like the list** (1, 2, 3 in their arrow's colour),
+  on the mini boards and on the game board.
+- **Aba-Pro coordinates** on the mini boards (letters a to i, numbers 1 to 9),
+  to read move notation.
+- **"Why this move? / Why not that one?"** for any move picked in the list: its
+  rank and score, its gap with the chosen move (in points and in marbles), the
+  opponent ejection seen by the search, what the rules show one move ahead, and
+  the criteria that differ at the end of both expected lines when they are kept.
+- Arrows draw their own heads (no SVG marker, poorly supported by some
+  browsers).
+
+### Left out of the mock-up, because it is wrong for this engine
+"Pruned early by α-β" for a first move: every first move is fully scored, with
+no pruning at the root; the panel says so. And a 3-against-3 push does not
+exist in the rules.
+
 ## [v3.06]
 
 ### Added — the AI Observatory, from the author's mock-ups

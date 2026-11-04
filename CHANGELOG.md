@@ -9,6 +9,28 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.07]
+
+### Ajouté — l'Observatoire IA, d'après la maquette « plateau + choix de l'algo »
+- **Flèches sur tout le groupe qui bouge** : en ligne, de la dernière bille à
+  la case où arrive la première ; en latéral, du milieu du groupe à son
+  arrivée. **Numérotées comme la liste** (1, 2, 3 dans la couleur de leur
+  flèche), sur les mini plateaux et sur le plateau de la partie.
+- **Coordonnées Aba-Pro** sur les mini plateaux (lettres a à i, chiffres 1 à 9),
+  pour lire la notation des coups.
+- **« Pourquoi ce coup ? / Pourquoi pas celui-là ? »** pour n'importe quel coup
+  choisi dans la liste : son rang et sa note, son écart avec le coup retenu (en
+  points et en billes), l'éjection adverse vue par la recherche, ce que
+  montrent les règles un coup plus loin, et les critères qui diffèrent au bout
+  des deux suites prévues quand elles sont gardées.
+- Les flèches dessinent leur pointe elles-mêmes (plus de marqueur SVG, mal
+  pris en charge par certains navigateurs).
+
+### Écarté de la maquette, parce que c'est faux pour ce moteur
+« Écarté tôt par élagage α-β » pour un coup de départ : chaque coup de départ
+est noté en entier, sans élagage à la racine ; le panneau le dit. Et une
+poussée de 3 billes contre 3 n'existe pas dans les règles.
+
 ## [v3.06]
 
 ### Ajouté — l'Observatoire IA, d'après les maquettes de l'auteur

@@ -28,6 +28,8 @@
    - l'onglet Decision dit ce que fait chaque coup un coup plus loin (type, ejections possibles
      ensuite des deux cotes, billes en danger) et compare deux variantes cote a cote ;
    - rapport telechargeable (.txt, .json) et mode plein ecran.
+   v3.07 : fleches sur tout le groupe qui bouge, numerotees comme la liste ; coordonnees Aba-Pro sur
+   les mini plateaux ; « Pourquoi ce coup ? / Pourquoi pas celui-la ? » pour n'importe quel coup choisi.
    Ce qui est refuse parce que ce serait invente : « memoire utilisee » (pas mesurable de facon
    fiable dans un fil de calcul), notes de confiance ou de « performance », arbre complet noeud
    par noeud (le moteur ne le garde pas : le reconstituer voudrait dire recalculer).
@@ -191,12 +193,25 @@ function _obsCourbe(vals, w, h, couleur, zero) {
   const z = zero ? '<line x1="0" x2="' + w + '" y1="' + (h - 2 - (0 - mn) / (mx - mn) * (h - 4)).toFixed(1) + '" y2="' + (h - 2 - (0 - mn) / (mx - mn) * (h - 4)).toFixed(1) + '" stroke="rgba(255,255,255,.2)" stroke-dasharray="3 3"/>' : '';
   return '<svg viewBox="0 0 ' + w + ' ' + h + '" class="obs-courbe">' + z + '<polyline points="' + pts + '" fill="none" stroke="' + couleur + '" stroke-width="2"/></svg>';
 }
+/* Fleche d'un coup : en ligne (ou 1 bille), de la derniere bille jusqu'a la case ou arrive la premiere,
+   pour qu'on voie tout le groupe qui bouge ; en lateral, du milieu du groupe a son milieu d'arrivee. */
 function _obsFlecheXY(cells, dir) {
   const ax = cells.map(function (s) { return rcToAxial(s.r, s.c); });
   const tri = ax.slice().sort(function (a, b) { return (a.q * dir.q + a.r * dir.r) - (b.q * dir.q + b.r * dir.r); });
-  const tete = tri[tri.length - 1], hr = axialToRc(tete.q, tete.r), hp = hexCoord(hr.r, hr.c);
-  const dr = axialToRc(tete.q + dir.q, tete.r + dir.r), dp = dr ? hexCoord(dr.r, dr.c) : { x: hp.x + dir.q * 40, y: hp.y };
-  return { a: hp, b: dp };
+  const px = function (a) { const rc = axialToRc(a.q, a.r); return rc ? hexCoord(rc.r, rc.c) : null; };
+  const lateral = tri.length > 1 && ((tri[1].q - tri[0].q) * dir.r - (tri[1].r - tri[0].r) * dir.q) !== 0;
+  if (lateral) {
+    const m = { x: 0, y: 0 }; tri.forEach(function (a) { const p = px(a); m.x += p.x / tri.length; m.y += p.y / tri.length; });
+    const t = px(tri[0]), u = px({ q: tri[0].q + dir.q, r: tri[0].r + dir.r }) || { x: t.x, y: t.y - 50 };
+    return { a: m, b: { x: m.x + (u.x - t.x), y: m.y + (u.y - t.y) } };
+  }
+  const tete = tri[tri.length - 1], hp = px(tete), dp = px({ q: tete.q + dir.q, r: tete.r + dir.r });
+  return { a: px(tri[0]), b: dp || { x: hp.x + (hp.x - px(tri[0]).x || 40) * 0.6, y: hp.y } };
+}
+/* Pointe de fleche (polygone) : pas de marker SVG, dont le remplissage « context-stroke » n'est pas partout */
+function _obsPointe(a, b, t) {
+  const ang = Math.atan2(b.y - a.y, b.x - a.x), f = function (d) { return (b.x - t * Math.cos(ang + d)).toFixed(1) + ',' + (b.y - t * Math.sin(ang + d)).toFixed(1); };
+  return b.x.toFixed(1) + ',' + b.y.toFixed(1) + ' ' + f(-Math.PI / 6) + ' ' + f(Math.PI / 6);
 }
 function _obsStatutBilles(bd) {   // memes definitions que l'evaluation : danger = au bord avec 1 allie ou moins
   const o = {};
@@ -206,10 +221,11 @@ function _obsStatutBilles(bd) {   // memes definitions que l'evaluation : danger
     o[k] = (bord && al <= 1) ? 'danger' : al === 0 ? 'isolee' : al >= 4 ? 'forte' : ''; }
   return o;
 }
-/* Mini plateau : billes, coups en fleches (liste {cells,dir,col}), cases marquees, carte des billes */
+/* Mini plateau : billes, coups en fleches (liste {cells,dir,col,epais,num}), cases marquees, carte des billes,
+   coordonnees Aba-Pro (lettres a gauche, chiffres en bas et a droite) */
 function _obsPlateauSVG(bd, fleches, marques, carte) {
   const st = carte ? _obsStatutBilles(bd) : {};
-  let s = '<svg viewBox="0 0 640 640" class="obs-plateau"><defs><marker id="obs-pt" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs>';
+  let s = '<svg viewBox="0 0 640 640" class="obs-plateau">';
   for (let r = 0; r < 9; r++) for (let c = 0; c < ROWS[r]; c++) {
     const p = hexCoord(r, c), k = r + ',' + c, v = bd[k], z = st[k];
     const bague = z === 'danger' ? '#ef5350' : z === 'isolee' ? '#ffb74d' : z === 'forte' ? '#66bb6a' : null;
@@ -217,16 +233,38 @@ function _obsPlateauSVG(bd, fleches, marques, carte) {
       + (bague || (marques && marques[k] ? '#c8a84b' : v === 'black' ? '#8d8d8d' : v === 'white' ? '#ffffff' : 'rgba(255,255,255,.12)')) + '" stroke-width="' + (bague || (marques && marques[k]) ? 5 : v ? 3 : 1.5) + '"/>';
     if (marques && marques[k]) s += '<text x="' + p.x + '" y="' + (p.y + 9) + '" text-anchor="middle" font-size="26" font-weight="700" fill="' + (v === 'white' ? '#1b1b1b' : '#c8a84b') + '">' + marques[k] + '</text>';
   }
-  (fleches || []).forEach(function (f) { const xy = _obsFlecheXY(f.cells, f.dir);
-    s += '<line x1="' + xy.a.x + '" y1="' + xy.a.y + '" x2="' + xy.b.x + '" y2="' + xy.b.y + '" stroke="' + f.col + '" stroke-width="' + (f.epais || 9) + '" stroke-linecap="round" marker-end="url(#obs-pt)" opacity=".92"/>'; });
+  s += _obsCoordsSVG();
+  (fleches || []).forEach(function (f) { const xy = _obsFlecheXY(f.cells, f.dir), e = f.epais || 9;
+    s += '<g opacity=".92"><line x1="' + xy.a.x.toFixed(1) + '" y1="' + xy.a.y.toFixed(1) + '" x2="' + xy.b.x.toFixed(1) + '" y2="' + xy.b.y.toFixed(1) + '" stroke="' + f.col + '" stroke-width="' + e + '" stroke-linecap="round"/>'
+      + '<polygon points="' + _obsPointe(xy.a, xy.b, 14 + e * 1.6) + '" fill="' + f.col + '"/></g>';
+    if (f.num) s += '<circle cx="' + xy.a.x.toFixed(1) + '" cy="' + xy.a.y.toFixed(1) + '" r="17" fill="' + f.col + '" stroke="#111" stroke-width="2"/><text x="' + xy.a.x.toFixed(1) + '" y="' + (xy.a.y + 8).toFixed(1) + '" text-anchor="middle" font-size="22" font-weight="700" fill="#111">' + f.num + '</text>'; });
   return s + '</svg>';
 }
-function _obsFlechesDe(cles, cols, epais) {
+/* Coordonnees : la lettre de chaque rangee a gauche de sa premiere case, chaque chiffre pres de la case
+   la plus basse qui le porte, poussee vers l'exterieur du plateau. Calculees avec coordToABAPRO. */
+let _obsCoordsCache = null;
+function _obsCoordsSVG() {
+  if (_obsCoordsCache != null) return _obsCoordsCache;
+  if (typeof coordToABAPRO !== 'function') return (_obsCoordsCache = '');
+  let s = '<g font-size="21" fill="rgba(255,255,255,.42)" font-family="DM Mono,monospace" text-anchor="middle">';
+  const C = hexCoord(4, 4), ext = function (p, d) { const dx = p.x - C.x, dy = p.y - C.y, l = Math.hypot(dx, dy) || 1; return { x: p.x + dx / l * d, y: p.y + dy / l * d }; };
+  const chiffres = {};
+  for (let r = 0; r < 9; r++) {
+    const p0 = hexCoord(r, 0); s += '<text x="' + (p0.x - 46).toFixed(1) + '" y="' + (p0.y + 7).toFixed(1) + '">' + coordToABAPRO(r, 0).charAt(0) + '</text>';
+    for (let c = 0; c < ROWS[r]; c++) { const n = coordToABAPRO(r, c).slice(1); chiffres[n] = { r: r, c: c }; }   // la derniere rangee lue (la plus basse) l'emporte
+  }
+  Object.keys(chiffres).forEach(function (n) { const q = chiffres[n], p = hexCoord(q.r, q.c), t = ext(p, 50);
+    s += '<text x="' + t.x.toFixed(1) + '" y="' + (t.y + 7).toFixed(1) + '">' + n + '</text>'; });
+  return (_obsCoordsCache = s + '</g>');
+}
+function _obsFlechesDe(cles, cols, epais, nums) {
   const out = [];
-  cles.forEach(function (k, i) { const x = _obsLireCle(k); if (x) out.push({ cells: x.cells, dir: x.dir, col: cols[i] || '#888', epais: epais ? epais[i] : 9 }); });
+  cles.forEach(function (k, i) { const x = _obsLireCle(k); if (x) out.push({ cells: x.cells, dir: x.dir, col: cols[i] || '#888', epais: epais ? epais[i] : 9, num: nums ? nums[i] : 0 }); });
   return out;
 }
 
+/* Couleurs des 3 meilleurs coups : les memes sur le mini plateau, dans la liste et sur le plateau de la partie */
+const _OBS_COULEURS = ['#66bb6a', '#ffb74d', '#9e9e9e'];
 /* ═══ Statut d'un coup racine ═══ */
 function _obsStatut(rang, ecart, retenu) {
   if (retenu) return ['obs-ok', _obsT('Retenu', 'Chosen')];
@@ -240,7 +278,7 @@ function _obsLignesCandidats(tous, nomDe, cleRetenue, dernier) {
   let h = '<table class="obs-t"><tr><th>#</th><th>' + _obsT('Coup', 'Move') + '</th><th>' + _obsT('Note', 'Score') + '</th><th>' + _obsT('Écart', 'Gap') + '</th><th>' + _obsT('Effort', 'Effort') + '</th><th></th></tr>';
   tous.slice(0, nbMax).forEach(function (x, i) {
     const stat = (!dernier && i === 0) ? ['obs-ok', _obsT('En tête', 'Leading')] : _obsStatut(i, best - x[1], dernier && x[0] === cleRetenue);
-    h += '<tr class="' + (OBS.sel === x[0] ? 'obs-sel' : '') + '" onclick="obsChoisir(\'' + x[0] + '\')"><td>' + (i + 1) + '</td><td class="obs-mono">' + _obsE(nomDe(x[0])) + (x[3] ? ' <span title="' + _obsT('L’adversaire a une éjection dès le coup suivant (compté à 1 coup)', 'Opponent can eject right after this move (counted 1 ply deep)') + '">⚠</span>' : '') + '</td><td>'
+    h += '<tr class="' + (OBS.sel === x[0] ? 'obs-sel' : '') + '" onclick="obsChoisir(\'' + x[0] + '\')"><td>' + (i < 3 ? '<span class="obs-rang" style="background:' + _OBS_COULEURS[i] + '">' + (i + 1) + '</span>' : (i + 1)) + '</td><td class="obs-mono">' + _obsE(nomDe(x[0])) + (x[3] ? ' <span title="' + _obsT('L’adversaire a une éjection dès le coup suivant (compté à 1 coup)', 'Opponent can eject right after this move (counted 1 ply deep)') + '">⚠</span>' : '') + '</td><td>'
       + _evalReflexionTexte(x[1]) + '</td><td>' + (best - x[1] ? '−' + _obsN(best - x[1]) : '·') + '</td><td><div class="obs-barre"><i style="width:' + Math.max(2, Math.round(100 * x[2] / maxk)) + '%"></i></div></td><td><span class="obs-chip ' + stat[0] + '">' + stat[1] + '</span></td></tr>';
   });
   const ir = cleRetenue ? tous.findIndex(function (x) { return x[0] === cleRetenue; }) : -1;
@@ -333,11 +371,13 @@ function _obsTabRecherche(V) {
   if (R.avance) h += '<div class="obs-prog"><i style="width:' + (R.avance.n ? Math.round(100 * R.avance.i / R.avance.n) : 0) + '%"></i></div><div class="obs-note">'
     + _obsT('Profondeur ' + R.avance.d + ' en cours : ' + R.avance.i + ' coup(s) de départ notés sur ' + R.avance.n + ' (' + (R.prof ? 'tableau : profondeur ' + R.prof + ' terminée' : 'tableau provisoire') + ').',
             'Depth ' + R.avance.d + ' running: ' + R.avance.i + ' first move(s) scored out of ' + R.avance.n + '.') + '</div>';
-  h += '<div class="obs-ligne">' + _obsPlateauSVG(R.racine, _obsFlechesDe(sel ? [sel].concat(top.filter(function (k) { return k !== sel; })) : top, sel ? ['#ffd54f', '#66bb6a', '#ffb74d'] : ['#66bb6a', '#ffb74d', '#9e9e9e'], sel ? [11, 6, 6] : [10, 7, 5]), null, false)
+  const cles = sel ? [sel].concat(top.filter(function (k) { return k !== sel; })) : top, rang = function (k) { return R.tous.findIndex(function (x) { return x[0] === k; }) + 1; };
+  h += '<div class="obs-ligne">' + _obsPlateauSVG(R.racine, _obsFlechesDe(cles, sel ? ['#ffd54f', '#66bb6a', '#ffb74d'] : _OBS_COULEURS, sel ? [11, 6, 6] : [10, 7, 5], cles.map(rang)), null, false)
     + '<div class="obs-lege"><span style="color:#66bb6a">●</span> ' + _obsT('meilleur', 'best') + ' <span style="color:#ffb74d">●</span> ' + _obsT('2e', '2nd') + ' <span style="color:#9e9e9e">●</span> ' + _obsT('3e', '3rd') + (sel ? ' <span style="color:#ffd54f">●</span> ' + _obsT('choisi', 'selected') : '') + '</div></div>';
   h += _obsLignesCandidats(R.tous, R.nomDe, R.cleRetenue, R.dernier);
   if (V.mode === 'direct' && OBS.sel) h += '<div class="obs-note">' + _obsT('Le coup choisi est tracé sur le plateau.', 'The selected move is drawn on the board.') + '</div>';
   if (V.e) h += _obsNotePartielle(V.e);
+  if (sel) h += _obsPourquoiHTML(V, R, sel);
   if (sel && R.det) h += _obsVarianteHTML(R.det, sel, R.couleur);
   if (niv >= 1 && R.det) {   // arbre des lignes principales
     const pr = R.det.prof[0], maxk = Math.max.apply(null, pr.lignes.map(function (l) { return l.k; }).concat([1]));
@@ -350,6 +390,43 @@ function _obsTabRecherche(V) {
       'Only the 10 best first moves keep their line: the full tree has thousands of positions and is not stored. Width = search effort under the move.') + '</div>';
   }
   return h;
+}
+/* « Pourquoi ce coup ? / Pourquoi pas celui-la ? » pour le coup choisi dans la liste. Que des faits : sa note
+   et son ecart avec le coup de reference (retenu, ou en tete pendant le calcul), ce que montrent les regles un
+   coup plus loin, et, si les deux suites sont gardees, les criteres qui different au bout de ces suites. */
+function _obsPourquoiHTML(V, R, cle) {
+  const i = R.tous.findIndex(function (x) { return x[0] === cle; }); if (i < 0) return '';
+  const x = R.tous[i], nom = R.nomDe(cle);
+  const ref = (R.cleRetenue && R.tous.find(function (y) { return y[0] === R.cleRetenue; })) || R.tous[0], nomRef = R.nomDe(ref[0]), estRef = ref[0] === cle;
+  const cache = V.e ? (V.e._ana = V.e._ana || {}) : (V.L._ana = V.L._ana || {});
+  if (!(cle in cache)) cache[cle] = _obsAnalyseCoup(R.racine, R.couleur, cle);
+  const a = cache[cle], billes = function (p) { return (p / 1000).toFixed(2).replace('.', ','); }, faits = [];
+  faits.push(_obsT('Rang ' + (i + 1) + ' sur ' + R.tous.length + ', note ' + _evalReflexionTexte(x[1]) + (R.prof ? ' (profondeur ' + R.prof + ')' : '') + '.', 'Rank ' + (i + 1) + ' of ' + R.tous.length + ', score ' + _evalReflexionTexte(x[1]) + (R.prof ? ' (depth ' + R.prof + ')' : '') + '.'));
+  if (estRef && R.tous.length > 1) { const d = R.tous[i === 0 ? 1 : 0]; faits.push(_obsT((x[1] - d[1] > 0 ? _obsN(x[1] - d[1]) + ' points de plus que ' : 'même note que ') + R.nomDe(d[0]) + (x[1] - d[1] > 0 ? ' (≈ ' + billes(x[1] - d[1]) + ' bille), le suivant.' : ', le suivant : départagés par l’ordre de recherche.'),
+    (x[1] - d[1] > 0 ? _obsN(x[1] - d[1]) + ' points more than ' : 'same score as ') + R.nomDe(d[0]) + (x[1] - d[1] > 0 ? ' (≈ ' + billes(x[1] - d[1]) + ' marble), the next one.' : ', the next one: settled by search order.'))); }
+  if (!estRef) { const e = ref[1] - x[1];
+    faits.push(e > 0 ? _obsT(_obsN(e) + ' points de moins que ' + nomRef + ' (≈ ' + billes(e) + ' bille).', _obsN(e) + ' points less than ' + nomRef + ' (≈ ' + billes(e) + ' marble).')
+      : e === 0 ? _obsT('Même note que ' + nomRef + ' : départagés par l’ordre de recherche.', 'Same score as ' + nomRef + ': settled by search order.')
+      : _obsT('Note plus haute que ' + nomRef + ' à cette profondeur : ' + nomRef + ' a été retenu à la profondeur suivante, que le temps n’a pas laissé finir.', 'Higher score than ' + nomRef + ' at this depth: ' + nomRef + ' was chosen at the next depth, which time did not let finish.')); }
+  if (x[3]) faits.push(_obsT('⚠ La recherche a vu une éjection adverse juste après ce coup.', '⚠ The search saw an opponent ejection right after this move.'));
+  if (a) {
+    faits.push(_obsT('Type : ', 'Type: ') + _obsTypeTexte(a) + '.');
+    faits.push(_obsT('Un coup plus loin : ', 'One move ahead: ') + (a.menace ? _obsT(a.menace + ' éjection(s) préparée(s) si l’adversaire ne réagit pas', a.menace + ' ejection(s) set up if the opponent does not react') : _obsT('aucune éjection préparée', 'no ejection set up'))
+      + ' ; ' + (a.risque ? _obsT(a.risque + ' éjection(s) possible(s) pour l’adversaire', a.risque + ' ejection(s) available to the opponent') : _obsT('aucune éjection pour l’adversaire', 'no ejection for the opponent'))
+      + ' ; ' + _obsT('billes en danger : IA ' + a.dangerIA + ', adversaire ' + a.dangerAdv + '.', 'marbles in danger: AI ' + a.dangerIA + ', opponent ' + a.dangerAdv + '.'));
+  }
+  if (!estRef && R.det && typeof _criteresUtilises === 'function') {
+    const f1 = _obsLigneDet(R.det, cle), f0 = _obsLigneDet(R.det, ref[0]);
+    if (f1 && f0 && f1.l.terms && f0.l.terms) {
+      const D = _criteresUtilises(R.det.poids).map(function (k) { return [k[1], (f0.l.terms[k[0]] || 0) - (f1.l.terms[k[0]] || 0)]; }).filter(function (y) { return Math.abs(y[1]) >= 0.5; }).sort(function (p, q) { return Math.abs(q[1]) - Math.abs(p[1]); }).slice(0, 4);
+      if (D.length) faits.push(_obsT('Au bout des deux suites prévues, ' + nomRef + ' fait mieux en : ', 'At the end of both expected lines, ' + nomRef + ' does better on: ')
+        + D.map(function (y) { return '<span class="' + (y[1] > 0 ? 'obs-plus' : 'obs-moins') + '">' + _obsE(y[0]) + ' ' + (y[1] > 0 ? '+' : '') + String(Math.round(y[1] * 10) / 10).replace('.', ',') + '</span>'; }).join(' ') + '.');
+    }
+  }
+  return '<div class="obs-carte obs-pourquoi"><b>' + (estRef ? (R.dernier ? _obsT('Pourquoi ' + nom + ' a été retenu', 'Why ' + nom + ' was chosen') : _obsT(nom + ' est en tête pour l’instant', nom + ' is leading for now')) : _obsT('Pourquoi pas ' + nom + ' ?', 'Why not ' + nom + '?')) + '</b>'
+    + '<ul>' + faits.map(function (f) { return '<li>' + f + '</li>'; }).join('') + '</ul>'
+    + '<div class="obs-note">' + _obsT('Chaque coup de départ est noté en entier (pas d’élagage à la racine) : un coup est écarté pour sa note, pas parce que sa branche a été coupée. Type, éjections et billes en danger : regardés un coup plus loin avec les règles du jeu, sans recherche.',
+      'Every first move is fully scored (no pruning at the root): a move is set aside for its score, not because its branch was cut. Type, ejections and marbles in danger: looked at one move ahead with the game rules, without search.') + '</div></div>';
 }
 /* Profondeur coupee par le minuteur : le coup retenu peut venir d'elle, les tableaux montrent la derniere profondeur terminee */
 function _obsNotePartielle(e) {
@@ -412,7 +489,7 @@ function _obsTabDecision(V) {
   const alts = pr.lignes.filter(function (l) { return l !== ret; }).slice(0, 3);
   _notationsReflexion(e.det);
   let h = '<div class="obs-decide"><div class="obs-carte obs-c-ok"><span>' + _obsT('Coup retenu', 'Chosen move') + '</span><b class="obs-mono">' + _obsE(ret.n || '?') + '</b><em>' + _evalReflexionTexte(ret.s) + '</em></div>';
-  alts.slice(0, 2).forEach(function (a, i) { h += '<div class="obs-carte obs-c-alt"><span>' + _obsT('Alternative ', 'Alternative ') + (i + 1) + '</span><b class="obs-mono">' + _obsE(a.n || '?') + '</b><em>' + _evalReflexionTexte(a.s) + '</em></div>'; });
+  alts.slice(0, 2).forEach(function (a, i) { h += '<div class="obs-carte ' + (i ? 'obs-c-gris' : 'obs-c-alt') + '"><span>' + _obsT('Alternative ', 'Alternative ') + (i + 1) + '</span><b class="obs-mono">' + _obsE(a.n || '?') + '</b><em>' + _evalReflexionTexte(a.s) + '</em></div>'; });
   h += '</div>';
   h += _obsPlateauSVG(e.det.racine.board, _obsFlechesDe([moveKeyDe(ret)].concat(alts.slice(0, 2).map(moveKeyDe)), ['#66bb6a', '#ffb74d', '#9e9e9e'], [11, 7, 7]), null, false);
   h += _obsTableCoups(e, [ret].concat(alts), moveKeyDe(ret));
@@ -655,6 +732,8 @@ function _obsCss() {
     + '.obs-carte span{font-size:10px;color:var(--muted)}.obs-carte b{font-size:15px}.obs-carte em{font-style:normal;color:var(--muted)}.obs-c-ok{border-color:#66bb6a}.obs-c-alt{border-color:#ffb74d}'
     + '.obs-vs{margin:8px 0;padding:6px 8px;background:var(--surface2);border-radius:8px}.obs-plus{color:#81c784}.obs-moins{color:#ef9a9a}'
     + '.obs-bipol{position:relative;height:8px;min-width:80px;background:var(--surface2);border-radius:4px}.obs-bipol i{position:absolute;top:0;bottom:0;border-radius:4px}.obs-pos{background:#66bb6a}.obs-neg{background:#ef5350}'
+    + '.obs-rang{display:inline-block;min-width:17px;height:17px;line-height:17px;border-radius:5px;text-align:center;color:#111;font-weight:700;font-size:11px}.obs-c-gris{border-color:#9e9e9e}'
+    + '.obs-pourquoi{border-left:3px solid var(--gold)}#obs-panneau .obs-pourquoi>b{font-size:13px;color:var(--gold)}#obs-panneau .obs-pourquoi li span{font-size:inherit}#obs-panneau .obs-pourquoi .obs-plus{color:#81c784}#obs-panneau .obs-pourquoi .obs-moins{color:#ef9a9a}.obs-pourquoi ul{margin:5px 0 2px 16px;padding:0}.obs-pourquoi li{margin:2px 0;line-height:1.4}'
     + '.obs-opts{display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:5px 8px;border-bottom:1px solid var(--border);font-size:10.5px;color:var(--muted)}'
     + '.obs-opt{background:none;border:1px solid var(--border);color:var(--muted);border-radius:10px;padding:2px 8px;cursor:pointer;font-size:10.5px}.obs-opt.obs-actif{border-color:var(--gold-dim);color:var(--gold);background:rgba(200,168,75,.1)}'
     + '.obs-btn.obs-vite{background:var(--gold);color:#0d0f0e;font-weight:700}.obs-sep{margin-left:6px}.obs-btn.obs-actif{background:rgba(200,168,75,.32)}'
@@ -728,13 +807,15 @@ function _obsRendu() {
 /* ═══ Le plateau de la partie : 3 meilleurs coups en direct, coup choisi, billes menacees ═══
    Seulement panneau ouvert, en partie contre l'IA, et sur le plateau principal (pas sur les
    autres canevas que drawBoard sait dessiner). */
-function _obsFlecheCanvas(ctx, cells, dir, col, w, bague) {
+function _obsFlecheCanvas(ctx, cells, dir, col, w, bague, num) {
   const xy = _obsFlecheXY(cells, dir);
   if (bague) cells.forEach(function (cel) { const p = hexCoord(cel.r, cel.c); ctx.beginPath(); ctx.arc(p.x, p.y, HEX_RADIUS - 4, 0, Math.PI * 2); ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.stroke(); });
   ctx.beginPath(); ctx.moveTo(xy.a.x, xy.a.y); ctx.lineTo(xy.b.x, xy.b.y); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.stroke();
   const ang = Math.atan2(xy.b.y - xy.a.y, xy.b.x - xy.a.x), t = 8 + w * 1.4;
   ctx.beginPath(); ctx.moveTo(xy.b.x, xy.b.y); ctx.lineTo(xy.b.x - t * Math.cos(ang - Math.PI / 6), xy.b.y - t * Math.sin(ang - Math.PI / 6)); ctx.lineTo(xy.b.x - t * Math.cos(ang + Math.PI / 6), xy.b.y - t * Math.sin(ang + Math.PI / 6));
   ctx.closePath(); ctx.fillStyle = col; ctx.fill();
+  if (num) { ctx.beginPath(); ctx.arc(xy.a.x, xy.a.y, 13, 0, Math.PI * 2); ctx.fillStyle = col; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#111'; ctx.stroke();
+    ctx.fillStyle = '#111'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(num), xy.a.x, xy.a.y + 1); }
 }
 function _obsDessinerSurPlateau(opts) {
   if (!OBS.ouvert || (opts && opts.canvasId && opts.canvasId !== 'board')) return;
@@ -743,8 +824,8 @@ function _obsDessinerSurPlateau(opts) {
   const bd = (opts && opts.board) || board, L = OBS.live;
   const fleches = [];
   if (OBS.surVrai.fleches && L && L.etat === 'calcul' && L.top && !(opts && opts.board)) {
-    const cols = ['#66bb6a', '#ffb74d', '#bdbdbd'], ep = [6, 4.5, 3.5];
-    L.top.slice().reverse().forEach(function (k) { const i = L.top.indexOf(k), x = _obsLireCle(k); if (x && k !== (OBS.sel || '')) fleches.push([x.cells, x.dir, cols[i], ep[i], i === 0]); });
+    const ep = [6, 4.5, 3.5];
+    L.top.slice().reverse().forEach(function (k) { const i = L.top.indexOf(k), x = _obsLireCle(k); if (x && k !== (OBS.sel || '')) fleches.push([x.cells, x.dir, _OBS_COULEURS[i], ep[i], i === 0, i + 1]); });
   }
   if (OBS.surPlateau) fleches.push([OBS.surPlateau.cells, OBS.surPlateau.dir, '#ffd54f', 5, true]);
   const st = OBS.surVrai.menaces ? _obsStatutBilles(bd) : {};
@@ -756,7 +837,7 @@ function _obsDessinerSurPlateau(opts) {
     ctx.beginPath(); ctx.arc(p.x, p.y, HEX_RADIUS - 1, 0, Math.PI * 2); ctx.setLineDash(st[k] === 'danger' ? [6, 4] : [2, 4]);
     ctx.strokeStyle = st[k] === 'danger' ? '#ef5350' : '#ffb74d'; ctx.lineWidth = st[k] === 'danger' ? 3.5 : 2.5; ctx.stroke(); });
   ctx.setLineDash([]);
-  fleches.forEach(function (f) { _obsFlecheCanvas(ctx, f[0], f[1], f[2], f[3], f[4]); });
+  fleches.forEach(function (f) { _obsFlecheCanvas(ctx, f[0], f[1], f[2], f[3], f[4], f[5]); });
   ctx.restore();
 }
 (function () {
