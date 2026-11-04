@@ -12,6 +12,9 @@ A complete Abalone game in a single HTML file: zero dependencies, offline, GPL v
 - **[Exchanging games](Echanger-des-parties.en.md)** — game by code, APGN format.
 - **[Puzzles](Puzzles.en.md)** — how the library is verified against the engine.
 - **[History](Historique.en.md)** — your past games, filterable and replayable.
+- **[Analysing a game](Analyse.en.md)** — after the game, position analysis, move-by-move report, the Analysis page; with screenshots.
+- **[AI Observatory](Observatoire-IA.en.md)** — what the AI computes during the game, and why it picks its move; with screenshots.
+- **[AI reflection](Reflexion-IA.en.md)** — the table after the move: depths, top 10 moves, criteria, expected line.
 - **[Historical fingerprints](Empreintes-historiques.en.md)** — rarity, trajectory, correlations with winning.
 - **[Engine benchmark](Benchmark-moteur.en.md)** — methodology and actually measured figures.
 - **[Architecture](Architecture.en.md)** — four diagrams: engine, data, game modes, endgame tables.

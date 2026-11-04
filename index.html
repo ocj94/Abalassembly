@@ -3023,11 +3023,11 @@ const I18N_EN = {
   'Copie les coups de la partie en notation Aba-Pro standard, lisible par un moteur externe': 'Copies the moves in standard Aba-Pro notation, readable by an external engine',
   'Colle une sequence de coups en notation Aba-Pro pour la rejouer -- raccourci vers le meme import que dans le menu': 'Paste a sequence of moves in Aba-Pro notation to replay it — a shortcut to the same import as in the menu',
   'Faire jouer un autre programme contre l IA de ce site, en relayant les coups a la main': 'Have another program play this site’s AI, relaying the moves by hand',
-  'Ou la partie a bascule': 'Where the game turned', 'Essaie un autre coup et vois ce qui se passe — ça ne compte pas pour de vrai': 'Try another move and see what happens — it doesn’t count',
+  'Où la partie a basculé': 'Where the game turned', 'Essaie un autre coup et vois ce qui se passe — ça ne compte pas pour de vrai': 'Try another move and see what happens — it doesn’t count',
   'Copie la séquence de coups (Aba-Pro ou Nacre) dans le presse-papier': 'Copies the move sequence (Aba-Pro or Nacre) to the clipboard',
   'Message… (ou /bot règles, /bot champions…)': 'Message… (or /bot règles, /bot champions…)',
   '🔀 Essayer une variante': '🔀 Try a variation', 'Copier les coups (Aba-Pro)': 'Copy the moves (Aba-Pro)', 'Importer une partie (Aba-Pro)': 'Import a game (Aba-Pro)',
-  "Analyse d'apres-partie": 'Post-game analysis', '🧩 Résoudre': '🧩 Solve', '📊 Analyse de la position': '📊 Position analysis',
+  "Analyse d'après-partie": 'Post-game analysis', '🧩 Résoudre': '🧩 Solve', '📊 Analyse de la position': '📊 Position analysis',
   '🧩 Puzzles (vraies parties)': '🧩 Puzzles (real games)', '🔮 Et si...?': '🔮 What if…?',
   'Cliquez sur vos billes pour les sélectionner': 'Tap your marbles to select them', "Attendre le coup de l'adversaire…": 'Waiting for the opponent’s move…',
   'Direction invalide': 'Invalid direction', 'Billes non alignées': 'Marbles not aligned', 'Sortie de ses propres billes interdite': 'You cannot push your own marbles off',
@@ -4848,7 +4848,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
           <button class="ctrl-btn" onclick="openApgnImportModal()" style="margin-top:8px;width:100%" title="Colle une sequence de coups en notation Aba-Pro pour la rejouer -- raccourci vers le meme import que dans le menu">Importer une partie (Aba-Pro)</button>
           <button class="ctrl-btn" onclick="openExternalEnginePanel()" style="margin-top:8px;width:100%" title="Faire jouer un autre programme contre l IA de ce site, en relayant les coups a la main">Duel moteur externe 🧪</button>
           <button class="ctrl-btn" onclick="openRtcPanel()" style="margin-top:8px;width:100%" title="Connexion directe en temps reel entre deux navigateurs, experimental">Partie en direct 🧪</button>
-          <button class="ctrl-btn" onclick="showPostGameReview()" style="margin-top:8px;width:100%" title="Ou la partie a bascule">Analyse d'apres-partie</button>
+          <button class="ctrl-btn" onclick="showPostGameReview()" style="margin-top:8px;width:100%" title="Où la partie a basculé">Analyse d'après-partie</button>
           <div id="ai-metrics" style="margin-top:10px;padding:9px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);display:none">
             <div style="color:var(--gold);font-weight:600;margin-bottom:6px">🧠 Dernière recherche IA</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 10px">
@@ -8922,7 +8922,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v3.09';
+const APP_VERSION = 'v3.10';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -40570,12 +40570,12 @@ function showPostGameReview() {
   };
   modal.innerHTML =
     '<div style="max-width:460px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:24px">'
-    + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:4px">Apres la partie</h3>'
-    + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Calcule a partir des positions reelles de la partie, avec la meme evaluation que l\'IA.</div>'
-    + line('Coups joues', r.plies)
-    + line('Premiere bille perdue', r.firstLossPly > 0 ? ('coup ' + r.firstLossPly) : 'aucune')
-    + line('Position basculee au', r.turning ? ('coup ' + r.turning.ply + (r.turningLabel ? ' (' + r.turningLabel + ')' : '')) : 'pas de bascule nette')
-    + line('Evaluation debut → fin', Math.round(r.evalStart) + ' → ' + Math.round(r.evalEnd))
+    + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:4px">Après la partie</h3>'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Calculé à partir des positions réelles de la partie, avec la même évaluation que l\'IA.</div>'
+    + line('Coups joués', r.plies)
+    + line('Première bille perdue', r.firstLossPly > 0 ? ('coup ' + r.firstLossPly) : 'aucune')
+    + line('Position basculée au', r.turning ? ('coup ' + r.turning.ply + (r.turningLabel ? ' (' + r.turningLabel + ')' : '')) : 'pas de bascule nette')
+    + line('Évaluation début → fin', Math.round(r.evalStart) + ' → ' + Math.round(r.evalEnd))
     + '<div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end">'
     + '<button class="ctrl-btn" onclick="document.getElementById(\'review-modal\').remove()">Fermer</button>'
     + '</div></div>';
@@ -48049,6 +48049,13 @@ function _obsFlecheXY(cells, dir) {
   const tete = tri[tri.length - 1], hp = px(tete), dp = px({ q: tete.q + dir.q, r: tete.r + dir.r });
   return { a: px(tri[0]), b: dp || { x: hp.x + (hp.x - px(tri[0]).x || 40) * 0.6, y: hp.y } };
 }
+/* Place d'une pastille de rang : au depart de la fleche, ou a mi-chemin si une autre pastille y est deja
+   (plusieurs coups qui partent de la meme bille) */
+function _obsPastille(xy, pris) {
+  const k = Math.round(xy.a.x) + ',' + Math.round(xy.a.y);
+  if (!pris[k]) { pris[k] = 1; return { x: xy.a.x, y: xy.a.y }; }
+  return { x: xy.a.x + (xy.b.x - xy.a.x) * 0.55, y: xy.a.y + (xy.b.y - xy.a.y) * 0.55 };
+}
 /* Pointe de fleche (polygone) : pas de marker SVG, dont le remplissage « context-stroke » n'est pas partout */
 function _obsPointe(a, b, t) {
   const ang = Math.atan2(b.y - a.y, b.x - a.x), f = function (d) { return (b.x - t * Math.cos(ang + d)).toFixed(1) + ',' + (b.y - t * Math.sin(ang + d)).toFixed(1); };
@@ -48078,7 +48085,10 @@ function _obsPlateauSVG(bd, fleches, marques, carte) {
   (fleches || []).forEach(function (f) { const xy = _obsFlecheXY(f.cells, f.dir), e = f.epais || 9;
     s += '<g opacity=".92"><line x1="' + xy.a.x.toFixed(1) + '" y1="' + xy.a.y.toFixed(1) + '" x2="' + xy.b.x.toFixed(1) + '" y2="' + xy.b.y.toFixed(1) + '" stroke="' + f.col + '" stroke-width="' + e + '" stroke-linecap="round"/>'
       + '<polygon points="' + _obsPointe(xy.a, xy.b, 14 + e * 1.6) + '" fill="' + f.col + '"/></g>';
-    if (f.num) s += '<circle cx="' + xy.a.x.toFixed(1) + '" cy="' + xy.a.y.toFixed(1) + '" r="17" fill="' + f.col + '" stroke="#111" stroke-width="2"/><text x="' + xy.a.x.toFixed(1) + '" y="' + (xy.a.y + 8).toFixed(1) + '" text-anchor="middle" font-size="22" font-weight="700" fill="#111">' + f.num + '</text>'; });
+  });
+  const pris = {};
+  (fleches || []).filter(function (f) { return f.num; }).sort(function (x, y) { return x.num - y.num; }).forEach(function (f) { const q = _obsPastille(_obsFlecheXY(f.cells, f.dir), pris);
+    s += '<circle cx="' + q.x.toFixed(1) + '" cy="' + q.y.toFixed(1) + '" r="17" fill="' + f.col + '" stroke="#111" stroke-width="2"/><text x="' + q.x.toFixed(1) + '" y="' + (q.y + 8).toFixed(1) + '" text-anchor="middle" font-size="22" font-weight="700" fill="#111">' + f.num + '</text>'; });
   return s + '</svg>';
 }
 /* Coordonnees : la lettre de chaque rangee a gauche de sa premiere case, chaque chiffre pres de la case
@@ -48620,7 +48630,7 @@ function _obsCss() {
     + '#obs-btn-jeu{width:100%;margin-bottom:8px}'
     // grand ecran seulement (en dessous, la mise en page de la partie ne se resserre pas : le panneau la recouvre comme avant) ; !important : la barre laterale du site ecrit padding-right:0 dans le style du body ; en hebreu (de droite a gauche) le panneau passe a gauche
     + '@media (min-width:1800px){body.obs-place{padding-right:416px!important}html[dir=rtl] body.obs-place{padding-left:416px!important}html[dir=rtl] #obs-panneau:not(.obs-grand){right:auto;left:8px}}'
-    + '@media (max-width:900px){#obs-panneau{top:auto;left:8px;right:8px;width:auto;height:58vh;bottom:0;border-radius:14px 14px 0 0}#obs-panneau.obs-grand{top:56px;height:auto}#obs-panneau.obs-reduit{top:60px;bottom:auto;height:auto;border-radius:14px}.obs-dash{grid-template-columns:1fr}}';
+    + '@media (max-width:900px){#obs-panneau{top:auto;left:8px;right:8px;width:auto;height:58vh;bottom:0;border-radius:14px 14px 0 0}#obs-panneau.obs-grand{top:56px;height:auto}#obs-panneau.obs-reduit{top:60px;bottom:auto;height:auto;border-radius:14px}body.obs-tiroir #ai-thinking{bottom:calc(58vh + 8px)!important}.obs-dash{grid-template-columns:1fr}}';
   document.head.appendChild(st);
 }
 function _obsOptionsHTML() {
@@ -48652,6 +48662,8 @@ function _obsRendu() {
   const btn = document.getElementById('obs-btn-jeu'); if (btn) btn.textContent = '🔭 ' + _obsT('Observatoire IA', 'AI Observatory') + (OBS.ouvert ? ' ✓' : '');
   let p = document.getElementById('obs-panneau');
   _obsPlace(OBS.ouvert && !OBS.grand && !OBS.reduit);
+  // sur telephone, le bandeau « L'IA reflechit… » passe au-dessus du tiroir au lieu de le cacher
+  if (document.body && document.body.classList) document.body.classList.toggle('obs-tiroir', !!(OBS.ouvert && !OBS.grand && !OBS.reduit));
   if (!OBS.ouvert) { if (p) p.className = ''; return; }
   _obsCss();
   if (!p) { p = document.createElement('aside'); p.id = 'obs-panneau'; document.body.appendChild(p); }
@@ -48689,15 +48701,17 @@ function _obsRendu() {
 /* ═══ Le plateau de la partie : 3 meilleurs coups en direct, coup choisi, billes menacees ═══
    Seulement panneau ouvert, en partie contre l'IA, et sur le plateau principal (pas sur les
    autres canevas que drawBoard sait dessiner). */
-function _obsFlecheCanvas(ctx, cells, dir, col, w, bague, num) {
+function _obsFlecheCanvas(ctx, cells, dir, col, w, bague) {
   const xy = _obsFlecheXY(cells, dir);
   if (bague) cells.forEach(function (cel) { const p = hexCoord(cel.r, cel.c); ctx.beginPath(); ctx.arc(p.x, p.y, HEX_RADIUS - 4, 0, Math.PI * 2); ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.stroke(); });
   ctx.beginPath(); ctx.moveTo(xy.a.x, xy.a.y); ctx.lineTo(xy.b.x, xy.b.y); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.stroke();
   const ang = Math.atan2(xy.b.y - xy.a.y, xy.b.x - xy.a.x), t = 8 + w * 1.4;
   ctx.beginPath(); ctx.moveTo(xy.b.x, xy.b.y); ctx.lineTo(xy.b.x - t * Math.cos(ang - Math.PI / 6), xy.b.y - t * Math.sin(ang - Math.PI / 6)); ctx.lineTo(xy.b.x - t * Math.cos(ang + Math.PI / 6), xy.b.y - t * Math.sin(ang + Math.PI / 6));
   ctx.closePath(); ctx.fillStyle = col; ctx.fill();
-  if (num) { ctx.beginPath(); ctx.arc(xy.a.x, xy.a.y, 13, 0, Math.PI * 2); ctx.fillStyle = col; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#111'; ctx.stroke();
-    ctx.fillStyle = '#111'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(num), xy.a.x, xy.a.y + 1); }
+}
+function _obsPastilleCanvas(ctx, q, col, num) {
+  ctx.beginPath(); ctx.arc(q.x, q.y, 13, 0, Math.PI * 2); ctx.fillStyle = col; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#111'; ctx.stroke();
+  ctx.fillStyle = '#111'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(num), q.x, q.y + 1);
 }
 function _obsDessinerSurPlateau(opts) {
   if (!OBS.ouvert || (opts && opts.canvasId && opts.canvasId !== 'board')) return;
@@ -48719,7 +48733,9 @@ function _obsDessinerSurPlateau(opts) {
     ctx.beginPath(); ctx.arc(p.x, p.y, HEX_RADIUS - 1, 0, Math.PI * 2); ctx.setLineDash(st[k] === 'danger' ? [6, 4] : [2, 4]);
     ctx.strokeStyle = st[k] === 'danger' ? '#ef5350' : '#ffb74d'; ctx.lineWidth = st[k] === 'danger' ? 3.5 : 2.5; ctx.stroke(); });
   ctx.setLineDash([]);
-  fleches.forEach(function (f) { _obsFlecheCanvas(ctx, f[0], f[1], f[2], f[3], f[4], f[5]); });
+  fleches.forEach(function (f) { _obsFlecheCanvas(ctx, f[0], f[1], f[2], f[3], f[4]); });
+  const pris = {};
+  fleches.filter(function (f) { return f[5]; }).sort(function (x, y) { return x[5] - y[5]; }).forEach(function (f) { _obsPastilleCanvas(ctx, _obsPastille(_obsFlecheXY(f[0], f[1]), pris), f[2], f[5]); });
   ctx.restore();
 }
 (function () {
