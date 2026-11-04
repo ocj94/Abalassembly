@@ -6925,3 +6925,32 @@ test('Observatoire IA v3.06 : ce que fait un coup un coup plus loin, classement 
   assert.ok(!/memoire|mémoire|confiance|performance/i.test(JSON.stringify(D)), 'pas de mesure inventee');
   lire('OBS.hist = []; OBS.bandeau = true');
 });
+
+test('Observatoire IA v3.07 : fleches sur tout le groupe, coordonnees Aba-Pro, « pourquoi pas ce coup ? » fait de faits', () => {
+  const g = ctx.rcToAxial(4, 0), h = ctx.rcToAxial(4, 1), gauche = { q: g.q - h.q, r: g.r - h.r };
+  // en ligne : de la derniere bille (4,4) a la case d'arrivee de la premiere (4,1)
+  const f = ctx._obsFlecheXY([{ r: 4, c: 2 }, { r: 4, c: 3 }, { r: 4, c: 4 }], gauche);
+  assert.deepStrictEqual([f.a.x, f.a.y], [ctx.hexCoord(4, 4).x, ctx.hexCoord(4, 4).y]);
+  assert.deepStrictEqual([f.b.x, f.b.y], [ctx.hexCoord(4, 1).x, ctx.hexCoord(4, 1).y]);
+  // lateral : du milieu du groupe a son milieu d'arrivee, deplacement d'une case
+  const autre = ctx.AX_DIRS.find(d => (d.q * gauche.r - d.r * gauche.q) !== 0);
+  const l = ctx._obsFlecheXY([{ r: 4, c: 3 }, { r: 4, c: 4 }], autre);
+  const m = { x: (ctx.hexCoord(4, 3).x + ctx.hexCoord(4, 4).x) / 2, y: (ctx.hexCoord(4, 3).y + ctx.hexCoord(4, 4).y) / 2 };
+  assert.ok(Math.abs(l.a.x - m.x) < 1e-6 && Math.abs(l.a.y - m.y) < 1e-6, 'milieu du groupe');
+  const pas = Math.hypot(ctx.hexCoord(4, 4).x - ctx.hexCoord(4, 3).x, ctx.hexCoord(4, 4).y - ctx.hexCoord(4, 3).y);
+  assert.ok(Math.abs(Math.hypot(l.b.x - l.a.x, l.b.y - l.a.y) - pas) < 0.5, 'une case (coordonnees du site arrondies au centieme)');
+  // coordonnees : les 9 lettres et les 9 chiffres d'Aba-Pro
+  const svg = ctx._obsCoordsSVG();
+  'abcdefghi'.split('').forEach(x => assert.ok(svg.includes('>' + x + '</text>'), x));
+  for (let n = 1; n <= 9; n++) assert.ok(svg.includes('>' + n + '</text>'), String(n));
+  // les fleches numerotees portent leur rang
+  const p = ctx._obsPlateauSVG({}, [{ cells: [{ r: 4, c: 4 }], dir: gauche, col: '#66bb6a', epais: 8, num: 2 }], null, false);
+  assert.ok(p.includes('>2</text>') && p.includes('<polygon'));
+  // « pourquoi » : ecart, equivalent en billes, ejection vue par la recherche ; jamais d'elagage a la racine pretendu
+  const R = { tous: [['k1', 500, 10, 0], ['k2', 200, 5, 1]], nomDe: k => (k === 'k1' ? 'a1b2' : 'c3d4'), cleRetenue: 'k1', racine: {}, couleur: 'black', det: null, dernier: true, prof: 3 };
+  const pas2 = ctx._obsPourquoiHTML({ e: {} }, R, 'k2');
+  ['Pourquoi pas c3d4 ?', 'Rang 2 sur 2', '300 points de moins que a1b2', '0,30 bille', '⚠', 'pas d’élagage à la racine'].forEach(x => assert.ok(pas2.includes(x), x));
+  const ret = ctx._obsPourquoiHTML({ e: {} }, R, 'k1');
+  ['Pourquoi a1b2 a été retenu', '300 points de plus que c3d4'].forEach(x => assert.ok(ret.includes(x), x));
+  assert.ok(!/élagué tôt|coupé tôt|confiance/i.test(pas2 + ret));
+});
