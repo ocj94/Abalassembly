@@ -9,6 +9,27 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.08]
+
+### Added — the AI Observatory, from the "log" and "deliberation" mock-ups
+- **Search log** (Overview, Analyst level and up): one line per depth completed
+  by every thread — time, best move and its score, that depth's positions and
+  cutoffs, and "best changes" when it does; then the move played, with "time
+  ran out during depth N" when the timer cut in. Built from the engine's
+  messages: not a trace of every position, and the panel says so.
+- **A move's score, depth after depth** ("Why not …?" and Decision tab): its
+  score and rank at each completed depth. When a move led earlier then fell
+  back, the card says so ("searching further, the engine found a better reply
+  for the opponent"); for the chosen move, how many depths it stayed ahead.
+- **Copy the report** (History tab), besides downloading it; the report gives
+  the best move at each depth.
+
+### Left out, because it would be invented or wrong for this engine
+"Live moves 44 → 7" and "40 other moves pruned" (every first move is fully
+scored), a "confidence gauge" in percent (we show the gap with the 2nd and the
+stability, not a composite number), a 5-axis radar (criteria do not share a
+scale), an accordion tree with β cutoffs (the engine does not keep the tree).
+
 ## [v3.07]
 
 ### Added — the AI Observatory, from the "board + engine choices" mock-up

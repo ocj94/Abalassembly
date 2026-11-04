@@ -8922,7 +8922,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v3.07';
+const APP_VERSION = 'v3.08';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -47780,6 +47780,8 @@ function telechargerPartieKAAH() {
    - rapport telechargeable (.txt, .json) et mode plein ecran.
    v3.07 : fleches sur tout le groupe qui bouge, numerotees comme la liste ; coordonnees Aba-Pro sur
    les mini plateaux ; « Pourquoi ce coup ? / Pourquoi pas celui-la ? » pour n'importe quel coup choisi.
+   v3.08 : journal de la recherche (une ligne par profondeur terminee), note de chaque coup profondeur
+   apres profondeur (un coup qui menait puis recule ; un choix stable), rapport copiable.
    Ce qui est refuse parce que ce serait invente : « memoire utilisee » (pas mesurable de facon
    fiable dans un fil de calcul), notes de confiance ou de « performance », arbre complet noeud
    par noeud (le moteur ne le garde pas : le reconstituer voudrait dire recalculer).
@@ -47823,14 +47825,15 @@ function obsDebut(couleur, config) {
   if (!obsDemande()) return;
   OBS.surPlateau = null; OBS.rev = -1; OBS.sel = null; OBS.etape = -1; OBS.tout = false; OBS.cmp = null; OBS.etapeCmp = -1;
   OBS.live = { etat: 'calcul', couleur: couleur, budget: config ? config.time : 0, t0: Date.now(), fils: {}, nFils: 1, parProf: {}, serie: [],
-               racine: JSON.parse(JSON.stringify(board)), coups: _obsCoupsRacine(couleur), cle: null, source: null, top: [] };
+               racine: JSON.parse(JSON.stringify(board)), coups: _obsCoupsRacine(couleur), cle: null, source: null, top: [], journal: [], jProf: {} };
+  OBS.live.journal.push({ t: 0, k: 'debut', n: OBS.live.coups.size });
   OBS.tBandeau = 0; _obsBandeau(true);
   _obsPlanifier();
 }
 function obsProgres(m, nFils) {
   const L = OBS.live; if (!L || L.etat !== 'calcul') return;
   L.nFils = nFils || 1; L.fils[m.w] = m;
-  if (m.fin) { (L.parProf[m.d] = L.parProf[m.d] || {})[m.w] = m.roots; }
+  if (m.fin) { (L.parProf[m.d] = L.parProf[m.d] || {})[m.w] = m.roots; _obsJournalProf(L, m.d); }
   const tot = Object.keys(L.fils).reduce(function (a, k) { return a + L.fils[k].nodes; }, 0);
   L.serie.push({ t: Date.now() - L.t0, n: tot }); if (L.serie.length > 400) L.serie.splice(1, 1);
   // les 3 meilleurs coups du moment : redessines sur le plateau de la partie quand ils changent
@@ -47854,12 +47857,20 @@ function obsFin(m, couleur, config, chosen) {
   }
   const noms = {}; L.coups.forEach(function (v, k) { noms[k] = v.n; });
   const cle = chosen ? moveKey(chosen) : null;
+  // note de chaque coup de depart a chaque profondeur terminee par tous les fils (pour « profondeur apres profondeur »)
+  const parProfs = {};
+  for (let d = 1; d <= 64; d++) {
+    if (!fils.every(function (f) { return f.rootsByDepth && Array.isArray(f.rootsByDepth[d]) && f.rootsByDepth[d].length; })) continue;
+    const t = []; fils.forEach(function (f) { f.rootsByDepth[d].forEach(function (r) { t.push([r.key, Math.round(r.score)]); }); });
+    parProfs[d] = t.sort(function (a, b) { return b[1] - a[1]; });
+  }
+  L.journal.push({ t: m.time || (Date.now() - L.t0), k: 'fin', cle: cle, s: m.bestScore, d: m.depth || 0, partiel: profTous && profTous < (m.depth || 0) });
   const e = { n: (typeof MoveCount !== 'undefined' ? MoveCount.get() : 0) + 1, couleur: couleur, cle: cle, det: det, tous: tous, profTous: profTous, noms: noms,
               racine: L.racine, prof: m.depth || 0, score: m.bestScore, ms: m.time || 0, budget: config ? config.time : 0,
               noeuds: fils.reduce(function (a, f) { return a + (f.nodes || 0); }, 0), coupures: fils.reduce(function (a, f) { return a + (f.cuts || 0); }, 0),
               tt: Math.round(fils.reduce(function (a, f) { return a + (f.ttHit || 0); }, 0) / fils.length), nFils: fils.length,
               parFil: fils.map(function (f) { return { nodes: f.nodes, cuts: f.cuts, tt: f.ttHit, depth: f.depth }; }),
-              serie: L.serie.slice(), profs: _obsProfs(fils), source: null };
+              serie: L.serie.slice(), profs: _obsProfs(fils), source: null, parProfs: parProfs, journal: L.journal.slice() };
   OBS.hist.push(e); if (OBS.hist.length > 60) OBS.hist.shift();
   L.etat = 'fini'; L.cle = cle; L.entree = e; _obsBandeau(true);
   if (OBS.surPlateau || (OBS.ouvert && L.top && L.top.length)) { OBS.surPlateau = null; if (typeof drawBoard === 'function') drawBoard(); }
@@ -47895,6 +47906,42 @@ function _obsFusion(L, d) {   // coups racine d'une profondeur terminee par TOUS
   const P = L.parProf[d]; if (!P || Object.keys(P).length < L.nFils) return null;
   let t = []; Object.keys(P).forEach(function (w) { t = t.concat(P[w]); });
   return t.sort(function (a, b) { return b[1] - a[1]; });
+}
+/* ═══ Journal de la recherche : une ligne par profondeur terminee par tous les fils ═══
+   Tire des messages du moteur (pas une trace de chaque position : il y en a des centaines de milliers). */
+function _obsJournalProf(L, d) {
+  if (L.jProf[d]) return;
+  const t = _obsFusion(L, d); if (!t || !t.length) return;
+  L.jProf[d] = 1;
+  const prec = L.journal.filter(function (x) { return x.k === 'prof'; }).pop(), p = _obsAgreg(L).profs[d] || {};
+  L.journal.push({ t: Date.now() - L.t0, k: 'prof', d: d, cle: t[0][0], s: t[0][1], chg: prec && prec.cle !== t[0][0] ? prec.cle : null, nodes: p.nodes || 0, cuts: p.cuts || 0 });
+}
+function _obsJournalHTML(j, nomDe) {
+  if (!j || !j.length) return '';
+  const ms = function (t) { return (t / 1000).toFixed(2).replace('.', ',') + ' s'; };
+  const lignes = j.map(function (x) {
+    if (x.k === 'debut') return '<span class="obs-jt">' + ms(x.t) + '</span> ' + _obsT('départ : ' + x.n + ' coups de départ à noter', 'start: ' + x.n + ' first moves to score');
+    if (x.k === 'prof') return '<span class="obs-jt">' + ms(x.t) + '</span> <span class="obs-jd">' + _obsT('profondeur ', 'depth ') + x.d + '</span> ' + _obsT('terminée — ', 'done — ')
+      + (x.chg ? '<span class="obs-jc">' + _obsT('le meilleur change : ', 'best changes: ') + _obsE(nomDe(x.chg)) + ' → </span>' : _obsT('meilleur ', 'best ')) + '<b>' + _obsE(nomDe(x.cle)) + '</b> (' + _evalReflexionTexte(x.s) + ') · '
+      + _obsN(x.nodes) + ' ' + _obsT('positions', 'positions') + ' · ' + _obsN(x.cuts) + ' ' + _obsT('coupures', 'cutoffs');
+    return '<span class="obs-jt">' + ms(x.t) + '</span> ' + (x.partiel ? '<span class="obs-jc">' + _obsT('temps écoulé pendant la profondeur ' + x.d, 'time ran out during depth ' + x.d) + '</span> — ' : '')
+      + _obsT('coup joué : ', 'move played: ') + '<b>' + _obsE(x.cle ? nomDe(x.cle) : '?') + '</b> (' + _evalReflexionTexte(x.s) + ')';
+  });
+  return '<h5>' + _obsT('Journal de la recherche', 'Search log') + '</h5><div class="obs-journal">' + lignes.map(function (l) { return '<div>› ' + l + '</div>'; }).join('') + '</div>'
+    + '<div class="obs-note">' + _obsT('Une ligne par profondeur terminée par tous les fils, tirée des messages du moteur. Ce n’est pas la trace de chaque position examinée (il y en a des centaines de milliers).', 'One line per depth completed by every thread, from the engine’s messages. Not a trace of every position searched (there are hundreds of thousands).') + '</div>';
+}
+/* Notes des coups de depart, profondeur par profondeur : {d: [[cle, note], ...] trie} */
+function _obsParProfs(V) {
+  if (V.e) return V.e.parProfs || {};
+  const L = V.L, o = {}; if (!L) return o;
+  Object.keys(L.parProf).forEach(function (d) { const t = _obsFusion(L, +d); if (t) o[d] = t.map(function (x) { return [x[0], Math.round(x[1])]; }); });
+  return o;
+}
+function _obsTrajectoire(P, cle) {   // [[profondeur, note, rang]]
+  return Object.keys(P).map(Number).sort(function (a, b) { return a - b; }).map(function (d) { const i = P[d].findIndex(function (x) { return x[0] === cle; }); return i < 0 ? null : [d, P[d][i][1], i + 1]; }).filter(Boolean);
+}
+function _obsTrajTexte(T) {
+  return T.map(function (x) { return _obsT('prof. ', 'depth ') + x[0] + ' : ' + _evalReflexionTexte(x[1]) + ' <small>(' + (x[2] === 1 ? _obsT('1er', '1st') : x[2] + _obsT('e', 'th')) + ')</small>'; }).join(' → ');
 }
 /* Classement du direct : la derniere profondeur terminee par tous les fils, sinon ce qui est deja note */
 function _obsClassement(L) {
@@ -48072,6 +48119,7 @@ function _obsTabGeneral(V) {
       h += '<span class="obs-pf' + (chg ? ' obs-chg' : '') + '" title="' + (chg ? _obsT('Le meilleur coup a changé', 'Best move changed') : '') + '"><em>' + x.d + '</em> ' + _obsE(nom) + ' <small>' + _evalReflexionTexte(x.s) + '</small></span>'; });
     h += '</div>';
   }
+  if (niv >= 1) h += _obsJournalHTML(V.mode === 'direct' ? V.L.journal : V.e.journal, function (k) { return V.mode === 'direct' ? _obsNom(V.L, k) : ((V.e.noms && V.e.noms[k]) || '?'); });
   if (niv >= 1) {
     h += '<h5>' + _obsT('Vitesse de recherche', 'Search speed') + '</h5>' + _obsCourbe(vit, 300, 56, '#c8a84b')
       + '<div class="obs-grille obs-g3"><div class="obs-k"><span>' + _obsT('Coupures α-β', 'α-β cutoffs') + '</span><b>' + _obsN(cuts) + '</b><small>' + (nodes ? Math.round(100 * cuts / nodes) : 0) + ' % ' + _obsT('des positions', 'of positions') + '</small></div>'
@@ -48158,6 +48206,15 @@ function _obsPourquoiHTML(V, R, cle) {
     faits.push(e > 0 ? _obsT(_obsN(e) + ' points de moins que ' + nomRef + ' (≈ ' + billes(e) + ' bille).', _obsN(e) + ' points less than ' + nomRef + ' (≈ ' + billes(e) + ' marble).')
       : e === 0 ? _obsT('Même note que ' + nomRef + ' : départagés par l’ordre de recherche.', 'Same score as ' + nomRef + ': settled by search order.')
       : _obsT('Note plus haute que ' + nomRef + ' à cette profondeur : ' + nomRef + ' a été retenu à la profondeur suivante, que le temps n’a pas laissé finir.', 'Higher score than ' + nomRef + ' at this depth: ' + nomRef + ' was chosen at the next depth, which time did not let finish.')); }
+  const T = _obsTrajectoire(_obsParProfs(V), cle);
+  if (T.length >= 2) {
+    faits.push(_obsT('Profondeur après profondeur : ', 'Depth after depth: ') + _obsTrajTexte(T) + '.');
+    const tete = T.filter(function (y) { return y[2] === 1; }), der = T[T.length - 1];
+    if (!estRef && tete.length && der[2] > 1) { const y = tete[tete.length - 1];
+      faits.push(_obsT('Était en tête à la profondeur ' + y[0] + ' (' + _evalReflexionTexte(y[1]) + ') : en cherchant plus loin, le moteur lui a trouvé une meilleure réponse adverse.', 'Was leading at depth ' + y[0] + ' (' + _evalReflexionTexte(y[1]) + '): searching further, the engine found a better reply for the opponent.')); }
+    if (estRef) { let n = 0; for (let k = T.length - 1; k >= 0 && T[k][2] === 1; k--) n++;
+      if (n >= 2) faits.push(_obsT('En tête aux ' + n + ' dernières profondeurs terminées : le choix n’a pas changé en cherchant plus loin.', 'Leading at the last ' + n + ' completed depths: the choice did not change when searching further.')); }
+  }
   if (x[3]) faits.push(_obsT('⚠ La recherche a vu une éjection adverse juste après ce coup.', '⚠ The search saw an opponent ejection right after this move.'));
   if (a) {
     faits.push(_obsT('Type : ', 'Type: ') + _obsTypeTexte(a) + '.');
@@ -48248,6 +48305,8 @@ function _obsTabDecision(V) {
     const ecart = ret.s - a.s;
     const diffs = (ret.terms && a.terms) ? CR.map(function (k) { return [k[1], (ret.terms[k[0]] || 0) - (a.terms[k[0]] || 0)]; }).filter(function (x) { return Math.abs(x[1]) >= 0.5; }).sort(function (x, y) { return Math.abs(y[1]) - Math.abs(x[1]); }).slice(0, 4) : [];
     h += '<div class="obs-vs"><b class="obs-mono">' + _obsE(ret.n) + '</b> ' + _obsT('contre', 'vs') + ' <b class="obs-mono">' + _obsE(a.n) + '</b> : ' + (ecart > 0 ? _obsT('meilleur de ', 'better by ') + _obsN(ecart) + ' ' + _obsT('points', 'points') : _obsT('à égalité (départagé par l’ordre de recherche)', 'tied (settled by search order)'));
+    const Ta = _obsTrajectoire(_obsParProfs(V), moveKeyDe(a)), Tr = _obsTrajectoire(_obsParProfs(V), moveKeyDe(ret));
+    if (Ta.length >= 2) h += '<div class="obs-note">' + _obsE(a.n) + ' : ' + _obsTrajTexte(Ta) + (Tr.length >= 2 ? '<br>' + _obsE(ret.n) + ' : ' + _obsTrajTexte(Tr) : '') + '</div>';
     if (diffs.length) h += '<div class="obs-suite">' + diffs.map(function (x) { return '<span class="' + (x[1] > 0 ? 'obs-plus' : 'obs-moins') + '">' + _obsE(x[0]) + ' ' + (x[1] > 0 ? '+' : '') + String(Math.round(x[1] * 10) / 10).replace('.', ',') + '</span>'; }).join(' ') + '</div>';
     h += '<button class="obs-lien" onclick="obsChoisir(\'' + moveKeyDe(a) + '\');obsOnglet(\'recherche\')">' + _obsT('Et si l’IA avait joué ', 'What if the AI had played ') + _obsE(a.n) + ' ? →</button></div>';
   });
@@ -48337,6 +48396,7 @@ function _obsRapportDonnees() {
       return { n: e.n, couleur: e.couleur, coup: nom(e.cle), note: Math.round(e.score || 0), profondeur: e.prof, profondeurTerminee: e.profTous || e.prof,
         ms: Math.round(e.ms || 0), tempsAccorde: e.budget || 0, positions: e.noeuds || 0, coupures: e.coupures || 0, tableTransposition: e.tt || 0, fils: e.nFils || 1,
         suitePrevue: f ? [f.l.n].concat(f.l.suite || []) : [],
+        meilleurParProfondeur: Object.keys(e.parProfs || {}).map(Number).sort(function (a, b) { return a - b; }).map(function (d) { const x = e.parProfs[d][0]; return { profondeur: d, coup: nom(x[0]), note: x[1] }; }),
         candidats: (e.tous || []).slice(0, 10).map(function (x) { return { coup: nom(x[0]), note: Math.round(x[1]), effort: x[2] || 0, ejectionAdverseEnsuite: !!x[3] }; }) };
     }) };
 }
@@ -48351,10 +48411,17 @@ function _obsRapportTexte() {
       + (c.profondeurTerminee < c.profondeur ? ' (' + c.profondeurTerminee + _obsT(' terminée)', ' completed)') : '') + ' — ' + _msTexte(c.ms) + ' — ' + _obsN(c.positions) + ' positions — '
       + _obsT('coupures ', 'cutoffs ') + (c.positions ? Math.round(100 * c.coupures / c.positions) : 0) + ' % — TT ' + c.tableTransposition + ' %');
     if (c.suitePrevue.length) L.push('  ' + _obsT('Suite prévue : ', 'Expected line: ') + c.suitePrevue.join(' '));
+    if (c.meilleurParProfondeur && c.meilleurParProfondeur.length) L.push('  ' + _obsT('Meilleur coup par profondeur : ', 'Best move by depth: ') + c.meilleurParProfondeur.map(function (x) { return x.profondeur + ':' + x.coup + ' ' + _evalReflexionTexte(x.note); }).join('  '));
     if (c.candidats.length) L.push('  ' + _obsT('Meilleurs coups : ', 'Best moves: ') + c.candidats.slice(0, 5).map(function (x, i) { return (i + 1) + '. ' + x.coup + ' ' + _evalReflexionTexte(x.note) + (x.ejectionAdverseEnsuite ? ' ⚠' : ''); }).join('  '));
   });
   L.push('', _obsT('⚠ : l’adversaire a une éjection juste après ce coup. Les notes viennent de la recherche du moteur ; rien n’est estimé à part.', '⚠: the opponent has an ejection right after this move. Scores come from the engine search; nothing is estimated separately.'));
   return L.join('\n') + '\n';
+}
+function obsCopier() {
+  const t = _obsRapportTexte(), ok = function () { if (typeof showToast === 'function') showToast('📋 ' + _obsT('Rapport copié', 'Report copied')); };
+  const secours = function () { try { const z = document.createElement('textarea'); z.value = t; z.style.position = 'fixed'; z.style.opacity = '0'; document.body.appendChild(z); z.select(); document.execCommand('copy'); z.remove(); ok(); } catch (e) {} };
+  try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok, secours); else secours(); } catch (e) { secours(); }
+  return t;
 }
 function obsExporter(fmt) {
   const j = new Date(), z = function (n) { return (n < 10 ? '0' : '') + n; };
@@ -48393,7 +48460,7 @@ function _obsTabHistorique() {
     }
     h += '</div>';
   }
-  h += '<h5>' + _obsT('Rapport', 'Report') + '</h5><div class="obs-suite"><button class="obs-btn" onclick="obsExporter(\'txt\')">⬇ ' + _obsT('Rapport lisible (.txt)', 'Readable report (.txt)') + '</button>'
+  h += '<h5>' + _obsT('Rapport', 'Report') + '</h5><div class="obs-suite"><button class="obs-btn" onclick="obsCopier()">📋 ' + _obsT('Copier', 'Copy') + '</button> <button class="obs-btn" onclick="obsExporter(\'txt\')">⬇ ' + _obsT('Rapport lisible (.txt)', 'Readable report (.txt)') + '</button>'
     + (_obsNiv() >= 2 ? ' <button class="obs-btn" onclick="obsExporter(\'json\')">⬇ ' + _obsT('Données (.json)', 'Data (.json)') + '</button>' : '') + '</div>'
     + '<div class="obs-note">' + _obsT('Le fichier est créé dans le navigateur : rien n’est envoyé.', 'The file is made in the browser: nothing is sent.') + '</div>';
   return h;
@@ -48482,6 +48549,7 @@ function _obsCss() {
     + '.obs-carte span{font-size:10px;color:var(--muted)}.obs-carte b{font-size:15px}.obs-carte em{font-style:normal;color:var(--muted)}.obs-c-ok{border-color:#66bb6a}.obs-c-alt{border-color:#ffb74d}'
     + '.obs-vs{margin:8px 0;padding:6px 8px;background:var(--surface2);border-radius:8px}.obs-plus{color:#81c784}.obs-moins{color:#ef9a9a}'
     + '.obs-bipol{position:relative;height:8px;min-width:80px;background:var(--surface2);border-radius:4px}.obs-bipol i{position:absolute;top:0;bottom:0;border-radius:4px}.obs-pos{background:#66bb6a}.obs-neg{background:#ef5350}'
+    + '.obs-journal{font-family:"DM Mono",monospace;font-size:10.5px;line-height:1.55;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 8px;max-height:150px;overflow:auto}.obs-jt{color:var(--muted)}.obs-jd{color:var(--gold)}.obs-jc{color:#ffb74d}'
     + '.obs-rang{display:inline-block;min-width:17px;height:17px;line-height:17px;border-radius:5px;text-align:center;color:#111;font-weight:700;font-size:11px}.obs-c-gris{border-color:#9e9e9e}'
     + '.obs-pourquoi{border-left:3px solid var(--gold)}#obs-panneau .obs-pourquoi>b{font-size:13px;color:var(--gold)}#obs-panneau .obs-pourquoi li span{font-size:inherit}#obs-panneau .obs-pourquoi .obs-plus{color:#81c784}#obs-panneau .obs-pourquoi .obs-moins{color:#ef9a9a}.obs-pourquoi ul{margin:5px 0 2px 16px;padding:0}.obs-pourquoi li{margin:2px 0;line-height:1.4}'
     + '.obs-opts{display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:5px 8px;border-bottom:1px solid var(--border);font-size:10.5px;color:var(--muted)}'

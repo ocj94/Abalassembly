@@ -9,6 +9,30 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.08]
+
+### Ajouté — l'Observatoire IA, d'après les maquettes « journal » et « délibération »
+- **Journal de la recherche** (Vue générale, niveau Analyste et plus) : une
+  ligne par profondeur terminée par tous les fils — l'heure, le meilleur coup
+  et sa note, les positions et coupures de cette profondeur, et « le meilleur
+  change » quand c'est le cas ; puis le coup joué, avec « temps écoulé pendant
+  la profondeur N » si le minuteur a coupé. Tiré des messages du moteur : ce
+  n'est pas la trace de chaque position, et le panneau le dit.
+- **La note d'un coup, profondeur après profondeur** (« Pourquoi pas … ? » et
+  onglet Décision) : sa note et son rang à chaque profondeur terminée. Quand un
+  coup menait plus tôt puis recule, la fiche le dit (« en cherchant plus loin,
+  le moteur lui a trouvé une meilleure réponse adverse ») ; pour le coup
+  retenu, combien de profondeurs il est resté en tête.
+- **Copier le rapport** (onglet Historique), en plus du téléchargement ; le
+  rapport donne le meilleur coup à chaque profondeur.
+
+### Écarté, parce que ce serait inventé ou faux pour ce moteur
+« Coups vivants 44 → 7 » et « 40 autres coups élagués » (chaque coup de départ
+est noté en entier), « jauge de confiance » en pourcentage (on montre l'écart
+avec le 2e et la stabilité, pas un chiffre composé), radar à 5 axes (les
+critères n'ont pas la même échelle), arbre en accordéon avec coupures β (le
+moteur ne garde pas l'arbre).
+
 ## [v3.07]
 
 ### Ajouté — l'Observatoire IA, d'après la maquette « plateau + choix de l'algo »

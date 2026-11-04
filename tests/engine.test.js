@@ -6954,3 +6954,34 @@ test('Observatoire IA v3.07 : fleches sur tout le groupe, coordonnees Aba-Pro, �
   ['Pourquoi a1b2 a été retenu', '300 points de plus que c3d4'].forEach(x => assert.ok(ret.includes(x), x));
   assert.ok(!/élagué tôt|coupé tôt|confiance/i.test(pas2 + ret));
 });
+
+test('Observatoire IA v3.08 : journal de la recherche, note de chaque coup profondeur apres profondeur, rapport', () => {
+  const vm = require('vm'), lire = n => vm.runInContext(n, ctx);
+  lire('OBS.ouvert = false; OBS.bandeau = true; OBS.hist = []');
+  ctx.obsDebut('white', { time: 1000 });
+  const msg = (d, roots, nodes) => ({ progress: 1, w: 0, d, max: 3, i: roots.length, n: roots.length, nodes, cuts: 1, tt: 0, ms: 10, fin: 1, roots, depths: [[d, nodes, 10, 1, roots[0][1]]] });
+  ctx.obsProgres(msg(1, [['a', 300, 1, 0], ['b', 100, 1, 0]], 100), 1);
+  ctx.obsProgres(msg(1, [['a', 300, 1, 0], ['b', 100, 1, 0]], 100), 1);   // meme profondeur deux fois : une seule ligne
+  ctx.obsProgres(msg(2, [['b', 250, 1, 0], ['a', 50, 1, 0]], 900), 1);
+  ctx.obsFin({ depth: 2, bestScore: 250, time: 40, nodes: 900, cuts: 2, ttHit: 0, depthInfo: {},
+               rootsByDepth: { 1: [{ key: 'a', score: 300 }, { key: 'b', score: 100 }], 2: [{ key: 'b', score: 250 }, { key: 'a', score: 50 }] } }, 'white', { time: 1000 }, null);
+  const e = lire('OBS.hist[OBS.hist.length - 1]');
+  const j = JSON.parse(JSON.stringify(e.journal));
+  assert.deepStrictEqual(j.map(x => x.k), ['debut', 'prof', 'prof', 'fin']);
+  assert.strictEqual(j[1].cle, 'a'); assert.strictEqual(j[2].cle, 'b'); assert.strictEqual(j[2].chg, 'a', 'le meilleur coup change a la profondeur 2');
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(e.parProfs)), { 1: [['a', 300], ['b', 100]], 2: [['b', 250], ['a', 50]] });
+  // trajectoire : a menait a la profondeur 1, recule a la 2
+  const T = JSON.parse(JSON.stringify(ctx._obsTrajectoire(e.parProfs, 'a')));
+  assert.deepStrictEqual(T, [[1, 300, 1], [2, 50, 2]]);
+  const html = ctx._obsJournalHTML(e.journal, k => (k === 'a' ? 'i5h5' : 'g5f5'));
+  ['profondeur 1', 'le meilleur change : i5h5 → ', '<b>g5f5</b>', 'coup joué'].forEach(x => assert.ok(html.includes(x), x));
+  // « pourquoi pas a ? » : il menait a la profondeur 1, la recherche plus profonde lui a trouve une reponse
+  const R = { tous: [['b', 250, 1, 0], ['a', 50, 1, 0]], nomDe: k => (k === 'a' ? 'i5h5' : 'g5f5'), cleRetenue: 'b', racine: {}, couleur: 'white', det: null, dernier: true, prof: 2 };
+  const pq = ctx._obsPourquoiHTML({ e }, R, 'a');
+  ['Profondeur après profondeur', 'Était en tête à la profondeur 1 (+300)'].forEach(x => assert.ok(pq.includes(x), x));
+  assert.ok(!/confiance|faux plafond/i.test(pq));
+  // le rapport donne le meilleur coup par profondeur
+  const D = JSON.parse(JSON.stringify(ctx._obsRapportDonnees()));
+  assert.deepStrictEqual(D.coups[0].meilleurParProfondeur.map(x => x.profondeur + ':' + x.note), ['1:300', '2:250']);
+  lire('OBS.hist = []; OBS.live = null');
+});
