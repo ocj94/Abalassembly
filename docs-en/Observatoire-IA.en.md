@@ -2,7 +2,7 @@
 
 # AI Observatory
 
-*Since v3.05, extended up to v3.09.* A panel that shows what the AI computes **while** the game goes on, then why it picked its move. The screenshots below come from the real site, during a real game against the AI (French interface).
+*Since v3.05, extended up to v3.12.* A panel that shows what the AI computes **while** the game goes on, then why it picked its move. The screenshots below come from the real site, during a real game against the AI (French interface).
 
 **To open it**: in a game against the AI, the **"🔭 AI Observatory"** button under the board. The panel sits on the right on a computer and at the bottom on a phone. It has five tabs and three levels of detail: **Spectator**, **Analyst**, **Developer**.
 
@@ -30,9 +30,19 @@ Depth reached, positions searched, time out of the allowed time, speed. Then:
 
 ## Search: the moves studied
 
-![Search tab: mini board with coordinates and numbered arrows, list of first moves](../docs-img/obs-recherche.webp)
+![Search tab: mini board with coordinates, numbered arrows and heat map, list of first moves](../docs-img/obs-recherche.webp)
 
 Every first move, with its score, its gap with the best one, the search effort spent under it, and ⚠ when the opponent has an ejection right after. The mini board shows **Aba-Pro coordinates** (letters a to i, numbers 1 to 9) to read the notation.
+
+### Heat map: where the AI wants to go
+
+*Since v3.12.* The cells in orange are those where the **10 best moves** bring a marble. Each cell takes the best score of the moves that lead there: full colour for the best move, paler and paler down to the 10th. A cell already occupied (a pushed marble) gets a halo. Hovering a cell shows the move and its score. The **🔥** link under the board hides or shows it.
+
+### Preview on hover
+
+![Preview: the position right after the 2nd move of the list, moved marbles ringed in gold](../docs-img/obs-apercu.webp)
+
+*Since v3.12, with a mouse.* Hovering a move in the list (or a branch of the tree) shows on the mini board **the position right after that move**: the moved marbles are ringed in gold, the pale arrow recalls where they came from. The position is computed with the site's rules, without search. With a finger, tapping a move selects it, as before.
 
 ### "Why not this move?"
 
@@ -67,7 +77,7 @@ The engine's evaluation criteria, with their values, as bars centred on zero, an
 
 ![History tab: AI score over the game, list of moves, deeper re-run, strip at the bottom](../docs-img/obs-historique.webp)
 
-The AI's score over the game, the list of its decisions, and **"Re-run this search deeper"** for a past move. At the bottom of the panel, on every tab, a **strip**: one dot per AI move (red when the score is negative, ringed orange after a drop of 200 points or more, hollow without search), a dot that pulses while searching, ◀ ▶ to step from move to move. The game report can be **copied** or **downloaded** (.txt, and .json at Developer level).
+The AI's score over the game, the list of its decisions, and **"Re-run this search deeper"** for a past move. At the bottom of the panel, on every tab, a **strip**: one dot per AI move (red when the score is negative, ringed orange after a drop of 200 points or more, hollow without search), a dot that pulses while searching, ◀ ▶ to step from move to move. **Since v3.12, the review stays put**: when you look back at an earlier move, the AI's next search no longer brings you back to live. The game board keeps showing the running search, and the pulsing dot of the strip (or "Back to live") brings the panel back to it. The game report can be **copied** or **downloaded** (.txt, and .json at Developer level).
 
 ## Shrunk panel
 

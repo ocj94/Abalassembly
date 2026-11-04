@@ -9,6 +9,28 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.12]
+
+### Ajouté — Observatoire IA : carte de chaleur, aperçu au survol, vraie pause
+Trois idées reprises des maquettes envoyées par l'auteur (« Observatoire
+hybride » et « Plateau des choix »), sans toucher au moteur :
+- **Carte de chaleur** (onglet Recherche) : les cases où les 10 meilleurs coups
+  amènent une bille, en orange ; chaque case prend la meilleure note des coups
+  qui y mènent, couleur pleine pour le meilleur, de plus en plus pâle jusqu'au
+  10e. Une bulle donne le coup et sa note. Lien 🔥 pour la masquer. Une échelle
+  fixe en points ne disait rien : en ouverture, les 10 premiers coups tiennent
+  souvent en 50 points.
+- **Aperçu au survol** : à la souris, survoler un coup de la liste ou de
+  l'arbre montre la position juste après lui, billes déplacées cerclées d'or
+  (règles du site, sans recherche). La légende et la note gardent la même
+  hauteur, pour que la liste ne bouge pas sous la souris.
+- **Vraie pause** : en revue d'un ancien coup, le calcul suivant de l'IA ne
+  ramène plus au direct ; le point qui pulse dans la frise y ramène.
+
+Écarté des maquettes, parce que le moteur ne le calcule pas : la « confiance »
+en pourcentage, les explications en phrases (« libère la colonne F ») et le
+scénario « si l'adversaire avait joué… ».
+
 ## [v3.11]
 
 ### Corrigé — la mémoire de l'IA confondait les deux camps

@@ -9,6 +9,27 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.12]
+
+### Added — AI Observatory: heat map, preview on hover, real pause
+Three ideas taken from the mock-ups sent by the author ("hybrid Observatory"
+and "board of choices"), without touching the engine:
+- **Heat map** (Search tab): the cells where the 10 best moves bring a marble,
+  in orange; each cell takes the best score of the moves that lead there, full
+  colour for the best one, paler down to the 10th. A tooltip gives the move and
+  its score. 🔥 link to hide it. A fixed scale in points said nothing: in the
+  opening, the first 10 moves are often within 50 points.
+- **Preview on hover**: with a mouse, hovering a move in the list or the tree
+  shows the position right after it, moved marbles ringed in gold (site rules,
+  no search). The legend and the note keep the same height, so the list does
+  not move under the mouse.
+- **Real pause**: while reviewing an earlier move, the AI's next search no
+  longer brings you back to live; the pulsing dot of the strip does.
+
+Left out of the mock-ups, because the engine does not compute it: the
+"confidence" percentage, reasons in sentences ("opens the F file") and the
+"if the opponent had played…" scenario.
+
 ## [v3.11]
 
 ### Fixed — the AI's memory mixed up the two sides
