@@ -1912,7 +1912,7 @@ function aiMove() {
     hist: _gameHistKeys(),
     engineMode: _engineMode,
     nnueWeights: _engineMode ? NNUE_WEIGHTS_CACHE : undefined,
-    observe: (typeof obsActif === 'function' && obsActif()) ? 150 : 0   // Observatoire IA : mesures pendant le calcul
+    observe: (typeof obsDemande === 'function' && obsDemande()) ? 150 : 0   // Observatoire IA : mesures pendant le calcul (panneau ouvert ou bandeau detaille)
   };
   if (typeof obsDebut === 'function') obsDebut(ai, config);
   const pooledStarted = (typeof requestAIMovePooled === 'function') && requestAIMovePooled(pooledParams, function(chosen, metrics) {
@@ -1999,13 +1999,17 @@ function showAIThinking(on) {
       el.id = 'ai-thinking';
       el.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:2500;'
         + 'background:var(--surface);border:1px solid var(--gold-dim);border-radius:24px;padding:10px 20px;'
-        + 'display:flex;align-items:center;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,0.5);font-size:14px;color:var(--text)';
-      el.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid var(--gold-dim);'
+        + 'display:flex;flex-direction:column;align-items:center;gap:4px;max-width:calc(100vw - 24px);box-sizing:border-box;'
+        + 'box-shadow:0 6px 24px rgba(0,0,0,0.5);font-size:14px;color:var(--text)';
+      el.innerHTML = '<div style="display:flex;align-items:center;gap:10px">'
+        + '<span style="display:inline-block;width:14px;height:14px;border:2px solid var(--gold-dim);'
         + 'border-top-color:var(--gold);border-radius:50%;animation:ai-spin 0.7s linear infinite"></span>'
-        + '<span>L\'IA réfléchit…</span>'
+        + '<span style="white-space:nowrap">L\'IA réfléchit…</span>'
         + '<button onclick="forceAINow()" title="Interrompre la réflexion et jouer le meilleur coup trouvé" '
         + 'style="margin-left:6px;background:var(--gold);color:#0d0f0e;border:none;border-radius:14px;'
-        + 'padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">⚡ Jouer maintenant</button>';
+        + 'padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">⚡ Jouer maintenant</button></div>'
+        // Observatoire IA (v3.06) : une ligne de mesures en direct, remplie par _obsBandeau
+        + '<span id="ai-thinking-live" style="display:none;text-align:center;max-width:100%;font-family:\'DM Mono\',monospace;font-size:11.5px;color:var(--muted)"></span>';
       document.body.appendChild(el);
       // injecte l'animation si absente
       if (!document.getElementById('ai-spin-style')) {
@@ -2016,6 +2020,7 @@ function showAIThinking(on) {
       }
     }
     el.style.display = 'flex';
+    if (typeof _obsBandeau === 'function') _obsBandeau(true);
   } else if (el) {
     el.style.display = 'none';
   }

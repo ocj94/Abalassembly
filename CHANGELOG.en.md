@@ -9,6 +9,39 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.06]
+
+### Added — the AI Observatory, from the author's mock-ups
+- **The game board live**: while searching, the 3 best moves of the moment as
+  arrows (green, orange, grey), the best one with its marbles circled; marbles
+  in danger (on the edge, one ally or fewer) circled red, isolated ones orange,
+  for both sides. Set in the panel ("Show: arrows, threats"), only with the
+  panel open and against the AI.
+- **A detailed "AI is thinking…" banner**: depth, positions, time and the
+  provisional best move, even with the panel closed. Switched off in the panel
+  ("banner").
+- **Richer Decision tab**: for the chosen move and its alternatives, the move
+  type (inline, broadside, push 3 vs 2, ejection), the ejections the AI sets
+  up, those the opponent can play right away, each side's marbles in danger —
+  looked at one move ahead with the game rules, without search, and labelled
+  as such. **Two lines side by side**, stepped together.
+- **Downloadable report** (⬇ button and History tab): a readable file (.txt)
+  and, at Developer level, the data (.json). Made in the browser, nothing is
+  sent.
+- **Full-screen mode** (⤢): all five tabs at once, as a dashboard.
+- "⚡ Play now" button in the Overview while searching.
+- On very wide screens (1800 px and up) the panel takes its own room on the
+  right instead of covering the game.
+
+### Left out, because it would be invented
+"Memory used" (not reliably measurable inside a worker), "confidence" or
+"performance" ratings, a full node-by-node tree (the engine does not keep it:
+rebuilding it would mean searching again).
+
+### Changed
+- Detail levels move under the tabs with the display settings: the panel
+  header fits on one line.
+
 ## [v3.05]
 
 ### Fixed after release

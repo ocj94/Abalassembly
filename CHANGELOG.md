@@ -9,6 +9,40 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.06]
+
+### Ajouté — l'Observatoire IA, d'après les maquettes de l'auteur
+- **Le plateau de la partie en direct** : pendant le calcul, les 3 meilleurs
+  coups du moment en flèches (vert, orange, gris), le meilleur avec ses billes
+  entourées ; les billes en danger (au bord, un allié ou moins) entourées en
+  rouge, les isolées en orange, pour les deux camps. Réglable dans le panneau
+  (« Afficher : flèches, menaces »), seulement panneau ouvert et contre l'IA.
+- **Le bandeau « L'IA réfléchit… » détaillé** : profondeur, positions, temps et
+  meilleur coup provisoire, même panneau fermé. Se coupe dans le panneau
+  (« bandeau »).
+- **Décision enrichie** : pour le coup retenu et ses alternatives, le type de
+  coup (en ligne, latéral, poussée 3 contre 2, éjection), les éjections que
+  l'IA prépare, celles que l'adversaire peut jouer tout de suite, les billes en
+  danger de chaque camp — regardé un coup plus loin avec les règles du jeu,
+  sans recherche, et dit comme tel. **Deux variantes côte à côte**, avancées
+  ensemble pas à pas.
+- **Rapport téléchargeable** (bouton ⬇ et onglet Historique) : un fichier
+  lisible (.txt) et, au niveau Développeur, les données (.json). Créé dans le
+  navigateur, rien n'est envoyé.
+- **Mode plein écran** (⤢) : les cinq onglets à la fois, en tableau de bord.
+- Bouton « ⚡ Jouer maintenant » dans la Vue générale pendant le calcul.
+- Sur très grand écran (1800 px et plus), le panneau prend sa place à droite au
+  lieu de couvrir la partie.
+
+### Écarté, parce que ce serait inventé
+« Mémoire utilisée » (pas mesurable de façon fiable dans un fil de calcul),
+notes de « confiance » ou de « performance », arbre complet nœud par nœud (le
+moteur ne le garde pas : le reconstituer voudrait dire recalculer).
+
+### Changé
+- Les niveaux de détail passent sous les onglets, avec les réglages
+  d'affichage : l'en-tête du panneau tient sur une ligne.
+
 ## [v3.05]
 
 ### Corrigé après publication
