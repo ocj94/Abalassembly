@@ -6985,3 +6985,30 @@ test('Observatoire IA v3.08 : journal de la recherche, note de chaque coup profo
   assert.deepStrictEqual(D.coups[0].meilleurParProfondeur.map(x => x.profondeur + ':' + x.note), ['1:300', '2:250']);
   lire('OBS.hist = []; OBS.live = null');
 });
+
+test('Observatoire IA v3.09 : panneau reduit en une ligne, frise des decisions, courbe de la note par profondeur', () => {
+  const vm = require('vm'), lire = n => vm.runInContext(n, ctx);
+  lire('OBS.hist = [{ n: 2, couleur: "white", cle: "k", noms: { k: "i9h8" }, score: 300, prof: 3, ms: 1200 }, { n: 4, couleur: "white", source: "livre" }, { n: 6, couleur: "white", cle: "j", noms: { j: "g7f6" }, score: 50, prof: 3, ms: 900 }]; OBS.rev = -1; OBS.live = null');
+  // ligne du panneau reduit
+  assert.ok(ctx._obsLigneHUD({ mode: 'fini', e: lire('OBS.hist[0]') }).includes('coup 2 : i9h8 +300 · prof. 3'));
+  assert.ok(ctx._obsLigneHUD({ mode: 'revue', e: lire('OBS.hist[1]') }).includes('sans calcul'));
+  assert.ok(ctx._obsLigneHUD({ mode: 'vide' }).includes('En attente'));
+  // frise : un point par coup, la chute de 250 points signalee, aucun point « en cours » hors calcul
+  const f = ctx._obsFrise({ mode: 'fini' });
+  assert.strictEqual((f.match(/class="obs-pt[ "]/g) || []).length, 3);
+  assert.ok(f.includes('obs-pt-src') && f.includes('obs-pt-chute') && !f.includes('obs-pt-live'));
+  // pas a pas : du direct au dernier coup, puis en arriere, puis retour au direct (sans canevas ici : drawBoard neutralise le temps du test)
+  lire('var __dessin = drawBoard; drawBoard = function () {}');
+  lire('obsRevoirPas(-1)'); assert.strictEqual(lire('OBS.rev'), 2);
+  lire('obsRevoirPas(-1)'); assert.strictEqual(lire('OBS.rev'), 1);
+  lire('obsRevoirPas(1); obsRevoirPas(1)'); assert.strictEqual(lire('OBS.rev'), -1);
+  lire('obsRevoirPas(1)'); assert.strictEqual(lire('OBS.rev'), -1, 'deja au direct');
+  lire('drawBoard = __dessin');
+  // courbe par profondeur : un point par profondeur, orange quand le meilleur coup change
+  const c = ctx._obsCourbeProf([{ d: 1, k: 'a', s: 129 }, { d: 2, k: 'a', s: 26 }, { d: 3, k: 'b', s: 102 }]);
+  assert.strictEqual((c.match(/<circle/g) || []).length, 3);
+  assert.strictEqual((c.match(/#ffb74d/g) || []).length, 1);
+  ['+129', '+26', '+102', '>p3<'].forEach(x => assert.ok(c.includes(x), x));
+  assert.strictEqual(ctx._obsCourbeProf([{ d: 1, k: 'a', s: 10 }]), '', 'une seule profondeur : pas de courbe');
+  lire('OBS.hist = []; OBS.rev = -1');
+});
