@@ -7035,6 +7035,61 @@ test('Observatoire IA v3.09 : panneau reduit en une ligne, frise des decisions, 
   lire('OBS.hist = []; OBS.rev = -1');
 });
 
+test('Observatoire IA v3.12 : carte de chaleur, apercu apres un coup, la revue reste en place pendant le calcul suivant', () => {
+  const vm = require('vm'), lire = n => vm.runInContext(n, ctx);
+  const { poserDisposition } = require('./harness'); poserDisposition(ctx, 'belgian');
+  const coups = ctx.getAllMovesForColor('black'), cle = m => ctx.moveKey(m);
+  // chaleur : la meilleure note des coups qui menent a chaque case, pleine pour le 1er, pale au 10e, rien au-dela
+  const tous = coups.slice(0, 14).map((m, i) => [cle(m), 500 - 10 * i, 1, 0]);
+  const H = ctx._obsChaleur(tous, k => k);
+  const casesDe = k => ctx._obsCasesVisees(ctx._obsLireCle(k)).map(n => n.r + ',' + n.c);
+  casesDe(tous[0][0]).forEach(k => assert.strictEqual(H[k].i, 1, 'case du meilleur coup : couleur pleine'));
+  const attendu = {};
+  tous.slice(0, 10).forEach(x => casesDe(x[0]).forEach(k => { if (!(k in attendu) || x[1] > attendu[k]) attendu[k] = x[1]; }));
+  assert.deepStrictEqual(Object.keys(H).sort(), Object.keys(attendu).sort(), 'seules les cases des 10 premiers coups');
+  Object.keys(H).forEach(k => assert.ok(Math.abs(H[k].i - (1 - 0.82 * (500 - attendu[k]) / 90)) < 1e-9, k));
+  assert.ok(Object.values(H).every(h => h.i >= 0.18 - 1e-9 && /\(\+\d+/.test(h.t)), 'note dans l\'infobulle');
+  assert.deepStrictEqual(Object.keys(ctx._obsChaleur([[tous[0][0], 7, 1, 0]], k => k)).length, casesDe(tous[0][0]).length, 'un seul coup : ses cases, en plein');
+  // apercu : la position apres le coup, avec les regles du site, sans toucher au plateau de la partie
+  const avant = JSON.stringify(ctx.board), racine = JSON.parse(avant), m = coups.slice(0, 14).find(x => x.cells.length > 1) || coups[0];   // un coup de la liste notee
+  const ap = ctx._obsApres(racine, 'black', cle(m));
+  assert.strictEqual(JSON.stringify(ctx.board), avant, 'plateau de la partie intact');
+  assert.strictEqual(JSON.stringify(racine), avant, 'position analysee intacte');
+  const n = (bd, c) => Object.values(bd).filter(v => v === c).length;
+  assert.strictEqual(n(ap.board, 'black'), n(racine, 'black')); assert.strictEqual(n(ap.board, 'white'), n(racine, 'white'));
+  m.cells.forEach(c => { const a = ctx.rcToAxial(c.r, c.c), d = ctx.axialToRc(a.q + m.dir.q, a.r + m.dir.r); assert.strictEqual(ap.board[d.r + ',' + d.c], 'black'); assert.ok(ap.marques[d.r + ',' + d.c], 'bille deplacee cerclee'); });
+  assert.strictEqual(ctx._obsApres(racine, 'black', cle(m)), ap, 'garde en memoire');
+  assert.strictEqual(ctx._obsApres(racine, 'black', '0,0>-1,0'), null, 'coup impossible : pas d\'apercu');
+  // mini plateau : meme structure (legende, note) avec ou sans apercu, pour que la liste ne bouge pas sous la souris
+  const R = { tous, nomDe: k => 'x' + k.length, racine, couleur: 'black' }, rang = k => tous.findIndex(x => x[0] === k) + 1;
+  lire('OBS.chaleur = true; OBS.survol = null');
+  const sans = ctx._obsMiniRecherche(R, tous.slice(0, 3).map(x => x[0]), null, rang);
+  lire('OBS.survol = ' + JSON.stringify(cle(m)));
+  const avec = ctx._obsMiniRecherche(R, tous.slice(0, 3).map(x => x[0]), null, rang);
+  assert.ok(sans.includes('obs-chaud') && !avec.includes('obs-chaud'));
+  assert.ok(avec.includes('👁 Après') && avec.includes('billes déplacées cerclées'));
+  const forme = h => (h.match(/class="obs-(lege|note|ligne obs-mini-rech)"/g) || []).join();
+  assert.strictEqual(forme(avec), forme(sans));
+  lire('OBS.survol = null; OBS.chaleur = false');
+  assert.ok(!ctx._obsMiniRecherche(R, [], null, rang).includes('obs-chaud'), 'chaleur masquee');
+  lire('OBS.chaleur = true');
+  // vraie pause : en revue d'un coup passe, un nouveau calcul ne ramene plus au direct
+  lire('var __dessin = drawBoard; drawBoard = function () {}; OBS.ouvert = false; OBS.bandeau = true');
+  lire('OBS.hist = [{ n: 2, couleur: "white", cle: "k", noms: { k: "i9h8" }, score: 300, prof: 3, ms: 1200 }, { n: 4, couleur: "white", cle: "j", noms: { j: "g7f6" }, score: 50, prof: 3, ms: 900 }]; OBS.rev = 0; OBS.sel = "k"');
+  ctx.obsDebut('white', { time: 1000 });
+  assert.strictEqual(lire('OBS.rev'), 0); assert.strictEqual(lire('OBS.sel'), 'k', 'le coup choisi dans la revue reste choisi');
+  assert.strictEqual(lire('_obsVue().mode'), 'revue');
+  ctx.obsFin({ depth: 1, bestScore: 10, time: 5, nodes: 9, cuts: 0, ttHit: 0, depthInfo: {}, rootsByDepth: { 1: [{ key: 'a', score: 10 }] } }, 'white', { time: 1000 }, null);
+  assert.strictEqual(lire('OBS.rev'), 0); assert.strictEqual(lire('OBS.hist.length'), 3);
+  lire('obsRevoir(-1)'); ctx.obsDebut('white', { time: 1000 }); assert.strictEqual(lire('OBS.sel'), null, 'au direct : remis a zero comme avant');
+  // 60 coups gardes : le coup en revue garde sa place quand le plus ancien sort, et s'il sort lui-meme, retour au direct
+  lire('OBS.hist = []; for (var i = 0; i < 60; i++) OBS.hist.push({ n: i, couleur: "white", source: "livre" }); OBS.rev = 5');
+  ctx.obsSource('livre', 'white');
+  assert.strictEqual(lire('OBS.rev'), 4); assert.strictEqual(lire('OBS.hist[OBS.rev].n'), 5);
+  lire('OBS.rev = 0'); ctx.obsSource('livre', 'white'); assert.strictEqual(lire('OBS.rev'), -1);
+  lire('drawBoard = __dessin; OBS.hist = []; OBS.rev = -1; OBS.live = null; OBS.sel = null');
+});
+
 test('Observatoire IA : deux fleches qui partent de la meme bille ont chacune leur pastille de rang visible', () => {
   const pris = {}, xy1 = { a: { x: 100, y: 100 }, b: { x: 200, y: 100 } }, xy2 = { a: { x: 100, y: 100 }, b: { x: 100, y: 200 } };
   const p1 = ctx._obsPastille(xy1, pris), p2 = ctx._obsPastille(xy2, pris);

@@ -2,7 +2,7 @@
 
 # Observatoire IA
 
-*Depuis la v3.05, enrichi jusqu'à la v3.09.* Un panneau qui montre ce que l'IA calcule **pendant** la partie, puis pourquoi elle a choisi son coup. Les captures ci-dessous viennent du vrai site, pendant une vraie partie contre l'IA.
+*Depuis la v3.05, enrichi jusqu'à la v3.12.* Un panneau qui montre ce que l'IA calcule **pendant** la partie, puis pourquoi elle a choisi son coup. Les captures ci-dessous viennent du vrai site, pendant une vraie partie contre l'IA.
 
 **Pour l'ouvrir** : en partie contre l'IA, bouton **« 🔭 Observatoire IA »** sous le plateau. Le panneau se place à droite sur ordinateur et en bas sur téléphone. Il a cinq onglets et trois niveaux de détail : **Spectateur**, **Analyste**, **Développeur**.
 
@@ -30,9 +30,19 @@ Profondeur atteinte, positions examinées, temps sur le temps accordé, vitesse.
 
 ## Recherche : les coups étudiés
 
-![Onglet Recherche : mini plateau avec coordonnées et flèches numérotées, liste des coups de départ](../docs-img/obs-recherche.webp)
+![Onglet Recherche : mini plateau avec coordonnées, flèches numérotées et carte de chaleur, liste des coups de départ](../docs-img/obs-recherche.webp)
 
 Tous les coups de départ, avec leur note, leur écart avec le meilleur, l'effort de recherche passé dessous, et ⚠ quand l'adversaire a une éjection juste après. Le mini plateau porte les **coordonnées Aba-Pro** (lettres a à i, chiffres 1 à 9) pour lire la notation.
+
+### Carte de chaleur : où l'IA veut aller
+
+*Depuis la v3.12.* Les cases colorées en orange sont celles où les **10 meilleurs coups** amènent une bille. Chaque case prend la meilleure note des coups qui y mènent : couleur pleine pour le meilleur coup, de plus en plus pâle jusqu'au 10e. Une case déjà occupée (une bille poussée) est entourée d'un halo. Au survol d'une case, une bulle donne le coup et sa note. Le lien **🔥** sous le plateau la masque ou la remet.
+
+### Aperçu au survol
+
+![Aperçu : la position juste après le 2e coup de la liste, billes déplacées cerclées d'or](../docs-img/obs-apercu.webp)
+
+*Depuis la v3.12, à la souris.* Survoler un coup de la liste (ou une branche de l'arbre) montre sur le mini plateau **la position juste après ce coup** : les billes déplacées sont cerclées d'or, la flèche pâle rappelle d'où elles viennent. La position est calculée avec les règles du site, sans recherche. Au doigt, toucher un coup le choisit, comme avant.
 
 ### « Pourquoi pas ce coup ? »
 
@@ -67,7 +77,7 @@ Les critères de l'évaluation du moteur, avec leurs valeurs, en barres centrée
 
 ![Onglet Historique : note au fil de la partie, liste des coups, rejouer plus profond, frise en bas](../docs-img/obs-historique.webp)
 
-La note de l'IA au fil de la partie, la liste de ses décisions, et **« Rejouer ce calcul plus profond »** pour un coup passé. En bas du panneau, dans tous les onglets, une **frise** : un point par coup de l'IA (rouge si la note est négative, cerclé d'orange après une chute d'au moins 200 points, vide sans calcul), un point qui pulse pendant le calcul, ◀ ▶ pour passer d'un coup à l'autre. Le rapport de la partie se **copie** ou se **télécharge** (.txt, et .json au niveau Développeur).
+La note de l'IA au fil de la partie, la liste de ses décisions, et **« Rejouer ce calcul plus profond »** pour un coup passé. En bas du panneau, dans tous les onglets, une **frise** : un point par coup de l'IA (rouge si la note est négative, cerclé d'orange après une chute d'au moins 200 points, vide sans calcul), un point qui pulse pendant le calcul, ◀ ▶ pour passer d'un coup à l'autre. **Depuis la v3.12, la revue reste en place** : quand on revoit un ancien coup, le calcul suivant de l'IA ne ramène plus au direct. Le plateau de la partie continue de montrer le calcul en cours, et le point qui pulse dans la frise (ou « Revenir au direct ») y ramène le panneau. Le rapport de la partie se **copie** ou se **télécharge** (.txt, et .json au niveau Développeur).
 
 ## Panneau réduit
 
