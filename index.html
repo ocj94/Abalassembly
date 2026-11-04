@@ -24453,11 +24453,19 @@ function _labFilsAssurer(n){
 }
 function _labFilsArreter(){ _labFils.forEach(_labFilTuer); _labFils=[]; }
 function _labFilsEnCours(){ return _labFils.filter(function(f){ return f.tache; }).length; }
+/* Delai au-dela duquel une partie est jugee bloquee (le fil est remplace et la partie relancee).
+   v3.10 : compte le vrai temps par coup des deux camps. Avant, seul t.ms (le temps du regime, 0,4 s
+   pour le banc des niveaux) etait compte : une partie niveau 6 contre niveau 7 (3,5 s et 5 s par coup)
+   etait tuee au bout de 2 minutes et relancee sans fin, et le banc ne finissait jamais. */
+function _labDelaiChien(t){
+  const msCoup=Math.max(t.ms||0, (t.cfgA && t.cfgA.ms)||0, (t.cfgB && t.cfgB.ms)||0);
+  return Math.max(120000, Math.round(3*(t.plies||80)*msCoup)+30000);
+}
 function _labFilLancer(f, t, surFin){
   f.tache=t; t.t0=Date.now();
   f.w.onmessage=function(e){ const d=e.data; if(!d || !d.duelGame || f.tache!==t) return; clearTimeout(f.chien); f.tache=null; surFin(t, d); };
   f.w.onerror=function(ev){ if(f.tache!==t) return; clearTimeout(f.chien); f.tache=null; surFin(t, { duelGame:true, error:(ev && ev.message) || 'fil de calcul en erreur' }); };
-  const delai=Math.max(120000, Math.round(3*t.plies*t.ms)+30000);
+  const delai=_labDelaiChien(t);
   f.chien=_labPlanifier(function(){
     if(f.tache!==t) return;
     // partie anormalement longue : ce fil est remplace par un neuf, la partie sera relancee
