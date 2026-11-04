@@ -28,6 +28,11 @@ in the GitHub wiki:
   classify moves differently: they do not measure the same thing.
 
 ### Fixed
+- **Lab, "Levels" bench: it could not finish beyond level 5.** Its watchdog
+  treated any game longer than 2 minutes as stuck, counting 0.4 s per move
+  instead of the levels' real times (up to 5 s at level 7): games between high
+  levels were killed and restarted forever. The delay now counts both sides'
+  time per move (test added).
 - Observatory: when several of the 3 best moves start from the same marble,
   their rank badges hid one another; the next one now slides along its arrow.
 - "After the game" and its button were written without French accents.

@@ -30,6 +30,11 @@ et dans le wiki GitHub :
   mesurent pas la même chose.
 
 ### Corrigé
+- **Labo, banc « Niveaux » : il ne pouvait pas finir au-delà du niveau 5.** Son
+  chien de garde jugeait bloquée toute partie de plus de 2 minutes, en comptant
+  0,4 s par coup au lieu du vrai temps des niveaux (jusqu'à 5 s au niveau 7) :
+  les parties entre hauts niveaux étaient tuées puis relancées sans fin. Le
+  délai compte maintenant le temps par coup des deux camps (test ajouté).
 - Observatoire : quand plusieurs des 3 meilleurs coups partent de la même
   bille, leurs pastilles de rang se cachaient l'une l'autre ; la suivante
   glisse maintenant le long de sa flèche.

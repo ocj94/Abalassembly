@@ -7046,3 +7046,14 @@ test('Documentation illustree de l\'analyse : chaque image citee existe et reste
   // aucune image orpheline dans docs-img
   fs.readdirSync(R('docs-img')).forEach(f => assert.ok(vues.has('docs-img/' + f), 'image non citee : ' + f));
 });
+
+test('Labo, banc des niveaux : une partie entre hauts niveaux n\'est plus tuee par le chien de garde (temps par coup des deux camps)', () => {
+  const t = (a, b) => ({ plies: 80, ms: 400, cfgA: ctx._niveauCfg(a), cfgB: ctx._niveauCfg(b) });
+  // pire cas d'une partie niveau 7 contre niveau 6 : 40 coups a 5 s et 40 a 3,5 s
+  const pire = 40 * ctx.AI_DIFFICULTY_CONFIG['7'].time + 40 * ctx.AI_DIFFICULTY_CONFIG['6'].time;
+  assert.ok(ctx._labDelaiChien(t(7, 6)) > pire, 'le chien de garde laisse le temps de finir');
+  assert.ok(ctx._labDelaiChien(t(5, 4)) > 40 * 2500 + 40 * 1200);
+  // sans reglage par niveau (autres bancs), le delai d'avant est garde
+  assert.strictEqual(ctx._labDelaiChien({ plies: 80, ms: 400 }), Math.max(120000, 3 * 80 * 400 + 30000));
+  assert.strictEqual(ctx._labDelaiChien({ plies: 80, ms: 400, cfgA: { mode: 'hasard' }, cfgB: null }), 126000);
+});
