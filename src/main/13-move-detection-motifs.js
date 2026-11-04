@@ -93,6 +93,9 @@ function hashBoard(){
   for (const k in board){ const v = board[k]; if (v==='black') h ^= ZOBRIST[k].black; else if (v==='white') h ^= ZOBRIST[k].white; }
   return h>>>0;
 }
+// cle de la table de transposition : les billes ET le camp au trait (voir hashPos dans le fil de calcul)
+const ZTRAIT = (_rand32()|1)>>>0;
+function hashPos(c){ return (hashBoard() ^ (c==='white' ? ZTRAIT : 0))>>>0; }
 let TT = new Map();
 const TT_EXACT=0, TT_LOWER=1, TT_UPPER=2;
 // Plafond de taille de la TT, adapte a la RAM de l'appareil. navigator.deviceMemory
@@ -155,7 +158,8 @@ function search(depth, alpha, beta, maximizing, povColor) {
   if (CapturedByWhite.get()>=6) return povColor==='white'?100000:-100000;
   if (CapturedByBlack.get()>=6) return povColor==='black'?100000:-100000;
 
-  const h = hashBoard();
+  const myColor = maximizing ? povColor : (povColor==='white'?'black':'white');
+  const h = hashPos(myColor);
   const tt = TT.get(h);
   if (tt && tt.depth >= depth) {
     if (tt.flag === TT_EXACT) return tt.value;
@@ -165,7 +169,6 @@ function search(depth, alpha, beta, maximizing, povColor) {
   }
   if (depth === 0) return quiescence(alpha, beta, povColor, maximizing, 4);
 
-  const myColor = maximizing ? povColor : (povColor==='white'?'black':'white');
   let moves = getAllMovesForColor(myColor);
   if (!moves.length) return maximizing ? -99999 : 99999;
   moves = orderMoves(moves, depth, tt ? tt.move : null);
@@ -480,8 +483,8 @@ function evalDetail(color){
 /* Tableau « Reflexion IA » (demande d'ocj94, sur le modele de KAAH) : evalDetail
    est une copie EXACTE de evaluateBoard ci-dessus, qui renvoie chaque critere
    pondere au lieu du total (leur somme = evaluateBoard). La suite prevue suit les
-   meilleurs coups gardes dans la table de transposition ; la cle d'une position
-   ne contenant pas le camp au trait, chaque coup est verifie LEGAL pour le camp
+   meilleurs coups gardes dans la table de transposition (cle : billes et camp au
+   trait, depuis la v3.11) ; chaque coup reste verifie LEGAL pour le camp
    attendu, sinon la suite s'arrete -- jamais de suite inventee. */
 function _pvEtTermes(cle,pov,plis){
   const opp=c=>c==='white'?'black':'white';
@@ -489,7 +492,7 @@ function _pvEtTermes(cle,pov,plis){
   const us=[applyMove(m0,pov)],pv=[];let side=opp(pov);
   for(let i=0;i<plis;i++){
     if(capturedByWhite>=6||capturedByBlack>=6)break;
-    const tt=TT.get(hashBoard());if(!tt||!tt.move)break;
+    const tt=TT.get(hashPos(side));if(!tt||!tt.move)break;
     const mv=getAllMovesForColor(side).find(x=>moveKey(x)===tt.move);if(!mv)break;
     pv.push({cells:mv.cells,dir:mv.dir,c:side});us.push(applyMove(mv,side));side=opp(side);
   }
@@ -500,6 +503,11 @@ function _pvEtTermes(cle,pov,plis){
 function _rand32(){return(Math.random()*0xFFFFFFFF)>>>0;}
 const ZOBRIST={};for(let r=0;r<9;r++)for(let c=0;c<ROWS[r];c++)ZOBRIST[akey(r,c)]={black:_rand32(),white:_rand32()};
 function hashBoard(){let h=0;for(const k in board){const v=board[k];if(v==='black')h^=ZOBRIST[k].black;else if(v==='white')h^=ZOBRIST[k].white;}return h>>>0;}
+/* Cle de la table de transposition : les billes ET le camp au trait. Avant, les billes seules :
+   la meme disposition atteinte avec l'autre camp au trait (un camp qui joue en deux coups ce
+   que l'autre chemin fait en un) relisait la valeur calculee pour l'autre camp. Mesure sur trois
+   departs belges a la profondeur 3 : 118 notes de coups racine sur 203 fausses, jusqu'a 1957 points. */
+const ZTRAIT=(_rand32()|1)>>>0;function hashPos(c){return (hashBoard()^(c==='white'?ZTRAIT:0))>>>0;}
 let TT=new Map();const TT_EXACT=0,TT_LOWER=1,TT_UPPER=2;
 const TT_MAX=(function(){const gb=(typeof navigator!=='undefined'&&navigator.deviceMemory)?navigator.deviceMemory:4;const budgetBytes=gb*1024*1024*1024*0.05;const bytesPerEntry=200;return Math.max(50000,Math.floor(budgetBytes/bytesPerEntry));})();
 let killerMoves={},historyTable={},counterMove={};
@@ -765,7 +773,7 @@ function search(depth,alpha,beta,maxi,pov,prevKey){
   if(capturedByBlack>=6)return pov==='black'?100000:-100000;
   const mc=maxi?pov:(pov==='white'?'black':'white');
   const tbv=probeTablebase(mc,pov);if(tbv!==null)return tbv;
-  const h=hashBoard();const tt=TT.get(h);_ttLk++;
+  const h=hashPos(mc);const tt=TT.get(h);_ttLk++;
   if(tt&&tt.depth>=depth){_ttHit++;if(tt.flag===TT_EXACT)return tt.value;
     if(tt.flag===TT_LOWER&&tt.value>alpha)alpha=tt.value;else if(tt.flag===TT_UPPER&&tt.value<beta)beta=tt.value;
     if(alpha>=beta)return tt.value;}
