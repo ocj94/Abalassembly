@@ -8922,7 +8922,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v3.05';
+const APP_VERSION = 'v3.06';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -26107,7 +26107,7 @@ function aiMove() {
     hist: _gameHistKeys(),
     engineMode: _engineMode,
     nnueWeights: _engineMode ? NNUE_WEIGHTS_CACHE : undefined,
-    observe: (typeof obsActif === 'function' && obsActif()) ? 150 : 0   // Observatoire IA : mesures pendant le calcul
+    observe: (typeof obsDemande === 'function' && obsDemande()) ? 150 : 0   // Observatoire IA : mesures pendant le calcul (panneau ouvert ou bandeau detaille)
   };
   if (typeof obsDebut === 'function') obsDebut(ai, config);
   const pooledStarted = (typeof requestAIMovePooled === 'function') && requestAIMovePooled(pooledParams, function(chosen, metrics) {
@@ -26194,13 +26194,17 @@ function showAIThinking(on) {
       el.id = 'ai-thinking';
       el.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:2500;'
         + 'background:var(--surface);border:1px solid var(--gold-dim);border-radius:24px;padding:10px 20px;'
-        + 'display:flex;align-items:center;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,0.5);font-size:14px;color:var(--text)';
-      el.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid var(--gold-dim);'
+        + 'display:flex;flex-direction:column;align-items:center;gap:4px;max-width:calc(100vw - 24px);box-sizing:border-box;'
+        + 'box-shadow:0 6px 24px rgba(0,0,0,0.5);font-size:14px;color:var(--text)';
+      el.innerHTML = '<div style="display:flex;align-items:center;gap:10px">'
+        + '<span style="display:inline-block;width:14px;height:14px;border:2px solid var(--gold-dim);'
         + 'border-top-color:var(--gold);border-radius:50%;animation:ai-spin 0.7s linear infinite"></span>'
-        + '<span>L\'IA réfléchit…</span>'
+        + '<span style="white-space:nowrap">L\'IA réfléchit…</span>'
         + '<button onclick="forceAINow()" title="Interrompre la réflexion et jouer le meilleur coup trouvé" '
         + 'style="margin-left:6px;background:var(--gold);color:#0d0f0e;border:none;border-radius:14px;'
-        + 'padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">⚡ Jouer maintenant</button>';
+        + 'padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">⚡ Jouer maintenant</button></div>'
+        // Observatoire IA (v3.06) : une ligne de mesures en direct, remplie par _obsBandeau
+        + '<span id="ai-thinking-live" style="display:none;text-align:center;max-width:100%;font-family:\'DM Mono\',monospace;font-size:11.5px;color:var(--muted)"></span>';
       document.body.appendChild(el);
       // injecte l'animation si absente
       if (!document.getElementById('ai-spin-style')) {
@@ -26211,6 +26215,7 @@ function showAIThinking(on) {
       }
     }
     el.style.display = 'flex';
+    if (typeof _obsBandeau === 'function') _obsBandeau(true);
   } else if (el) {
     el.style.display = 'none';
   }
@@ -47764,13 +47769,31 @@ function telechargerPartieKAAH() {
      montre l'arbre des lignes principales des 10 meilleurs coups.
    - Un score est en points internes : une bille de plus = 1000 points, une ejection en vaut
      2000. Ce n'est pas une probabilite de gagner.
+
+   v3.06, d'apres des maquettes envoyees par ocj94 :
+   - le plateau de la partie montre en direct les 3 meilleurs coups (fleches) et entoure les
+     billes en danger ou isolees (memes definitions que l'evaluation) ;
+   - le bandeau « L'IA reflechit… » affiche profondeur, positions, temps et meilleur coup
+     provisoire, meme panneau ferme (reglable) ;
+   - l'onglet Decision dit ce que fait chaque coup un coup plus loin (type, ejections possibles
+     ensuite des deux cotes, billes en danger) et compare deux variantes cote a cote ;
+   - rapport telechargeable (.txt, .json) et mode plein ecran.
+   Ce qui est refuse parce que ce serait invente : « memoire utilisee » (pas mesurable de facon
+   fiable dans un fil de calcul), notes de confiance ou de « performance », arbre complet noeud
+   par noeud (le moteur ne le garde pas : le reconstituer voudrait dire recalculer).
 ═══════════════════════════════════════════ */
 const OBS = { ouvert: false, niveau: 'analyste', onglet: 'general', fige: false, live: null, hist: [], rev: -1,
-              sel: null, etape: -1, tout: false, surPlateau: null, minuteur: null, relance: null };
+              sel: null, etape: -1, tout: false, surPlateau: null, minuteur: null, relance: null,
+              surVrai: { fleches: true, menaces: true }, bandeau: true, grand: false, cmp: null, etapeCmp: -1, tBandeau: 0 };
 try {
   OBS.ouvert = localStorage.getItem('abaObs') === '1';
   const _n = localStorage.getItem('abaObsNiveau'); if (_n === 'spectateur' || _n === 'analyste' || _n === 'developpeur') OBS.niveau = _n;
+  const _p = JSON.parse(localStorage.getItem('abaObsPlateau') || 'null'); if (_p) { OBS.surVrai.fleches = _p.f !== 0; OBS.surVrai.menaces = _p.m !== 0; }
+  OBS.bandeau = localStorage.getItem('abaObsBandeau') !== '0';
 } catch (e) {}
+/* Le moteur envoie ses mesures si le panneau est ouvert OU si le bandeau detaille est actif */
+function obsDemande() { return !!(OBS.ouvert || OBS.bandeau); }
+function _obsCompact(n) { n = Math.round(n || 0); return n < 10000 ? n.toLocaleString('fr-FR') : n < 1e6 ? Math.round(n / 1000) + ' k' : (n / 1e6).toFixed(1).replace('.', ',') + ' M'; }
 const _OBS_ONGLETS = [['general', 'Vue générale', 'Overview'], ['recherche', 'Recherche', 'Search'], ['evaluation', 'Évaluation', 'Evaluation'],
                       ['decision', 'Décision', 'Decision'], ['historique', 'Historique', 'History']];
 const _OBS_NIVEAUX = [['spectateur', 'Spectateur', 'Spectator'], ['analyste', 'Analyste', 'Analyst'], ['developpeur', 'Développeur', 'Developer']];
@@ -47795,10 +47818,11 @@ function _obsNom(L, k) { const x = L && L.coups && L.coups.get(k); return x ? x.
 
 /* ═══ Reception des mesures ═══ */
 function obsDebut(couleur, config) {
-  if (!OBS.ouvert) return;
-  OBS.surPlateau = null; OBS.rev = -1; OBS.sel = null; OBS.etape = -1; OBS.tout = false;
+  if (!obsDemande()) return;
+  OBS.surPlateau = null; OBS.rev = -1; OBS.sel = null; OBS.etape = -1; OBS.tout = false; OBS.cmp = null; OBS.etapeCmp = -1;
   OBS.live = { etat: 'calcul', couleur: couleur, budget: config ? config.time : 0, t0: Date.now(), fils: {}, nFils: 1, parProf: {}, serie: [],
-               racine: JSON.parse(JSON.stringify(board)), coups: _obsCoupsRacine(couleur), cle: null, source: null };
+               racine: JSON.parse(JSON.stringify(board)), coups: _obsCoupsRacine(couleur), cle: null, source: null, top: [] };
+  OBS.tBandeau = 0; _obsBandeau(true);
   _obsPlanifier();
 }
 function obsProgres(m, nFils) {
@@ -47807,11 +47831,15 @@ function obsProgres(m, nFils) {
   if (m.fin) { (L.parProf[m.d] = L.parProf[m.d] || {})[m.w] = m.roots; }
   const tot = Object.keys(L.fils).reduce(function (a, k) { return a + L.fils[k].nodes; }, 0);
   L.serie.push({ t: Date.now() - L.t0, n: tot }); if (L.serie.length > 400) L.serie.splice(1, 1);
+  // les 3 meilleurs coups du moment : redessines sur le plateau de la partie quand ils changent
+  const top = _obsClassement(L).tous.slice(0, 3).map(function (x) { return x[0]; });
+  if (top.join(';') !== (L.top || []).join(';')) { L.top = top; if (OBS.ouvert && OBS.surVrai.fleches && typeof drawBoard === 'function') drawBoard(); }
+  _obsBandeau();
   _obsPlanifier();
 }
 function obsFin(m, couleur, config, chosen) {
   const L = OBS.live;
-  if (!OBS.ouvert || !L || L.etat !== 'calcul' || !m) return;
+  if (!obsDemande() || !L || L.etat !== 'calcul' || !m) return;
   const fils = (m.parFil && m.parFil.length) ? m.parFil : [m];
   const det = (typeof _mesuresCoupIA !== 'undefined' && _mesuresCoupIA && _mesuresCoupIA.detail) ? _mesuresCoupIA.detail : null;
   // liste complete des coups racine, a la plus grande profondeur terminee par tous les fils
@@ -47831,13 +47859,13 @@ function obsFin(m, couleur, config, chosen) {
               parFil: fils.map(function (f) { return { nodes: f.nodes, cuts: f.cuts, tt: f.ttHit, depth: f.depth }; }),
               serie: L.serie.slice(), profs: _obsProfs(fils), source: null };
   OBS.hist.push(e); if (OBS.hist.length > 60) OBS.hist.shift();
-  L.etat = 'fini'; L.cle = cle; L.entree = e;
-  if (OBS.surPlateau) { OBS.surPlateau = null; if (typeof drawBoard === 'function') drawBoard(); }
+  L.etat = 'fini'; L.cle = cle; L.entree = e; _obsBandeau(true);
+  if (OBS.surPlateau || (OBS.ouvert && L.top && L.top.length)) { OBS.surPlateau = null; if (typeof drawBoard === 'function') drawBoard(); }
   _obsPlanifier(true);
 }
 /* coup joue sans recherche (livre, table de finale, empreinte, niveau 1) */
 function obsSource(src, couleur) {
-  if (!OBS.ouvert) return;
+  if (!obsDemande()) return;
   OBS.rev = -1; OBS.surPlateau = null;
   OBS.live = { etat: 'source', source: src, couleur: couleur, t0: Date.now(), fils: {}, parProf: {}, serie: [], coups: new Map(), nFils: 1 };
   OBS.hist.push({ n: (typeof MoveCount !== 'undefined' ? MoveCount.get() : 0) + 1, couleur: couleur, source: src }); if (OBS.hist.length > 60) OBS.hist.shift();
@@ -47865,6 +47893,24 @@ function _obsFusion(L, d) {   // coups racine d'une profondeur terminee par TOUS
   const P = L.parProf[d]; if (!P || Object.keys(P).length < L.nFils) return null;
   let t = []; Object.keys(P).forEach(function (w) { t = t.concat(P[w]); });
   return t.sort(function (a, b) { return b[1] - a[1]; });
+}
+/* Classement du direct : la derniere profondeur terminee par tous les fils, sinon ce qui est deja note */
+function _obsClassement(L) {
+  const a = _obsAgreg(L); let d = a.dFin, tous = d ? _obsFusion(L, d) : null;
+  if (!tous) { d = 0; tous = []; Object.keys(L.fils).forEach(function (w) { tous = tous.concat(L.fils[w].roots || []); }); tous.sort(function (x, y) { return y[1] - x[1]; }); }
+  return { a: a, d: d, tous: tous };
+}
+/* Bandeau « L'IA reflechit… » : une ligne de mesures, au plus toutes les 200 ms */
+function _obsBandeau(vider) {
+  if (typeof document === 'undefined') return;
+  const el = document.getElementById('ai-thinking-live'); if (!el) return;
+  if (vider || !OBS.bandeau) { el.textContent = ''; el.style.display = 'none'; return; }
+  const L = OBS.live, now = Date.now(); if (!L || L.etat !== 'calcul' || now - OBS.tBandeau < 200) return;
+  OBS.tBandeau = now;
+  const C = _obsClassement(L), a = C.a;
+  let t = _obsT('prof. ', 'depth ') + a.d + (a.max ? '/' + a.max : '') + ' · ' + _obsCompact(a.nodes) + ' ' + _obsT('positions', 'positions') + ' · ' + _msTexte(now - L.t0);
+  if (C.tous.length) t += ' · ' + _obsT('meilleur : ', 'best: ') + _obsNom(L, C.tous[0][0]) + ' ' + _evalReflexionTexte(C.tous[0][1]);
+  el.textContent = t; el.style.display = '';
 }
 function _obsMeilleursParProf(L) {
   const out = [];
@@ -47979,6 +48025,7 @@ function _obsTabGeneral(V) {
     + '<div class="obs-k"><span>' + _obsT('Positions examinées', 'Positions searched') + '</span><b>' + _obsN(nodes) + '</b></div>'
     + '<div class="obs-k"><span>' + _obsT('Temps', 'Time') + '</span><b>' + _msTexte(ms) + '</b></div>'
     + '<div class="obs-k"><span>' + _obsT('Vitesse', 'Speed') + '</span><b>' + _obsN(nps) + ' /s</b></div></div>';
+  if (etat === 'calcul' && typeof forceAINow === 'function') h += '<div style="margin-top:6px"><button class="obs-btn obs-vite" onclick="forceAINow()" title="' + _obsT('Interrompre la réflexion et jouer le meilleur coup trouvé', 'Stop thinking and play the best move found') + '">⚡ ' + _obsT('Jouer maintenant', 'Play now') + '</button></div>';
   if (budget && !illim) h += '<div class="obs-prog" title="' + _obsT('Temps utilisé sur le temps accordé', 'Time used out of the allowed time') + '"><i style="width:' + Math.min(100, Math.round(100 * ms / budget)) + '%"></i></div>'
     + '<div class="obs-note">' + _obsT('Temps accordé : ', 'Time allowed: ') + _msTexte(budget) + '</div>';
   if (meilleurs.length) {
@@ -48012,9 +48059,7 @@ function _obsTabGeneral(V) {
 /* ═══ Onglet 2 : Recherche ═══ */
 function _obsDonneesRacine(V) {   // {tous, nomDe, cleRetenue, racine, couleur, det, dernier}
   if (V.mode === 'direct') {
-    const L = V.L, a = _obsAgreg(L);
-    let d = a.dFin, tous = d ? _obsFusion(L, d) : null;
-    if (!tous) { d = 0; tous = []; Object.keys(L.fils).forEach(function (w) { tous = tous.concat(L.fils[w].roots || []); }); tous.sort(function (x, y) { return y[1] - x[1]; }); d = a.d; }
+    const L = V.L, C = _obsClassement(L), a = C.a, tous = C.tous, d = C.d;
     return { tous: tous, prof: d, nomDe: function (k) { return _obsNom(L, k); }, cleRetenue: null, racine: L.racine, couleur: L.couleur, det: null, dernier: false,
              avance: { i: Object.keys(L.fils).reduce(function (s, w) { return s + L.fils[w].i; }, 0), n: Object.keys(L.fils).reduce(function (s, w) { return s + L.fils[w].n; }, 0), d: a.d } };
   }
@@ -48062,12 +48107,17 @@ function _obsNotePartielle(e) {
   return '<div class="obs-note">⏱ ' + _obsT('La profondeur ' + e.prof + ' n’a pas été terminée (le temps accordé est écoulé) : les notes et comparaisons ci-dessus sont celles de la profondeur ' + e.profTous + ' terminée. Le coup retenu a la note ' + _evalReflexionTexte(e.score) + ' sur la partie explorée de la profondeur ' + e.prof + '.',
     'Depth ' + e.prof + ' was not finished (the allowed time ran out): the scores and comparisons above are those of completed depth ' + e.profTous + '. The chosen move scores ' + _evalReflexionTexte(e.score) + ' on the explored part of depth ' + e.prof + '.') + '</div>';
 }
+/* Le plateau d'une suite prevue a l'etape k (k < 0 : la fin), billes deplacees numerotees */
+function _obsPlateauEtape(det, l, k) {
+  const et = (l && l.etapes) || [], n = et.length; k = (k >= 0 && k < n) ? k : n - 1;
+  const num = {}; et.slice(1, k + 1).forEach(function (x, j) { x.cells.forEach(function (cel) { const a = rcToAxial(cel.r, cel.c), rc = axialToRc(a.q + x.dir.q, a.r + x.dir.r); if (rc) num[rc.r + ',' + rc.c] = j + 1; }); });
+  return { svg: _obsPlateauSVG(et[k] ? et[k].board : det.racine.board, null, num, false), k: k, n: n };
+}
 function _obsVarianteHTML(det, cle, couleur) {
   const f = _obsLigneDet(det, cle); if (!f) return '<div class="obs-note">' + _obsT('Ce coup n’est pas parmi les 10 dont la suite est gardée.', 'This move is not among the 10 with a stored line.') + '</div>';
   _notationsReflexion(det);
-  const et = f.l.etapes || [], n = et.length, k = (OBS.etape >= 0 && OBS.etape < n) ? OBS.etape : n - 1;
-  const num = {}; et.slice(1, k + 1).forEach(function (x, j) { x.cells.forEach(function (cel) { const a = rcToAxial(cel.r, cel.c), rc = axialToRc(a.q + x.dir.q, a.r + x.dir.r); if (rc) num[rc.r + ',' + rc.c] = j + 1; }); });
-  return '<h5>' + _obsT('Variante de ', 'Line of ') + _obsE(f.l.n) + ' <small>(' + _evalReflexionTexte(f.l.s) + ')</small></h5>' + _obsPlateauSVG(et[k] ? et[k].board : det.racine.board, null, num, false)
+  const P = _obsPlateauEtape(det, f.l, OBS.etape), n = P.n, k = P.k;
+  return '<h5>' + _obsT('Variante de ', 'Line of ') + _obsE(f.l.n) + ' <small>(' + _evalReflexionTexte(f.l.s) + ')</small></h5>' + P.svg
     + '<div class="obs-etapes"><button class="obs-lien" onclick="obsEtape(-1)">⏮</button><button class="obs-lien" onclick="obsEtape(' + (k - 1) + ')">‹</button><span>' + k + ' / ' + (n - 1) + '</span><button class="obs-lien" onclick="obsEtape(' + (k + 1) + ')">›</button><button class="obs-lien" onclick="obsEtape(' + (n - 1) + ')">⏭</button></div>'
     + '<div class="obs-note">' + _obsT('Suite prévue par le moteur : ', 'Line expected by the engine: ') + _obsE([f.l.n].concat(f.l.suite || []).join(' ')) + '</div>';
 }
@@ -48115,6 +48165,7 @@ function _obsTabDecision(V) {
   alts.slice(0, 2).forEach(function (a, i) { h += '<div class="obs-carte obs-c-alt"><span>' + _obsT('Alternative ', 'Alternative ') + (i + 1) + '</span><b class="obs-mono">' + _obsE(a.n || '?') + '</b><em>' + _evalReflexionTexte(a.s) + '</em></div>'; });
   h += '</div>';
   h += _obsPlateauSVG(e.det.racine.board, _obsFlechesDe([moveKeyDe(ret)].concat(alts.slice(0, 2).map(moveKeyDe)), ['#66bb6a', '#ffb74d', '#9e9e9e'], [11, 7, 7]), null, false);
+  h += _obsTableCoups(e, [ret].concat(alts), moveKeyDe(ret));
   h += '<h5>' + _obsT('Pourquoi ' + (ret.n || 'ce coup') + ' plutôt qu’un autre ?', 'Why ' + (ret.n || 'this move') + ' rather than another?') + '</h5>';
   alts.forEach(function (a) {
     const ecart = ret.s - a.s;
@@ -48123,12 +48174,118 @@ function _obsTabDecision(V) {
     if (diffs.length) h += '<div class="obs-suite">' + diffs.map(function (x) { return '<span class="' + (x[1] > 0 ? 'obs-plus' : 'obs-moins') + '">' + _obsE(x[0]) + ' ' + (x[1] > 0 ? '+' : '') + String(Math.round(x[1] * 10) / 10).replace('.', ',') + '</span>'; }).join(' ') + '</div>';
     h += '<button class="obs-lien" onclick="obsChoisir(\'' + moveKeyDe(a) + '\');obsOnglet(\'recherche\')">' + _obsT('Et si l’IA avait joué ', 'What if the AI had played ') + _obsE(a.n) + ' ? →</button></div>';
   });
+  h += _obsComparer(e, ret, alts);
   if (!horsListe) h += _obsNotePartielle(e);
   if (horsListe) h += '<div class="obs-note">' + _obsT('Le coup retenu a été trouvé à la profondeur ' + e.prof + ', que le temps n’a pas laissé finir : il n’a pas de suite détaillée, et ses alternatives sont celles de la profondeur ' + (e.profTous || '') + ' terminée.',
     'The chosen move was found at depth ' + e.prof + ', which time did not let finish: it has no detailed line, and its alternatives come from the completed depth ' + (e.profTous || '') + '.') + '</div>';
   h += '<div class="obs-note">' + _obsT('Reconstitué après le calcul : les écarts de critères comparent le bout de la suite prévue de chaque coup (données du moteur). La note, elle, vient de la recherche complète, quiescence comprise : les deux peuvent différer un peu.',
     'Rebuilt after the search: criterion gaps compare the end of each move’s expected line (engine data). The score itself comes from the full search, quiescence included, so the two can differ slightly.') + '</div>';
   return h;
+}
+
+/* Ce que fait un coup, regarde UN coup plus loin sur le plateau (sans recherche) : son type, les
+   ejections possibles ensuite des deux cotes, les billes en danger. Les regles du jeu du site
+   (validateMove, applyMove, getAllMovesForColor) sur une copie du plateau (_avecPlateau). */
+function _obsAnalyseCoup(racine, couleur, cle) {
+  const x = _obsLireCle(cle); if (!x || !racine || typeof _avecPlateau !== 'function') return null;
+  const adv = couleur === 'black' ? 'white' : 'black';
+  try {
+    return _avecPlateau(JSON.parse(JSON.stringify(racine)), 0, 0, function () {
+      const info = validateMove(x.cells, x.dir, couleur); if (!info || !info.valid) return null;
+      const type = info.type === 'push' ? (info.ejection ? 'eject' : 'push') : info.type === 'broadside' ? 'lateral' : 'ligne';
+      const u = applyMove({ cells: x.cells, dir: x.dir, info: info }, couleur);
+      try {
+        const st = _obsStatutBilles(board); let dIA = 0, dAdv = 0;
+        for (const k in st) if (st[k] === 'danger') { if (board[k] === couleur) dIA++; else dAdv++; }
+        return { type: type, n: x.cells.length, push: info.push || 0,
+                 menace: getAllMovesForColor(couleur).filter(function (m) { return m.eject; }).length,
+                 risque: getAllMovesForColor(adv).filter(function (m) { return m.eject; }).length,
+                 dangerIA: dIA, dangerAdv: dAdv };
+      } finally { undoMove(u); }
+    });
+  } catch (err) { return null; }
+}
+function _obsTypeTexte(a) {
+  if (!a) return '?';
+  if (a.type === 'eject') return _obsT('éjection (' + a.n + ' contre ' + a.push + ')', 'ejection (' + a.n + ' vs ' + a.push + ')');
+  if (a.type === 'push') return _obsT('poussée ' + a.n + ' contre ' + a.push, 'push ' + a.n + ' vs ' + a.push);
+  if (a.type === 'lateral') return _obsT('latéral, ' + a.n + ' billes', 'broadside, ' + a.n + ' marbles');
+  return a.n === 1 ? _obsT('1 bille', '1 marble') : _obsT('en ligne, ' + a.n + ' billes', 'inline, ' + a.n + ' marbles');
+}
+function _obsTableCoups(e, lignes, cleRet) {
+  const racine = e.racine || (e.det && e.det.racine.board); if (!racine) return '';
+  e._ana = e._ana || {};
+  let h = '<h5>' + _obsT('Ce que chaque coup change, un coup plus loin', 'What each move changes, one move ahead') + '</h5><table class="obs-t"><tr><th>' + _obsT('Coup', 'Move') + '</th><th>' + _obsT('Note', 'Score') + '</th><th>' + _obsT('Type', 'Type') + '</th>'
+    + '<th title="' + _obsT('Poussées de l’IA qui éjecteraient au coup suivant si l’adversaire ne réagit pas', 'AI pushes that would eject next move if the opponent does not react') + '">' + _obsT('Éj. IA', 'AI ej.') + '</th>'
+    + '<th title="' + _obsT('Éjections que l’adversaire peut jouer tout de suite', 'Ejections the opponent can play right away') + '">' + _obsT('Éj. adv.', 'Opp. ej.') + '</th>'
+    + '<th title="' + _obsT('Billes en danger (au bord, un allié ou moins) : IA / adversaire', 'Marbles in danger (edge, one ally or fewer): AI / opponent') + '">' + _obsT('Danger', 'Danger') + '</th></tr>';
+  lignes.forEach(function (l) {
+    const cle = moveKeyDe(l); if (!(cle in e._ana)) e._ana[cle] = _obsAnalyseCoup(racine, e.couleur, cle);
+    const a = e._ana[cle];
+    h += '<tr class="' + (cle === cleRet ? 'obs-sel' : '') + '"><td>' + _obsE(l.n || '?') + '</td><td>' + _evalReflexionTexte(l.s) + '</td><td style="font-family:DM Sans,sans-serif">' + _obsE(_obsTypeTexte(a)) + '</td>'
+      + (a ? '<td class="' + (a.menace ? 'obs-plus' : '') + '">' + a.menace + '</td><td class="' + (a.risque ? 'obs-moins' : '') + '">' + a.risque + '</td><td>' + a.dangerIA + ' / ' + a.dangerAdv + '</td>' : '<td>·</td><td>·</td><td>·</td>') + '</tr>';
+  });
+  return h + '</table><div class="obs-note">' + _obsT('Reconstitué après le calcul, avec les règles du jeu, un coup plus loin et sans recherche : « Éj. IA » compte les poussées qui éjecteraient ensuite si l’adversaire ne réagit pas, « Éj. adv. » ce que l’adversaire peut éjecter tout de suite, « Danger » les billes au bord avec un allié ou moins (IA / adversaire). La note, elle, vient de la recherche.',
+    'Rebuilt after the search with the game rules, one move ahead and without search: “AI ej.” counts pushes that would eject next if the opponent does not react, “Opp. ej.” what the opponent can eject right away, “Danger” marbles on the edge with one ally or fewer (AI / opponent). The score comes from the search.') + '</div>';
+}
+/* Deux variantes cote a cote, avancees ensemble pas a pas */
+function _obsComparer(e, ret, alts) {
+  const det = e.det; if (!det) return '';
+  const cands = [ret].concat(alts).filter(function (l) { return l && l.etapes && l.etapes.length > 1; });
+  if (cands.length < 2) return '';
+  const g = cands[0], d = cands.slice(1).find(function (l) { return moveKeyDe(l) === OBS.cmp; }) || cands[1];
+  const nMax = Math.max(g.etapes.length, d.etapes.length), k = (OBS.etapeCmp >= 0 && OBS.etapeCmp < nMax) ? OBS.etapeCmp : nMax - 1;
+  _notationsReflexion(det);
+  function colonne(l, cls) {
+    const P = _obsPlateauEtape(det, l, Math.min(k, l.etapes.length - 1)), noms = [l.n].concat(l.suite || []);
+    return '<div class="obs-carte ' + cls + '"><span>' + (l === ret ? _obsT('Coup retenu', 'Chosen move') : _obsT('Alternative', 'Alternative')) + '</span><b class="obs-mono">' + _obsE(l.n || '?') + '</b> <em>' + _evalReflexionTexte(l.s) + '</em>' + P.svg
+      + '<div class="obs-suite">' + noms.map(function (x, j) { return '<span' + (j === P.k - 1 ? ' class="obs-ici"' : '') + '>' + (j + 1) + '. ' + _obsE(x) + '</span>'; }).join(' ') + '</div></div>';
+  }
+  let h = '<h5>' + _obsT('Comparer deux variantes', 'Compare two lines') + '</h5>';
+  if (cands.length > 2) h += '<div class="obs-suite">' + _obsT('Comparer avec : ', 'Compare with: ') + cands.slice(1).map(function (l) { const c = moveKeyDe(l);
+    return '<button class="obs-btn' + (l === d ? ' obs-actif' : '') + '" onclick="obsComparerAvec(\'' + c + '\')">' + _obsE(l.n || '?') + '</button>'; }).join(' ') + '</div>';
+  h += '<div class="obs-duo">' + colonne(g, g === ret ? 'obs-c-ok' : 'obs-c-alt') + colonne(d, 'obs-c-alt') + '</div>'
+    + '<div class="obs-etapes"><button class="obs-lien" onclick="obsEtapeCmp(0)">⏮</button><button class="obs-lien" onclick="obsEtapeCmp(' + Math.max(0, k - 1) + ')">‹</button><span>' + k + ' / ' + (nMax - 1) + '</span><button class="obs-lien" onclick="obsEtapeCmp(' + Math.min(nMax - 1, k + 1) + ')">›</button><button class="obs-lien" onclick="obsEtapeCmp(' + (nMax - 1) + ')">⏭</button></div>'
+    + '<div class="obs-note">' + _obsT('Les deux suites prévues par le moteur, avancées ensemble. Les chiffres sur les billes : à quel coup de la suite elles ont bougé.', 'Both lines expected by the engine, stepped together. Numbers on marbles: at which move of the line they moved.') + '</div>';
+  return h;
+}
+
+/* ═══ Rapport telechargeable (hors ligne) ═══ */
+function _obsRapportDonnees() {
+  return { application: 'Abalassembly ' + (typeof APP_VERSION !== 'undefined' ? APP_VERSION : ''), outil: 'Observatoire IA', date: new Date().toISOString(),
+    unites: 'points internes : une bille de plus = 1000, une éjection = 2000 ; pas une probabilité de gagner',
+    coups: OBS.hist.map(function (e) {
+      if (e.source) return { n: e.n, couleur: e.couleur, sansCalcul: e.source };
+      const nom = function (k) { return (e.noms && e.noms[k]) || '?'; }, f = e.det && e.cle ? _obsLigneDet(e.det, e.cle) : null;
+      return { n: e.n, couleur: e.couleur, coup: nom(e.cle), note: Math.round(e.score || 0), profondeur: e.prof, profondeurTerminee: e.profTous || e.prof,
+        ms: Math.round(e.ms || 0), tempsAccorde: e.budget || 0, positions: e.noeuds || 0, coupures: e.coupures || 0, tableTransposition: e.tt || 0, fils: e.nFils || 1,
+        suitePrevue: f ? [f.l.n].concat(f.l.suite || []) : [],
+        candidats: (e.tous || []).slice(0, 10).map(function (x) { return { coup: nom(x[0]), note: Math.round(x[1]), effort: x[2] || 0, ejectionAdverseEnsuite: !!x[3] }; }) };
+    }) };
+}
+function _obsRapportTexte() {
+  const D = _obsRapportDonnees(), cTxt = function (c) { return c === 'white' ? _obsT('Blancs', 'White') : _obsT('Noirs', 'Black'); };
+  const L = [D.application + ' — ' + _obsT('Observatoire IA : rapport', 'AI Observatory: report'), _obsT('Date : ', 'Date: ') + new Date().toLocaleString('fr-FR'),
+    _obsT('Unités : ', 'Units: ') + D.unites, ''];
+  if (!D.coups.length) L.push(_obsT('Aucun coup de l’IA enregistré pour l’instant.', 'No AI move recorded yet.'));
+  D.coups.forEach(function (c) {
+    if (c.sansCalcul) { L.push(_obsT('Coup ', 'Move ') + c.n + ' (' + cTxt(c.couleur) + ') — ' + _obsT('sans calcul : ', 'no search: ') + c.sansCalcul); return; }
+    L.push(_obsT('Coup ', 'Move ') + c.n + ' (' + cTxt(c.couleur) + ') — ' + c.coup + ' — ' + _obsT('note ', 'score ') + _evalReflexionTexte(c.note) + ' — ' + _obsT('profondeur ', 'depth ') + c.profondeur
+      + (c.profondeurTerminee < c.profondeur ? ' (' + c.profondeurTerminee + _obsT(' terminée)', ' completed)') : '') + ' — ' + _msTexte(c.ms) + ' — ' + _obsN(c.positions) + ' positions — '
+      + _obsT('coupures ', 'cutoffs ') + (c.positions ? Math.round(100 * c.coupures / c.positions) : 0) + ' % — TT ' + c.tableTransposition + ' %');
+    if (c.suitePrevue.length) L.push('  ' + _obsT('Suite prévue : ', 'Expected line: ') + c.suitePrevue.join(' '));
+    if (c.candidats.length) L.push('  ' + _obsT('Meilleurs coups : ', 'Best moves: ') + c.candidats.slice(0, 5).map(function (x, i) { return (i + 1) + '. ' + x.coup + ' ' + _evalReflexionTexte(x.note) + (x.ejectionAdverseEnsuite ? ' ⚠' : ''); }).join('  '));
+  });
+  L.push('', _obsT('⚠ : l’adversaire a une éjection juste après ce coup. Les notes viennent de la recherche du moteur ; rien n’est estimé à part.', '⚠: the opponent has an ejection right after this move. Scores come from the engine search; nothing is estimated separately.'));
+  return L.join('\n') + '\n';
+}
+function obsExporter(fmt) {
+  const j = new Date(), z = function (n) { return (n < 10 ? '0' : '') + n; };
+  const nom = 'observatoire-ia-' + j.getFullYear() + '-' + z(j.getMonth() + 1) + '-' + z(j.getDate()) + '_' + z(j.getHours()) + 'h' + z(j.getMinutes()) + (fmt === 'json' ? '.json' : '.txt');
+  const texte = fmt === 'json' ? JSON.stringify(_obsRapportDonnees(), null, 1) : _obsRapportTexte();
+  if (typeof _scanDownload === 'function') _scanDownload(nom, texte, fmt === 'json' ? 'application/json' : 'text/plain;charset=utf-8');
+  if (typeof showToast === 'function') showToast('💾 ' + nom);
+  return texte;
 }
 
 /* ═══ Onglet 5 : Historique et replay ═══ */
@@ -48159,6 +48316,9 @@ function _obsTabHistorique() {
     }
     h += '</div>';
   }
+  h += '<h5>' + _obsT('Rapport', 'Report') + '</h5><div class="obs-suite"><button class="obs-btn" onclick="obsExporter(\'txt\')">⬇ ' + _obsT('Rapport lisible (.txt)', 'Readable report (.txt)') + '</button>'
+    + (_obsNiv() >= 2 ? ' <button class="obs-btn" onclick="obsExporter(\'json\')">⬇ ' + _obsT('Données (.json)', 'Data (.json)') + '</button>' : '') + '</div>'
+    + '<div class="obs-note">' + _obsT('Le fichier est créé dans le navigateur : rien n’est envoyé.', 'The file is made in the browser: nothing is sent.') + '</div>';
   return h;
 }
 
@@ -48193,9 +48353,22 @@ function obsOnglet(o) { OBS.onglet = o; _obsRendu(); }
 function obsNiveau(n) { OBS.niveau = n; try { localStorage.setItem('abaObsNiveau', n); } catch (e) {} _obsRendu(); }
 function obsRevoir(i) { OBS.rev = i; OBS.sel = null; OBS.etape = -1; OBS.tout = false; OBS.surPlateau = null; if (typeof drawBoard === 'function') drawBoard(); _obsRendu(); }
 function obsFiger() { OBS.fige = !OBS.fige; _obsRendu(); }
+function obsComparerAvec(cle) { OBS.cmp = cle; _obsRendu(); }
+function obsEtapeCmp(k) { OBS.etapeCmp = k; _obsRendu(); }
+function obsGrand() { OBS.grand = !OBS.grand; _obsRendu(); const c = document.getElementById('obs-corps'); if (c) c.scrollTop = 0; }
+function obsOption(k) {
+  if (k === 'bandeau') { OBS.bandeau = !OBS.bandeau; try { localStorage.setItem('abaObsBandeau', OBS.bandeau ? '1' : '0'); } catch (e) {} if (!OBS.bandeau) _obsBandeau(true); }
+  else if (k === 'fleches' || k === 'menaces') {
+    OBS.surVrai[k] = !OBS.surVrai[k];
+    try { localStorage.setItem('abaObsPlateau', JSON.stringify({ f: OBS.surVrai.fleches ? 1 : 0, m: OBS.surVrai.menaces ? 1 : 0 })); } catch (e) {}
+    if (typeof drawBoard === 'function') drawBoard();
+  }
+  _obsRendu();
+}
 function obsBasculer() {
   OBS.ouvert = !OBS.ouvert; try { localStorage.setItem('abaObs', OBS.ouvert ? '1' : '0'); } catch (e) {}
-  if (!OBS.ouvert && OBS.surPlateau) { OBS.surPlateau = null; if (typeof drawBoard === 'function') drawBoard(); }
+  if (!OBS.ouvert) { OBS.surPlateau = null; OBS.grand = false; }
+  if (typeof drawBoard === 'function') drawBoard();   // fleches et billes menacees : affichees seulement panneau ouvert
   _obsRendu();
 }
 
@@ -48232,18 +48405,52 @@ function _obsCss() {
     + '.obs-carte span{font-size:10px;color:var(--muted)}.obs-carte b{font-size:15px}.obs-carte em{font-style:normal;color:var(--muted)}.obs-c-ok{border-color:#66bb6a}.obs-c-alt{border-color:#ffb74d}'
     + '.obs-vs{margin:8px 0;padding:6px 8px;background:var(--surface2);border-radius:8px}.obs-plus{color:#81c784}.obs-moins{color:#ef9a9a}'
     + '.obs-bipol{position:relative;height:8px;min-width:80px;background:var(--surface2);border-radius:4px}.obs-bipol i{position:absolute;top:0;bottom:0;border-radius:4px}.obs-pos{background:#66bb6a}.obs-neg{background:#ef5350}'
+    + '.obs-opts{display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:5px 8px;border-bottom:1px solid var(--border);font-size:10.5px;color:var(--muted)}'
+    + '.obs-opt{background:none;border:1px solid var(--border);color:var(--muted);border-radius:10px;padding:2px 8px;cursor:pointer;font-size:10.5px}.obs-opt.obs-actif{border-color:var(--gold-dim);color:var(--gold);background:rgba(200,168,75,.1)}'
+    + '.obs-btn.obs-vite{background:var(--gold);color:#0d0f0e;font-weight:700}.obs-sep{margin-left:6px}.obs-btn.obs-actif{background:rgba(200,168,75,.32)}'
+    + '.obs-duo{display:grid;grid-template-columns:1fr 1fr;gap:6px}.obs-duo .obs-carte{margin:0;min-width:0;display:flex;flex-direction:column}.obs-duo .obs-plateau{width:100%;margin:4px 0}.obs-ici{color:var(--gold);font-weight:700}'
+    + '#obs-panneau.obs-grand{left:8px;width:auto}.obs-dash{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:10px;align-items:start}'
+    + '.obs-bloc{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 10px;min-width:0}.obs-bloc h4{margin:0 0 6px;font-family:"Playfair Display",serif;color:var(--gold);font-size:14px}'
+    + '.obs-bloc .obs-k,.obs-bloc .obs-carte,.obs-bloc .obs-vs,.obs-bloc .obs-branche,.obs-bloc .obs-pf,.obs-bloc .obs-prog,.obs-bloc .obs-barre,.obs-bloc .obs-bipol{background:var(--surface)}'
     + '#obs-btn-jeu{width:100%;margin-bottom:8px}'
-    + '@media (max-width:900px){#obs-panneau{top:auto;left:8px;right:8px;width:auto;height:58vh;bottom:0;border-radius:14px 14px 0 0}}';
+    // grand ecran seulement (en dessous, la mise en page de la partie ne se resserre pas : le panneau la recouvre comme avant) ; !important : la barre laterale du site ecrit padding-right:0 dans le style du body ; en hebreu (de droite a gauche) le panneau passe a gauche
+    + '@media (min-width:1800px){body.obs-place{padding-right:416px!important}html[dir=rtl] body.obs-place{padding-left:416px!important}html[dir=rtl] #obs-panneau:not(.obs-grand){right:auto;left:8px}}'
+    + '@media (max-width:900px){#obs-panneau{top:auto;left:8px;right:8px;width:auto;height:58vh;bottom:0;border-radius:14px 14px 0 0}#obs-panneau.obs-grand{top:56px;height:auto}.obs-dash{grid-template-columns:1fr}}';
   document.head.appendChild(st);
+}
+function _obsOptionsHTML() {
+  const ch = function (k, on, txt, tit) { return '<button class="obs-opt' + (on ? ' obs-actif' : '') + '" onclick="obsOption(\'' + k + '\')" title="' + tit + '">' + (on ? '✓ ' : '') + txt + '</button>'; };
+  return '<div class="obs-opts"><span>' + _obsT('Détail :', 'Detail:') + '</span><span class="obs-niv">' + _OBS_NIVEAUX.map(function (n) { return '<button class="' + (OBS.niveau === n[0] ? 'obs-actif' : '') + '" onclick="obsNiveau(\'' + n[0] + '\')">' + _obsT(n[1], n[2]) + '</button>'; }).join('') + '</span>'
+    + '<span class="obs-sep">' + _obsT('Afficher :', 'Show:') + '</span>'
+    + ch('fleches', OBS.surVrai.fleches, _obsT('flèches', 'arrows'), _obsT('Sur le plateau, pendant le calcul : les 3 meilleurs coups du moment. Vert = meilleur, orange = 2e, gris = 3e : vert = meilleur, orange = 2e, gris = 3e', 'While searching: green = best, orange = 2nd, grey = 3rd'))
+    + ch('menaces', OBS.surVrai.menaces, _obsT('menaces', 'threats'), _obsT('Sur le plateau. Rouge : au bord avec un allié ou moins. Orange : isolée. Les deux camps.', 'Red: on the edge with one ally or fewer. Orange: isolated. Both sides.'))
+    + ch('bandeau', OBS.bandeau, _obsT('bandeau', 'banner'), _obsT('« L’IA réfléchit… » affiche profondeur, positions, temps et meilleur coup, même panneau fermé', '“AI is thinking…” shows depth, positions, time and best move, even with the panel closed'))
+    + '</div>';
+}
+function _obsCorpsGrand(V) {   // plein ecran : tous les onglets a la fois, en tableau de bord
+  const blocs = [['general', _obsTabGeneral], ['recherche', _obsTabRecherche], ['decision', _obsTabDecision], ['evaluation', _obsTabEvaluation], ['historique', _obsTabHistorique]];
+  return '<div class="obs-dash">' + blocs.map(function (b) {
+    const o = _OBS_ONGLETS.find(function (x) { return x[0] === b[0]; });
+    let c = ''; try { c = b[1](V); } catch (e) { c = '<div class="obs-vide">' + _obsE(e && e.message) + '</div>'; }
+    if (b[0] !== 'general' && b[0] !== 'historique' && (V.mode === 'vide' || V.mode === 'source')) c = '<div class="obs-vide">…</div>';   // pas cinq fois le meme message
+    return '<section class="obs-bloc obs-bloc-' + b[0] + '"><h4>' + _obsT(o[1], o[2]) + '</h4>' + c + '</section>';
+  }).join('') + '</div>';
+}
+/* Sur ordinateur, le panneau prend sa place a droite au lieu de couvrir le plateau */
+function _obsPlace(on) {
+  const b = document.body; if (!b || b.classList.contains('obs-place') === !!on) return;
+  b.classList.toggle('obs-place', !!on);
+  try { window.dispatchEvent(new Event('resize')); } catch (e) {}
 }
 function _obsRendu() {
   if (typeof document === 'undefined') return;
   const btn = document.getElementById('obs-btn-jeu'); if (btn) btn.textContent = '🔭 ' + _obsT('Observatoire IA', 'AI Observatory') + (OBS.ouvert ? ' ✓' : '');
   let p = document.getElementById('obs-panneau');
+  _obsPlace(OBS.ouvert && !OBS.grand);
   if (!OBS.ouvert) { if (p) p.className = ''; return; }
   _obsCss();
   if (!p) { p = document.createElement('aside'); p.id = 'obs-panneau'; document.body.appendChild(p); }
-  p.className = 'obs-on';
+  p.className = 'obs-on' + (OBS.grand ? ' obs-grand' : '');
   const corps0 = document.getElementById('obs-corps'), haut = corps0 ? corps0.scrollTop : 0;
   const V = _obsVue();
   let etat = '';
@@ -48253,32 +48460,59 @@ function _obsRendu() {
   else if (V.mode === 'source') etat = '<span class="obs-chip obs-ok">📖 ' + _obsT('sans calcul', 'no search') + '</span>';
   const onglet = OBS.onglet;
   let corps = '';
-  try { corps = onglet === 'general' ? _obsTabGeneral(V) : onglet === 'recherche' ? _obsTabRecherche(V) : onglet === 'evaluation' ? _obsTabEvaluation(V) : onglet === 'decision' ? _obsTabDecision(V) : _obsTabHistorique(); }
-  catch (e) { corps = '<div class="obs-vide">' + _obsT('Erreur d’affichage : ', 'Display error: ') + _obsE(e && e.message) + '</div>'; }
+  try {
+    corps = OBS.grand ? _obsCorpsGrand(V)
+      : onglet === 'general' ? _obsTabGeneral(V) : onglet === 'recherche' ? _obsTabRecherche(V) : onglet === 'evaluation' ? _obsTabEvaluation(V) : onglet === 'decision' ? _obsTabDecision(V) : _obsTabHistorique();
+  } catch (e) { corps = '<div class="obs-vide">' + _obsT('Erreur d’affichage : ', 'Display error: ') + _obsE(e && e.message) + '</div>'; }
   p.innerHTML = '<div class="obs-entete"><b>🔭 ' + _obsT('Observatoire IA', 'AI Observatory') + '</b>' + etat
-    + '<span class="obs-niv">' + _OBS_NIVEAUX.map(function (n) { return '<button class="' + (OBS.niveau === n[0] ? 'obs-actif' : '') + '" onclick="obsNiveau(\'' + n[0] + '\')">' + _obsT(n[1], n[2]) + '</button>'; }).join('') + '</span>'
     + '<button class="obs-ic" onclick="obsFiger()" title="' + _obsT('Figer l’affichage pendant le calcul', 'Freeze the display while searching') + '">' + (OBS.fige ? '▶' : '⏸') + '</button>'
+    + '<button class="obs-ic" onclick="obsExporter(\'txt\')" title="' + _obsT('Télécharger le rapport de la partie (.txt)', 'Download the game report (.txt)') + '">⬇</button>'
+    + '<button class="obs-ic" onclick="obsGrand()" title="' + (OBS.grand ? _obsT('Revenir au panneau', 'Back to the panel') : _obsT('Plein écran : tous les onglets à la fois', 'Full screen: all tabs at once')) + '">' + (OBS.grand ? '⤡' : '⤢') + '</button>'
     + '<button class="obs-ic" onclick="obsBasculer()" title="' + _obsT('Fermer', 'Close') + '">✕</button></div>'
-    + '<div class="obs-onglets" role="tablist">' + _OBS_ONGLETS.map(function (o) { return '<button class="' + (onglet === o[0] ? 'obs-actif' : '') + '" onclick="obsOnglet(\'' + o[0] + '\')">' + _obsT(o[1], o[2]) + '</button>'; }).join('') + '</div>'
+    + (OBS.grand ? '' : '<div class="obs-onglets" role="tablist">' + _OBS_ONGLETS.map(function (o) { return '<button class="' + (onglet === o[0] ? 'obs-actif' : '') + '" onclick="obsOnglet(\'' + o[0] + '\')">' + _obsT(o[1], o[2]) + '</button>'; }).join('') + '</div>')
+    + _obsOptionsHTML()
     + '<div id="obs-corps">' + corps + '</div>';
   const c = document.getElementById('obs-corps'); if (c) c.scrollTop = haut;
 }
 
-/* ═══ Le coup choisi, trace sur le plateau de la partie pendant le calcul ═══ */
-function _obsDessinerSurPlateau() {
-  const S = OBS.surPlateau, canvas = document.getElementById('board'); if (!S || !canvas || !canvas.getContext) return;
-  const ctx = canvas.getContext('2d'), scale = canvas.width / 640, xy = _obsFlecheXY(S.cells, S.dir);
+/* ═══ Le plateau de la partie : 3 meilleurs coups en direct, coup choisi, billes menacees ═══
+   Seulement panneau ouvert, en partie contre l'IA, et sur le plateau principal (pas sur les
+   autres canevas que drawBoard sait dessiner). */
+function _obsFlecheCanvas(ctx, cells, dir, col, w, bague) {
+  const xy = _obsFlecheXY(cells, dir);
+  if (bague) cells.forEach(function (cel) { const p = hexCoord(cel.r, cel.c); ctx.beginPath(); ctx.arc(p.x, p.y, HEX_RADIUS - 4, 0, Math.PI * 2); ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.stroke(); });
+  ctx.beginPath(); ctx.moveTo(xy.a.x, xy.a.y); ctx.lineTo(xy.b.x, xy.b.y); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.stroke();
+  const ang = Math.atan2(xy.b.y - xy.a.y, xy.b.x - xy.a.x), t = 8 + w * 1.4;
+  ctx.beginPath(); ctx.moveTo(xy.b.x, xy.b.y); ctx.lineTo(xy.b.x - t * Math.cos(ang - Math.PI / 6), xy.b.y - t * Math.sin(ang - Math.PI / 6)); ctx.lineTo(xy.b.x - t * Math.cos(ang + Math.PI / 6), xy.b.y - t * Math.sin(ang + Math.PI / 6));
+  ctx.closePath(); ctx.fillStyle = col; ctx.fill();
+}
+function _obsDessinerSurPlateau(opts) {
+  if (!OBS.ouvert || (opts && opts.canvasId && opts.canvasId !== 'board')) return;
+  if (typeof GameMode !== 'undefined' && GameMode.get && GameMode.get() !== 'ai') return;
+  const canvas = document.getElementById('board'); if (!canvas || !canvas.getContext) return;
+  const bd = (opts && opts.board) || board, L = OBS.live;
+  const fleches = [];
+  if (OBS.surVrai.fleches && L && L.etat === 'calcul' && L.top && !(opts && opts.board)) {
+    const cols = ['#66bb6a', '#ffb74d', '#bdbdbd'], ep = [6, 4.5, 3.5];
+    L.top.slice().reverse().forEach(function (k) { const i = L.top.indexOf(k), x = _obsLireCle(k); if (x && k !== (OBS.sel || '')) fleches.push([x.cells, x.dir, cols[i], ep[i], i === 0]); });
+  }
+  if (OBS.surPlateau) fleches.push([OBS.surPlateau.cells, OBS.surPlateau.dir, '#ffd54f', 5, true]);
+  const st = OBS.surVrai.menaces ? _obsStatutBilles(bd) : {};
+  const anneaux = Object.keys(st).filter(function (k) { return st[k] === 'danger' || st[k] === 'isolee'; });
+  if (!fleches.length && !anneaux.length) return;
+  const ctx = canvas.getContext('2d'), scale = canvas.width / 640;
   ctx.save(); ctx.scale(scale, scale);
-  S.cells.forEach(function (cel) { const p = hexCoord(cel.r, cel.c); ctx.beginPath(); ctx.arc(p.x, p.y, HEX_RADIUS - 4, 0, Math.PI * 2); ctx.strokeStyle = '#ffd54f'; ctx.lineWidth = 3; ctx.stroke(); });
-  ctx.beginPath(); ctx.moveTo(xy.a.x, xy.a.y); ctx.lineTo(xy.b.x, xy.b.y); ctx.strokeStyle = '#ffd54f'; ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.stroke();
-  const ang = Math.atan2(xy.b.y - xy.a.y, xy.b.x - xy.a.x);
-  ctx.beginPath(); ctx.moveTo(xy.b.x, xy.b.y); ctx.lineTo(xy.b.x - 13 * Math.cos(ang - Math.PI / 6), xy.b.y - 13 * Math.sin(ang - Math.PI / 6)); ctx.lineTo(xy.b.x - 13 * Math.cos(ang + Math.PI / 6), xy.b.y - 13 * Math.sin(ang + Math.PI / 6));
-  ctx.closePath(); ctx.fillStyle = '#ffd54f'; ctx.fill(); ctx.restore();
+  anneaux.forEach(function (k) { const q = k.split(',').map(Number), p = hexCoord(q[0], q[1]);
+    ctx.beginPath(); ctx.arc(p.x, p.y, HEX_RADIUS - 1, 0, Math.PI * 2); ctx.setLineDash(st[k] === 'danger' ? [6, 4] : [2, 4]);
+    ctx.strokeStyle = st[k] === 'danger' ? '#ef5350' : '#ffb74d'; ctx.lineWidth = st[k] === 'danger' ? 3.5 : 2.5; ctx.stroke(); });
+  ctx.setLineDash([]);
+  fleches.forEach(function (f) { _obsFlecheCanvas(ctx, f[0], f[1], f[2], f[3], f[4]); });
+  ctx.restore();
 }
 (function () {
   if (typeof drawBoard !== 'function') return;
   const o = drawBoard;
-  drawBoard = function () { const r = o.apply(this, arguments); try { if (OBS.surPlateau) _obsDessinerSurPlateau(); } catch (e) {} return r; };
+  drawBoard = function (opts) { const r = o.apply(this, arguments); try { _obsDessinerSurPlateau(opts); } catch (e) {} return r; };
 })();
 if (typeof document !== 'undefined' && typeof window !== 'undefined' && window.addEventListener) {
   window.addEventListener('load', function () { try { _obsRendu(); } catch (e) {} });

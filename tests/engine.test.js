@@ -6879,7 +6879,49 @@ test('Observatoire IA : la page l’integre (panneau, onglets, niveaux, bouton, 
   assert.ok(!/fetch\(|XMLHttpRequest|WebSocket|sendBeacon/.test(src));
   // pas de balise <nav> ni <header> : le style global du site (nav fixe en haut de page) sortirait les onglets du panneau
   assert.ok(!/<nav[\s>]|<\/nav>/.test(src) && !/['"]<header/.test(src) && !/#obs-panneau (nav|header)\b/.test(src));
-  // le moteur ne demande les mesures que si le panneau est ouvert
+  // le moteur ne demande les mesures que si le panneau est ouvert ou le bandeau detaille actif
   const pg = fs.readFileSync(path.join(__dirname, '..', 'src', 'main', '17-puzzle-interaction-and-lab-start.js'), 'utf8');
-  assert.ok(/observe: \(typeof obsActif === 'function' && obsActif\(\)\) \? 150 : 0/.test(pg));
+  assert.ok(/observe: \(typeof obsDemande === 'function' && obsDemande\(\)\) \? 150 : 0/.test(pg));
+  assert.ok(pg.includes('id="ai-thinking-live"'));
+});
+
+test('Observatoire IA v3.06 : ce que fait un coup un coup plus loin, classement du direct, bandeau, rapport ; le plateau de la partie reste intact', () => {
+  const vm = require('vm'), lire = n => vm.runInContext(n, ctx);
+  const cle = (cells, dir) => cells.map(c => c.r + ',' + c.c).sort().join('|') + '>' + dir.q + ',' + dir.r;
+  const a0 = ctx.rcToAxial(4, 0), a1 = ctx.rcToAxial(4, 1), gauche = { q: a0.q - a1.q, r: a0.r - a1.r };   // vers le bord gauche de la rangee 4
+  // 3 noires poussent 2 blanches hors du plateau
+  const bd = { '4,0': 'white', '4,1': 'white', '4,2': 'black', '4,3': 'black', '4,4': 'black', '8,2': 'black' };
+  const avant = JSON.stringify(lire('board')), cB = ctx.CapturedByBlack.get(), cW = ctx.CapturedByWhite.get();
+  const ej = ctx._obsAnalyseCoup(bd, 'black', cle([{ r: 4, c: 2 }, { r: 4, c: 3 }, { r: 4, c: 4 }], gauche));
+  assert.ok(ej, 'analyse');
+  assert.strictEqual(ej.type, 'eject'); assert.strictEqual(ej.n, 3); assert.strictEqual(ej.push, 2);
+  assert.strictEqual(ctx._obsTypeTexte(ej), 'éjection (3 contre 2)');
+  // une bille noire seule au bord, deux blanches derriere : apres un coup noir ailleurs, les blancs peuvent l'ejecter
+  const bd2 = { '4,0': 'black', '4,1': 'white', '4,2': 'white', '8,2': 'black', '0,2': 'white' };
+  const ailleurs = ctx._avecPlateau(JSON.parse(JSON.stringify(bd2)), 0, 0, () => ctx.getAllMovesForColor('black')).find(m => m.cells.every(c => c.r === 8));
+  const r2 = ctx._obsAnalyseCoup(bd2, 'black', ctx.moveKey(ailleurs));
+  assert.strictEqual(r2.type, 'ligne'); assert.strictEqual(r2.n, 1); assert.strictEqual(ctx._obsTypeTexte(r2), '1 bille');
+  assert.ok(r2.risque >= 1, 'ejection adverse possible'); assert.strictEqual(r2.menace, 0);
+  assert.ok(r2.dangerIA >= 1, 'la bille noire du bord est en danger');
+  assert.strictEqual(ctx._obsAnalyseCoup(bd2, 'black', '4,0>9,9'), null, 'coup illegal : pas d analyse');
+  // le plateau et les compteurs de la partie ne bougent pas
+  assert.strictEqual(JSON.stringify(lire('board')), avant);
+  assert.strictEqual(ctx.CapturedByBlack.get(), cB); assert.strictEqual(ctx.CapturedByWhite.get(), cW);
+  // classement du direct : la derniere profondeur terminee par tous les fils l'emporte sur les notes partielles
+  const L = { nFils: 1, parProf: { 1: { 0: [['x', 3], ['y', 7]] } }, fils: { 0: { w: 0, nodes: 10, cuts: 1, tt: 0, d: 2, ms: 5, max: 4, depths: [[1, 5, 1, 0, 7]], roots: [['a', 99]] } } };
+  assert.strictEqual(ctx._obsClassement(L).tous[0][0], 'y');
+  L.parProf = {}; L.fils[0].depths = [];
+  assert.strictEqual(ctx._obsClassement(L).tous[0][0], 'a', 'sans profondeur terminee : ce qui est deja note');
+  // mesures demandees si le panneau est ouvert OU le bandeau detaille actif
+  assert.strictEqual(lire('OBS.ouvert = false; OBS.bandeau = false; obsDemande()'), false);
+  assert.strictEqual(lire('OBS.bandeau = true; obsDemande()'), true);
+  assert.strictEqual(ctx._obsCompact(25000), '25 k'); assert.strictEqual(ctx._obsCompact(2500000), '2,5 M');
+  // rapport : lisible et en donnees, sans rien inventer
+  lire('OBS.hist = [{ n: 5, couleur: "white", cle: "k", noms: { k: "a1b2", j: "c3d4" }, score: 1234, prof: 4, profTous: 3, ms: 1500, budget: 4000, noeuds: 20000, coupures: 2000, tt: 5, nFils: 1, tous: [["k", 1234, 10, 1], ["j", 900, 4, 0]], det: null }, { n: 7, couleur: "white", source: "livre" }]');
+  const txt = ctx._obsRapportTexte();
+  ['Coup 5', 'a1b2', '+1234', 'profondeur 4 (3 terminée)', '1. a1b2 +1234 ⚠', '2. c3d4 +900', 'Coup 7', 'sans calcul : livre', 'points internes'].forEach(x => assert.ok(txt.includes(x), x));
+  const D = JSON.parse(JSON.stringify(ctx._obsRapportDonnees()));
+  assert.strictEqual(D.coups.length, 2); assert.strictEqual(D.coups[0].candidats[0].ejectionAdverseEnsuite, true); assert.strictEqual(D.coups[1].sansCalcul, 'livre');
+  assert.ok(!/memoire|mémoire|confiance|performance/i.test(JSON.stringify(D)), 'pas de mesure inventee');
+  lire('OBS.hist = []; OBS.bandeau = true');
 });
