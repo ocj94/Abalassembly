@@ -9,6 +9,29 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.14]
+
+### Changed — "AI is thinking…" in the player's bar
+Requested by the author, with screenshots: on a phone, the floating banner
+"AI is thinking… / Play now / depth 5/8 · 1.1 M positions…" hid the bottom of
+the board. It now shows **in the bar of the player the AI plays** (Player 2,
+at the top, usually), under its name:
+- while searching: "AI is thinking…", the **⚡ Play now** button and the line
+  of measures, on one line, best move first;
+- at rest: "The AI is waiting for your move" and its last search (move, score,
+  depth, time).
+
+The area stays there for the whole game against the AI: the board no longer
+moves by a single pixel between searching and rest (checked on phone and
+computer). It disappears at the end of the game. The floating banner is only
+used when the bar is not on screen during a search. "Play now" only acts
+during a search.
+
+### Fixed
+The 1D / 2D / 3D and full-screen buttons were placed at 11 % of the height of
+the block, bars included: the taller bar made them fall on it. They now
+follow the top of the board.
+
 ## [v3.13]
 
 ### Added — the Observatory and the Lab share their data

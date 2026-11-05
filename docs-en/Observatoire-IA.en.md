@@ -2,7 +2,7 @@
 
 # AI Observatory
 
-*Since v3.05, extended up to v3.13.* A panel that shows what the AI computes **while** the game goes on, then why it picked its move. The screenshots below come from the real site, during a real game against the AI (French interface).
+*Since v3.05, extended up to v3.14.* A panel that shows what the AI computes **while** the game goes on, then why it picked its move. The screenshots below come from the real site, during a real game against the AI (French interface).
 
 **To open it**: in a game against the AI, the **"🔭 AI Observatory"** button under the board. The panel sits on the right on a computer and at the bottom on a phone. It has five tabs and three levels of detail: **Spectator**, **Analyst**, **Developer**.
 
@@ -10,11 +10,11 @@
 
 ## The game board, live
 
-![The board while the AI searches: three numbered arrows and the detailed banner](../docs-img/obs-plateau-direct.webp)
+![The board while the AI searches: three numbered arrows, and "AI is thinking…" in player 2's bar](../docs-img/obs-plateau-direct.webp)
 
 - **The 3 best moves of the moment**, as arrows numbered like the list: **1** green, **2** orange, **3** grey. An arrow starts at the last marble of the group and ends on the cell where the first one lands; the best move's marbles are circled.
 - **Marbles at risk** on both sides: red for a marble on the edge with one ally or fewer, orange for an isolated marble. These are the engine's evaluation definitions.
-- **The "AI is thinking…" banner**: depth, positions searched, time and provisional best move. It shows even with the panel closed.
+- **"AI is thinking…"**, in the bar of the player the AI plays (player 2, usually), with the **⚡ Play now** button and a line of measures: provisional best move, depth, time, positions searched. *Since v3.14*, this area stays in the bar for the whole game, so the board does not move: while the AI waits for your move, it recalls its last search. It shows even with the panel closed.
 
 All of it is set on the line under the tabs: **Show: arrows, threats, banner**.
 
@@ -95,9 +95,9 @@ The **—** button shrinks the panel to one line: the board stays clear, with it
 
 ## On a phone
 
-![On a phone, the panel as a drawer under the board, the banner just above](../docs-img/obs-telephone.webp)
+![On a phone, the panel as a drawer over the bottom of the screen, "AI is thinking…" in player 2's bar, above it](../docs-img/obs-telephone.webp)
 
-On a phone, the panel opens as a drawer over the bottom of the screen and the "AI is thinking…" banner moves just above it. The drawer hides part of the board: its mini board shows the same arrows, and the **—** button shrinks it to one line at the top to see the whole board again.
+On a phone, the panel opens as a drawer over the bottom of the screen; "AI is thinking…" stays readable at the top, in player 2's bar (before v3.14, a floating banner hid the bottom of the board). The drawer hides part of the board: its mini board shows the same arrows, and the **—** button shrinks it to one line at the top to see the whole board again.
 
 ## What the panel does not claim
 

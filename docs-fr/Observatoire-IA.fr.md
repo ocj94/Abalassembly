@@ -2,7 +2,7 @@
 
 # Observatoire IA
 
-*Depuis la v3.05, enrichi jusqu'à la v3.13.* Un panneau qui montre ce que l'IA calcule **pendant** la partie, puis pourquoi elle a choisi son coup. Les captures ci-dessous viennent du vrai site, pendant une vraie partie contre l'IA.
+*Depuis la v3.05, enrichi jusqu'à la v3.14.* Un panneau qui montre ce que l'IA calcule **pendant** la partie, puis pourquoi elle a choisi son coup. Les captures ci-dessous viennent du vrai site, pendant une vraie partie contre l'IA.
 
 **Pour l'ouvrir** : en partie contre l'IA, bouton **« 🔭 Observatoire IA »** sous le plateau. Le panneau se place à droite sur ordinateur et en bas sur téléphone. Il a cinq onglets et trois niveaux de détail : **Spectateur**, **Analyste**, **Développeur**.
 
@@ -10,11 +10,11 @@
 
 ## Le plateau de la partie, en direct
 
-![Le plateau pendant que l'IA calcule : trois flèches numérotées et le bandeau détaillé](../docs-img/obs-plateau-direct.webp)
+![Le plateau pendant que l'IA calcule : trois flèches numérotées, et « L'IA réfléchit… » dans la barre du joueur 2](../docs-img/obs-plateau-direct.webp)
 
 - **Les 3 meilleurs coups du moment**, en flèches numérotées comme la liste : **1** vert, **2** orange, **3** gris. Une flèche part de la dernière bille du groupe et va jusqu'à la case où arrive la première ; les billes du meilleur coup sont entourées.
 - **Les billes menacées** des deux camps : en rouge, une bille au bord avec un allié ou moins ; en orange, une bille isolée. Ce sont les définitions de l'évaluation du moteur.
-- **Le bandeau « L'IA réfléchit… »** : profondeur, positions examinées, temps et meilleur coup provisoire. Il s'affiche même panneau fermé.
+- **« L'IA réfléchit… »**, dans la barre du joueur que joue l'IA (le joueur 2, en général), avec le bouton **⚡ Jouer maintenant** et une ligne de mesures : meilleur coup provisoire, profondeur, temps, positions examinées. *Depuis la v3.14*, cette zone reste dans la barre pendant toute la partie, pour que le plateau ne bouge pas : quand l'IA attend votre coup, elle rappelle son dernier calcul. Elle s'affiche même panneau fermé.
 
 Tout se règle sur la ligne sous les onglets : **Afficher : flèches, menaces, bandeau**.
 
@@ -95,9 +95,9 @@ Le bouton **—** réduit le panneau à une ligne : le plateau reste dégagé, a
 
 ## Sur téléphone
 
-![Sur téléphone, le panneau en tiroir sous le plateau, le bandeau juste au-dessus](../docs-img/obs-telephone.webp)
+![Sur téléphone, le panneau en tiroir sur le bas de l'écran, « L'IA réfléchit… » dans la barre du joueur 2, au-dessus](../docs-img/obs-telephone.webp)
 
-Sur téléphone, le panneau s'ouvre en tiroir sur le bas de l'écran et le bandeau « L'IA réfléchit… » passe juste au-dessus. Le tiroir cache une partie du plateau : son mini plateau montre les mêmes flèches, et le bouton **—** le réduit à une ligne en haut pour revoir le plateau entier.
+Sur téléphone, le panneau s'ouvre en tiroir sur le bas de l'écran ; « L'IA réfléchit… » reste lisible en haut, dans la barre du joueur 2 (avant la v3.14, un bandeau flottant cachait le bas du plateau). Le tiroir cache une partie du plateau : son mini plateau montre les mêmes flèches, et le bouton **—** le réduit à une ligne en haut pour revoir le plateau entier.
 
 ## Ce que le panneau ne prétend pas
 

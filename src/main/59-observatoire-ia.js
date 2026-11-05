@@ -249,12 +249,17 @@ function _obsBandeau(vider) {
   if (vider || !OBS.bandeau) { el.textContent = ''; el.style.display = 'none'; return; }
   const L = OBS.live, now = Date.now(); if (!L || L.etat !== 'calcul' || now - OBS.tBandeau < 200) return;
   OBS.tBandeau = now;
-  el.textContent = _obsLigneDirect(L, now); el.style.display = '';
+  const court = !!(el.closest && el.closest('.clock-bar'));   // v3.14 : dans la barre du joueur, sur une ligne
+  el.textContent = _obsLigneDirect(L, now, court); el.style.display = '';
 }
-function _obsLigneDirect(L, now) {
+function _obsLigneDirect(L, now, court) {
   const C = _obsClassement(L), a = C.a;
-  let t = _obsT('prof. ', 'depth ') + a.d + (a.max ? '/' + a.max : '') + ' · ' + _obsCompact(a.nodes) + ' ' + _obsT('positions', 'positions') + ' · ' + _msTexte((now || Date.now()) - L.t0);
-  if (C.tous.length) t += ' · ' + _obsT('meilleur : ', 'best: ') + _obsNom(L, C.tous[0][0]) + ' ' + _evalReflexionTexte(C.tous[0][1]);
+  const prof = _obsT('prof. ', 'depth ') + a.d + (a.max ? '/' + a.max : ''), temps = _msTexte((now || Date.now()) - L.t0);
+  const meilleur = C.tous.length ? _obsNom(L, C.tous[0][0]) + ' ' + _evalReflexionTexte(C.tous[0][1]) : '';
+  // ligne courte (barre du joueur, telephone) : le meilleur coup d'abord, coupe a droite s'il manque de place
+  if (court) return (meilleur ? _obsT('meilleur : ', 'best: ') + meilleur + ' · ' : '') + prof + ' · ' + temps + ' · ' + _obsCompact(a.nodes) + ' pos.';
+  let t = prof + ' · ' + _obsCompact(a.nodes) + ' ' + _obsT('positions', 'positions') + ' · ' + temps;
+  if (meilleur) t += ' · ' + _obsT('meilleur : ', 'best: ') + meilleur;
   return t;
 }
 /* Panneau reduit : une seule ligne, pour liberer le plateau */

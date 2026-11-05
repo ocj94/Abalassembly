@@ -7035,6 +7035,35 @@ test('Observatoire IA v3.09 : panneau reduit en une ligne, frise des decisions, 
   lire('OBS.hist = []; OBS.rev = -1');
 });
 
+test('v3.14, « L IA reflechit » dans la barre du joueur : dernier calcul, ligne courte, « Jouer maintenant » seulement pendant le calcul', () => {
+  const vm = require('vm'), lire = n => vm.runInContext(n, ctx);
+  const { poserDisposition } = require('./harness'); poserDisposition(ctx, 'standard');
+  // le dernier calcul : coup, note, profondeur, temps, pour CETTE partie seulement
+  const m = ctx.getAllMovesForColor('white')[0];
+  ctx._iaBarreNoter({ bestScore: -49.4, depth: 5, time: 87700 }, m);
+  const d = lire('_iaBarreDernier');
+  assert.strictEqual(d.gen, lire('_aiGen'));
+  assert.strictEqual(d.txt, ctx._notationCoupBrut(m.cells, m.dir) + ' ' + ctx._evalReflexionTexte(-49) + ' · prof. 5 · ' + ctx._msTexte(87700));
+  // « Jouer maintenant » : rien au repos, meme si la zone est visible
+  const gEl = ctx.document.getElementById;
+  ctx.document.getElementById = id => (id === 'ai-thinking' ? { style: { display: 'flex' } } : gEl(id));
+  lire('var __joue = 0, __ex = executeAIMove; executeAIMove = function () { __joue++; }; _iaReflechit = false; _aiForcing = false; var __go = GameOver.get(); GameOver.set(false)');
+  try { ctx.forceAINow(); } finally { ctx.document.getElementById = gEl; }
+  assert.strictEqual(lire('__joue'), 0, 'au repos : ne joue rien'); assert.strictEqual(lire('_aiForcing'), false);
+  lire('executeAIMove = __ex; GameOver.set(__go)');
+  // la zone et ses regles d'affichage, la ligne courte de l'Observatoire
+  const src = _SRC();
+  ['#ai-thinking.ia-en-barre{position:static!important', '.clock-bar.avec-ia{flex-wrap:wrap', '#ai-thinking.au-repos .ia-calc{display:none!important}', "_ancrerBoutonsPlateau"].forEach(x => assert.ok(src.includes(x), x));
+  assert.ok(src.includes("if (typeof _iaBarreMaj === 'function') { try { _iaBarreMaj(); } catch (e) {} }"), 'les barres repeintes mettent la zone a jour');
+  const L = { t0: Date.now() - 1500, racine: {}, coups: new Map([['k', { n: 'f2f3' }]]), fils: {}, top: [], journal: [], jProf: {} };
+  const C0 = ctx._obsClassement; ctx._obsClassement = () => ({ a: { d: 5, max: 8, nodes: 1100000 }, tous: [['k', -49]] });
+  try {
+    const n = ctx._evalReflexionTexte(-49), court = ctx._obsLigneDirect(L, Date.now(), true), long = ctx._obsLigneDirect(L, Date.now());
+    assert.ok(court.startsWith('meilleur : f2f3 ' + n + ' · prof. 5/8 · '), court);
+    assert.ok(long.startsWith('prof. 5/8 · ') && long.endsWith(' · meilleur : f2f3 ' + n), 'hors barre : l ordre d avant : ' + long);
+  } finally { ctx._obsClassement = C0; }
+});
+
 test('v3.13, temps reels des niveaux : rien sans la case, profondeur terminee par tous les fils, croissance et temps estime', () => {
   const vm = require('vm'), lire = n => vm.runInContext(n, ctx);
   ctx.localStorage.removeItem('abaTempsReels'); ctx.localStorage.removeItem('abaTempsReelsActif');

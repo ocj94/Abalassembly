@@ -115,7 +115,7 @@ const I18N_EN = {
     ': marbles the opponent can eject with its next move. For the AI’s moves: its expected continuation (the expected reply, then the next moves), its evaluation of the position, the depth reached, the positions examined and the time.',
   // ── profil local et fenetres de connexion (v2.57) ──
   'Votre profil': 'Your profile', 'Créer un profil': 'Create a profile', 'Créer mon profil →': 'Create my profile →',
-  'Parties': 'Games', 'ELO actuel': 'Current ELO', 'Joueur': 'Player', 'JOUEUR': 'PLAYER', 'Deco': 'Sign out', 'Jouer maintenant': 'Play now', 'Historique récent': 'Recent games',
+  'Parties': 'Games', 'ELO actuel': 'Current ELO', 'Joueur': 'Player', 'JOUEUR': 'PLAYER', 'Deco': 'Sign out', 'Jouer maintenant': 'Play now', "L'IA réfléchit…": 'The AI is thinking…', "🤖 L'IA attend votre coup": '🤖 The AI is waiting for your move', 'Historique récent': 'Recent games',
   'Maître': 'Master', 'Grand Maître': 'Grandmaster',
   'Créez un profil (ou connectez-vous) pour voir vos statistiques, votre série et vos dernières parties. Tout reste dans ce navigateur, sur cet appareil.':
     'Create a profile (or sign in) to see your statistics, your streak and your latest games. Everything stays in this browser, on this device.',
