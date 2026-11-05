@@ -31,9 +31,18 @@ function _txEval(D, i, w){ const K = w.length; let e = D.m[i]; for (let k = 0; k
 function _txErreur(D, R, w, s){ let e = 0; for (let i = 0; i < R.length; i++) { const p = 1 / (1 + Math.exp(-s * _txEval(D, i, w))); e += (R[i] - p) * (R[i] - p); } return R.length ? e / R.length : 0; }
 // part des positions (parties non nulles) ou l'evaluation donne le bon gagnant ; evaluation nulle : un demi
 function _txJuste(D, R, w){ let n = 0, b = 0; for (let i = 0; i < R.length; i++) { if (R[i] === 0.5) continue; const e = _txEval(D, i, w); n++; if (e === 0) b += 0.5; else if ((e > 0) === (R[i] === 1)) b++; } return n ? b / n : 0; }
+/* v3.13 : l'erreur n'a pas un seul creux. Pour s trop grand, la courbe devient une marche et l'erreur
+   plafonne (a peu pres la part des positions ou l'evaluation se trompe de gagnant) : la recherche ternaire
+   sur [1e-5 ; 2e-2] demarrait dans ce plateau et s'y arretait. Mesure (Observatoire, v3.13) sur 3 000
+   positions : s = 0,0061 pour une erreur de 0,2216, quand s = 0,0003 donne 0,190 -- une courbe vingt fois
+   trop raide (une note de +637 lue comme 99 % de chances). D'abord une grille en echelle logarithmique,
+   puis la recherche ternaire entre les deux voisins du meilleur point. */
 function _txEchelle(D, R, w){
-  let lo = 1e-5, hi = 2e-2;
-  for (let it = 0; it < 60; it++) { const a = lo + (hi - lo) / 3, b = hi - (hi - lo) / 3; if (_txErreur(D, R, w, a) < _txErreur(D, R, w, b)) hi = b; else lo = a; }
+  const L0 = Math.log(1e-5), L1 = Math.log(2e-2), N = 40, sk = function(k){ return Math.exp(L0 + (L1 - L0) * k / N); };
+  let kb = 0, eb = Infinity;
+  for (let k = 0; k <= N; k++) { const e = _txErreur(D, R, w, sk(k)); if (e < eb) { eb = e; kb = k; } }
+  let lo = sk(Math.max(0, kb - 1)), hi = sk(Math.min(N, kb + 1));
+  for (let it = 0; it < 40; it++) { const a = lo + (hi - lo) / 3, b = hi - (hi - lo) / 3; if (_txErreur(D, R, w, a) < _txErreur(D, R, w, b)) hi = b; else lo = a; }
   return (lo + hi) / 2;
 }
 // une etape d'Adam (moyenne des gradients sur toutes les positions d'apprentissage), poids bornes

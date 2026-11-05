@@ -1926,7 +1926,7 @@ function aiMove() {
   const pooledStarted = (typeof requestAIMovePooled === 'function') && requestAIMovePooled(pooledParams, function(chosen, metrics) {
     showAIThinking(false);
     if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
-    if (metrics) { updateAIMetrics(metrics); _releverReflexion(metrics, config); _noterMesuresCoupIA(metrics, ai, config); if (typeof obsFin === 'function') obsFin(metrics, ai, config, chosen); }
+    if (metrics) { updateAIMetrics(metrics); _releverReflexion(metrics, config); _noterMesuresCoupIA(metrics, ai, config); if (typeof trNoter === 'function') trNoter(metrics, ai, config); if (typeof obsFin === 'function') obsFin(metrics, ai, config, chosen); }
     if (GameOver.get()) return;
     if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
     executeAIMove(chosen);
@@ -1945,7 +1945,7 @@ function aiMove() {
       showAIThinking(false);
       if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
       const chosen = e.data && e.data.move;
-      if (e.data) { updateAIMetrics(e.data.metrics); _releverReflexion(e.data.metrics, config); _noterMesuresCoupIA(e.data.metrics, ai, config); if (typeof obsFin === 'function') obsFin(e.data.metrics, ai, config, chosen); }
+      if (e.data) { updateAIMetrics(e.data.metrics); _releverReflexion(e.data.metrics, config); _noterMesuresCoupIA(e.data.metrics, ai, config); if (typeof trNoter === 'function') trNoter(e.data.metrics, ai, config); if (typeof obsFin === 'function') obsFin(e.data.metrics, ai, config, chosen); }
       if (GameOver.get()) return;
       if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
       executeAIMove(chosen);

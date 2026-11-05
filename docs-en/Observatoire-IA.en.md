@@ -2,7 +2,7 @@
 
 # AI Observatory
 
-*Since v3.05, extended up to v3.12.* A panel that shows what the AI computes **while** the game goes on, then why it picked its move. The screenshots below come from the real site, during a real game against the AI (French interface).
+*Since v3.05, extended up to v3.13.* A panel that shows what the AI computes **while** the game goes on, then why it picked its move. The screenshots below come from the real site, during a real game against the AI (French interface).
 
 **To open it**: in a game against the AI, the **"🔭 AI Observatory"** button under the board. The panel sits on the right on a computer and at the bottom on a phone. It has five tabs and three levels of detail: **Spectator**, **Analyst**, **Developer**.
 
@@ -73,6 +73,14 @@ Further down, **two lines side by side**, stepped together. The numbers on the m
 
 The engine's evaluation criteria, with their values, as bars centred on zero, and what the selected move changes. The score is in **internal points**: one marble ahead is worth 1000, an ejection 2000. It is not a win probability.
 
+### Measured winning chance
+
+![Measured winning chance: the score's slice, the observed winning frequency, the table of slices](../docs-img/obs-chance.webp)
+
+*Since v3.13.* What a score is worth, **measured on real games**: 8,000 positions of the corpus whose winner is known, scored with the observed move's weights and sorted by score into slices of equal size. For each slice, the share of positions where the side to move went on to win (a draw counts as half), with its 95% margin. A higher score never wins less often than a lower one: slices that contradicted each other are merged. The **📏 Measure on real games** button runs the computation (about a second on a computer); the result stays in the browser and also shows in the Overview and the report.
+
+A single curve (the Texel method's, p = 1 / (1 + e^(−s × score))) was tried first: on the control games, one marble ahead was predicted at 68 % and won 95 % of the time. Hence measured slices rather than a model. Limits: these are quiet positions from games between humans, and the Observatory's score comes from a search, not the evaluation alone.
+
 ## History and strip
 
 ![History tab: AI score over the game, list of moves, deeper re-run, strip at the bottom](../docs-img/obs-historique.webp)
@@ -95,6 +103,10 @@ On a phone, the panel opens as a drawer over the bottom of the screen and the "A
 
 - **No full tree**: the engine does not keep the thousands of positions it searched. We show the principal lines of the 10 best first moves.
 - **No pruning at the root**: every first move is fully scored. A move is set aside for its score, not because its branch was cut.
-- **No "confidence" percentage**, no "memory used": we show the gap with the 2nd move and how many depths the choice stayed the same, which are measured facts.
+- **No invented "confidence"**, no "memory used": we show the gap with the 2nd move, how many depths the choice stayed the same and, on request, the winning chance measured on real games: measured facts.
+
+## For the Lab: the levels' real search times
+
+*Since v3.13.* In the Lab, **Levels** tab, a checkbox records, for each move the AI plays against you, the depth completed by all its threads, the time used and the time allowed. The table tells, level by level, how far the AI really goes on **your** device, and the time it would take to complete its planned depth in 8 moves out of 10. Nothing leaves the browser, nothing is changed in the levels.
 
 See also: [AI reflection](Reflexion-IA.en.md) (the table after the move) and [Analysing a game](Analyse.en.md).

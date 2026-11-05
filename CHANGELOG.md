@@ -9,6 +9,41 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.13]
+
+### Ajouté — l'Observatoire et le Labo s'échangent leurs données
+- **Temps réels des niveaux** (Labo, onglet « Les niveaux », sous le banc) : une
+  case à cocher fait noter, à chaque coup que l'IA joue contre vous, la
+  profondeur terminée par tous ses fils, le temps utilisé et le temps accordé
+  (niveau 2 et plus, coups calculés seulement ; 1 500 coups au plus, rien ne
+  quitte le navigateur). Le tableau donne, par niveau, la profondeur
+  réellement terminée, la part des coups qui atteignent la profondeur prévue,
+  le temps médian, les dépassements, et le temps qu'il faudrait pour terminer
+  la profondeur prévue dans 8 coups sur 10 (estimé avec la croissance mesurée
+  sur l'appareil, « extrapolé » quand une profondeur n'y a jamais été
+  terminée). Le banc mesurait les niveaux sur un seul fil ; ceci mesure la
+  vraie partie. Rien n'est changé dans les niveaux.
+- **Chance de gain mesurée** (Observatoire, Vue générale et Évaluation) : une
+  fréquence observée, pas un modèle. Sur 8 000 positions de vraies parties du
+  corpus dont on connaît le vainqueur, notées avec les poids du coup observé,
+  rangées par note en tranches de même effectif : combien de fois le camp au
+  trait a gagné, avec sa marge. Calcul en un clic (environ une seconde sur
+  ordinateur), gardé dans le navigateur. Elle figure aussi dans le rapport.
+  C'est la version mesurée de la « confiance » des maquettes.
+
+### Corrigé — l'échelle de la méthode Texel
+La recherche de l'échelle s (la pente de la courbe note → chance de gain)
+démarrait sur un plateau de l'erreur et s'y arrêtait : s = 0,0061 au lieu
+d'environ 0,0004, une courbe quinze fois trop raide (erreur 0,222 contre
+0,188 sur 3 000 positions). Elle cherche maintenant d'abord sur une grille.
+Ça corrige l'outil Texel du Labo. **Les poids Texel du jeu (niveaux 4 et plus)
+ont été réglés avec l'ancienne échelle** (`tools/texel-poids.js`) : ils ne
+changent pas dans cette version.
+
+D'abord essayée pour la chance de gain : cette courbe, même bien réglée, colle
+mal aux vraies parties (une bille d'avance prévue à 68 %, gagnée à 95 %). D'où
+les tranches mesurées.
+
 ## [v3.12]
 
 ### Ajouté — Observatoire IA : carte de chaleur, aperçu au survol, vraie pause
