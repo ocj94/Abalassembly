@@ -9,6 +9,30 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.16]
+
+### Security — verified libraries, isolated SheetJS, verifiable versions
+Follow-up to the security review (NIST SSDF framework):
+- **CDN libraries checked byte for byte.** Three.js (the 3D view) and SheetJS
+  (the spreadsheet reader) only run after their SHA-384 fingerprint is compared
+  with the official npm package's. A different file is refused, and a message
+  says so. cdnjs is removed from the sources, as it serves its own copy. The
+  local copy of Three.js is identical to the npm package.
+- **SheetJS 0.18.5 isolated.** Two known flaws with crafted files
+  (CVE-2023-30533, prototype pollution; CVE-2024-22363, runaway regular
+  expression). The fixed versions are no longer on npm. Spreadsheets are
+  therefore read in a disposable worker that only returns rows of text and is
+  stopped after 20 s. No SheetJS code runs in the page. Checked in a real
+  browser: a good file is read, and a tampered library file is refused
+  without running.
+- **Tighter content security policy.** CDNs can no longer serve scripts
+  (`script-src 'self' 'unsafe-inline' blob:`). They are only read
+  (`connect-src`), and only verified content runs. The Architecture page
+  says so.
+- **Verifiable versions.** Each new release attaches `index.html`, the copy of
+  Three.js and their SHA-256 fingerprints (`SHA256SUMS`). SECURITY.md explains
+  how to check.
+
 ## [v3.15]
 
 ### Changed — the AI Observatory in the right-hand column

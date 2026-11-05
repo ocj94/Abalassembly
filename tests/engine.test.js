@@ -6185,7 +6185,7 @@ test('v2.95 : la page Ressources du wiki, l annuaire de l Ecosysteme, les noms M
 test('v2.96 : la regle de securite laisse lire PlayStrategy, et lui seul ; la page Architecture le dit', async () => {
   const m = _SRC_INDEX.match(/Content-Security-Policy" content="([^"]*)"/); assert.ok(m);
   const cs = m[1].split(';').map(x => x.trim()).find(x => x.indexOf('connect-src') === 0);
-  assert.strictEqual(cs, "connect-src 'self' https://playstrategy.org");
+  assert.strictEqual(cs, "connect-src 'self' https://playstrategy.org https://cdn.jsdelivr.net https://unpkg.com");   // v3.16 : les deux CDN, pour les bibliotheques verifiees
   await _enFrancais54(() => _dom54(async els => { ctx.renderArchiPage(); const h = els['archi-diagrams'].innerHTML;
     assert.match(h, /vérifiées contre le code en v2\.96/); assert.match(h, /méthode Texel a appris sur 15[\s\u00a0\u202f]036 positions/);
     assert.match(h, /Humains ou programmes/); assert.match(h, /gym-abalone/); assert.match(h, /seul site extérieur/); }));
@@ -7033,6 +7033,34 @@ test('Observatoire IA v3.09 : panneau reduit en une ligne, frise des decisions, 
   ['+129', '+26', '+102', '>p3<'].forEach(x => assert.ok(c.includes(x), x));
   assert.strictEqual(ctx._obsCourbeProf([{ d: 1, k: 'a', s: 10 }]), '', 'une seule profondeur : pas de courbe');
   lire('OBS.hist = []; OBS.rev = -1');
+});
+
+test('v3.16, bibliotheques des CDN verifiees octet pour octet ; SheetJS lu hors de la page, et seulement en texte', async () => {
+  const fs = require('fs'), path = require('path'), vm = require('vm'), lire = n => vm.runInContext(n, ctx);
+  const csp = _SRC_INDEX.match(/Content-Security-Policy" content="([^"]*)"/)[1].split(';').map(x => x.trim());
+  assert.strictEqual(csp.find(x => x.indexOf('script-src') === 0), "script-src 'self' 'unsafe-inline' blob:", 'les CDN ne servent plus de script directement');
+  // l'empreinte de Three.js est celle de la copie du site, identique au paquet npm three@0.160.0
+  const vendor = fs.readFileSync(path.join(__dirname, '..', 'vendor', 'three.module.js'));
+  const h = 'sha384-' + require('crypto').createHash('sha384').update(vendor).digest('base64');
+  assert.strictEqual(lire('BIB_THREE_SHA384'), h);
+  assert.ok(/^sha384-[A-Za-z0-9+/]{64}$/.test(lire('BIB_XLSX_SHA384')));
+  assert.ok(!_SRC_INDEX.includes('cdnjs.cloudflare.com/ajax/libs/xlsx') && !_SRC_INDEX.includes('cdnjs.cloudflare.com/ajax/libs/three'), 'cdnjs retire');
+  // verification : le faux est refuse, on passe a la source suivante ; aucun bon fichier : refus
+  const avant = { crypto: ctx.crypto, fetch: ctx.fetch, btoa: ctx.btoa }, appels = [];
+  ctx.crypto = require('crypto').webcrypto; if (!ctx.btoa) ctx.btoa = s => Buffer.from(s, 'binary').toString('base64');
+  ctx.fetch = url => { appels.push(url); const c = /faux/.test(url) ? Buffer.concat([vendor, Buffer.from('x')]) : vendor;
+    return Promise.resolve({ ok: true, arrayBuffer: () => Promise.resolve(c.buffer.slice(c.byteOffset, c.byteOffset + c.length)) }); };
+  try {
+    const buf = await ctx._bibVerifiee(['https://faux.test/a.js', 'https://bon.test/b.js'], h);
+    assert.strictEqual(buf.byteLength, vendor.length); assert.strictEqual(appels.join(' '), 'https://faux.test/a.js https://bon.test/b.js');
+    await assert.rejects(ctx._bibVerifiee(['https://faux.test/a.js'], h), /empreinte différente/);
+  } finally { ctx.crypto = avant.crypto; ctx.fetch = avant.fetch; if (!avant.btoa) delete ctx.btoa; }
+  // SheetJS : dans un fil jetable, borne dans le temps ; seules des lignes de texte reviennent
+  const lecteur = _SRC_INDEX.slice(_SRC_INDEX.indexOf('function _advLireClasseur'), _SRC_INDEX.indexOf('function _advRowsFromWorkbook'));
+  assert.ok(lecteur.includes('new Worker(url)') && lecteur.includes('w.terminate()') && lecteur.includes('ADV_XLSX_DELAI_MS'));
+  assert.ok(!_SRC_INDEX.includes("s.src = SOURCES[i];"), 'plus de <script> SheetJS dans la page');
+  assert.strictEqual(JSON.stringify(ctx._advLignesSures([[1, null, { a: 1 }], 'x', [true]])), '[["1","","[object Object]"],[],["true"]]');
+  assert.strictEqual(JSON.stringify(ctx._advLignesSures({ length: 3 })), '[]');
 });
 
 test('v3.15, l Observatoire IA dans la colonne de droite : un onglet, pas une fenetre ; le plateau tient dans sa colonne', () => {

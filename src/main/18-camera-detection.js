@@ -1849,27 +1849,45 @@ function _advVerifyCandidate(cand){
   });
 }
 
-// Chargeur SheetJS à la demande (Excel/.ods), plusieurs CDN en repli — même
-// principe que le chargeur Three.js de la vue 3D.
-let _xlsxLoaded = null;
-function _advEnsureXLSX(){
-  if (_xlsxLoaded) return _xlsxLoaded;
-  const SOURCES = [
-    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
-    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
-  ];
-  _xlsxLoaded = new Promise(function(resolve, reject){
-    (function tryNext(i){
-      if (i >= SOURCES.length) { reject(new Error('toutes les sources XLSX ont échoué')); return; }
-      const s = document.createElement('script');
-      s.src = SOURCES[i];
-      s.onload = function(){ resolve(window.XLSX); };
-      s.onerror = function(){ tryNext(i + 1); };
-      document.head.appendChild(s);
-    })(0);
+/* v3.16 — SheetJS (Excel / .ods) lu dans un fil de calcul jetable, jamais dans la page.
+   La version 0.18.5 a deux failles connues sur des fichiers pieges : pollution de prototype
+   (CVE-2023-30533) et expression reguliere qui s'emballe (CVE-2024-22363). Les versions corrigees ne
+   sont plus publiees sur npm, seulement sur le CDN de SheetJS. Ici : la bibliotheque est verifiee
+   (empreinte du paquet npm, _bibVerifiee), puis le fichier est lu dans un Worker isole qui ne renvoie
+   que des lignes de texte (un prototype pollue reste dans le fil, detruit apres lecture) ; au-dela de
+   20 s le fil est arrete. Aucun script de tableur ne s'execute dans la page. */
+const ADV_XLSX_SOURCES = [
+  'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+  'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js'
+];
+const ADV_XLSX_DELAI_MS = 20000;
+let _xlsxCode = null;
+function _advCodeXLSX() {
+  if (!_xlsxCode) _xlsxCode = _bibVerifiee(ADV_XLSX_SOURCES, BIB_XLSX_SHA384)
+    .then(function (buf) { return new TextDecoder().decode(buf); })
+    .catch(function (e) { _xlsxCode = null; throw e; });
+  return _xlsxCode;
+}
+// des tableaux de chaines, bornes : rien d'autre ne revient du fil
+function _advLignesSures(rows) {
+  if (!Array.isArray(rows)) return [];
+  return rows.slice(0, 20000).map(function (r) { return Array.isArray(r) ? r.slice(0, 64).map(function (c) { return String(c == null ? '' : c).slice(0, 20000); }) : []; });
+}
+const _ADV_FIL_XLSX = ';self.onmessage=function(e){try{var wb=XLSX.read(new Uint8Array(e.data),{type:"array"});var rows=[];'
+  + 'wb.SheetNames.forEach(function(n){XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:false,defval:""}).forEach(function(r){rows.push(r.map(function(c){return String(c==null?"":c);}));});});'
+  + 'self.postMessage({rows:rows});}catch(err){self.postMessage({erreur:String(err&&err.message||err)});}};';
+function _advLireClasseur(buf, code) {
+  return (code ? Promise.resolve(code) : _advCodeXLSX()).then(function (code) {
+    return new Promise(function (resolve, reject) {
+      const url = URL.createObjectURL(new Blob([code, '\n', _ADV_FIL_XLSX], { type: 'text/javascript' }));
+      let w; try { w = new Worker(url); } catch (e) { URL.revokeObjectURL(url); reject(e); return; }
+      const fin = function () { clearTimeout(t); try { w.terminate(); } catch (e) {} URL.revokeObjectURL(url); };
+      const t = setTimeout(function () { fin(); reject(new Error('lecture arrêtée au bout de ' + (ADV_XLSX_DELAI_MS / 1000) + ' s (protection)')); }, ADV_XLSX_DELAI_MS);
+      w.onmessage = function (e) { fin(); const d = e.data || {}; if (d.erreur) reject(new Error(d.erreur)); else resolve(_advLignesSures(d.rows)); };
+      w.onerror = function (ev) { fin(); reject(new Error((ev && ev.message) || 'erreur du lecteur')); };
+      w.postMessage(buf, [buf]);
+    });
   });
-  return _xlsxLoaded;
 }
 
 function _advRowsFromWorkbook(wb){
@@ -1965,19 +1983,18 @@ function importScannedGamesFile(input){
   }
   if (name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.ods')){
     showToast('⏳ Chargement du lecteur de tableur…');
-    _advEnsureXLSX().then(function(XLSX){
+    _advCodeXLSX().then(function(code){
       const reader = new FileReader();
       reader.onload = function(){
-        try{
-          const wb = XLSX.read(new Uint8Array(reader.result), { type: 'array' });
-          _advShowPreview(_advExtractCandidates(_advRowsFromWorkbook(wb)));
-        }catch(e){ showToast('❌ Fichier tableur illisible'); }
-        input.value = '';
+        _advLireClasseur(reader.result, code).then(function(rows){
+          _advShowPreview(_advExtractCandidates(rows));
+        }).catch(function(e){ showToast('❌ Fichier tableur illisible' + (e && /protection/.test(e.message) ? ' (lecture trop longue, arrêtée)' : '')); })
+          .then(function(){ input.value = ''; });
       };
       reader.onerror = function(){ showToast('❌ Lecture du fichier impossible'); input.value=''; };
       reader.readAsArrayBuffer(file);
-    }).catch(function(){
-      showToast('⚠️ Lecteur de tableur indisponible (connexion internet nécessaire pour ce format)');
+    }).catch(function(e){
+      showToast(e && /empreinte/.test(e.message) ? '⛔ Lecteur de tableur refusé : le fichier reçu ne correspond pas à la version vérifiée' : '⚠️ Lecteur de tableur indisponible (connexion internet nécessaire pour ce format)');
       input.value = '';
     });
     return;

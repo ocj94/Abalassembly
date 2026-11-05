@@ -293,27 +293,51 @@ window.refresh1DIfActive = function () {
   if (window._boardView === '1d') window.render1D();
 };
 
+/* v3.16 — Une bibliotheque venue d'un CDN n'est executee qu'apres verification de son empreinte
+   SHA-384, octet pour octet. L'empreinte est celle du fichier du paquet npm officiel (verifie par npm
+   a l'installation), que jsDelivr et unpkg servent tel quel : un CDN compromis ou un fichier modifie
+   est refuse. cdnjs est retire des sources : il sert sa propre copie, dont rien ne garantit qu'elle
+   soit identique. Pas de verification possible (navigateur sans crypto.subtle) : on refuse. */
+const BIB_THREE_SHA384 = 'sha384-61S/Nu32S3E5+n+KpCOTb2eRYps6fVKm+9Gz1QBvSePFthb46f063Aa/qe/lykFZ';   // three@0.160.0 build/three.module.js
+const BIB_XLSX_SHA384 = 'sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw';    // xlsx@0.18.5 dist/xlsx.full.min.js
+function _bibEmpreinte(buf) {
+  return crypto.subtle.digest('SHA-384', buf).then(function (h) {
+    const o = new Uint8Array(h); let s = ''; for (let i = 0; i < o.length; i++) s += String.fromCharCode(o[i]);
+    return 'sha384-' + btoa(s);
+  });
+}
+function _bibVerifiee(urls, sha384) {
+  if (!(typeof crypto !== 'undefined' && crypto.subtle && typeof fetch === 'function')) return Promise.reject(new Error('vérification impossible dans ce navigateur'));
+  return (function essai(i, derniere) {
+    if (i >= urls.length) return Promise.reject(derniere || new Error('aucune source'));
+    return fetch(urls[i], { mode: 'cors', credentials: 'omit' })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); })
+      .then(function (buf) { return _bibEmpreinte(buf).then(function (e) {
+        if (e !== sha384) throw new Error('empreinte différente, fichier refusé : ' + urls[i]);
+        return buf; }); })
+      .catch(function (err) { console.warn('Bibliothèque : source refusée ou indisponible →', urls[i], err && err.message); return essai(i + 1, err); });
+  })(0);
+}
+
 // Charge Three.js une seule fois (via CDN avec repli local en premier) et
 // appelle onReady(THREE). Reutilisee par la vraie vue 3D (init3DView) ET
 // par l'apercu 3D du Createur de plateau — un seul point de chargement,
 // une seule liste de sources, pas deux copies qui pourraient diverger.
 function ensureThreeLoaded(onReady, onFail) {
   if (window._three) { onReady(window._three); return; }
-  const THREE_SOURCES = [
-    './vendor/three.module.js',
+  // d'abord la copie du site (meme origine, identique au paquet npm), puis les CDN, verifies
+  const CDN = [
     'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js',
-    'https://unpkg.com/three@0.160.0/build/three.module.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.module.min.js'
+    'https://unpkg.com/three@0.160.0/build/three.module.js'
   ];
-  (function tenter(i) {
-    if (i >= THREE_SOURCES.length) { if (onFail) onFail(); return; }
-    import(THREE_SOURCES[i])
-      .then(function(THREE) { window._three = THREE; onReady(THREE); })
-      .catch(function(err) {
-        console.warn('Three.js : source indisponible, essai suivant →', THREE_SOURCES[i], err);
-        tenter(i + 1);
-      });
-  })(0);
+  const pret = function (THREE) { window._three = THREE; onReady(THREE); };
+  import('./vendor/three.module.js').then(pret).catch(function (err) {
+    console.warn('Three.js : copie locale indisponible, CDN vérifiés →', err && err.message);
+    _bibVerifiee(CDN, BIB_THREE_SHA384).then(function (buf) {
+      const url = URL.createObjectURL(new Blob([buf], { type: 'text/javascript' }));
+      return import(url).then(function (THREE) { URL.revokeObjectURL(url); pret(THREE); });
+    }).catch(function (e) { console.warn('Three.js indisponible :', e && e.message); if (onFail) onFail(); });
+  });
 }
 
 // Charge Three.js dynamiquement (depuis le CDN) puis initialise la scène

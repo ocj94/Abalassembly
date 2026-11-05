@@ -6,6 +6,8 @@ name: Releases
 # commit qui a posé APP_VERSION = 'vX.YY', on pose l'étiquette dessus et on
 # publie la release avec le texte du journal. Une release déjà existante n'est
 # jamais modifiée : relancer ce flux ne change rien.
+# Depuis la v3.16, chaque nouvelle release porte ses fichiers (index.html, la copie de
+# Three.js) et leurs empreintes SHA-256 (SHA256SUMS), tirés du commit de la version.
 
 on:
   push:
@@ -44,7 +46,13 @@ jobs:
               on && /^## \[/ {exit}
               on {print}
             ' CHANGELOG.md > notes.md
+            # v3.16 : les fichiers de CETTE version et leurs empreintes SHA-256, joints a la release
+            rm -rf dist && mkdir dist
+            git show "$sha:index.html" > dist/index.html
+            git show "$sha:vendor/three.module.js" > dist/three.module.js 2>/dev/null || rm -f dist/three.module.js
+            (cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS)
             printf '\n---\n🇫🇷 [Journal complet](https://github.com/%s/blob/main/CHANGELOG.md) · 🇬🇧 [English changelog](https://github.com/%s/blob/main/CHANGELOG.en.md) · 🎮 [Jouer](https://ocj94.github.io/Abalassembly/)\n' "$GITHUB_REPOSITORY" "$GITHUB_REPOSITORY" >> notes.md
-            gh release create "$v" --target "$sha" --title "$v — $sujet" --notes-file notes.md
+            printf '\n🔐 Empreintes SHA-256 des fichiers joints : `SHA256SUMS` (vérifier avec `sha256sum -c SHA256SUMS`).\n' >> notes.md
+            gh release create "$v" --target "$sha" --title "$v — $sujet" --notes-file notes.md dist/*
             echo "$v : release créée sur $sha"
           done
