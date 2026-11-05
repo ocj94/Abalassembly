@@ -9,6 +9,30 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.16]
+
+### Sécurité — bibliothèques vérifiées, SheetJS isolé, versions vérifiables
+Suite de l'analyse de sécurité (référentiel SSDF du NIST) :
+- **Bibliothèques des CDN vérifiées octet pour octet.** Three.js (la 3D) et
+  SheetJS (le lecteur de tableur) ne s'exécutent qu'après comparaison de leur
+  empreinte SHA-384 avec celle du paquet npm officiel. Un fichier différent est
+  refusé, et un message le dit. cdnjs est retiré des sources, car il sert sa
+  propre copie. La copie locale de Three.js est identique au paquet npm.
+- **SheetJS 0.18.5 isolé.** Deux failles connues sur des fichiers piégés
+  (CVE-2023-30533, pollution de prototype ; CVE-2024-22363, expression
+  régulière qui s'emballe). Les versions corrigées ne sont plus sur npm. Le
+  tableur est donc lu dans un fil de calcul jetable, qui ne renvoie que des
+  lignes de texte et qui est arrêté au bout de 20 s. Aucun code de SheetJS ne
+  s'exécute dans la page. Vérifié dans un vrai navigateur : un bon fichier se
+  lit, et un fichier de bibliothèque falsifié est refusé sans s'exécuter.
+- **Politique de sécurité du contenu resserrée.** Les CDN ne peuvent plus
+  servir de script (`script-src 'self' 'unsafe-inline' blob:`). Ils sont
+  seulement lus (`connect-src`), et seul le contenu vérifié s'exécute. La page
+  Architecture le dit.
+- **Versions vérifiables.** Chaque nouvelle release joint `index.html`, la
+  copie de Three.js et leurs empreintes SHA-256 (`SHA256SUMS`). SECURITY.md
+  explique comment vérifier.
+
 ## [v3.15]
 
 ### Changé — l'Observatoire IA dans la colonne de droite
