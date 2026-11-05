@@ -907,7 +907,28 @@ function obsOption(k) {
   }
   _obsRendu();
 }
+/* v3.15 (demande d'ocj94 : « toute la partie Observatoire IA dans la sidebar de droite et non dans une
+   fenetre ») : l'Observatoire est un onglet de la barre laterale de la partie, « 🔭 Observatoire IA ».
+   Sur grand ecran (1 700 px et plus), la colonne s'elargit a 420 px tant qu'il est ouvert (en dessous, le
+   plateau n'aurait plus la place : mesure a 1 440 px, le bouton plein ecran tombait sur le panneau) ; en pile (telephone), il est sous
+   le plateau comme les autres onglets. Plus de reduction a une ligne ni de plein ecran : c'etaient des
+   reglages de fenetre. L'ancienne fenetre ne sert que si l'onglet n'existe pas. */
+function _obsHoteLateral() { return (typeof document !== 'undefined' && document.getElementById) ? document.getElementById('obs-sb-hote') : null; }
+function _obsOngletLateral(on) {   // appele par switchGameTab, a chaque changement d'onglet
+  on = !!on;
+  if (OBS.ouvert === on) { if (on) _obsRendu(); return; }
+  OBS.ouvert = on; OBS.grand = false; OBS.reduit = false;
+  try { localStorage.setItem('abaObs', on ? '1' : '0'); } catch (e) {}
+  if (!on) OBS.surPlateau = null;
+  if (typeof drawBoard === 'function') drawBoard();   // fleches et billes menacees : seulement onglet ouvert
+  _obsRendu();
+}
 function obsBasculer() {
+  const hote = _obsHoteLateral(), onglet = hote && document.getElementById('gtab-obs');
+  if (onglet && typeof switchGameTab === 'function') {
+    if (OBS.ouvert) switchGameTab('game', document.getElementById('gtab-game')); else switchGameTab('obs', onglet);
+    return;
+  }
   OBS.ouvert = !OBS.ouvert; try { localStorage.setItem('abaObs', OBS.ouvert ? '1' : '0'); } catch (e) {}
   if (!OBS.ouvert) { OBS.surPlateau = null; OBS.grand = false; }
   if (typeof drawBoard === 'function') drawBoard();   // fleches et billes menacees : affichees seulement panneau ouvert
@@ -925,6 +946,12 @@ function _obsCss() {
   if (typeof document === 'undefined' || document.getElementById('obs-style')) return;
   const st = document.createElement('style'); st.id = 'obs-style';
   st.textContent = '#obs-panneau{position:fixed;top:64px;right:8px;bottom:8px;width:min(400px,calc(100vw - 16px));z-index:2400;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;display:none;flex-direction:column;box-shadow:0 10px 40px rgba(0,0,0,.55);font-size:12px;color:var(--text)}'
+    + '#obs-panneau.obs-sb{position:static;top:auto;left:auto;right:auto;bottom:auto;width:auto;height:auto;flex:1;min-height:0;z-index:auto;border:none;border-radius:0;box-shadow:none;background:none}'
+    + '@media (min-width:1700px){body.obs-lateral .game-layout{grid-template-columns:280px minmax(0,1fr) 420px}}'
+    // en pile : c'est la page qui defile ; un tableau trop large defile dans le panneau au lieu d'elargir la page
+    // (la colonne de la grille prenait la largeur minimale du contenu : 419 px sur un ecran de 390)
+    + '#obs-panneau.obs-sb{min-width:0;max-width:100%}'
+    + '@media (max-width:900px){body.obs-lateral .game-right-panel{min-width:0;max-width:100vw}#obs-panneau.obs-sb #obs-corps{overflow-x:auto;overflow-y:hidden;flex:none}}'
     + '#obs-panneau.obs-on{display:flex}#obs-panneau .obs-entete{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--border);flex-wrap:wrap}'
     + '#obs-panneau .obs-entete b{font-family:"Playfair Display",serif;color:var(--gold);font-size:14px;margin-right:auto}'
     + '#obs-panneau .obs-onglets{display:flex;gap:2px;padding:6px 8px 0;overflow-x:auto;border-bottom:1px solid var(--border)}'
@@ -996,20 +1023,28 @@ function _obsRendu() {
   if (typeof document === 'undefined') return;
   const btn = document.getElementById('obs-btn-jeu'); if (btn) btn.textContent = '🔭 ' + _obsT('Observatoire IA', 'AI Observatory') + (OBS.ouvert ? ' ✓' : '');
   let p = document.getElementById('obs-panneau');
-  _obsPlace(OBS.ouvert && !OBS.grand && !OBS.reduit);
-  // sur telephone, le bandeau « L'IA reflechit… » passe au-dessus du tiroir au lieu de le cacher
-  if (document.body && document.body.classList) document.body.classList.toggle('obs-tiroir', !!(OBS.ouvert && !OBS.grand && !OBS.reduit));
-  if (!OBS.ouvert) { if (p) p.className = ''; return; }
+  const hote = _obsHoteLateral(), lateral = !!hote;
+  if (lateral) { OBS.grand = false; OBS.reduit = false; }
+  _obsPlace(!lateral && OBS.ouvert && !OBS.grand && !OBS.reduit);
+  // sur telephone, le bandeau « L'IA reflechit… » passe au-dessus du tiroir au lieu de le cacher (fenetre seulement)
+  if (document.body && document.body.classList) {
+    document.body.classList.toggle('obs-tiroir', !!(!lateral && OBS.ouvert && !OBS.grand && !OBS.reduit));
+    document.body.classList.toggle('obs-lateral', !!(lateral && OBS.ouvert));   // colonne droite elargie
+  }
+  if (!OBS.ouvert) { if (p) p.className = lateral ? 'obs-sb' : ''; return; }
+  // onglet retenu d'une visite precedente mais pas encore affiche : on l'affiche (le rendu suit)
+  if (lateral) { const g = document.getElementById('gtab-obs'); if (g && g.classList && !g.classList.contains('active') && typeof switchGameTab === 'function') { switchGameTab('obs', g); return; } }
   _obsCss();
+  if (p && lateral && p.parentNode !== hote) { hote.appendChild(p); }
   if (!p) {
-    p = document.createElement('aside'); p.id = 'obs-panneau'; document.body.appendChild(p);
+    p = document.createElement(lateral ? 'div' : 'aside'); p.id = 'obs-panneau'; (lateral ? hote : document.body).appendChild(p);
     // apercu au survol : souris seulement (au doigt, toucher un coup le choisit, comme avant)
     if (_obsSurvolPossible() && p.addEventListener) {
       p.addEventListener('mouseover', function (ev) { const t = ev.target && ev.target.closest ? ev.target.closest('[data-apercu]') : null; obsSurvol(t ? t.getAttribute('data-apercu') : null); });
       p.addEventListener('mouseleave', function () { obsSurvol(null); });
     }
   }
-  p.className = 'obs-on' + (OBS.grand ? ' obs-grand' : '') + (OBS.reduit ? ' obs-reduit' : '');
+  p.className = 'obs-on' + (lateral ? ' obs-sb' : '') + (OBS.grand ? ' obs-grand' : '') + (OBS.reduit ? ' obs-reduit' : '');
   const corps0 = document.getElementById('obs-corps'), haut = corps0 ? corps0.scrollTop : 0;
   const V = _obsVue();
   let etat = '';
@@ -1031,9 +1066,9 @@ function _obsRendu() {
   p.innerHTML = '<div class="obs-entete"><b>🔭 ' + _obsT('Observatoire IA', 'AI Observatory') + '</b>' + etat
     + '<button class="obs-ic" onclick="obsFiger()" title="' + _obsT('Figer l’affichage pendant le calcul', 'Freeze the display while searching') + '">' + (OBS.fige ? '▶' : '⏸') + '</button>'
     + '<button class="obs-ic" onclick="obsExporter(\'txt\')" title="' + _obsT('Télécharger le rapport de la partie (.txt)', 'Download the game report (.txt)') + '">⬇</button>'
-    + '<button class="obs-ic" onclick="obsReduire()" title="' + _obsT('Réduire à une ligne (libère le plateau)', 'Shrink to one line (frees the board)') + '">—</button>'
-    + '<button class="obs-ic" onclick="obsGrand()" title="' + (OBS.grand ? _obsT('Revenir au panneau', 'Back to the panel') : _obsT('Plein écran : tous les onglets à la fois', 'Full screen: all tabs at once')) + '">' + (OBS.grand ? '⤡' : '⤢') + '</button>'
-    + '<button class="obs-ic" onclick="obsBasculer()" title="' + _obsT('Fermer', 'Close') + '">✕</button></div>'
+    + (lateral ? '' : '<button class="obs-ic" onclick="obsReduire()" title="' + _obsT('Réduire à une ligne (libère le plateau)', 'Shrink to one line (frees the board)') + '">—</button>'
+      + '<button class="obs-ic" onclick="obsGrand()" title="' + (OBS.grand ? _obsT('Revenir au panneau', 'Back to the panel') : _obsT('Plein écran : tous les onglets à la fois', 'Full screen: all tabs at once')) + '">' + (OBS.grand ? '⤡' : '⤢') + '</button>')
+    + '<button class="obs-ic" onclick="obsBasculer()" title="' + (lateral ? _obsT('Revenir à l’onglet Partie', 'Back to the Game tab') : _obsT('Fermer', 'Close')) + '">✕</button></div>'
     + (OBS.grand ? '' : '<div class="obs-onglets" role="tablist">' + _OBS_ONGLETS.map(function (o) { return '<button class="' + (onglet === o[0] ? 'obs-actif' : '') + '" onclick="obsOnglet(\'' + o[0] + '\')">' + _obsT(o[1], o[2]) + '</button>'; }).join('') + '</div>')
     + _obsOptionsHTML()
     + '<div id="obs-corps">' + corps + '</div>' + _obsFrise(V);

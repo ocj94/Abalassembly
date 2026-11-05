@@ -2040,7 +2040,7 @@ function _iaBandeauEl() {
       + '#ai-thinking.ia-en-barre{position:static!important;transform:none!important;order:3;flex:1 0 100%;max-width:100%!important;min-width:0;'
       + 'background:none!important;border:none!important;border-top:1px solid var(--border)!important;border-radius:0!important;box-shadow:none!important;'
       + 'padding:6px 0 0!important;align-items:stretch!important;gap:3px!important;font-size:13px!important;letter-spacing:0;text-transform:none}'
-      + '#ai-thinking.ia-en-barre .ia-l1{min-height:26px}#ai-thinking.ia-en-barre .ia-l1 button{margin-left:auto!important}'
+      + '#ai-thinking.ia-en-barre .ia-l1{min-height:26px}#ai-thinking.ia-en-barre .ia-l1 button{margin-left:12px!important}'
       + '#ai-thinking.ia-en-barre #ai-thinking-live,#ai-thinking.ia-en-barre #ia-repos-ligne{text-align:left!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:1.3em}'
       + '#ai-thinking.au-repos .ia-calc{display:none!important}#ai-thinking:not(.au-repos) .ia-repos{display:none!important}';
     document.head.appendChild(st);
