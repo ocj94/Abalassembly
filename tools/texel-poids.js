@@ -9,9 +9,20 @@
    termes de l'evaluation calcules par le code exact du moteur (fil de calcul),
    echelle reglee sur les poids de depart, puis 800 etapes d'Adam, poids bornes.
 
-   Les poids obtenus sont ceux de AI_WEIGHT_PRESETS.texel
+   Les poids obtenus etaient ceux de AI_WEIGHT_PRESETS.texel
    (src/main/data/15-code-02.js), utilises a partir du niveau 4. Le script
-   dit s'ils correspondent encore ; sinon, il donne la ligne a recopier.
+   dit s'ils correspondent encore ; sinon, il donne la ligne calculee.
+
+   NE PAS RECOPIER CETTE LIGNE SANS NOUVEAUX DUELS. Depuis la v3.13, l'echelle
+   (_txEchelle) est corrigee et le calcul ne redonne plus les poids du jeu :
+   il pousse 12 poids sur 16 a leur borne haute. Il devine mieux le gagnant
+   (77,0 % des positions de controle, contre 75,8 %) mais JOUE MOINS BIEN.
+   Duels de novembre 2026 (v3.16, poids calcules contre ceux du jeu, par
+   paires depuis de vraies positions Marguerite belge, arbitrage 2) :
+     profondeur 2 : 24 paires, 14,5 points sur 48, -145 +/- 88 Elo
+     niveau 4     : 16 paires, 12 points sur 32,   -89 +/- 83 Elo
+   Les poids du jeu sont donc gardes. Le script sort avec le code 2 tant que
+   les deux different : c'est attendu.
 
    Usage :
      node tools/build.js && node tools/texel-poids.js
@@ -49,5 +60,9 @@ fil.self = fil; vm.createContext(fil); vm.runInContext(ctx.AI_WORKER_CODE, fil);
   const embarque = ev('AI_WEIGHT_PRESETS.texel');
   const ecarts = cles.filter((k, j) => embarque[k] !== w[j]);
   if (!ecarts.length) console.log('AI_WEIGHT_PRESETS.texel : identique au calcul.');
-  else { console.log('AI_WEIGHT_PRESETS.texel differe sur : ' + ecarts.join(', ')); console.log('calcul : { ' + ligne + ' }'); process.exitCode = 2; }
+  else {
+    console.log('AI_WEIGHT_PRESETS.texel differe sur : ' + ecarts.join(', ')); console.log('calcul : { ' + ligne + ' }');
+    console.log('(attendu depuis la v3.13 : ces poids ont perdu leurs duels contre ceux du jeu -- voir l\'en-tete de ce script)');
+    process.exitCode = 2;
+  }
 })();
