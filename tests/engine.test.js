@@ -7035,6 +7035,25 @@ test('Observatoire IA v3.09 : panneau reduit en une ligne, frise des decisions, 
   lire('OBS.hist = []; OBS.rev = -1');
 });
 
+test('v3.15, l Observatoire IA dans la colonne de droite : un onglet, pas une fenetre ; le plateau tient dans sa colonne', () => {
+  const vm = require('vm'), lire = n => vm.runInContext(n, ctx), src = _SRC();
+  assert.ok(src.includes('id="gtab-obs"') && src.includes('id="gpanel-obs"') && src.includes('id="obs-sb-hote"'), 'onglet et emplacement dans la colonne');
+  assert.ok(src.includes("if (typeof _obsOngletLateral === 'function') _obsOngletLateral(tab === 'obs');"), 'changer d onglet ouvre ou ferme l Observatoire');
+  assert.ok(src.includes("(lateral ? '' : '<button class=\"obs-ic\" onclick=\"obsReduire()\""), 'dans la colonne : ni reduire ni plein ecran');
+  assert.ok(src.includes("p = document.createElement(lateral ? 'div' : 'aside'); p.id = 'obs-panneau'; (lateral ? hote : document.body).appendChild(p);"));
+  assert.ok(src.includes('#obs-panneau.obs-sb{position:static') && src.includes('@media (min-width:1700px){body.obs-lateral .game-layout{grid-template-columns:280px minmax(0,1fr) 420px}}'));
+  assert.ok(/#game-board-wrap \{[^}]*min-width: 0; max-width: 100%;/.test(src), 'le plateau retrecit avec sa colonne');
+  assert.ok(src.includes('.game-layout { grid-template-columns: minmax(0, 1fr); }'), 'en pile : la colonne ne depasse pas l ecran');
+  lire('var __d = drawBoard, __r = _obsRendu; drawBoard = function () {}; _obsRendu = function () {}; OBS.ouvert = false; OBS.grand = true; OBS.reduit = true; OBS.surPlateau = { x: 1 }');
+  try {
+    ctx._obsOngletLateral(true);
+    assert.strictEqual(lire('OBS.ouvert'), true); assert.strictEqual(ctx.localStorage.getItem('abaObs'), '1');
+    assert.strictEqual(lire('OBS.grand'), false); assert.strictEqual(lire('OBS.reduit'), false, 'plus de reglages de fenetre');
+    ctx._obsOngletLateral(false);
+    assert.strictEqual(lire('OBS.ouvert'), false); assert.strictEqual(ctx.localStorage.getItem('abaObs'), '0'); assert.strictEqual(lire('OBS.surPlateau'), null, 'onglet ferme : plus de fleches');
+  } finally { lire('drawBoard = __d; _obsRendu = __r; OBS.ouvert = false'); ctx.localStorage.removeItem('abaObs'); }
+});
+
 test('v3.14, « L IA reflechit » dans la barre du joueur : dernier calcul, ligne courte, « Jouer maintenant » seulement pendant le calcul', () => {
   const vm = require('vm'), lire = n => vm.runInContext(n, ctx);
   const { poserDisposition } = require('./harness'); poserDisposition(ctx, 'standard');

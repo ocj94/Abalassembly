@@ -9,6 +9,31 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.15]
+
+### Changed — the AI Observatory in the right-hand column
+Requested by the author: "the whole AI Observatory in the right sidebar and
+not in a window". The Observatory is now a tab of the game's right-hand
+column, **"🔭 AI Observatory"**, next to Game, List, Comments, Chat, Analysis
+and Bots (the button in the Game tab leads there too).
+- On a computer, it sits next to the board; the column goes from 320 to
+  420 px while it is open, on screens of at least 1,700 px (below that, the
+  board would not have room).
+- On a phone, it is under the board, like the other tabs: no more drawer over
+  the bottom of the screen.
+- Switching tabs closes it; ✕ goes back to the Game tab; the site remembers
+  the open tab. The window buttons (— shrink, ⤢ full screen) are gone.
+
+### Fixed — the board went under the columns
+- From 901 to about 1,500 px wide, the board kept 640 px even when the centre
+  column was narrower: it went under both columns (measured at 1,280 px: 90 px
+  hidden on each side, full-screen button included). It now shrinks to the
+  column's width.
+- On a phone, a line that does not wrap (a line of measures, a table) could
+  widen the whole page beyond the screen (measured: 419 px on a 390 px
+  screen). The column no longer exceeds the screen; a table too wide scrolls
+  inside the Observatory.
+
 ## [v3.14]
 
 ### Changed — "AI is thinking…" in the player's bar

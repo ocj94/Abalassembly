@@ -2,9 +2,13 @@
 
 # Observatoire IA
 
-*Depuis la v3.05, enrichi jusqu'à la v3.14.* Un panneau qui montre ce que l'IA calcule **pendant** la partie, puis pourquoi elle a choisi son coup. Les captures ci-dessous viennent du vrai site, pendant une vraie partie contre l'IA.
+*Depuis la v3.05, enrichi jusqu'à la v3.15.* Un panneau qui montre ce que l'IA calcule **pendant** la partie, puis pourquoi elle a choisi son coup. Les captures ci-dessous viennent du vrai site, pendant une vraie partie contre l'IA.
 
-**Pour l'ouvrir** : en partie contre l'IA, bouton **« 🔭 Observatoire IA »** sous le plateau. Le panneau se place à droite sur ordinateur et en bas sur téléphone. Il a cinq onglets et trois niveaux de détail : **Spectateur**, **Analyste**, **Développeur**.
+**Pour l'ouvrir** : en partie contre l'IA, l'onglet **« 🔭 Observatoire IA »** de la colonne de droite (ou le bouton du même nom dans l'onglet Partie). *Depuis la v3.15*, ce n'est plus une fenêtre : l'Observatoire est un onglet de la colonne de droite, comme Liste ou Commentaires. Il a cinq onglets et trois niveaux de détail : **Spectateur**, **Analyste**, **Développeur**.
+
+![L'Observatoire dans la colonne de droite, à côté du plateau](../docs-img/obs-colonne.webp)
+
+Sur ordinateur, il est à côté du plateau, et la colonne s'élargit tant qu'il est ouvert sur les écrans d'au moins 1 700 px. Sur téléphone, il est sous le plateau, comme les autres onglets. Passer à un autre onglet le ferme, et les flèches sur le plateau ne s'affichent que lorsqu'il est ouvert ; le site se souvient de l'onglet ouvert.
 
 > Le moteur n'est pas modifié dans ses choix : il envoie seulement ses mesures pendant le calcul (au plus toutes les 150 ms). Un test vérifie qu'il joue le même coup, avec les mêmes positions examinées, que le panneau soit ouvert ou non. Rien ne sort du navigateur.
 
@@ -87,17 +91,13 @@ Une courbe unique (celle de la méthode Texel, p = 1 / (1 + e^(−s × note))) a
 
 La note de l'IA au fil de la partie, la liste de ses décisions, et **« Rejouer ce calcul plus profond »** pour un coup passé. En bas du panneau, dans tous les onglets, une **frise** : un point par coup de l'IA (rouge si la note est négative, cerclé d'orange après une chute d'au moins 200 points, vide sans calcul), un point qui pulse pendant le calcul, ◀ ▶ pour passer d'un coup à l'autre. **Depuis la v3.12, la revue reste en place** : quand on revoit un ancien coup, le calcul suivant de l'IA ne ramène plus au direct. Le plateau de la partie continue de montrer le calcul en cours, et le point qui pulse dans la frise (ou « Revenir au direct ») y ramène le panneau. Le rapport de la partie se **copie** ou se **télécharge** (.txt, et .json au niveau Développeur).
 
-## Panneau réduit
-
-![Le panneau réduit à une ligne, le plateau dégagé avec flèches et billes menacées](../docs-img/obs-reduit.webp)
-
-Le bouton **—** réduit le panneau à une ligne : le plateau reste dégagé, avec ses flèches et ses billes menacées. Un clic sur la ligne le rouvre. Le bouton **⤢** fait l'inverse : les cinq onglets à la fois, en plein écran.
-
 ## Sur téléphone
 
-![Sur téléphone, le panneau en tiroir sur le bas de l'écran, « L'IA réfléchit… » dans la barre du joueur 2, au-dessus](../docs-img/obs-telephone.webp)
+![Sur téléphone, l'Observatoire sous le plateau, dans les onglets de la partie](../docs-img/obs-telephone.webp)
 
-Sur téléphone, le panneau s'ouvre en tiroir sur le bas de l'écran ; « L'IA réfléchit… » reste lisible en haut, dans la barre du joueur 2 (avant la v3.14, un bandeau flottant cachait le bas du plateau). Le tiroir cache une partie du plateau : son mini plateau montre les mêmes flèches, et le bouton **—** le réduit à une ligne en haut pour revoir le plateau entier.
+Sur téléphone, l'Observatoire s'ouvre sous le plateau, dans les onglets de la partie : on fait défiler la page pour passer de l'un à l'autre. Pendant ce temps, « L'IA réfléchit… » reste dans la barre du joueur 2, au-dessus du plateau, et les flèches restent sur le plateau. Un tableau trop large pour l'écran défile dans le panneau, sans élargir la page.
+
+*Avant la v3.15*, le panneau était une fenêtre : en tiroir sur téléphone, avec un bouton **—** pour le réduire à une ligne et **⤢** pour un plein écran. Dans la colonne, ces réglages de fenêtre n'ont plus lieu d'être.
 
 ## Ce que le panneau ne prétend pas
 

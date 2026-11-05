@@ -1275,6 +1275,12 @@
         <button onclick="switchGameTab('chat',this)" class="game-tab" id="gtab-chat">💬 Chat</button>
         <button onclick="switchGameTab('analyse',this)" class="game-tab" id="gtab-analyse">📊 Analyse</button>
         <button onclick="switchGameTab('bots',this)" class="game-tab" id="gtab-bots">🤖 Bots</button>
+        <button onclick="switchGameTab('obs',this)" class="game-tab" id="gtab-obs" style="flex-basis:100%" title="Voir ce que l'IA calcule pendant la partie">🔭 Observatoire IA</button>
+      </div>
+
+      <!-- TAB: OBSERVATOIRE IA (v3.15 : dans la barre laterale, plus en fenetre) -->
+      <div id="gpanel-obs" class="game-tab-panel" style="display:none">
+        <div id="obs-sb-hote" style="flex:1;min-height:0;display:flex;flex-direction:column"></div>
       </div>
 
       <!-- TAB: GAME -->

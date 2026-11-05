@@ -820,6 +820,11 @@ h2 {
 /* ─── ABALONE BOARD ─── */
 #game-board-wrap {
   position: relative; user-select: none;
+  /* v3.15 : element flex de .game-center, il gardait la largeur de son contenu (640 px) meme quand la
+     colonne centrale etait plus etroite : de 901 a ~1 500 px de large, le plateau passait sous les deux
+     panneaux lateraux (mesure a 1 280 px : 90 px caches de chaque cote, bouton plein ecran compris).
+     Il peut maintenant retrecir jusqu'a la largeur de la colonne ; #board-stage (max-width:100%) suit. */
+  min-width: 0; max-width: 100%;
 }
 /* ── Scene commune aux 3 vues ──
    Avant ce conteneur, chaque vue avait sa PROPRE technique de dimensionnement :
@@ -1165,7 +1170,7 @@ footer {
   .cam-title { font-size: 28px; }
   .upload-zone { min-height: 240px; }
 
-  .game-layout { grid-template-columns: 1fr; }
+  .game-layout { grid-template-columns: minmax(0, 1fr); }   /* v3.15 : 1fr prenait la largeur minimale du contenu (une ligne qui ne se coupe pas elargissait la page) */
   .game-left-panel { display: none; }
   .game-center { padding: 80px 16px 16px; }
   /* En pile (une seule colonne), la colonne droite ne doit plus etre bornee

@@ -12,6 +12,7 @@ function switchGameTab(tab, btn) {
   if (tab === 'analyse') runAnalysis();
   if (tab === 'liste' && typeof renderListeCoups === 'function') renderListeCoups();
   if (tab === 'commentaires' && typeof renderCommentaires === 'function') renderCommentaires();
+  if (typeof _obsOngletLateral === 'function') _obsOngletLateral(tab === 'obs');   // v3.15 : l'Observatoire IA est un onglet
 }
 
 /* ═══════════════════════════════════════════

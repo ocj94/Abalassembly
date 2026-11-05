@@ -9,6 +9,33 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.15]
+
+### Changé — l'Observatoire IA dans la colonne de droite
+Demande de l'auteur : « toute la partie Observatoire IA dans la sidebar de
+droite et non dans une fenêtre ». L'Observatoire est maintenant un onglet de la
+colonne de droite de la partie, **« 🔭 Observatoire IA »**, à côté de Partie,
+Liste, Commentaires, Chat, Analyse et Bots (le bouton de l'onglet Partie y
+mène aussi).
+- Sur ordinateur, il est à côté du plateau ; la colonne passe de 320 à 420 px
+  tant qu'il est ouvert, sur les écrans d'au moins 1 700 px (en dessous, le
+  plateau n'aurait plus la place).
+- Sur téléphone, il est sous le plateau, comme les autres onglets : plus de
+  tiroir sur le bas de l'écran.
+- Changer d'onglet le ferme ; ✕ ramène à l'onglet Partie ; le site se
+  souvient de l'onglet ouvert. Les boutons de fenêtre (— réduire, ⤢ plein
+  écran) disparaissent.
+
+### Corrigé — le plateau passait sous les colonnes
+- De 901 à environ 1 500 px de large, le plateau gardait 640 px même quand la
+  colonne centrale était plus étroite : il passait sous les deux colonnes
+  (mesuré à 1 280 px : 90 px cachés de chaque côté, bouton plein écran
+  compris). Il rétrécit maintenant à la largeur de la colonne.
+- Sur téléphone, une ligne qui ne se coupe pas (une ligne de mesures, un
+  tableau) pouvait élargir toute la page au-delà de l'écran (mesuré : 419 px
+  sur un écran de 390). La colonne ne dépasse plus l'écran ; un tableau trop
+  large défile dans l'Observatoire.
+
 ## [v3.14]
 
 ### Changé — « L'IA réfléchit… » dans la barre du joueur

@@ -2,9 +2,13 @@
 
 # AI Observatory
 
-*Since v3.05, extended up to v3.14.* A panel that shows what the AI computes **while** the game goes on, then why it picked its move. The screenshots below come from the real site, during a real game against the AI (French interface).
+*Since v3.05, extended up to v3.15.* A panel that shows what the AI computes **while** the game goes on, then why it picked its move. The screenshots below come from the real site, during a real game against the AI (French interface).
 
-**To open it**: in a game against the AI, the **"🔭 AI Observatory"** button under the board. The panel sits on the right on a computer and at the bottom on a phone. It has five tabs and three levels of detail: **Spectator**, **Analyst**, **Developer**.
+**To open it**: in a game against the AI, the **"🔭 AI Observatory"** tab of the right-hand column (or the button of the same name in the Game tab). *Since v3.15*, it is no longer a window: the Observatory is a tab of the right-hand column, like List or Comments. It has five tabs and three levels of detail: **Spectator**, **Analyst**, **Developer**.
+
+![The Observatory in the right-hand column, next to the board](../docs-img/obs-colonne.webp)
+
+On a computer, it sits next to the board, and the column widens while it is open on screens of at least 1,700 px. On a phone, it is under the board, like the other tabs. Switching to another tab closes it, and the arrows on the board only show while it is open; the site remembers the open tab.
 
 > The engine's choices are unchanged: it only sends its measures while searching (at most every 150 ms). A test checks that it plays the same move, with the same positions searched, whether the panel is open or not. Nothing leaves the browser.
 
@@ -87,17 +91,13 @@ A single curve (the Texel method's, p = 1 / (1 + e^(−s × score))) was tried f
 
 The AI's score over the game, the list of its decisions, and **"Re-run this search deeper"** for a past move. At the bottom of the panel, on every tab, a **strip**: one dot per AI move (red when the score is negative, ringed orange after a drop of 200 points or more, hollow without search), a dot that pulses while searching, ◀ ▶ to step from move to move. **Since v3.12, the review stays put**: when you look back at an earlier move, the AI's next search no longer brings you back to live. The game board keeps showing the running search, and the pulsing dot of the strip (or "Back to live") brings the panel back to it. The game report can be **copied** or **downloaded** (.txt, and .json at Developer level).
 
-## Shrunk panel
-
-![The panel shrunk to one line, the board clear with arrows and marbles at risk](../docs-img/obs-reduit.webp)
-
-The **—** button shrinks the panel to one line: the board stays clear, with its arrows and marbles at risk. Clicking the line opens it again. The **⤢** button does the opposite: all five tabs at once, full screen.
-
 ## On a phone
 
-![On a phone, the panel as a drawer over the bottom of the screen, "AI is thinking…" in player 2's bar, above it](../docs-img/obs-telephone.webp)
+![On a phone, the Observatory under the board, in the game's tabs](../docs-img/obs-telephone.webp)
 
-On a phone, the panel opens as a drawer over the bottom of the screen; "AI is thinking…" stays readable at the top, in player 2's bar (before v3.14, a floating banner hid the bottom of the board). The drawer hides part of the board: its mini board shows the same arrows, and the **—** button shrinks it to one line at the top to see the whole board again.
+On a phone, the Observatory opens under the board, in the game's tabs: scroll the page to go from one to the other. Meanwhile, "AI is thinking…" stays in player 2's bar, above the board, and the arrows stay on the board. A table too wide for the screen scrolls inside the panel, without widening the page.
+
+*Before v3.15*, the panel was a window: a drawer on a phone, with a **—** button to shrink it to one line and **⤢** for full screen. In the column, these window settings no longer apply.
 
 ## What the panel does not claim
 
