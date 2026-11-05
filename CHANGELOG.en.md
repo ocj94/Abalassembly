@@ -9,6 +9,39 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.13]
+
+### Added — the Observatory and the Lab share their data
+- **Real search times of the levels** (Lab, "Levels" tab, under the bench): a
+  checkbox records, for each move the AI plays against you, the depth
+  completed by all its threads, the time used and the time allowed (level 2
+  and up, searched moves only; at most 1,500 moves, nothing leaves the
+  browser). The table gives, per level, the depth really completed, the share
+  of moves reaching the planned depth, the median time, the overruns, and the
+  time it would take to complete the planned depth in 8 moves out of 10
+  (estimated with the growth measured on the device, "extrapolated" when a
+  depth was never completed there). The bench measured the levels on a single
+  thread; this measures the real game. Nothing is changed in the levels.
+- **Measured winning chance** (Observatory, Overview and Evaluation): an
+  observed frequency, not a model. On 8,000 positions from real games of the
+  corpus whose winner is known, scored with the observed move's weights and
+  sorted by score into slices of equal size: how often the side to move won,
+  with its margin. One click to compute (about a second on a computer), kept
+  in the browser. It is also in the report. This is the measured version of
+  the mock-ups' "confidence".
+
+### Fixed — the scale of the Texel method
+The search for the scale s (the slope of the score → winning chance curve)
+started on a plateau of the error and stopped there: s = 0.0061 instead of
+about 0.0004, a curve fifteen times too steep (error 0.222 against 0.188 on
+3,000 positions). It now searches a grid first. This fixes the Lab's Texel
+tool. **The game's Texel weights (levels 4 and up) were tuned with the old
+scale** (`tools/texel-poids.js`): they do not change in this version.
+
+First tried for the winning chance: that curve, even with the right scale,
+fits real games poorly (one marble ahead predicted at 68 %, won 95 % of the
+time). Hence the measured slices.
+
 ## [v3.12]
 
 ### Added — AI Observatory: heat map, preview on hover, real pause

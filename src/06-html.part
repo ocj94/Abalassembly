@@ -3909,6 +3909,7 @@
     <section class="lab-zone" data-onglet="niveaux" hidden>
       <h3>📶 Les niveaux 1 à 10</h3>
       <div id="lab-niveaux-host"></div>
+      <div id="lab-temps-host"></div>
     </section>
     <section class="lab-zone" data-onglet="humains" hidden>
       <h3>🧑 Comme les humains</h3>

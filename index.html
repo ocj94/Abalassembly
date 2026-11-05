@@ -7441,6 +7441,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
     <section class="lab-zone" data-onglet="niveaux" hidden>
       <h3>📶 Les niveaux 1 à 10</h3>
       <div id="lab-niveaux-host"></div>
+      <div id="lab-temps-host"></div>
     </section>
     <section class="lab-zone" data-onglet="humains" hidden>
       <h3>🧑 Comme les humains</h3>
@@ -8922,7 +8923,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v3.12';
+const APP_VERSION = 'v3.13';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -26129,7 +26130,7 @@ function aiMove() {
   const pooledStarted = (typeof requestAIMovePooled === 'function') && requestAIMovePooled(pooledParams, function(chosen, metrics) {
     showAIThinking(false);
     if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
-    if (metrics) { updateAIMetrics(metrics); _releverReflexion(metrics, config); _noterMesuresCoupIA(metrics, ai, config); if (typeof obsFin === 'function') obsFin(metrics, ai, config, chosen); }
+    if (metrics) { updateAIMetrics(metrics); _releverReflexion(metrics, config); _noterMesuresCoupIA(metrics, ai, config); if (typeof trNoter === 'function') trNoter(metrics, ai, config); if (typeof obsFin === 'function') obsFin(metrics, ai, config, chosen); }
     if (GameOver.get()) return;
     if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
     executeAIMove(chosen);
@@ -26148,7 +26149,7 @@ function aiMove() {
       showAIThinking(false);
       if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
       const chosen = e.data && e.data.move;
-      if (e.data) { updateAIMetrics(e.data.metrics); _releverReflexion(e.data.metrics, config); _noterMesuresCoupIA(e.data.metrics, ai, config); if (typeof obsFin === 'function') obsFin(e.data.metrics, ai, config, chosen); }
+      if (e.data) { updateAIMetrics(e.data.metrics); _releverReflexion(e.data.metrics, config); _noterMesuresCoupIA(e.data.metrics, ai, config); if (typeof trNoter === 'function') trNoter(e.data.metrics, ai, config); if (typeof obsFin === 'function') obsFin(e.data.metrics, ai, config, chosen); }
       if (GameOver.get()) return;
       if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
       executeAIMove(chosen);
@@ -43823,9 +43824,18 @@ function _txEval(D, i, w){ const K = w.length; let e = D.m[i]; for (let k = 0; k
 function _txErreur(D, R, w, s){ let e = 0; for (let i = 0; i < R.length; i++) { const p = 1 / (1 + Math.exp(-s * _txEval(D, i, w))); e += (R[i] - p) * (R[i] - p); } return R.length ? e / R.length : 0; }
 // part des positions (parties non nulles) ou l'evaluation donne le bon gagnant ; evaluation nulle : un demi
 function _txJuste(D, R, w){ let n = 0, b = 0; for (let i = 0; i < R.length; i++) { if (R[i] === 0.5) continue; const e = _txEval(D, i, w); n++; if (e === 0) b += 0.5; else if ((e > 0) === (R[i] === 1)) b++; } return n ? b / n : 0; }
+/* v3.13 : l'erreur n'a pas un seul creux. Pour s trop grand, la courbe devient une marche et l'erreur
+   plafonne (a peu pres la part des positions ou l'evaluation se trompe de gagnant) : la recherche ternaire
+   sur [1e-5 ; 2e-2] demarrait dans ce plateau et s'y arretait. Mesure (Observatoire, v3.13) sur 3 000
+   positions : s = 0,0061 pour une erreur de 0,2216, quand s = 0,0003 donne 0,190 -- une courbe vingt fois
+   trop raide (une note de +637 lue comme 99 % de chances). D'abord une grille en echelle logarithmique,
+   puis la recherche ternaire entre les deux voisins du meilleur point. */
 function _txEchelle(D, R, w){
-  let lo = 1e-5, hi = 2e-2;
-  for (let it = 0; it < 60; it++) { const a = lo + (hi - lo) / 3, b = hi - (hi - lo) / 3; if (_txErreur(D, R, w, a) < _txErreur(D, R, w, b)) hi = b; else lo = a; }
+  const L0 = Math.log(1e-5), L1 = Math.log(2e-2), N = 40, sk = function(k){ return Math.exp(L0 + (L1 - L0) * k / N); };
+  let kb = 0, eb = Infinity;
+  for (let k = 0; k <= N; k++) { const e = _txErreur(D, R, w, sk(k)); if (e < eb) { eb = e; kb = k; } }
+  let lo = sk(Math.max(0, kb - 1)), hi = sk(Math.min(N, kb + 1));
+  for (let it = 0; it < 40; it++) { const a = lo + (hi - lo) / 3, b = hi - (hi - lo) / 3; if (_txErreur(D, R, w, a) < _txErreur(D, R, w, b)) hi = b; else lo = a; }
   return (lo + hi) / 2;
 }
 // une etape d'Adam (moyenne des gradients sur toutes les positions d'apprentissage), poids bornes
@@ -44394,6 +44404,7 @@ function renderNiveaux(msg){
     h += _bancJournal(s);
   }
   hote.innerHTML = h;
+  if (typeof renderTempsReels === 'function') renderTempsReels();   // v3.13 : les temps en vraie partie, sur cet appareil
   grSurRedim('niveaux', 'lab-niveaux-host', function(){ renderNiveaux(); });
 }
 
@@ -47765,6 +47776,256 @@ function telechargerPartieKAAH() {
   return d;
 }
 /* ═══════════════════════════════════════════
+   v3.13 — TEMPS RÉELS DES NIVEAUX
+   Demande d'ocj94 (« Ok go ») : faire servir les donnees de l'Observatoire au Labo.
+   Le banc « Les niveaux » mesure l'Elo des niveaux avec UN fil de calcul ; sur la
+   machine de mesure, les niveaux 4 a 6 ne terminaient que la profondeur 2 (v3.11).
+   Ici, ce sont les coups que l'IA joue VRAIMENT contre le joueur, sur SON appareil,
+   avec tous ses fils : la profondeur terminee, le temps, le temps accorde.
+
+   - Rien n'est note sans la case cochee (Labo, onglet « Les niveaux »), et rien ne
+     quitte le navigateur : localStorage seulement, 1 500 coups au plus.
+   - Seulement en partie contre l'IA (pas le Labo, pas l'analyse), niveau 2 et plus,
+     coups calcules (ni livre, ni table de finale).
+   - « Il faudrait » : le temps qui laisserait terminer la profondeur prevue dans
+     8 coups sur 10. Pour un coup qui l'a terminee, son temps reel ; sinon, le temps
+     de fin de la derniere profondeur terminee, multiplie par la croissance MESUREE
+     ici d'une profondeur a la suivante (mediane). Une profondeur jamais terminee sur
+     cet appareil prolonge la derniere croissance mesuree : c'est marque « extrapole ».
+   - Rien n'est change dans les niveaux : ce sont des mesures pour les regler.
+═══════════════════════════════════════════ */
+const TR_CLE = 'abaTempsReels', TR_ACTIF_CLE = 'abaTempsReelsActif', TR_MAX = 1500, TR_SANS_LIMITE = 3600000;
+function trActif() { try { return localStorage.getItem(TR_ACTIF_CLE) === '1'; } catch (e) { return false; } }
+function trLire() {
+  try { const d = JSON.parse(localStorage.getItem(TR_CLE) || 'null'); if (d && d.v === 1 && Array.isArray(d.c)) return d; } catch (e) {}
+  return { v: 1, c: [] };
+}
+function _trEcrire(d) { try { localStorage.setItem(TR_CLE, JSON.stringify(d)); return true; } catch (e) { return false; } }
+function trBasculer() { const on = !trActif(); try { localStorage.setItem(TR_ACTIF_CLE, on ? '1' : '0'); } catch (e) {} renderTempsReels(); }
+function trEffacer() { try { localStorage.removeItem(TR_CLE); } catch (e) {} renderTempsReels(); }
+
+// temps ecoule a la fin de chaque profondeur terminee par TOUS les fils (le plus lent d'entre eux) : f[d-1]
+function _trTerminees(m) {
+  const fils = (m && m.parFil && m.parFil.length) ? m.parFil : [m], f = [];
+  for (let d = 1; d <= 64; d++) {
+    if (!fils.every(function (x) { return x && x.depthInfo && x.depthInfo[d]; })) break;
+    f.push(Math.round(Math.max.apply(null, fils.map(function (x) { return x.depthInfo[d].fin || 0; }))));
+  }
+  return f;
+}
+// appele a la fin de chaque coup calcule de l'IA (17-puzzle-interaction-and-lab-start.js)
+function trNoter(m, couleur, config) {
+  if (!m || !config || !trActif()) return false;
+  if (typeof GameMode !== 'undefined' && GameMode.get && GameMode.get() !== 'ai') return false;
+  const niv = (typeof aiDifficulty !== 'undefined') ? String(aiDifficulty) : '';
+  if (!niv || niv === '1') return false;
+  const f = _trTerminees(m); if (!f.length) return false;
+  const d = trLire();
+  d.c.push({ n: niv, b: config.time || 0, D: config.depth || 0, ds: m.depth || f.length, ms: Math.round(m.time || 0), f: f,
+             fils: (m.parFil && m.parFil.length) || 1, j: Math.floor(Date.now() / 864e5) });
+  if (d.c.length > TR_MAX) d.c.splice(0, d.c.length - TR_MAX);
+  d.coeurs = (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) || 0;
+  if (!d.depuis) d.depuis = Date.now();
+  return _trEcrire(d);
+}
+
+function _trMediane(L) { return _trQuantile(L, 0.5); }
+function _trQuantile(L, q) {
+  if (!L.length) return null;
+  const s = L.slice().sort(function (a, b) { return a - b; }), x = (s.length - 1) * q, i = Math.floor(x);
+  return i + 1 < s.length ? s[i] + (s[i + 1] - s[i]) * (x - i) : s[i];
+}
+// croissance mesuree : pour chaque profondeur d >= 2, mediane de (fin de d) / (fin de d-1), sur 5 coups au moins
+function _trCroissance(C) {
+  const par = {};
+  C.forEach(function (e) { for (let d = 2; d <= e.f.length; d++) { const a = e.f[d - 2], b = e.f[d - 1]; if (a >= 20 && b >= a) (par[d] = par[d] || []).push(b / a); } });
+  const R = {}; Object.keys(par).forEach(function (d) { if (par[d].length >= 5) R[d] = _trMediane(par[d]); });
+  return R;
+}
+// temps qu'il aurait fallu a ce coup pour terminer la profondeur D (null si rien pour l'estimer)
+function _trEstime(e, D, R) {
+  if (!D) return null;
+  if (e.f.length >= D) return { t: e.f[D - 1], extrap: false };
+  const connues = Object.keys(R).map(Number).sort(function (a, b) { return a - b; });
+  if (!connues.length || !e.f.length) return null;
+  let t = e.f[e.f.length - 1], extrap = false;
+  for (let d = e.f.length + 1; d <= D; d++) {
+    let r = R[d];
+    if (!r) { r = R[connues[connues.length - 1]]; extrap = true; }   // jamais mesuree ici : on prolonge la derniere croissance
+    t *= r;
+  }
+  return { t: t, extrap: extrap };
+}
+function trResume(d) {
+  const C = (d && d.c) || [], R = _trCroissance(C), G = {};
+  C.forEach(function (e) { const k = e.n + '|' + e.b; (G[k] = G[k] || { n: e.n, b: e.b, D: e.D, L: [] }).L.push(e); });
+  const groupes = Object.keys(G).map(function (k) {
+    const g = G[k], L = g.L, nb = L.length, dist = {};
+    L.forEach(function (e) { dist[e.f.length] = (dist[e.f.length] || 0) + 1; });
+    const est = []; let extrap = false;
+    L.forEach(function (e) { const x = _trEstime(e, g.D, R); if (x) { est.push(x.t); if (x.extrap) extrap = true; } });
+    return { n: g.n, b: g.b, D: g.D, nb: nb, dist: dist,
+             atteinte: L.filter(function (e) { return e.f.length >= g.D; }).length / nb,
+             ms: _trMediane(L.map(function (e) { return e.ms; })),
+             depasse: g.b >= TR_SANS_LIMITE ? 0 : L.filter(function (e) { return e.ms > g.b * 1.15 + 100; }).length / nb,
+             besoin80: (nb >= 10 && est.length >= 0.8 * nb) ? _trQuantile(est, 0.8) : null, extrap: extrap,
+             fils: _trMediane(L.map(function (e) { return e.fils; })) };
+  }).sort(function (a, b) { return (+a.n - +b.n) || (a.b - b.b); });
+  return { R: R, groupes: groupes, n: C.length };
+}
+
+function _trS(ms) { return ms == null ? '—' : ms >= TR_SANS_LIMITE ? 'sans limite' : (ms < 1000 ? Math.round(ms) + ' ms' : (Math.round(ms / 100) / 10).toLocaleString('fr-FR') + ' s'); }
+function _trPct(x) { return Math.round(100 * x) + ' %'; }
+function renderTempsReels() {
+  const hote = document.getElementById('lab-temps-host'); if (!hote) return;
+  const actif = trActif(), d = trLire(), S = trResume(d);
+  let h = '<h4>⏱ En vraie partie, sur cet appareil</h4>'
+    + '<p class="lab-intro">Le banc ci-dessus fait jouer les niveaux entre eux sur un seul fil de calcul. Ici, ce sont les coups que l’IA joue <b>vraiment contre vous</b>, sur cet appareil, avec tous ses fils : jusqu’où elle va dans le temps accordé. Rien ne quitte ce navigateur.</p>'
+    + '<div class="lab-options"><label><input type="checkbox" id="lab-tr-actif"' + (actif ? ' checked' : '') + ' onchange="trBasculer()"> Noter les temps de calcul de l’IA dans mes parties</label>'
+    + (S.n ? '<span class="lab-note">' + S.n.toLocaleString('fr-FR') + ' coup' + (S.n > 1 ? 's' : '') + ' notés' + (d.depuis ? ' depuis le ' + new Date(d.depuis).toLocaleDateString('fr-FR') : '') + (d.coeurs ? ' · ' + d.coeurs + ' cœurs' : '') + '</span> <button class="ctrl-btn" style="width:auto;flex:0 0 auto;padding:4px 14px" onclick="trEffacer()">Effacer</button>' : '') + '</div>';
+  if (!S.n) {
+    h += '<div class="lab-note">' + (actif ? 'Aucun coup noté pour l’instant : jouez une partie contre l’IA (niveau 2 ou plus). Les coups du livre d’ouvertures et des tables de finale ne comptent pas.' : 'Cochez la case puis jouez contre l’IA : chaque coup calculé sera noté ici.') + '</div>';
+    hote.innerHTML = h; return;
+  }
+  h += '<table class="lab-poids lab-temps"><thead><tr><th>Niveau</th><th>Prévu</th><th>Coups</th><th>Profondeur terminée</th><th>Prévue atteinte</th><th>Temps médian</th><th>Dépasse</th><th>Il faudrait</th></tr></thead><tbody>';
+  S.groupes.forEach(function (g) {
+    const dist = Object.keys(g.dist).map(Number).sort(function (a, b) { return a - b; }).map(function (p) { return p + ' : ' + _trPct(g.dist[p] / g.nb); }).join(' · ');
+    const choisi = (typeof AI_DIFFICULTY_CONFIG !== 'undefined' && AI_DIFFICULTY_CONFIG[g.n] && AI_DIFFICULTY_CONFIG[g.n].time !== g.b) ? ' <small>(réflexion choisie)</small>' : '';
+    h += '<tr><td>' + g.n + '</td><td>prof. ' + g.D + ' · ' + _trS(g.b) + choisi + '</td><td>' + g.nb + '</td><td>' + dist + '</td>'
+      + '<td' + (g.atteinte < 0.5 ? ' style="color:#ef9a9a"' : '') + '>' + _trPct(g.atteinte) + '</td><td>' + _trS(g.ms) + '</td><td>' + (g.b >= TR_SANS_LIMITE ? '—' : _trPct(g.depasse)) + '</td>'
+      + '<td>' + (g.atteinte >= 0.8 ? 'déjà atteinte' : g.besoin80 == null ? (g.nb < 10 ? 'trop peu de coups' : '—') : '≈ ' + _trS(g.besoin80) + (g.extrap ? ' <small>(extrapolé)</small>' : '')) + '</td></tr>';
+  });
+  h += '</tbody></table>';
+  const pas = Object.keys(S.R).map(Number).sort(function (a, b) { return a - b; });
+  if (pas.length) h += '<div class="lab-note">Croissance mesurée ici d’une profondeur à la suivante (médiane) : ' + pas.map(function (p) { return (p - 1) + ' → ' + p + ' × ' + (Math.round(S.R[p] * 10) / 10).toLocaleString('fr-FR'); }).join(' ; ') + '.</div>';
+  h += '<div class="lab-note"><b>Profondeur terminée</b> : la dernière profondeur que tous les fils ont finie, en part des coups. <b>Dépasse</b> : coups qui ont pris plus de 15 % au-delà du temps accordé (le minuteur n’arrête la recherche qu’entre deux coups de départ). '
+    + '<b>Il faudrait</b> : le temps qui laisserait terminer la profondeur prévue dans 8 coups sur 10, estimé à partir des coups notés ; « extrapolé » quand cette profondeur n’a jamais été terminée ici. Rien n’est changé dans les niveaux : ce sont des mesures pour les régler.</div>';
+  hote.innerHTML = h;
+}
+/* ═══════════════════════════════════════════
+   v3.13 — CHANCE DE GAIN MESURÉE (Observatoire IA, avec les positions du Labo)
+   Demande d'ocj94 (« Ok go ») : faire servir le Labo a l'Observatoire. Les maquettes
+   proposaient une « confiance 87 % » que rien ne calculait (ecartee en v3.12). Ici, une
+   FREQUENCE observee, pas un modele : parmi des positions de vraies parties dont on connait
+   le vainqueur, combien de fois le camp au trait a-t-il gagne quand la note (calculee avec
+   les poids du coup observe) etait proche de celle-ci ?
+
+   - Positions : celles de la methode Texel (42-labo-positions.js), positions calmes de vraies
+     parties du corpus, avec leur resultat ; 8 000 au plus, prises a intervalle regulier.
+   - Tranches : 16 tranches de meme effectif, rangees par note ; la frequence de gain de chaque
+     tranche (nulle = un demi), avec sa marge a 95 %. Une note plus haute ne peut pas gagner
+     moins souvent qu'une plus basse : les tranches qui se contrediraient sont fusionnees
+     (regression isotone). Une note hors des tranches prend la tranche extreme.
+   - D'abord essaye : la courbe de la methode Texel, p = 1 / (1 + e^(-s x note)). Abandonnee :
+     sur les parties de controle, une bille d'avance etait prevue a 68 % et gagnait 95 % du
+     temps ; pres de 0, 49 % prevu pour 31 % observe. Une seule courbe ne colle pas a ces parties.
+     (Et sa pente etait mal reglee : voir _txEchelle, corrige en v3.13.)
+   - Poids : ceux du coup observe (det.poids), complets ; un jeu de tranches par jeu de poids,
+     garde dans ce navigateur (6 au plus). Rien ne quitte le navigateur.
+   - Limites, dites dans le panneau : positions calmes de parties entre humains ; la note de
+     l'Observatoire vient d'une recherche, pas de l'evaluation seule.
+═══════════════════════════════════════════ */
+const PR_CLE = 'abaObsProba', PR_MAX_POS = 8000, PR_TRANCHES = 16, PR_MAX_CALAGES = 6;
+let _prEnCours = null, _prErreur = '';
+function _prSig(w) { const W = _labComplet(w || {}); return _labCles().map(function (k) { return k + ':' + Math.round((W[k] || 0) * 100) / 100; }).join(','); }
+function prLire() { try { const d = JSON.parse(localStorage.getItem(PR_CLE) || 'null'); if (d && d.v === 2 && d.cal) return d; } catch (e) {} return { v: 2, cal: {} }; }
+function prCalage(w) { if (!w) return null; return prLire().cal[_prSig(w)] || null; }
+function _prEchantillon(L, max) {
+  if (L.length <= max) return L.slice();
+  const pas = L.length / max, out = []; for (let i = 0; i < max; i++) out.push(L[Math.floor(i * pas)]);
+  return out;
+}
+/* tranches de meme effectif sur les notes triees, puis fusion des voisines qui se contredisent
+   (regression isotone, « pool adjacent violators », ponderee par l'effectif) */
+function _prTranches(notes, res, nb) {
+  const idx = notes.map(function (x, i) { return i; }).sort(function (a, b) { return notes[a] - notes[b]; }), n = idx.length;
+  let T = [];
+  for (let t = 0; t < nb; t++) {
+    const a = Math.floor(t * n / nb), b = Math.floor((t + 1) * n / nb); if (b <= a) continue;
+    let r = 0; for (let j = a; j < b; j++) r += res[idx[j]];
+    T.push({ lo: notes[idx[a]], hi: notes[idx[b - 1]], n: b - a, r: r });
+  }
+  for (let i = 0; i + 1 < T.length; ) {
+    if (T[i].r / T[i].n > T[i + 1].r / T[i + 1].n) {
+      T.splice(i, 2, { lo: T[i].lo, hi: T[i + 1].hi, n: T[i].n + T[i + 1].n, r: T[i].r + T[i + 1].r });
+      if (i > 0) i--;
+    } else i++;
+  }
+  return T.map(function (x) { const p = x.r / x.n; return { lo: Math.round(x.lo), hi: Math.round(x.hi), n: x.n, p: p, m: 1.96 * Math.sqrt(Math.max(p * (1 - p), 0.0025) / x.n) }; });
+}
+// la tranche d'une note : celle qui la contient, sinon la plus proche (au bord : la tranche extreme)
+function _prTranche(c, score) {
+  if (!c || !c.t || !c.t.length || typeof score !== 'number' || !isFinite(score)) return null;
+  for (let i = 0; i < c.t.length; i++) { const x = c.t[i]; if (score <= x.hi) return (i > 0 && score < x.lo && (x.lo - score) > (score - c.t[i - 1].hi)) ? c.t[i - 1] : x; }
+  return c.t[c.t.length - 1];
+}
+function prProba(score, w) { const x = _prTranche(prCalage(w), score); return x ? x.p : null; }
+function _prRendre() { if (typeof _obsRendu === 'function') _obsRendu(); }
+function prCalibrer(w, opts) {
+  if (_prEnCours || !w) return Promise.resolve(null);
+  opts = opts || {}; _prEnCours = { pct: 0 }; _prErreur = ''; _prRendre();
+  return ensureLaboPositions().then(function (ok) {
+    if (!ok) throw new Error(_obsT('positions du corpus illisibles sur ce navigateur', 'corpus positions unreadable in this browser'));
+    const I0 = _lpTexelIndices(), tous = _prEchantillon(I0.app.concat(I0.ctl).sort(function (a, b) { return a - b; }), opts.maxPos || PR_MAX_POS);
+    if (tous.length < 200) throw new Error(_obsT('trop peu de positions', 'too few positions'));
+    const cles = _labCles();
+    return _txTermes(tous, cles, function (x) { if (_prEnCours) { _prEnCours.pct = x; _prRendre(); } }).then(function (T) {
+      const W = _labComplet(w), wv = cles.map(function (k) { return W[k]; });
+      const notes = tous.map(function (i, j) { return _txEval(T, j, wv); }), res = tous.map(_txResultatPour);
+      const parties = {}; tous.forEach(function (i) { parties[_lpPartie(i)] = 1; });
+      const out = { t: _prTranches(notes, res, opts.tranches || PR_TRANCHES), n: tous.length, parties: Object.keys(parties).length,
+                    date: Date.now(), version: (typeof APP_VERSION !== 'undefined' ? APP_VERSION : '') };
+      const d = prLire(); d.cal[_prSig(w)] = out;
+      Object.keys(d.cal).sort(function (a, b) { return d.cal[b].date - d.cal[a].date; }).slice(PR_MAX_CALAGES).forEach(function (k) { delete d.cal[k]; });
+      try { localStorage.setItem(PR_CLE, JSON.stringify(d)); } catch (err) {}
+      return out;
+    });
+  }).catch(function (err) { _prErreur = (err && err.message) || String(err); return null; })
+    .then(function (r) { _prEnCours = null; _prRendre(); return r; });
+}
+
+/* ─── Affichage dans l'Observatoire ─── */
+function _prPct(p) { return Math.round(100 * p) + ' %'; }
+function _prPlage(x) { return _evalReflexionTexte(x.lo) + _obsT(' à ', ' to ') + _evalReflexionTexte(x.hi); }
+// la ligne de la Vue generale : chance de gain du coup retenu, ou le lien pour la mesurer
+function _obsProbaLigne(e) {
+  const w = e && e.det && e.det.poids; if (!w || typeof e.score !== 'number') return '';
+  const x = _prTranche(prCalage(w), e.score);
+  if (x) return '<div class="obs-carte obs-proba"><b>' + _obsT('Chance de gain mesurée : ', 'Measured winning chance: ') + _prPct(x.p) + '</b> <small>(± ' + Math.round(100 * x.m) + ')</small><br><small>'
+    + _obsT('Dans de vraies parties, quand la note était de ', 'In real games, when the score was ') + _prPlage(x) + _obsT(', le camp au trait a gagné ', ', the side to move won ') + _prPct(x.p) + _obsT(' du temps (', ' of the time (') + _obsN(x.n) + _obsT(' positions). Détail dans « Évaluation ».', ' positions). Details in “Evaluation”.') + '</small></div>';
+  return '<div class="obs-note">' + _obsT('Chance de gain : pas encore mesurée pour les poids de ce coup. ', 'Winning chance: not measured yet for this move’s weights. ')
+    + '<button class="obs-lien" onclick="obsOnglet(\'evaluation\')">📏 ' + _obsT('la mesurer', 'measure it') + '</button></div>';
+}
+function obsCalibrer() {
+  const V = _obsVue(), w = V && V.e && V.e.det && V.e.det.poids;
+  if (!w || (OBS.live && OBS.live.etat === 'calcul')) return;
+  prCalibrer(w);
+}
+// la section de l'onglet Evaluation : la chance de gain, les tranches, les limites
+function _obsProbaSection(e) {
+  const w = e && e.det && e.det.poids; if (!w) return '';
+  let h = '<h5>' + _obsT('Chance de gain mesurée', 'Measured winning chance') + '</h5>';
+  const c = prCalage(w), calcul = OBS.live && OBS.live.etat === 'calcul';
+  if (_prEnCours) return h + '<div class="obs-note">⏳ ' + _obsT('Calcul des positions de vraies parties : ', 'Computing positions from real games: ') + Math.round(100 * _prEnCours.pct) + ' %</div>';
+  if (!c) {
+    h += '<div class="obs-note">' + _obsT('La note n’est pas une probabilité. On peut mesurer ce qu’elle vaut : parmi des positions de vraies parties dont on connaît le vainqueur, combien de fois le camp au trait a gagné avec une note proche. Quelques secondes de calcul, pour les poids de ce coup ; rien ne quitte ce navigateur.',
+      'The score is not a probability. What it is worth can be measured: among positions from real games whose winner is known, how often the side to move won with a similar score. A few seconds of computing, for this move’s weights; nothing leaves this browser.') + '</div>'
+      + '<button class="obs-btn" onclick="obsCalibrer()"' + (calcul ? ' disabled title="' + _obsT('Après le calcul de l’IA', 'After the AI’s search') + '"' : '') + '>📏 ' + _obsT('Mesurer sur les vraies parties', 'Measure on real games') + '</button>';
+    if (_prErreur) h += '<div class="obs-note">⚠ ' + _obsE(_prErreur) + '</div>';
+    return h;
+  }
+  const x = _prTranche(c, e.score);
+  h += '<div class="obs-grille"><div class="obs-k"><span>' + _obsT('Chance de gain', 'Winning chance') + '</span><b>' + _prPct(x.p) + '</b><small>± ' + Math.round(100 * x.m) + ' — ' + _obsT('note ', 'score ') + _evalReflexionTexte(e.score) + '</small></div>'
+    + '<div class="obs-k"><span>' + _obsT('Positions comparables', 'Comparable positions') + '</span><b>' + _obsN(x.n) + '</b><small>' + _prPlage(x) + '</small></div></div>';
+  h += '<table class="obs-t"><tr><th>' + _obsT('Note', 'Score') + '</th><th>' + _obsT('Gagné', 'Won') + '</th><th>' + _obsT('Positions', 'Positions') + '</th></tr>';
+  c.t.forEach(function (t) { h += '<tr' + (t === x ? ' class="obs-sel"' : '') + '><td>' + _prPlage(t) + '</td><td>' + _prPct(t.p) + ' <small>± ' + Math.round(100 * t.m) + '</small></td><td>' + _obsN(t.n) + '</td></tr>'; });
+  h += '</table><div class="obs-note">' + _obsT('Mesuré sur ', 'Measured on ') + _obsN(c.n) + _obsT(' positions de ', ' positions from ') + _obsN(c.parties) + _obsT(' vraies parties du corpus, dont on connaît le vainqueur, notées avec les poids de ce coup et rangées par note en tranches de même effectif. « Gagné » : la part des positions où le camp au trait a fini par gagner (une nulle compte pour moitié), avec sa marge à 95 %. Une note plus haute ne gagne jamais moins souvent qu’une plus basse : les tranches qui se contredisaient ont été fusionnées. ',
+      ' real games of the corpus whose winner is known, scored with this move’s weights and sorted by score into slices of equal size. “Won”: the share of positions where the side to move went on to win (a draw counts as half), with its 95% margin. A higher score never wins less often than a lower one: slices that contradicted each other were merged. ')
+    + _obsT('Limites : ce sont des positions calmes de parties entre humains ; la note vient ici d’une recherche, pas de l’évaluation seule ; au-delà des tranches extrêmes, on reprend la dernière.', 'Limits: these are quiet positions from games between humans; the score here comes from a search, not the evaluation alone; beyond the extreme slices, the last one is used.')
+    + ' <button class="obs-lien" onclick="obsCalibrer()">↻ ' + _obsT('refaire', 'redo') + '</button></div>';
+  return h;
+}
+/* ═══════════════════════════════════════════
    OBSERVATOIRE IA (v3.05) -- voir ce que l'IA calcule, pendant la partie
    Idee d'ocj94. Un panneau a droite du plateau (en bas sur telephone), a activer, avec cinq
    onglets -- Vue generale, Recherche, Evaluation, Decision, Historique -- et trois niveaux de
@@ -48241,6 +48502,7 @@ function _obsTabGeneral(V) {
     + '<div class="obs-k"><span>' + _obsT('Positions examinées', 'Positions searched') + '</span><b>' + _obsN(nodes) + '</b></div>'
     + '<div class="obs-k"><span>' + _obsT('Temps', 'Time') + '</span><b>' + _msTexte(ms) + '</b></div>'
     + '<div class="obs-k"><span>' + _obsT('Vitesse', 'Speed') + '</span><b>' + _obsN(nps) + ' /s</b></div></div>';
+  if (V.mode !== 'direct' && typeof _obsProbaLigne === 'function') h += _obsProbaLigne(V.e);   // v3.13 : chance de gain mesuree
   if (etat === 'calcul' && typeof forceAINow === 'function') h += '<div style="margin-top:6px"><button class="obs-btn obs-vite" onclick="forceAINow()" title="' + _obsT('Interrompre la réflexion et jouer le meilleur coup trouvé', 'Stop thinking and play the best move found') + '">⚡ ' + _obsT('Jouer maintenant', 'Play now') + '</button></div>';
   if (budget && !illim) h += '<div class="obs-prog" title="' + _obsT('Temps utilisé sur le temps accordé', 'Time used out of the allowed time') + '"><i style="width:' + Math.min(100, Math.round(100 * ms / budget)) + '%"></i></div>'
     + '<div class="obs-note">' + _obsT('Temps accordé : ', 'Time allowed: ') + _msTexte(budget) + '</div>';
@@ -48420,8 +48682,9 @@ function _obsTabEvaluation(V) {
     h += '<tr><td>' + _obsE(k[1]) + '</td><td>' + (Math.abs(v) < 0.05 ? '·' : (v > 0 ? '+' : '') + String(Math.round(v * 10) / 10).replace('.', ',')) + '</td><td><div class="obs-bipol"><i class="' + (v >= 0 ? 'obs-pos' : 'obs-neg') + '" style="width:' + Math.round(50 * Math.abs(v) / mx) + '%;' + (v >= 0 ? 'left:50%' : 'right:50%') + '"></i></div></td>'
       + (sel ? '<td class="' + (d > 0.05 ? 'obs-plus' : d < -0.05 ? 'obs-moins' : '') + '">' + (d == null || Math.abs(d) < 0.05 ? '·' : (d > 0 ? '+' : '') + String(Math.round(d * 10) / 10).replace('.', ',')) + '</td>' : '')
       + (niv >= 2 ? '<td>' + (k[3] || (det.poids && det.poids[k[2]]) || '') + '</td>' : '') + '</tr>'; });
-  h += '</table><div class="obs-note">' + _obsT('Unités : points internes. Une bille de plus vaut 1000 points, une éjection 2000. Ce n’est pas une probabilité de gagner. Sélectionnez un coup dans « Recherche » pour voir ce qu’il change : la colonne montre l’écart entre la position et le bout de sa suite prévue.',
-    'Units: internal points. One marble ahead is worth 1000, an ejection 2000. This is not a win probability. Select a move in “Search” to see what it changes: the column shows the gap between the position and the end of its expected line.') + '</div>';
+  h += '</table><div class="obs-note">' + _obsT('Unités : points internes. Une bille de plus vaut 1000 points, une éjection 2000. Ce n’est pas une probabilité de gagner (pour une chance de gain mesurée sur de vraies parties, voir plus bas). Sélectionnez un coup dans « Recherche » pour voir ce qu’il change : la colonne montre l’écart entre la position et le bout de sa suite prévue.',
+    'Units: internal points. One marble ahead is worth 1000, an ejection 2000. This is not a win probability (for a winning chance measured on real games, see below). Select a move in “Search” to see what it changes: the column shows the gap between the position and the end of its expected line.') + '</div>';
+  if (typeof _obsProbaSection === 'function') h += _obsProbaSection(e);   // v3.13
   h += '<h5>' + _obsT('Carte des billes', 'Marble map') + '</h5>' + _obsPlateauSVG(det.racine.board, null, null, true) + _obsLegendeCarte();
   return h;
 }
@@ -48537,11 +48800,12 @@ function _obsComparer(e, ret, alts) {
 /* ═══ Rapport telechargeable (hors ligne) ═══ */
 function _obsRapportDonnees() {
   return { application: 'Abalassembly ' + (typeof APP_VERSION !== 'undefined' ? APP_VERSION : ''), outil: 'Observatoire IA', date: new Date().toISOString(),
-    unites: 'points internes : une bille de plus = 1000, une éjection = 2000 ; pas une probabilité de gagner',
+    unites: 'points internes : une bille de plus = 1000, une éjection = 2000 ; pas une probabilité de gagner (chanceDeGain : mesurée sur de vraies parties, en %, si elle a été calculée)',
     coups: OBS.hist.map(function (e) {
       if (e.source) return { n: e.n, couleur: e.couleur, sansCalcul: e.source };
       const nom = function (k) { return (e.noms && e.noms[k]) || '?'; }, f = e.det && e.cle ? _obsLigneDet(e.det, e.cle) : null;
-      return { n: e.n, couleur: e.couleur, coup: nom(e.cle), note: Math.round(e.score || 0), profondeur: e.prof, profondeurTerminee: e.profTous || e.prof,
+      const pg = (typeof prProba === 'function' && e.det && e.det.poids) ? prProba(e.score, e.det.poids) : null;
+      return { n: e.n, couleur: e.couleur, coup: nom(e.cle), note: Math.round(e.score || 0), chanceDeGain: pg == null ? null : Math.round(1000 * pg) / 10, profondeur: e.prof, profondeurTerminee: e.profTous || e.prof,
         ms: Math.round(e.ms || 0), tempsAccorde: e.budget || 0, positions: e.noeuds || 0, coupures: e.coupures || 0, tableTransposition: e.tt || 0, fils: e.nFils || 1,
         suitePrevue: f ? [f.l.n].concat(f.l.suite || []) : [],
         meilleurParProfondeur: Object.keys(e.parProfs || {}).map(Number).sort(function (a, b) { return a - b; }).map(function (d) { const x = e.parProfs[d][0]; return { profondeur: d, coup: nom(x[0]), note: x[1] }; }),
@@ -48555,7 +48819,7 @@ function _obsRapportTexte() {
   if (!D.coups.length) L.push(_obsT('Aucun coup de l’IA enregistré pour l’instant.', 'No AI move recorded yet.'));
   D.coups.forEach(function (c) {
     if (c.sansCalcul) { L.push(_obsT('Coup ', 'Move ') + c.n + ' (' + cTxt(c.couleur) + ') — ' + _obsT('sans calcul : ', 'no search: ') + c.sansCalcul); return; }
-    L.push(_obsT('Coup ', 'Move ') + c.n + ' (' + cTxt(c.couleur) + ') — ' + c.coup + ' — ' + _obsT('note ', 'score ') + _evalReflexionTexte(c.note) + ' — ' + _obsT('profondeur ', 'depth ') + c.profondeur
+    L.push(_obsT('Coup ', 'Move ') + c.n + ' (' + cTxt(c.couleur) + ') — ' + c.coup + ' — ' + _obsT('note ', 'score ') + _evalReflexionTexte(c.note) + (c.chanceDeGain != null ? ' (' + _obsT('chance de gain mesurée ', 'measured winning chance ') + Math.round(c.chanceDeGain) + ' %)' : '') + ' — ' + _obsT('profondeur ', 'depth ') + c.profondeur
       + (c.profondeurTerminee < c.profondeur ? ' (' + c.profondeurTerminee + _obsT(' terminée)', ' completed)') : '') + ' — ' + _msTexte(c.ms) + ' — ' + _obsN(c.positions) + ' positions — '
       + _obsT('coupures ', 'cutoffs ') + (c.positions ? Math.round(100 * c.coupures / c.positions) : 0) + ' % — TT ' + c.tableTransposition + ' %');
     if (c.suitePrevue.length) L.push('  ' + _obsT('Suite prévue : ', 'Expected line: ') + c.suitePrevue.join(' '));

@@ -2,7 +2,7 @@
 
 # Observatoire IA
 
-*Depuis la v3.05, enrichi jusqu'à la v3.12.* Un panneau qui montre ce que l'IA calcule **pendant** la partie, puis pourquoi elle a choisi son coup. Les captures ci-dessous viennent du vrai site, pendant une vraie partie contre l'IA.
+*Depuis la v3.05, enrichi jusqu'à la v3.13.* Un panneau qui montre ce que l'IA calcule **pendant** la partie, puis pourquoi elle a choisi son coup. Les captures ci-dessous viennent du vrai site, pendant une vraie partie contre l'IA.
 
 **Pour l'ouvrir** : en partie contre l'IA, bouton **« 🔭 Observatoire IA »** sous le plateau. Le panneau se place à droite sur ordinateur et en bas sur téléphone. Il a cinq onglets et trois niveaux de détail : **Spectateur**, **Analyste**, **Développeur**.
 
@@ -73,6 +73,14 @@ Plus bas, **deux variantes côte à côte**, avancées ensemble pas à pas. Les 
 
 Les critères de l'évaluation du moteur, avec leurs valeurs, en barres centrées sur zéro, et ce que change le coup choisi. La note est en **points internes** : une bille de plus vaut 1000 points, une éjection 2000. Ce n'est pas une probabilité de gagner.
 
+### Chance de gain mesurée
+
+![Chance de gain mesurée : la tranche de la note, la fréquence de gain observée, le tableau des tranches](../docs-img/obs-chance.webp)
+
+*Depuis la v3.13.* Ce que vaut une note, **mesuré sur de vraies parties** : 8 000 positions du corpus dont on connaît le vainqueur, notées avec les poids du coup observé et rangées par note en tranches de même effectif. Pour chaque tranche, la part des positions où le camp au trait a fini par gagner (une nulle compte pour moitié), avec sa marge à 95 %. Une note plus haute ne gagne jamais moins souvent qu'une plus basse : les tranches qui se contredisaient sont fusionnées. Le bouton **📏 Mesurer sur les vraies parties** fait le calcul (environ une seconde sur ordinateur) ; le résultat reste dans le navigateur et s'affiche aussi dans la Vue générale et le rapport.
+
+Une courbe unique (celle de la méthode Texel, p = 1 / (1 + e^(−s × note))) a d'abord été essayée : sur les parties de contrôle, une bille d'avance était prévue à 68 % et gagnait 95 % du temps. D'où des tranches mesurées plutôt qu'un modèle. Limites : ce sont des positions calmes de parties entre humains, et la note de l'Observatoire vient d'une recherche, pas de l'évaluation seule.
+
 ## Historique et frise
 
 ![Onglet Historique : note au fil de la partie, liste des coups, rejouer plus profond, frise en bas](../docs-img/obs-historique.webp)
@@ -95,6 +103,10 @@ Sur téléphone, le panneau s'ouvre en tiroir sur le bas de l'écran et le bande
 
 - **Pas d'arbre complet** : le moteur ne garde pas les milliers de positions examinées. On montre les lignes principales des 10 meilleurs coups de départ.
 - **Pas d'élagage à la racine** : chaque coup de départ est noté en entier. Un coup est écarté pour sa note, pas parce que sa branche a été coupée.
-- **Pas de « confiance » en pourcentage**, ni de « mémoire utilisée » : on montre l'écart avec le 2e coup et le nombre de profondeurs où le choix est resté le même, des faits mesurés.
+- **Pas de « confiance » inventée**, ni de « mémoire utilisée » : on montre l'écart avec le 2e coup, le nombre de profondeurs où le choix est resté le même et, sur demande, la chance de gain mesurée sur de vraies parties : des faits mesurés.
+
+## Pour le Labo : les temps réels des niveaux
+
+*Depuis la v3.13.* Dans le Labo, onglet **Les niveaux**, une case à cocher fait noter, à chaque coup que l'IA joue contre vous, la profondeur terminée par tous ses fils de calcul, le temps utilisé et le temps accordé. Le tableau dit, niveau par niveau, jusqu'où l'IA va vraiment sur **votre** appareil, et le temps qu'il faudrait pour qu'elle termine sa profondeur prévue dans 8 coups sur 10. Rien ne quitte le navigateur, rien n'est changé dans les niveaux.
 
 Voir aussi : [Réflexion de l'IA](Reflexion-IA.fr.md) (le tableau après le coup) et [Analyse](Analyse.fr.md) (analyser une partie).

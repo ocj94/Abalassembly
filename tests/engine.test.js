@@ -7035,6 +7035,93 @@ test('Observatoire IA v3.09 : panneau reduit en une ligne, frise des decisions, 
   lire('OBS.hist = []; OBS.rev = -1');
 });
 
+test('v3.13, temps reels des niveaux : rien sans la case, profondeur terminee par tous les fils, croissance et temps estime', () => {
+  const vm = require('vm'), lire = n => vm.runInContext(n, ctx);
+  ctx.localStorage.removeItem('abaTempsReels'); ctx.localStorage.removeItem('abaTempsReelsActif');
+  lire('var __mode = GameMode.get(), __niv = aiDifficulty; GameMode.set("ai"); aiDifficulty = "5"');
+  const di = fins => { const o = {}; fins.forEach((f, i) => { o[i + 1] = { nodes: 1, ms: 1, fin: f, cuts: 0 }; }); return o; };
+  const m = { depth: 3, time: 2600, parFil: [{ depthInfo: di([20, 180]) }, { depthInfo: di([25, 200, 2400]) }] };
+  assert.strictEqual(ctx.trNoter(m, 'white', { time: 2500, depth: 4 }), false, 'case non cochee : rien');
+  assert.strictEqual(ctx.trLire().c.length, 0);
+  ctx.localStorage.setItem('abaTempsReelsActif', '1');
+  assert.strictEqual(ctx.trNoter(m, 'white', { time: 2500, depth: 4 }), true);
+  const e = ctx.trLire().c[0];
+  assert.strictEqual(JSON.stringify(e.f), '[25,200]', 'la profondeur 3 n est pas terminee par tous les fils ; le plus lent fait le temps');
+  assert.strictEqual(e.n, '5'); assert.strictEqual(e.fils, 2); assert.strictEqual(e.D, 4); assert.strictEqual(e.b, 2500);
+  lire('aiDifficulty = "1"'); assert.strictEqual(ctx.trNoter(m, 'white', { time: 200, depth: 1 }), false, 'niveau 1 : au hasard, rien a mesurer');
+  lire('aiDifficulty = "5"; GameMode.set("pvp")'); assert.strictEqual(ctx.trNoter(m, 'white', { time: 2500, depth: 4 }), false, 'hors partie contre l IA : rien');
+  lire('GameMode.set("ai")'); assert.strictEqual(ctx.trNoter({ depth: 0, time: 0 }, 'white', { time: 2500, depth: 4 }), false, 'coup sans calcul : rien');
+  // resume : croissance (mediane des fin(d)/fin(d-1)), temps estime pour terminer la profondeur prevue
+  const C = [];
+  for (let i = 0; i < 10; i++) C.push({ n: '5', b: 2500, D: 4, ms: 2500, fils: 1, f: [20 + i, 200, 2000] });            // prof. 3 terminee, 4 jamais
+  for (let i = 0; i < 6; i++) C.push({ n: '4', b: 1200, D: 3, ms: 1100, fils: 1, f: [20, 200, 2000] });                  // prof. 3 terminee
+  const S = ctx.trResume({ v: 1, c: C });
+  const q = C.map(x => x.f[1] / x.f[0]).sort((a, b) => a - b), med = (q[7] + q[8]) / 2;
+  assert.ok(Math.abs(S.R[2] - med) < 1e-9, 'croissance 1 -> 2 : mediane ' + S.R[2] + ' / ' + med); assert.strictEqual(S.R[3], 10);
+  const g5 = S.groupes.find(g => g.n === '5'), g4 = S.groupes.find(g => g.n === '4');
+  assert.strictEqual(g5.atteinte, 0); assert.strictEqual(JSON.stringify(g5.dist), '{"3":10}');
+  assert.strictEqual(g5.besoin80, 20000, 'prof. 4 jamais vue : la derniere croissance mesuree (x10), marquee extrapolee'); assert.strictEqual(g5.extrap, true);
+  assert.strictEqual(g4.atteinte, 1); assert.strictEqual(g4.besoin80, null, 'moins de 10 coups : pas d estimation');
+  assert.ok(S.groupes.indexOf(g4) < S.groupes.indexOf(g5), 'ranges par niveau');
+  // 1 500 coups au plus, les plus anciens sortent
+  const d = { v: 1, c: [] }; for (let i = 0; i < 1500; i++) d.c.push({ n: '5', b: 2500, D: 4, ms: i, fils: 1, f: [1] });
+  ctx.localStorage.setItem('abaTempsReels', JSON.stringify(d)); ctx.trNoter(m, 'white', { time: 2500, depth: 4 });
+  const d2 = ctx.trLire(); assert.strictEqual(d2.c.length, 1500); assert.strictEqual(d2.c[0].ms, 1);
+  // le tableau du Labo
+  ctx.localStorage.setItem('abaTempsReels', JSON.stringify({ v: 1, c: C, depuis: Date.now() }));
+  const hote = { innerHTML: '' }, gEl = ctx.document.getElementById;
+  ctx.document.getElementById = id => (id === 'lab-temps-host' ? hote : gEl(id));
+  try { ctx.renderTempsReels(); } finally { ctx.document.getElementById = gEl; }
+  const h = hote.innerHTML;
+  assert.ok(h.includes('En vraie partie, sur cet appareil') && h.includes('checked') && h.includes('≈ 20 s') && h.includes('extrapolé') && h.includes('déjà atteinte'), h.slice(0, 300));
+  ctx.trEffacer(); assert.strictEqual(ctx.trLire().c.length, 0);
+  ctx.localStorage.removeItem('abaTempsReelsActif'); lire('GameMode.set(__mode); aiDifficulty = __niv');
+});
+
+test('v3.13, chance de gain mesuree : tranches de meme effectif, jamais decroissantes, et calage de bout en bout sur les vraies positions', async () => {
+  const vm = require('vm'), lire = n => vm.runInContext(n, ctx);
+  // tranches : 4 de 3 notes ; la 2e gagne plus souvent que la 3e -> fusionnees
+  const notes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], res = [0, 0, 0, 1, 1, 1, 0, 0.5, 1, 1, 1, 1];
+  const T = ctx._prTranches(notes, res, 4);
+  assert.strictEqual(JSON.stringify(T.map(x => [x.lo, x.hi, x.n])), '[[1,3,3],[4,9,6],[10,12,3]]');
+  assert.ok(Math.abs(T[1].p - 4.5 / 6) < 1e-12); assert.ok(T.every((x, i) => i === 0 || x.p >= T[i - 1].p));
+  const c = { t: T };
+  assert.strictEqual(ctx._prTranche(c, -50), T[0], 'en dessous : la tranche extreme'); assert.strictEqual(ctx._prTranche(c, 99), T[2]);
+  assert.strictEqual(ctx._prTranche(c, 9.4), T[1]); assert.strictEqual(ctx._prTranche(c, 9.6), T[2], 'entre deux tranches : la plus proche');
+  // de bout en bout, avec un vrai fil de calcul (le code du moteur) a la place des fils du navigateur
+  await _pos63();
+  const W = _filKaah().w;
+  ctx.__fauxFil = () => { const f = { w: { onmessage: null, terminate() {}, postMessage(msg) { setImmediate(() => { const r = W.texelTermes(msg.positions, msg.cles); f.w.onmessage({ data: { texelTermes: true, id: msg.id, f: r.f, m: r.m } }); }); } } }; return f; };
+  lire('var __creer = _txCreerFil; _txCreerFil = function () { return __fauxFil(); }');
+  ctx.localStorage.removeItem('abaObsProba');
+  const poids = ctx._labComplet(ctx.AI_WEIGHT_PRESETS.texel);
+  assert.strictEqual(ctx.prProba(500, poids), null, 'pas encore mesure : rien');
+  const r = await ctx.prCalibrer(poids, { maxPos: 640, tranches: 8 });
+  lire('_txCreerFil = __creer');
+  assert.ok(r && r.n === 640 && r.parties > 100, JSON.stringify(r && { n: r.n, parties: r.parties }));
+  assert.ok(r.t.length >= 3 && r.t.every((x, i) => i === 0 || (x.p >= r.t[i - 1].p && x.lo >= r.t[i - 1].hi)), 'tranches rangees, frequences croissantes');
+  assert.strictEqual(r.t.reduce((a, x) => a + x.n, 0), 640);
+  assert.ok(ctx.prProba(-8000, poids) < 0.3 && ctx.prProba(8000, poids) > 0.7, 'deux billes de retard / d avance');
+  assert.ok(ctx.prCalage(poids) && !ctx.prCalage(ctx._labComplet({})), 'un calage par jeu de poids');
+  // l'Observatoire : ligne de la Vue generale, section de l'onglet Evaluation, rapport
+  const e = { score: 2600, det: { poids: ctx.AI_WEIGHT_PRESETS.texel } };
+  assert.ok(ctx._obsProbaLigne(e).includes('Chance de gain mesurée') && ctx._obsProbaLigne(e).includes('le camp au trait a gagné'));
+  assert.ok(ctx._obsProbaSection(e).includes('obs-sel') && ctx._obsProbaSection(e).includes('fusionnées'));
+  assert.ok(ctx._obsProbaLigne({ score: 1, det: { poids: { center: 1 } } }).includes('pas encore mesurée'));
+  ctx.localStorage.removeItem('abaObsProba');
+});
+
+test('v3.13, methode Texel : l echelle s est le vrai minimum de l erreur (la recherche ternaire s arretait sur le plateau)', async () => {
+  await _pos63();
+  const { w } = _filKaah(), I = ctx._lpTexelIndices(), cles = ctx._labCles();
+  const L = I.app.filter((x, j) => j % 15 === 0), T = w.texelTermes(L.map(i => JSON.parse(JSON.stringify(ctx._lpPourFil(i)))), cles);
+  const R = L.map(ctx._txResultatPour), w0 = cles.map(k => ctx._labComplet({})[k]);
+  const s = ctx._txEchelle(T, R, w0), e = ctx._txErreur(T, R, w0, s);
+  let mini = Infinity; for (let k = 0; k <= 300; k++) mini = Math.min(mini, ctx._txErreur(T, R, w0, Math.exp(Math.log(1e-5) + (Math.log(2e-2) - Math.log(1e-5)) * k / 300)));
+  assert.ok(e <= mini + 1e-5, 'erreur ' + e + ' pour s = ' + s + ', minimum sur la grille ' + mini);
+  assert.ok(s > 1e-4 && s < 2e-3, 's = ' + s + ' (l ancienne recherche donnait environ 0,006)');
+});
+
 test('Observatoire IA v3.12 : carte de chaleur, apercu apres un coup, la revue reste en place pendant le calcul suivant', () => {
   const vm = require('vm'), lire = n => vm.runInContext(n, ctx);
   const { poserDisposition } = require('./harness'); poserDisposition(ctx, 'belgian');

@@ -475,6 +475,7 @@ function _obsTabGeneral(V) {
     + '<div class="obs-k"><span>' + _obsT('Positions examinées', 'Positions searched') + '</span><b>' + _obsN(nodes) + '</b></div>'
     + '<div class="obs-k"><span>' + _obsT('Temps', 'Time') + '</span><b>' + _msTexte(ms) + '</b></div>'
     + '<div class="obs-k"><span>' + _obsT('Vitesse', 'Speed') + '</span><b>' + _obsN(nps) + ' /s</b></div></div>';
+  if (V.mode !== 'direct' && typeof _obsProbaLigne === 'function') h += _obsProbaLigne(V.e);   // v3.13 : chance de gain mesuree
   if (etat === 'calcul' && typeof forceAINow === 'function') h += '<div style="margin-top:6px"><button class="obs-btn obs-vite" onclick="forceAINow()" title="' + _obsT('Interrompre la réflexion et jouer le meilleur coup trouvé', 'Stop thinking and play the best move found') + '">⚡ ' + _obsT('Jouer maintenant', 'Play now') + '</button></div>';
   if (budget && !illim) h += '<div class="obs-prog" title="' + _obsT('Temps utilisé sur le temps accordé', 'Time used out of the allowed time') + '"><i style="width:' + Math.min(100, Math.round(100 * ms / budget)) + '%"></i></div>'
     + '<div class="obs-note">' + _obsT('Temps accordé : ', 'Time allowed: ') + _msTexte(budget) + '</div>';
@@ -654,8 +655,9 @@ function _obsTabEvaluation(V) {
     h += '<tr><td>' + _obsE(k[1]) + '</td><td>' + (Math.abs(v) < 0.05 ? '·' : (v > 0 ? '+' : '') + String(Math.round(v * 10) / 10).replace('.', ',')) + '</td><td><div class="obs-bipol"><i class="' + (v >= 0 ? 'obs-pos' : 'obs-neg') + '" style="width:' + Math.round(50 * Math.abs(v) / mx) + '%;' + (v >= 0 ? 'left:50%' : 'right:50%') + '"></i></div></td>'
       + (sel ? '<td class="' + (d > 0.05 ? 'obs-plus' : d < -0.05 ? 'obs-moins' : '') + '">' + (d == null || Math.abs(d) < 0.05 ? '·' : (d > 0 ? '+' : '') + String(Math.round(d * 10) / 10).replace('.', ',')) + '</td>' : '')
       + (niv >= 2 ? '<td>' + (k[3] || (det.poids && det.poids[k[2]]) || '') + '</td>' : '') + '</tr>'; });
-  h += '</table><div class="obs-note">' + _obsT('Unités : points internes. Une bille de plus vaut 1000 points, une éjection 2000. Ce n’est pas une probabilité de gagner. Sélectionnez un coup dans « Recherche » pour voir ce qu’il change : la colonne montre l’écart entre la position et le bout de sa suite prévue.',
-    'Units: internal points. One marble ahead is worth 1000, an ejection 2000. This is not a win probability. Select a move in “Search” to see what it changes: the column shows the gap between the position and the end of its expected line.') + '</div>';
+  h += '</table><div class="obs-note">' + _obsT('Unités : points internes. Une bille de plus vaut 1000 points, une éjection 2000. Ce n’est pas une probabilité de gagner (pour une chance de gain mesurée sur de vraies parties, voir plus bas). Sélectionnez un coup dans « Recherche » pour voir ce qu’il change : la colonne montre l’écart entre la position et le bout de sa suite prévue.',
+    'Units: internal points. One marble ahead is worth 1000, an ejection 2000. This is not a win probability (for a winning chance measured on real games, see below). Select a move in “Search” to see what it changes: the column shows the gap between the position and the end of its expected line.') + '</div>';
+  if (typeof _obsProbaSection === 'function') h += _obsProbaSection(e);   // v3.13
   h += '<h5>' + _obsT('Carte des billes', 'Marble map') + '</h5>' + _obsPlateauSVG(det.racine.board, null, null, true) + _obsLegendeCarte();
   return h;
 }
@@ -771,11 +773,12 @@ function _obsComparer(e, ret, alts) {
 /* ═══ Rapport telechargeable (hors ligne) ═══ */
 function _obsRapportDonnees() {
   return { application: 'Abalassembly ' + (typeof APP_VERSION !== 'undefined' ? APP_VERSION : ''), outil: 'Observatoire IA', date: new Date().toISOString(),
-    unites: 'points internes : une bille de plus = 1000, une éjection = 2000 ; pas une probabilité de gagner',
+    unites: 'points internes : une bille de plus = 1000, une éjection = 2000 ; pas une probabilité de gagner (chanceDeGain : mesurée sur de vraies parties, en %, si elle a été calculée)',
     coups: OBS.hist.map(function (e) {
       if (e.source) return { n: e.n, couleur: e.couleur, sansCalcul: e.source };
       const nom = function (k) { return (e.noms && e.noms[k]) || '?'; }, f = e.det && e.cle ? _obsLigneDet(e.det, e.cle) : null;
-      return { n: e.n, couleur: e.couleur, coup: nom(e.cle), note: Math.round(e.score || 0), profondeur: e.prof, profondeurTerminee: e.profTous || e.prof,
+      const pg = (typeof prProba === 'function' && e.det && e.det.poids) ? prProba(e.score, e.det.poids) : null;
+      return { n: e.n, couleur: e.couleur, coup: nom(e.cle), note: Math.round(e.score || 0), chanceDeGain: pg == null ? null : Math.round(1000 * pg) / 10, profondeur: e.prof, profondeurTerminee: e.profTous || e.prof,
         ms: Math.round(e.ms || 0), tempsAccorde: e.budget || 0, positions: e.noeuds || 0, coupures: e.coupures || 0, tableTransposition: e.tt || 0, fils: e.nFils || 1,
         suitePrevue: f ? [f.l.n].concat(f.l.suite || []) : [],
         meilleurParProfondeur: Object.keys(e.parProfs || {}).map(Number).sort(function (a, b) { return a - b; }).map(function (d) { const x = e.parProfs[d][0]; return { profondeur: d, coup: nom(x[0]), note: x[1] }; }),
@@ -789,7 +792,7 @@ function _obsRapportTexte() {
   if (!D.coups.length) L.push(_obsT('Aucun coup de l’IA enregistré pour l’instant.', 'No AI move recorded yet.'));
   D.coups.forEach(function (c) {
     if (c.sansCalcul) { L.push(_obsT('Coup ', 'Move ') + c.n + ' (' + cTxt(c.couleur) + ') — ' + _obsT('sans calcul : ', 'no search: ') + c.sansCalcul); return; }
-    L.push(_obsT('Coup ', 'Move ') + c.n + ' (' + cTxt(c.couleur) + ') — ' + c.coup + ' — ' + _obsT('note ', 'score ') + _evalReflexionTexte(c.note) + ' — ' + _obsT('profondeur ', 'depth ') + c.profondeur
+    L.push(_obsT('Coup ', 'Move ') + c.n + ' (' + cTxt(c.couleur) + ') — ' + c.coup + ' — ' + _obsT('note ', 'score ') + _evalReflexionTexte(c.note) + (c.chanceDeGain != null ? ' (' + _obsT('chance de gain mesurée ', 'measured winning chance ') + Math.round(c.chanceDeGain) + ' %)' : '') + ' — ' + _obsT('profondeur ', 'depth ') + c.profondeur
       + (c.profondeurTerminee < c.profondeur ? ' (' + c.profondeurTerminee + _obsT(' terminée)', ' completed)') : '') + ' — ' + _msTexte(c.ms) + ' — ' + _obsN(c.positions) + ' positions — '
       + _obsT('coupures ', 'cutoffs ') + (c.positions ? Math.round(100 * c.coupures / c.positions) : 0) + ' % — TT ' + c.tableTransposition + ' %');
     if (c.suitePrevue.length) L.push('  ' + _obsT('Suite prévue : ', 'Expected line: ') + c.suitePrevue.join(' '));

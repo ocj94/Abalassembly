@@ -344,6 +344,7 @@ function renderNiveaux(msg){
     h += _bancJournal(s);
   }
   hote.innerHTML = h;
+  if (typeof renderTempsReels === 'function') renderTempsReels();   // v3.13 : les temps en vraie partie, sur cet appareil
   grSurRedim('niveaux', 'lab-niveaux-host', function(){ renderNiveaux(); });
 }
 
