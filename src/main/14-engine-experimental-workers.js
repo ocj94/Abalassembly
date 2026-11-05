@@ -577,6 +577,7 @@ function forceAINow() {
   // on n'agit que si c'est bien à l'IA de jouer et qu'elle réfléchit
   const thinking = document.getElementById('ai-thinking');
   if (!thinking || thinking.style.display === 'none') return;
+  if (typeof _iaReflechit !== 'undefined' && !_iaReflechit) return;   // v3.14 : la zone reste visible au repos
   if (_aiForcing) return;
   _aiForcing = true;
 

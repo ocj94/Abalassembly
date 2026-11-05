@@ -1926,7 +1926,7 @@ function aiMove() {
   const pooledStarted = (typeof requestAIMovePooled === 'function') && requestAIMovePooled(pooledParams, function(chosen, metrics) {
     showAIThinking(false);
     if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
-    if (metrics) { updateAIMetrics(metrics); _releverReflexion(metrics, config); _noterMesuresCoupIA(metrics, ai, config); if (typeof trNoter === 'function') trNoter(metrics, ai, config); if (typeof obsFin === 'function') obsFin(metrics, ai, config, chosen); }
+    if (metrics) { updateAIMetrics(metrics); _releverReflexion(metrics, config); _noterMesuresCoupIA(metrics, ai, config); if (typeof trNoter === 'function') trNoter(metrics, ai, config); if (typeof _iaBarreNoter === 'function') _iaBarreNoter(metrics, chosen); if (typeof obsFin === 'function') obsFin(metrics, ai, config, chosen); }
     if (GameOver.get()) return;
     if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
     executeAIMove(chosen);
@@ -1945,7 +1945,7 @@ function aiMove() {
       showAIThinking(false);
       if (gen !== _aiGen) return;   // partie réinitialisée entre-temps → résultat périmé, ignoré
       const chosen = e.data && e.data.move;
-      if (e.data) { updateAIMetrics(e.data.metrics); _releverReflexion(e.data.metrics, config); _noterMesuresCoupIA(e.data.metrics, ai, config); if (typeof trNoter === 'function') trNoter(e.data.metrics, ai, config); if (typeof obsFin === 'function') obsFin(e.data.metrics, ai, config, chosen); }
+      if (e.data) { updateAIMetrics(e.data.metrics); _releverReflexion(e.data.metrics, config); _noterMesuresCoupIA(e.data.metrics, ai, config); if (typeof trNoter === 'function') trNoter(e.data.metrics, ai, config); if (typeof _iaBarreNoter === 'function') _iaBarreNoter(e.data.metrics, chosen); if (typeof obsFin === 'function') obsFin(e.data.metrics, ai, config, chosen); }
       if (GameOver.get()) return;
       if (!chosen) { CurrentTurn.set(human); updateStatus(); return; }
       executeAIMove(chosen);
@@ -1998,40 +1998,111 @@ function aiMove() {
 
 // Affiche / masque l'indicateur "L'IA réfléchit…"
 let _iaReflechit = false;   // l'IA calcule un coup de partie (la mesure de reflexion ne demarre pas pendant ce temps)
+/* v3.14 (demande d'ocj94, captures a l'appui) : sur telephone, le bandeau flottant « L'IA reflechit… »
+   cachait le bas du plateau. Il s'affiche maintenant DANS la barre du joueur que joue l'IA (Joueur 2 en
+   haut, en general), sous son nom. Pour que le plateau ne saute pas a chaque coup, la zone reste la
+   pendant toute la partie contre l'IA : au repos, elle dit son dernier calcul. Flottant seulement si
+   cette barre n'est pas a l'ecran pendant que l'IA calcule (autre page). */
+let _iaBarreDernier = null;   // { gen, txt } : le dernier calcul de l'IA dans CETTE partie (_aiGen)
+const _IA_FLOTTANT = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:2500;'
+  + 'background:var(--surface);border:1px solid var(--gold-dim);border-radius:24px;padding:10px 20px;'
+  + 'display:flex;flex-direction:column;align-items:center;gap:4px;max-width:calc(100vw - 24px);box-sizing:border-box;'
+  + 'box-shadow:0 6px 24px rgba(0,0,0,0.5);font-size:14px;color:var(--text)';
+function _barreIA() {
+  if (typeof document === 'undefined') return null;
+  const ai = (typeof aiColor === 'function') ? aiColor() : null;
+  const b = document.getElementById((ai && typeof monCamp === 'function' && ai === monCamp()) ? 'clock-bottom' : 'clock-top');
+  return (b && b.offsetParent && typeof b.appendChild === 'function') ? b : null;   // barre masquee (autre page, autre mode) : pas de barre
+}
+function _iaBandeauEl() {
+  let el = document.getElementById('ai-thinking');
+  if (el) return el;
+  el = document.createElement('div');
+  el.id = 'ai-thinking';
+  el.style.cssText = _IA_FLOTTANT;
+  el.innerHTML = '<div class="ia-l1" style="display:flex;align-items:center;gap:10px">'
+    + '<span class="ia-calc" style="display:inline-block;width:14px;height:14px;flex:0 0 auto;border:2px solid var(--gold-dim);'
+    + 'border-top-color:var(--gold);border-radius:50%;animation:ai-spin 0.7s linear infinite"></span>'
+    + '<span class="ia-calc" style="white-space:nowrap">L\'IA réfléchit…</span>'
+    + '<span class="ia-repos" style="white-space:nowrap;color:var(--muted)">🤖 L\'IA attend votre coup</span>'
+    + '<button class="ia-calc" onclick="forceAINow()" title="Interrompre la réflexion et jouer le meilleur coup trouvé" '
+    + 'style="margin-left:6px;background:var(--gold);color:#0d0f0e;border:none;border-radius:14px;'
+    + 'padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">⚡ Jouer maintenant</button></div>'
+    // Observatoire IA (v3.06) : une ligne de mesures en direct, remplie par _obsBandeau
+    + '<span id="ai-thinking-live" style="display:none;text-align:center;max-width:100%;font-family:\'DM Mono\',monospace;font-size:11.5px;color:var(--muted)"></span>'
+    + '<span id="ia-repos-ligne" class="ia-repos" style="max-width:100%;font-family:\'DM Mono\',monospace;font-size:11.5px;color:var(--muted)"></span>';
+  document.body.appendChild(el);
+  if (!document.getElementById('ai-spin-style')) {
+    const st = document.createElement('style');
+    st.id = 'ai-spin-style';
+    st.textContent = '@keyframes ai-spin{to{transform:rotate(360deg)}}'
+      + '.clock-bar.avec-ia{flex-wrap:wrap;row-gap:4px}'
+      + '#ai-thinking.ia-en-barre{position:static!important;transform:none!important;order:3;flex:1 0 100%;max-width:100%!important;min-width:0;'
+      + 'background:none!important;border:none!important;border-top:1px solid var(--border)!important;border-radius:0!important;box-shadow:none!important;'
+      + 'padding:6px 0 0!important;align-items:stretch!important;gap:3px!important;font-size:13px!important;letter-spacing:0;text-transform:none}'
+      + '#ai-thinking.ia-en-barre .ia-l1{min-height:26px}#ai-thinking.ia-en-barre .ia-l1 button{margin-left:auto!important}'
+      + '#ai-thinking.ia-en-barre #ai-thinking-live,#ai-thinking.ia-en-barre #ia-repos-ligne{text-align:left!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:1.3em}'
+      + '#ai-thinking.au-repos .ia-calc{display:none!important}#ai-thinking:not(.au-repos) .ia-repos{display:none!important}';
+    document.head.appendChild(st);
+  }
+  return el;
+}
+// une partie contre l'IA en cours, sur la page de jeu : la zone de l'IA reste dans sa barre
+function _iaPartieEnCours() {
+  return typeof GameMode !== 'undefined' && GameMode.get && GameMode.get() === 'ai' && typeof GameOver !== 'undefined' && GameOver.get() === false;
+}
+/* Les boutons 1D/2D/3D et plein ecran etaient places a 11 % de la hauteur du bloc (barres comprises) :
+   la barre de l'IA plus haute les faisait tomber dessus. Ils suivent maintenant le haut du plateau. */
+function _ancrerBoutonsPlateau() {
+  const st = document.getElementById('board-stage'); if (!st || !st.offsetParent || typeof st.offsetTop !== 'number') return;
+  const y = st.offsetTop + Math.round(st.offsetWidth * 0.025) + 'px';
+  ['view-toggle', 'focus-btn'].forEach(function (id) { const b = document.getElementById(id); if (b && b.style.top !== y) b.style.top = y; });
+}
+if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('resize', function () { try { _ancrerBoutonsPlateau(); } catch (e) {} });
+function _iaBarreMaj() {
+  if (typeof document === 'undefined') return;
+  try { _iaBarreMajCorps(); } finally { _ancrerBoutonsPlateau(); }
+}
+function _iaBarreMajCorps() {
+  const barre = _barreIA(), calc = _iaReflechit;
+  const repos = !calc && barre && _iaPartieEnCours();
+  let el = document.getElementById('ai-thinking');
+  if (!el && !calc && !repos) return;
+  el = el || _iaBandeauEl();
+  const ici = (calc || repos) ? barre : null;
+  document.querySelectorAll('.clock-bar.avec-ia').forEach(function (b) { if (b !== ici) b.classList.remove('avec-ia'); });
+  if (!calc && !repos) { el.style.display = 'none'; return; }
+  if (ici) { if (el.parentNode !== ici) ici.appendChild(el); ici.classList.add('avec-ia'); el.classList.add('ia-en-barre'); }
+  else { if (el.parentNode !== document.body) document.body.appendChild(el); el.classList.remove('ia-en-barre'); }
+  el.classList.toggle('au-repos', !calc);
+  el.style.display = 'flex';
+  // la 2e ligne (mesures) suit le reglage « bandeau » de l'Observatoire, au repos comme pendant le calcul
+  const ligne = (typeof OBS !== 'undefined') ? !!OBS.bandeau : false, r = document.getElementById('ia-repos-ligne');
+  if (r) {
+    const d = (_iaBarreDernier && typeof _aiGen !== 'undefined' && _iaBarreDernier.gen === _aiGen) ? _iaBarreDernier.txt : '';
+    r.textContent = d ? ((typeof _tr === 'function') ? _tr('Dernier calcul : ', 'Last search: ') : 'Dernier calcul : ') + d : '\u00a0';
+    r.style.display = (ligne && !calc) ? '' : 'none';
+  }
+}
+// appele apres chaque coup calcule de l'IA : ce que la zone dira au repos
+function _iaBarreNoter(m, chosen) {
+  if (!m) return;
+  const nom = (chosen && chosen.cells && typeof _notationCoupBrut === 'function') ? _notationCoupBrut(chosen.cells, chosen.dir) : '';
+  const note = (typeof m.bestScore === 'number' && isFinite(m.bestScore) && typeof _evalReflexionTexte === 'function') ? ' ' + _evalReflexionTexte(Math.round(m.bestScore)) : '';
+  const t = (typeof _msTexte === 'function') ? _msTexte(m.time || 0) : Math.round(m.time || 0) + ' ms';
+  _iaBarreDernier = { gen: (typeof _aiGen !== 'undefined') ? _aiGen : 0, txt: (nom ? nom + note + ' · ' : '') + 'prof. ' + (m.depth || 0) + ' · ' + t };
+  _iaBarreMaj();
+}
 function showAIThinking(on) {
   _iaReflechit = !!on;
-  let el = document.getElementById('ai-thinking');
   if (on) {
-    if (!el) {
-      el = document.createElement('div');
-      el.id = 'ai-thinking';
-      el.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:2500;'
-        + 'background:var(--surface);border:1px solid var(--gold-dim);border-radius:24px;padding:10px 20px;'
-        + 'display:flex;flex-direction:column;align-items:center;gap:4px;max-width:calc(100vw - 24px);box-sizing:border-box;'
-        + 'box-shadow:0 6px 24px rgba(0,0,0,0.5);font-size:14px;color:var(--text)';
-      el.innerHTML = '<div style="display:flex;align-items:center;gap:10px">'
-        + '<span style="display:inline-block;width:14px;height:14px;border:2px solid var(--gold-dim);'
-        + 'border-top-color:var(--gold);border-radius:50%;animation:ai-spin 0.7s linear infinite"></span>'
-        + '<span style="white-space:nowrap">L\'IA réfléchit…</span>'
-        + '<button onclick="forceAINow()" title="Interrompre la réflexion et jouer le meilleur coup trouvé" '
-        + 'style="margin-left:6px;background:var(--gold);color:#0d0f0e;border:none;border-radius:14px;'
-        + 'padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">⚡ Jouer maintenant</button></div>'
-        // Observatoire IA (v3.06) : une ligne de mesures en direct, remplie par _obsBandeau
-        + '<span id="ai-thinking-live" style="display:none;text-align:center;max-width:100%;font-family:\'DM Mono\',monospace;font-size:11.5px;color:var(--muted)"></span>';
-      document.body.appendChild(el);
-      // injecte l'animation si absente
-      if (!document.getElementById('ai-spin-style')) {
-        const st = document.createElement('style');
-        st.id = 'ai-spin-style';
-        st.textContent = '@keyframes ai-spin{to{transform:rotate(360deg)}}';
-        document.head.appendChild(st);
-      }
-    }
-    el.style.display = 'flex';
+    const el = _iaBandeauEl();
+    _iaBarreMaj();
     if (typeof _obsBandeau === 'function') _obsBandeau(true);
-  } else if (el) {
-    el.style.display = 'none';
-  }
+    // la ligne des mesures prend sa place tout de suite (sinon la barre change de hauteur au premier chiffre)
+    const live = document.getElementById('ai-thinking-live');
+    if (live && el.classList.contains('ia-en-barre') && typeof OBS !== 'undefined' && OBS.bandeau) { live.textContent = '…'; live.style.display = ''; }
+  } else _iaBarreMaj();
 }
 
 // Exécute le coup choisi par l'IA (partie commune worker / synchrone)

@@ -9,6 +9,29 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.14]
+
+### Changé — « L'IA réfléchit… » dans la barre du joueur
+Demande de l'auteur, captures à l'appui : sur téléphone, le bandeau flottant
+« L'IA réfléchit… / Jouer maintenant / prof. 5/8 · 1,1 M positions… » cachait
+le bas du plateau. Il s'affiche maintenant **dans la barre du joueur que joue
+l'IA** (Joueur 2, en haut, en général), sous son nom :
+- pendant le calcul : « L'IA réfléchit… », le bouton **⚡ Jouer maintenant**
+  et la ligne de mesures, sur une ligne, le meilleur coup en premier ;
+- au repos : « L'IA attend votre coup » et son dernier calcul (coup, note,
+  profondeur, temps).
+
+La zone reste là pendant toute la partie contre l'IA : le plateau ne bouge plus
+d'un pixel entre le calcul et le repos (vérifié sur téléphone et ordinateur).
+Elle disparaît en fin de partie. Le bandeau flottant ne sert plus que si la
+barre n'est pas à l'écran pendant le calcul. « Jouer maintenant » n'agit que
+pendant le calcul.
+
+### Corrigé
+Les boutons 1D / 2D / 3D et plein écran étaient placés à 11 % de la hauteur
+du bloc, barres comprises : la barre plus haute les faisait tomber dessus. Ils
+suivent maintenant le haut du plateau.
+
 ## [v3.13]
 
 ### Ajouté — l'Observatoire et le Labo s'échangent leurs données

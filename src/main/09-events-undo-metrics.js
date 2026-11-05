@@ -430,6 +430,7 @@ function _clockNames(){
   if (wt) wt.innerHTML = 'Joueur 2' + (en1D ? _letter('@') : _dot(_skinDotColor(opp))) + duree(opp);
   const wb = document.getElementById('clock-bottom-who');
   if (wb) wb.innerHTML = 'Joueur 1' + (en1D ? _letter('O') : _dot(_skinDotColor(mine))) + duree(mine);
+  if (typeof _iaBarreMaj === 'function') { try { _iaBarreMaj(); } catch (e) {} }   // v3.14 : la zone « L'IA reflechit » dans la barre de l'IA (jamais au prix des pendules)
 }
 
 function _clockPaintFree(){
