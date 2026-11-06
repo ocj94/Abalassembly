@@ -1,10 +1,41 @@
 🇫🇷 [Version française](../docs-fr/Calcul-distribue.fr.md)
 
-# Distributed computing — why there isn't any
+# Distributed computing
 
-Four separate "volunteer computing grid" proposals (BOINC- or World Community Grid-style) were studied for Abalassembly. None was adopted. This page explains why, with the actual numbers, to avoid re-litigating the question in six months.
+*Since v3.18*, Abalassembly has a **compute network**: a scheduler on the server and executors you plug in and out (browsers, PCs). It is built and tested, but **not open yet**: the server isn't hosted. Further down, the study from before v3.18, which concluded it shouldn't be done, still holds on most points. Here is what changed.
 
-The idea isn't a bad one. The blocker isn't strictly technical either — the browser can run Workers in the background just fine. The blocker is simpler: **no calculation exists today that would justify the infrastructure.**
+## Since v3.18: the scheduler
+
+**A real computing need has appeared.** Settling two AI settings takes hundreds of games. In November 2026, the duels of the recomputed Texel weights against the game's own took about 2 h 30 for 40 pairs, on 2 cores. These are independent games: exactly what spreads well. At equal speed, ten 4-core browsers would do that work in under 10 minutes.
+
+**The verification problem is solved without computing everything twice.** A Lab game at fixed depth can now be redone move for move, on any device:
+- the engine's hash keys come from a fixed seed;
+- the board is put back in cell order before each search. Before, the order of the marbles in memory changed from one search to the next, and with it the choice between two moves with the same score.
+
+Checked on 116 plies recomputed one by one in a fresh worker, up to depth 3, without a single difference. So the server replays every game handed in and searches three randomly drawn plies itself, which the executor doesn't know in advance: a move that isn't the engine's, and the game is refused.
+
+**How it works**
+- **The Lab creates a campaign**: two weight sets, a depth, a number of pairs. Each pair plays the same opening, colours swapped.
+- **Each game is a mission.** The server gives it to a plugged-in executor, with a one-minute lease renewed as long as it sends a heartbeat.
+- **Unplugging at any time loses nothing**: the mission goes back to the queue.
+- **The switches**: a whole family (all browsers, all Node PCs) or a single executor, for the administrator; "Plug in / Unplug" for each player.
+- **The choice takes each device's measured speed into account**: a game too long for a phone goes to a PC.
+
+![The Lab's Compute network tab, plugged into a local test server: executor families, campaign in progress, this device and its log](../docs-img/reseau-calcul.webp)
+
+*Captured with a test server on the same machine, since the live page can't connect to one yet.*
+
+**In the game**, it's the Lab's **🌐 Compute network** tab: sign in, choose how many cores to lend, plug in. As long as the server isn't online, the tab says so and **nothing leaves** the device. What leaves, once plugged in: the account, the number of cores, the engine's fingerprint and the games played. On a PC, the Node executor in the `abalassembly-api` repository does the same from the command line.
+
+**What stays closed**, with the same rigour as before:
+- endgame tables beyond 3v3 (see below);
+- training a neural network;
+- splitting a live search across several machines (too many dependencies between branches, too much latency);
+- graphics cards (CUDA, WebGPU): alpha-beta doesn't benefit from them.
+
+## The study from before v3.18
+
+Four separate "volunteer computing grid" proposals (BOINC- or World Community Grid-style) had been studied. None had been adopted, and its reasons still hold for what they targeted: endgame tables and training a neural network. The blocker was this: **no calculation existed that would justify the infrastructure.** The Lab's duels, which are one, became the subject of v3.18.
 
 ## The real sizes of the endgame tables
 
@@ -69,6 +100,8 @@ Several proposals suggested a standalone `distributed-worker.js`. A separate fil
 
 ## The verification problem
 
+*(Solved by v3.18: reproducible games, the server recomputing randomly drawn plies, see above.)*
+
 Without a server, there's no way to verify that a contributor actually computed what they're sending back. A malicious — or simply buggy — client could return anything at all.
 
 Real grids (BOINC, World Community Grid) solve this by distributing the same task to several machines and comparing the results. That requires exactly the central server the offline architecture is trying to avoid, and doubles the compute cost.
@@ -85,7 +118,9 @@ Three points are worth keeping for whenever this question reopens:
 
 **Start with a reproducibility test, not the endgame tables.** Have several browsers compute random positions and check they land on exactly the same result. This tests the whole chain — distribution, computation, validation — without committing weeks of compute to an uncertain goal. This was the best advice across all four documents.
 
-## Under what conditions this reopens
+## Under what conditions this reopened
+
+*(The first is met by the Lab's duels; the second remains: hosting the server.)*
 
 Two, both required:
 

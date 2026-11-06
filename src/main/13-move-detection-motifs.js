@@ -500,7 +500,11 @@ function _pvEtTermes(cle,pov,plis){
   for(let i=us.length-1;i>=0;i--)undoMove(us[i]);
   return {pv:pv,terms:terms};
 }
-function _rand32(){return(Math.random()*0xFFFFFFFF)>>>0;}
+/* v3.18 : les cles de hachage sortent d'une graine fixe (avant : Math.random, d'autres cles dans
+   chaque fil). La force du jeu ne change pas ; mais deux fils, ou deux appareils, cherchent
+   maintenant exactement pareil : une partie du Labo a profondeur fixe se refait coup pour coup,
+   ce qui permet a l'ordonnanceur du serveur de verifier celles que rendent les executants. */
+let _zGraine=0x2545F491;function _rand32(){_zGraine=_zGraine+0x6D2B79F5|0;let t=Math.imul(_zGraine^_zGraine>>>15,1|_zGraine);t=t+Math.imul(t^t>>>7,61|t)^t;return (t^t>>>14)>>>0;}
 const ZOBRIST={};for(let r=0;r<9;r++)for(let c=0;c<ROWS[r];c++)ZOBRIST[akey(r,c)]={black:_rand32(),white:_rand32()};
 function hashBoard(){let h=0;for(const k in board){const v=board[k];if(v==='black')h^=ZOBRIST[k].black;else if(v==='white')h^=ZOBRIST[k].white;}return h>>>0;}
 /* Cle de la table de transposition : les billes ET le camp au trait. Avant, les billes seules :
@@ -981,6 +985,20 @@ function playDuelGame(wA,wB,colorA,seed,msPerMove,maxPlies,drawWin,ouverture,equ
   var nOuv=(typeof ouverture==='number' && ouverture>=0) ? Math.min(20, ouverture|0) : 6;
   var fen=(typeof equilibre==='number' && equilibre>0) ? equilibre : 600;
   var hist=[], col='black', plies=0, i, m, t, balanced=false, openingMoves=[];
+  /* v3.18, verification d'une mission rendue par un executant (ordonnanceur du serveur) :
+     opts.forces = les coups de la partie, ouverture comprise ; ils sont joues au lieu d'etre
+     cherches (un coup illegal arrete tout). opts.verifier = numeros de demi-coups ou le moteur
+     cherche AUSSI son coup, avec les memes poids, la meme profondeur et le meme historique :
+     un coup different va dans ecarts. Meme fin de partie, meme arbitrage que la partie jouee. */
+  var F=opts.forces||null, V=opts.verifier||null, nF=0, ecarts=[];
+  /* Les billes du plateau sont rangees dans un objet : chaque recherche en retire et en remet, ce qui
+     change l'ordre des cles, donc l'ordre de generation des coups, donc le choix entre deux coups de
+     meme note. Le coup cherche dependait ainsi des recherches precedentes (mesure : un coup recalcule
+     seul differait du coup joue dans la partie). Avant chaque recherche, le plateau est remis dans
+     l'ordre des cases : le coup ne depend plus que de la position, des poids et de l'historique. */
+  var canon=function(){ var b={}; for(var r=0;r<9;r++) for(var c=0;c<ROWS[r];c++){ var k=r+','+c; if(board[k]) b[k]=board[k]; } board=b; };
+  var _cle=function(x){return x.cells.map(function(c){return c.r+','+c.c;}).sort().join('|')+'>'+x.dir.q+','+x.dir.r;};
+  var fin=function(r){ if(F){ r.forces=nF; r.ecarts=ecarts; if(nF<F.length && r.why!=='illegal'){ r.winner='?'; r.why='apresLaFin'; } } return r; };
   if(opts.depart){
     // v2.70 : une vraie position du corpus, jouee telle quelle (les deux parties d'une paire en partent)
     _duelDepart(opts.depart); col=opts.depart.t||'black'; hist=[_repKeyOf(board)]; balanced=true;
@@ -1000,17 +1018,25 @@ function playDuelGame(wA,wB,colorA,seed,msPerMove,maxPlies,drawWin,ouverture,equ
   // l'ouverture jouee est enregistree meme si aucune des 10 tentatives n'etait equilibree :
   // avant, la partie partait alors d'une ouverture absente de l'enregistrement (rejeu faux)
   if(_recMoves){ for(var oi=0;oi<openingMoves.length;oi++) _recMoves.push(openingMoves[oi]); }
+  if(F){ for(var fo=0;fo<openingMoves.length;fo++){ if(!F[fo] || _cle(F[fo])!==_cle(openingMoves[fo])) return {winner:'?',plies:fo,cb:capturedByBlack,cw:capturedByWhite,why:'ouverture',forces:fo,ecarts:ecarts}; } nF=openingMoves.length; }
   var rndJeu=_mb32(((seed||1)*2654435761+(colorA==='white'?7:3))|0);
   for(i=0;i<maxPlies;i++){
     EVAL_W = (col===colorA)? wA : wB;
-    m=_duelChoisir(col,(col===colorA)?opts.cfgA:opts.cfgB,msPerMove,hist,rndJeu);
-    if(!m) return {winner:(col===colorA?'B':'A'),plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'noMove'};
+    if(F){
+      if(nF>=F.length) return fin({winner:'?',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'inacheve',forces:nF,ecarts:ecarts});
+      var fk=_cle(F[nF]); m=getAllMovesForColor(col).find(function(x){return _cle(x)===fk;});
+      if(!m) return fin({winner:'?',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'illegal'});
+      if(V && V.indexOf(nF)>=0){ canon(); var mm=_duelChoisir(col,(col===colorA)?opts.cfgA:opts.cfgB,msPerMove,hist,rndJeu); if(!mm || _cle(mm)!==fk) ecarts.push(nF); }
+      nF++;
+    } else {
+    canon(); m=_duelChoisir(col,(col===colorA)?opts.cfgA:opts.cfgB,msPerMove,hist,rndJeu); }
+    if(!m) return fin({winner:(col===colorA?'B':'A'),plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'noMove'});
     if(_recMoves) _recMoves.push({cells:m.cells.map(function(x){return {r:x.r,c:x.c};}),dir:{q:m.dir.q,r:m.dir.r},col:col});
     applyMove(m,col); hist.push(_repKeyOf(board)); plies++;
-    if(capturedByBlack>=6) return {winner:(colorA==='black'?'A':'B'),plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'6capt'};
-    if(capturedByWhite>=6) return {winner:(colorA==='white'?'A':'B'),plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'6capt'};
+    if(capturedByBlack>=6) return fin({winner:(colorA==='black'?'A':'B'),plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'6capt'});
+    if(capturedByWhite>=6) return fin({winner:(colorA==='white'?'A':'B'),plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'6capt'});
     var diff=capturedByBlack-capturedByWhite;
-    if(diff>=3||diff<=-3){ var wn=(diff>0?'black':'white'); return {winner:(wn===colorA?'A':'B'),plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adj3'}; }
+    if(diff>=3||diff<=-3){ var wn=(diff>0?'black':'white'); return fin({winner:(wn===colorA?'A':'B'),plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adj3'}); }
     col=(col==='black'?'white':'black');
   }
   var d2=capturedByBlack-capturedByWhite;
@@ -1021,19 +1047,19 @@ function playDuelGame(wA,wB,colorA,seed,msPerMove,maxPlies,drawWin,ouverture,equ
   if(opts.arbitrage===2 && (d2===1||d2===-1)){
     var mene=(d2>0?'black':'white');
     EVAL_W=wA; var pA=evaluateBoard(mene)-_materiel(mene); EVAL_W=wB; var pB=evaluateBoard(mene)-_materiel(mene);
-    if(pA>=0 && pB>=0) return {winner:(mene===colorA?'A':'B'),plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjCap1'};
-    return {winner:'D',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'draw1'};
+    if(pA>=0 && pB>=0) return fin({winner:(mene===colorA?'A':'B'),plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjCap1'});
+    return fin({winner:'D',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'draw1'});
   }
-  if(d2!==0){ var w2=(d2>0?'black':'white'); return {winner:(w2===colorA?'A':'B'),plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjCap'}; }
+  if(d2!==0){ var w2=(d2>0?'black':'white'); return fin({winner:(w2===colorA?'A':'B'),plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjCap'}); }
   /* Arbitrage par CONSENSUS (comme les bancs d'essai des moteurs d'echecs) : chaque camp
      evalue la position avec SES poids, du point de vue de A ; la victoire n'est donnee que
      s'ils sont d'accord. Avant, seule l'evaluation de A tranchait : dans le Labo, A est le
      mutant -- il arbitrait ses propres parties, et des poids qui gonflent sa propre
      evaluation lui donnaient des victoires. */
   EVAL_W=wA; var evA=evaluateBoard(colorA); EVAL_W=wB; var evB=evaluateBoard(colorA);
-  if(evA>drawWin && evB>drawWin) return {winner:'A',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjEval'};
-  if(evA<-drawWin && evB<-drawWin) return {winner:'B',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjEval'};
-  return {winner:'D',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'draw'};
+  if(evA>drawWin && evB>drawWin) return fin({winner:'A',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjEval'});
+  if(evA<-drawWin && evB<-drawWin) return fin({winner:'B',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'adjEval'});
+  return fin({winner:'D',plies:plies,cb:capturedByBlack,cw:capturedByWhite,why:'draw'});
 }
 /* ── v2.70 : les termes de l'evaluation, pour la methode Texel et « comme les humains » ──
    evaluateBoard est lineaire en ses poids : materiel + somme des poids x termes. Avec un

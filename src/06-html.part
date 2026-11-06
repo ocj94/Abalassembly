@@ -3894,6 +3894,7 @@
       <button data-onglet="humains" onclick="laboOnglet('humains')">🧑 Comme les humains</button>
       <button data-onglet="contretoi" onclick="laboOnglet('contretoi')">🎯 Contre toi</button>
       <button data-onglet="ouvertures" onclick="laboOnglet('ouvertures')">📖 Ouvertures</button>
+      <button data-onglet="reseau" onclick="laboOnglet('reseau')">🌐 Réseau de calcul</button>
       <button data-onglet="outils" onclick="laboOnglet('outils')">🧰 Autres outils</button>
     </div>
     <section class="lab-zone" data-onglet="tableau" hidden>
@@ -3916,6 +3917,10 @@
       <h3>📶 Les niveaux 1 à 10</h3>
       <div id="lab-niveaux-host"></div>
       <div id="lab-temps-host"></div>
+    </section>
+    <section class="lab-zone" data-onglet="reseau" hidden>
+      <h3>🌐 Réseau de calcul</h3>
+      <div id="lab-reseau-host"></div>
     </section>
     <section class="lab-zone" data-onglet="humains" hidden>
       <h3>🧑 Comme les humains</h3>
@@ -4255,7 +4260,7 @@
   <div style="padding:0 60px 80px;max-width:720px;color:var(--text);line-height:1.8;font-size:15px">
     <p><strong style="color:var(--white)">En une phrase : ce site ne collecte aucune donnée personnelle.</strong></p>
     <p style="margin-top:16px">Abalassembly est un fichier unique qui tourne entièrement dans votre navigateur. Vos parties, votre progression, vos réglages et vos préférences restent stockés localement sur votre appareil (<code style="background:var(--surface2);padding:2px 6px;border-radius:4px">localStorage</code>) — rien n'est envoyé vers un serveur, parce qu'aucun serveur actif ne reçoit ces informations.</p>
-    <p style="margin-top:16px">Un backend existe bien dans un dépôt séparé (comptes, sauvegarde en ligne) mais il est <strong>volontairement désactivé</strong> — tant qu'il ne l'est pas, aucune donnée ne quitte votre navigateur.</p>
+    <p style="margin-top:16px">Un backend existe bien dans un dépôt séparé (comptes, sauvegarde en ligne, réseau de calcul du Labo) mais il est <strong>volontairement désactivé</strong> — tant qu'il ne l'est pas, aucune donnée ne quitte votre navigateur.</p>
     <p style="margin-top:16px">Effacer vos données : videz le stockage local de votre navigateur pour ce site (Réglages du navigateur → Confidentialité → Données de site), ou utilisez la fonction d'export/suppression si votre navigateur la propose.</p>
     <p style="margin-top:16px">Contact : passez par les <a href="https://github.com/ocj94/Abalassembly/issues" target="_blank" rel="noopener" style="color:var(--gold)">issues GitHub</a> du projet.</p>
   </div>
