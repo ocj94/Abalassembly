@@ -763,7 +763,7 @@ function _obsEnvoie(fin){
   const now=Date.now();if(!fin&&now-_obsT<_obs)return;_obsT=now;
   const c=_obsCtx;
   self.postMessage({progress:1,w:c.w,d:c.d,max:c.max,i:c.i,n:c.n,cur:c.cur,nodes:_nodes,cuts:_cuts,
-    tt:_ttLk?Math.round(100*_ttHit/_ttLk):0,ms:now-c.t0,fin:fin?1:0,roots:c.roots,depths:c.depths});
+    tt:_ttLk?Math.round(100*_ttHit/_ttLk):0,ms:now-c.t0,fin:fin?1:0,roots:c.roots,depths:c.depths,pv:fin&&c.pv?c.pv:null});
 }
 function search(depth,alpha,beta,maxi,pov,prevKey){
   _nodes++;
@@ -877,8 +877,12 @@ function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
     if(lb){bestMove=lb;bestScore=ls;reached=d;if(!cut){lastRoots=roots;lastRootsDepth=d;rootsByDepth[d]=roots;
       // profondeur complete : bilan, puis suite prevue et criteres de ses 10 meilleurs coups
       depthInfo[d]={nodes:_nodes-_nd0,ms:Date.now()-_td0,fin:Date.now()-start,cuts:_cuts-_cu0};
-      if(_obsCtx){_obsCtx.depths.push([d,_nodes-_nd0,Date.now()-_td0,_cuts-_cu0,Math.round(ls)]);_obsEnvoie(true);}
-      roots.slice().sort((a,b)=>b.score-a.score).slice(0,10).forEach(function(r){const x=_pvEtTermes(r.key,pov,d-1);if(x){r.pv=x.pv;r.terms=x.terms;}});}}
+      const _top10=roots.slice().sort((a,b)=>b.score-a.score).slice(0,10);
+      _top10.forEach(function(r){const x=_pvEtTermes(r.key,pov,d-1);if(x){r.pv=x.pv;r.terms=x.terms;}});
+      /* v3.17 : le message « profondeur terminee » emporte la suite prevue de ses 10 meilleurs coups
+         (calculee juste avant, comme avant : rien ne change dans la recherche), pour l'arbre en direct */
+      if(_obsCtx){_obsCtx.depths.push([d,_nodes-_nd0,Date.now()-_td0,_cuts-_cu0,Math.round(ls)]);
+        _obsCtx.pv={};_top10.forEach(function(r){if(r.pv)_obsCtx.pv[r.key]=r.pv;});_obsEnvoie(true);_obsCtx.pv=null;}}}
     if(Date.now()-start>timeLimit)break;}
   const top=lastRoots?lastRoots.slice().sort((a,b)=>b.score-a.score).slice(0,5):null;
   /* rootsByDepth : liste COMPLETE des coups racine de ce worker, rangee par

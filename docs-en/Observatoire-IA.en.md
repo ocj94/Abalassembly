@@ -2,7 +2,7 @@
 
 # AI Observatory
 
-*Since v3.05, extended up to v3.15.* A panel that shows what the AI computes **while** the game goes on, then why it picked its move. The screenshots below come from the real site, during a real game against the AI (French interface).
+*Since v3.05, extended up to v3.17.* A panel that shows what the AI computes **while** the game goes on, then why it picked its move. The screenshots below come from the real site, during a real game against the AI (French interface).
 
 **To open it**: in a game against the AI, the **"🔭 AI Observatory"** tab of the right-hand column (or the button of the same name in the Game tab). *Since v3.15*, it is no longer a window: the Observatory is a tab of the right-hand column, like List or Comments. It has five tabs and three levels of detail: **Spectator**, **Analyst**, **Developer**.
 
@@ -32,11 +32,33 @@ Depth reached, positions searched, time out of the allowed time, speed. Then:
 - **the search log**: one line per completed depth, with the best move, its score, the positions and cutoffs, and "best changes" when it does; at the end, the move played, and "time ran out during depth N" if the timer cut in;
 - speed, alpha-beta cutoffs, transposition table, pruning by depth; at Developer level, thread by thread.
 
+*Since v3.17*, the **search tree** is there too, in simple view (see below); **details →** opens the Search tab.
+
 ## Search: the moves studied
 
 ![Search tab: mini board with coordinates, numbered arrows and heat map, list of first moves](../docs-img/obs-recherche.webp)
 
 Every first move, with its score, its gap with the best one, the search effort spent under it, and ⚠ when the opponent has an ejection right after. The mini board shows **Aba-Pro coordinates** (letters a to i, numbers 1 to 9) to read the notation.
+
+### The search tree
+
+![Search tree during the search: the best move being searched (yellow dot), the next two not scored yet at depth 4](../docs-img/obs-arbre.webp)
+
+*Since v3.17.* At the top of the tab: the position, its best first moves as scored boxes, and under each one the **line the AI expects** (2. the expected reply, 3. the follow-up…). The black or white dot says who plays.
+
+**During the search, the tree fills up.** Moves are ranked by the last completed depth, so the order doesn't jump around. The dot at the top right of each move says where it stands at the depth being searched:
+
+- **yellow**: a worker thread is searching it right now;
+- **blue**: its score at this depth is known, and that is the score shown;
+- **grey**, dashed frame: not scored yet, it keeps its previous score.
+
+The small **p3**, **p4** next to the score says which depth it comes from. The bar under the score shows the search effort spent under the move. The green frame marks the best move so far, then the move played.
+
+![Full view after the move: five first moves and their lines](../docs-img/obs-arbre-complet.webp)
+
+**Simple view**: 3 moves, 2 levels of line. **Full view** (Analyst, Developer): 5 moves and the whole stored line; on a narrow screen it scrolls sideways. The site remembers the chosen view. Tapping a move selects it, as in the list. Once the move is played, tapping a box of the line shows the board at that step.
+
+Two things from the mockups are not there, because they would be invented. First, **several scored replies under a move**: the engine only keeps the reply it expects, and scoring the others would mean searching again. Second, a **"pruned" box**: no first move is pruned, each one is searched in full; pruning happens deeper, and the engine counts cutoffs without recording which ones. At Developer level, the **10 principal lines** are still listed at the bottom of the tab.
 
 ### Heat map: where the AI wants to go
 
@@ -101,7 +123,7 @@ On a phone, the Observatory opens under the board, in the game's tabs: scroll th
 
 ## What the panel does not claim
 
-- **No full tree**: the engine does not keep the thousands of positions it searched. We show the principal lines of the 10 best first moves.
+- **No full tree**: the engine does not keep the thousands of positions it searched. The drawn tree shows the best first moves and, under each one, a single reply per level: the one the engine expects.
 - **No pruning at the root**: every first move is fully scored. A move is set aside for its score, not because its branch was cut.
 - **No invented "confidence"**, no "memory used": we show the gap with the 2nd move, how many depths the choice stayed the same and, on request, the winning chance measured on real games: measured facts.
 
