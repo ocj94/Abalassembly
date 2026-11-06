@@ -1,10 +1,41 @@
 🇬🇧 [English version](../docs-en/Calcul-distribue.en.md)
 
-# Calcul distribué — pourquoi il n'y en a pas
+# Calcul distribué
 
-Quatre propositions distinctes de « grille de calcul volontaire » (façon World Community Grid ou BOINC) ont été étudiées pour Abalassembly. Aucune n'a été retenue. Cette page explique pourquoi, avec les chiffres, pour éviter de refaire le tour de la question dans six mois.
+*Depuis la v3.18*, Abalassembly a un **réseau de calcul** : un ordonnanceur sur le serveur et des exécutants qu'on branche et débranche (des navigateurs, des PC). Il est construit et testé, mais **pas encore ouvert** : le serveur n'est pas hébergé. Plus bas, l'étude d'avant la v3.18, qui concluait qu'il ne fallait pas le faire, reste valable sur la plupart des points. Voici ce qui a changé.
 
-L'idée n'est pas mauvaise. Le blocage n'est pas non plus technique au sens strict — le navigateur sait faire tourner des Workers en arrière-plan. Le blocage est plus simple : **il n'existe aujourd'hui aucun calcul qui justifierait l'infrastructure**.
+## Depuis la v3.18 : l'ordonnanceur
+
+**Un vrai besoin de calcul est apparu.** Départager deux réglages de l'IA demande des centaines de parties. En novembre 2026, les duels des poids Texel recalculés contre ceux du jeu ont pris environ 2 h 30 pour 40 paires, sur 2 cœurs. Ce sont des parties indépendantes : exactement ce qui se répartit bien. À vitesse égale, dix navigateurs à 4 cœurs feraient ce travail en moins de 10 minutes.
+
+**Le problème de la vérification est réglé sans tout calculer deux fois.** Une partie du Labo à profondeur fixe se refait maintenant coup pour coup, sur n'importe quel appareil :
+- les clés de hachage du moteur sortent d'une graine fixe ;
+- le plateau est remis dans l'ordre des cases avant chaque recherche. Avant, l'ordre des billes dans la mémoire changeait d'une recherche à l'autre, et avec lui le choix entre deux coups de même note.
+
+Vérifié sur 116 demi-coups recalculés un à un dans un fil neuf, jusqu'à la profondeur 3, sans un seul écart. Le serveur rejoue donc chaque partie rendue et recherche lui-même trois demi-coups tirés au hasard, que l'exécutant ne connaît pas à l'avance : un coup qui n'est pas celui du moteur, et la partie est refusée.
+
+**Comment ça marche**
+- **Le Labo crée une campagne** : deux jeux de poids, une profondeur, un nombre de paires. Chaque paire joue la même ouverture, couleurs échangées.
+- **Chaque partie est une mission.** Le serveur la confie à un exécutant branché, avec un bail d'une minute renouvelé tant qu'il donne signe de vie.
+- **Débrancher n'importe quand ne perd rien** : la mission repart dans la file.
+- **Les interrupteurs** : une famille entière (tous les navigateurs, tous les PC Node) ou un seul exécutant, pour l'administrateur ; « Brancher / Débrancher » pour chaque joueur.
+- **Le choix tient compte de la vitesse mesurée** de chaque appareil : une partie trop longue pour un téléphone va à un PC.
+
+![L'onglet Réseau de calcul du Labo, branché sur un serveur de test local : familles d'exécutants, campagne en cours, cet appareil et son journal](../docs-img/reseau-calcul.webp)
+
+*Capture faite avec un serveur de test sur la même machine, la page en ligne ne pouvant pas encore s'y connecter.*
+
+**Dans le jeu**, c'est l'onglet **🌐 Réseau de calcul** du Labo : se connecter, choisir le nombre de cœurs prêtés, brancher. Tant que le serveur n'est pas en ligne, l'onglet le dit et **rien ne part** de l'appareil. Ce qui part, une fois branché : le compte, le nombre de cœurs, l'empreinte du moteur et les parties jouées. Sur un PC, l'exécutant Node du dépôt `abalassembly-api` fait la même chose en ligne de commande.
+
+**Ce qui reste fermé**, avec la même rigueur qu'avant :
+- les tables de finales au-delà de 3v3 (voir ci-dessous) ;
+- l'entraînement d'un réseau de neurones ;
+- la répartition d'une recherche en direct entre plusieurs machines (trop de dépendances entre les branches, trop de latence) ;
+- les cartes graphiques (CUDA, WebGPU) : l'alpha-bêta n'en profite pas.
+
+## L'étude d'avant la v3.18
+
+Quatre propositions distinctes de « grille de calcul volontaire » (façon World Community Grid ou BOINC) avaient été étudiées. Aucune n'avait été retenue, et ses raisons restent justes pour ce qu'elles visaient : les tables de finales et l'entraînement d'un réseau de neurones. Le blocage tenait à ceci : **il n'existait aucun calcul qui justifie l'infrastructure**. Les duels du Labo, qui en sont un, sont devenus l'objet de la v3.18.
 
 ## Les tailles réelles des tablebases
 
@@ -69,6 +100,8 @@ Plusieurs propositions suggéraient un `distributed-worker.js` autonome. Un fich
 
 ## Le problème de la vérification
 
+*(Réglé par la v3.18 : parties reproductibles, recalcul de demi-coups tirés au hasard par le serveur, voir plus haut.)*
+
 Sans serveur, il n'existe aucun moyen de vérifier qu'un contributeur a réellement calculé ce qu'il renvoie. Un client malveillant — ou simplement buggé — pourrait retourner n'importe quoi.
 
 Les vraies grilles (BOINC, World Community Grid) résolvent ça en distribuant la même tâche à plusieurs machines et en comparant les résultats. Cela suppose exactement le serveur central que l'architecture hors-ligne cherche à éviter, et double le coût de calcul.
@@ -85,7 +118,9 @@ Trois points méritent d'être conservés pour le jour où la question se rouvri
 
 **Commencer par un test de reproductibilité, pas par les tablebases.** Faire calculer des positions aléatoires à plusieurs navigateurs et vérifier qu'ils retrouvent exactement le même résultat. Cela teste toute la chaîne — distribution, calcul, validation — sans engager des semaines de calcul sur un objectif incertain. C'était le meilleur conseil des quatre documents.
 
-## À quelles conditions la question se rouvre
+## À quelles conditions la question se rouvrait
+
+*(La première est remplie par les duels du Labo ; reste la seconde : héberger le serveur.)*
 
 Deux, cumulatives :
 

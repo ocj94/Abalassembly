@@ -9,6 +9,37 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.18]
+
+### Compute network: a scheduler, pluggable executors
+- **Reproducible Lab games.** At fixed depth, a game can now be redone move
+  for move, in any worker and on any device:
+  - the engine's hash keys come from a fixed seed (before, `Math.random`,
+    different keys in every worker);
+  - the board is put back in cell order before each search. Before, the order
+    of the marbles in memory, shuffled by earlier searches, changed the order
+    of the generated moves, and so the choice between two moves with the same
+    score: a move recomputed on its own differed from the move played (found
+    by recomputing).
+  Checked on 116 plies recomputed one by one, up to depth 3. Playing strength
+  doesn't change.
+- **Checking a game handed in**: the worker can replay an imposed game and
+  search the requested plies itself. It flags a move different from its own,
+  an illegal move, an opening that doesn't come from the seed, an unfinished
+  game or moves played after the end.
+- **The Lab's 🌐 Compute network tab**:
+  - sign in to the compute server, choose how many cores to lend, plug in or
+    unplug;
+  - for the administrator: the switches (an executor family, one executor)
+    and campaign creation (two weight sets, a depth, pairs).
+  As long as the server isn't online, the tab says so and **nothing leaves**
+  the device.
+- The server (`abalassembly-api`, `/ordo`) holds the mission queue and the
+  leases, picks the executor by its measured speed, and checks every game. A
+  Node executor plugs in a PC from the command line.
+- [Distributed computing](docs-en/Calcul-distribue.en.md) page rewritten:
+  what changed since the study that ruled it out, and what stays excluded.
+
 ## [v3.17]
 
 ### AI Observatory — the search tree, drawn

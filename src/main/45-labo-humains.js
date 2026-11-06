@@ -352,7 +352,7 @@ function renderContreToi(msg){
   hote.innerHTML = h;
 }
 /* ─── Les onglets de la page Labo ─── */
-const LAB_ONGLETS = ['tableau', 'auto', 'texel', 'styles', 'niveaux', 'humains', 'contretoi', 'ouvertures', 'outils'];
+const LAB_ONGLETS = ['tableau', 'auto', 'texel', 'styles', 'niveaux', 'humains', 'contretoi', 'ouvertures', 'reseau', 'outils'];
 function _laboOngletMemo(){ try { const o = localStorage.getItem('abaLabOnglet'); return LAB_ONGLETS.indexOf(o) >= 0 ? o : 'auto'; } catch (e) { return 'auto'; } }
 function laboOnglet(nom){
   if (LAB_ONGLETS.indexOf(nom) < 0) nom = 'auto';
@@ -363,7 +363,7 @@ function laboOnglet(nom){
 }
 function laboRendreOnglet(nom){
   const r = { tableau: 'renderLabTableau', auto: 'renderLab', texel: 'renderTexel', styles: 'renderTournoiStyles', niveaux: 'renderNiveaux', humains: 'renderHumains',
-    contretoi: 'renderContreToi', ouvertures: 'renderOuvertures', outils: 'renderTestKaah' }[nom];
+    contretoi: 'renderContreToi', ouvertures: 'renderOuvertures', reseau: 'renderLabReseau', outils: 'renderTestKaah' }[nom];
   if (r && typeof window[r] === 'function') window[r]();
 }
 // les styles du Labo dans la configuration de partie, des le chargement

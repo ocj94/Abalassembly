@@ -93,6 +93,7 @@ main/57-notations-historiques.js
 main/58-notation-saab.js
 main/58b-temps-reels.js
 main/58c-proba-mesuree.js
+main/58d-reseau-calcul.js
 main/59-observatoire-ia.js
 08-html.part
 09-script-tablebase.js

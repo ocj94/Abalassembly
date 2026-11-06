@@ -96,7 +96,7 @@ self.onmessage=function(e){
     return; }
   if(d.duelGame){
     try{ _recMoves=[]; var r=playDuelGame(d.wA,d.wB,d.colorA,d.seed,d.msPerMove,d.maxPlies,d.drawWin,d.ouverture,d.equilibre,
-          {depart:d.depart||null,cfgA:d.cfgA||null,cfgB:d.cfgB||null,arbitrage:d.arbitrage||1}); var mv=_recMoves; _recMoves=null; self.postMessage({duelGame:true,id:d.id,result:r,moves:mv}); }
+          {depart:d.depart||null,cfgA:d.cfgA||null,cfgB:d.cfgB||null,arbitrage:d.arbitrage||1,forces:d.forces||null,verifier:d.verifier||null}); var mv=_recMoves; _recMoves=null; self.postMessage({duelGame:true,id:d.id,result:r,moves:mv}); }
     catch(err){ _recMoves=null; self.postMessage({duelGame:true,id:d.id,error:String(err&&err.message||err)}); }
     return; }
   // v2.70, outils du Labo : termes d'evaluation (Texel, comme les humains) et choix de coups (niveaux)

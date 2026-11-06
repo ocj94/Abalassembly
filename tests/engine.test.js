@@ -7035,6 +7035,69 @@ test('Observatoire IA v3.09 : panneau reduit en une ligne, frise des decisions, 
   lire('OBS.hist = []; OBS.rev = -1');
 });
 
+test('v3.18, missions verifiables : cles de hachage d une graine fixe, partie a profondeur fixe recalculee coup par coup a l identique, triches detectees', () => {
+  const vm = require('vm');
+  const fil = () => { const { w, ev } = _filKaah(); return { w, ev, msg: (d) => { let out; w.postMessage = (m) => { out = m; }; w.__d = d; ev('self.onmessage({ data: __d })'); return out; } }; };
+  const A = fil(), B = fil();
+  assert.strictEqual(A.ev('JSON.stringify(ZOBRIST)'), B.ev('JSON.stringify(ZOBRIST)'), 'memes cles dans deux fils');
+  assert.strictEqual(A.ev('ZTRAIT'), B.ev('ZTRAIT'));
+  assert.ok(!/Math\.random\(/.test(ctx.AI_WORKER_CODE), 'plus aucun tirage non reproductible dans le fil');
+  const wA = ctx._labComplet(vm.runInContext('AI_WEIGHT_PRESETS.texel', ctx)), wB = ctx._labComplet(ctx._aiPoidsNiveau(3));
+  const M = { duelGame: true, id: 1, wA, wB, colorA: 'black', seed: 12345, msPerMove: 1e9, maxPlies: 14, drawWin: 300, ouverture: 4, equilibre: 600,
+    cfgA: { depth: 1, ms: 1e9 }, cfgB: { depth: 1, ms: 1e9 }, arbitrage: 2 };
+  const jouee = A.msg(M), coups = JSON.parse(JSON.stringify(jouee.moves.map((x) => ({ cells: x.cells, dir: x.dir }))));
+  // la meme partie dans un fil qui a deja joue autre chose : identique
+  B.msg(Object.assign({}, M, { seed: 999 }));
+  assert.strictEqual(JSON.stringify(B.msg(M).moves), JSON.stringify(jouee.moves), 'reproductible apres une autre partie');
+  // chaque demi-coup recalcule seul, dans un fil neuf : exactement le coup joue
+  const tous = []; for (let i = M.ouverture; i < coups.length; i++) tous.push(i);
+  const v = fil().msg(Object.assign({}, M, { forces: coups, verifier: tous }));
+  assert.strictEqual(JSON.stringify(v.result.ecarts), '[]');
+  assert.strictEqual(v.result.winner, jouee.result.winner); assert.strictEqual(v.result.why, jouee.result.why);
+  assert.strictEqual(v.result.forces, coups.length);
+  // un coup de l'ouverture change : refuse (l'ouverture vient de la graine)
+  const ouv = JSON.parse(JSON.stringify(coups)); ouv[0] = coups[1];
+  assert.strictEqual(fil().msg(Object.assign({}, M, { forces: ouv })).result.why, 'ouverture');
+  // un coup legal mais autre que celui du moteur : ecart au demi-coup change
+  const F = fil(); F.msg(Object.assign({}, M, { forces: coups.slice(0, 6) }));
+  const k6 = JSON.stringify(coups[6]);
+  const autre = F.ev('getAllMovesForColor(' + JSON.stringify(jouee.moves[6].col) + ').map(function(x){return {cells:x.cells.map(function(c){return {r:c.r,c:c.c};}),dir:{q:x.dir.q,r:x.dir.r}};})');
+  const alt = JSON.parse(JSON.stringify(autre)).find((x) => JSON.stringify(x) !== k6);
+  const tr = fil().msg(Object.assign({}, M, { forces: coups.slice(0, 6).concat([alt]), verifier: [6] })).result;
+  assert.strictEqual(JSON.stringify(tr.ecarts), '[6]');
+  // un coup illegal, un coup de trop, une partie inachevee
+  const ill = JSON.parse(JSON.stringify(coups)); ill[7] = { cells: [{ r: 0, c: 0 }], dir: { q: 0, r: -1 } };
+  assert.strictEqual(fil().msg(Object.assign({}, M, { forces: ill })).result.why, 'illegal');
+  assert.strictEqual(fil().msg(Object.assign({}, M, { forces: coups.concat([coups[0]]) })).result.why, 'apresLaFin');
+  assert.strictEqual(fil().msg(Object.assign({}, M, { forces: coups.slice(0, coups.length - 1) })).result.why, 'inacheve');
+  // sans forces : la partie se joue comme avant (memes champs de resultat)
+  assert.deepStrictEqual(Object.keys(jouee.result).sort(), ['cb', 'cw', 'plies', 'why', 'winner']);
+});
+
+test('v3.18, reseau de calcul : rien ne part tant que le serveur n est pas en ligne ; protocole de mission v1 ; onglet du Labo', () => {
+  const vm = require('vm'), lire = (c) => vm.runInContext(c, ctx);
+  assert.strictEqual(lire('BACKEND.enabled'), false);
+  assert.strictEqual(ctx._rsUrl(), null);
+  let appels = 0; const f0 = ctx.fetch; ctx.fetch = () => { appels++; return Promise.reject(new Error('non')); };
+  const hote = { innerHTML: '' }; const g = ctx.document.getElementById; ctx.document.getElementById = (id) => id === 'lab-reseau-host' ? hote : g.call(ctx.document, id);
+  try {
+    ctx.renderLabReseau();
+    assert.match(hote.innerHTML, /pas encore en ligne/);
+    return ctx.reseauBrancher().then(() => {
+      assert.strictEqual(appels, 0, 'aucune requete sans serveur'); assert.strictEqual(lire('RESEAU.branche'), false);
+      const mi = { id: 7, poidsA: { center: 1 }, poidsB: { center: 2 }, couleurA: 'white', graine: 42, profondeur: 2, maxPlies: 80, ouverture: 6, equilibre: 600, drawWin: 300, arbitrage: 2, depart: null };
+      assert.strictEqual(JSON.stringify(ctx._rsMessage(mi)), JSON.stringify({ duelGame: true, id: 7, wA: { center: 1 }, wB: { center: 2 }, colorA: 'white', seed: 42, msPerMove: 1e9, maxPlies: 80,
+        drawWin: 300, ouverture: 6, equilibre: 600, cfgA: { depth: 2, ms: 1e9 }, cfgB: { depth: 2, ms: 1e9 }, arbitrage: 2, depart: null }), 'le meme message que le serveur (src/moteurIA.js, messagePartie)');
+      const r = ctx._rsResultat({ moves: [{ cells: [{ r: 1, c: 2, x: 9 }], dir: { q: 1, r: 0, s: 3 }, col: 'black' }], result: { winner: 'A', why: '6capt', plies: 1, cb: 6, cw: 0 } }, 50);
+      assert.strictEqual(JSON.stringify(r), JSON.stringify({ coups: [{ cells: [{ r: 1, c: 2 }], dir: { q: 1, r: 0 } }], vainqueur: 'A', pourquoi: '6capt', plies: 1, cb: 6, cw: 0, ms: 50 }));
+      assert.ok(lire('LAB_ONGLETS').includes('reseau'));
+      const html = _SRC_INDEX;
+      assert.ok(html.includes('data-onglet="reseau"') && html.includes('id="lab-reseau-host"'));
+      assert.ok(!/localStorage\.getItem\('abaReseauApi'\)/.test(html), 'pas d adresse de serveur reglable par le stockage local');
+    });
+  } finally { ctx.fetch = f0; ctx.document.getElementById = g; }
+});
+
 test('v3.17, arbre de recherche : le message « profondeur terminee » emporte la suite prevue de ses 10 meilleurs coups, sans rien changer au choix', () => {
   const { w, ev } = _filKaah();
   const B = ctx.LAYOUTS.belgian, b = {}; B.black.forEach(q => { b[q[0] + ',' + q[1]] = 'black'; }); B.white.forEach(q => { b[q[0] + ',' + q[1]] = 'white'; });
@@ -7347,7 +7410,8 @@ test('Observatoire IA : deux fleches qui partent de la meme bille ont chacune le
 
 test('Documentation illustree de l\'analyse : chaque image citee existe et reste legere, chaque page a sa traduction et son lien', () => {
   const fs = require('fs'), path = require('path'), R = f => path.join(__dirname, '..', f);
-  const pages = [['docs-fr/Observatoire-IA.fr.md', 'docs-en/Observatoire-IA.en.md'], ['docs-fr/Analyse.fr.md', 'docs-en/Analyse.en.md'], ['docs-fr/Reflexion-IA.fr.md', 'docs-en/Reflexion-IA.en.md']];
+  const pages = [['docs-fr/Observatoire-IA.fr.md', 'docs-en/Observatoire-IA.en.md'], ['docs-fr/Analyse.fr.md', 'docs-en/Analyse.en.md'], ['docs-fr/Reflexion-IA.fr.md', 'docs-en/Reflexion-IA.en.md'],
+    ['docs-fr/Calcul-distribue.fr.md', 'docs-en/Calcul-distribue.en.md']];   // v3.18 : le reseau de calcul
   const vues = new Set();
   pages.forEach(([fr, en]) => {
     [fr, en].forEach(f => {

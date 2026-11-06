@@ -9,6 +9,39 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.18]
+
+### Réseau de calcul : un ordonnanceur, des exécutants branchables
+- **Parties du Labo reproductibles.** À profondeur fixe, une partie se refait
+  maintenant coup pour coup, dans n'importe quel fil et sur n'importe quel
+  appareil :
+  - les clés de hachage du moteur sortent d'une graine fixe (avant,
+    `Math.random`, d'autres clés dans chaque fil) ;
+  - le plateau est remis dans l'ordre des cases avant chaque recherche. Avant,
+    l'ordre des billes en mémoire, bousculé par les recherches précédentes,
+    changeait l'ordre des coups générés, donc le choix entre deux coups de même
+    note : un coup recalculé seul différait du coup joué (trouvé en
+    recalculant).
+  Vérifié sur 116 demi-coups recalculés un à un, jusqu'à la profondeur 3.
+  La force du jeu ne change pas.
+- **Vérification d'une partie rendue** : le fil de calcul sait rejouer une
+  partie imposée et rechercher lui-même les demi-coups demandés. Il signale un
+  coup différent du sien, un coup illégal, une ouverture qui ne vient pas de la
+  graine, une partie inachevée ou des coups joués après la fin.
+- **Onglet 🌐 Réseau de calcul du Labo** :
+  - se connecter au serveur de calcul, choisir le nombre de cœurs prêtés,
+    brancher ou débrancher ;
+  - pour l'administrateur : les interrupteurs (une famille d'exécutants, un
+    exécutant) et la création de campagnes (deux jeux de poids, une
+    profondeur, des paires).
+  Tant que le serveur n'est pas en ligne, l'onglet le dit et **rien ne part**
+  de l'appareil.
+- Le serveur (`abalassembly-api`, `/ordo`) tient la file des missions et les
+  baux, choisit l'exécutant selon sa vitesse mesurée, et vérifie chaque
+  partie. Un exécutant Node permet de brancher un PC en ligne de commande.
+- Page [Calcul distribué](docs-fr/Calcul-distribue.fr.md) réécrite : ce qui a
+  changé depuis l'étude qui l'écartait, et ce qui reste exclu.
+
 ## [v3.17]
 
 ### Observatoire IA — l'arbre de recherche dessiné
