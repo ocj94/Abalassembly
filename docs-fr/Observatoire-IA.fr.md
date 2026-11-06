@@ -2,7 +2,7 @@
 
 # Observatoire IA
 
-*Depuis la v3.05, enrichi jusqu'à la v3.15.* Un panneau qui montre ce que l'IA calcule **pendant** la partie, puis pourquoi elle a choisi son coup. Les captures ci-dessous viennent du vrai site, pendant une vraie partie contre l'IA.
+*Depuis la v3.05, enrichi jusqu'à la v3.17.* Un panneau qui montre ce que l'IA calcule **pendant** la partie, puis pourquoi elle a choisi son coup. Les captures ci-dessous viennent du vrai site, pendant une vraie partie contre l'IA.
 
 **Pour l'ouvrir** : en partie contre l'IA, l'onglet **« 🔭 Observatoire IA »** de la colonne de droite (ou le bouton du même nom dans l'onglet Partie). *Depuis la v3.15*, ce n'est plus une fenêtre : l'Observatoire est un onglet de la colonne de droite, comme Liste ou Commentaires. Il a cinq onglets et trois niveaux de détail : **Spectateur**, **Analyste**, **Développeur**.
 
@@ -32,11 +32,33 @@ Profondeur atteinte, positions examinées, temps sur le temps accordé, vitesse.
 - **le journal de la recherche** : une ligne par profondeur terminée, avec le meilleur coup, sa note, les positions et les coupures, et « le meilleur change » quand c'est le cas ; à la fin, le coup joué, et « temps écoulé pendant la profondeur N » si le minuteur a coupé ;
 - la vitesse, les coupures alpha-bêta, la table de transposition, l'élagage par profondeur ; au niveau Développeur, le détail fil par fil.
 
+*Depuis la v3.17*, l'**arbre de recherche** y figure aussi, en vue simplifiée (voir ci-dessous) ; **détails →** ouvre l'onglet Recherche.
+
 ## Recherche : les coups étudiés
 
 ![Onglet Recherche : mini plateau avec coordonnées, flèches numérotées et carte de chaleur, liste des coups de départ](../docs-img/obs-recherche.webp)
 
 Tous les coups de départ, avec leur note, leur écart avec le meilleur, l'effort de recherche passé dessous, et ⚠ quand l'adversaire a une éjection juste après. Le mini plateau porte les **coordonnées Aba-Pro** (lettres a à i, chiffres 1 à 9) pour lire la notation.
+
+### L'arbre de recherche
+
+![Arbre de recherche pendant le calcul : le meilleur coup en cours (pastille jaune), les deux suivants pas encore notés à la profondeur 4](../docs-img/obs-arbre.webp)
+
+*Depuis la v3.17.* En haut de l'onglet : la position, ses meilleurs coups de départ en cases notées, et sous chacun la **suite que l'IA prévoit** (2. la réponse attendue, 3. la reprise…). La pastille noire ou blanche dit qui joue.
+
+**Pendant le calcul, l'arbre se remplit.** Les coups sont classés selon la dernière profondeur terminée, pour que l'ordre ne saute pas. La pastille en haut à droite de chaque coup dit où il en est à la profondeur en cours :
+
+- **jaune** : un fil de calcul le cherche en ce moment ;
+- **bleue** : sa note à cette profondeur est connue, et c'est elle qui est affichée ;
+- **grise**, cadre en pointillés : pas encore noté, il garde sa note précédente.
+
+Le petit **p3**, **p4** à côté de la note dit de quelle profondeur elle vient. La barre sous la note montre l'effort de recherche passé sous le coup. Le cadre vert marque le meilleur coup du moment, puis le coup joué.
+
+![Vue complète après le coup : cinq coups de départ et leur suite](../docs-img/obs-arbre-complet.webp)
+
+**Vue simplifiée** : 3 coups, 2 étages de suite. **Vue complète** (Analyste, Développeur) : 5 coups et toute la suite gardée ; sur un écran étroit, elle défile de côté. Le site se souvient de la vue choisie. Toucher un coup le choisit comme dans la liste. Une fois le coup joué, toucher une case de la suite montre le plateau à cette étape.
+
+Deux choses des maquettes n'y sont pas, parce qu'elles seraient inventées. D'abord, **plusieurs réponses notées sous un coup** : le moteur ne garde que la réponse qu'il prévoit, et noter les autres voudrait dire recalculer. Ensuite, une **case « élaguée »** : aucun coup de départ n'est élagué, chacun est cherché en entier ; l'élagage se fait plus bas, et le moteur compte les coupures sans retenir lesquelles. Au niveau Développeur, les **10 lignes principales** restent listées en bas de l'onglet.
 
 ### Carte de chaleur : où l'IA veut aller
 
@@ -101,7 +123,7 @@ Sur téléphone, l'Observatoire s'ouvre sous le plateau, dans les onglets de la 
 
 ## Ce que le panneau ne prétend pas
 
-- **Pas d'arbre complet** : le moteur ne garde pas les milliers de positions examinées. On montre les lignes principales des 10 meilleurs coups de départ.
+- **Pas d'arbre complet** : le moteur ne garde pas les milliers de positions examinées. L'arbre dessiné montre les meilleurs coups de départ et, sous chacun, une seule réponse par étage : celle que le moteur prévoit.
 - **Pas d'élagage à la racine** : chaque coup de départ est noté en entier. Un coup est écarté pour sa note, pas parce que sa branche a été coupée.
 - **Pas de « confiance » inventée**, ni de « mémoire utilisée » : on montre l'écart avec le 2e coup, le nombre de profondeurs où le choix est resté le même et, sur demande, la chance de gain mesurée sur de vraies parties : des faits mesurés.
 

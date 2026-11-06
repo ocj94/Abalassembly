@@ -7035,6 +7035,86 @@ test('Observatoire IA v3.09 : panneau reduit en une ligne, frise des decisions, 
   lire('OBS.hist = []; OBS.rev = -1');
 });
 
+test('v3.17, arbre de recherche : le message « profondeur terminee » emporte la suite prevue de ses 10 meilleurs coups, sans rien changer au choix', () => {
+  const { w, ev } = _filKaah();
+  const B = ctx.LAYOUTS.belgian, b = {}; B.black.forEach(q => { b[q[0] + ',' + q[1]] = 'black'; }); B.white.forEach(q => { b[q[0] + ',' + q[1]] = 'white'; });
+  const msgs = []; w.postMessage = m => msgs.push(m);
+  const lancer = obs => { msgs.length = 0; w.__d = { board: JSON.parse(JSON.stringify(b)), capturedByBlack: 0, capturedByWhite: 0, color: 'black', depth: 3, time: 1e9, hist: null, observe: obs };
+    ev('self.onmessage({ data: __d })'); return msgs.slice(); };
+  const sans = lancer(0), avec = lancer(1), fin = avec[avec.length - 1];
+  assert.strictEqual(JSON.stringify(fin.move), JSON.stringify(sans[sans.length - 1].move), 'meme coup');
+  assert.strictEqual(fin.metrics.nodes, sans[sans.length - 1].metrics.nodes, 'memes positions');
+  const pr = avec.filter(m => m.progress), fins = pr.filter(m => m.fin);
+  assert.ok(pr.filter(m => !m.fin).every(m => m.pv === null), 'pas de suite dans les messages intermediaires');
+  assert.strictEqual(fins.length, 3);
+  fins.forEach(m => {
+    const attendu = {}; fin.metrics.rootsByDepth[m.d].slice().sort((a, c) => c.score - a.score).slice(0, 10).forEach(r => { if (r.pv) attendu[r.key] = r.pv; });
+    assert.strictEqual(JSON.stringify(m.pv), JSON.stringify(attendu), 'profondeur ' + m.d);
+    assert.strictEqual(Object.keys(m.pv).length, Math.min(10, m.roots.length));
+    Object.values(m.pv).forEach(l => assert.strictEqual(l.length <= m.d - 1, true, 'une suite de d-1 demi-coups au plus'));
+  });
+  assert.ok(Object.values(fins[2].pv).some(l => l.length === 2), 'a la profondeur 3, des suites de deux demi-coups');
+  assert.strictEqual(ev('_obsCtx'), null);
+});
+
+test('v3.17, arbre de recherche dessine : en direct (en cours / note / pas encore note), suites du moteur, coup joue ; jamais de case « elaguee »', () => {
+  const vm = require('vm'), lire = c => vm.runInContext(c, ctx);
+  const { poserDisposition } = require('./harness'); poserDisposition(ctx, 'belgian');
+  lire("OBS.ouvert = false; OBS.bandeau = true; OBS.hist = []; OBS.rev = -1; OBS.niveau = 'analyste'; OBS.sel = null; _obsArbreVue = 'simple'");
+  const coups = ctx.getAllMovesForColor('black').slice(0, 4), K = Array.from(coups, m => ctx.moveKey(m));   // tableau de ce contexte-ci
+  const nom = m => ctx.abaproOfficialLabels(m)[0];
+  // une vraie reponse blanche apres le premier coup, puis une vraie reprise noire
+  const suite = ctx._avecPlateau(JSON.parse(JSON.stringify(ctx.board)), 0, 0, () => {
+    const jouer = (m, c) => { const info = ctx.validateMove(m.cells, m.dir, c); ctx.applyMove({ cells: m.cells, dir: m.dir, info }, c); };
+    jouer(coups[0], 'black'); const r = ctx.getAllMovesForColor('white')[0], nr = nom(r); jouer(r, 'white');
+    const r2 = ctx.getAllMovesForColor('black')[0];
+    return { pv: [{ cells: r.cells, dir: r.dir, c: 'white' }, { cells: r2.cells, dir: r2.dir, c: 'black' }], noms: [nr, nom(r2)] };
+  });
+  ctx.obsDebut('black', { time: 5000 });
+  const msg = (d, roots, o) => Object.assign({ progress: 1, w: 0, d, max: 5, i: roots.length, n: 4, cur: null, nodes: 1000 * d, cuts: 1, tt: 0, ms: 10, fin: 0, roots, depths: [], pv: null }, o || {});
+  const p1 = [[1, 1000, 10, 1, 300]];   // la liste des profondeurs terminees, comme le moteur l'envoie
+  ctx.obsProgres(msg(1, [[K[0], 300, 50, 0], [K[1], 200, 40, 0], [K[2], 100, 30, 0], [K[3], 50, 10, 0]], { fin: 1, i: 4, depths: p1, pv: { [K[0]]: suite.pv } }), 1);
+  ctx.obsProgres(msg(2, [[K[1], 260, 60, 0]], { cur: K[2], depths: p1 }), 1);   // profondeur 2 : K1 deja note, K2 en cours, K0 pas encore
+  const V = ctx._obsVue(); assert.strictEqual(V.mode, 'direct');
+  const A = JSON.parse(JSON.stringify(ctx._obsArbreDonnees(V, false)));
+  assert.strictEqual(A.prof, 2); assert.strictEqual(A.dFin, 1);
+  assert.deepStrictEqual(A.coups.map(c => c.cle), K.slice(0, 3), 'classes selon la profondeur 1 terminee : l ordre ne saute pas');
+  assert.deepStrictEqual(A.coups.map(c => c.etat), ['attente', 'notee', 'encours']);
+  assert.deepStrictEqual(A.coups.map(c => [c.s, c.dS]), [[300, 1], [260, 2], [100, 1]], 'la note affichee et sa profondeur');
+  assert.strictEqual(A.coups[0].meilleur, true);
+  // le fil garde le nom du coup qu'il vient de finir : deja note, il n'est plus « en cours »
+  ctx.obsProgres(msg(2, [[K[1], 260, 60, 0], [K[2], 120, 30, 0]], { cur: K[2], depths: p1 }), 1);
+  assert.strictEqual(ctx._obsArbreDonnees(ctx._obsVue(), false).coups.map(c => c.etat).join(), 'attente,notee,notee');
+  ctx.obsProgres(msg(2, [[K[1], 260, 60, 0]], { cur: K[2], depths: p1 }), 1);
+  assert.strictEqual(JSON.stringify(A.coups[0].suite), JSON.stringify([{ n: suite.noms[0], c: 'white' }, { n: suite.noms[1], c: 'black' }]), 'la suite du moteur, en notation Aba-Pro');
+  assert.deepStrictEqual(A.coups[1].suite, [], 'pas de suite inventee quand le moteur n en a pas envoye');
+  const html = ctx._obsArbreHTML(V, false), svg = ctx._obsArbreSVG(ctx._obsArbreDonnees(V, false), false);
+  K.slice(0, 3).forEach(k => assert.ok(html.includes('data-apercu="' + k + '"') && html.includes("obsChoisir('" + k + "')"), k));
+  ['Arbre de recherche', 'Vue simplifiée', 'en cours', 'pas encore noté', 'noté à cette profondeur', '>p2<', 'une seule réponse par étage', '2. ' + suite.noms[0], '3. ' + suite.noms[1]].forEach(x => assert.ok(html.includes(x), x));
+  assert.ok(!/lagu/i.test(svg), 'aucune case « elaguee » dans le dessin');
+  assert.ok(svg.includes("obsArbreEtape('" + K[0] + "',-1)"), 'en direct, une case de la suite choisit le coup');
+  // vue complete : 5 coups (ici 4 notes) ; Spectateur : toujours simplifiee ; Vue generale : simplifiee, lien vers Recherche
+  lire("_obsArbreVue = 'complet'"); assert.strictEqual(ctx._obsArbreDonnees(V, false).coups.length, 4);
+  lire("OBS.niveau = 'spectateur'"); assert.strictEqual(ctx._obsArbreDonnees(V, false).coups.length, 3);
+  lire("OBS.niveau = 'analyste'");
+  const compact = ctx._obsArbreHTML(V, true);
+  assert.ok(compact.includes("obsOnglet('recherche');obsChoisir(") && compact.includes('détails →') && !compact.includes('<select'));
+  assert.strictEqual(ctx._obsArbreDonnees(V, true).coups.length, 3);
+  lire("_obsArbreVue = 'simple'");
+  assert.ok(ctx._obsTabRecherche(V).includes('obs-ar-cadre') && ctx._obsTabGeneral(V).includes('obs-ar-cadre'), 'dans les deux onglets');
+  // apres le coup : le coup joue en vert, meme hors des 3 premiers ; les cases de la suite menent a l etape du plateau
+  const det = { racine: { board: JSON.parse(JSON.stringify(ctx.board)), cB: 0, cW: 0 }, couleur: 'black',
+    prof: [{ d: 2, noeuds: 900, lignes: [300, 200, 150, 100].map((sc, i) => ({ cells: coups[i].cells, dir: coups[i].dir, s: sc, k: 10 + i, pv: i === 0 ? suite.pv.slice(0, 1) : [] })) }] };
+  const Vf = { mode: 'fini', e: { cle: K[3], couleur: 'black', det, noeuds: 900, prof: 2 } };
+  const F = JSON.parse(JSON.stringify(ctx._obsArbreDonnees(Vf, false)));
+  assert.deepStrictEqual(F.coups.map(c => c.cle), [K[0], K[1], K[3]]);
+  assert.deepStrictEqual(F.coups.map(c => c.meilleur), [false, false, true]);
+  assert.strictEqual(JSON.stringify(F.coups[0].suite), JSON.stringify([{ n: suite.noms[0], c: 'white' }]));
+  const svgF = ctx._obsArbreSVG(ctx._obsArbreDonnees(Vf, false), false);
+  assert.ok(svgF.includes("obsArbreEtape('" + K[0] + "',2)") && !svgF.includes('>p2<'));
+  lire("OBS.live = null; OBS.hist = []; OBS.sel = null");
+});
+
 test('v3.16, bibliotheques des CDN verifiees octet pour octet ; SheetJS lu hors de la page, et seulement en texte', async () => {
   const fs = require('fs'), path = require('path'), vm = require('vm'), lire = n => vm.runInContext(n, ctx);
   const csp = _SRC_INDEX.match(/Content-Security-Policy" content="([^"]*)"/)[1].split(';').map(x => x.trim());

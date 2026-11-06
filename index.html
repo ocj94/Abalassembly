@@ -8934,7 +8934,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v3.16';
+const APP_VERSION = 'v3.17';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -20574,7 +20574,7 @@ function _obsEnvoie(fin){
   const now=Date.now();if(!fin&&now-_obsT<_obs)return;_obsT=now;
   const c=_obsCtx;
   self.postMessage({progress:1,w:c.w,d:c.d,max:c.max,i:c.i,n:c.n,cur:c.cur,nodes:_nodes,cuts:_cuts,
-    tt:_ttLk?Math.round(100*_ttHit/_ttLk):0,ms:now-c.t0,fin:fin?1:0,roots:c.roots,depths:c.depths});
+    tt:_ttLk?Math.round(100*_ttHit/_ttLk):0,ms:now-c.t0,fin:fin?1:0,roots:c.roots,depths:c.depths,pv:fin&&c.pv?c.pv:null});
 }
 function search(depth,alpha,beta,maxi,pov,prevKey){
   _nodes++;
@@ -20688,8 +20688,12 @@ function searchBestMove(pov,maxDepth,timeLimit,hist,workerIndex,workerCount){
     if(lb){bestMove=lb;bestScore=ls;reached=d;if(!cut){lastRoots=roots;lastRootsDepth=d;rootsByDepth[d]=roots;
       // profondeur complete : bilan, puis suite prevue et criteres de ses 10 meilleurs coups
       depthInfo[d]={nodes:_nodes-_nd0,ms:Date.now()-_td0,fin:Date.now()-start,cuts:_cuts-_cu0};
-      if(_obsCtx){_obsCtx.depths.push([d,_nodes-_nd0,Date.now()-_td0,_cuts-_cu0,Math.round(ls)]);_obsEnvoie(true);}
-      roots.slice().sort((a,b)=>b.score-a.score).slice(0,10).forEach(function(r){const x=_pvEtTermes(r.key,pov,d-1);if(x){r.pv=x.pv;r.terms=x.terms;}});}}
+      const _top10=roots.slice().sort((a,b)=>b.score-a.score).slice(0,10);
+      _top10.forEach(function(r){const x=_pvEtTermes(r.key,pov,d-1);if(x){r.pv=x.pv;r.terms=x.terms;}});
+      /* v3.17 : le message « profondeur terminee » emporte la suite prevue de ses 10 meilleurs coups
+         (calculee juste avant, comme avant : rien ne change dans la recherche), pour l'arbre en direct */
+      if(_obsCtx){_obsCtx.depths.push([d,_nodes-_nd0,Date.now()-_td0,_cuts-_cu0,Math.round(ls)]);
+        _obsCtx.pv={};_top10.forEach(function(r){if(r.pv)_obsCtx.pv[r.key]=r.pv;});_obsEnvoie(true);_obsCtx.pv=null;}}}
     if(Date.now()-start>timeLimit)break;}
   const top=lastRoots?lastRoots.slice().sort((a,b)=>b.score-a.score).slice(0,5):null;
   /* rootsByDepth : liste COMPLETE des coups racine de ce worker, rangee par
@@ -48212,7 +48216,7 @@ function obsDebut(couleur, config) {
   OBS.surPlateau = null;
   if (OBS.rev < 0) { OBS.sel = null; OBS.etape = -1; OBS.tout = false; OBS.cmp = null; OBS.etapeCmp = -1; }
   OBS.live = { etat: 'calcul', couleur: couleur, budget: config ? config.time : 0, t0: Date.now(), fils: {}, nFils: 1, parProf: {}, serie: [],
-               racine: JSON.parse(JSON.stringify(board)), coups: _obsCoupsRacine(couleur), cle: null, source: null, top: [], journal: [], jProf: {} };
+               racine: JSON.parse(JSON.stringify(board)), coups: _obsCoupsRacine(couleur), cle: null, source: null, top: [], journal: [], jProf: {}, pvProf: {}, suites: {} };
   OBS.live.journal.push({ t: 0, k: 'debut', n: OBS.live.coups.size });
   OBS.tBandeau = 0; _obsBandeau(true);
   _obsPlanifier();
@@ -48220,7 +48224,9 @@ function obsDebut(couleur, config) {
 function obsProgres(m, nFils) {
   const L = OBS.live; if (!L || L.etat !== 'calcul') return;
   L.nFils = nFils || 1; L.fils[m.w] = m;
-  if (m.fin) { (L.parProf[m.d] = L.parProf[m.d] || {})[m.w] = m.roots; _obsJournalProf(L, m.d); }
+  if (m.fin) { (L.parProf[m.d] = L.parProf[m.d] || {})[m.w] = m.roots;
+    if (m.pv) { L.pvProf = L.pvProf || {}; const P = L.pvProf[m.d] = L.pvProf[m.d] || {}; Object.keys(m.pv).forEach(function (k) { P[k] = m.pv[k]; }); }   // v3.17 : arbre en direct
+    _obsJournalProf(L, m.d); }
   const tot = Object.keys(L.fils).reduce(function (a, k) { return a + L.fils[k].nodes; }, 0);
   L.serie.push({ t: Date.now() - L.t0, n: tot }); if (L.serie.length > 400) L.serie.splice(1, 1);
   // les 3 meilleurs coups du moment : redessines sur le plateau de la partie quand ils changent
@@ -48613,6 +48619,7 @@ function _obsTabGeneral(V) {
   if (etat === 'calcul' && typeof forceAINow === 'function') h += '<div style="margin-top:6px"><button class="obs-btn obs-vite" onclick="forceAINow()" title="' + _obsT('Interrompre la réflexion et jouer le meilleur coup trouvé', 'Stop thinking and play the best move found') + '">⚡ ' + _obsT('Jouer maintenant', 'Play now') + '</button></div>';
   if (budget && !illim) h += '<div class="obs-prog" title="' + _obsT('Temps utilisé sur le temps accordé', 'Time used out of the allowed time') + '"><i style="width:' + Math.min(100, Math.round(100 * ms / budget)) + '%"></i></div>'
     + '<div class="obs-note">' + _obsT('Temps accordé : ', 'Time allowed: ') + _msTexte(budget) + '</div>';
+  h += _obsArbreHTML(V, true);   // v3.17 : l'arbre simplifie (3 coups, 2 etages)
   if (meilleurs.length) {
     h += '<h5>' + _obsT('Meilleur coup, profondeur après profondeur', 'Best move, depth after depth') + '</h5><div class="obs-profs">';
     meilleurs.forEach(function (x, i) { const nom = x.n || _obsNom(V.L, x.k), chg = i && meilleurs[i - 1] && (x.n || x.k) !== (meilleurs[i - 1].n || meilleurs[i - 1].k);
@@ -48640,6 +48647,137 @@ function _obsTabGeneral(V) {
     fils.forEach(function (f, i) { h += '<tr><td>' + (f.w != null ? f.w + 1 : i + 1) + '</td><td>' + f.d + '</td><td>' + _obsN(f.nodes) + '</td><td>' + _obsN(f.cuts) + '</td><td>' + (f.tt != null ? f.tt : 0) + ' %</td></tr>'; });
     h += '</table><div class="obs-note">' + _obsT('Chaque fil cherche sa part des coups de départ, avec sa propre table : les notes d’un fil à l’autre ne sont pas parfaitement comparables.', 'Each thread searches its share of the first moves with its own table: scores are not perfectly comparable across threads.') + '</div>';
   }
+  return h;
+}
+
+/* ═══ v3.17 : l'arbre de recherche dessine (d'apres les maquettes envoyees par ocj94) ═══
+   La position, ses meilleurs coups de depart (cases notees), et sous chacun la chaine de sa suite prevue.
+   Que des donnees du moteur :
+   - les coups sont classes selon la derniere profondeur terminee par tous les fils (l'ordre ne saute pas
+     a chaque message) ;
+   - en direct, chaque coup dit ou il en est a la profondeur en cours : en cours (un fil le cherche en ce
+     moment), note (sa note a cette profondeur est connue, et c'est elle qui est affichee), pas encore note
+     (il garde sa note de la profondeur precedente) ;
+   - sous chaque coup, UNE reponse par etage : celle que le moteur prevoit (sa table de transposition). Les
+     autres reponses ne sont pas gardees ; leur donner une note voudrait dire recalculer, ou inventer ;
+   - pas de case « elaguee » : aucun coup de depart n'est elague (fenetre complete a la racine).
+   Vue simplifiee : 3 coups, 2 etages de suite. Vue complete (Analyste, Developpeur) : 5 coups, toute la suite. */
+let _obsArbreVue = 'simple';
+try { if (localStorage.getItem('abaObsArbre') === 'complet') _obsArbreVue = 'complet'; } catch (e) {}
+function obsArbreVue(v) { _obsArbreVue = v === 'complet' ? 'complet' : 'simple'; try { localStorage.setItem('abaObsArbre', _obsArbreVue); } catch (e) {} _obsRendu(); }
+function obsArbreEtape(cle, k) {   // une case de la suite : le coup choisi, plateau a cette etape (onglet Recherche)
+  OBS.onglet = 'recherche'; OBS.sel = cle; OBS.etape = k;
+  const L = OBS.live;
+  if (L && L.etat === 'calcul') { const x = _obsLireCle(cle); OBS.surPlateau = x ? { cells: x.cells, dir: x.dir } : null; if (typeof drawBoard === 'function') drawBoard(); }
+  _obsRendu();
+}
+// noms Aba-Pro d'une suite prevue (en direct : coups du moteur {cells, dir, c}), rejouee sur une COPIE de la position
+function _obsSuiteNoms(racine, couleur, cle, pv) {
+  const x = _obsLireCle(cle); if (!x || !racine || !pv || !pv.length || typeof _avecPlateau !== 'function') return [];
+  const jouer = function (m, col) { const info = validateMove(m.cells, m.dir, col); if (!info || !info.valid) return false; applyMove({ cells: m.cells, dir: m.dir, info: info }, col); return true; };
+  const aGO = typeof GameOver !== 'undefined' && GameOver && typeof GameOver.get === 'function', go = aGO ? GameOver.get() : false;
+  try {
+    if (aGO) GameOver.set(false);
+    return _avecPlateau(JSON.parse(JSON.stringify(racine)), 0, 0, function () {
+      const noms = []; if (!jouer(x, couleur)) return noms;
+      for (let i = 0; i < pv.length; i++) { const s = pv[i], k = moveKey(s), mv = getAllMovesForColor(s.c).find(function (m) { return moveKey(m) === k; }); if (!mv) break;
+        noms.push({ n: (abaproOfficialLabels(mv) || [])[0] || '?', c: s.c }); if (!jouer(mv, s.c)) break; }
+      return noms;
+    });
+  } catch (e) { return []; } finally { if (aGO) GameOver.set(go); }
+}
+function _obsArbreDonnees(V, compact) {
+  if (!V || V.mode === 'vide' || V.mode === 'source') return null;
+  const complet = !compact && _obsArbreVue === 'complet' && _obsNiv() >= 1, N = complet ? 5 : 3, E = complet ? 12 : 2;
+  const adv = function (c) { return c === 'white' ? 'black' : 'white'; };
+  if (V.mode === 'direct') {
+    const L = V.L, C = _obsClassement(L), F = Object.keys(L.fils).map(function (w) { return L.fils[w]; });
+    if (!C.tous.length) return null;
+    const enCours = {}, note = {};
+    F.forEach(function (f) { if (f.cur && !f.fin) enCours[f.cur] = 1; (f.roots || []).forEach(function (r) { if (f.d > C.d) note[r[0]] = { s: r[1], d: f.d }; }); });
+    const pv = (C.d && L.pvProf && L.pvProf[C.d]) || {}; L.suites = L.suites || {};
+    const coups = C.tous.slice(0, N).map(function (x, i) {
+      const k = x[0], nn = note[k], cs = C.d + '|' + k;
+      if (L.suites[cs] === undefined && pv[k]) L.suites[cs] = _obsSuiteNoms(L.racine, L.couleur, k, pv[k]);
+      return { cle: k, n: _obsNom(L, k), s: nn ? nn.s : x[1], dS: nn ? nn.d : C.d, k: x[2] || 0, meilleur: i === 0,
+               // un coup deja note a cette profondeur l'emporte sur « en cours » : le fil garde le nom du coup qu'il
+               // vient de finir jusqu'au debut du suivant, et le message part juste apres la note
+               etat: nn ? 'notee' : enCours[k] ? 'encours' : (C.d ? 'attente' : 'notee'), suite: L.suites[cs] || [] };
+    });
+    const a = _obsAgreg(L);
+    return { direct: true, prof: a.d, dFin: C.d, noeuds: a.nodes, couleur: L.couleur, coups: coups, N: N, E: E, complet: complet };
+  }
+  const e = V.e; if (!e) return null;
+  let coups = [];
+  if (e.det && e.det.prof && e.det.prof.length) {
+    _notationsReflexion(e.det);
+    const lignes = e.det.prof[0].lignes.slice();
+    let choix = lignes.slice(0, N); const iRet = e.cle ? lignes.findIndex(function (l) { return moveKeyDe(l) === e.cle; }) : -1;
+    if (iRet >= N) choix[N - 1] = lignes[iRet];   // le coup joue reste visible meme s'il n'est pas dans les N premiers
+    coups = choix.map(function (l, i) { const k = moveKeyDe(l);
+      return { cle: k, n: l.n || '?', s: l.s, dS: e.det.prof[0].d, k: l.k || 0, meilleur: e.cle ? k === e.cle : i === 0, etat: 'notee',
+               suite: (l.suite || []).map(function (nm, j) { return { n: nm, c: j % 2 === 0 ? adv(e.couleur) : e.couleur }; }), etape: true }; });
+  } else if (e.tous && e.tous.length) {
+    coups = e.tous.slice(0, N).map(function (x, i) { return { cle: x[0], n: (e.noms && e.noms[x[0]]) || '?', s: x[1], dS: e.profTous || e.prof, k: x[2] || 0, meilleur: e.cle ? x[0] === e.cle : i === 0, etat: 'notee', suite: [] }; });
+  }
+  if (!coups.length) return null;
+  return { direct: false, prof: (e.det && e.det.prof[0].d) || e.profTous || e.prof, dFin: (e.det && e.det.prof[0].d) || e.profTous || e.prof, noeuds: e.noeuds || (e.det ? e.det.prof[0].noeuds : 0),
+           couleur: e.couleur, coups: coups, N: N, E: E, complet: complet };
+}
+const _OBS_AR_COUL = { meilleur: '#66bb6a', encours: '#ffca28', notee: '#7aa2f7', attente: '#8d93a8' };
+function _obsArbreSVG(A, compact) {
+  const n = A.coups.length, colW = A.complet ? 96 : 104, pad = 6, W = n * colW + 2 * pad;
+  const rootY = 4, rootH = 34, mY = rootY + rootH + 26, mH = 50, sH = 24, sG = 12;
+  const nivs = Math.min(A.E, Math.max.apply(null, A.coups.map(function (c) { return c.suite.length; }).concat([0])));
+  const H = mY + mH + nivs * (sH + sG) + 6, rW = Math.min(W - 2 * pad, 210), rX = (W - rW) / 2, cx = W / 2;
+  const maxk = Math.max.apply(null, A.coups.map(function (c) { return c.k; }).concat([1]));
+  const coul = function (c) { return c.meilleur ? _OBS_AR_COUL.meilleur : _OBS_AR_COUL[c.etat]; };
+  const ouvrir = function (js) { return compact ? "obsOnglet('recherche');" + js : js; };
+  let g = '<rect class="obs-ar-case" x="' + rX + '" y="' + rootY + '" width="' + rW + '" height="' + rootH + '" rx="8" style="stroke:var(--gold-dim)"/>'
+    + '<text x="' + cx + '" y="' + (rootY + 15) + '" class="obs-ar-t" text-anchor="middle">⬡ ' + _obsT('Position actuelle', 'Current position') + '</text>'
+    + '<text x="' + cx + '" y="' + (rootY + 28) + '" class="obs-ar-p" text-anchor="middle">' + _obsN(A.noeuds) + ' ' + _obsT('positions', 'positions') + '</text>';
+  A.coups.forEach(function (c, i) {
+    const x0 = pad + i * colW + 6, bw = colW - 12, mx = x0 + bw / 2, col = coul(c), sel = OBS.sel === c.cle;
+    const etiquette = c.meilleur ? (A.direct ? _obsT('meilleur pour l’instant', 'best so far') : _obsT('coup joué', 'move played'))
+      : c.etat === 'encours' ? _obsT('en cours', 'being searched') : c.etat === 'attente' ? _obsT('pas encore noté à la profondeur ' + A.prof, 'not scored yet at depth ' + A.prof) : _obsT('noté', 'scored');
+    g += '<path d="M' + cx + ' ' + (rootY + rootH) + ' C' + cx + ' ' + (mY - 10) + ',' + mx + ' ' + (rootY + rootH + 8) + ',' + mx + ' ' + mY + '" class="obs-ar-lien" style="stroke:' + col + '"' + (c.etat === 'attente' && !c.meilleur ? ' stroke-dasharray="4 3"' : '') + '/>';
+    g += '<g class="obs-ar-coup' + (c.etat === 'encours' ? ' obs-ar-vif' : '') + '" data-apercu="' + c.cle + '" onclick="' + ouvrir("obsChoisir('" + c.cle + "')") + '"><title>' + _obsE(c.n + ' — ' + _evalReflexionTexte(c.s) + ' (' + _obsT('profondeur ', 'depth ') + c.dS + ') — ' + etiquette + ' — ' + _obsN(c.k) + ' ' + _obsT('positions sous ce coup', 'positions under this move')) + '</title>'
+      + '<rect class="obs-ar-case" x="' + x0 + '" y="' + mY + '" width="' + bw + '" height="' + mH + '" rx="8" style="stroke:' + (sel ? '#ffd54f' : col) + ';stroke-width:' + (sel || c.meilleur ? 2.4 : 1.4) + (c.meilleur ? ';fill:rgba(102,187,106,.16)' : c.etat === 'encours' ? ';fill:rgba(255,202,40,.12)' : '') + '"' + (c.etat === 'attente' && !c.meilleur ? ' stroke-dasharray="4 3"' : '') + '/>'
+      // en direct, la pastille dit ou en est le coup, meilleur compris (son cadre vert ne le dit pas)
+      + (A.direct ? '<circle cx="' + (x0 + bw - 9) + '" cy="' + (mY + 9) + '" r="4" class="obs-ar-etat" style="fill:' + _OBS_AR_COUL[c.etat] + '"/>' : '')
+      + '<text x="' + mx + '" y="' + (mY + 18) + '" class="obs-ar-t obs-ar-m" text-anchor="middle">' + _obsE(c.n) + '</text>'
+      + '<text x="' + mx + '" y="' + (mY + 34) + '" class="obs-ar-s" text-anchor="middle"' + (c.etat === 'attente' && !c.meilleur ? ' style="opacity:.6"' : '') + '>' + (c.meilleur ? '✓ ' : '') + _evalReflexionTexte(c.s) + (A.direct ? '<tspan class="obs-ar-p" dx="3">p' + c.dS + '</tspan>' : '') + '</text>'
+      + '<rect x="' + (x0 + 8) + '" y="' + (mY + mH - 9) + '" width="' + (bw - 16) + '" height="3" rx="1.5" class="obs-ar-fond"/>'
+      + '<rect x="' + (x0 + 8) + '" y="' + (mY + mH - 9) + '" width="' + Math.max(2, Math.round((bw - 16) * c.k / maxk)) + '" height="3" rx="1.5" style="fill:' + col + '"/></g>';
+    const S = c.suite.slice(0, A.E), reste = c.suite.length - S.length;
+    S.forEach(function (st, j) {
+      const y = mY + mH + sG + j * (sH + sG), dernier = j === S.length - 1 && reste > 0;
+      g += '<line x1="' + mx + '" y1="' + (y - sG) + '" x2="' + mx + '" y2="' + y + '" class="obs-ar-lien" style="stroke:' + col + ';opacity:.55"/>'
+        + '<g class="obs-ar-rep" onclick="obsArbreEtape(\'' + c.cle + '\',' + (c.etape ? j + 2 : -1) + ')"><title>' + _obsE((j + 2) + '. ' + st.n + ' — ' + (st.c === A.couleur ? _obsT('l’IA', 'the AI') : _obsT('l’adversaire', 'the opponent')) + (j === 0 ? ' — ' + _obsT('la réponse que l’IA prévoit', 'the reply the AI expects') : '')) + '</title>'
+        + '<rect class="obs-ar-case" x="' + (x0 + 10) + '" y="' + y + '" width="' + (bw - 20) + '" height="' + sH + '" rx="6" style="stroke:' + col + ';opacity:.85"/>'
+        + '<circle cx="' + (x0 + 21) + '" cy="' + (y + sH / 2) + '" r="4.5" class="' + (st.c === 'black' ? 'obs-ar-noir' : 'obs-ar-blanc') + '"/>'
+        + '<text x="' + (x0 + 30) + '" y="' + (y + 16) + '" class="obs-ar-p obs-ar-m">' + (j + 2) + '. ' + _obsE(st.n) + (dernier ? ' …+' + reste : '') + '</text></g>';
+    });
+  });
+  return '<svg class="obs-ar" viewBox="0 0 ' + W + ' ' + H + '" style="min-width:' + Math.round(W * 0.78) + 'px" role="img" aria-label="' + _obsT('Arbre de recherche', 'Search tree') + '">' + g + '</svg>';
+}
+function _obsArbreHTML(V, compact) {
+  const A = _obsArbreDonnees(V, compact); if (!A) return '';
+  const niv = _obsNiv();
+  let h = '<div class="obs-ar-tete"><h5>' + _obsT('Arbre de recherche', 'Search tree') + '</h5>';
+  if (!compact && niv >= 1) h += '<select class="obs-ar-vue" onchange="obsArbreVue(this.value)" aria-label="' + _obsT('Vue de l’arbre', 'Tree view') + '"><option value="simple"' + (A.complet ? '' : ' selected') + '>' + _obsT('Vue simplifiée', 'Simple view') + '</option><option value="complet"' + (A.complet ? ' selected' : '') + '>' + _obsT('Vue complète', 'Full view') + '</option></select>';
+  if (compact) h += '<button class="obs-lien" onclick="obsOnglet(\'recherche\')">' + _obsT('détails →', 'details →') + '</button>';
+  h += '</div><div class="obs-note" style="margin-top:0">' + (A.direct
+      ? (compact ? _obsT('Profondeur ' + A.prof + ' en cours · ', 'Depth ' + A.prof + ' running · ') : '')
+        + (function (t) { return compact ? t : t.charAt(0).toUpperCase() + t.slice(1); })(A.dFin ? _obsT('classés selon la profondeur ' + A.dFin + ', terminée ; « p » : profondeur de la note affichée', 'ranked by completed depth ' + A.dFin + '; “p”: depth of the score shown') : _obsT('classement provisoire', 'provisional ranking'))
+      : _obsT('Profondeur ' + A.prof + ' · le coup joué est en vert', 'Depth ' + A.prof + ' · the move played is in green')) + '</div>';
+  h += '<div class="obs-ar-cadre">' + _obsArbreSVG(A, compact) + '</div>';
+  const pt = function (c, t) { return '<span><i style="background:' + c + '"></i>' + t + '</span>'; };
+  h += '<div class="obs-ar-lege">' + pt(_OBS_AR_COUL.meilleur, A.direct ? _obsT('meilleur', 'best') : _obsT('joué', 'played'))
+    + (A.direct ? pt(_OBS_AR_COUL.encours, _obsT('en cours', 'being searched')) + pt(_OBS_AR_COUL.notee, _obsT('noté à cette profondeur', 'scored at this depth')) + pt(_OBS_AR_COUL.attente, _obsT('pas encore noté', 'not scored yet'))
+                : pt(_OBS_AR_COUL.notee, _obsT('autres coups', 'other moves'))) + '</div>';
+  if (!compact && niv >= 1) h += '<div class="obs-note">' + _obsT('Sous chaque coup, une seule réponse par étage : celle que l’IA prévoit (le moteur ne garde pas les autres). Aucun coup de départ n’est élagué : chacun est cherché en entier, l’élagage se fait plus bas. Barre : effort de recherche sous le coup.',
+    'Under each move, one reply per level: the one the AI expects (the engine does not keep the others). No first move is pruned: each is searched in full, pruning happens deeper. Bar: search effort under the move.') + '</div>';
   return h;
 }
 
@@ -48671,16 +48809,17 @@ function _obsTabRecherche(V) {
     + _obsT('Profondeur ' + R.avance.d + ' en cours : ' + R.avance.i + ' coup(s) de départ notés sur ' + R.avance.n + ' (' + (R.prof ? 'tableau : profondeur ' + R.prof + ' terminée' : 'tableau provisoire') + ').',
             'Depth ' + R.avance.d + ' running: ' + R.avance.i + ' first move(s) scored out of ' + R.avance.n + '.') + '</div>';
   const cles = sel ? [sel].concat(top.filter(function (k) { return k !== sel; })) : top, rang = function (k) { return R.tous.findIndex(function (x) { return x[0] === k; }) + 1; };
+  h += _obsArbreHTML(V, false);   // v3.17
   h += _obsMiniRecherche(R, cles, sel, rang);
   h += _obsLignesCandidats(R.tous, R.nomDe, R.cleRetenue, R.dernier);
   if (V.mode === 'direct' && OBS.sel) h += '<div class="obs-note">' + _obsT('Le coup choisi est tracé sur le plateau.', 'The selected move is drawn on the board.') + '</div>';
   if (V.e) h += _obsNotePartielle(V.e);
   if (sel) h += _obsPourquoiHTML(V, R, sel);
   if (sel && R.det) h += _obsVarianteHTML(R.det, sel, R.couleur);
-  if (niv >= 1 && R.det) {   // arbre des lignes principales
+  if (niv >= 2 && R.det) {   // les 10 lignes principales (l'arbre dessine en montre 5 au plus)
     const pr = R.det.prof[0], maxk = Math.max.apply(null, pr.lignes.map(function (l) { return l.k; }).concat([1]));
-    h += '<h5>' + _obsT('Arbre des lignes principales', 'Tree of principal lines') + '</h5><div class="obs-arbre"><div class="obs-racine">● ' + _obsT('Position actuelle', 'Current position') + ' <small>(' + _obsN(pr.noeuds) + ' ' + _obsT('positions', 'positions') + ')</small></div>';
-    pr.lignes.slice(0, niv >= 2 ? 10 : 5).forEach(function (l, i) { const cle = moveKeyDe(l), ret = cle === R.cleRetenue || (!R.cleRetenue && i === 0), ecart = pr.lignes[0].s - l.s;
+    h += '<h5>' + _obsT('Les 10 lignes principales', 'The 10 principal lines') + '</h5><div class="obs-arbre"><div class="obs-racine">● ' + _obsT('Position actuelle', 'Current position') + ' <small>(' + _obsN(pr.noeuds) + ' ' + _obsT('positions', 'positions') + ')</small></div>';
+    pr.lignes.slice(0, 10).forEach(function (l, i) { const cle = moveKeyDe(l), ret = cle === R.cleRetenue || (!R.cleRetenue && i === 0), ecart = pr.lignes[0].s - l.s;
       h += '<div class="obs-branche ' + (ret ? 'obs-b-ok' : ecart <= 30 ? 'obs-b-alt' : 'obs-b-no') + '" data-apercu="' + cle + '" onclick="obsChoisir(\'' + cle + '\')"><span class="obs-mono">' + _obsE(l.n || '?') + '</span> <b>' + _evalReflexionTexte(l.s) + '</b>'
         + '<div class="obs-barre"><i style="width:' + Math.max(2, Math.round(100 * l.k / maxk)) + '%"></i></div>'
         + (l.suite && l.suite.length ? '<div class="obs-suite">↳ ' + l.suite.map(function (x, j) { return '<span>' + (j + 2) + '. ' + _obsE(x) + '</span>'; }).join(' ') + '</div>' : '') + '</div>'; });
@@ -49097,6 +49236,12 @@ function _obsCss() {
     + '.obs-chip{padding:1px 7px;border-radius:9px;font-size:10.5px;font-family:"DM Sans",sans-serif;white-space:nowrap}.obs-ok{background:rgba(102,187,106,.2);color:#81c784}.obs-alt{background:rgba(255,183,77,.18);color:#ffb74d}.obs-no{background:rgba(239,83,80,.15);color:#ef9a9a}'
     + '.obs-plateau{width:min(300px,86%);display:block;margin:6px auto}.obs-lege{text-align:center;font-size:10.5px;color:var(--muted)}.obs-courbe{width:100%;height:56px;display:block}'
     + '.obs-profs{display:flex;flex-wrap:wrap;gap:4px}.obs-pf{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:2px 7px;font-family:"DM Mono",monospace;font-size:11px}.obs-pf em{color:var(--gold);font-style:normal}.obs-pf small{color:var(--muted)}.obs-pf.obs-chg{border-color:#ffb74d}'
+    + '.obs-ar-tete{display:flex;align-items:center;gap:8px;justify-content:space-between}.obs-ar-tete h5{margin-bottom:2px}.obs-ar-vue{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:11px;padding:2px 4px}'
+    + '.obs-ar-cadre{overflow-x:auto;overflow-y:hidden;margin:2px 0}.obs-ar{width:100%;display:block;color:var(--text)}.obs-ar-case{fill:var(--surface2);stroke-width:1.4}.obs-ar-lien{fill:none;stroke-width:1.6}.obs-ar-fond{fill:var(--border)}'
+    + '.obs-ar-t{fill:currentColor;font-family:"DM Sans",sans-serif;font-size:12px}.obs-ar-m{font-family:"DM Mono",monospace;font-weight:600}.obs-ar-s{fill:currentColor;font-family:"DM Mono",monospace;font-size:12.5px;font-weight:700}.obs-ar-p{fill:var(--muted);font-family:"DM Sans",sans-serif;font-size:10.5px}'
+    + '.obs-ar-coup,.obs-ar-rep{cursor:pointer}.obs-ar-coup:hover .obs-ar-case,.obs-ar-rep:hover .obs-ar-case{fill:var(--surface)}.obs-ar-noir{fill:#1b1b1b;stroke:#888;stroke-width:1}.obs-ar-blanc{fill:#f3efe6;stroke:#888;stroke-width:1}'
+    + '.obs-ar-vif .obs-ar-case{animation:obsArVif 1.2s ease-in-out infinite}@keyframes obsArVif{50%{stroke-opacity:.35}}@media (prefers-reduced-motion:reduce){.obs-ar-vif .obs-ar-case{animation:none}}'
+    + '.obs-ar-lege{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:10.5px;color:var(--muted);margin:2px 0}.obs-ar-lege i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:0}'
     + '.obs-arbre{border-left:2px solid var(--gold-dim);margin-left:4px;padding-left:8px}.obs-racine{margin-bottom:4px}.obs-branche{margin:4px 0;padding:4px 6px;border-radius:6px;background:var(--surface2);cursor:pointer;border-left:3px solid #9e9e9e}.obs-b-ok{border-left-color:#66bb6a}.obs-b-alt{border-left-color:#ffb74d}'
     + '.obs-suite{margin-top:3px;color:var(--muted);font-size:11px;display:flex;flex-wrap:wrap;gap:6px;font-family:"DM Mono",monospace}.obs-etapes{display:flex;justify-content:center;align-items:center;gap:8px}'
     + '.obs-decide{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.obs-carte{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 8px;margin:6px 0}.obs-decide .obs-carte{margin:0;display:flex;flex-direction:column}'

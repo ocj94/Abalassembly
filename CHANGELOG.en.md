@@ -9,6 +9,31 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.17]
+
+### AI Observatory — the search tree, drawn
+Based on mockups sent by ocj94:
+- **A real tree**, at the top of the Search tab and in simple view in the
+  Overview: the position, its best first moves as scored boxes, and under
+  each one the chain of the line the AI expects (the black or white dot says
+  who plays). It replaces the "Tree of principal lines" list; the 10 lines are
+  still listed at Developer level.
+- **It fills up during the search.** Moves are ranked by the last completed
+  depth. A dot says where each one stands at the depth being searched: being
+  searched (yellow), scored (blue, with its new score), not scored yet (grey,
+  it keeps its previous score). "p4" says which depth the score shown comes
+  from.
+- **Simple view** (3 moves, 2 levels) or **full view** (5 moves, the whole
+  line), as chosen and remembered. Tapping a move selects it; after the move,
+  tapping a box of the line shows the board at that step.
+- **What is not there, because it would be invented**: several scored replies
+  under a move (the engine only keeps the one it expects) and a "pruned" box
+  (no first move is pruned).
+- For the live line, the engine's "depth completed" message now carries the
+  expected line of its 10 best moves. It was already computed at that point:
+  a test checks that the engine plays the same move, with the same positions
+  searched.
+
 ## [v3.16]
 
 ### Security — verified libraries, isolated SheetJS, verifiable versions

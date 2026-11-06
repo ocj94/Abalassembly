@@ -9,6 +9,31 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.17]
+
+### Observatoire IA — l'arbre de recherche dessiné
+D'après les maquettes envoyées par ocj94 :
+- **Un vrai arbre**, en haut de l'onglet Recherche et en vue simplifiée dans
+  la Vue générale : la position, ses meilleurs coups de départ en cases
+  notées, et sous chacun la chaîne de la suite que l'IA prévoit (la pastille
+  noire ou blanche dit qui joue). Il remplace la liste « Arbre des lignes
+  principales » ; les 10 lignes restent listées au niveau Développeur.
+- **Il se remplit pendant le calcul.** Les coups sont classés selon la
+  dernière profondeur terminée. Une pastille dit où en est chacun à la
+  profondeur en cours : en cours (jaune), noté (bleu, avec sa nouvelle note),
+  pas encore noté (gris, il garde sa note précédente). « p4 » dit de quelle
+  profondeur vient la note affichée.
+- **Vue simplifiée** (3 coups, 2 étages) ou **complète** (5 coups, toute la
+  suite), au choix et retenue. Toucher un coup le choisit ; après le coup,
+  toucher une case de la suite montre le plateau à cette étape.
+- **Ce qui n'y est pas, parce que ce serait inventé** : plusieurs réponses
+  notées sous un coup (le moteur ne garde que celle qu'il prévoit) et une case
+  « élaguée » (aucun coup de départ n'est élagué).
+- Pour la suite en direct, le message « profondeur terminée » du moteur
+  emporte maintenant la suite prévue de ses 10 meilleurs coups. Elle était
+  déjà calculée à ce moment-là : un test vérifie que le moteur joue le même
+  coup, avec les mêmes positions examinées.
+
 ## [v3.16]
 
 ### Sécurité — bibliothèques vérifiées, SheetJS isolé, versions vérifiables
