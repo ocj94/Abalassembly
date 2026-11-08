@@ -545,9 +545,9 @@ function openTrajectoryChart(source, gameIdx){
     '<div style="max-width:480px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:24px">'
     + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:6px">Évolution au fil de la partie</h3>'
     + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">'+source+' · partie #'+gameIdx+' · '+pts0.length+' coups mesurés</div>'
-    + '<select onchange="_renderTrajectoire(\''+source+'\','+gameIdx+',this.value)" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px;margin-bottom:12px">'+options+'</select>'
+    + '<select data-change="_renderTrajectoire(\''+source+'\','+gameIdx+',this.value)" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px;margin-bottom:12px">'+options+'</select>'
     + '<div id="trajectoire-chart"></div>'
-    + '<button class="ctrl-btn" onclick="document.getElementById(\'trajectoire-modal\').remove()" style="width:100%;margin-top:14px">Fermer</button>'
+    + '<button class="ctrl-btn" data-click="retirer(\'trajectoire-modal\')" style="width:100%;margin-top:14px">Fermer</button>'
     + '</div>';
   document.body.appendChild(m);
   _renderTrajectoire(source, gameIdx, 'cohesionMoyenne');
@@ -671,7 +671,7 @@ async function openCorrelationsPanel(){
     '<div style="max-width:520px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:24px;max-height:90vh;overflow-y:auto">'
     + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:6px">Ce que disent les positions réelles</h3>'
     + '<div id="correlations-body"><div style="font-size:12px;color:var(--muted)" id="correlations-progress">Calcul en cours (première fois seulement — mis en cache ensuite)…</div></div>'
-    + '<button class="ctrl-btn" onclick="document.getElementById(\'correlations-modal\').remove()" style="width:100%;margin-top:14px">Fermer</button>'
+    + '<button class="ctrl-btn" data-click="retirer(\'correlations-modal\')" style="width:100%;margin-top:14px">Fermer</button>'
     + '</div>';
   document.body.appendChild(m);
 

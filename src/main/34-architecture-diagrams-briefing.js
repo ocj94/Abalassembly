@@ -298,13 +298,13 @@ function renderReflexionStats() {
   const r = _statsReflexionResume(l), fmt = function(ms){ return ms >= 1000 ? _dimDec(ms / 1000, 1) + ' s' : Math.round(ms) + ' ms'; };
   let h = '<div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin:28px 0 10px">' + _tr('Réflexion de l\u2019IA : profondeur selon le temps', 'AI thinking: depth by time') + '</div>';
   h += '<div style="font-size:12px;color:var(--white);margin:6px 0">' + _tr('Mesurée sur des positions du corpus', 'Measured on corpus positions') + '</div>' + _tableauMesure(mesure);
-  h += '<div style="margin:8px 0 18px"><button class="ctrl-btn" id="mesure-btn" onclick="lancerMesureCorpus()" style="width:auto;padding:6px 12px;font-size:12px">' + (mesure ? _tr('Refaire la mesure', 'Measure again') : _tr('Lancer la mesure', 'Start the measurement')) + ' (≈ 2 min)</button> <span id="mesure-progres" style="font-size:11px;color:var(--muted)"></span></div>';
+  h += '<div style="margin:8px 0 18px"><button class="ctrl-btn" id="mesure-btn" data-click="lancerMesureCorpus()" style="width:auto;padding:6px 12px;font-size:12px">' + (mesure ? _tr('Refaire la mesure', 'Measure again') : _tr('Lancer la mesure', 'Start the measurement')) + ' (≈ 2 min)</button> <span id="mesure-progres" style="font-size:11px;color:var(--muted)"></span></div>';
   h += '<div style="font-size:12px;color:var(--white);margin:6px 0">' + _tr('Relevée pendant tes parties contre l\u2019IA', 'Recorded during your games against the AI') + '</div>';
   if (!r.length) h += '<div style="font-size:12px;color:var(--muted)">' + _tr('Aucun coup relevé pour l\u2019instant : joue contre l\u2019IA, ses coups seront notés ici.', 'No move recorded yet: play against the AI and its moves will be logged here.') + '</div>';
   else {
     h += '<table style="width:100%;font-size:12px;border-collapse:collapse"><tr style="color:var(--muted);text-align:left"><th>' + _tr('Niveau', 'Level') + '</th><th>' + _tr('Coups', 'Moves') + '</th><th>' + _tr('Temps médian', 'Median time') + '</th><th>' + _tr('Profondeur médiane (max)', 'Median depth (max)') + '</th><th>Positions/s</th></tr>';
     r.forEach(function(x){ h += '<tr><td>' + x.niveau + '</td><td>' + _dimNb(x.coups) + '</td><td>' + fmt(x.tempsMed) + '</td><td>' + _dimDec(x.profMed, 1).replace(/[.,]0$/, '') + ' (' + x.profMax + ')</td><td>' + _dimNb(x.parSeconde) + '</td></tr>'; });
-    h += '</table><div style="font-size:11px;color:var(--muted);margin-top:6px">' + _tr(_dimNb(l.length) + ' coups relevés (les 3 000 derniers sont gardés).', _dimNb(l.length) + ' moves recorded (the last 3,000 are kept).') + ' <a href="#" onclick="if(confirm(_tr(\'Effacer les coups relevés ?\',\'Delete the recorded moves?\'))){localStorage.removeItem(STATS_REFLEXION_KEY);renderReflexionStats();}return false;" style="color:var(--muted)">' + _tr('Effacer', 'Delete') + '</a></div>';
+    h += '</table><div style="font-size:11px;color:var(--muted);margin-top:6px">' + _tr(_dimNb(l.length) + ' coups relevés (les 3 000 derniers sont gardés).', _dimNb(l.length) + ' moves recorded (the last 3,000 are kept).') + ' <a href="#" data-click="effacerStatsReflexion();return false" style="color:var(--muted)">' + _tr('Effacer', 'Delete') + '</a></div>';
   }
   host.innerHTML = h;
 }
@@ -586,19 +586,19 @@ function _dimsRendre(){
   // 4. situer une valeur
   h += '<div style="display:flex;align-items:center;gap:10px;margin:6px 0;font-size:12px;color:var(--text)">'
     + '<span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap"><span style="width:10px;height:10px;border-radius:2px;background:' + _DIM_COUL.repere + ';display:inline-block"></span>' + _tr('Situer une valeur', 'Place a value') + '</span>'
-    + '<input type="range" id="dims-curseur" min="' + dT.min + '" max="' + dT.max + '" step="' + (entiers ? 1 : 0.01) + '" value="' + _dimValeur + '" oninput="_dimsSituer(this.value)" style="flex:1;min-width:80px" aria-label="' + _tr('Valeur à situer', 'Value to place') + '">'
+    + '<input type="range" id="dims-curseur" min="' + dT.min + '" max="' + dT.max + '" step="' + (entiers ? 1 : 0.01) + '" value="' + _dimValeur + '" data-input="_dimsSituer(this.value)" style="flex:1;min-width:80px" aria-label="' + _tr('Valeur à situer', 'Value to place') + '">'
     + '<span id="dims-valeur" style="min-width:48px;text-align:right;font-weight:700;font-family:\'DM Mono\',monospace"></span></div>'
     + '<div id="dims-lecture" style="font-size:12px;line-height:1.8;margin-bottom:14px"></div>';
   // 5. le tableau, pour le camp choisi
   const vues = _DIM_VUES.map(function(v){
     const actif = v === _dimVueTable;
-    return '<button onclick="_dimVue(\'' + v + '\')" style="padding:4px 10px;font-size:11px;border-radius:6px;cursor:pointer;border:1px solid ' + (actif ? 'var(--gold)' : 'var(--border)') + ';background:' + (actif ? 'rgba(201,168,76,0.15)' : 'transparent') + ';color:' + (actif ? 'var(--gold)' : 'var(--text)') + '">' + _dimNomVue(v) + '</button>';
+    return '<button data-click="_dimVue(\'' + v + '\')" style="padding:4px 10px;font-size:11px;border-radius:6px;cursor:pointer;border:1px solid ' + (actif ? 'var(--gold)' : 'var(--border)') + ';background:' + (actif ? 'rgba(201,168,76,0.15)' : 'transparent') + ';color:' + (actif ? 'var(--gold)' : 'var(--text)') + '">' + _dimNomVue(v) + '</button>';
   }).join(' ');
   h += '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:4px 0 6px;font-size:12px;color:var(--muted)">' + _tr('Valeurs du tableau', 'Table values') + _dimDp() + vues + '</div>';
   const rep = _dimReperes(etroit);
   h += EMPREINTES_CHAMPS.map(function(f){
     const d = distributionDimension(f, _dimVueTable), choisi = f === champ;
-    return '<div class="dims-ligne" role="button" tabindex="0" onclick="_dimChoisir(\'' + f + '\')" onkeydown="if(event.key===\'Enter\')_dimChoisir(\'' + f + '\')" style="padding:7px 8px;border-bottom:1px solid var(--border);cursor:pointer;border-radius:6px;' + (choisi ? 'background:rgba(201,168,76,0.10);' : '') + '">'
+    return '<div class="dims-ligne" role="button" tabindex="0" data-click="_dimChoisir(\'' + f + '\')" data-entree="_dimChoisir(\'' + f + '\')" style="padding:7px 8px;border-bottom:1px solid var(--border);cursor:pointer;border-radius:6px;' + (choisi ? 'background:rgba(201,168,76,0.10);' : '') + '">'
       + '<div style="font-size:12px;color:' + (choisi ? 'var(--gold)' : 'var(--text)') + ';margin-bottom:2px;font-weight:' + (choisi ? 700 : 400) + '">' + (choisi ? '▸ ' : '') + _labelDimension(f) + '</div>'
       + '<div style="display:flex;justify-content:space-between;gap:6px;font-size:11px;color:var(--muted);font-family:\'DM Mono\',monospace;white-space:nowrap">'
         + '<span>' + rep[0][2] + _dimDp() + _dimDec(d.p10) + '</span>'
@@ -684,10 +684,10 @@ function renderHistoriquePage(){
         }).join('')
       : '';
     host.innerHTML =
-      '<select onchange="_historySetFilter(\'variant\', this.value)" style="flex:1;min-width:120px;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px"><option value="all">Toutes variantes</option>' + variantOptions + '</select>'
-      + '<select onchange="_historySetFilter(\'mode\', this.value)" style="flex:1;min-width:100px;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px"><option value="all">Tous modes</option><option value="ai">Contre IA</option><option value="local">Local/code</option></select>'
-      + '<select onchange="_historySetFilter(\'result\', this.value)" style="flex:1;min-width:100px;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px"><option value="all">Tout résultat</option><option value="victoire">Victoires</option><option value="defaite">Défaites</option><option value="nulle">Nulles</option></select>'
-      + '<input type="text" placeholder="Rechercher (variante, nom...)" oninput="_historySetFilter(\'search\', this.value)" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;box-sizing:border-box;flex-basis:100%;margin-top:2px">';
+      '<select data-change="_historySetFilter(\'variant\', this.value)" style="flex:1;min-width:120px;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px"><option value="all">Toutes variantes</option>' + variantOptions + '</select>'
+      + '<select data-change="_historySetFilter(\'mode\', this.value)" style="flex:1;min-width:100px;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px"><option value="all">Tous modes</option><option value="ai">Contre IA</option><option value="local">Local/code</option></select>'
+      + '<select data-change="_historySetFilter(\'result\', this.value)" style="flex:1;min-width:100px;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px"><option value="all">Tout résultat</option><option value="victoire">Victoires</option><option value="defaite">Défaites</option><option value="nulle">Nulles</option></select>'
+      + '<input type="text" placeholder="Rechercher (variante, nom...)" data-input="_historySetFilter(\'search\', this.value)" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;box-sizing:border-box;flex-basis:100%;margin-top:2px">';
     host.dataset.built = '1';
   }
   _historyFilters = { variant:'all', mode:'all', result:'all', search:'' };
@@ -744,13 +744,13 @@ function openExternalEnginePanel(){
     + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Fais jouer un autre programme contre l\u2019IA de ce site. Tu relaies les coups à la main, en notation Aba-Pro. Aucun compte, aucun serveur.</div>'
     + '<div id="extengine-last" style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">DERNIER COUP DE CE SITE</div>'
     + '<div id="extengine-lastmove" style="font-family:\'DM Mono\',monospace;font-size:16px;color:var(--gold);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px">—</div>'
-    + '<button class="ctrl-btn" onclick="_extCopyLastMove()" style="width:100%;margin-bottom:14px">Copier ce coup</button>'
+    + '<button class="ctrl-btn" data-click="_extCopyLastMove()" style="width:100%;margin-bottom:14px">Copier ce coup</button>'
     + '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">COUP DU MOTEUR EXTERNE</div>'
     + '<input id="extengine-in" placeholder="ex. e5f6" style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:\'DM Mono\',monospace;font-size:14px;box-sizing:border-box">'
     + '<div id="extengine-status" style="font-size:12px;margin:8px 0;min-height:16px"></div>'
     + '<div style="display:flex;gap:8px">'
-      + '<button class="ctrl-btn" onclick="_extPlayMove()" style="flex:1">Jouer ce coup</button>'
-      + '<button onclick="document.getElementById(\'extengine-modal\').remove()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 16px;cursor:pointer">Fermer</button>'
+      + '<button class="ctrl-btn" data-click="_extPlayMove()" style="flex:1">Jouer ce coup</button>'
+      + '<button data-click="retirer(\'extengine-modal\')" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 16px;cursor:pointer">Fermer</button>'
     + '</div>'
     + '</div>';
   document.body.appendChild(m);
@@ -928,8 +928,8 @@ function openSiteBriefing(){
     + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Donnees factuelles sur ce site, recalculees a l\u2019instant depuis le code lui-meme. A coller dans une IA avant de lui demander un audit ou des suggestions : elle partira de faits verifiables plutot que de suppositions.</div>'
     + '<textarea id="briefing-text" readonly style="width:100%;height:300px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:11px;box-sizing:border-box">' + txt.replace(/</g,'&lt;') + '</textarea>'
     + '<div style="display:flex;gap:8px;margin-top:10px">'
-      + '<button class="ctrl-btn" onclick="_copyBriefing()" style="flex:1">Copier la fiche</button>'
-      + '<button onclick="document.getElementById(\'briefing-modal\').remove()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 16px;cursor:pointer">Fermer</button>'
+      + '<button class="ctrl-btn" data-click="_copyBriefing()" style="flex:1">Copier la fiche</button>'
+      + '<button data-click="retirer(\'briefing-modal\')" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 16px;cursor:pointer">Fermer</button>'
     + '</div>'
     + '</div>';
   document.body.appendChild(m);
@@ -976,3 +976,9 @@ function exportGameAbaPro(){
   }
 }
 
+// v3.22 : lien « effacer » des coups relevés (data-click, plus de code dans le HTML)
+function effacerStatsReflexion() {
+  if (!confirm(_tr('Effacer les coups relevés ?', 'Delete the recorded moves?'))) return;
+  localStorage.removeItem(STATS_REFLEXION_KEY);
+  renderReflexionStats();
+}

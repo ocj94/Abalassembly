@@ -6,7 +6,7 @@
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v3.21';
+const APP_VERSION = 'v3.22';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -301,9 +301,9 @@ function renderMonthlyCard() {
     '</div>' +
     (mc.solved ? '<div style="color:#5ab48c;font-size:13px;margin-bottom:10px">✅ Résolu ce mois-ci</div>' : '') +
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">' +
-      '<button class="ctrl-btn" onclick="playMonthlyPuzzle()">▶ Jouer le problème du mois</button>' +
-      (mc.revealed ? '' : '<button class="ctrl-btn" onclick="revealMonthlySolution()">👁 Voir la solution</button>') +
-      '<button class="ctrl-btn" onclick="exportPuzzleAPGN(' + mc.idx + ')" title="Copie la position et la solution au format Aba-Pro">📋 Exporter (APGN)</button>' +
+      '<button class="ctrl-btn" data-click="playMonthlyPuzzle()">▶ Jouer le problème du mois</button>' +
+      (mc.revealed ? '' : '<button class="ctrl-btn" data-click="revealMonthlySolution()">👁 Voir la solution</button>') +
+      '<button class="ctrl-btn" data-click="exportPuzzleAPGN(' + mc.idx + ')" title="Copie la position et la solution au format Aba-Pro">📋 Exporter (APGN)</button>' +
     '</div>' +
     (mc.revealed ? '<div style="font-size:13px;color:var(--text);padding:10px;background:var(--surface2);border-radius:8px">Solution : <strong style="color:var(--gold)">' + mc.puzzle.lab + '</strong>' + (src ? '<br><span style="color:var(--muted);font-size:12px">Issu de la partie : ' + src + '</span>' : '') + '</div>' : '');
 }

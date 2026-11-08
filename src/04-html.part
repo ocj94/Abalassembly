@@ -83,5 +83,5 @@
     <div class="intro-logo">ABALASSEMBLY</div>
     <div class="intro-tagline">Le jeu stratégique de référence</div>
   </div>
-  <button id="intro-skip" onclick="skipIntro()">Passer ›</button>
+  <button id="intro-skip" data-click="skipIntro()">Passer ›</button>
 </div>

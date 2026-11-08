@@ -485,11 +485,11 @@ function openPSLiveModal(){
     '<div style="background:var(--surface);border-radius:12px;padding:18px;max-width:420px;width:100%;max-height:90vh;overflow:auto">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
     + '<strong style="color:var(--white)">🔴 Suivre une partie en direct</strong>'
-    + '<button type="button" onclick="psLiveArreter();document.getElementById(\'ps-live-modal\').style.display=\'none\'" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer">×</button></div>'
+    + '<button type="button" data-click="psLiveArreter();cacher(\'ps-live-modal\')" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer">×</button></div>'
     + '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">Colle un lien de partie Abalone PlayStrategy, ou le pseudo d\'un joueur pour suivre sa partie en cours.</div>'
     + '<div style="display:flex;gap:6px;margin-bottom:10px">'
     + '<input type="text" id="ps-live-id" placeholder="lien de partie, ou pseudo" style="flex:1;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">'
-    + '<button type="button" onclick="psLiveDemarrer()" class="ctrl-btn" style="width:auto;padding:8px 12px">Suivre</button></div>'
+    + '<button type="button" data-click="psLiveDemarrer()" class="ctrl-btn" style="width:auto;padding:8px 12px">Suivre</button></div>'
     + '<div id="ps-live-statut" style="font-size:12px;color:var(--muted);min-height:16px;margin-bottom:10px"></div>'
     + '<div id="ps-live-board"></div>'
     + '<div style="font-size:11px;color:var(--muted);margin-top:10px">Lecture seule : on ne peut pas jouer depuis cette fenêtre.</div>'
@@ -763,7 +763,7 @@ function renderPSGamesList(){
   const entete = nbTournoi ? '<div style="font-size:12px;color:var(--muted);margin:4px 0 10px">🏆 <a href="https://playstrategy.org/tournament/rshUi5eV" target="_blank" rel="noopener" style="color:var(--gold)">Yearly Abalone Arena</a> — PlayStrategy, 18/09/2026 · ' + nbTournoi + ' parties</div>' : '';
   listEl.innerHTML = entete + PS_GAMES.map(function(g, idx){
     const moveCount = _migsMoveCount(g[5]);
-    return '<div onclick="loadPSGame(' + idx + ')" style="padding:10px 12px;border-radius:8px;cursor:pointer;border:1px solid var(--border);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'transparent\'">'
+    return '<div data-click="loadPSGame(' + idx + ')" style="padding:10px 12px;border-radius:8px;cursor:pointer;border:1px solid var(--border);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center" data-survol="background:var(--surface2)">'
       + '<div><div style="font-size:13px;font-weight:600;color:var(--text)">' + (typeof _iaNom === 'function' ? _iaNom(g[2]) : escapeHtml(g[2])) + ' vs ' + (typeof _iaNom === 'function' ? _iaNom(g[3]) : escapeHtml(g[3])) + '</div>'
       + '<div style="font-size:11px;color:var(--muted)">' + escapeHtml(g[1]) + ' · ' + escapeHtml(g[4]) + ' · ' + (moveCount ? moveCount + ' plis' : 'abandonnée avant le premier coup') + '</div></div>'
       + '<span style="color:var(--gold);font-size:12px">▶</span>'
@@ -848,7 +848,7 @@ function renderMigsList(){
     if(variantFilter && g[4]!==variantFilter) continue;
     if(!lengthMatches(g[6])) continue;
     const vl=(HEAT_VARIANT_LABEL[g[4]]||g[4]);
-    html+='<div onclick="loadRefGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px" title="Partie de référence -- source : '+escapeHtml(g[5])+'"><span>📜 '+(typeof _iaNom === 'function' ? _iaNom(g[1]) : escapeHtml(g[1]))+' <span style="color:var(--muted)">vs</span> '+(typeof _iaNom === 'function' ? _iaNom(g[2]) : escapeHtml(g[2]))+'</span><span style="color:var(--gold);font-size:11px;white-space:nowrap">'+escapeHtml(vl)+' · '+escapeHtml(g[0])+'</span></div>';
+    html+='<div data-click="loadRefGame('+i+')" data-survol="background:var(--surface2)" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px" title="Partie de référence -- source : '+escapeHtml(g[5])+'"><span>📜 '+(typeof _iaNom === 'function' ? _iaNom(g[1]) : escapeHtml(g[1]))+' <span style="color:var(--muted)">vs</span> '+(typeof _iaNom === 'function' ? _iaNom(g[2]) : escapeHtml(g[2]))+'</span><span style="color:var(--gold);font-size:11px;white-space:nowrap">'+escapeHtml(vl)+' · '+escapeHtml(g[0])+'</span></div>';
   }
   // Variété AbalOnline ensuite (autres variantes) — max 180
   if (!variantFilter || variantFilter !== 'belgian') {
@@ -858,7 +858,7 @@ function renderMigsList(){
       if(variantFilter && g[4]!==variantFilter) continue;
       if(!lengthMatches(g[6])) continue;
       const vl=g[4].replace('_daisy',' daisy');
-      html+='<div onclick="loadAOGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px"><span>'+(typeof _iaNom === 'function' ? _iaNom(g[1]) : escapeHtml(g[1]))+' <span style="color:var(--muted)">vs</span> '+(typeof _iaNom === 'function' ? _iaNom(g[2]) : escapeHtml(g[2]))+'</span><span style="color:var(--gold);font-size:11px;white-space:nowrap">'+escapeHtml(vl)+' · '+escapeHtml(g[0])+'</span></div>';
+      html+='<div data-click="loadAOGame('+i+')" data-survol="background:var(--surface2)" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px"><span>'+(typeof _iaNom === 'function' ? _iaNom(g[1]) : escapeHtml(g[1]))+' <span style="color:var(--muted)">vs</span> '+(typeof _iaNom === 'function' ? _iaNom(g[2]) : escapeHtml(g[2]))+'</span><span style="color:var(--gold);font-size:11px;white-space:nowrap">'+escapeHtml(vl)+' · '+escapeHtml(g[0])+'</span></div>';
       a++;
     }
   }
@@ -868,7 +868,7 @@ function renderMigsList(){
       const g=MIGS_GAMES[i]; // [n,date,b,w,res,seq]
       if(q && (g[0]+' '+g[2]+' '+g[3]+' belgian').toLowerCase().indexOf(q)===-1) continue;   // v2.87 : aussi par numero (le champ le promettait)
       if(!lengthMatches(g[5])) continue;
-      html+='<div onclick="loadMigsGame('+i+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px"><span>'+(typeof _iaNom === 'function' ? _iaNom(g[2]) : escapeHtml(g[2]))+' <span style="color:var(--muted)">vs</span> '+(typeof _iaNom === 'function' ? _iaNom(g[3]) : escapeHtml(g[3]))+(typeof _ptBadge === 'function' ? _ptBadge(g[0]) : '')+'</span><span style="color:var(--muted);font-size:11px;white-space:nowrap">belgian · '+escapeHtml(g[1])+'</span></div>';
+      html+='<div data-click="loadMigsGame('+i+')" data-survol="background:var(--surface2)" style="padding:9px 12px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:13px"><span>'+(typeof _iaNom === 'function' ? _iaNom(g[2]) : escapeHtml(g[2]))+' <span style="color:var(--muted)">vs</span> '+(typeof _iaNom === 'function' ? _iaNom(g[3]) : escapeHtml(g[3]))+(typeof _ptBadge === 'function' ? _ptBadge(g[0]) : '')+'</span><span style="color:var(--muted);font-size:11px;white-space:nowrap">belgian · '+escapeHtml(g[1])+'</span></div>';
       m++;
     }
   }

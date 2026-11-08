@@ -545,8 +545,8 @@ function _syncDerniereTexte(){
   return _tr('Dernière synchro : ', 'Last sync: ') + t.toLocaleDateString(currentLang() === 'EN' ? 'en-GB' : 'fr-FR') + ' ' + t.toLocaleTimeString(currentLang() === 'EN' ? 'en-GB' : 'fr-FR', { hour: '2-digit', minute: '2-digit' });
 }
 function _syncBoutonsCode(id){
-  return '<div class="sync-rang"><button class="ctrl-btn sync-petit" onclick="_syncCopier(\'' + id + '\')">' + _tr('📋 Copier', '📋 Copy') + '</button>'
-    + ((navigator && navigator.share) ? '<button class="ctrl-btn sync-petit" onclick="_syncPartager(\'' + id + '\')">' + _tr('📤 Partager', '📤 Share') + '</button>' : '') + '</div>';
+  return '<div class="sync-rang"><button class="ctrl-btn sync-petit" data-click="_syncCopier(\'' + id + '\')">' + _tr('📋 Copier', '📋 Copy') + '</button>'
+    + ((navigator && navigator.share) ? '<button class="ctrl-btn sync-petit" data-click="_syncPartager(\'' + id + '\')">' + _tr('📤 Partager', '📤 Share') + '</button>' : '') + '</div>';
 }
 function _syncCopier(id){
   const ta = document.getElementById(id); if (!ta) return;
@@ -566,13 +566,13 @@ async function _syncUiCreer(){
     + '<textarea id="sync-code-hote" class="sync-code" readonly>' + code + '</textarea>' + _syncBoutonsCode('sync-code-hote')
     + '<div class="sync-etape">' + _tr('2. Colle ici le code réponse qu’il te donne :', '2. Paste here the reply code it gives you:') + '</div>'
     + '<textarea id="sync-code-reponse" class="sync-code" placeholder="ABASYNC1R:…"></textarea>'
-    + '<button class="ctrl-btn" onclick="_syncUiConnecter()">' + _tr('Connecter et synchroniser', 'Connect and sync') + '</button>';
+    + '<button class="ctrl-btn" data-click="_syncUiConnecter()">' + _tr('Connecter et synchroniser', 'Connect and sync') + '</button>';
   _syncEtat(_tr('⚪ En attente du code réponse', '⚪ Waiting for the reply code'));
 }
 function _syncUiRecu(){
   document.getElementById('sync-direct').innerHTML = '<div class="sync-etape">' + _tr('Colle le code reçu de l’autre appareil :', 'Paste the code received from the other device:') + '</div>'
     + '<textarea id="sync-code-recu" class="sync-code" placeholder="ABASYNC1:…"></textarea>'
-    + '<button class="ctrl-btn" onclick="_syncUiRepondre()">' + _tr('Créer le code réponse', 'Create the reply code') + '</button>';
+    + '<button class="ctrl-btn" data-click="_syncUiRepondre()">' + _tr('Créer le code réponse', 'Create the reply code') + '</button>';
 }
 async function _syncUiRepondre(){
   const ta = document.getElementById('sync-code-recu'), corps = document.getElementById('sync-direct');
@@ -606,14 +606,14 @@ function openSyncModal(){
     + '<div id="sync-etat" class="sync-etat" role="status" aria-live="polite"></div>'
     + '<div id="sync-bilan"></div>'
     + '<h4 class="sync-sous">' + _tr('En direct — les deux appareils ouverts', 'Live — both devices open') + '</h4>'
-    + '<div class="sync-rang"><button class="ctrl-btn" onclick="_syncUiCreer()">' + _tr('Créer un code', 'Create a code') + '</button>'
-    + '<button class="ctrl-btn" onclick="_syncUiRecu()">' + _tr('J’ai reçu un code', 'I received a code') + '</button></div>'
+    + '<div class="sync-rang"><button class="ctrl-btn" data-click="_syncUiCreer()">' + _tr('Créer un code', 'Create a code') + '</button>'
+    + '<button class="ctrl-btn" data-click="_syncUiRecu()">' + _tr('J’ai reçu un code', 'I received a code') + '</button></div>'
     + '<div id="sync-direct"></div>'
     + '<h4 class="sync-sous">' + _tr('Par fichier', 'With a file') + '</h4>'
     + '<p class="sync-note">' + _tr('Si la connexion directe ne passe pas. Crée le fichier ici, ouvre-le sur l’autre appareil avec « Fusionner ». Pour que les deux soient identiques, fais-le dans les deux sens.', 'If the direct connection does not work. Create the file here and open it on the other device with “Merge”. For both to end up identical, do it both ways.') + '</p>'
-    + '<div class="sync-rang"><button class="ctrl-btn" onclick="syncExporterFichier()">' + _tr('📤 Créer mon fichier de synchro', '📤 Create my sync file') + '</button>'
-    + '<button class="ctrl-btn" onclick="syncChoisirFichier()">' + _tr('📥 Fusionner un fichier de synchro', '📥 Merge a sync file') + '</button></div>'
-    + '<div class="sync-rang sync-fin"><button class="ctrl-btn sync-petit" onclick="closeSyncModal()">' + _tr('Fermer', 'Close') + '</button></div>'
+    + '<div class="sync-rang"><button class="ctrl-btn" data-click="syncExporterFichier()">' + _tr('📤 Créer mon fichier de synchro', '📤 Create my sync file') + '</button>'
+    + '<button class="ctrl-btn" data-click="syncChoisirFichier()">' + _tr('📥 Fusionner un fichier de synchro', '📥 Merge a sync file') + '</button></div>'
+    + '<div class="sync-rang sync-fin"><button class="ctrl-btn sync-petit" data-click="closeSyncModal()">' + _tr('Fermer', 'Close') + '</button></div>'
     + '</div>';
   modal.addEventListener('click', function(e){ if (e.target === modal) closeSyncModal(); });
   modal.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeSyncModal(); });

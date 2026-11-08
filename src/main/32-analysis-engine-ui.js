@@ -165,7 +165,7 @@ function renderAnalysisMoves() {
     // couleur qui a joue ce coup : enregistree si disponible, sinon deduite
     // du trait qui suit (l'inverse), pour rester juste sur les anciens etats.
     const isBlack = h.color ? (h.color === 'black') : (h.turn === 'white');
-    html += '<span onclick="analysisGoto(' + i + ')" title="Coup ' + moveNum + ' — ' + (isBlack ? 'Noirs' : 'Blancs') + '"'
+    html += '<span data-click="analysisGoto(' + i + ')" title="Coup ' + moveNum + ' — ' + (isBlack ? 'Noirs' : 'Blancs') + '"'
       + ' style="display:inline-block;margin:1px 4px 1px 0;padding:2px 7px;border-radius:5px;cursor:pointer;'
       + (active ? 'background:var(--gold);color:#0d0f0e;font-weight:700;' : 'color:var(--text);')
       + '">'
@@ -272,7 +272,7 @@ function renderEvalCurve(){
   const x = function(i){ return pad + (i/(evals.length-1)) * (w - 2*pad); };
   const y = function(v){ return h/2 - (v/maxAbs) * (h/2 - pad); };
 
-  let svg = '<svg width="100%" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="display:block;cursor:pointer" onclick="_evalCurveClick(event, this)">';
+  let svg = '<svg width="100%" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="display:block;cursor:pointer" data-click="_evalCurveClick(event, this)">';
   // fond : moitie haute = avantage noir, moitie basse = avantage blanc
   svg += '<rect x="0" y="0" width="'+w+'" height="'+(h/2)+'" fill="#2a2a2a" opacity="0.5"/>';
   svg += '<rect x="0" y="'+(h/2)+'" width="'+w+'" height="'+(h/2)+'" fill="#e8e8e8" opacity="0.10"/>';
@@ -376,9 +376,9 @@ function openMistakesReview(){
   } else {
     bodyHtml = mistakes.map(function(m){
       const loss = Math.abs(m.swing) / 1000; // meme echelle que la barre d'evaluation existante
-      return '<div onclick="analysisGoto(' + m.idx + ');document.getElementById(\'mistakes-modal\').remove()" '
+      return '<div data-click="analysisGoto(' + m.idx + ');retirer(\'mistakes-modal\')" '
         + 'style="cursor:pointer;padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center" '
-        + 'onmouseover="this.style.borderColor=\'var(--gold-dim)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
+        + 'data-survol="border-color:var(--gold-dim)">'
         + '<div><div style="font-size:13px;color:var(--text)">Coup ' + m.idx + ' — ' + m.label + '</div>'
         + '<div style="font-size:11px;color:var(--muted)">Perte d\u2019évaluation estimée (évaluation statique, pas une recherche complète)</div></div>'
         + '<div style="color:#e05c4b;font-weight:700;font-size:14px;white-space:nowrap;margin-left:12px">-' + loss.toFixed(1) + '</div>'
@@ -391,7 +391,7 @@ function openMistakesReview(){
     + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:6px">Tes coups à revoir</h3>'
     + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Clique un coup pour l\u2019examiner dans l\u2019onglet Analyse.</div>'
     + bodyHtml
-    + '<button class="ctrl-btn" onclick="document.getElementById(\'mistakes-modal\').remove()" style="width:100%;margin-top:8px">Fermer</button>'
+    + '<button class="ctrl-btn" data-click="retirer(\'mistakes-modal\')" style="width:100%;margin-top:8px">Fermer</button>'
     + '</div>';
   document.body.appendChild(modal);
 }

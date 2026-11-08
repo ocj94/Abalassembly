@@ -9,6 +9,32 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.22]
+
+### Plus aucun code dans le HTML : la CSP protège vraiment
+- **Les 1 011 gestionnaires écrits dans le HTML** (`onclick`, `onchange`,
+  `oninput`, `onkeydown`, `onmouseover`/`onmouseout`, `ontoggle`), dans les pages
+  comme dans le HTML que le JavaScript fabrique, sont remplacés par des attributs
+  de données : `data-click="showPage('gym')"`, `data-change`, `data-input`,
+  `data-keydown`, `data-toggle`, plus `data-entree` (touche Entrée),
+  `data-fond` (clic sur le fond d'une fenêtre) et `data-survol` (style le temps du
+  survol). Le navigateur ne les exécute jamais : un seul écouteur
+  (`src/main/00a-actions.js`) les lit, n'appelle que les 460 fonctions de la
+  liste des actions du site (`tools/actions.js`), et n'accepte comme arguments
+  que des valeurs simples. Le clic remonte les éléments comme avant.
+- **CSP** : `script-src` n'a plus `'unsafe-inline'`. Les six blocs de script du
+  fichier y sont nommés par leur empreinte SHA-256, recalculée à chaque
+  assemblage. Un script glissé dans la page par un pseudo, un fichier ou un
+  message ne s'exécuterait pas, même si un échappement était oublié. Les fils
+  de calcul (IA, Labo, réseau de calcul) restent autorisés.
+- Rien ne change pour le joueur. Vérifié dans Chromium avec la nouvelle CSP : les
+  36 pages sans gestionnaire en ligne ni violation de la CSP, et un parcours
+  (menu, Gym Cerveau, partie contre l'IA qui joue, Analyse, réglages, survol,
+  fenêtres, Labo et son fil de calcul).
+- Tests : plus aucun gestionnaire en ligne dans les sources, empreintes exactes,
+  liste des actions à jour, interpréteur qui refuse tout ce qui n'est pas une
+  valeur simple. `CONTRIBUTING` et `SECURITY` expliquent la règle.
+
 ## [v3.21]
 
 ### Plus de Google Fonts, téléphone et accessibilité

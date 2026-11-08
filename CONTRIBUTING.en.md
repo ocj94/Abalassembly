@@ -63,6 +63,15 @@ in `src/README.md`, not an abandoned effort.
   [`docs/Multi-worker`](docs/Moteur-multi-worker.en.md) or
   [`docs/Distributed computing`](docs/Calcul-distribue.en.md) as examples: a
   real, unresolved problem documented honestly beats silence.
+- **No code in the HTML** (since v3.22). A button is written
+  `<button data-click="showPage('gym')">`, not `onclick="…"`; likewise
+  `data-change`, `data-input`, `data-keydown`, `data-toggle`, `data-entree`
+  (Enter key), `data-fond` (click on a dialog's backdrop) and `data-survol`
+  (style while hovered). Arguments are simple values (strings, numbers,
+  `this`, `this.value`, `event`…); for more, write a small function. Then
+  `node tools/actions.js` adds it to the list of allowed actions. The CSP
+  only allows the file's own script blocks, by their hash: an `onclick` would
+  no longer work, and the tests reject it. See `src/main/00a-actions.js`.
 
 ## What genuinely helps
 

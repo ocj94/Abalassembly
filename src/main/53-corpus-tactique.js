@@ -53,7 +53,7 @@ function _c3HtmlTempsMorts(L, W){
   if (r.record) {
     const x = _cfPartieDe(r.record.k);
     if (x) h += '<div class="gr-sous">' + _tr('Le record : ' + grNb(r.record.d) + ' demi-coups sans qu’aucune bille ne tombe', 'The record: ' + grNb(r.record.d) + ' plies without any marble falling') + ' (' + _cfNomSourceCourt(x.s) + ', ' + grEchapper(x.date) + ', ' + grEchapper(String(x.noirs || '?')) + ' – ' + grEchapper(String(x.blancs || '?')) + '). '
-      + '<button type="button" class="ctrl-btn" style="width:auto;padding:3px 10px" onclick="corpusRevoir(' + r.record.k + ')">▶ ' + _tr('Revoir', 'Replay') + '</button></div>';
+      + '<button type="button" class="ctrl-btn" style="width:auto;padding:3px 10px" data-click="corpusRevoir(' + r.record.k + ')">▶ ' + _tr('Revoir', 'Replay') + '</button></div>';
   }
   return _carteStats(_tr('Les temps morts', 'The quiet stretches') + _cfMarque(), h,
     _tr('Une période : du début à la première bille, entre deux billes, ou de la dernière bille à la fin de la partie. Une longue période sans bille n’est pas forcément calme : les deux camps peuvent manœuvrer sans jamais laisser d’ouverture.',

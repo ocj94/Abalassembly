@@ -64,6 +64,16 @@ documenté dans `src/README.md`, pas un chantier abandonné en cours de route.
   [`docs-fr/Multi-worker`](docs-fr/Moteur-multi-worker.fr.md) ou
   [`docs-fr/Calcul-distribue`](docs-fr/Calcul-distribue.fr.md) comme exemples : un
   vrai problème non résolu, documenté honnêtement, vaut mieux qu'un silence.
+- **Pas de code dans le HTML** (depuis la v3.22). Un bouton s'écrit
+  `<button data-click="showPage('gym')">`, pas `onclick="…"` ; de même
+  `data-change`, `data-input`, `data-keydown`, `data-toggle`, `data-entree`
+  (touche Entrée), `data-fond` (clic sur le fond d'une fenêtre) et
+  `data-survol` (style le temps du survol). Les arguments sont des valeurs
+  simples (textes, nombres, `this`, `this.value`, `event`…) ; pour plus,
+  écrire une petite fonction. Puis `node tools/actions.js` l'ajoute à la
+  liste des actions permises. La CSP n'autorise que les blocs de script du
+  fichier, par leur empreinte : un `onclick` ne marcherait plus, et les tests
+  le refusent. Voir `src/main/00a-actions.js`.
 
 ## Ce qui aide vraiment
 

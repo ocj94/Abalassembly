@@ -326,7 +326,7 @@ function _tableReflexionHTML(idx, hote) {
     h += '<tr><td colspan="' + (7 + CR.length) + '" style="padding:10px 6px 4px;color:var(--gold);font-family:\'DM Sans\',sans-serif">Prof. ' + p.d + ' : ' + p.lignes.length + ' premiers coups sur ' + p.total + ', '
       + p.noeuds.toLocaleString('fr-FR') + ' positions, ' + _msTexte(p.ms) + ' (finie à ' + _msTexte(p.fin) + ')</td></tr>';
     p.lignes.forEach(function(l, i){
-      h += '<tr onclick="_plateauReflexion(' + idx + ',' + ip + ',' + i + ',\'' + hote + '\')" style="cursor:pointer;border-top:1px solid var(--border)"><td ' + td + '>' + (i + 1) + '</td><td ' + td + ' style="text-align:left;color:' + (i === 0 ? 'var(--gold)' : 'var(--white)') + '">' + l.n + '</td><td ' + td + '>'
+      h += '<tr data-click="_plateauReflexion(' + idx + ',' + ip + ',' + i + ',\'' + hote + '\')" style="cursor:pointer;border-top:1px solid var(--border)"><td ' + td + '>' + (i + 1) + '</td><td ' + td + ' style="text-align:left;color:' + (i === 0 ? 'var(--gold)' : 'var(--white)') + '">' + l.n + '</td><td ' + td + '>'
         + _evalReflexionTexte(l.s) + (l.terms && Math.abs(l.s) < 90000 && Math.abs(Object.keys(l.terms).reduce(function(a, k){ return a + l.terms[k]; }, 0) - l.s) >= 500 ? '*' : '') + '</td><td ' + td + '>' + (l.t ? _msTexte(l.t) : '') + '</td><td ' + td + '>' + _msTexte(l.ms) + '</td><td ' + td + '>'
         + l.k.toLocaleString('fr-FR') + ' (' + (p.noeuds ? Math.round(100 * l.k / p.noeuds) : 0) + ' %)</td>'
         + CR.map(function(k){ return '<td ' + td + '>' + (l.terms && det.pos ? v(l.terms[k[0]] - det.pos[k[0]]) : '') + '</td>'; }).join('')
@@ -346,7 +346,7 @@ function ouvrirReflexionIA(idx) {
   m.style.cssText = 'position:fixed;inset:0;z-index:3600;background:rgba(13,15,14,0.94);display:flex;align-items:center;justify-content:center;padding:12px';
   m.innerHTML = '<div style="max-width:1100px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:18px;max-height:92vh;overflow:auto">'
     + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin:0">Réflexion de l\u2019IA</h3>'
-    + '<button class="ctrl-btn" onclick="document.getElementById(\'reflexion-ia-modal\').remove()" style="width:auto;padding:4px 12px">Fermer</button></div>'
+    + '<button class="ctrl-btn" data-click="retirer(\'reflexion-ia-modal\')" style="width:auto;padding:4px 12px">Fermer</button></div>'
     + T.html + '</div>';
   document.body.appendChild(m);
   return m;
@@ -453,7 +453,7 @@ function _permutContenu(code) {
   if (!L) return { ok: false, html: '<div style="color:var(--danger,#e57373);font-size:12px">' + _saabRaisonCode(null) + '</div>', tout: '' };
   const P = permutationsPosition(L.plateau, L.ejNoires, L.ejBlanches);
   const ligne = function(x){ const ref = x.code === P.posRef;
-    return '<div onclick="_copierTexte(\'' + x.code + '\')" title="' + _tr('Toucher pour copier', 'Tap to copy') + '" style="cursor:pointer;margin-bottom:10px;font-family:\'DM Mono\',monospace;font-size:12px;word-break:break-all;color:' + (ref ? 'var(--gold)' : 'var(--text)') + (ref ? ';font-weight:700' : '') + '">'
+    return '<div data-click="_copierTexte(\'' + x.code + '\')" title="' + _tr('Toucher pour copier', 'Tap to copy') + '" style="cursor:pointer;margin-bottom:10px;font-family:\'DM Mono\',monospace;font-size:12px;word-break:break-all;color:' + (ref ? 'var(--gold)' : 'var(--text)') + (ref ? ';font-weight:700' : '') + '">'
       + x.num + ' : ' + x.code + (ref ? ' ★' : '') + '</div>'; };
   const html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><div style="font-size:12px;color:var(--muted);margin-bottom:6px">Permut</div>' + P.permut.map(ligne).join('') + '</div>'
     + '<div><div style="font-size:12px;color:var(--muted);margin-bottom:6px">Camp_Permut</div>' + P.camp.map(ligne).join('') + '</div></div>'
@@ -477,13 +477,13 @@ function ouvrirPermutations(codeDonne) {
   m.innerHTML = '<div style="max-width:640px;width:100%;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:20px;max-height:90vh;overflow-y:auto">'
     + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:8px">Permutations</h3>'
     + '<div style="font-size:12px;color:var(--muted);margin-bottom:4px">' + _tr('Position (notation de Saab, KAAH) — collez-en une autre pour la lire', 'Position (Saab’s notation, KAAH) — paste another one to read it') + '</div>'
-    + '<input id="permut-code" value="' + escapeHtml(code) + '" onchange="_permutMaj(this.value)" onkeydown="if(event.key===\'Enter\')_permutMaj(this.value)" spellcheck="false" style="width:100%;box-sizing:border-box;font-family:\'DM Mono\',monospace;font-size:13px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px;margin-bottom:12px">'
+    + '<input id="permut-code" value="' + escapeHtml(code) + '" data-change="_permutMaj(this.value)" data-entree="_permutMaj(this.value)" spellcheck="false" style="width:100%;box-sizing:border-box;font-family:\'DM Mono\',monospace;font-size:13px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px;margin-bottom:12px">'
     + '<div id="permut-corps">' + r.html + '</div>'
     + '<div style="font-size:11px;color:var(--muted);margin:4px 0 12px;line-height:1.5">' + _tr('Le code donne la position entière : chaque camp, précédé du nombre de ses billes perdues, ses cases groupées par rangée (a1 a2 b1 → a12b1). 0 à 5 : rotations ; 10 à 15 : miroir puis rotation ; 100 et plus : camps échangés (numérotation de KAAH). ★ posRef, la forme sous laquelle KAAH range la position : le camp qui a le plus de billes passe devant, puis la position dont les billes sont le plus près de a1, a2, a3… Le code_permut dit quelle symétrie y mène (+100 : camps échangés). Touchez un code pour le copier.',
       'The code gives the whole position: each side, preceded by its number of lost marbles, its cells grouped by row (a1 a2 b1 → a12b1). 0 to 5: rotations; 10 to 15: mirror then rotation; 100 and up: sides swapped (KAAH’s numbering). ★ posRef, the form under which KAAH files the position: the side with more marbles comes first, then the position whose marbles are closest to a1, a2, a3… The code_permut tells which symmetry leads there (+100: sides swapped). Tap a code to copy it.') + '</div>'
-    + '<button class="ctrl-btn" onclick="_copierTexte(document.getElementById(\'permut-modal\').dataset.tout)" style="width:auto;padding:6px 12px;margin-right:8px">' + _tr('Copier tout', 'Copy all') + '</button>'
-    + '<button class="ctrl-btn" onclick="jouerDepuisCode(document.getElementById(\'permut-code\').value)" style="width:auto;padding:6px 12px;margin-right:8px">▶ ' + _tr('Jouer cette position', 'Play this position') + '</button>'
-    + '<button class="ctrl-btn" onclick="document.getElementById(\'permut-modal\').remove()" style="width:auto;padding:6px 12px">' + _tr('Fermer', 'Close') + '</button></div>';
+    + '<button class="ctrl-btn" data-click="permutCopierTout()" style="width:auto;padding:6px 12px;margin-right:8px">' + _tr('Copier tout', 'Copy all') + '</button>'
+    + '<button class="ctrl-btn" data-click="jouerDepuisCode(document.getElementById(\'permut-code\').value)" style="width:auto;padding:6px 12px;margin-right:8px">▶ ' + _tr('Jouer cette position', 'Play this position') + '</button>'
+    + '<button class="ctrl-btn" data-click="retirer(\'permut-modal\')" style="width:auto;padding:6px 12px">' + _tr('Fermer', 'Close') + '</button></div>';
   m.dataset.tout = r.tout;
   document.body.appendChild(m);
   return r.P;
@@ -556,7 +556,7 @@ function appendMoveRow(list, moveInfo, fallbackLabel, color, plyNum) {
   if (typeof ligneNotationHistorique === 'function') row.innerHTML += ligneNotationHistorique(moveInfo, color, plyNum);
   const _snapEval = (typeof boardSnapshots !== 'undefined') ? boardSnapshots[plyNum - 1] : null;
   if (_snapEval && _snapEval.ia) row.innerHTML += '<span class="move-eval" title="' + (_snapEval.ia.detail ? 'Voir la réflexion de l\u2019IA pour ce coup' : 'Évaluation de l\u2019IA : phase, score de son point de vue, profondeur atteinte, temps de réflexion') + '"'
-    + (_snapEval.ia.detail ? ' onclick="event.stopPropagation();ouvrirReflexionIA(' + (plyNum - 1) + ')"' : '')
+    + (_snapEval.ia.detail ? ' data-click="event.stopPropagation();ouvrirReflexionIA(' + (plyNum - 1) + ')"' : '')
     + ' style="grid-column:3 / 5;font-size:11px;color:var(--muted);margin-top:-4px' + (_snapEval.ia.detail ? ';text-decoration:underline dotted;cursor:pointer' : '') + '">' + _formatEvalIA(_snapEval.ia) + (_snapEval.ia.detail ? ' ›' : '') + '</span>';
   list.appendChild(row);
 }
@@ -618,3 +618,5 @@ function rebuildMoveListLabels() {
 // Auto-init board on canvas ready
 /* DOMContentLoaded — géré dans la section principale ci-dessous */
 
+// v3.22 : bouton « Copier tout » des permutations
+function permutCopierTout() { const m = document.getElementById('permut-modal'); if (m) _copierTexte(m.dataset.tout); }

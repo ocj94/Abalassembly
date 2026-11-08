@@ -247,9 +247,9 @@ function openReferralModal() {
       '<div class="share-modal-text">' + _tr(
         'En ouvrant votre lien, votre ami reçoit <strong style="color:var(--gold)">+' + REFERRAL_WELCOME + ' XP</strong> de bienvenue.<br><span style="font-size:12px;color:var(--muted)">Le site n’a pas de serveur : il ne peut pas savoir qui a ouvert votre lien, donc pas de récompense pour vous… à part un adversaire de plus !</span>',
         'When your friend opens your link, they get <strong style="color:var(--gold)">+' + REFERRAL_WELCOME + ' XP</strong> as a welcome.<br><span style="font-size:12px;color:var(--muted)">The site has no server: it cannot know who opened your link, so there is no reward for you… apart from one more opponent!</span>') + '</div>' +
-      '<button class="share-copy" onclick="copyReferralLink()">🔗 ' + _tr('Copier mon lien d’invitation', 'Copy my invitation link') + '</button>' +
-      '<button class="share-copy" style="background:#5865f2;color:#fff" onclick="shareInvite()">📨 ' + _tr('Partager', 'Share') + '</button>' +
-      '<button class="share-close" onclick="closeReferralModal()">' + _tr('Fermer', 'Close') + '</button>' +
+      '<button class="share-copy" data-click="copyReferralLink()">🔗 ' + _tr('Copier mon lien d’invitation', 'Copy my invitation link') + '</button>' +
+      '<button class="share-copy" style="background:#5865f2;color:#fff" data-click="shareInvite()">📨 ' + _tr('Partager', 'Share') + '</button>' +
+      '<button class="share-close" data-click="closeReferralModal()">' + _tr('Fermer', 'Close') + '</button>' +
     '</div>';
   modal.classList.add('show');
 }
@@ -332,7 +332,7 @@ function renderTournamentRules() {
     const cur = tournamentRules[rule.key];
     const btns = states.map(function(s){
       const active = cur === s.v;
-      return '<button onclick="setTournamentRule(\''+rule.key+'\',\''+s.v+'\')" '
+      return '<button data-click="setTournamentRule(\''+rule.key+'\',\''+s.v+'\')" '
         + 'style="padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;'
         + 'border:1px solid '+(active?s.color:'var(--border)')+';'
         + 'background:'+(active?s.color:'transparent')+';'
@@ -498,9 +498,8 @@ function renderEngageBar() {
     // derniers reglages, sans jamais repasser par l'ecran de configuration.
     const handler = (q.page === 'game') ? 'openGameSetup()' : ('showPage(\''+q.page+'\')');
     quickHtml +=
-      '<button onclick="'+handler+'" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 10px;border-radius:14px;background:var(--surface);border:1px solid var(--border);transition:transform .15s,border-color .15s" '+
-      'onmouseover="this.style.transform=\'translateY(-3px)\';this.style.borderColor=\''+q.color+'\'" '+
-      'onmouseout="this.style.transform=\'\';this.style.borderColor=\'var(--border)\'">'+
+      '<button data-click="'+handler+'" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 10px;border-radius:14px;background:var(--surface);border:1px solid var(--border);transition:transform .15s,border-color .15s" '+
+      'data-survol="transform:translateY(-3px);border-color:'+q.color+'">'+
         '<span style="font-size:26px">'+q.icon+'</span>'+
         '<span style="font-size:13px;font-weight:700;color:var(--text)">'+q.label+'</span>'+
       '</button>';

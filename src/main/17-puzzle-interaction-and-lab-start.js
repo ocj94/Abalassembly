@@ -119,6 +119,8 @@ function puzzleQuit(){
 //    place de l'ancien « Elo cumule » qui additionnait les estimations les plus chanceuses ;
 //  - plusieurs parties en parallele (la moitie des coeurs, 4 au plus ; reglable) ;
 //  - les 8 criteres de KAAH sont reglables par le Labo (mutants et SPSA).
+function basculerLab(){ if (_labRunning) pauseLab(); else startLab(); }   // v3.22
+function labCfgCase(cle, el){ labCfgSet(cle, el.checked ? 1 : 0); }
 let _labRunning=false,_labPingOk=false,_labHB=null,_labRetries=0; let _labLastDuel=null; let _labReplayWorker=null;
 const LAB_CLES_BASE=['center','cohesion','edge','mob','iso','dng','chain','fortress'];
 const LAB_CLES_KAAH=['scGain','scPerte','cases','compac','sumito','menace','fourch','piege'];
@@ -978,7 +980,7 @@ function _labNum(id,key,val,step,min,max){
   return '<label style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;margin:3px 0">'
     +'<span style="color:var(--muted)">'+id+'</span>'
     +'<input type="number" value="'+val+'" step="'+(step||1)+'"'+(min!=null?' min="'+min+'"':'')+(max!=null?' max="'+max+'"':'')
-    +' onchange="labCfgSet(\''+key+'\',this.value)" style="width:72px;background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:2px 6px"></label>';
+    +' data-change="labCfgSet(\''+key+'\',this.value)" style="width:72px;background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:2px 6px"></label>';
 }
 function labSetMode(m){
   LAB_CFG.mode=m; labCfgSave();
@@ -1006,8 +1008,8 @@ function renderLabAdvanced(){
   // 0. Mode d'optimisation
   h+='<div style="font-size:12px;font-weight:700;margin-bottom:6px">\u2699 Mode d\'optimisation</div>';
   h+='<div style="display:flex;gap:6px;margin-bottom:4px">'
-    +'<button class="ctrl-btn" onclick="labSetMode(\'sprt\')" style="flex:1;padding:5px;font-size:11px;'+(c.mode!=='spsa'?'border-color:var(--gold);color:var(--gold)':'')+'">SPRT (test A/B)</button>'
-    +'<button class="ctrl-btn" onclick="labSetMode(\'spsa\')" style="flex:1;padding:5px;font-size:11px;'+(c.mode==='spsa'?'border-color:var(--gold);color:var(--gold)':'')+'">SPSA (continu)</button></div>';
+    +'<button class="ctrl-btn" data-click="labSetMode(\'sprt\')" style="flex:1;padding:5px;font-size:11px;'+(c.mode!=='spsa'?'border-color:var(--gold);color:var(--gold)':'')+'">SPRT (test A/B)</button>'
+    +'<button class="ctrl-btn" data-click="labSetMode(\'spsa\')" style="flex:1;padding:5px;font-size:11px;'+(c.mode==='spsa'?'border-color:var(--gold);color:var(--gold)':'')+'">SPSA (continu)</button></div>';
   h+='<div style="font-size:10px;color:var(--muted);margin-bottom:8px">'
     +(c.mode==='spsa'
       ? 'SPSA : perturbe les '+_labCles().length+' poids simultan\u00e9ment, joue \u03b8+ contre \u03b8\u2212, pousse tous les poids vers l\'am\u00e9lioration. Trouve les interactions entre poids. Toutes les '+c.spsaVerif+' it\u00e9rations, \u03b8 est v\u00e9rifi\u00e9 contre le champion (SPRT par paires) : l\u2019IA ne l\u2019utilise qu\u2019apr\u00e8s adoption.'
@@ -1035,7 +1037,7 @@ function renderLabAdvanced(){
       });
       h+='<div style="font-size:9px;color:var(--muted)">trajectoire des '+clesT.length+' poids (normalis\u00e9e) \u00b7 W/D/L \u03b8+ : '+sp.wins+'/'+sp.draws+'/'+sp.losses+'</div>';
     }
-    h+='<button class="ctrl-btn" onclick="labSpsaReset()" style="width:auto;padding:3px 10px;font-size:11px;margin-top:4px">\u21ba R\u00e9init SPSA</button>';
+    h+='<button class="ctrl-btn" data-click="labSpsaReset()" style="width:auto;padding:3px 10px;font-size:11px;margin-top:4px">\u21ba R\u00e9init SPSA</button>';
     h+='</div>';
   }
 
@@ -1048,9 +1050,9 @@ function renderLabAdvanced(){
   });
   h+='</div>';
   h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">';
-  h+='<button class="ctrl-btn" onclick="labApplyChampion()" style="width:auto;padding:4px 10px;font-size:11px">Définir comme champion</button>';
-  h+='<button class="ctrl-btn" onclick="labAddCustomMutant()" style="width:auto;padding:4px 10px;font-size:11px">\u2795 Tester comme mutant</button>';
-  h+='<button class="ctrl-btn" onclick="labResetWeightsInputs()" style="width:auto;padding:4px 10px;font-size:11px">\u21ba</button>';
+  h+='<button class="ctrl-btn" data-click="labApplyChampion()" style="width:auto;padding:4px 10px;font-size:11px">Définir comme champion</button>';
+  h+='<button class="ctrl-btn" data-click="labAddCustomMutant()" style="width:auto;padding:4px 10px;font-size:11px">\u2795 Tester comme mutant</button>';
+  h+='<button class="ctrl-btn" data-click="labResetWeightsInputs()" style="width:auto;padding:4px 10px;font-size:11px">\u21ba</button>';
   h+='</div>';
 
   // 2. Paramètres SPRT / duels
@@ -1074,8 +1076,8 @@ function renderLabAdvanced(){
   h+=_labNum('Ouverture : demi-coups','openingPlies',c.openingPlies,1,0,20);
   h+=_labNum('Ouverture : fenêtre équilibre','balanceWindow',c.balanceWindow,50,100,3000);
   h+=_labNum('Générations max','maxGen',c.maxGen,1,1,500);
-  h+='<label style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;margin:3px 0"><span style="color:var(--muted)">Recherche adaptative</span><input type="checkbox" '+((c.adaptive!==0)?'checked':'')+' onchange="labCfgSet(\'adaptive\', this.checked?1:0)"></label>';
-  h+='<label style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;margin:3px 0"><span style="color:var(--muted)">R\u00e9gler aussi les crit\u00e8res de KAAH</span><input type="checkbox" '+(c.kaah?'checked':'')+' onchange="labCfgSet(\'kaah\', this.checked?1:0);renderLabAdvanced()"></label>';
+  h+='<label style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;margin:3px 0"><span style="color:var(--muted)">Recherche adaptative</span><input type="checkbox" '+((c.adaptive!==0)?'checked':'')+' data-change="labCfgCase(\'adaptive\', this)"></label>';
+  h+='<label style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;margin:3px 0"><span style="color:var(--muted)">R\u00e9gler aussi les crit\u00e8res de KAAH</span><input type="checkbox" '+(c.kaah?'checked':'')+' data-change="labCfgCase(\'kaah\', this);renderLabAdvanced()"></label>';
   if(c.mode==='spsa'){
     h+='<div style="grid-column:1/3;font-size:11px;font-weight:700;margin-top:6px;color:var(--gold)">Hyperparamètres SPSA</div>';
     h+=_labNum('SPSA : a (pas apprentissage)','spsaA',c.spsaA,5,1,500);
@@ -1092,10 +1094,10 @@ function renderLabAdvanced(){
 
   // 3. Import / export / reset config
   h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">';
-  h+='<button class="ctrl-btn" onclick="labExport()" style="width:auto;padding:4px 10px;font-size:11px">\ud83d\udcbe Exporter JSON</button>';
-  h+='<button class="ctrl-btn" onclick="labImportPrompt()" style="width:auto;padding:4px 10px;font-size:11px">\ud83d\udce5 Importer</button>';
-  h+='<button class="ctrl-btn" onclick="labCfgReset()" style="width:auto;padding:4px 10px;font-size:11px">\u2699 Params par défaut</button>';
-  h+='<input type="file" id="lab-import-file" accept="application/json,.json" style="display:none" onchange="labImportFile(this)">';
+  h+='<button class="ctrl-btn" data-click="labExport()" style="width:auto;padding:4px 10px;font-size:11px">\ud83d\udcbe Exporter JSON</button>';
+  h+='<button class="ctrl-btn" data-click="labImportPrompt()" style="width:auto;padding:4px 10px;font-size:11px">\ud83d\udce5 Importer</button>';
+  h+='<button class="ctrl-btn" data-click="labCfgReset()" style="width:auto;padding:4px 10px;font-size:11px">\u2699 Params par défaut</button>';
+  h+='<input type="file" id="lab-import-file" accept="application/json,.json" style="display:none" data-change="labImportFile(this)">';
   h+='</div>';
 
   h+='<div style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.5">\ud83d\udca1 Astuce : baisse <code>SPRT alpha/beta</code> pour des verdicts plus stricts (plus de parties), monte <code>Elo H1</code> pour ne retenir que de grosses améliorations (beaucoup moins de parties). Édite les poids puis \u00ab Tester comme mutant \u00bb pour lancer ta propre hypothèse dans le tri en cours. Les parties trop longues sont arbitrées par consensus : la victoire n\u2019est donnée que si les deux évaluations sont d\u2019accord.</div>';
@@ -1131,9 +1133,9 @@ function renderLabAdvanced(){
   }
   // Boutons export data
   h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">';
-  h+='<button class="ctrl-btn" onclick="labExportCSV()" style="width:auto;padding:4px 10px;font-size:11px">\ud83d\udcca Export CSV (parties)</button>';
-  h+='<button class="ctrl-btn" onclick="labExportDataJSON()" style="width:auto;padding:4px 10px;font-size:11px">\ud83d\udce6 Export JSON (parties)</button>';
-  h+='<button class="ctrl-btn" onclick="_labDataClear()" style="width:auto;padding:4px 10px;font-size:11px">\ud83d\uddd1 Vider le journal</button>';
+  h+='<button class="ctrl-btn" data-click="labExportCSV()" style="width:auto;padding:4px 10px;font-size:11px">\ud83d\udcca Export CSV (parties)</button>';
+  h+='<button class="ctrl-btn" data-click="labExportDataJSON()" style="width:auto;padding:4px 10px;font-size:11px">\ud83d\udce6 Export JSON (parties)</button>';
+  h+='<button class="ctrl-btn" data-click="_labDataClear()" style="width:auto;padding:4px 10px;font-size:11px">\ud83d\uddd1 Vider le journal</button>';
   h+='</div>';
   h+='<div style="font-size:10px;color:var(--muted);margin-top:6px">Une ligne par partie : mutant, poids A/B \u00e9clat\u00e9s, couleur, seed, r\u00e9sultat, coups, raison. Pr\u00eat pour pandas / R / tableur.</div>';
 
@@ -1343,7 +1345,7 @@ function renderTestKaah(msg) {
     + '<div style="font-size:11px;color:var(--muted);margin:4px 0">LLR ' + llr.toFixed(2) + ' (verdict à ≥ ' + B.haut.toFixed(2) + ' ou ≤ ' + B.bas.toFixed(2) + ', après ' + TEST_KAAH_MIN_PAIRES + ' paires au moins)</div>'
     + (verdict ? '<div style="font-size:13px;color:var(--gold);margin:8px 0">' + verdict + '</div>' : '')
     + (msg ? '<div style="font-size:12px;color:var(--muted);margin:6px 0">' + msg + '</div>' : '')
-    + '<button class="ctrl-btn" onclick="lancerTestKaah()" style="width:auto;padding:6px 14px;margin-top:6px">'
+    + '<button class="ctrl-btn" data-click="lancerTestKaah()" style="width:auto;padding:6px 14px;margin-top:6px">'
     + (_testKaahEnCours ? '⏸ Pause' : (s.fini ? '↻ Recommencer le test' : (s.n ? '▶ Reprendre' : '▶ Lancer le test'))) + '</button>'
     + (_testKaahEnCours ? ' <span style="font-size:11px;color:var(--muted)">' + enCours + ' partie' + (enCours > 1 ? 's' : '') + ' en cours sur ' + _labFils.length + ' fil' + (_labFils.length > 1 ? 's' : '') + ' de calcul…</span>' : '')
     + '</div>';
@@ -1386,7 +1388,7 @@ function renderLab(){
   h+='<span style="font-size:11px;color:var(--muted)">'+st.totalGames+' parties · '+_labNbFils()+' fil'+(_labNbFils()>1?'s':'')+' de calcul'+((LAB_CFG.threads|0)>0?'':' (auto)')+'</span></div>';
   h+='<div id="lab-live" style="font-size:11px;margin-top:6px;color:var(--muted)"></div>';
   h+='<div style="margin:8px 0;font-size:12px">Champion actuel : '+_labPoidsTexte(ch)+'</div>';
-  h+='<label class="lab-options" style="margin:4px 0 10px">Les parties partent de <select onchange="labDepartSet(this.value)">'
+  h+='<label class="lab-options" style="margin:4px 0 10px">Les parties partent de <select data-change="labDepartSet(this.value)">'
     +Object.keys(LAB_DEPARTS).map(function(k){ return '<option value="'+k+'"'+((LAB_CFG.depart||'belgian')===k?' selected':'')+'>'+LAB_DEPARTS[k]+'</option>'; }).join('')+'</select></label>';
   if((st.departMode||'belgian')!==(LAB_CFG.depart||'belgian')) h+='<div class="lab-note">Le test en cours garde son départ ('+(LAB_DEPARTS[st.departMode||'belgian']||'').toLowerCase()+') jusqu’à son verdict.</div>';
   function bar(name, pts, n, target, note){
@@ -1426,7 +1428,7 @@ function renderLab(){
     h+='<div style="font-size:11px;color:var(--muted)">Pas encore mesuré : se mesure après chaque adoption ('+(LAB_CFG.bilanPaires|0)+' paires).'
       +(typeof st.ancienCumul==='number'?' L’ancien « Élo cumulé » (+'+st.ancienCumul+') additionnait les estimations les plus chanceuses : il est remplacé par cette mesure.':'')+'</div>';
   }
-  h+='<button class="ctrl-btn" onclick="labMesurerGain()" style="width:auto;padding:3px 10px;font-size:11px;margin-top:4px">📏 Mesurer maintenant</button>';
+  h+='<button class="ctrl-btn" data-click="labMesurerGain()" style="width:auto;padding:3px 10px;font-size:11px;margin-top:4px">📏 Mesurer maintenant</button>';
   // ── Journal des dernieres parties ──
   if(st.gameLog && st.gameLog.length){
     h+='<div style="margin-top:10px;font-size:12px;font-weight:700">🌮 Dernières parties</div>';
@@ -1434,7 +1436,7 @@ function renderLab(){
       const res=g.res || (g.w==='mutant'||g.w==='θ+' ? 'A' : (g.w==='nulle' ? 'D' : 'B'));
       const icon = res==='A' ? '🟢' : (res==='D' ? '⚪' : '🔴');
       const whyLabel = {'6capt':'6 captures','adj3':'écart 3','adjCap':'captures','adjCap1':'une bille d’avance, mieux placé','adjEval':'éval (les deux d’accord)','time':'temps','noMove':'bloqué','draw':'nulle','draw1':'nulle : une bille d’avance, pas mieux placé'}[g.why]||g.why;
-      const btn = g.moves ? '<button onclick="labReplay('+gi+')" style="background:none;border:1px solid var(--gold);color:var(--gold);border-radius:5px;font-size:10px;padding:0 6px;cursor:pointer;margin-left:6px;white-space:nowrap;flex-shrink:0">▶ revoir</button>' : '';
+      const btn = g.moves ? '<button data-click="labReplay('+gi+')" style="background:none;border:1px solid var(--gold);color:var(--gold);border-radius:5px;font-size:10px;padding:0 6px;cursor:pointer;margin-left:6px;white-space:nowrap;flex-shrink:0">▶ revoir</button>' : '';
       h+='<div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--muted);margin:3px 0"><span>'+icon+' '+g.name+' · '+g.w+' ('+whyLabel+', '+g.plies+' coups)</span>'+btn+'</div>';
     });
   }
@@ -1444,7 +1446,7 @@ function renderLab(){
       h+='<div style="font-size:11px;color:var(--muted);margin:2px 0">G'+x.gen+' · '+x.type+' · '+x.name+(x.score!==null&&x.score!==undefined?' · '+x.score+'/'+x.games:'')+(x.elo?' · '+x.elo:'')+'</div>';
     });
   }
-  h+='<label style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px"><input type="checkbox" '+(useOn?'checked':'')+' onchange="labToggleUse(this)"> Utiliser les poids adoptés pour l’IA (à partir du niveau 4, à la place des poids Texel)</label>';
+  h+='<label style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px"><input type="checkbox" '+(useOn?'checked':'')+' data-change="labToggleUse(this)"> Utiliser les poids adoptés pour l’IA (à partir du niveau 4, à la place des poids Texel)</label>';
   el.innerHTML=h;
   if(_labRunning) _labMajStatut();
   const bs=document.getElementById('lab-start'); if(bs) bs.textContent=_labRunning?'⏸ Pause':'▶ Démarrer';
@@ -2025,7 +2027,7 @@ function _iaBandeauEl() {
     + 'border-top-color:var(--gold);border-radius:50%;animation:ai-spin 0.7s linear infinite"></span>'
     + '<span class="ia-calc" style="white-space:nowrap">L\'IA réfléchit…</span>'
     + '<span class="ia-repos" style="white-space:nowrap;color:var(--muted)">🤖 L\'IA attend votre coup</span>'
-    + '<button class="ia-calc" onclick="forceAINow()" title="Interrompre la réflexion et jouer le meilleur coup trouvé" '
+    + '<button class="ia-calc" data-click="forceAINow()" title="Interrompre la réflexion et jouer le meilleur coup trouvé" '
     + 'style="margin-left:6px;background:var(--gold);color:#0d0f0e;border:none;border-radius:14px;'
     + 'padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">⚡ Jouer maintenant</button></div>'
     // Observatoire IA (v3.06) : une ligne de mesures en direct, remplie par _obsBandeau

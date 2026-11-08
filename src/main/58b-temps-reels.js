@@ -104,8 +104,8 @@ function renderTempsReels() {
   const actif = trActif(), d = trLire(), S = trResume(d);
   let h = '<h4>⏱ En vraie partie, sur cet appareil</h4>'
     + '<p class="lab-intro">Le banc ci-dessus fait jouer les niveaux entre eux sur un seul fil de calcul. Ici, ce sont les coups que l’IA joue <b>vraiment contre vous</b>, sur cet appareil, avec tous ses fils : jusqu’où elle va dans le temps accordé. Rien ne quitte ce navigateur.</p>'
-    + '<div class="lab-options"><label><input type="checkbox" id="lab-tr-actif"' + (actif ? ' checked' : '') + ' onchange="trBasculer()"> Noter les temps de calcul de l’IA dans mes parties</label>'
-    + (S.n ? '<span class="lab-note">' + S.n.toLocaleString('fr-FR') + ' coup' + (S.n > 1 ? 's' : '') + ' notés' + (d.depuis ? ' depuis le ' + new Date(d.depuis).toLocaleDateString('fr-FR') : '') + (d.coeurs ? ' · ' + d.coeurs + ' cœurs' : '') + '</span> <button class="ctrl-btn" style="width:auto;flex:0 0 auto;padding:4px 14px" onclick="trEffacer()">Effacer</button>' : '') + '</div>';
+    + '<div class="lab-options"><label><input type="checkbox" id="lab-tr-actif"' + (actif ? ' checked' : '') + ' data-change="trBasculer()"> Noter les temps de calcul de l’IA dans mes parties</label>'
+    + (S.n ? '<span class="lab-note">' + S.n.toLocaleString('fr-FR') + ' coup' + (S.n > 1 ? 's' : '') + ' notés' + (d.depuis ? ' depuis le ' + new Date(d.depuis).toLocaleDateString('fr-FR') : '') + (d.coeurs ? ' · ' + d.coeurs + ' cœurs' : '') + '</span> <button class="ctrl-btn" style="width:auto;flex:0 0 auto;padding:4px 14px" data-click="trEffacer()">Effacer</button>' : '') + '</div>';
   if (!S.n) {
     h += '<div class="lab-note">' + (actif ? 'Aucun coup noté pour l’instant : jouez une partie contre l’IA (niveau 2 ou plus). Les coups du livre d’ouvertures et des tables de finale ne comptent pas.' : 'Cochez la case puis jouez contre l’IA : chaque coup calculé sera noté ici.') + '</div>';
     hote.innerHTML = h; return;

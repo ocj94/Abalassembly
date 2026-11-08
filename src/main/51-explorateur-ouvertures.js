@@ -89,15 +89,15 @@ function _eoHtml(msg){
   const D = STATS_PARTIES, dispos = _eoDisposPossibles();
   let h = '<div class="gr-sous">' + _tr('Toutes les vraies parties de la disposition, coup par coup, comme l’explorateur d’ouvertures des échecs : pour chaque suite, le nombre de parties, la part gagnée par les Noirs (vainqueur connu, avec sa marge) et la longueur médiane. Cliquer un coup pour descendre. Les filtres de la page s’appliquent.',
     'All the real games of the layout, move by move, like the chess opening explorer: for each line, the number of games, the share won by Black (known winner, with its margin) and the median length. Click a move to go down. The page filters apply.') + '</div>';
-  if (_corpusFiltre.dispo === 'tout') h += '<div class="gr-filtres"><label>' + _tr('Disposition', 'Layout') + ' <select onchange="corpusOuvertureDispo(this.value)">' + dispos.map(function(x){ return '<option value="' + x[0] + '"' + (x[0] === _eoDispoActive() ? ' selected' : '') + '>' + grEchapper(_cfNomDispo(x[0])) + ' (' + x[1] + ')</option>'; }).join('') + '</select></label></div>';
+  if (_corpusFiltre.dispo === 'tout') h += '<div class="gr-filtres"><label>' + _tr('Disposition', 'Layout') + ' <select data-change="corpusOuvertureDispo(this.value)">' + dispos.map(function(x){ return '<option value="' + x[0] + '"' + (x[0] === _eoDispoActive() ? ' selected' : '') + '>' + grEchapper(_cfNomDispo(x[0])) + ' (' + x[1] + ')</option>'; }).join('') + '</select></label></div>';
   else if (_eoDispoActive() === 'custom') return h + '<div class="gr-vide">' + _tr('La disposition libre n’a pas de position de départ commune : choisis une autre disposition dans les filtres.', 'The custom layout has no common starting position: pick another layout in the filters.') + '</div>';
   if (msg) return h + '<div class="lab-etat">' + msg + '</div>';
   if (!_eoEtat || !_eoEtat.niveaux[_eoEtat.niveaux.length - 1].suite) return h;
   // le chemin
   const libelles = [];
   for (let d = 0; d < _eoChemin.length; d++) { const niv = _eoEtat.niveaux[d], i = niv.parties.findIndex(function(x, j){ return niv.suite[j] && niv.suite[j].id === _eoChemin[d]; }); libelles.push(i >= 0 ? niv.suite[i].tok : '?'); }
-  h += '<div class="eo-chemin"><button type="button" class="eo-pas" onclick="corpusOuvertureAller(0)">' + _tr('Départ', 'Start') + '</button>'
-    + libelles.map(function(l, d){ return ' › <button type="button" class="eo-pas"' + (d === libelles.length - 1 ? ' aria-current="step"' : '') + ' onclick="corpusOuvertureAller(' + (d + 1) + ')">' + (d + 1) + '. ' + grEchapper(l) + '</button>'; }).join('') + '</div>';
+  h += '<div class="eo-chemin"><button type="button" class="eo-pas" data-click="corpusOuvertureAller(0)">' + _tr('Départ', 'Start') + '</button>'
+    + libelles.map(function(l, d){ return ' › <button type="button" class="eo-pas"' + (d === libelles.length - 1 ? ' aria-current="step"' : '') + ' data-click="corpusOuvertureAller(' + (d + 1) + ')">' + (d + 1) + '. ' + grEchapper(l) + '</button>'; }).join('') + '</div>';
   const niv = _eoEtat.niveaux[_eoEtat.niveaux.length - 1], P = niv.parties;
   const dec = P.filter(function(x){ return x.p[0] === 1 || x.p[0] === 2; }), noirs = dec.filter(function(x){ return x.p[0] === 1; }).length;
   const trait = (_eoChemin.length % 2 === 0) ? _tr('aux Noirs de jouer', 'Black to move') : _tr('aux Blancs de jouer', 'White to move');
@@ -109,7 +109,7 @@ function _eoHtml(msg){
     montres.forEach(function(e){
       const w = e.dec ? grWilson(e.noirs, e.dec) : null, med = grQuantile(e.len.slice().sort(function(a, b){ return a - b; }), 0.5);
       const barre = w ? '<span class="sb-div-piste"><span class="sb-div-barre" style="' + (w.p >= 0.5 ? 'left:50%' : 'right:50%') + ';width:' + (100 * Math.abs(w.p - 0.5)).toFixed(1) + '%;background:' + (w.p >= 0.5 ? _SB_VERT : _SB_ORANGE) + '"></span><span class="sb-div-ic" style="left:' + (100 * w.bas).toFixed(1) + '%;width:' + Math.max(0.4, 100 * (w.haut - w.bas)).toFixed(1) + '%"></span></span>' : '<span></span>';
-      h += '<div class="eo-l" role="row" tabindex="0" onclick="corpusOuvertureAller(' + _eoChemin.length + ',\'' + e.id + '\')" onkeydown="if(event.key===\'Enter\')corpusOuvertureAller(' + _eoChemin.length + ',\'' + e.id + '\')"'
+      h += '<div class="eo-l" role="row" tabindex="0" data-click="corpusOuvertureAller(' + _eoChemin.length + ',\'' + e.id + '\')" data-entree="corpusOuvertureAller(' + _eoChemin.length + ',\'' + e.id + '\')"'
         + ' title="' + grEchapper(e.lab + _dimDp() + e.n + _tr(' parties', ' games') + (w ? ' · ' + _tr('Noirs gagnent ', 'Black wins ') + e.noirs + ' / ' + e.dec + ' (' + grFourchette(e.noirs, e.dec) + ')' : '') + grPeu(e.dec)) + '">'
         + '<span class="eo-coup">' + grEchapper(e.lab) + '</span><span>' + grNb(e.n) + ' <i>' + grPct(e.n / P.length) + '</i></span>'
         + '<span class="cf-ex-taux">' + barre + '<b>' + (w ? grPct(w.p) : '—') + '</b> <i>' + (w ? grMarge(e.noirs, e.dec) : '') + (e.dec && e.dec < GR_PEU ? ' ⚠' : '') + '</i></span>'

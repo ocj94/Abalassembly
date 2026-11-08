@@ -192,7 +192,7 @@ function texelEnDuels(){
 
 const TEXEL_LIBELLES = { dispo: { tout: 'toutes les dispositions', belgian: 'Marguerite belge' }, phase: { tout: 'toute la partie', debut: 'début (demi-coups 10 à 29)', milieu: 'milieu (30 à 69)', fin: 'fin (70 et plus)' },
   rappel: { 0: 'aucun', 0.05: 'léger', 0.2: 'moyen', 1: 'fort' }, etapes: { 400: '400', 800: '800', 1600: '1 600' } };
-function _txSelect(k, c){ const L = TEXEL_LIBELLES[k]; return '<select onchange="texelCfgSet(\'' + k + '\', this.value)"' + (_txEnCours ? ' disabled' : '') + '>' + Object.keys(L).map(function(v){ return '<option value="' + v + '"' + (String(c[k]) === v ? ' selected' : '') + '>' + L[v] + '</option>'; }).join('') + '</select>'; }
+function _txSelect(k, c){ const L = TEXEL_LIBELLES[k]; return '<select data-change="texelCfgSet(\'' + k + '\', this.value)"' + (_txEnCours ? ' disabled' : '') + '>' + Object.keys(L).map(function(v){ return '<option value="' + v + '"' + (String(c[k]) === v ? ' selected' : '') + '>' + L[v] + '</option>'; }).join('') + '</select>'; }
 // v2.75 : les poids Texel sont dans l'IA a partir du niveau 4 -- ce qu'ont dit les duels
 function _txHtmlDansIA(){
   if (typeof AI_WEIGHT_PRESETS === 'undefined' || !AI_WEIGHT_PRESETS.texel) return '';
@@ -216,8 +216,8 @@ function renderTexel(msg){
     + '<p class="lab-intro">Les parties dont le numéro finit par 0 ou 5 ne servent pas au réglage : on les garde pour <b>vérifier</b>. Et deviner le gagnant ne prouve pas qu’on joue mieux : le bouton « Vérifier en duels » fait affronter les poids trouvés au champion, et rien n’est adopté sans ce verdict.</p>';
   h += _txHtmlDansIA();
   h += '<div class="gr-filtres"><label>Positions de ' + _txSelect('dispo', c) + '</label><label>Moment ' + _txSelect('phase', c) + '</label><label>Rappel vers le champion ' + _txSelect('rappel', c) + '</label><label>Étapes ' + _txSelect('etapes', c) + '</label></div>';
-  h += '<div class="lab-actions"><button class="ctrl-btn" onclick="lancerTexel()"' + (_txEnCours ? ' disabled' : '') + '>' + (_txEnCours ? '⏳ Calcul en cours…' : (r ? '↻ Recalculer' : '▶ Lancer le réglage')) + '</button>'
-    + (r && !_txEnCours ? '<button class="ctrl-btn" onclick="texelEnDuels()">⚔️ Vérifier en duels contre le champion</button>' : '') + '</div>';
+  h += '<div class="lab-actions"><button class="ctrl-btn" data-click="lancerTexel()"' + (_txEnCours ? ' disabled' : '') + '>' + (_txEnCours ? '⏳ Calcul en cours…' : (r ? '↻ Recalculer' : '▶ Lancer le réglage')) + '</button>'
+    + (r && !_txEnCours ? '<button class="ctrl-btn" data-click="texelEnDuels()">⚔️ Vérifier en duels contre le champion</button>' : '') + '</div>';
   if (msg) h += '<div class="lab-etat">' + msg + '</div>';
   if (r) {
     const rc = r.cfg || TEXEL_CFG_DEFAUT;

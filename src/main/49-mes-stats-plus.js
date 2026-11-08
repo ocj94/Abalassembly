@@ -51,9 +51,9 @@ function _msParGroupe(L, groupe, ordre){
 /* ─── La barre des filtres et l'export ─── */
 function _msHtmlFiltres(n){
   const f = _msFiltre;
-  return '<div class="gr-filtres"><label>' + _tr('Parties', 'Games') + ' <select onchange="msFiltrer(\'type\',this.value)">' + Object.keys(MS_TYPES).map(function(k){ return '<option value="' + k + '"' + (f.type === k ? ' selected' : '') + '>' + _tr(MS_TYPES[k], { tout: 'All', ai: 'Against the AI', import: 'Imported', local: 'Two players' }[k]) + '</option>'; }).join('') + '</select></label>'
+  return '<div class="gr-filtres"><label>' + _tr('Parties', 'Games') + ' <select data-change="msFiltrer(\'type\',this.value)">' + Object.keys(MS_TYPES).map(function(k){ return '<option value="' + k + '"' + (f.type === k ? ' selected' : '') + '>' + _tr(MS_TYPES[k], { tout: 'All', ai: 'Against the AI', import: 'Imported', local: 'Two players' }[k]) + '</option>'; }).join('') + '</select></label>'
     + '<span>' + grNb(n) + _tr(' partie' + (n > 1 ? 's' : '') + ' retenue' + (n > 1 ? 's' : ''), ' game' + (n > 1 ? 's' : '') + ' selected') + (f.periode ? ' · ' + _tr(f.periode + ' derniers jours', 'last ' + f.periode + ' days') : '') + '</span>'
-    + '<button class="ctrl-btn ms-export" onclick="msExporterCSV()">📊 ' + _tr('Exporter (CSV)', 'Export (CSV)') + '</button></div>';
+    + '<button class="ctrl-btn ms-export" data-click="msExporterCSV()">📊 ' + _tr('Exporter (CSV)', 'Export (CSV)') + '</button></div>';
 }
 function msExporterCSV(){
   const L = _msParties();
@@ -229,7 +229,7 @@ function _msRendreCorpus(msg){
   const hote = document.getElementById('ms-corpus'); if (!hote) return;
   const r = _msCorpus;
   let h = '<div class="gr-sous">' + _tr('Après chacun de tes coups, ta position est mesurée sur les 12 dimensions et placée parmi les 427 000 positions des vrais joueurs ; 50 = comme eux en moyenne. Et tes 12 premiers demi-coups, face au livre d’ouvertures.', 'After each of your moves, your position is measured on the 12 dimensions and placed among the 427,000 positions of real players; 50 = like them on average. And your first 12 plies, against the opening book.') + '</div>';
-  h += '<div class="lab-actions"><button class="ctrl-btn" onclick="msComparerAuCorpus()"' + (_msCorpusEnCours ? ' disabled' : '') + '>' + (_msCorpusEnCours ? '⏳' : (r ? '↻ ' : '▶ ')) + _tr(r ? 'Recalculer' : 'Me comparer aux vrais joueurs', r ? 'Recompute' : 'Compare me with real players') + '</button></div>';
+  h += '<div class="lab-actions"><button class="ctrl-btn" data-click="msComparerAuCorpus()"' + (_msCorpusEnCours ? ' disabled' : '') + '>' + (_msCorpusEnCours ? '⏳' : (r ? '↻ ' : '▶ ')) + _tr(r ? 'Recalculer' : 'Me comparer aux vrais joueurs', r ? 'Recompute' : 'Compare me with real players') + '</button></div>';
   if (msg) h += '<div class="lab-etat">' + msg + '</div>';
   if (r && r.n) {
     h += '<div class="gr-titre">' + _tr('Tes 12 dimensions', 'Your 12 dimensions') + '</div><div class="gr-sous">' + _tr('Centile moyen de tes positions, moins 50 : à droite, plus que les vrais joueurs ; à gauche, moins. ', 'Average percentile of your positions, minus 50: right, more than real players; left, less. ') + grNb(r.n) + _tr(' positions, ', ' positions, ') + r.parties + _tr(' parties.', ' games.') + '</div>';
@@ -284,5 +284,5 @@ function renderProfilChiffres(){
       { lab: _tr('Plus haut niveau battu', 'Highest level beaten'), v: niv ? _tr('niveau ', 'level ') + niv : '—', sous: _tr('contre l’IA', 'against the AI') }
     ])
     + (pts.length >= 3 ? grLignes(W, [{ nom: _tr('Score', 'Score'), couleur: GR_OR, pts: pts }], { h: 150, yMin: 0, yMax: 100, fmtY: function(v){ return v + ' %'; }, nomX: _tr('Partie', 'Game'), fmtX: function(v){ return '#' + v; }, aria: _tr('Score glissant', 'Rolling score') }) + '<div class="gr-sous">' + _tr('Ton score sur tes 10 dernières parties, partie après partie.', 'Your score over your last 10 games, game after game.') + '</div>' : '')
-    + '<div class="lab-actions"><button class="ctrl-btn" onclick="showPage(\'stats\')">' + _tr('Toutes mes statistiques →', 'All my statistics →') + '</button></div></div>';
+    + '<div class="lab-actions"><button class="ctrl-btn" data-click="showPage(\'stats\')">' + _tr('Toutes mes statistiques →', 'All my statistics →') + '</button></div></div>';
 }

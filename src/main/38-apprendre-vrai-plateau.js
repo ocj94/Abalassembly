@@ -237,8 +237,8 @@ function _vpEtapes() {
     { n: 8, ic: '🏆', titre: _tr('La vraie partie', 'The real game'),
       age: _tr('vers 6 – 7 ans, l’âge de la boîte', 'around 6–7, the age on the box'),
       but: _tr('La partie complète : 14 billes chacun, 6 plouf pour gagner.', 'The full game: 14 marbles each, 6 splashes to win.'),
-      jeu: _tr('La position de départ classique, ci-dessous. Gardez un handicap tant que les parties ne sont pas serrées. Le déplacement « de côté » et les autres détails sont dans <a href="#" onclick="showPage(\'learn\');return false;">Règles du jeu</a>. Sur le site ensuite : le Mode Enfant, l’IA au niveau 1, puis les <a href="#" onclick="showPage(\'puzzles\');return false;">Problèmes</a> — en séances courtes, comme sur le plateau.',
-        'The classic starting position, below. Keep a handicap until games are close. Moving “sideways” and the other details are in <a href="#" onclick="showPage(\'learn\');return false;">Game rules</a>. Then on the site: Kids mode, the AI at level 1, then <a href="#" onclick="showPage(\'puzzles\');return false;">Puzzles</a> — in short sessions, just like on the board.'),
+      jeu: _tr('La position de départ classique, ci-dessous. Gardez un handicap tant que les parties ne sont pas serrées. Le déplacement « de côté » et les autres détails sont dans <a href="#" data-click="showPage(\'learn\');return false;">Règles du jeu</a>. Sur le site ensuite : le Mode Enfant, l’IA au niveau 1, puis les <a href="#" data-click="showPage(\'puzzles\');return false;">Problèmes</a> — en séances courtes, comme sur le plateau.',
+        'The classic starting position, below. Keep a handicap until games are close. Moving “sideways” and the other details are in <a href="#" data-click="showPage(\'learn\');return false;">Game rules</a>. Then on the site: Kids mode, the AI at level 1, then <a href="#" data-click="showPage(\'puzzles\');return false;">Puzzles</a> — in short sessions, just like on the board.'),
       schema: function () { return _vpSvgHex({ rangees: _VP_GRAND, r: 11, billes: _vpDisposition('standard'),
         titre: _tr('Le vrai plateau, position de départ classique, 14 billes par camp', 'The real board, classic starting position, 14 marbles a side') }); },
       legende: _tr('La position de départ classique : 14 billes chacun.', 'The classic starting position: 14 marbles each.'),
@@ -299,20 +299,20 @@ function _vpCarnetHTML() {
     const prochaine = E.filter(function (x) { return !e.acquis[x.n]; })[0];
     h += '<div class="vp-enfant">'
       + '<div class="vp-enfant-tete"><input type="text" class="vp-prenom" maxlength="24" value="' + _vpEsc(e.nom) + '" placeholder="' + _vpEsc(_tr('Enfant ', 'Child ') + (i + 1)) + '"'
-      + ' aria-label="' + _vpEsc(_tr('Prénom de l’enfant ', 'Name of child ') + (i + 1)) + '" oninput="vpRenommer(' + i + ', this.value)">'
-      + (c.enfants.length > 1 ? '<button type="button" class="vp-retirer vp-noprint" onclick="vpRetirerEnfant(' + i + ')" title="' + _vpEsc(_tr('Retirer', 'Remove')) + '" aria-label="' + _vpEsc(_tr('Retirer cet enfant du carnet', 'Remove this child from the notebook')) + '">✕</button>' : '')
+      + ' aria-label="' + _vpEsc(_tr('Prénom de l’enfant ', 'Name of child ') + (i + 1)) + '" data-input="vpRenommer(' + i + ', this.value)">'
+      + (c.enfants.length > 1 ? '<button type="button" class="vp-retirer vp-noprint" data-click="vpRetirerEnfant(' + i + ')" title="' + _vpEsc(_tr('Retirer', 'Remove')) + '" aria-label="' + _vpEsc(_tr('Retirer cet enfant du carnet', 'Remove this child from the notebook')) + '">✕</button>' : '')
       + '</div><div class="vp-etoiles">';
     E.forEach(function (x) {
       const d = e.acquis[x.n];
       const titre = x.n + '. ' + x.titre + (d ? ' — ' + _tr('acquise le ', 'done on ') + _vpDateLisible(d) : '');
       h += '<button type="button" class="vp-etoile" aria-pressed="' + (d ? 'true' : 'false') + '" title="' + _vpEsc(titre) + '" aria-label="' + _vpEsc(titre) + '"'
-        + ' onclick="vpBasculerAcquis(' + i + ',' + x.n + ')">' + (d ? '⭐' : x.n) + '</button>';
+        + ' data-click="vpBasculerAcquis(' + i + ',' + x.n + ')">' + (d ? '⭐' : x.n) + '</button>';
     });
     h += '</div><div class="vp-prochaine">' + (prochaine
-      ? _tr('Prochaine étape : ', 'Next step: ') + '<a href="#" onclick="vpAller(' + prochaine.n + ');return false;">' + prochaine.n + ' · ' + prochaine.ic + ' ' + _vpEsc(prochaine.titre) + '</a>'
+      ? _tr('Prochaine étape : ', 'Next step: ') + '<a href="#" data-click="vpAller(' + prochaine.n + ');return false;">' + prochaine.n + ' · ' + prochaine.ic + ' ' + _vpEsc(prochaine.titre) + '</a>'
       : _tr('🏆 Toutes les étapes sont acquises !', '🏆 Every step is done!')) + '</div></div>';
   });
-  if (c.enfants.length < _VP_MAX_ENFANTS) h += '<button type="button" class="vp-bouton vp-noprint" onclick="vpAjouterEnfant()">＋ ' + _tr('Ajouter un enfant', 'Add a child') + '</button>';
+  if (c.enfants.length < _VP_MAX_ENFANTS) h += '<button type="button" class="vp-bouton vp-noprint" data-click="vpAjouterEnfant()">＋ ' + _tr('Ajouter un enfant', 'Add a child') + '</button>';
   return h;
 }
 
@@ -373,7 +373,7 @@ function renderPlateauPage() {
   let h = '<p class="vp-intro">' + _tr(
     'Pour apprendre Abalone aux enfants <b>à partir de 3 ans</b> (pas avant : voir la sécurité juste en dessous), sur un vrai plateau, loin des écrans. Le but n’est pas qu’ils jouent tout de suite une vraie partie : la boîte indique « à partir de 6 ou 7 ans ». Le but, c’est qu’ils aiment ce plateau, ces billes et ces moments avec vous — c’est ça qui fera de grands joueurs plus tard. Huit petites étapes, chacune un jeu de quelques minutes. Les âges sont des repères, pas des objectifs : chaque enfant va à son rythme, et rester des semaines sur une étape, c’est normal.',
     'For teaching Abalone to children <b>from age 3</b> (not before: see safety just below), on a real board, away from screens. The aim is not a real game straight away: the box says “from age 6 or 7”. The aim is for them to love this board, these marbles and this time with you — that is what makes strong players later. Eight small steps, each a game lasting a few minutes. The ages are landmarks, not targets: every child goes at their own pace, and staying on one step for weeks is normal.') + '</p>'
-    + '<div class="vp-noprint" style="margin:14px 0 6px"><button type="button" class="vp-bouton" onclick="vpImprimer()">🖨️ ' + _tr('Imprimer la fiche', 'Print the guide') + '</button></div>';
+    + '<div class="vp-noprint" style="margin:14px 0 6px"><button type="button" class="vp-bouton" data-click="vpImprimer()">🖨️ ' + _tr('Imprimer la fiche', 'Print the guide') + '</button></div>';
 
   // Securite
   h += '<div class="vp-encadre vp-securite" id="vp-securite"><div class="vp-encadre-titre">🛡️ ' + _tr('La sécurité d’abord', 'Safety first') + '</div><ul>'
@@ -405,7 +405,7 @@ function renderPlateauPage() {
 
   // Etapes
   h += '<h3 class="vp-h3">🪜 ' + _tr('Les 8 étapes', 'The 8 steps') + '</h3><div class="vp-sommaire vp-noprint">';
-  E.forEach(function (x) { h += '<a href="#" class="vp-puce" onclick="vpAller(' + x.n + ');return false;">' + x.n + ' ' + x.ic + ' ' + _vpEsc(x.titre) + '</a>'; });
+  E.forEach(function (x) { h += '<a href="#" class="vp-puce" data-click="vpAller(' + x.n + ');return false;">' + x.n + ' ' + x.ic + ' ' + _vpEsc(x.titre) + '</a>'; });
   h += '</div>';
   E.forEach(function (x) {
     let fig;

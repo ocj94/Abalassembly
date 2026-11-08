@@ -223,7 +223,7 @@ function showExportModal(text) {
     + '<h3 style="font-family:\'Playfair Display\',serif;color:var(--white);margin-bottom:12px">📋 Notation de la partie</h3>'
     + '<textarea readonly style="width:100%;height:160px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:12px;font-family:\'DM Mono\',monospace;font-size:13px;resize:none">' + text + '</textarea>'
     + '<div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">'
-    + '<button onclick="document.getElementById(\'export-modal\').remove()" style="padding:9px 20px;background:var(--gold);border:none;border-radius:7px;color:#0d0f0e;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif">Fermer</button>'
+    + '<button data-click="retirer(\'export-modal\')" style="padding:9px 20px;background:var(--gold);border:none;border-radius:7px;color:#0d0f0e;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif">Fermer</button>'
     + '</div></div>';
   document.body.appendChild(modal);
   // sélectionne le texte pour copie manuelle facile

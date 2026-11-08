@@ -183,25 +183,25 @@ function renderReseau() {
     h += '<table class="lab-poids"><thead><tr><th>Famille</th><th>État</th><th>Branchés</th></tr></thead><tbody>';
     E.familles.forEach(function (f) {
       const adm = RESEAU.user && RESEAU.user.role === 'admin';
-      h += '<tr><td>' + f.famille + '</td><td>' + (f.actif ? '🟢 ON' : '⚪ OFF') + (adm ? ' <button class="ctrl-btn lab-discret" onclick="rsFamille(\'' + f.famille + '\',' + !f.actif + ')">' + (f.actif ? 'débrancher' : 'brancher') + '</button>' : '') + '</td><td>' + f.branches + '</td></tr>';
+      h += '<tr><td>' + f.famille + '</td><td>' + (f.actif ? '🟢 ON' : '⚪ OFF') + (adm ? ' <button class="ctrl-btn lab-discret" data-click="rsFamille(\'' + f.famille + '\',' + !f.actif + ')">' + (f.actif ? 'débrancher' : 'brancher') + '</button>' : '') + '</td><td>' + f.branches + '</td></tr>';
     });
     h += '</tbody></table><div class="lab-note">Missions : ' + ['en_file', 'attribuee', 'faite'].map(function (k) { return ({ en_file: 'en attente', attribuee: 'en cours', faite: 'faites' })[k] + ' ' + ((E.missions && E.missions[k]) || 0); }).join(' · ') + '</div>';
     (E.campagnes || []).forEach(function (c) {
       const b = c.bilan;
       h += '<div class="lab-etat">📋 <b>' + _obsE(c.nom) + '</b> (profondeur ' + c.profondeur + ', ' + c.paires + ' paires' + (c.etat === 'pause' ? ', en pause' : '') + ') : ' + b.parties + ' partie' + (b.parties > 1 ? 's' : '') + ' faite' + (b.parties > 1 ? 's' : '')
         + ' — A ' + b.W + ' · nulles ' + b.D + ' · B ' + b.L + (b.elo != null ? ' · A ' + (b.elo >= 0 ? '+' : '') + b.elo + ' ± ' + b.marge + ' Elo' : '') + ' · SPRT : ' + b.sprt
-        + (RESEAU.user && RESEAU.user.role === 'admin' ? ' <button class="ctrl-btn lab-discret" onclick="rsCampagneEtat(' + c.id + ',\'' + (c.etat === 'pause' ? 'active' : 'pause') + '\')">' + (c.etat === 'pause' ? 'reprendre' : 'pause') + '</button> <button class="ctrl-btn lab-discret" onclick="rsCampagneEtat(' + c.id + ',\'finie\')">finir</button>' : '') + '</div>';
+        + (RESEAU.user && RESEAU.user.role === 'admin' ? ' <button class="ctrl-btn lab-discret" data-click="rsCampagneEtat(' + c.id + ',\'' + (c.etat === 'pause' ? 'active' : 'pause') + '\')">' + (c.etat === 'pause' ? 'reprendre' : 'pause') + '</button> <button class="ctrl-btn lab-discret" data-click="rsCampagneEtat(' + c.id + ',\'finie\')">finir</button>' : '') + '</div>';
     });
   }
   if (!_rsJeton()) {
-    h += '<h4>Se connecter au serveur de calcul</h4><div class="lab-options"><input id="rs-email" type="email" placeholder="adresse" autocomplete="username"> <input id="rs-mdp" type="password" placeholder="mot de passe" autocomplete="current-password"> <input id="rs-otp" inputmode="numeric" maxlength="6" placeholder="code MFA (si activé)" style="width:9em"> <button class="ctrl-btn" onclick="reseauConnexion()">Connexion</button></div>'
+    h += '<h4>Se connecter au serveur de calcul</h4><div class="lab-options"><input id="rs-email" type="email" placeholder="adresse" autocomplete="username"> <input id="rs-mdp" type="password" placeholder="mot de passe" autocomplete="current-password"> <input id="rs-otp" inputmode="numeric" maxlength="6" placeholder="code MFA (si activé)" style="width:9em"> <button class="ctrl-btn" data-click="reseauConnexion()">Connexion</button></div>'
       + '<div class="lab-note">Un compte suffit (le serveur compte les parties de chacun). La connexion reste en mémoire : elle s’oublie en fermant la page.</div>';
   } else {
     const max = _rsCoeursMax(), n = _rsCoeurs();
     h += '<h4>Cet appareil</h4><div class="lab-options">'
-      + '<label>Cœurs prêtés <select onchange="rsCoeurs(this.value)"' + (RESEAU.branche ? ' disabled' : '') + '>' + Array.from({ length: max }, function (_, i) { return '<option' + (i + 1 === n ? ' selected' : '') + '>' + (i + 1) + '</option>'; }).join('') + '</select> sur ' + max + '</label> '
-      + (RESEAU.branche ? '<button class="ctrl-btn" onclick="reseauDebrancher()">⏹ Débrancher</button>' : '<button class="ctrl-btn" onclick="reseauBrancher()">🔌 Brancher</button>')
-      + ' <button class="ctrl-btn lab-discret" onclick="reseauDeconnexion()">se déconnecter</button></div>';
+      + '<label>Cœurs prêtés <select data-change="rsCoeurs(this.value)"' + (RESEAU.branche ? ' disabled' : '') + '>' + Array.from({ length: max }, function (_, i) { return '<option' + (i + 1 === n ? ' selected' : '') + '>' + (i + 1) + '</option>'; }).join('') + '</select> sur ' + max + '</label> '
+      + (RESEAU.branche ? '<button class="ctrl-btn" data-click="reseauDebrancher()">⏹ Débrancher</button>' : '<button class="ctrl-btn" data-click="reseauBrancher()">🔌 Brancher</button>')
+      + ' <button class="ctrl-btn lab-discret" data-click="reseauDeconnexion()">se déconnecter</button></div>';
     h += '<div class="lab-etat">' + (RESEAU.branche ? '🟢 Branché' + (RESEAU.continuer ? '' : ' — en pause : l’ordonnanceur ne donne plus de mission à cet appareil') + ' · ' + RESEAU.enCours + ' partie' + (RESEAU.enCours > 1 ? 's' : '') + ' en cours' + (RESEAU.attente && !RESEAU.enCours ? ' · ' + _obsE(RESEAU.attente) : '') : '⚪ Débranché')
       + ' · ' + RESEAU.faites + ' vérifiée' + (RESEAU.faites > 1 ? 's' : '') + (RESEAU.refusees ? ' · ' + RESEAU.refusees + ' refusée' + (RESEAU.refusees > 1 ? 's' : '') : '') + '</div>'
       + '<div class="lab-note">Un téléphone met en pause les pages en arrière-plan : la partie en cours repart alors dans la file au bout d’une minute. Garder la page ouverte pour prêter sa puissance.</div>';
@@ -209,13 +209,13 @@ function renderReseau() {
     if (RESEAU.user && RESEAU.user.role === 'admin') {
       const P = _rsPresets(), opt = function (sel) { return P.map(function (p) { return '<option value="' + p.id + '"' + (p.id === sel ? ' selected' : '') + '>' + _obsE(p.nom) + '</option>'; }).join(''); };
       h += '<h4>Administration</h4><div class="lab-options">Nouvelle campagne : <input id="rs-c-nom" placeholder="nom" maxlength="60" style="width:10em"> A <select id="rs-c-a">' + opt('p:texel') + '</select> contre B <select id="rs-c-b">' + opt('n:3') + '</select>'
-        + ' profondeur <select id="rs-c-prof"><option>1</option><option selected>2</option><option>3</option><option>4</option></select> paires <input id="rs-c-paires" type="number" min="1" max="5000" value="50" style="width:5em"> <button class="ctrl-btn" onclick="rsCreerCampagne()">Créer</button></div>';
+        + ' profondeur <select id="rs-c-prof"><option>1</option><option selected>2</option><option>3</option><option>4</option></select> paires <input id="rs-c-paires" type="number" min="1" max="5000" value="50" style="width:5em"> <button class="ctrl-btn" data-click="rsCreerCampagne()">Créer</button></div>';
       const X = RESEAU.admin && RESEAU.admin.executants;
       if (X && X.length) {
         h += '<table class="lab-poids"><thead><tr><th>Exécutant</th><th>Compte</th><th>Cœurs</th><th>Faites</th><th>Refusées</th><th>Expirées</th><th>Vitesse</th><th></th></tr></thead><tbody>';
         X.slice(0, 30).forEach(function (x) {
           h += '<tr><td>' + x.famille + (x.branche ? '' : ' (débranché)') + '</td><td>' + _obsE(x.username || '') + '</td><td>' + x.coeurs + '</td><td>' + x.faites + '</td><td>' + x.rejetees + '</td><td>' + x.expirees + '</td><td>' + (x.ms_par_coup ? Math.round(x.ms_par_coup) + ' ms/coup (prof. ' + x.prof_mesure + ')' : '—') + '</td>'
-            + '<td><button class="ctrl-btn lab-discret" onclick="rsExecutant(\'' + x.id + '\',' + !x.actif + ')">' + (x.actif ? '🟢 couper' : '⚪ rétablir') + '</button></td></tr>';
+            + '<td><button class="ctrl-btn lab-discret" data-click="rsExecutant(\'' + x.id + '\',' + !x.actif + ')">' + (x.actif ? '🟢 couper' : '⚪ rétablir') + '</button></td></tr>';
         });
         h += '</tbody></table>';
       } else if (RESEAU.admin && RESEAU.admin.erreur) h += '<div class="lab-note">' + _obsE(RESEAU.admin.erreur) + '</div>';

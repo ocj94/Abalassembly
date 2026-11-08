@@ -415,18 +415,18 @@ function updateNavAuth() {
       ? '<span style="font-size:9px;padding:2px 6px;background:rgba(138,114,210,0.2);color:#b89ef0;border-radius:8px;font-weight:700;margin-left:4px">REDACTEUR</span>'
       : '<span style="font-size:9px;padding:2px 6px;background:rgba(200,168,75,0.2);color:var(--gold);border-radius:8px;font-weight:700;margin-left:4px">JOUEUR</span>';
     zone.innerHTML = `
-      <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="showPage('profile')">
+      <div style="display:flex;align-items:center;gap:8px;cursor:pointer" data-click="showPage('profile')">
         <div style="width:34px;height:34px;border-radius:50%;background:${currentUser.color||'#2d5a3d'};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;font-family:'Playfair Display',serif;color:var(--gold);border:2px solid var(--border)">${init}</div>
         <div style="line-height:1.2">
           <span style="font-size:13px;font-weight:600;color:var(--white)">${escapeHtml(currentUser.username)}${roleTag}</span><br>
           <span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">ELO ${(typeof progress !== 'undefined' && progress && progress.elo) || 1200}</span>
         </div>
       </div>
-      <button onclick="logout()" style="padding:6px 12px;background:none;border:1px solid rgba(192,57,43,0.3);color:#e05c4b;border-radius:6px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif">Deco</button>`;
+      <button data-click="logout()" style="padding:6px 12px;background:none;border:1px solid rgba(192,57,43,0.3);color:#e05c4b;border-radius:6px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif">Deco</button>`;
   } else {
     zone.innerHTML = `
-      <button class="btn-ghost" onclick="openModal('login')">Se connecter</button>
-      <button class="btn-gold" onclick="openModal('signup')">S\'enregistrer</button>`;
+      <button class="btn-ghost" data-click="openModal('login')">Se connecter</button>
+      <button class="btn-gold" data-click="openModal('signup')">S\'enregistrer</button>`;
   }
   const guest = document.getElementById('profile-guest');
   const logged = document.getElementById('profile-logged');
@@ -625,8 +625,8 @@ function openShareModal(text, url) {
         '<a href="'+links.telegram+'" target="_blank" rel="noopener" class="share-btn tg">Telegram</a>' +
         '<a href="'+links.reddit+'" target="_blank" rel="noopener" class="share-btn rd">Reddit</a>' +
       '</div>' +
-      '<button class="share-copy" onclick="copyShareLink()">📋 ' + _tr('Copier le message', 'Copy the message') + '</button>' +
-      '<button class="share-close" onclick="closeShareModal()">Fermer</button>' +
+      '<button class="share-copy" data-click="copyShareLink()">📋 ' + _tr('Copier le message', 'Copy the message') + '</button>' +
+      '<button class="share-close" data-click="closeShareModal()">Fermer</button>' +
     '</div>';
   modal.classList.add('show');
 }
@@ -832,7 +832,7 @@ function renderLeaderboard() {
       </td>
       <td><span style="font-size:12px;font-weight:600;color:${sc}">${p.speed}</span><br><span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">${p.secPerMove}s/coup</span></td>
       <td>
-        <button onclick="openPlayerStats(${idx})" style="background:rgba(200,168,75,0.1);border:1px solid rgba(200,168,75,0.25);color:var(--gold);padding:5px 12px;border-radius:5px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s" onmouseover="this.style.background='rgba(200,168,75,0.2)'" onmouseout="this.style.background='rgba(200,168,75,0.1)'">
+        <button data-click="openPlayerStats(${idx})" style="background:rgba(200,168,75,0.1);border:1px solid rgba(200,168,75,0.25);color:var(--gold);padding:5px 12px;border-radius:5px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s" data-survol="background:rgba(200,168,75,0.2)">
           📊 Radar
         </button>
       </td>

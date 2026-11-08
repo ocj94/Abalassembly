@@ -112,7 +112,7 @@ function _ptHtml(q, variantFilter, lengthFilter){
     const droite = '<span style="color:var(--muted);font-size:11px;white-space:nowrap">N° ' + t[0] + ' · ' + escapeHtml(date) + '</span>';
     const sous = '<div style="color:var(--muted);font-size:11px">' + escapeHtml(dispo) + ' · ' + escapeHtml(_ptSource(t)) + note + ' · ' + (r >= 0 ? '<span style="color:var(--gold)">▶ ' + _tr('rejouable', 'replayable') + '</span>' : etat) + '</div>';
     h += r >= 0
-      ? '<div class="pt-trace" onclick="loadMigsGame(' + r + ')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="padding:7px 8px;border-radius:6px;cursor:pointer;font-size:13px"><div style="display:flex;justify-content:space-between;gap:10px"><span>' + joueurs + '</span>' + droite + '</div>' + sous + '</div>'
+      ? '<div class="pt-trace" data-click="loadMigsGame(' + r + ')" data-survol="background:var(--surface2)" style="padding:7px 8px;border-radius:6px;cursor:pointer;font-size:13px"><div style="display:flex;justify-content:space-between;gap:10px"><span>' + joueurs + '</span>' + droite + '</div>' + sous + '</div>'
       : '<div class="pt-trace pt-perdue" style="padding:7px 8px;font-size:13px;opacity:.75"><div style="display:flex;justify-content:space-between;gap:10px"><span>' + joueurs + '</span>' + droite + '</div>' + sous + '</div>';
   });
   return h + '</details>';

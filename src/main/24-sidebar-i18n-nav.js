@@ -169,7 +169,7 @@ function renderLangMenu() {
   if (!menu) return;
   const cur = currentLang();
   menu.innerHTML = LANGUAGES.map(function(l){
-    return '<button class="lang-option'+(l.code===cur?' active':'')+'" onclick="setLanguage(\''+l.code+'\')">'+
+    return '<button class="lang-option'+(l.code===cur?' active':'')+'" data-click="setLanguage(\''+l.code+'\')">'+
       '<span class="lang-flag">'+l.flag+'</span><span>'+l.name+'</span></button>';
   }).join('');
   // bouton principal

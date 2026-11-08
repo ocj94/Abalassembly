@@ -875,9 +875,9 @@ function opRenderExplorer() {
   const el = document.getElementById('op-explorer');
   if (!el) return;
   if (!_opBoard) { opExploreReset(); return; }
-  let breadcrumb = '<button class="btn-ghost" style="font-size:11px;padding:3px 8px" onclick="opExploreBack(-1)">⌂ Départ</button>';
+  let breadcrumb = '<button class="btn-ghost" style="font-size:11px;padding:3px 8px" data-click="opExploreBack(-1)">⌂ Départ</button>';
   _opPath.forEach(function(lbl, i){
-    breadcrumb += ' → <button class="btn-ghost" style="font-size:11px;padding:3px 8px;font-family:\'DM Mono\',monospace" onclick="opExploreBack('+i+')">'+lbl+'</button>';
+    breadcrumb += ' → <button class="btn-ghost" style="font-size:11px;padding:3px 8px;font-family:\'DM Mono\',monospace" data-click="opExploreBack('+i+')">'+lbl+'</button>';
   });
   const r = AbaOpening.probe(_opBoard, _opColor);
   let table;
@@ -895,7 +895,7 @@ function opRenderExplorer() {
         const pct = Math.round(100 * m.winRate);
         const col = pct >= 55 ? '#4a9463' : pct >= 45 ? 'var(--text)' : '#b05050';
         const conf = _confianceOuverture(m.games);
-        return '<tr style="border-top:1px solid var(--border);cursor:pointer" onclick="opExploreMove(\''+m.move+'\')" class="op-row-clickable">' +
+        return '<tr style="border-top:1px solid var(--border);cursor:pointer" data-click="opExploreMove(\''+m.move+'\')" class="op-row-clickable">' +
           '<td style="padding:7px 6px;font-family:\'DM Mono\',monospace;color:var(--gold)">'+m.move+' ▸</td>' +
           '<td style="padding:7px 6px">'+m.games.toLocaleString('fr-FR')+'</td>' +
           '<td style="padding:7px 6px;color:'+col+';font-weight:600">'+pct+' %</td>' +

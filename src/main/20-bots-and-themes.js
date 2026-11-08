@@ -417,7 +417,7 @@ function renderSkinGallery() {
     const active = boardTheme.marbleSkin === key ? ' active' : '';
     const card = document.createElement('button');
     card.className = 'skin-swatch'+active+(unlocked?'':' locked');
-    card.setAttribute('onclick', "setMarbleSkin('"+key+"',this)");
+    card.setAttribute('data-click', "setMarbleSkin('"+key+"',this)");
     const borderColor = active ? 'var(--gold)' : (unlocked ? 'var(--border)' : 'rgba(255,255,255,0.06)');
     card.style.cssText = 'position:relative;display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:12px;cursor:'+(unlocked?'pointer':'not-allowed')+';text-align:left;background:var(--surface2);border:2px solid '+borderColor+';transition:border-color .15s'+(unlocked?'':';opacity:0.55');
     const lockBadge = unlocked ? '' :
@@ -578,7 +578,7 @@ function creatorEnsurePersoSwatch() {
   const wrap = document.createElement('div');
   wrap.id = 'perso-swatch-wrap';
   wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;width:60px';
-  wrap.innerHTML = '<button onclick="setBoardTheme(\'perso\',this)" class="bg-swatch" id="perso-swatch-btn" title="Mon thème personnalisé"></button>' +
+  wrap.innerHTML = '<button data-click="setBoardTheme(\'perso\',this)" class="bg-swatch" id="perso-swatch-btn" title="Mon thème personnalisé"></button>' +
     '<span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.2">Perso</span>';
   const carbBtn = document.querySelector('.bg-swatch[title="Carbone (laque noire)"]');
   const host = carbBtn && carbBtn.closest('div[style*="flex-direction:column"]') && carbBtn.closest('div[style*="flex-direction:column"]').parentElement;
@@ -769,8 +769,8 @@ function maybeAskHintsPreference() {
       '<div class="share-modal-text">Voulez-vous que le plateau <strong>indique les cases</strong> où vos billes sélectionnées peuvent se déplacer ?<br><br>' +
       '<span style="color:var(--accent-green-light)">● vert</span> = déplacement &nbsp;·&nbsp; <span style="color:#e05c4b">● rouge</span> = poussée<br><br>' +
       '<span style="font-size:12px;color:var(--muted)">Vous pourrez changer ce réglage à tout moment dans la configuration de la partie.</span></div>' +
-      '<button class="share-copy" onclick="answerHintsPreference(true)">Oui, m\'aider</button>' +
-      '<button class="share-close" onclick="answerHintsPreference(false)">Non merci, je joue sans</button>' +
+      '<button class="share-copy" data-click="answerHintsPreference(true)">Oui, m\'aider</button>' +
+      '<button class="share-close" data-click="answerHintsPreference(false)">Non merci, je joue sans</button>' +
     '</div>';
   modal.classList.add('show');
 }

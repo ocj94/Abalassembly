@@ -116,8 +116,8 @@ function openBulkHistoryImportModal(){
     + '<div style="font-size:11px;color:var(--muted);margin-top:4px">Tes parties sont enregistrées de ton côté ; celles des autres joueurs sont gardées comme parties consultées, hors de tes statistiques.</div>'
     + '<div id="bulk-history-status" style="font-size:12px;margin:8px 0;min-height:16px"></div>'
     + '<div style="display:flex;gap:8px">'
-      + '<button class="ctrl-btn" onclick="_doBulkHistoryImport()" style="flex:1">Importer</button>'
-      + '<button onclick="document.getElementById(\'bulk-history-modal\').remove()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 16px;cursor:pointer">Fermer</button>'
+      + '<button class="ctrl-btn" data-click="_doBulkHistoryImport()" style="flex:1">Importer</button>'
+      + '<button data-click="retirer(\'bulk-history-modal\')" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 16px;cursor:pointer">Fermer</button>'
     + '</div>'
     + '</div>';
   document.body.appendChild(modal);
@@ -337,12 +337,12 @@ function openApgnImportModal(){
     + '<div style="border-top:1px solid var(--border);margin:10px 0 0;padding-top:10px">'
       + '<div style="font-size:12px;color:var(--muted);margin-bottom:6px">Ou une position, dans la notation de Saab (KAAH) :</div>'
       + '<div style="display:flex;gap:6px;margin-bottom:10px"><input id="apgn-import-pos" placeholder="0a12b123c23g78h789i89_0a45b456c56g45h456i56" spellcheck="false" style="flex:1;min-width:0;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:\'DM Mono\',monospace;font-size:11px">'
-      + '<button class="ctrl-btn" onclick="jouerDepuisCode(document.getElementById(\'apgn-import-pos\').value)" style="width:auto;padding:6px 10px">▶ Jouer</button></div>'
-      + '<label class="ctrl-btn" style="display:block;text-align:center;cursor:pointer;margin-bottom:10px">📂 Fichier de partie KAAH / KAAWA (.json)<input type="file" accept=".json,application/json" style="display:none" onchange="importerFichierKAAH(this)"></label>'
+      + '<button class="ctrl-btn" data-click="jouerDepuisCode(document.getElementById(\'apgn-import-pos\').value)" style="width:auto;padding:6px 10px">▶ Jouer</button></div>'
+      + '<label class="ctrl-btn" style="display:block;text-align:center;cursor:pointer;margin-bottom:10px">📂 Fichier de partie KAAH / KAAWA (.json)<input type="file" accept=".json,application/json" style="display:none" data-change="importerFichierKAAH(this)"></label>'
     + '</div>'
     + '<div style="display:flex;gap:8px">'
-      + '<button class="ctrl-btn" onclick="_doApgnImport()" style="flex:1">Importer</button>'
-      + '<button onclick="document.getElementById(\'apgn-import-modal\').remove()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 16px;cursor:pointer">Fermer</button>'
+      + '<button class="ctrl-btn" data-click="_doApgnImport()" style="flex:1">Importer</button>'
+      + '<button data-click="retirer(\'apgn-import-modal\')" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 16px;cursor:pointer">Fermer</button>'
     + '</div>'
     + '</div>';
   document.body.appendChild(modal);
@@ -437,29 +437,29 @@ function openGameCodePanel() {
     + '<div id="gamecode-vs-line" style="font-size:13px;color:var(--gold);margin-bottom:12px;' + ((gcBlackName || gcWhiteName) ? '' : 'display:none') + '">⚫ <span id="gc-vs-black">' + (gcBlackName || '?') + '</span>  vs  ⚪ <span id="gc-vs-white">' + (gcWhiteName || '?') + '</span></div>'
     + '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">TON NOM (optionnel, apparait dans le code, s\'applique en tapant)</div>'
     + '<div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">'
-    + '<input id="gamecode-myname" oninput="gcOnNameInput()" value="' + (gcMyName || '').replace(/"/g,'&quot;') + '" placeholder="Ton prenom" maxlength="24" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px">'
-    + '<span id="gc-color-black" onclick="gcSetMyColor(\'black\')" style="cursor:pointer;font-size:22px;line-height:1;padding:4px;border-radius:50%;' + (_gcMyColorChoice==='black' ? 'background:rgba(200,168,75,0.25)' : 'opacity:.35') + '" title="Je joue noir">⚫</span>'
-    + '<span id="gc-color-white" onclick="gcSetMyColor(\'white\')" style="cursor:pointer;font-size:22px;line-height:1;padding:4px;border-radius:50%;' + (_gcMyColorChoice==='white' ? 'background:rgba(200,168,75,0.25)' : 'opacity:.35') + '" title="Je joue blanc">⚪</span>'
+    + '<input id="gamecode-myname" data-input="gcOnNameInput()" value="' + (gcMyName || '').replace(/"/g,'&quot;') + '" placeholder="Ton prenom" maxlength="24" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px">'
+    + '<span id="gc-color-black" data-click="gcSetMyColor(\'black\')" style="cursor:pointer;font-size:22px;line-height:1;padding:4px;border-radius:50%;' + (_gcMyColorChoice==='black' ? 'background:rgba(200,168,75,0.25)' : 'opacity:.35') + '" title="Je joue noir">⚫</span>'
+    + '<span id="gc-color-white" data-click="gcSetMyColor(\'white\')" style="cursor:pointer;font-size:22px;line-height:1;padding:4px;border-radius:50%;' + (_gcMyColorChoice==='white' ? 'background:rgba(200,168,75,0.25)' : 'opacity:.35') + '" title="Je joue blanc">⚪</span>'
     + '</div>'
     + '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">TON CODE'
     + (code ? '' : ' — aucun coup joue pour l\'instant') + '</div>'
     + '<textarea id="gamecode-out" readonly style="width:100%;height:80px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:12px;word-break:break-all">'
     + (code || '') + '</textarea>'
     + '<div style="display:flex;gap:8px;margin-top:8px">'
-    + '<button class="ctrl-btn" onclick="copyGameCode()" style="flex:1">Copier</button>'
+    + '<button class="ctrl-btn" data-click="copyGameCode()" style="flex:1">Copier</button>'
     + '</div>'
     + '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin:14px 0 6px">LIEN DIRECT'
     + (location.protocol === 'file:' ? ' — hors ligne : ce lien n\'ouvre que sur cet appareil' : '') + '</div>'
     + '<input id="gamecode-link" readonly value="' + ((gameShareLink() || '').replace(/"/g, '&quot;')) + '" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:11px">'
     + '<div style="display:flex;gap:8px;margin-top:8px;margin-bottom:18px">'
-    + '<button class="ctrl-btn" onclick="copyGameLink()" style="flex:1">Copier le lien</button>'
+    + '<button class="ctrl-btn" data-click="copyGameLink()" style="flex:1">Copier le lien</button>'
     + '</div>'
     + '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">CODE RECU</div>'
     + '<textarea id="gamecode-in" placeholder="ABAL1:standard:..." style="width:100%;height:80px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:12px"></textarea>'
     + '<div id="gamecode-msg" style="font-size:12px;margin-top:8px;min-height:18px"></div>'
     + '<div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end">'
-    + '<button class="ctrl-btn" onclick="document.getElementById(\'gamecode-modal\').remove()">Fermer</button>'
-    + '<button class="ctrl-btn" onclick="submitGameCode()">Charger la partie</button>'
+    + '<button class="ctrl-btn" data-click="retirer(\'gamecode-modal\')">Fermer</button>'
+    + '<button class="ctrl-btn" data-click="submitGameCode()">Charger la partie</button>'
     + '</div></div>';
   document.body.appendChild(modal);
 }
@@ -598,7 +598,7 @@ function showPostGameReview() {
     + line('Position basculée au', r.turning ? ('coup ' + r.turning.ply + (r.turningLabel ? ' (' + r.turningLabel + ')' : '')) : 'pas de bascule nette')
     + line('Évaluation début → fin', Math.round(r.evalStart) + ' → ' + Math.round(r.evalEnd))
     + '<div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end">'
-    + '<button class="ctrl-btn" onclick="document.getElementById(\'review-modal\').remove()">Fermer</button>'
+    + '<button class="ctrl-btn" data-click="retirer(\'review-modal\')">Fermer</button>'
     + '</div></div>';
   document.body.appendChild(modal);
 }
