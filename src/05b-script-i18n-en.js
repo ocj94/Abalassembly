@@ -430,7 +430,7 @@ const I18N_EN = {
     '🔒 These are game exercises, not a medical tool: they diagnose and treat nothing. Scores measure performance on that exact exercise, not a general ability.',
   '🧠 Les schémas de cerveau sont illustratifs et simplifiés — pas une image médicale précise, juste un repère visuel de la zone généralement associée à chaque capacité.':
     '🧠 The brain diagrams are simplified illustrations — not an accurate medical image, just a visual cue for the area usually associated with each ability.',
-  'Choisis une zone ci-dessus pour commencer.': 'Pick an area above to start.',
+  '← Tous les exercices': '← All exercises', '▶ Démarrer': '▶ Start',
   '🧠 Mémoire': '🧠 Memory', '👁️ Acuité': '👁️ Acuity', '⚡ Réflexe': '⚡ Reflex', '🧩 Flexibilité': '🧩 Flexibility', '⚖️ Certitude': '⚖️ Certainty',
   '📖 Répertoire': '📖 Repertoire', '🎚️ Jugement': '🎚️ Judgment', '🎯 Mat au bord': '🎯 Edge mate',
   'Mémoire': 'Memory', 'Acuité': 'Acuity', 'Réflexe': 'Reflex', 'Flexibilité': 'Flexibility', 'Certitude': 'Certainty', 'Répertoire': 'Repertoire', 'Jugement': 'Judgment', 'Mat au bord': 'Edge mate',

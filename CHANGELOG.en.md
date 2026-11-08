@@ -9,6 +9,21 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.20]
+
+### Brain Gym: the exercise on its own view, started with "Start"
+- "Begin" opens the exercise **instead of the list**, on its own view (before:
+  a panel on the right, or below the list on phones), with its title, area,
+  instructions and level choice.
+- The exercise only starts **when you click ▶ Start**: the position to memorize,
+  the timer and the flashes no longer run while you read the instructions or
+  pick a level. Changing level brings the Start button back; Replay starts at
+  once.
+- "← All exercises" goes back to the list; so does the browser or phone Back
+  button (address `#gym-exercice`). Leaving the page stops the exercise.
+- Brain Duel keeps its shared 3-second countdown: its rounds start without a
+  button, on the same view, and its banner stays visible during the duel.
+
 ## [v3.19]
 
 ### Server bot protection, with no third-party service

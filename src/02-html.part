@@ -2351,7 +2351,7 @@ table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset
 
 @media (max-width: 900px) {
   .gym-layout { grid-template-columns: 1fr !important; padding: 0 16px 60px !important; }
-  .gym-panel { position: static !important; }
+  .gym-vue-exercice { padding: 18px 16px 60px !important; }
 }
 
 @media (max-width: 900px) {

@@ -4166,7 +4166,7 @@ test('v2.64 adresses : branchées sur showPage, les fenêtres du menu et le chan
   assert.ok(src.indexOf("showPage = function(){ const r = precedent.apply(this, arguments); _adrSuivre(false); return r; };") > 0);
   assert.ok(src.indexOf("window[nom] = function(){ const r = avant.apply(this, arguments); _adrFenetreSuivie(cle); return r; };") > 0);
   assert.ok(src.indexOf("setLanguage = function(){ const r = avantLangue.apply(this, arguments); _adrSuivre(true); return r; };") > 0);
-  assert.deepStrictEqual(Object.keys(_r58('_ADR_OUVREURS')).sort(), ['briefing', 'import', 'library', 'synchro']);
+  assert.deepStrictEqual(Object.keys(_r58('_ADR_OUVREURS')).sort(), ['briefing', 'gymexo', 'import', 'library', 'synchro']);
   ['openApgnImportModal', 'openMigsBrowser', 'openSiteBriefing'].forEach(f => assert.strictEqual(typeof ctx[f], 'function', f));
   assert.ok(src.indexOf('<li><b>Une adresse par page</b> : chaque entrée du menu a la sienne') > 0);
   assert.ok(src.indexOf('<li><b>One address per page</b>: every menu entry has its own') > 0);
@@ -4633,7 +4633,7 @@ test('v2.69 synchro : messages découpés et recollés, fenêtre en français et
     assert.doesNotMatch(cree.innerHTML.replace(/<[^>]*>/g, ' '), /Synchroniser|appareil|Fusionner|Créer/);
   } finally { ctx.document.getElementById = avantGet; ctx.document.createElement = avantCreate; ctx.document.body = avantBody; }
   // l'adresse, les boutons, l'aide
-  assert.deepStrictEqual(Object.keys(_r58('_ADR_OUVREURS')).sort(), ['briefing', 'import', 'library', 'synchro']);
+  assert.deepStrictEqual(Object.keys(_r58('_ADR_OUVREURS')).sort(), ['briefing', 'gymexo', 'import', 'library', 'synchro']);
   const site = _SRC();
   assert.strictEqual((site.match(/onclick="openSyncModal\(\)"/g) || []).length, 2, 'Parametres et Historique');
   assert.ok(site.indexOf('<li><b>🔄 Synchroniser mes appareils</b>') > 0 && site.indexOf('<li><b>🔄 Sync my devices</b>') > 0);
@@ -7511,3 +7511,34 @@ test('v3.19, wiki : chaque lien des pages recopiees par tools/wiki.js mene quelq
   assert.strictEqual(W.lien('../docs-img/reflexion-ia.webp'), 'https://raw.githubusercontent.com/ocj94/Abalassembly/main/docs-img/reflexion-ia.webp');
   assert.strictEqual(W.lien('../games/'), 'https://github.com/ocj94/Abalassembly/tree/main/games/');
 });
+
+test('v3.20, Gym Cerveau : Commencer ouvre l exercice sur sa vue sans le lancer ; Demarrer le lance ; Retour revient a la liste ; un duel lance sans attendre', () => _duelBac(({ els }) => {
+  const ST = _r58('GYM_STARTERS'), lances = [], vrai = ST.memory;
+  ST.memory = () => lances.push('memory');
+  try {
+    els['gym-vue-exercice'] = { style: { display: 'none' } };
+    els['gym-exercise-start'] = { style: { display: 'none' } };
+    els['gym-exercise-board'] = { innerHTML: '', style: {} };
+    ctx.startGymExercise('memory');
+    assert.deepStrictEqual(lances, [], 'Commencer ne lance rien');
+    assert.strictEqual(els['gym-vue-exercice'].style.display, 'block', 'l exercice a sa vue');
+    assert.strictEqual(els['gym-exercise-start'].style.display, 'block', 'bouton Demarrer');
+    assert.match(els['gym-exercise-board'].innerHTML, /Démarrer/);
+    assert.match(els['gym-exercice-titre'].textContent, /Mémoire/);
+    ctx.gymSetLevel(3);
+    assert.deepStrictEqual(lances, [], 'changer de niveau ne lance rien non plus');
+    ctx.gymDemarrer();
+    assert.deepStrictEqual(lances, ['memory'], 'Demarrer lance l exercice');
+    assert.strictEqual(els['gym-exercise-start'].style.display, 'none');
+    ctx.gymRetourListe();
+    assert.strictEqual(els['gym-vue-exercice'].style.display, 'none', 'retour a la liste');
+    ctx.gymSetLevel(2);
+    assert.deepStrictEqual(lances, ['memory'], 'sur la liste, changer de niveau ne lance rien');
+    ctx._duelLancerExercice('memory', 7);
+    assert.deepStrictEqual(lances, ['memory', 'memory'], 'une manche de duel part tout de suite (son propre decompte)');
+    assert.strictEqual(els['gym-vue-exercice'].style.display, 'block');
+  } finally { ST.memory = vrai; ctx.gymRetourListe(); }
+  // l adresse : #gym-exercice, que Retour referme
+  assert.strictEqual(_r58("_adrLire('gym-exercice')"), 'gymexo');
+  assert.ok(/gymexo:\s+\{ id: 'gym-vue-exercice'/.test(_SRC_INDEX));
+}));
