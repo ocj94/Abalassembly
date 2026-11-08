@@ -107,7 +107,7 @@ function renderGameReport(results){
   if(worst.length){
     html+='<div style="color:var(--gold);font-size:12px;font-weight:600;margin:10px 0 4px">Coups à revoir <span style="color:var(--muted);font-weight:400">· cliquer pour voir la position</span></div>';
     worst.forEach(function(x){
-      html+='<div onclick="reportGoto('+x.idx+')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid var(--border);font-size:12px;cursor:pointer;border-radius:4px">'
+      html+='<div data-click="reportGoto('+x.idx+')" data-survol="background:var(--surface2)" style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid var(--border);font-size:12px;cursor:pointer;border-radius:4px">'
         +'<span style="width:58px;color:var(--muted)">Coup '+x.turn+' '+(x.color==='black'?'⚫':'⚪')+'</span>'
         +'<span style="width:64px;font-family:monospace">'+escapeHtml(x.played)+(x.eject?' ✕':'')+'</span>'
         +'<span style="color:var(--muted)">→ mieux :</span>'

@@ -62,14 +62,14 @@ function _cfBarre(){
   D.p.forEach(function(p, k){ if (p[2] && !_sbEstDoublon(k)) { n[D.dispos[p[3]]] = (n[D.dispos[p[3]]] || 0) + 1; const y = _cfAnnee(k); an[y] = (an[y] || 0) + 1; if (_cfCampsIA(k)) nIA++; else nH++; } });
   const annees = Object.keys(an).filter(function(y){ return y !== '?'; }).sort();
   const dispos = Object.keys(n).sort(function(a, b){ return n[b] - n[a]; });
-  const sel = function(k, O){ return '<select onchange="corpusFiltrer(\'' + k + '\',this.value)">' + O.map(function(o){ return '<option value="' + o[0] + '"' + (String(f[k]) === String(o[0]) ? ' selected' : '') + '>' + grEchapper(o[1]) + '</option>'; }).join('') + '</select>'; };
+  const sel = function(k, O){ return '<select data-change="corpusFiltrer(\'' + k + '\',this.value)">' + O.map(function(o){ return '<option value="' + o[0] + '"' + (String(f[k]) === String(o[0]) ? ' selected' : '') + '>' + grEchapper(o[1]) + '</option>'; }).join('') + '</select>'; };
   let h = '<div class="gr-filtres cf-filtres">'
     + '<label>' + _tr('Source', 'Source') + ' ' + sel('source', [['tout', _tr('toutes', 'all')]].concat(CF_SOURCES.map(function(s, i){ return [String(i), _cfNomSource(i)]; }))) + '</label>'
     + '<label>' + _tr('Disposition', 'Layout') + ' ' + sel('dispo', [['tout', _tr('toutes', 'all')]].concat(dispos.map(function(d){ return [d, _cfNomDispo(d) + ' (' + n[d] + ')']; }))) + '</label>'
     + '<label>' + _tr('Longueur', 'Length') + ' ' + sel('longueur', [['tout', _tr('toutes', 'all')], ['courte', _tr('moins de 60 demi-coups', 'under 60 plies')], ['moyenne', _tr('60 à 119', '60 to 119')], ['longue', _tr('120 et plus', '120 and more')]]) + '</label>'
     + '<label>' + _tr('Année', 'Year') + ' ' + sel('periode', [['tout', _tr('toutes', 'all')]].concat(annees.map(function(y){ return [y, y + ' (' + an[y] + ')']; }))) + '</label>'
     + '<label>' + _tr('Joueurs', 'Players') + ' ' + sel('joueurs', [['tout', _tr('tous', 'all')], ['humains', _tr('humains contre humains', 'human against human') + ' (' + nH + ')'], ['ia', _tr('avec un programme', 'with a program') + ' (' + nIA + ')']]) + '</label>';
-  if (_cfActif()) h += '<button class="ctrl-btn cf-tout" onclick="corpusFiltrer(\'source\',\'tout\');corpusFiltrer(\'dispo\',\'tout\');corpusFiltrer(\'longueur\',\'tout\');corpusFiltrer(\'periode\',\'tout\');corpusFiltrer(\'joueurs\',\'tout\')">' + _tr('Tout le corpus', 'Whole corpus') + '</button>';
+  if (_cfActif()) h += '<button class="ctrl-btn cf-tout" data-click="corpusFiltrer(\'source\',\'tout\');corpusFiltrer(\'dispo\',\'tout\');corpusFiltrer(\'longueur\',\'tout\');corpusFiltrer(\'periode\',\'tout\');corpusFiltrer(\'joueurs\',\'tout\')">' + _tr('Tout le corpus', 'Whole corpus') + '</button>';
   h += '</div><div class="gr-sous">' + _tr('Les filtres recalculent les cartes marquées 🔎 (les autres, comme les 12 dimensions, portent toujours sur tout le corpus).', 'The filters recompute the cards marked 🔎 (the others, like the 12 dimensions, always cover the whole corpus).') + '</div>';
   if (f.joueurs && f.joueurs !== 'tout') h += '<div class="gr-sous">🤖 ' + _tr('Programmes reconnus : MLA, l’IA de lolo et π #0ABA10 sur MiGs, le bot PST-Greedy-Tom sur PlayStrategy, les IA des parties de référence. Sur AbalOnline, les comptes de programmes ne sont pas connus : ses parties comptent comme humaines.', 'Programs recognised: MLA, lolo’s AI and π #0ABA10 on MiGs, the PST-Greedy-Tom bot on PlayStrategy, the AIs of the reference games. On AbalOnline, program accounts are not known: its games count as human.') + '</div>';
   return h;
@@ -208,8 +208,8 @@ function _cfRendreOccupation(){
   const hote = document.getElementById('corpus-occupation'); if (!hote) return;
   const O = _cfOccupation();
   if (!O) { hote.innerHTML = ''; if (typeof ensureLaboPositions === 'function') ensureLaboPositions().then(function(ok){ if (ok && LABO_POS) _cfRendreOccupation(); }); return; }
-  const W = Math.min(420, grLargeur(hote, 420)), selM = '<select onchange="corpusOccupation(\'moment\',this.value)">' + [['debut', _tr('début (demi-coups 10 à 29)', 'opening (plies 10 to 29)')], ['milieu', _tr('milieu (30 à 69)', 'middle (30 to 69)')], ['fin', _tr('fin (70 et plus)', 'end (70 and more)')]].map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === _cfOccMoment ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>';
-  const selC = '<select onchange="corpusOccupation(\'camp\',this.value)">' + [['black', _tr('Noirs', 'Black')], ['white', _tr('Blancs', 'White')]].map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === _cfOccCamp ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>';
+  const W = Math.min(420, grLargeur(hote, 420)), selM = '<select data-change="corpusOccupation(\'moment\',this.value)">' + [['debut', _tr('début (demi-coups 10 à 29)', 'opening (plies 10 to 29)')], ['milieu', _tr('milieu (30 à 69)', 'middle (30 to 69)')], ['fin', _tr('fin (70 et plus)', 'end (70 and more)')]].map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === _cfOccMoment ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>';
+  const selC = '<select data-change="corpusOccupation(\'camp\',this.value)">' + [['black', _tr('Noirs', 'Black')], ['white', _tr('Blancs', 'White')]].map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === _cfOccCamp ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>';
   const occ = O.occ[_cfOccCamp];
   let h = '<div class="gr-filtres"><label>' + _tr('Moment', 'Moment') + ' ' + selM + '</label><label>' + _tr('Camp', 'Side') + ' ' + selC + '</label><span>' + grNb(O.n) + _tr(' positions', ' positions') + '</span></div>';
   h += '<div class="cf-plateaux"><div><div class="gr-titre">' + _tr('Où sont les billes', 'Where the marbles are') + '</div><div class="gr-sous">' + _tr('Part des positions où la case porte une bille de ce camp (plateau vu des Noirs).', 'Share of positions where the cell holds a marble of this side (board seen from Black).') + '</div>'
@@ -293,7 +293,7 @@ function corpusRevoir(k){
 }
 function _cfHtmlExplorateur(L){
   const rows = _cfExplorer(L, _cfExCamp, _cfExMoment), camp = _cfExCamp === 'black' ? _tr('les Noirs', 'Black') : _tr('les Blancs', 'White');
-  const bouton = function(k, v, txt){ const on = (k === 'camp' ? _cfExCamp : _cfExMoment) === v; return '<button type="button" class="sb-onglet" aria-pressed="' + on + '" onclick="corpusExplorer(\'' + k + '\',\'' + v + '\')">' + txt + '</button>'; };
+  const bouton = function(k, v, txt){ const on = (k === 'camp' ? _cfExCamp : _cfExMoment) === v; return '<button type="button" class="sb-onglet" aria-pressed="' + on + '" data-click="corpusExplorer(\'' + k + '\',\'' + v + '\')">' + txt + '</button>'; };
   let h = '<div class="gr-sous">' + _tr('Pour chaque score atteint pendant la partie (billes éjectées par les Noirs – par les Blancs), ce que sont devenues ces parties. Une partie compte une fois par score : elle n’y passe qu’une fois. Le taux ne compte que les parties au vainqueur connu ; les nulles et les résultats inconnus sont donnés à part. Cliquer une ligne : ses parties, à rejouer.',
     'For each score reached during the game (marbles pushed off by Black – by White), what became of those games. A game counts once per score: it only passes through it once. The rate only counts games with a known winner; draws and unknown results are given apart. Click a row: its games, to replay.') + '</div>';
   h += '<div class="sb-onglets">' + bouton('camp', 'black', _tr('Camp : Noirs', 'Side: Black')) + bouton('camp', 'white', _tr('Camp : Blancs', 'Side: White')) + '</div>';
@@ -304,7 +304,7 @@ function _cfHtmlExplorateur(L){
     const dec = r.v + r.d, w = dec ? grWilson(r.v, dec) : null, cle = r.nb + '-' + r.nw, ouvert = _cfExOuvert === cle;
     const barre = w ? '<span class="sb-div-piste"><span class="sb-div-barre" style="' + (w.p >= 0.5 ? 'left:50%' : 'right:50%') + ';width:' + (100 * Math.abs(w.p - 0.5)).toFixed(1) + '%;background:' + (w.p >= 0.5 ? _SB_VERT : _SB_ORANGE) + '"></span>'
       + '<span class="sb-div-ic" style="left:' + (100 * w.bas).toFixed(1) + '%;width:' + Math.max(0.4, 100 * (w.haut - w.bas)).toFixed(1) + '%"></span></span>' : '<span></span>';
-    h += '<div class="cf-ex-l' + (ouvert ? ' cf-ex-ouvert' : '') + (dec < GR_PEU ? ' cf-ex-peu' : '') + '" role="row" tabindex="0" onclick="corpusExplorer(\'ouvrir\',\'' + cle + '\')" onkeydown="if(event.key===\'Enter\')corpusExplorer(\'ouvrir\',\'' + cle + '\')"'
+    h += '<div class="cf-ex-l' + (ouvert ? ' cf-ex-ouvert' : '') + (dec < GR_PEU ? ' cf-ex-peu' : '') + '" role="row" tabindex="0" data-click="corpusExplorer(\'ouvrir\',\'' + cle + '\')" data-entree="corpusExplorer(\'ouvrir\',\'' + cle + '\')"'
       + ' title="' + grEchapper(r.v + _tr(' victoires, ', ' wins, ') + r.d + _tr(' défaites, ', ' losses, ') + r.nul + _tr(' nulles, ', ' draws, ') + r.inconnu + _tr(' au résultat inconnu', ' with an unknown result') + (w ? ' · ' + grFourchette(r.v, dec) : '') + grPeu(dec)) + '">'
       + '<span class="cf-ex-score">' + r.nb + ' – ' + r.nw + '</span><span>' + grNb(r.n) + '</span><span class="cf-ex-vdn">' + r.v + ' / ' + r.d + ' / ' + r.nul + ' / ' + r.inconnu + '</span>'
       + '<span class="cf-ex-taux">' + barre + '<b>' + (w ? grPct(w.p) : '—') + '</b> <i>' + (w ? grMarge(r.v, dec) : '') + (dec < GR_PEU ? ' ⚠' : '') + '</i></span></div>';
@@ -320,7 +320,7 @@ function _cfHtmlExParties(r){
   r.parties.slice(0, 20).forEach(function(k){
     const x = _cfPartieDe(k); if (!x) return;
     h += '<div class="cf-ex-partie"><span>' + _cfNomSourceCourt(x.s) + ' · ' + grEchapper(x.date) + '</span><span>' + grEchapper(String(x.noirs || '?')) + ' – ' + grEchapper(String(x.blancs || '?')) + '</span><span>' + res(x.p[0]) + ' · ' + x.p[1] + _tr(' demi-coups', ' plies') + '</span>'
-      + '<button type="button" class="ctrl-btn" onclick="event.stopPropagation();corpusRevoir(' + k + ')">▶ ' + _tr('Revoir', 'Replay') + '</button></div>';
+      + '<button type="button" class="ctrl-btn" data-click="event.stopPropagation();corpusRevoir(' + k + ')">▶ ' + _tr('Revoir', 'Replay') + '</button></div>';
   });
   if (r.parties.length > 20) h += '<div class="gr-sous">' + _tr('… et ', '… and ') + grNb(r.parties.length - 20) + _tr(' autres parties : un filtre (source, disposition, année) réduit la liste.', ' more games: a filter (source, layout, year) narrows the list.') + '</div>';
   return h + '</div>';

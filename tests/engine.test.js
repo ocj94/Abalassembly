@@ -1411,7 +1411,7 @@ function _allerRetour(couleur) {   // une bille qui avance d'un pas puis revient
 test('nulle : le bouton propose vraiment la nulle (plus de faux message)', () => {
   const src = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
   assert.doesNotMatch(src, /showToast\('🤝 Demande de nulle envoyée'\)/);
-  assert.match(src, /onclick="proposerNulle\(\)"/);
+  assert.match(src, /data-click="proposerNulle\(\)"/);
 });
 
 test('nulle : triple repetition jouee coup par coup -- 3e retour de la meme position, meme camp au trait', () => {
@@ -1960,7 +1960,7 @@ test('permutations : la fenetre affiche les deux colonnes et copie tout', () => 
     assert.match(tout[2], /^0 : \S+    100 : \S+$/);
     assert.strictEqual(tout[15], 'PosRef = ' + P.posRef + '    code_permut_Ref_Orig = ' + P.codePermut);
     assert.ok(ajoutes[0].innerHTML.includes(P.posRef + ' ★'));
-    assert.match(ajoutes[0].innerHTML, /id="permut-code"[^>]*onchange="_permutMaj\(this\.value\)"/);
+    assert.match(ajoutes[0].innerHTML, /id="permut-code"[^>]*data-change="_permutMaj\(this\.value\)"/);
     assert.match(ajoutes[0].innerHTML, /jouerDepuisCode\(document\.getElementById\('permut-code'\)\.value\)/);
   } finally { ctx.document.body = sB; ctx.document.createElement = sC; ctx.document.getElementById = sG; }
 });
@@ -2266,8 +2266,8 @@ test('aide : chaque libelle cite existe vraiment ailleurs dans le site (aucun bo
 
 test('aide : accessible par le menu et par le menu Aide du haut', () => {
   const src = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
-  assert.match(src, /id="sid-aide" onclick="sidebarNav\('aide',this\)"/);
-  assert.match(src, /onclick="toggleHelpMenu\(\); showPage\('aide'\)"><span>📖<\/span> Comment utiliser le site/);
+  assert.match(src, /id="sid-aide" data-click="sidebarNav\('aide',this\)"/);
+  assert.match(src, /data-click="toggleHelpMenu\(\); showPage\('aide'\)"><span>📖<\/span> Comment utiliser le site/);
 });
 
 test('aide : recherche sans accents, ouvre les rubriques trouvees, signale l absence de resultat', () => {
@@ -3673,7 +3673,7 @@ test('v2.61 vrai plateau : page, entrée du menu (Progresser), dessin à l’ouv
   const src = _SRC();
   assert.match(src, /<div class="page" id="page-plateau">[\s\S]{0,400}<h2>Apprendre sur un vrai plateau<\/h2>[\s\S]{0,200}id="plateau-corps"/);
   const prog = src.slice(src.indexOf('<div class="sidebar-group-label">📖 Progresser</div>'), src.indexOf('<div class="sidebar-group-label">🧪 Explorer</div>'));
-  assert.match(prog, /id="sid-plateau" onclick="sidebarNav\('plateau',this\)">\s*<span class="s-icon">🧸<\/span><span class="s-label">Sur un vrai plateau<\/span>/);
+  assert.match(prog, /id="sid-plateau" data-click="sidebarNav\('plateau',this\)">\s*<span class="s-icon">🧸<\/span><span class="s-label">Sur un vrai plateau<\/span>/);
   assert.ok(src.indexOf("plateau:    function(){ if (typeof renderPlateauPage === 'function') renderPlateauPage(); }") > 0, 'dessinee a l ouverture');
   assert.ok(src.indexOf("if (pp && pp.classList.contains('active') && typeof renderPlateauPage === 'function') renderPlateauPage();") > 0, 'redessinee au changement de langue');
   assert.ok(src.indexOf('#page-plateau, #page-plateau * { visibility:visible; }') > 0, 'fiche imprimable');
@@ -3780,7 +3780,7 @@ test('v2.61 vrai plateau : carnet de progrès sur l’appareil -- étoiles daté
   const d = new Date(), jour = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   assert.deepStrictEqual(lire().enfants[0].acquis, { 3: jour });
   assert.ok(els['vp-carnet'].innerHTML.indexOf('aria-pressed="true"') > 0);
-  assert.ok(els['vp-carnet'].innerHTML.indexOf('Prochaine étape : <a href="#" onclick="vpAller(1);return false;">1 · 🏠 Une bille par maison</a>') > 0, 'la premiere non acquise');
+  assert.ok(els['vp-carnet'].innerHTML.indexOf('Prochaine étape : <a href="#" data-click="vpAller(1);return false;">1 · 🏠 Une bille par maison</a>') > 0, 'la premiere non acquise');
   ctx.vpBasculerAcquis(0, 3);
   assert.deepStrictEqual(lire().enfants[0].acquis, {});
   ctx.vpBasculerAcquis(0, 9); ctx.vpBasculerAcquis(7, 1);
@@ -4067,7 +4067,7 @@ test('v2.64 adresses : chaque entrée du menu et chaque page ont la leur, unique
   // le menu : pages (sidebarNav / showPage) et fenetres (Importer, Bibliotheque, Fiche pour IA, Labo)
   const debut = src.indexOf('<div class="sidebar-group-label">🎮 Jouer</div>'), fin = src.indexOf('nav.settings">Paramètres</span>');
   const menu = src.slice(debut, fin + 40);
-  const cibles = [...menu.matchAll(/onclick="(?:sidebarNav|showPage)\('([a-z]+)'/g)].map(m => m[1]);
+  const cibles = [...menu.matchAll(/data-click="(?:sidebarNav|showPage)\('([a-z]+)'/g)].map(m => m[1]);
   assert.ok(cibles.length >= 30, cibles.length + ' entrees');   // 32 pages au menu (v2.64), plus 4 fenetres ci-dessous
   cibles.forEach(c => assert.ok(T.some(l => l[0] === c), 'entree du menu sans adresse : ' + c));
   ['openApgnImportModal', 'openMigsBrowser', 'openSiteBriefing', 'openLabFromMenu'].forEach(f => assert.ok(menu.indexOf(f + '(') > 0, f));
@@ -4635,7 +4635,7 @@ test('v2.69 synchro : messages découpés et recollés, fenêtre en français et
   // l'adresse, les boutons, l'aide
   assert.deepStrictEqual(Object.keys(_r58('_ADR_OUVREURS')).sort(), ['briefing', 'gymexo', 'import', 'library', 'synchro']);
   const site = _SRC();
-  assert.strictEqual((site.match(/onclick="openSyncModal\(\)"/g) || []).length, 2, 'Parametres et Historique');
+  assert.strictEqual((site.match(/data-click="openSyncModal\(\)"/g) || []).length, 2, 'Parametres et Historique');
   assert.ok(site.indexOf('<li><b>🔄 Synchroniser mes appareils</b>') > 0 && site.indexOf('<li><b>🔄 Sync my devices</b>') > 0);
 });
 
@@ -4840,7 +4840,7 @@ test('labo v2.70 : les ouvertures -- lignes du livre, positions plus loin, le li
 
 test('labo v2.70 : la page -- sept onglets, les styles Humain et Contre moi, en anglais dans la configuration', () => {
   const site = _SRC();
-  ['auto', 'texel', 'styles', 'niveaux', 'humains', 'contretoi', 'ouvertures', 'outils'].forEach(o => assert.ok(site.indexOf('data-onglet="' + o + '" onclick="laboOnglet(\'' + o + '\')"') > 0, o));
+  ['auto', 'texel', 'styles', 'niveaux', 'humains', 'contretoi', 'ouvertures', 'outils'].forEach(o => assert.ok(site.indexOf('data-onglet="' + o + '" data-click="laboOnglet(\'' + o + '\')"') > 0, o));
   ['lab-texel-host', 'lab-styles-host', 'lab-niveaux-host', 'lab-humains-host', 'lab-contretoi-host', 'lab-ouvertures-host', 'page-lab-host', 'test-kaah-host'].forEach(id => assert.strictEqual((site.match(new RegExp('id="' + id + '"', 'g')) || []).length, 1, id));
   assert.ok(/id="setup-style-humain"[^>]*style="display:none"/.test(site) && /id="setup-style-contremoi"[^>]*style="display:none"/.test(site), 'caches tant que le Labo ne les a pas faits');
   ['Humain (Labo)', 'Contre moi (Labo)'].forEach(t => assert.ok(ctx.I18N_EN[t], t));
@@ -6323,7 +6323,7 @@ test('v2.97 Ghigou : le reglage, la ligne sous le coup, la fenetre, les Parametr
   // Parametres : le choix et le bouton ; la fenetre existe ; les traductions
   assert.match(_SRC_INDEX, /id="settings-notation-historique"[^]*?value="ghigou90"[^]*?value="ghigou89"/);
   assert.match(_SRC_INDEX, /id="modal-notations-historiques"[^]*?id="nh-contenu"/);
-  assert.match(_SRC_INDEX, /onclick="ouvrirNotationsHistoriques\(\)"/);
+  assert.match(_SRC_INDEX, /data-click="ouvrirNotationsHistoriques\(\)"/);
   assert.strictEqual(_r63("I18N_EN['Notation historique']"), 'Historical notation');
   // la base de connaissances et le wiki
   assert.match(_r63("ABALONE_KB_TOPICS.find(e => e.id === 'notation').a"), /Marc Ghigou/);
@@ -6459,13 +6459,13 @@ test('v2.98 Saab : un fichier de partie de KAAWA se relit par ses positions ; le
 });
 
 test('v2.98 Saab : les boutons, l\'import, les traductions et le wiki', () => {
-  assert.match(_SRC_INDEX, /onclick="telechargerPartieKAAH\(\)"/);
+  assert.match(_SRC_INDEX, /data-click="telechargerPartieKAAH\(\)"/);
   assert.match(_SRC_INDEX, /id="editor-code"[^>]*>[\s\S]{0,400}chargerCodeEditeur\(\)/);
   const ajoutes = []; const sB = ctx.document.body, sC = ctx.document.createElement, sG = ctx.document.getElementById;
   ctx.document.getElementById = () => null; ctx.document.createElement = () => ({ style: {}, dataset: {}, remove() {} });
   ctx.document.body = { appendChild: el => ajoutes.push(el) };
   try { ctx.openApgnImportModal(); } finally { ctx.document.body = sB; ctx.document.createElement = sC; ctx.document.getElementById = sG; }
-  assert.match(ajoutes[0].innerHTML, /id="apgn-import-pos"/); assert.match(ajoutes[0].innerHTML, /onchange="importerFichierKAAH\(this\)"/);
+  assert.match(ajoutes[0].innerHTML, /id="apgn-import-pos"/); assert.match(ajoutes[0].innerHTML, /data-change="importerFichierKAAH\(this\)"/);
   assert.strictEqual(_r63("I18N_EN['💾 Fichier KAAH (.json)']"), '💾 KAAH file (.json)');
   const fs = require('fs'), path = require('path');
   for (const [f, mots] of [['docs-fr/Echanger-des-parties.fr.md', ['posRef', 'code_permut', 'KAAWA', 'pos_']], ['docs-en/Echanger-des-parties.en.md', ['posRef', 'code_permut', 'KAAWA', 'pos_']],
@@ -7181,7 +7181,8 @@ test('v3.17, arbre de recherche dessine : en direct (en cours / note / pas encor
 test('v3.16, bibliotheques des CDN verifiees octet pour octet ; SheetJS lu hors de la page, et seulement en texte', async () => {
   const fs = require('fs'), path = require('path'), vm = require('vm'), lire = n => vm.runInContext(n, ctx);
   const csp = _SRC_INDEX.match(/Content-Security-Policy" content="([^"]*)"/)[1].split(';').map(x => x.trim());
-  assert.strictEqual(csp.find(x => x.indexOf('script-src') === 0), "script-src 'self' 'unsafe-inline' blob:", 'les CDN ne servent plus de script directement');
+  // v3.22 : plus de 'unsafe-inline' ; les blocs du fichier sont nommés par leur empreinte (test v3.22 plus bas)
+  assert.ok(/^script-src 'self' blob:( 'sha256-[A-Za-z0-9+/]{43}=')+$/.test(csp.find(x => x.indexOf('script-src') === 0)), 'les CDN ne servent plus de script directement');
   // l'empreinte de Three.js est celle de la copie du site, identique au paquet npm three@0.160.0
   const vendor = fs.readFileSync(path.join(__dirname, '..', 'vendor', 'three.module.js'));
   const h = 'sha384-' + require('crypto').createHash('sha384').update(vendor).digest('base64');
@@ -7210,7 +7211,7 @@ test('v3.15, l Observatoire IA dans la colonne de droite : un onglet, pas une fe
   const vm = require('vm'), lire = n => vm.runInContext(n, ctx), src = _SRC();
   assert.ok(src.includes('id="gtab-obs"') && src.includes('id="gpanel-obs"') && src.includes('id="obs-sb-hote"'), 'onglet et emplacement dans la colonne');
   assert.ok(src.includes("if (typeof _obsOngletLateral === 'function') _obsOngletLateral(tab === 'obs');"), 'changer d onglet ouvre ou ferme l Observatoire');
-  assert.ok(src.includes("(lateral ? '' : '<button class=\"obs-ic\" onclick=\"obsReduire()\""), 'dans la colonne : ni reduire ni plein ecran');
+  assert.ok(src.includes("(lateral ? '' : '<button class=\"obs-ic\" data-click=\"obsReduire()\""), 'dans la colonne : ni reduire ni plein ecran');
   assert.ok(src.includes("p = document.createElement(lateral ? 'div' : 'aside'); p.id = 'obs-panneau'; (lateral ? hote : document.body).appendChild(p);"));
   assert.ok(src.includes('#obs-panneau.obs-sb{position:static') && src.includes('@media (min-width:1700px){body.obs-lateral .game-layout{grid-template-columns:280px minmax(0,1fr) 420px}}'));
   assert.ok(/#game-board-wrap \{[^}]*min-width: 0; max-width: 100%;/.test(src), 'le plateau retrecit avec sa colonne');
@@ -7569,4 +7570,56 @@ test('v3.21, polices hebergees : plus aucun appel a Google Fonts (jeu, ecosystem
   assert.match(_SRC_INDEX, /\.outil-plateau canvas \{ width: 100%; height: auto; \}/);
   assert.ok((_SRC_INDEX.match(/class="outil-plateau"/g) || []).length === 2);
   assert.ok(_SRC_INDEX.lastIndexOf('.camera-layout { grid-template-columns: 1fr; }') > _SRC_INDEX.indexOf('.camera-layout {\n  min-height: 100vh'), 'la regle telephone vient apres la regle de base');
+});
+
+test('v3.22, sans code dans le HTML : aucun gestionnaire en ligne, CSP sans unsafe-inline et empreintes justes, liste des actions a jour, interpreteur sur', () => {
+  const fs = require('fs'), path = require('path'), crypto = require('crypto'), R = path.join(__dirname, '..');
+  // 1. plus aucun onclick=, onchange=… dans le HTML du fichier, ni dans le HTML que le JS fabrique
+  const inline = /(^|[^A-Za-z_.$-])on(click|change|input|keydown|keyup|mouseover|mouseout|mouseenter|mouseleave|toggle|submit|blur|focus|load|error|dblclick|pointerdown|pointerup|touchstart|wheel|contextmenu)=\\?["']/;
+  const fichiers = [];
+  const ajouter = (d) => fs.readdirSync(d).forEach((f) => { const p = path.join(d, f); if (fs.statSync(p).isDirectory()) ajouter(p); else if (/\.(part|js)$/.test(f)) fichiers.push(p); });
+  ajouter(path.join(R, 'src'));
+  const fautifs = [];
+  for (const f of fichiers) fs.readFileSync(f, 'utf8').split('\n').forEach((l, i) => { if (inline.test(l)) fautifs.push(path.relative(R, f) + ':' + (i + 1) + ' ' + l.trim().slice(0, 90)); });
+  assert.deepStrictEqual(fautifs, [], 'gestionnaire en ligne : utiliser data-click="…" (src/main/00a-actions.js)');
+  assert.ok(!inline.test(_SRC_INDEX.replace(/<script[\s\S]*?<\/script>/g, '')), 'index.html : HTML sans gestionnaire en ligne');
+  assert.ok(!/setAttribute\(\s*['"]on[a-z]+['"]/.test(_SRC_INDEX), 'ni par setAttribute');
+  // 2. CSP : pas de 'unsafe-inline' pour les scripts, et une empreinte exacte par bloc exécutable
+  const csp = _SRC_INDEX.match(/Content-Security-Policy" content="([^"]*)"/)[1];
+  const scriptSrc = csp.split(';').map(x => x.trim()).find(x => x.startsWith('script-src'));
+  assert.ok(!scriptSrc.includes('unsafe-inline') && !scriptSrc.includes('unsafe-eval'), scriptSrc.slice(0, 60));
+  const B = require('../tools/build.js');
+  const attendues = B.empreintesScripts(_SRC_INDEX);
+  assert.ok(attendues.length >= 5, attendues.length + ' blocs');
+  assert.deepStrictEqual(scriptSrc.split(' ').filter(x => x.startsWith("'sha256-")), attendues, 'empreintes à jour (node tools/build.js)');
+  const blocs = [..._SRC_INDEX.matchAll(/<script(\s[^>]*)?>([\s\S]*?)<\/script>/g)].filter(m => !/\ssrc=|type="application\/ld\+json"/.test(m[1] || ''));
+  assert.strictEqual(blocs.length, attendues.length);
+  blocs.forEach((m, i) => assert.strictEqual("'sha256-" + crypto.createHash('sha256').update(m[2], 'utf8').digest('base64') + "'", attendues[i]));
+  assert.ok(!/\beval\(|new Function\(/.test(blocs.map(m => m[2]).join('\n').replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, '')), 'ni eval ni new Function (sinon il faudrait unsafe-eval)');
+  // 3. la liste des actions est à jour, et chaque action est une fonction du jeu
+  const A = require('../tools/actions.js');
+  assert.strictEqual(fs.readFileSync(path.join(R, 'src', 'main', '00b-actions-liste.js'), 'utf8'), A.contenu(), 'node tools/actions.js');
+  const tout = fichiers.filter(f => f.endsWith('.js')).map(f => fs.readFileSync(f, 'utf8')).join('\n');
+  const DEJA_ABSENTES = ['filterMuseum'];   // boutons du Musée : la fonction n'a jamais existé (avant v3.22 déjà)
+  const absentes = A.noms().filter(n => !DEJA_ABSENTES.includes(n) && !new RegExp('(function\\s+' + n.replace(/\$/g, '\\$') + '\\s*\\(|(const|let|var)\\s+' + n.replace(/\$/g, '\\$') + '\\s*=|window\\.' + n.replace(/\$/g, '\\$') + '\\s*=)').test(tout));
+  assert.deepStrictEqual(absentes, [], 'actions sans fonction');
+  // 4. l'interpréteur : ce qu'il accepte, et ce qu'il refuse sans rien exécuter
+  const an = (s) => vm_run('JSON.stringify(_actAnalyser(' + JSON.stringify(s) + '))');
+  const vm_run = (c) => require('vm').runInContext(c, ctx);
+  vm_run('console.__err = console.error; console.error = function(){}');
+  try {
+    assert.strictEqual(an("setupPick('mode','ai',this)"), JSON.stringify([{ nom: 'setupPick', args: [{ v: 'mode' }, { v: 'ai' }, { el: true }] }]));
+    assert.strictEqual(an("event.stopPropagation();f(-2.5, true, null, this.value, this.dataset.k, event)"),
+      JSON.stringify([{ special: 'arret' }, { nom: 'f', args: [{ v: -2.5 }, { v: true }, { v: null }, { prop: 'value' }, { data: 'k' }, { ev: true }] }]));
+    assert.strictEqual(an("g('l\\'apostrophe');return false"), JSON.stringify([{ nom: 'g', args: [{ v: "l'apostrophe" }] }, { special: 'retour' }]));
+    assert.strictEqual(an("event.preventDefault();closeModal('signup');showPage('mentions')"),
+      JSON.stringify([{ special: 'defaut' }, { nom: 'closeModal', args: [{ v: 'signup' }] }, { nom: 'showPage', args: [{ v: 'mentions' }] }]));
+    // tout ce qui n'est pas une valeur simple est refusé en bloc : rien de l'attribut ne s'exécute
+    for (const piege of ["alert(document.cookie)", "f(a)", "f(1+1)", "x=1", "f(this.parentNode)", "f(window)", "f('a'); g(fetch('//x'))", "f()(", "document.cookie"])
+      assert.strictEqual(an(piege), 'null', piege);
+    assert.strictEqual(an("alert(document.cookie)"), 'null', 'argument non permis');
+    assert.strictEqual(an("x=1"), 'null');
+    assert.strictEqual(an("f(1+1)"), 'null');
+    assert.strictEqual(vm_run("typeof _ACTIONS.alert + typeof _ACTIONS.eval + typeof _ACTIONS.fetch"), 'undefinedundefinedundefined', 'alert, eval, fetch ne sont pas des actions');
+  } finally { vm_run('console.error = console.__err'); }
 });

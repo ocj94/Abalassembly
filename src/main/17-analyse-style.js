@@ -171,6 +171,7 @@ function buildGameHeatmapSVG(snapshots, forColor, size) {
 /* Affiche la heatmap de fin de partie, avec bascule Vous / Adversaire.
    Reconstruite depuis boardSnapshots — aucune donnée supplémentaire stockée. */
 let _heatmapColor = null;
+function choisirCouleurHeatmap(c) { _heatmapColor = c; renderHeatmapCard(); }   // v3.22
 function renderHeatmapCard(){
   const host = document.getElementById('heatmap-card');
   if(!host) return;
@@ -189,7 +190,7 @@ function renderHeatmapCard(){
     ? (forColor === 'black' ? 'Le joueur noir' : 'Le joueur blanc')
     : (forColor === hc ? 'Joueur 1' : 'Joueur 2');
   const tabBtn = (c, txt) =>
-    '<button onclick="_heatmapColor=\'' + c + '\';renderHeatmapCard()" style="'
+    '<button data-click="choisirCouleurHeatmap(\'' + c + '\')" style="'
     + 'padding:5px 12px;font-size:12px;font-weight:600;border-radius:7px;cursor:pointer;border:1px solid var(--border);'
     + (c === forColor ? 'background:var(--gold);color:#0d0f0e' : 'background:none;color:var(--muted)') + '">' + txt + '</button>';
   host.innerHTML =

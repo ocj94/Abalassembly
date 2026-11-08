@@ -47,6 +47,7 @@ function bancNouveau(nom, options){
   _bancSauver(nom, s);
   return s;
 }
+function bancNouveauLancer(nom){ bancLancer(nom, {}); }   // v3.22 : depuis un bouton (data-click)
 function bancLancer(nom, options){
   if (_bancActif === nom) { bancPause(); return; }
   const occ = _bancOccupe(); if (occ) { showToast(occ); return; }
@@ -151,10 +152,10 @@ function _labDuree(ms){ const m = Math.round(ms / 60000); if (m < 1) return 'moi
 function _bancBoutons(nom, s, libNouveau, opts){
   const enCours = _bancActif === nom;
   let h = '<div class="lab-actions">';
-  if (enCours) h += '<button class="ctrl-btn" onclick="bancPause()">⏸ Pause</button>';
-  else if (s && !s.fini) h += '<button class="ctrl-btn" onclick="bancLancer(\'' + nom + '\')">▶ Reprendre</button>';
-  if (!enCours) h += '<button class="ctrl-btn" onclick="' + (opts || ('bancLancer(\'' + nom + '\',{})')) + '">' + (s ? '↻ ' : '▶ ') + libNouveau + '</button>';
-  if (s && !enCours) h += '<button class="ctrl-btn lab-discret" onclick="bancEffacer(\'' + nom + '\')">🗑 Effacer</button>';
+  if (enCours) h += '<button class="ctrl-btn" data-click="bancPause()">⏸ Pause</button>';
+  else if (s && !s.fini) h += '<button class="ctrl-btn" data-click="bancLancer(\'' + nom + '\')">▶ Reprendre</button>';
+  if (!enCours) h += '<button class="ctrl-btn" data-click="' + (opts || ('bancNouveauLancer(\'' + nom + '\')')) + '">' + (s ? '↻ ' : '▶ ') + libNouveau + '</button>';
+  if (s && !enCours) h += '<button class="ctrl-btn lab-discret" data-click="bancEffacer(\'' + nom + '\')">🗑 Effacer</button>';
   return h + '</div>';
 }
 function _bancJournal(s){
@@ -179,7 +180,7 @@ function bancReglageSet(nom, k, v){
 }
 function _bancReglages(nom, sans){
   sans = sans || {}; const r = _bancReglagesLus(nom);
-  const sel = function(k, L, lib){ return '<select onchange="bancReglageSet(\'' + nom + '\',\'' + k + '\',this.value)">' + L.map(function(v){ return '<option value="' + v + '"' + (String(r[k]) === String(v) ? ' selected' : '') + '>' + lib(v) + '</option>'; }).join('') + '</select>'; };
+  const sel = function(k, L, lib){ return '<select data-change="bancReglageSet(\'' + nom + '\',\'' + k + '\',this.value)">' + L.map(function(v){ return '<option value="' + v + '"' + (String(r[k]) === String(v) ? ' selected' : '') + '>' + lib(v) + '</option>'; }).join('') + '</select>'; };
   let h = '<div class="gr-filtres">';
   if (!sans.ms) h += '<label>Temps par coup ' + sel('ms', BANC_TEMPS, function(v){ return grNb(v / 1000, v < 1000 ? 1 : 0) + ' s'; }) + '</label>';
   if (!sans.plies) h += '<label>Demi-coups avant arbitrage ' + sel('plies', BANC_PLIES, function(v){ return v; }) + '</label>';
@@ -313,8 +314,8 @@ function renderNiveaux(msg){
   const haut = lu('lab-niv-haut') || (s && s.plan.haut) || 6, paires = lu('lab-niv-paires') || (s && s.plan.paires) || 6;
   let h = '<p class="lab-intro">Chaque niveau affronte le suivant (1 contre 2, 2 contre 3…), avec sa vraie profondeur et son vrai temps de réflexion, par paires depuis de vraies positions. On voit la <b>hauteur de chaque marche</b> en Elo : des marches régulières, c’est une progression agréable.</p>';
   let est = 0; for (let n = 1; n < haut; n++) est += 2 * paires * _niveauDureePartie(n, _bancReglagesLus('niveaux').plies);
-  h += '<div class="lab-options"><label>Jusqu’au niveau <select id="lab-niv-haut" onchange="renderNiveaux()">' + [4, 5, 6, 7, 8].map(function(n){ return '<option' + (n === haut ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></label>'
-    + '<label>Paires par marche <select id="lab-niv-paires" onchange="renderNiveaux()">' + [4, 6, 10, 16].map(function(n){ return '<option' + (n === paires ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></label>'
+  h += '<div class="lab-options"><label>Jusqu’au niveau <select id="lab-niv-haut" data-change="renderNiveaux()">' + [4, 5, 6, 7, 8].map(function(n){ return '<option' + (n === haut ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></label>'
+    + '<label>Paires par marche <select id="lab-niv-paires" data-change="renderNiveaux()">' + [4, 6, 10, 16].map(function(n){ return '<option' + (n === paires ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></label>'
     + '<span class="lab-note">au pire ≈ ' + _labDuree(est / Math.max(1, _labNbFils())) + ' sur ' + _labNbFils() + ' fil' + (_labNbFils() > 1 ? 's' : '') + ' (souvent bien moins : la profondeur est atteinte avant le temps)</span></div>';
   h += _bancReglages('niveaux', { ms: true });
   h += _bancBoutons('niveaux', s, 'Nouvelle mesure', 'lancerNiveaux()');
@@ -475,7 +476,7 @@ function renderOuvertures(msg){
     });
     h += '<div class="gr-titre">Humains et IA, ligne par ligne</div><div class="gr-sous">Score du camp qui joue la ligne ; le trait marque 50 %.</div>'
       + grBarres(it.map(function(x){ x.ref = 0.5; return x; }), { max: 1 }) + grLegende([{ nom: 'Humains', couleur: GR_REF }, { nom: 'IA contre IA', couleur: GR_OR }]);
-    h += '<label class="lab-case"><input type="checkbox"' + (ouverturesDansLeLivre() ? ' checked' : '') + ' onchange="ouverturesBasculerLivre(this)"> Le livre de l’IA tient compte de ces duels (le taux de victoire d’un coup mélange humains et duels)</label>';
+    h += '<label class="lab-case"><input type="checkbox"' + (ouverturesDansLeLivre() ? ' checked' : '') + ' data-change="ouverturesBasculerLivre(this)"> Le livre de l’IA tient compte de ces duels (le taux de victoire d’un coup mélange humains et duels)</label>';
     h += _bancJournal(s);
   }
   hote.innerHTML = h;

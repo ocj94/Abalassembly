@@ -41,8 +41,33 @@ function build() {
   return out;
 }
 
+/* v3.22 : la CSP n'autorise plus tout code écrit dans la page ('unsafe-inline') ; elle
+   nomme chaque bloc <script> du fichier par son empreinte SHA-256, calculée ici à chaque
+   assemblage. Un script glissé dans la page (par un pseudo, un fichier importé…) n'a pas
+   d'empreinte connue : le navigateur refuse de l'exécuter. Les blocs de données
+   (type="application/ld+json" ou autre type non exécutable) n'en ont pas besoin. */
+const crypto = require('crypto');
+const MARQUE_EMPREINTES = "'sha256-EMPREINTES-DES-SCRIPTS'";
+function empreintesScripts(html) {
+  const e = [];
+  const re = /<script(\s[^>]*)?>([\s\S]*?)<\/script>/gi;
+  let m;
+  while ((m = re.exec(html))) {
+    const attrs = m[1] || '';
+    if (/\ssrc\s*=/i.test(attrs)) continue;
+    const type = /\stype\s*=\s*["']?([^"'\s>]+)/i.exec(attrs);
+    if (type && !/^(text\/javascript|application\/javascript|module)$/i.test(type[1])) continue;
+    e.push("'sha256-" + crypto.createHash('sha256').update(m[2], 'utf8').digest('base64') + "'");
+  }
+  return e;
+}
+function signerScripts(html) {
+  if (!html.includes(MARQUE_EMPREINTES)) return html;
+  return html.replace(MARQUE_EMPREINTES, empreintesScripts(html).join(' '));
+}
+
 function main() {
-  const out = build();
+  const out = signerScripts(build());
   const before = fs.existsSync(OUT_FILE) ? fs.readFileSync(OUT_FILE, 'utf8') : null;
   fs.writeFileSync(OUT_FILE, out, 'utf8');
   console.log('index.html ecrit :', Buffer.byteLength(out, 'utf8'), 'octets,', names_count(), 'pieces assemblees');
@@ -72,4 +97,5 @@ function names_count() {
   return fs.readFileSync(MANIFEST, 'utf8').split('\n').map(s => s.trim()).filter(Boolean).length;
 }
 
-main();
+if (require.main === module) main();
+module.exports = { build, signerScripts, empreintesScripts };

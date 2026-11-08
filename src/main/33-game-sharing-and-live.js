@@ -470,13 +470,13 @@ function openRtcPanel(){
     + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Connexion directe entre deux navigateurs, sans compte ni serveur de jeu — juste un serveur public pour aider les deux appareils à se trouver. Un seul échange de code au début, puis les coups circulent tout seuls.</div>'
     + '<div id="rtc-status" style="font-size:13px;color:var(--gold);margin-bottom:14px;min-height:18px">⚪ Non connecté</div>'
     + '<div style="display:flex;gap:8px;margin-bottom:14px">'
-    + '<button class="ctrl-btn" onclick="_rtcUiCreateOffer()" style="flex:1">Créer une partie</button>'
-    + '<button class="ctrl-btn" onclick="_rtcUiShowJoin()" style="flex:1">Rejoindre</button>'
+    + '<button class="ctrl-btn" data-click="_rtcUiCreateOffer()" style="flex:1">Créer une partie</button>'
+    + '<button class="ctrl-btn" data-click="_rtcUiShowJoin()" style="flex:1">Rejoindre</button>'
     + '</div>'
     + '<div id="rtc-ui-body"></div>'
     + '<div style="display:flex;gap:8px;margin-top:14px;justify-content:space-between">'
-    + '<button class="ctrl-btn" onclick="openGameCodePanel()" style="width:auto;padding:8px 12px;font-size:12px" title="Solution de repli fiable si la connexion directe ne marche pas">Utiliser « Partie par code » à la place</button>'
-    + '<button class="ctrl-btn" onclick="document.getElementById(\'rtc-modal\').remove()" style="width:auto;padding:8px 16px">Fermer</button>'
+    + '<button class="ctrl-btn" data-click="openGameCodePanel()" style="width:auto;padding:8px 12px;font-size:12px" title="Solution de repli fiable si la connexion directe ne marche pas">Utiliser « Partie par code » à la place</button>'
+    + '<button class="ctrl-btn" data-click="retirer(\'rtc-modal\')" style="width:auto;padding:8px 16px">Fermer</button>'
     + '</div></div>';
   document.body.appendChild(modal);
 }
@@ -495,11 +495,11 @@ async function _rtcUiCreateOffer(){
   if (!body) return;
   body.innerHTML =
     '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">1. ENVOIE CE CODE À TON ADVERSAIRE</div>'
-    + '<textarea readonly style="width:100%;height:70px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:11px;word-break:break-all" onclick="this.select()">' + code + '</textarea>'
-    + '<button class="ctrl-btn" onclick="navigator.clipboard&&navigator.clipboard.writeText(\'' + code.replace(/'/g,"\\'") + '\').then(()=>showToast(\'Code copié\'))" style="width:100%;margin-top:6px">Copier</button>'
+    + '<textarea readonly style="width:100%;height:70px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:11px;word-break:break-all" data-click="selectionner(this)">' + code + '</textarea>'
+    + '<button class="ctrl-btn" data-click="copierDansPressePapier(\'' + code.replace(/'/g,"\\'") + '\')" style="width:100%;margin-top:6px">Copier</button>'
     + '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin:14px 0 6px">2. COLLE SA RÉPONSE ICI</div>'
     + '<textarea id="rtc-answer-in" placeholder="WEBRTC1:answer:..." style="width:100%;height:70px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:11px"></textarea>'
-    + '<button class="ctrl-btn" onclick="_rtcUiAcceptAnswer()" style="width:100%;margin-top:6px">Se connecter</button>';
+    + '<button class="ctrl-btn" data-click="_rtcUiAcceptAnswer()" style="width:100%;margin-top:6px">Se connecter</button>';
 }
 
 function _rtcUiShowJoin(){
@@ -508,7 +508,7 @@ function _rtcUiShowJoin(){
   body.innerHTML =
     '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:6px">COLLE LE CODE REÇU</div>'
     + '<textarea id="rtc-offer-in" placeholder="WEBRTC1:offer:..." style="width:100%;height:70px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:11px"></textarea>'
-    + '<button class="ctrl-btn" onclick="_rtcUiAcceptOffer()" style="width:100%;margin-top:6px">Générer ma réponse</button>'
+    + '<button class="ctrl-btn" data-click="_rtcUiAcceptOffer()" style="width:100%;margin-top:6px">Générer ma réponse</button>'
     + '<div id="rtc-answer-out-wrap"></div>';
 }
 
@@ -527,8 +527,8 @@ async function _rtcUiAcceptOffer(){
   if (!result.ok) { wrap.innerHTML = '<div style="color:#e05c4b;font-size:12px;margin-top:8px">' + result.reason + '</div>'; return; }
   wrap.innerHTML =
     '<div style="font-size:11px;letter-spacing:1px;color:var(--muted);margin:14px 0 6px">RENVOIE CE CODE À TON ADVERSAIRE</div>'
-    + '<textarea readonly style="width:100%;height:70px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:11px;word-break:break-all" onclick="this.select()">' + result.code + '</textarea>'
-    + '<button class="ctrl-btn" onclick="navigator.clipboard&&navigator.clipboard.writeText(\'' + result.code.replace(/'/g,"\\'") + '\').then(()=>showToast(\'Code copié\'))" style="width:100%;margin-top:6px">Copier</button>'
+    + '<textarea readonly style="width:100%;height:70px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:\'DM Mono\',monospace;font-size:11px;word-break:break-all" data-click="selectionner(this)">' + result.code + '</textarea>'
+    + '<button class="ctrl-btn" data-click="copierDansPressePapier(\'' + result.code.replace(/'/g,"\\'") + '\')" style="width:100%;margin-top:6px">Copier</button>'
     + '<div style="font-size:11px;color:var(--muted);margin-top:8px">Connexion en cours d\'établissement dès que ton adversaire aura collé ce code chez lui…</div>';
 }
 
@@ -819,8 +819,8 @@ function _renderHistoryList(){
         + '<div style="color:var(--muted);font-size:12px">' + _historyOpponentLabel(e) + ' · ' + e.moveCount + ' coups</div>'
       + '</div>'
       + '<div style="width:70px;text-align:right;font-size:12px">' + _historyResultBadge(e) + '</div>'
-      + '<button class="ctrl-btn" onclick="_replayHistoryGame(\'' + e.code.replace(/'/g,"\\'") + '\')" style="width:auto;padding:6px 10px;font-size:12px">Revoir</button>'
-      + '<button onclick="deleteGameHistoryEntry(\'' + e.id + '\');_renderHistoryList()" title="Supprimer" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:2px 6px">✕</button>'
+      + '<button class="ctrl-btn" data-click="_replayHistoryGame(\'' + e.code.replace(/'/g,"\\'") + '\')" style="width:auto;padding:6px 10px;font-size:12px">Revoir</button>'
+      + '<button data-click="deleteGameHistoryEntry(\'' + e.id + '\');_renderHistoryList()" title="Supprimer" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:2px 6px">✕</button>'
     + '</div>';
   }).join('');
 }

@@ -65,7 +65,7 @@ function renderLabTableau(){
     if (C.length > 1) h += grChiffres(['#', 'Génération', 'Quand', 'Changement'], C.map(function(c, i){ return [i, 'G' + c.gen, c.t ? new Date(c.t).toLocaleDateString('fr-FR') : '—', c.nom || '']; }));
   }
   // les filtres du journal, puis ses graphiques
-  const sel = function(k, O){ return '<select onchange="labTbFiltrer(\'' + k + '\',this.value)">' + Object.keys(O).map(function(v){ return '<option value="' + v + '"' + (String(f[k]) === v ? ' selected' : '') + '>' + O[v] + '</option>'; }).join('') + '</select>'; };
+  const sel = function(k, O){ return '<select data-change="labTbFiltrer(\'' + k + '\',this.value)">' + Object.keys(O).map(function(v){ return '<option value="' + v + '"' + (String(f[k]) === v ? ' selected' : '') + '>' + O[v] + '</option>'; }).join('') + '</select>'; };
   h += '<div class="gr-titre">Le journal des parties</div>';
   h += '<div class="gr-filtres"><label>Période ' + sel('periode', LAB_TB_PERIODES) + '</label><label>Phase ' + sel('phase', LAB_TB_PHASES) + '</label><span>' + grNb(L.length) + ' partie' + (L.length > 1 ? 's' : '') + '</span></div>';
   if (!L.length) { h += '<div class="gr-vide">Aucune partie dans le journal pour ces filtres : lance le Labo.</div>'; hote.innerHTML = h; grSurRedim('tableau', 'lab-tableau-host', renderLabTableau); return; }

@@ -304,11 +304,12 @@ function renderImportCard() {
     + '<select id="import-history-color" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:4px 8px;font-size:11px"><option value="black">les noirs</option><option value="white">les blancs</option></select></label>'
     + '<label style="font-size:11px;color:var(--muted)">Variante&nbsp;'
     + '<select id="import-history-variant" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:4px 8px;font-size:11px">' + opts + '</select></label>'
-    + '<button onclick="runHistoryImport()" style="padding:6px 14px;background:var(--gold);color:#0d0f0e;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">Importer</button>'
+    + '<button data-click="runHistoryImport()" style="padding:6px 14px;background:var(--gold);color:#0d0f0e;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">Importer</button>'
     + '</div></details>';
 }
 
 let _heatVariant = 'all';
+function choisirVarianteHeatmap(v) { _heatVariant = v; renderHeatmap(); }   // v3.22 : bouton sans code dans le HTML
 function renderHeatmap() {
   const host = document.getElementById('heatmap-host');
   if (!host) return;
@@ -347,7 +348,7 @@ function renderHeatmap() {
   });
   const tabs = ['all'].concat(played).map(function(v){
     const on = (v === vSel);
-    return '<button onclick="_heatVariant=\'' + v + '\';renderHeatmap()" style="'
+    return '<button data-click="choisirVarianteHeatmap(\'' + v + '\')" style="'
       + 'padding:4px 11px;font-size:11px;font-weight:600;border-radius:7px;cursor:pointer;border:1px solid var(--border);'
       + (on ? 'background:var(--gold);color:#0d0f0e' : 'background:none;color:var(--muted)') + '">'
       + (v === 'all' ? 'Toutes' : (HEAT_VARIANT_LABEL[v] || v)) + '</button>';
@@ -571,7 +572,7 @@ function applyTrombiFilter() {
   });
   if (!filtered.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--muted)">Aucun joueur trouvé</div>'; return; }
   grid.innerHTML = filtered.map((p,i) => `
-    <div class="trombi-card" onclick="showTrombiModal(${trombiData.indexOf(p)})">
+    <div class="trombi-card" data-click="showTrombiModal(${trombiData.indexOf(p)})">
       <div class="trombi-avatar" style="background:${p.color}">${escapeHtml(p.name[0].toUpperCase())}</div>
       <div class="trombi-name">${escapeHtml(p.name)}</div>
       <div class="trombi-handle">@${escapeHtml(p.handle)} ${escapeHtml(p.country)}</div>
@@ -592,7 +593,7 @@ function showTrombiModal(idx) {
   }
   overlay.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px;width:440px;max-width:94vw;position:relative;animation:slideUp 0.3s ease">
-      <button onclick="document.getElementById('trombi-modal').style.display='none'" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:22px;color:var(--muted);cursor:pointer">x</button>
+      <button data-click="cacher('trombi-modal')" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:22px;color:var(--muted);cursor:pointer">x</button>
       <div style="display:flex;align-items:center;gap:16px;margin-bottom:22px">
         <div style="width:68px;height:68px;border-radius:50%;background:${p.color};display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;font-family:'Playfair Display',serif;color:var(--gold);border:2px solid rgba(200,168,75,0.3);flex-shrink:0">${escapeHtml(p.name[0].toUpperCase())}</div>
         <div>
@@ -612,7 +613,7 @@ function showTrombiModal(idx) {
           <div style="font-size:11px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:1px">Pays</div>
         </div>
       </div>
-      <button onclick="document.getElementById('trombi-modal').style.display='none';showToast('Invitation!')" style="width:100%;padding:12px;background:var(--gold);border:none;border-radius:8px;color:#0d0f0e;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Defier ce joueur</button>
+      <button data-click="cacher('trombi-modal');showToast('Invitation!')" style="width:100%;padding:12px;background:var(--gold);border:none;border-radius:8px;color:#0d0f0e;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Defier ce joueur</button>
     </div>`;
   overlay.style.display = 'flex';
 }
@@ -673,48 +674,48 @@ function showWelcomePopup() {
       </div>
       <div class="welcome-perms">
 
-        <div class="welcome-perm-row" onclick="toggleWelcomePerm('camera',this)">
+        <div class="welcome-perm-row" data-click="toggleWelcomePerm('camera',this)">
           <div class="wp-icon" style="background:rgba(200,168,75,0.1)">📷</div>
           <div class="wp-text">
             <div class="wp-name">Caméra</div>
             <div class="wp-desc">Détecter les billes de votre plateau physique en temps réel</div>
           </div>
-          <button class="wp-toggle on" id="wp-camera" onclick="event.stopPropagation();toggleWelcomePerm('camera',this.closest('.welcome-perm-row'))"></button>
+          <button class="wp-toggle on" id="wp-camera" data-click="event.stopPropagation();toggleWelcomePerm('camera',this.closest('.welcome-perm-row'))"></button>
         </div>
 
-        <div class="welcome-perm-row" onclick="toggleWelcomePerm('micro',this)">
+        <div class="welcome-perm-row" data-click="toggleWelcomePerm('micro',this)">
           <div class="wp-icon" style="background:rgba(74,148,99,0.1)">🎙️</div>
           <div class="wp-text">
             <div class="wp-name">Microphone</div>
             <div class="wp-desc">Commandes vocales pour jouer mains libres</div>
           </div>
-          <button class="wp-toggle" id="wp-micro" onclick="event.stopPropagation();toggleWelcomePerm('micro',this.closest('.welcome-perm-row'))"></button>
+          <button class="wp-toggle" id="wp-micro" data-click="event.stopPropagation();toggleWelcomePerm('micro',this.closest('.welcome-perm-row'))"></button>
         </div>
 
-        <div class="welcome-perm-row" onclick="toggleWelcomePerm('contacts',this)">
+        <div class="welcome-perm-row" data-click="toggleWelcomePerm('contacts',this)">
           <div class="wp-icon" style="background:rgba(180,100,200,0.1)">👥</div>
           <div class="wp-text">
             <div class="wp-name">Contacts</div>
             <div class="wp-desc">Inviter des amis et retrouver des joueurs que vous connaissez</div>
           </div>
-          <button class="wp-toggle" id="wp-contacts" onclick="event.stopPropagation();toggleWelcomePerm('contacts',this.closest('.welcome-perm-row'))"></button>
+          <button class="wp-toggle" id="wp-contacts" data-click="event.stopPropagation();toggleWelcomePerm('contacts',this.closest('.welcome-perm-row'))"></button>
         </div>
 
-        <div class="welcome-perm-row" onclick="toggleWelcomePerm('notif',this)">
+        <div class="welcome-perm-row" data-click="toggleWelcomePerm('notif',this)">
           <div class="wp-icon" style="background:rgba(220,160,60,0.1)">🔔</div>
           <div class="wp-text">
             <div class="wp-name">Notifications</div>
             <div class="wp-desc">Alertes pour vos parties, invitations et événements</div>
           </div>
-          <button class="wp-toggle on" id="wp-notif" onclick="event.stopPropagation();toggleWelcomePerm('notif',this.closest('.welcome-perm-row'))"></button>
+          <button class="wp-toggle on" id="wp-notif" data-click="event.stopPropagation();toggleWelcomePerm('notif',this.closest('.welcome-perm-row'))"></button>
         </div>
 
       </div>
       <div class="welcome-footer">
-        <button class="welcome-accept" onclick="applyWelcomePerms()">
+        <button class="welcome-accept" data-click="applyWelcomePerms()">
           Continuer avec ces autorisations →
         </button>
-        <button class="welcome-skip" onclick="skipWelcome()">
+        <button class="welcome-skip" data-click="skipWelcome()">
           Passer — configurer plus tard dans les Paramètres
         </button>
         <div style="font-size:11px;color:var(--muted);text-align:center;line-height:1.5">

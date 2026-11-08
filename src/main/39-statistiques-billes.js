@@ -741,7 +741,7 @@ function _sbHtmlQuand(v, lignes, etroit){
     const desc = _tr(_sbNomBille(j) + ' bille : vers le coup ' + m + ' (médiane), 8 parties sur 10 entre le coup ' + a + ' et le coup ' + b + ', sur ' + _dimNb(tj.length) + ' parties',
                      _sbNomBille(j) + ' marble: around move ' + m + ' (median), 8 games out of 10 between move ' + a + ' and move ' + b + ', over ' + _dimNb(tj.length) + ' games');
     if (j === _SB_DERNIERE) liste += '<div class="sb-cad-sep" aria-hidden="true"></div>';
-    liste += '<button type="button" class="sb-cad-l" id="sb-bille-' + j + '" aria-pressed="' + (j === k) + '" aria-label="' + desc + '" title="' + desc + '" onclick="_sbChoisirBille(' + j + ')">'
+    liste += '<button type="button" class="sb-cad-l" id="sb-bille-' + j + '" aria-pressed="' + (j === k) + '" aria-label="' + desc + '" title="' + desc + '" data-click="_sbChoisirBille(' + j + ')">'
       + '<span class="sb-cad-nom">' + _sbNomBille(j) + '</span>'
       + '<span class="sb-cad-piste"><span class="sb-cad-trait" style="left:' + pos(a).toFixed(2) + '%;width:' + (pos(b) - pos(a)).toFixed(2) + '%"></span><span class="sb-cad-point" style="left:' + pos(m).toFixed(2) + '%"></span></span>'
       + '<span class="sb-cad-val">' + _tr('coup ', 'move ') + m + '</span></button>';
@@ -834,7 +834,7 @@ function _sbHtmlBilles(v){
   if (onglets.indexOf(_sbOngletCarte) < 0) _sbOngletCarte = onglets[0] || '*';
   const cnt = v.cartes[_sbOngletCarte] || new Array(61).fill(0), lc = _sbLireCarte(cnt);
   if (lc) {
-    const boutons = onglets.map(function(k){ return '<button type="button" class="sb-onglet" aria-pressed="' + (k === _sbOngletCarte) + '" onclick="_sbChoisirCarte(\'' + k + '\')">' + _sbNomDispo(k) + '</button>'; }).join('');
+    const boutons = onglets.map(function(k){ return '<button type="button" class="sb-onglet" aria-pressed="' + (k === _sbOngletCarte) + '" data-click="_sbChoisirCarte(\'' + k + '\')">' + _sbNomDispo(k) + '</button>'; }).join('');
     const max = Math.max.apply(null, cnt);
     h.push('<div id="sb-carte-carte">' + _carteStats(_tr('La carte des éjections', 'The ejection map') + (typeof _cfMarque === 'function' ? _cfMarque() : ''),
       '<div class="sb-onglets">' + boutons + '</div>'
@@ -851,7 +851,7 @@ function _sbHtmlGagner(v){
   const D = STATS_PARTIES, s = Math.max(0, Math.min(_SB_ETAPES.length - 1, _sbEtape)), et = _SB_ETAPES[s];
   const lignes = D.champs.map(function(ch, j){ const t = v.dims[s][j]; return { ch: ch, n: t.n, g: t.g, p: t.n ? t.g / t.n * 100 : null }; })
     .filter(function(x){ return x.n >= 50; }).sort(function(a, b){ return Math.abs(b.p - 50) - Math.abs(a.p - 50); });
-  const boutons = _SB_ETAPES.map(function(e, k){ return '<button type="button" class="sb-onglet" aria-pressed="' + (k === s) + '" onclick="_sbChoisirEtape(' + k + ')">' + _tr('Au ' + e + 'ᵉ coup', 'At move ' + e) + '</button>'; }).join('');
+  const boutons = _SB_ETAPES.map(function(e, k){ return '<button type="button" class="sb-onglet" aria-pressed="' + (k === s) + '" data-click="_sbChoisirEtape(' + k + ')">' + _tr('Au ' + e + 'ᵉ coup', 'At move ' + e) + '</button>'; }).join('');
   let barres = '<div class="sb-div" role="table">';
   lignes.forEach(function(x){
     const plus = x.p >= 50, larg = Math.abs(x.p - 50);     // en points de pourcentage, la demi-largeur valant 50 points

@@ -213,16 +213,16 @@ function _obsCourbeProf(M) {
 /* Frise des decisions de l'IA, en bas du panneau : un point par coup, cliquable ; le point du calcul en cours pulse */
 function _obsFrise(V) {
   if (!OBS.hist.length && V.mode !== 'direct') return '';
-  let h = '<div class="obs-frise"><button class="obs-lien" onclick="obsRevoirPas(-1)" title="' + _obsT('Coup précédent', 'Previous move') + '">◀</button><div class="obs-points">';
+  let h = '<div class="obs-frise"><button class="obs-lien" data-click="obsRevoirPas(-1)" title="' + _obsT('Coup précédent', 'Previous move') + '">◀</button><div class="obs-points">';
   let prec = null;
   OBS.hist.forEach(function (e, i) {
     const sc = typeof e.score === 'number' && Math.abs(e.score) < 90000 ? e.score : null, chute = prec != null && sc != null && prec - sc >= 200;
     const nom = e.source ? _obsT('sans calcul', 'no search') : ((e.noms && e.noms[e.cle]) || '?') + ' ' + _evalReflexionTexte(e.score);
-    h += '<button class="obs-pt' + (e.source ? ' obs-pt-src' : sc != null && sc < 0 ? ' obs-pt-neg' : '') + (chute ? ' obs-pt-chute' : '') + (OBS.rev === i ? ' obs-pt-sel' : '') + '" onclick="obsRevoir(' + i + ')" title="' + _obsE(_obsT('Coup ', 'Move ') + e.n + ' : ' + nom) + '"></button>';
+    h += '<button class="obs-pt' + (e.source ? ' obs-pt-src' : sc != null && sc < 0 ? ' obs-pt-neg' : '') + (chute ? ' obs-pt-chute' : '') + (OBS.rev === i ? ' obs-pt-sel' : '') + '" data-click="obsRevoir(' + i + ')" title="' + _obsE(_obsT('Coup ', 'Move ') + e.n + ' : ' + nom) + '"></button>';
     if (sc != null) prec = sc;
   });
-  if (V.mode === 'direct' || (OBS.live && OBS.live.etat === 'calcul')) h += '<button class="obs-pt obs-pt-live" onclick="obsRevoir(-1)" title="' + _obsT('Calcul en cours', 'Searching') + '"></button>';
-  h += '</div><button class="obs-lien" onclick="obsRevoirPas(1)" title="' + _obsT('Coup suivant', 'Next move') + '">▶</button><span>' + (OBS.rev >= 0 ? _obsT('coup ', 'move ') + OBS.hist[OBS.rev].n : _obsT('direct', 'live')) + '</span></div>';
+  if (V.mode === 'direct' || (OBS.live && OBS.live.etat === 'calcul')) h += '<button class="obs-pt obs-pt-live" data-click="obsRevoir(-1)" title="' + _obsT('Calcul en cours', 'Searching') + '"></button>';
+  h += '</div><button class="obs-lien" data-click="obsRevoirPas(1)" title="' + _obsT('Coup suivant', 'Next move') + '">▶</button><span>' + (OBS.rev >= 0 ? _obsT('coup ', 'move ') + OBS.hist[OBS.rev].n : _obsT('direct', 'live')) + '</span></div>';
   return h;
 }
 /* Notes des coups de depart, profondeur par profondeur : {d: [[cle, note], ...] trie} */
@@ -447,14 +447,14 @@ function _obsLignesCandidats(tous, nomDe, cleRetenue, dernier) {
   let h = '<table class="obs-t"><tr><th>#</th><th>' + _obsT('Coup', 'Move') + '</th><th>' + _obsT('Note', 'Score') + '</th><th>' + _obsT('Écart', 'Gap') + '</th><th>' + _obsT('Effort', 'Effort') + '</th><th></th></tr>';
   tous.slice(0, nbMax).forEach(function (x, i) {
     const stat = (!dernier && i === 0) ? ['obs-ok', _obsT('En tête', 'Leading')] : _obsStatut(i, best - x[1], dernier && x[0] === cleRetenue);
-    h += '<tr class="' + (OBS.sel === x[0] ? 'obs-sel' : '') + (OBS.survol === x[0] ? ' obs-survol' : '') + '" data-apercu="' + x[0] + '" onclick="obsChoisir(\'' + x[0] + '\')"><td>' + (i < 3 ? '<span class="obs-rang" style="background:' + _OBS_COULEURS[i] + '">' + (i + 1) + '</span>' : (i + 1)) + '</td><td class="obs-mono">' + _obsE(nomDe(x[0])) + (x[3] ? ' <span title="' + _obsT('L’adversaire a une éjection dès le coup suivant (compté à 1 coup)', 'Opponent can eject right after this move (counted 1 ply deep)') + '">⚠</span>' : '') + '</td><td>'
+    h += '<tr class="' + (OBS.sel === x[0] ? 'obs-sel' : '') + (OBS.survol === x[0] ? ' obs-survol' : '') + '" data-apercu="' + x[0] + '" data-click="obsChoisir(\'' + x[0] + '\')"><td>' + (i < 3 ? '<span class="obs-rang" style="background:' + _OBS_COULEURS[i] + '">' + (i + 1) + '</span>' : (i + 1)) + '</td><td class="obs-mono">' + _obsE(nomDe(x[0])) + (x[3] ? ' <span title="' + _obsT('L’adversaire a une éjection dès le coup suivant (compté à 1 coup)', 'Opponent can eject right after this move (counted 1 ply deep)') + '">⚠</span>' : '') + '</td><td>'
       + _evalReflexionTexte(x[1]) + '</td><td>' + (best - x[1] ? '−' + _obsN(best - x[1]) : '·') + '</td><td><div class="obs-barre"><i style="width:' + Math.max(2, Math.round(100 * x[2] / maxk)) + '%"></i></div></td><td><span class="obs-chip ' + stat[0] + '">' + stat[1] + '</span></td></tr>';
   });
   const ir = cleRetenue ? tous.findIndex(function (x) { return x[0] === cleRetenue; }) : -1;
   if (dernier && ir >= nbMax) { const x = tous[ir];
-    h += '<tr class="' + (OBS.sel === x[0] ? 'obs-sel' : '') + '" onclick="obsChoisir(\'' + x[0] + '\')"><td>' + (ir + 1) + '</td><td class="obs-mono">' + _obsE(nomDe(x[0])) + '</td><td>' + _evalReflexionTexte(x[1]) + '</td><td>−' + _obsN(best - x[1]) + '</td><td></td><td><span class="obs-chip obs-ok">' + _obsT('Retenu', 'Chosen') + '</span></td></tr>'; }
+    h += '<tr class="' + (OBS.sel === x[0] ? 'obs-sel' : '') + '" data-click="obsChoisir(\'' + x[0] + '\')"><td>' + (ir + 1) + '</td><td class="obs-mono">' + _obsE(nomDe(x[0])) + '</td><td>' + _evalReflexionTexte(x[1]) + '</td><td>−' + _obsN(best - x[1]) + '</td><td></td><td><span class="obs-chip obs-ok">' + _obsT('Retenu', 'Chosen') + '</span></td></tr>'; }
   h += '</table>';
-  if (tous.length > nbMax) h += '<button class="obs-lien" onclick="OBS.tout=true;_obsRendu()">' + _obsT('Voir les ' + tous.length + ' coups', 'Show all ' + tous.length + ' moves') + '</button>';
+  if (tous.length > nbMax) h += '<button class="obs-lien" data-click="obsToutVoir()">' + _obsT('Voir les ' + tous.length + ' coups', 'Show all ' + tous.length + ' moves') + '</button>';
   return h + '<div class="obs-note">' + _obsT('« Proche » : moins de 30 points d’écart (3 % d’une bille). « Effort » : positions examinées sous ce coup. ⚠ : éjection adverse au coup suivant.',
     '“Close”: under 30 points apart (3% of a marble). “Effort”: positions searched under this move. ⚠: opponent can eject next move.') + ' ' + _obsN(total) + ' ' + _obsT('positions en tout.', 'positions in total.') + '</div>';
 }
@@ -483,7 +483,7 @@ function _obsTabGeneral(V) {
     + '<div class="obs-k"><span>' + _obsT('Temps', 'Time') + '</span><b>' + _msTexte(ms) + '</b></div>'
     + '<div class="obs-k"><span>' + _obsT('Vitesse', 'Speed') + '</span><b>' + _obsN(nps) + ' /s</b></div></div>';
   if (V.mode !== 'direct' && typeof _obsProbaLigne === 'function') h += _obsProbaLigne(V.e);   // v3.13 : chance de gain mesuree
-  if (etat === 'calcul' && typeof forceAINow === 'function') h += '<div style="margin-top:6px"><button class="obs-btn obs-vite" onclick="forceAINow()" title="' + _obsT('Interrompre la réflexion et jouer le meilleur coup trouvé', 'Stop thinking and play the best move found') + '">⚡ ' + _obsT('Jouer maintenant', 'Play now') + '</button></div>';
+  if (etat === 'calcul' && typeof forceAINow === 'function') h += '<div style="margin-top:6px"><button class="obs-btn obs-vite" data-click="forceAINow()" title="' + _obsT('Interrompre la réflexion et jouer le meilleur coup trouvé', 'Stop thinking and play the best move found') + '">⚡ ' + _obsT('Jouer maintenant', 'Play now') + '</button></div>';
   if (budget && !illim) h += '<div class="obs-prog" title="' + _obsT('Temps utilisé sur le temps accordé', 'Time used out of the allowed time') + '"><i style="width:' + Math.min(100, Math.round(100 * ms / budget)) + '%"></i></div>'
     + '<div class="obs-note">' + _obsT('Temps accordé : ', 'Time allowed: ') + _msTexte(budget) + '</div>';
   h += _obsArbreHTML(V, true);   // v3.17 : l'arbre simplifie (3 coups, 2 etages)
@@ -608,7 +608,7 @@ function _obsArbreSVG(A, compact) {
     const etiquette = c.meilleur ? (A.direct ? _obsT('meilleur pour l’instant', 'best so far') : _obsT('coup joué', 'move played'))
       : c.etat === 'encours' ? _obsT('en cours', 'being searched') : c.etat === 'attente' ? _obsT('pas encore noté à la profondeur ' + A.prof, 'not scored yet at depth ' + A.prof) : _obsT('noté', 'scored');
     g += '<path d="M' + cx + ' ' + (rootY + rootH) + ' C' + cx + ' ' + (mY - 10) + ',' + mx + ' ' + (rootY + rootH + 8) + ',' + mx + ' ' + mY + '" class="obs-ar-lien" style="stroke:' + col + '"' + (c.etat === 'attente' && !c.meilleur ? ' stroke-dasharray="4 3"' : '') + '/>';
-    g += '<g class="obs-ar-coup' + (c.etat === 'encours' ? ' obs-ar-vif' : '') + '" data-apercu="' + c.cle + '" onclick="' + ouvrir("obsChoisir('" + c.cle + "')") + '"><title>' + _obsE(c.n + ' — ' + _evalReflexionTexte(c.s) + ' (' + _obsT('profondeur ', 'depth ') + c.dS + ') — ' + etiquette + ' — ' + _obsN(c.k) + ' ' + _obsT('positions sous ce coup', 'positions under this move')) + '</title>'
+    g += '<g class="obs-ar-coup' + (c.etat === 'encours' ? ' obs-ar-vif' : '') + '" data-apercu="' + c.cle + '" data-click="' + ouvrir("obsChoisir('" + c.cle + "')") + '"><title>' + _obsE(c.n + ' — ' + _evalReflexionTexte(c.s) + ' (' + _obsT('profondeur ', 'depth ') + c.dS + ') — ' + etiquette + ' — ' + _obsN(c.k) + ' ' + _obsT('positions sous ce coup', 'positions under this move')) + '</title>'
       + '<rect class="obs-ar-case" x="' + x0 + '" y="' + mY + '" width="' + bw + '" height="' + mH + '" rx="8" style="stroke:' + (sel ? '#ffd54f' : col) + ';stroke-width:' + (sel || c.meilleur ? 2.4 : 1.4) + (c.meilleur ? ';fill:rgba(102,187,106,.16)' : c.etat === 'encours' ? ';fill:rgba(255,202,40,.12)' : '') + '"' + (c.etat === 'attente' && !c.meilleur ? ' stroke-dasharray="4 3"' : '') + '/>'
       // en direct, la pastille dit ou en est le coup, meilleur compris (son cadre vert ne le dit pas)
       + (A.direct ? '<circle cx="' + (x0 + bw - 9) + '" cy="' + (mY + 9) + '" r="4" class="obs-ar-etat" style="fill:' + _OBS_AR_COUL[c.etat] + '"/>' : '')
@@ -620,7 +620,7 @@ function _obsArbreSVG(A, compact) {
     S.forEach(function (st, j) {
       const y = mY + mH + sG + j * (sH + sG), dernier = j === S.length - 1 && reste > 0;
       g += '<line x1="' + mx + '" y1="' + (y - sG) + '" x2="' + mx + '" y2="' + y + '" class="obs-ar-lien" style="stroke:' + col + ';opacity:.55"/>'
-        + '<g class="obs-ar-rep" onclick="obsArbreEtape(\'' + c.cle + '\',' + (c.etape ? j + 2 : -1) + ')"><title>' + _obsE((j + 2) + '. ' + st.n + ' — ' + (st.c === A.couleur ? _obsT('l’IA', 'the AI') : _obsT('l’adversaire', 'the opponent')) + (j === 0 ? ' — ' + _obsT('la réponse que l’IA prévoit', 'the reply the AI expects') : '')) + '</title>'
+        + '<g class="obs-ar-rep" data-click="obsArbreEtape(\'' + c.cle + '\',' + (c.etape ? j + 2 : -1) + ')"><title>' + _obsE((j + 2) + '. ' + st.n + ' — ' + (st.c === A.couleur ? _obsT('l’IA', 'the AI') : _obsT('l’adversaire', 'the opponent')) + (j === 0 ? ' — ' + _obsT('la réponse que l’IA prévoit', 'the reply the AI expects') : '')) + '</title>'
         + '<rect class="obs-ar-case" x="' + (x0 + 10) + '" y="' + y + '" width="' + (bw - 20) + '" height="' + sH + '" rx="6" style="stroke:' + col + ';opacity:.85"/>'
         + '<circle cx="' + (x0 + 21) + '" cy="' + (y + sH / 2) + '" r="4.5" class="' + (st.c === 'black' ? 'obs-ar-noir' : 'obs-ar-blanc') + '"/>'
         + '<text x="' + (x0 + 30) + '" y="' + (y + 16) + '" class="obs-ar-p obs-ar-m">' + (j + 2) + '. ' + _obsE(st.n) + (dernier ? ' …+' + reste : '') + '</text></g>';
@@ -632,8 +632,8 @@ function _obsArbreHTML(V, compact) {
   const A = _obsArbreDonnees(V, compact); if (!A) return '';
   const niv = _obsNiv();
   let h = '<div class="obs-ar-tete"><h5>' + _obsT('Arbre de recherche', 'Search tree') + '</h5>';
-  if (!compact && niv >= 1) h += '<select class="obs-ar-vue" onchange="obsArbreVue(this.value)" aria-label="' + _obsT('Vue de l’arbre', 'Tree view') + '"><option value="simple"' + (A.complet ? '' : ' selected') + '>' + _obsT('Vue simplifiée', 'Simple view') + '</option><option value="complet"' + (A.complet ? ' selected' : '') + '>' + _obsT('Vue complète', 'Full view') + '</option></select>';
-  if (compact) h += '<button class="obs-lien" onclick="obsOnglet(\'recherche\')">' + _obsT('détails →', 'details →') + '</button>';
+  if (!compact && niv >= 1) h += '<select class="obs-ar-vue" data-change="obsArbreVue(this.value)" aria-label="' + _obsT('Vue de l’arbre', 'Tree view') + '"><option value="simple"' + (A.complet ? '' : ' selected') + '>' + _obsT('Vue simplifiée', 'Simple view') + '</option><option value="complet"' + (A.complet ? ' selected' : '') + '>' + _obsT('Vue complète', 'Full view') + '</option></select>';
+  if (compact) h += '<button class="obs-lien" data-click="obsOnglet(\'recherche\')">' + _obsT('détails →', 'details →') + '</button>';
   h += '</div><div class="obs-note" style="margin-top:0">' + (A.direct
       ? (compact ? _obsT('Profondeur ' + A.prof + ' en cours · ', 'Depth ' + A.prof + ' running · ') : '')
         + (function (t) { return compact ? t : t.charAt(0).toUpperCase() + t.slice(1); })(A.dFin ? _obsT('classés selon la profondeur ' + A.dFin + ', terminée ; « p » : profondeur de la note affichée', 'ranked by completed depth ' + A.dFin + '; “p”: depth of the score shown') : _obsT('classement provisoire', 'provisional ranking'))
@@ -687,7 +687,7 @@ function _obsTabRecherche(V) {
     const pr = R.det.prof[0], maxk = Math.max.apply(null, pr.lignes.map(function (l) { return l.k; }).concat([1]));
     h += '<h5>' + _obsT('Les 10 lignes principales', 'The 10 principal lines') + '</h5><div class="obs-arbre"><div class="obs-racine">● ' + _obsT('Position actuelle', 'Current position') + ' <small>(' + _obsN(pr.noeuds) + ' ' + _obsT('positions', 'positions') + ')</small></div>';
     pr.lignes.slice(0, 10).forEach(function (l, i) { const cle = moveKeyDe(l), ret = cle === R.cleRetenue || (!R.cleRetenue && i === 0), ecart = pr.lignes[0].s - l.s;
-      h += '<div class="obs-branche ' + (ret ? 'obs-b-ok' : ecart <= 30 ? 'obs-b-alt' : 'obs-b-no') + '" data-apercu="' + cle + '" onclick="obsChoisir(\'' + cle + '\')"><span class="obs-mono">' + _obsE(l.n || '?') + '</span> <b>' + _evalReflexionTexte(l.s) + '</b>'
+      h += '<div class="obs-branche ' + (ret ? 'obs-b-ok' : ecart <= 30 ? 'obs-b-alt' : 'obs-b-no') + '" data-apercu="' + cle + '" data-click="obsChoisir(\'' + cle + '\')"><span class="obs-mono">' + _obsE(l.n || '?') + '</span> <b>' + _evalReflexionTexte(l.s) + '</b>'
         + '<div class="obs-barre"><i style="width:' + Math.max(2, Math.round(100 * l.k / maxk)) + '%"></i></div>'
         + (l.suite && l.suite.length ? '<div class="obs-suite">↳ ' + l.suite.map(function (x, j) { return '<span>' + (j + 2) + '. ' + _obsE(x) + '</span>'; }).join(' ') + '</div>' : '') + '</div>'; });
     h += '</div><div class="obs-note">' + _obsT('Seuls les 10 meilleurs coups de départ gardent leur suite : l’arbre entier compte des milliers de positions et n’est pas conservé. Largeur = effort de recherche sous le coup.',
@@ -705,7 +705,7 @@ function _obsMiniRecherche(R, cles, sel, rang) {
                  : _obsPlateauSVG(R.racine, _obsFlechesDe(cles, sel ? ['#ffd54f', '#66bb6a', '#ffb74d'] : _OBS_COULEURS, sel ? [11, 6, 6] : [10, 7, 5], cles.map(rang)), null, false, ch);
   const lege = ap ? '👁 ' + _obsT('Après ', 'After ') + '<b class="obs-mono">' + _obsE(R.nomDe(OBS.survol)) + '</b>' + (ap.eject ? ', ' + _obsT('une bille éjectée', 'one marble ejected') : ap.push ? ', ' + _obsT('poussée', 'push') : '') + ' — ' + _obsT('billes déplacées cerclées d’or', 'moved marbles ringed in gold')
     : '<span style="color:#66bb6a">●</span> ' + _obsT('meilleur', 'best') + ' <span style="color:#ffb74d">●</span> ' + _obsT('2e', '2nd') + ' <span style="color:#9e9e9e">●</span> ' + _obsT('3e', '3rd') + (sel ? ' <span style="color:#ffd54f">●</span> ' + _obsT('choisi', 'selected') : '')
-      + ' <button class="obs-lien" onclick="obsChaleur()">🔥 ' + (OBS.chaleur ? _obsT('masquer la chaleur', 'hide the heat') : _obsT('carte de chaleur', 'heat map')) + '</button>';
+      + ' <button class="obs-lien" data-click="obsChaleur()">🔥 ' + (OBS.chaleur ? _obsT('masquer la chaleur', 'hide the heat') : _obsT('carte de chaleur', 'heat map')) + '</button>';
   return '<div class="obs-ligne obs-mini-rech">' + svg + '<div class="obs-lege">' + lege + '</div>'
     + (OBS.chaleur ? '<div class="obs-note">' + _obsT('Chaleur : où l’IA veut aller. Chaque case reçoit la meilleure note des coups qui y amènent une bille : couleur pleine pour le meilleur coup, de plus en plus pâle jusqu’au 10e.', 'Heat: where the AI wants to go. Each cell gets the best score of the moves that bring a marble there: full colour for the best move, paler down to the 10th.')
       + (_obsSurvolPossible() ? ' ' + _obsT('Survolez un coup de la liste : le plateau montre la position juste après.', 'Hover a move in the list: the board shows the position right after it.') : '') + '</div>' : '')
@@ -775,7 +775,7 @@ function _obsVarianteHTML(det, cle, couleur) {
   _notationsReflexion(det);
   const P = _obsPlateauEtape(det, f.l, OBS.etape), n = P.n, k = P.k;
   return '<h5>' + _obsT('Variante de ', 'Line of ') + _obsE(f.l.n) + ' <small>(' + _evalReflexionTexte(f.l.s) + ')</small></h5>' + P.svg
-    + '<div class="obs-etapes"><button class="obs-lien" onclick="obsEtape(-1)">⏮</button><button class="obs-lien" onclick="obsEtape(' + (k - 1) + ')">‹</button><span>' + k + ' / ' + (n - 1) + '</span><button class="obs-lien" onclick="obsEtape(' + (k + 1) + ')">›</button><button class="obs-lien" onclick="obsEtape(' + (n - 1) + ')">⏭</button></div>'
+    + '<div class="obs-etapes"><button class="obs-lien" data-click="obsEtape(-1)">⏮</button><button class="obs-lien" data-click="obsEtape(' + (k - 1) + ')">‹</button><span>' + k + ' / ' + (n - 1) + '</span><button class="obs-lien" data-click="obsEtape(' + (k + 1) + ')">›</button><button class="obs-lien" data-click="obsEtape(' + (n - 1) + ')">⏭</button></div>'
     + '<div class="obs-note">' + _obsT('Suite prévue par le moteur : ', 'Line expected by the engine: ') + _obsE([f.l.n].concat(f.l.suite || []).join(' ')) + '</div>';
 }
 
@@ -832,7 +832,7 @@ function _obsTabDecision(V) {
     const Ta = _obsTrajectoire(_obsParProfs(V), moveKeyDe(a)), Tr = _obsTrajectoire(_obsParProfs(V), moveKeyDe(ret));
     if (Ta.length >= 2) h += '<div class="obs-note">' + _obsE(a.n) + ' : ' + _obsTrajTexte(Ta) + (Tr.length >= 2 ? '<br>' + _obsE(ret.n) + ' : ' + _obsTrajTexte(Tr) : '') + '</div>';
     if (diffs.length) h += '<div class="obs-suite">' + diffs.map(function (x) { return '<span class="' + (x[1] > 0 ? 'obs-plus' : 'obs-moins') + '">' + _obsE(x[0]) + ' ' + (x[1] > 0 ? '+' : '') + String(Math.round(x[1] * 10) / 10).replace('.', ',') + '</span>'; }).join(' ') + '</div>';
-    h += '<button class="obs-lien" onclick="obsChoisir(\'' + moveKeyDe(a) + '\');obsOnglet(\'recherche\')">' + _obsT('Et si l’IA avait joué ', 'What if the AI had played ') + _obsE(a.n) + ' ? →</button></div>';
+    h += '<button class="obs-lien" data-click="obsChoisir(\'' + moveKeyDe(a) + '\');obsOnglet(\'recherche\')">' + _obsT('Et si l’IA avait joué ', 'What if the AI had played ') + _obsE(a.n) + ' ? →</button></div>';
   });
   h += _obsComparer(e, ret, alts);
   if (!horsListe) h += _obsNotePartielle(e);
@@ -903,9 +903,9 @@ function _obsComparer(e, ret, alts) {
   }
   let h = '<h5>' + _obsT('Comparer deux variantes', 'Compare two lines') + '</h5>';
   if (cands.length > 2) h += '<div class="obs-suite">' + _obsT('Comparer avec : ', 'Compare with: ') + cands.slice(1).map(function (l) { const c = moveKeyDe(l);
-    return '<button class="obs-btn' + (l === d ? ' obs-actif' : '') + '" onclick="obsComparerAvec(\'' + c + '\')">' + _obsE(l.n || '?') + '</button>'; }).join(' ') + '</div>';
+    return '<button class="obs-btn' + (l === d ? ' obs-actif' : '') + '" data-click="obsComparerAvec(\'' + c + '\')">' + _obsE(l.n || '?') + '</button>'; }).join(' ') + '</div>';
   h += '<div class="obs-duo">' + colonne(g, g === ret ? 'obs-c-ok' : 'obs-c-alt') + colonne(d, 'obs-c-alt') + '</div>'
-    + '<div class="obs-etapes"><button class="obs-lien" onclick="obsEtapeCmp(0)">⏮</button><button class="obs-lien" onclick="obsEtapeCmp(' + Math.max(0, k - 1) + ')">‹</button><span>' + k + ' / ' + (nMax - 1) + '</span><button class="obs-lien" onclick="obsEtapeCmp(' + Math.min(nMax - 1, k + 1) + ')">›</button><button class="obs-lien" onclick="obsEtapeCmp(' + (nMax - 1) + ')">⏭</button></div>'
+    + '<div class="obs-etapes"><button class="obs-lien" data-click="obsEtapeCmp(0)">⏮</button><button class="obs-lien" data-click="obsEtapeCmp(' + Math.max(0, k - 1) + ')">‹</button><span>' + k + ' / ' + (nMax - 1) + '</span><button class="obs-lien" data-click="obsEtapeCmp(' + Math.min(nMax - 1, k + 1) + ')">›</button><button class="obs-lien" data-click="obsEtapeCmp(' + (nMax - 1) + ')">⏭</button></div>'
     + '<div class="obs-note">' + _obsT('Les deux suites prévues par le moteur, avancées ensemble. Les chiffres sur les billes : à quel coup de la suite elles ont bougé.', 'Both lines expected by the engine, stepped together. Numbers on marbles: at which move of the line they moved.') + '</div>';
   return h;
 }
@@ -968,16 +968,16 @@ function _obsTabHistorique() {
   OBS.hist.forEach(function (e, i) {
     const nom = e.source ? ({ table: _obsT('table', 'table'), livre: _obsT('livre', 'book'), stat: _obsT('livre', 'book'), empreinte: _obsT('empreinte', 'fingerprint'), n1: _obsT('niv. 1', 'lvl 1') })[e.source] || e.source : (e.noms && e.noms[e.cle]) || '?';
     const chute = (prec != null && typeof e.score === 'number' && prec - e.score >= 200);
-    h += '<tr class="' + (OBS.rev === i ? 'obs-sel' : '') + '" onclick="obsRevoir(' + i + ')"><td>' + e.n + '</td><td class="obs-mono">' + _obsE(nom) + '</td><td>' + (e.source ? '·' : _evalReflexionTexte(e.score)) + '</td><td>' + (e.source ? '·' : e.prof) + '</td><td>' + (e.source ? '·' : _msTexte(e.ms)) + '</td><td>' + (chute ? '<span class="obs-chip obs-no" title="' + _obsT('La note a chuté d’au moins 200 points depuis le coup précédent', 'Score dropped by 200+ points since the previous move') + '">↓</span>' : '') + '</td></tr>';
+    h += '<tr class="' + (OBS.rev === i ? 'obs-sel' : '') + '" data-click="obsRevoir(' + i + ')"><td>' + e.n + '</td><td class="obs-mono">' + _obsE(nom) + '</td><td>' + (e.source ? '·' : _evalReflexionTexte(e.score)) + '</td><td>' + (e.source ? '·' : e.prof) + '</td><td>' + (e.source ? '·' : _msTexte(e.ms)) + '</td><td>' + (chute ? '<span class="obs-chip obs-no" title="' + _obsT('La note a chuté d’au moins 200 points depuis le coup précédent', 'Score dropped by 200+ points since the previous move') + '">↓</span>' : '') + '</td></tr>';
     if (typeof e.score === 'number') prec = e.score;
   });
   h += '</table>';
   if (OBS.rev >= 0) {
     const e = OBS.hist[OBS.rev], R = OBS.relance;
     h += '<div class="obs-carte"><b>' + _obsT('Coup ', 'Move ') + e.n + _obsT(' en revue', ' under review') + '</b> — ' + _obsT('les autres onglets montrent ce coup, et restent dessus pendant que l’IA joue la suite. ', 'the other tabs show this move, and stay on it while the AI plays on. ')
-      + '<button class="obs-lien" onclick="obsRevoir(-1)">' + _obsT('Revenir au direct', 'Back to live') + '</button>';
+      + '<button class="obs-lien" data-click="obsRevoir(-1)">' + _obsT('Revenir au direct', 'Back to live') + '</button>';
     if (e.det) {
-      h += '<div style="margin-top:6px"><button class="obs-btn" onclick="obsReanalyser(' + OBS.rev + ')"' + (R && R.etat === 'calcul' ? ' disabled' : '') + '>' + _obsT('Rejouer ce calcul plus profond', 'Re-run this search deeper') + '</button></div>';
+      h += '<div style="margin-top:6px"><button class="obs-btn" data-click="obsReanalyser(' + OBS.rev + ')"' + (R && R.etat === 'calcul' ? ' disabled' : '') + '>' + _obsT('Rejouer ce calcul plus profond', 'Re-run this search deeper') + '</button></div>';
       if (R && R.i === OBS.rev) h += R.etat === 'calcul' ? '<div class="obs-note">⏳ ' + _obsT('Calcul en cours (8 s au plus)…', 'Searching (8 s max)…') + '</div>'
         : '<div class="obs-note"><b>' + _obsT('Profondeur ', 'Depth ') + R.prof + ' :</b> ' + _obsT('meilleur coup ', 'best move ') + '<span class="obs-mono">' + _obsE(R.nom) + '</span> (' + _evalReflexionTexte(R.score) + ') — '
           + (R.nom === ((e.noms && e.noms[e.cle]) || '?') ? _obsT('le même coup qu’à la profondeur ', 'same move as at depth ') + e.prof : _obsT('autre que le coup joué (profondeur ' + e.prof + ')', 'differs from the move played (depth ' + e.prof + ')')) + '. '
@@ -985,8 +985,8 @@ function _obsTabHistorique() {
     }
     h += '</div>';
   }
-  h += '<h5>' + _obsT('Rapport', 'Report') + '</h5><div class="obs-suite"><button class="obs-btn" onclick="obsCopier()">📋 ' + _obsT('Copier', 'Copy') + '</button> <button class="obs-btn" onclick="obsExporter(\'txt\')">⬇ ' + _obsT('Rapport lisible (.txt)', 'Readable report (.txt)') + '</button>'
-    + (_obsNiv() >= 2 ? ' <button class="obs-btn" onclick="obsExporter(\'json\')">⬇ ' + _obsT('Données (.json)', 'Data (.json)') + '</button>' : '') + '</div>'
+  h += '<h5>' + _obsT('Rapport', 'Report') + '</h5><div class="obs-suite"><button class="obs-btn" data-click="obsCopier()">📋 ' + _obsT('Copier', 'Copy') + '</button> <button class="obs-btn" data-click="obsExporter(\'txt\')">⬇ ' + _obsT('Rapport lisible (.txt)', 'Readable report (.txt)') + '</button>'
+    + (_obsNiv() >= 2 ? ' <button class="obs-btn" data-click="obsExporter(\'json\')">⬇ ' + _obsT('Données (.json)', 'Data (.json)') + '</button>' : '') + '</div>'
     + '<div class="obs-note">' + _obsT('Le fichier est créé dans le navigateur : rien n’est envoyé.', 'The file is made in the browser: nothing is sent.') + '</div>';
   return h;
 }
@@ -1137,8 +1137,8 @@ function _obsCss() {
   document.head.appendChild(st);
 }
 function _obsOptionsHTML() {
-  const ch = function (k, on, txt, tit) { return '<button class="obs-opt' + (on ? ' obs-actif' : '') + '" onclick="obsOption(\'' + k + '\')" title="' + tit + '">' + (on ? '✓ ' : '') + txt + '</button>'; };
-  return '<div class="obs-opts"><span>' + _obsT('Détail :', 'Detail:') + '</span><span class="obs-niv">' + _OBS_NIVEAUX.map(function (n) { return '<button class="' + (OBS.niveau === n[0] ? 'obs-actif' : '') + '" onclick="obsNiveau(\'' + n[0] + '\')">' + _obsT(n[1], n[2]) + '</button>'; }).join('') + '</span>'
+  const ch = function (k, on, txt, tit) { return '<button class="obs-opt' + (on ? ' obs-actif' : '') + '" data-click="obsOption(\'' + k + '\')" title="' + tit + '">' + (on ? '✓ ' : '') + txt + '</button>'; };
+  return '<div class="obs-opts"><span>' + _obsT('Détail :', 'Detail:') + '</span><span class="obs-niv">' + _OBS_NIVEAUX.map(function (n) { return '<button class="' + (OBS.niveau === n[0] ? 'obs-actif' : '') + '" data-click="obsNiveau(\'' + n[0] + '\')">' + _obsT(n[1], n[2]) + '</button>'; }).join('') + '</span>'
     + '<span class="obs-sep">' + _obsT('Afficher :', 'Show:') + '</span>'
     + ch('fleches', OBS.surVrai.fleches, _obsT('flèches', 'arrows'), _obsT('Sur le plateau, pendant le calcul : les 3 meilleurs coups du moment. Vert = meilleur, orange = 2e, gris = 3e : vert = meilleur, orange = 2e, gris = 3e', 'While searching: green = best, orange = 2nd, grey = 3rd'))
     + ch('menaces', OBS.surVrai.menaces, _obsT('menaces', 'threats'), _obsT('Sur le plateau. Rouge : au bord avec un allié ou moins. Orange : isolée. Les deux camps.', 'Red: on the edge with one ally or fewer. Orange: isolated. Both sides.'))
@@ -1194,8 +1194,8 @@ function _obsRendu() {
   else if (V.mode === 'fini') etat = '<span class="obs-chip obs-ok">✓ ' + _obsT('terminé', 'done') + '</span>';
   else if (V.mode === 'source') etat = '<span class="obs-chip obs-ok">📖 ' + _obsT('sans calcul', 'no search') + '</span>';
   if (OBS.reduit) {   // une ligne : titre, mesures, rouvrir, fermer
-    p.innerHTML = '<div class="obs-entete"><b>🔭</b><span class="obs-hud" onclick="obsReduire()" title="' + _obsT('Rouvrir le panneau', 'Open the panel again') + '">' + _obsLigneHUD(V) + '</span>'
-      + '<button class="obs-ic" onclick="obsReduire()" title="' + _obsT('Rouvrir le panneau', 'Open the panel again') + '">▢</button><button class="obs-ic" onclick="obsBasculer()" title="' + _obsT('Fermer', 'Close') + '">✕</button></div>';
+    p.innerHTML = '<div class="obs-entete"><b>🔭</b><span class="obs-hud" data-click="obsReduire()" title="' + _obsT('Rouvrir le panneau', 'Open the panel again') + '">' + _obsLigneHUD(V) + '</span>'
+      + '<button class="obs-ic" data-click="obsReduire()" title="' + _obsT('Rouvrir le panneau', 'Open the panel again') + '">▢</button><button class="obs-ic" data-click="obsBasculer()" title="' + _obsT('Fermer', 'Close') + '">✕</button></div>';
     return;
   }
   const onglet = OBS.onglet;
@@ -1205,12 +1205,12 @@ function _obsRendu() {
       : onglet === 'general' ? _obsTabGeneral(V) : onglet === 'recherche' ? _obsTabRecherche(V) : onglet === 'evaluation' ? _obsTabEvaluation(V) : onglet === 'decision' ? _obsTabDecision(V) : _obsTabHistorique();
   } catch (e) { corps = '<div class="obs-vide">' + _obsT('Erreur d’affichage : ', 'Display error: ') + _obsE(e && e.message) + '</div>'; }
   p.innerHTML = '<div class="obs-entete"><b>🔭 ' + _obsT('Observatoire IA', 'AI Observatory') + '</b>' + etat
-    + '<button class="obs-ic" onclick="obsFiger()" title="' + _obsT('Figer l’affichage pendant le calcul', 'Freeze the display while searching') + '">' + (OBS.fige ? '▶' : '⏸') + '</button>'
-    + '<button class="obs-ic" onclick="obsExporter(\'txt\')" title="' + _obsT('Télécharger le rapport de la partie (.txt)', 'Download the game report (.txt)') + '">⬇</button>'
-    + (lateral ? '' : '<button class="obs-ic" onclick="obsReduire()" title="' + _obsT('Réduire à une ligne (libère le plateau)', 'Shrink to one line (frees the board)') + '">—</button>'
-      + '<button class="obs-ic" onclick="obsGrand()" title="' + (OBS.grand ? _obsT('Revenir au panneau', 'Back to the panel') : _obsT('Plein écran : tous les onglets à la fois', 'Full screen: all tabs at once')) + '">' + (OBS.grand ? '⤡' : '⤢') + '</button>')
-    + '<button class="obs-ic" onclick="obsBasculer()" title="' + (lateral ? _obsT('Revenir à l’onglet Partie', 'Back to the Game tab') : _obsT('Fermer', 'Close')) + '">✕</button></div>'
-    + (OBS.grand ? '' : '<div class="obs-onglets" role="tablist">' + _OBS_ONGLETS.map(function (o) { return '<button class="' + (onglet === o[0] ? 'obs-actif' : '') + '" onclick="obsOnglet(\'' + o[0] + '\')">' + _obsT(o[1], o[2]) + '</button>'; }).join('') + '</div>')
+    + '<button class="obs-ic" data-click="obsFiger()" title="' + _obsT('Figer l’affichage pendant le calcul', 'Freeze the display while searching') + '">' + (OBS.fige ? '▶' : '⏸') + '</button>'
+    + '<button class="obs-ic" data-click="obsExporter(\'txt\')" title="' + _obsT('Télécharger le rapport de la partie (.txt)', 'Download the game report (.txt)') + '">⬇</button>'
+    + (lateral ? '' : '<button class="obs-ic" data-click="obsReduire()" title="' + _obsT('Réduire à une ligne (libère le plateau)', 'Shrink to one line (frees the board)') + '">—</button>'
+      + '<button class="obs-ic" data-click="obsGrand()" title="' + (OBS.grand ? _obsT('Revenir au panneau', 'Back to the panel') : _obsT('Plein écran : tous les onglets à la fois', 'Full screen: all tabs at once')) + '">' + (OBS.grand ? '⤡' : '⤢') + '</button>')
+    + '<button class="obs-ic" data-click="obsBasculer()" title="' + (lateral ? _obsT('Revenir à l’onglet Partie', 'Back to the Game tab') : _obsT('Fermer', 'Close')) + '">✕</button></div>'
+    + (OBS.grand ? '' : '<div class="obs-onglets" role="tablist">' + _OBS_ONGLETS.map(function (o) { return '<button class="' + (onglet === o[0] ? 'obs-actif' : '') + '" data-click="obsOnglet(\'' + o[0] + '\')">' + _obsT(o[1], o[2]) + '</button>'; }).join('') + '</div>')
     + _obsOptionsHTML()
     + '<div id="obs-corps">' + corps + '</div>' + _obsFrise(V);
   const c = document.getElementById('obs-corps'); if (c) c.scrollTop = haut;
@@ -1265,3 +1265,6 @@ if (typeof document !== 'undefined' && typeof window !== 'undefined' && window.a
   window.addEventListener('load', function () { try { _obsRendu(); } catch (e) {} });
 }
 </script>
+
+// v3.22 : bouton « Voir les N coups »
+function obsToutVoir() { OBS.tout = true; _obsRendu(); }

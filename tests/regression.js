@@ -532,7 +532,7 @@ check('radar : le point fort ignore les axes non calibres', () => {
 
 check('radar : les axes sont interactifs (selection au clic)', () => {
   const src = jsBlocks.join('\n');
-  return /function selectRadarAxis/.test(src) && /onclick="selectRadarAxis/.test(src) ||
+  return /function selectRadarAxis/.test(src) && /data-click="selectRadarAxis/.test(src) ||
     'les noms d\'axes ne sont pas cliquables';
 });
 

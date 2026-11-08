@@ -90,7 +90,7 @@ function _obsProbaLigne(e) {
   if (x) return '<div class="obs-carte obs-proba"><b>' + _obsT('Chance de gain mesurée : ', 'Measured winning chance: ') + _prPct(x.p) + '</b> <small>(± ' + Math.round(100 * x.m) + ')</small><br><small>'
     + _obsT('Dans de vraies parties, quand la note était de ', 'In real games, when the score was ') + _prPlage(x) + _obsT(', le camp au trait a gagné ', ', the side to move won ') + _prPct(x.p) + _obsT(' du temps (', ' of the time (') + _obsN(x.n) + _obsT(' positions). Détail dans « Évaluation ».', ' positions). Details in “Evaluation”.') + '</small></div>';
   return '<div class="obs-note">' + _obsT('Chance de gain : pas encore mesurée pour les poids de ce coup. ', 'Winning chance: not measured yet for this move’s weights. ')
-    + '<button class="obs-lien" onclick="obsOnglet(\'evaluation\')">📏 ' + _obsT('la mesurer', 'measure it') + '</button></div>';
+    + '<button class="obs-lien" data-click="obsOnglet(\'evaluation\')">📏 ' + _obsT('la mesurer', 'measure it') + '</button></div>';
 }
 function obsCalibrer() {
   const V = _obsVue(), w = V && V.e && V.e.det && V.e.det.poids;
@@ -106,7 +106,7 @@ function _obsProbaSection(e) {
   if (!c) {
     h += '<div class="obs-note">' + _obsT('La note n’est pas une probabilité. On peut mesurer ce qu’elle vaut : parmi des positions de vraies parties dont on connaît le vainqueur, combien de fois le camp au trait a gagné avec une note proche. Quelques secondes de calcul, pour les poids de ce coup ; rien ne quitte ce navigateur.',
       'The score is not a probability. What it is worth can be measured: among positions from real games whose winner is known, how often the side to move won with a similar score. A few seconds of computing, for this move’s weights; nothing leaves this browser.') + '</div>'
-      + '<button class="obs-btn" onclick="obsCalibrer()"' + (calcul ? ' disabled title="' + _obsT('Après le calcul de l’IA', 'After the AI’s search') + '"' : '') + '>📏 ' + _obsT('Mesurer sur les vraies parties', 'Measure on real games') + '</button>';
+      + '<button class="obs-btn" data-click="obsCalibrer()"' + (calcul ? ' disabled title="' + _obsT('Après le calcul de l’IA', 'After the AI’s search') + '"' : '') + '>📏 ' + _obsT('Mesurer sur les vraies parties', 'Measure on real games') + '</button>';
     if (_prErreur) h += '<div class="obs-note">⚠ ' + _obsE(_prErreur) + '</div>';
     return h;
   }
@@ -118,6 +118,6 @@ function _obsProbaSection(e) {
   h += '</table><div class="obs-note">' + _obsT('Mesuré sur ', 'Measured on ') + _obsN(c.n) + _obsT(' positions de ', ' positions from ') + _obsN(c.parties) + _obsT(' vraies parties du corpus, dont on connaît le vainqueur, notées avec les poids de ce coup et rangées par note en tranches de même effectif. « Gagné » : la part des positions où le camp au trait a fini par gagner (une nulle compte pour moitié), avec sa marge à 95 %. Une note plus haute ne gagne jamais moins souvent qu’une plus basse : les tranches qui se contredisaient ont été fusionnées. ',
       ' real games of the corpus whose winner is known, scored with this move’s weights and sorted by score into slices of equal size. “Won”: the share of positions where the side to move went on to win (a draw counts as half), with its 95% margin. A higher score never wins less often than a lower one: slices that contradicted each other were merged. ')
     + _obsT('Limites : ce sont des positions calmes de parties entre humains ; la note vient ici d’une recherche, pas de l’évaluation seule ; au-delà des tranches extrêmes, on reprend la dernière.', 'Limits: these are quiet positions from games between humans; the score here comes from a search, not the evaluation alone; beyond the extreme slices, the last one is used.')
-    + ' <button class="obs-lien" onclick="obsCalibrer()">↻ ' + _obsT('refaire', 'redo') + '</button></div>';
+    + ' <button class="obs-lien" data-click="obsCalibrer()">↻ ' + _obsT('refaire', 'redo') + '</button></div>';
   return h;
 }

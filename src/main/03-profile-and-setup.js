@@ -125,7 +125,7 @@ function renderPerfDetail() {
   host.innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">'
     + '<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)">Indicateurs detailles</div>'
-    + '<button onclick="exportPerfJSON()" style="font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:.05em;'
+    + '<button data-click="exportPerfJSON()" style="font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:.05em;'
     +   'background:none;border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:4px;cursor:pointer">Exporter (JSON / CSV)</button>'
     + '</div>'
     + '<div style="font-size:11px;color:var(--muted);margin-bottom:10px">Echantillon : '
@@ -231,7 +231,7 @@ function renderA11yPanel() {
       + 'padding:13px 0;border-bottom:1px solid var(--border)">'
       + '<div style="flex:1"><div style="font-size:14px;color:var(--text);font-weight:600">'+label+'</div>'
       +   '<div style="font-size:11px;color:var(--muted);margin-top:2px">'+desc+'</div></div>'
-      + '<button onclick="setA11y(\''+key+'\','+(!on)+')" role="switch" aria-checked="'+on+'" aria-label="'+String(label).replace(/<[^>]*>/g, '').replace(/"/g, '&quot;')+'" '
+      + '<button data-click="setA11y(\''+key+'\','+(!on)+')" role="switch" aria-checked="'+on+'" aria-label="'+String(label).replace(/<[^>]*>/g, '').replace(/"/g, '&quot;')+'" '
       +   'style="flex:0 0 auto;width:46px;height:26px;border-radius:13px;border:1px solid var(--border);cursor:pointer;'
       +   'background:'+(on?'var(--gold)':'var(--surface2)')+';position:relative;transition:background .15s">'
       +   '<span style="position:absolute;top:2px;left:'+(on?'22px':'2px')+';width:20px;height:20px;border-radius:50%;'
@@ -247,7 +247,7 @@ function renderA11yPanel() {
       +   '<span style="font-family:\'DM Mono\',monospace;font-size:12px;color:var(--gold)">'+Math.round(v*100)+'%</span></div>'
       + '<div style="font-size:11px;color:var(--muted);margin:2px 0 8px">'+desc+'</div>'
       + '<input type="range" min="'+min+'" max="'+max+'" step="'+step+'" value="'+v+'" '
-      +   'oninput="setA11y(\''+key+'\',parseFloat(this.value))" '
+      +   'data-input="setA11yNombre(\''+key+'\',this.value)" '
       +   'style="width:100%;accent-color:var(--gold)" aria-label="'+label+'"></div>';
   };
 
@@ -261,7 +261,7 @@ function renderA11yPanel() {
     + toggle('oneAction', 'Une action a la fois', 'Attenue les boutons secondaires pour qu\u0027un seul ressorte par ecran.')
     + slider('textScale', 'Taille du texte', 'Agrandit l\u0027ensemble du texte.', 1, 1.4, 0.05)
     + slider('space', 'Espacement', 'Aere l\u0027interlignage et l\u0027espacement des lettres.', 1, 1.6, 0.1)
-    + (anyOn ? '<button onclick="resetA11y()" style="margin-top:14px;font-family:\'DM Mono\',monospace;font-size:11px;'
+    + (anyOn ? '<button data-click="resetA11y()" style="margin-top:14px;font-family:\'DM Mono\',monospace;font-size:11px;'
         + 'background:none;border:1px solid var(--border);color:var(--muted);padding:8px 14px;border-radius:4px;cursor:pointer">'
         + 'Tout remettre par defaut</button>' : '');
 }
@@ -879,7 +879,7 @@ function buildRadar15(size) {
     const anchor = Math.abs(lx-cx)<8 ? 'middle' : (lx<cx?'end':'start');
     labs += '<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="'+anchor+'" '
       + 'font-family="\'DM Sans\',sans-serif" font-size="11" fill="'+(sel?'var(--gold)':'var(--muted)')+'" '
-      + (sel?'font-weight="700" ':'')+'style="cursor:pointer" onclick="selectRadarAxis(\''+ax.key+'\')">'+ax.label+'</text>';
+      + (sel?'font-weight="700" ':'')+'style="cursor:pointer" data-click="selectRadarAxis(\''+ax.key+'\')">'+ax.label+'</text>';
   });
 
   return '<svg viewBox="0 0 '+size+' '+size+'" width="100%" style="max-width:'+size+'px" xmlns="http://www.w3.org/2000/svg">'

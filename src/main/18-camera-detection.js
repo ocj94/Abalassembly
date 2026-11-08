@@ -1936,8 +1936,8 @@ function _advShowPreview(candidates){
       + '<br><span style="color:var(--muted)">' + g._src.slice(0,80) + '</span></span></label>';
   });
   h += '<div style="display:flex;gap:8px;margin-top:10px">'
-    + '<button class="cam-btn primary" onclick="advConfirmImport()">📥 Importer la sélection</button>'
-    + '<button class="cam-btn" onclick="advCancelImport()">Annuler</button></div></div>';
+    + '<button class="cam-btn primary" data-click="advConfirmImport()">📥 Importer la sélection</button>'
+    + '<button class="cam-btn" data-click="advCancelImport()">Annuler</button></div></div>';
   host.innerHTML = h;
   const verified = usable.filter(x => x.r.game.verified).length;
   showToast('📤 ' + usable.length + ' partie(s) trouvée(s), ' + verified + ' vérifiée(s) — relis avant de confirmer');
@@ -2037,9 +2037,9 @@ function renderScannedGames(){
   const el=document.getElementById('scan-games-list'); if(!el) return;
   const list=_scanGamesLoad();
   let bar='<div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">'
-    +'<button class="cam-btn" style="padding:4px 10px" onclick="exportAllScannedGames()">⬇️ Tout exporter'+(list.length?' ('+list.length+')':'')+'</button>'
+    +'<button class="cam-btn" style="padding:4px 10px" data-click="exportAllScannedGames()">⬇️ Tout exporter'+(list.length?' ('+list.length+')':'')+'</button>'
     +'<label class="cam-btn" style="padding:4px 10px;cursor:pointer">📥 Importer un fichier'
-    +'<input type="file" accept=".json,application/json,.txt,.csv,.xlsx,.xls,.ods" style="display:none" onchange="importScannedGamesFile(this)"></label>'
+    +'<input type="file" accept=".json,application/json,.txt,.csv,.xlsx,.xls,.ods" style="display:none" data-change="importScannedGamesFile(this)"></label>'
     +'</div><div id="adv-import-preview"></div>';
   if(!list.length){ el.innerHTML=bar+'<div style="font-size:12px;color:var(--muted)">Aucune partie enregistrée pour l\'instant.</div>'; return; }
   let h='';
@@ -2048,10 +2048,10 @@ function renderScannedGames(){
     h+='<div style="display:flex;align-items:center;gap:6px;padding:7px 4px;border-bottom:1px solid var(--border);font-size:12px;flex-wrap:wrap">'
       +'<span style="flex:1;min-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
       +(g.verified?'✓ ':'⚠️ ')+'<b>'+g.black+'</b> vs <b>'+g.white+'</b> · '+g.variant+' · '+g.date+' · '+g.plies+' coups</span>'
-      +'<button class="cam-btn" style="padding:4px 9px" onclick="replayScannedGame('+g.id+')" title="Rejouer">▶</button>'
-      +'<button class="cam-btn" style="padding:4px 9px" onclick="copyScannedGame('+g.id+')" title="Copier la notation">⧉</button>'
-      +'<button class="cam-btn" style="padding:4px 9px" onclick="exportScannedGame('+g.id+')" title="Exporter en JSON">⬇️</button>'
-      +'<button class="cam-btn" style="padding:4px 9px" onclick="deleteScannedGame('+g.id+')" title="Supprimer">🗑</button>'
+      +'<button class="cam-btn" style="padding:4px 9px" data-click="replayScannedGame('+g.id+')" title="Rejouer">▶</button>'
+      +'<button class="cam-btn" style="padding:4px 9px" data-click="copyScannedGame('+g.id+')" title="Copier la notation">⧉</button>'
+      +'<button class="cam-btn" style="padding:4px 9px" data-click="exportScannedGame('+g.id+')" title="Exporter en JSON">⬇️</button>'
+      +'<button class="cam-btn" style="padding:4px 9px" data-click="deleteScannedGame('+g.id+')" title="Supprimer">🗑</button>'
       +'</div>';
   }
   el.innerHTML=bar+h;

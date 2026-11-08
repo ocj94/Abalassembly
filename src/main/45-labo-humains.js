@@ -227,7 +227,7 @@ function renderHumains(msg){
     + '<p class="lab-intro">Sur ' + CONC_POSITIONS + ' positions de vraies parties (des parties qui ne servent à aucun réglage), chaque niveau de l’IA cherche son coup, avec sa vraie profondeur et son vrai temps. On compte les fois où c’est celui que le joueur a joué.</p>';
   const hautConc = (function(){ const el = document.getElementById('lab-conc-haut'); return el && el.value ? parseInt(el.value, 10) : 4; })();
   h += '<div class="lab-options"><label>Jusqu’au niveau <select id="lab-conc-haut">' + [3, 4, 5, 6].map(function(n){ return '<option' + (n === hautConc ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></label></div>';
-  h += '<div class="lab-actions"><button class="ctrl-btn" onclick="lancerConcordance()"' + (_huEnCours ? ' disabled' : '') + '>' + (_huEnCours === 'concordance' ? '⏳ Mesure en cours…' : (c ? '↻ Mesurer à nouveau' : '▶ Mesurer')) + '</button></div>';
+  h += '<div class="lab-actions"><button class="ctrl-btn" data-click="lancerConcordance()"' + (_huEnCours ? ' disabled' : '') + '>' + (_huEnCours === 'concordance' ? '⏳ Mesure en cours…' : (c ? '↻ Mesurer à nouveau' : '▶ Mesurer')) + '</button></div>';
   if (msg && _huEnCours === 'concordance') h += '<div class="lab-etat">' + msg + '</div>';
   if (c) {
     h += '<table class="lab-poids"><thead><tr><th>Façon de jouer</th><th>Même coup que le joueur</th><th></th></tr></thead><tbody>';
@@ -236,8 +236,8 @@ function renderHumains(msg){
   }
   h += '<h4 class="lab-sous">Des poids « humains »</h4>'
     + '<p class="lab-intro">On cherche les réglages pour lesquels <b>le coup que le joueur a vraiment joué</b> est le plus probable : chaque coup possible est évalué, et un coup est d’autant plus probable que son évaluation est bonne. ' + HU_APP + ' positions pour le réglage, ' + HU_CTL + ' d’autres parties pour vérifier. Le résultat devient le style <b>« Humain (Labo) »</b> dans la configuration de partie : l’IA y cherche à la profondeur du niveau choisi, avec les priorités des joueurs.</p>';
-  h += '<div class="lab-actions"><button class="ctrl-btn" onclick="lancerPoidsHumains()"' + (_huEnCours ? ' disabled' : '') + '>' + (_huEnCours === 'humain' ? '⏳ Calcul en cours…' : (r ? '↻ Recalculer' : '▶ Lancer le réglage')) + '</button>'
-    + (r && !_huEnCours ? '<button class="ctrl-btn lab-discret" onclick="effacerPoidsHumains()">🗑 Retirer le style Humain</button>' : '') + '</div>';
+  h += '<div class="lab-actions"><button class="ctrl-btn" data-click="lancerPoidsHumains()"' + (_huEnCours ? ' disabled' : '') + '>' + (_huEnCours === 'humain' ? '⏳ Calcul en cours…' : (r ? '↻ Recalculer' : '▶ Lancer le réglage')) + '</button>'
+    + (r && !_huEnCours ? '<button class="ctrl-btn lab-discret" data-click="effacerPoidsHumains()">🗑 Retirer le style Humain</button>' : '') + '</div>';
   if (msg && _huEnCours === 'humain') h += '<div class="lab-etat">' + msg + '</div>';
   if (r) {
     h += '<div class="lab-chiffres"><div><span>Coup du joueur deviné du premier coup</span><b>' + _huPct(r.avant.top1) + ' → ' + _huPct(r.apres.top1) + '</b><small>positions de contrôle, un coup d’avance</small></div>'
@@ -322,7 +322,7 @@ function renderContreToi(msg){
   const hote = document.getElementById('lab-contretoi-host'); if (!hote) return;
   const cl = _huLire(CLONE_CLE), s = bancEtat('contremoi'), adopte = _huLire(CONTREMOI_CLE);
   let h = '<p class="lab-intro"><b>1. Ton clone.</b> Le même réglage que les poids « humains », mais sur <b>tes</b> coups : ceux de ton historique (parties contre l’IA et parties importées, KAAH compris). Il donne tes priorités : ce que tu valorises sur le plateau.</p>';
-  h += '<div class="lab-actions"><button class="ctrl-btn" onclick="lancerClone()"' + (_huEnCours ? ' disabled' : '') + '>' + (_huEnCours === 'clone' ? '⏳ Calcul en cours…' : (cl ? '↻ Refaire mon clone' : '▶ Faire mon clone')) + '</button></div>';
+  h += '<div class="lab-actions"><button class="ctrl-btn" data-click="lancerClone()"' + (_huEnCours ? ' disabled' : '') + '>' + (_huEnCours === 'clone' ? '⏳ Calcul en cours…' : (cl ? '↻ Refaire mon clone' : '▶ Faire mon clone')) + '</button></div>';
   if (msg && (_huEnCours === 'clone' || !s)) h += '<div class="lab-etat">' + msg + '</div>';
   if (cl) {
     h += '<div class="lab-chiffres"><div><span>Ton coup deviné du premier coup</span><b>' + _huPct(cl.avant.top1) + ' → ' + _huPct(cl.apres.top1) + '</b><small>sur tes coups gardés pour vérifier</small></div>'
@@ -344,11 +344,11 @@ function renderContreToi(msg){
       h += grBarres(lignes.filter(function(l){ return l.x.n; }).map(function(l){ const e = _labEloP(s.res[l.m.id].penta), m = e ? Math.min(0.5, 1.96 * Math.sqrt(Math.max(1e-6, l.sc * (1 - l.sc)) / Math.max(1, l.x.n))) : null;
         return { lab: l.m.a.nom, v: l.sc, ref: 0.5, bas: m != null ? Math.max(0, l.sc - m) : null, haut: m != null ? Math.min(1, l.sc + m) : null, txt: grPct(l.sc), tip: l.m.a.nom + ' contre ton clone' + _dimDp() + grNb(l.x.pts) + ' / ' + l.x.n }; }), { max: 1 });
       const b = _ctMeilleur(s);
-      if (b && s.fini) h += '<div class="lab-actions"><button class="ctrl-btn" onclick="adopterContreMoi()">🎯 Faire de « ' + b.m.a.nom + ' » mon style « Contre moi »</button></div>';
+      if (b && s.fini) h += '<div class="lab-actions"><button class="ctrl-btn" data-click="adopterContreMoi()">🎯 Faire de « ' + b.m.a.nom + ' » mon style « Contre moi »</button></div>';
       h += _bancJournal(s);
     }
   }
-  if (adopte) h += '<div class="lab-etat">🎯 Style « Contre moi (Labo) » : ' + adopte.nom + ' (' + Math.round(100 * adopte.score) + ' % contre ton clone), dans la configuration de partie. <button class="ctrl-btn lab-discret" onclick="retirerContreMoi()">Retirer</button></div>';
+  if (adopte) h += '<div class="lab-etat">🎯 Style « Contre moi (Labo) » : ' + adopte.nom + ' (' + Math.round(100 * adopte.score) + ' % contre ton clone), dans la configuration de partie. <button class="ctrl-btn lab-discret" data-click="retirerContreMoi()">Retirer</button></div>';
   hote.innerHTML = h;
 }
 /* ─── Les onglets de la page Labo ─── */

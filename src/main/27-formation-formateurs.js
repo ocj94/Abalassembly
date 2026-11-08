@@ -83,7 +83,7 @@ function renderFormateurSeances(pub){
     const duree = pub==='adultes' ? s.dureeAdultes : s.dureeEnfants;
     return '<div style="background:var(--surface);border:1px solid '+(isDone?'var(--gold-dim)':'var(--border)')+';border-radius:10px;padding:18px 20px">'
       + '<div style="display:flex;align-items:flex-start;gap:14px">'
-      + '<label style="display:flex;align-items:center;padding-top:2px" class="formateur-noprint"><input type="checkbox" '+(isDone?'checked':'')+' onchange="formateurToggleSeance('+s.id+')" style="width:18px;height:18px;cursor:pointer"></label>'
+      + '<label style="display:flex;align-items:center;padding-top:2px" class="formateur-noprint"><input type="checkbox" '+(isDone?'checked':'')+' data-change="formateurToggleSeance('+s.id+')" style="width:18px;height:18px;cursor:pointer"></label>'
       + '<div style="flex:1">'
       + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:17px">'+s.icon+'</span><span style="font-size:14px;font-weight:700;color:var(--white)">Séance '+s.id+' — '+s.titre+'</span><span style="font-size:11px;color:var(--muted);margin-left:auto" class="formateur-noprint">'+duree+'</span></div>'
       + '<div style="font-size:12.5px;color:var(--gold);margin-bottom:8px">'+s.objectif+'</div>'
@@ -91,8 +91,8 @@ function renderFormateurSeances(pub){
       + '<button type="button" class="formateur-noprint" data-seance-idx="'+SEANCES_FORMATEUR.indexOf(s)+'" style="padding:7px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;cursor:pointer">'+s.toolLabel+'</button>'
       + '</div></div></div>';
   }).join('');
-  // Les boutons appellent toolAction (une fonction JS, pas serialisable en attribut
-  // onclick="...") : on cable les handlers reels juste apres avoir pose le HTML.
+  // Les boutons appellent toolAction (une fonction JS, pas serialisable dans un
+  // attribut) : on cable les handlers reels juste apres avoir pose le HTML.
   box.querySelectorAll('button[data-seance-idx]').forEach(function(btn){
     const idx = parseInt(btn.getAttribute('data-seance-idx'), 10);
     btn.onclick = SEANCES_FORMATEUR[idx].toolAction;
@@ -179,7 +179,7 @@ function formateurQuizRenderQuestion(){
     + (q.type==='motif' ? q.options : q.options).map(function(opt){
         const label = q.type==='motif' ? q.label(opt) : opt;
         const val = (q.type==='motif' ? opt : opt).replace(/'/g,"\\'");
-        return '<button type="button" onclick="formateurQuizAnswer(\''+val+'\')" style="text-align:left;padding:9px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:12.5px">'+label+'</button>';
+        return '<button type="button" data-click="formateurQuizAnswer(\''+val+'\')" style="text-align:left;padding:9px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:12.5px">'+label+'</button>';
       }).join('')
     + '</div><div id="formateur-quiz-feedback" style="margin-top:10px;font-size:12.5px;min-height:18px"></div>';
   if (q.type==='motif' && typeof gymRenderBoard==='function'){
@@ -206,7 +206,7 @@ function formateurQuizFinish(){
   const passed = score >= 6;
   if (box) box.innerHTML = '<div style="font-size:15px;font-weight:700;color:'+(passed?'var(--gold)':'var(--text)')+'">'+score+' / '+total+'</div>'
     + '<div style="font-size:12.5px;color:var(--muted);margin-top:6px">'+(passed?'Évaluation réussie — l\u2019attestation est débloquée ci-dessous.':'Seuil de 6/8 non atteint. Relis les séances concernées et retente.')+'</div>'
-    + '<button class="btn" onclick="formateurQuizStart()" style="margin-top:12px">🔄 Retenter</button>';
+    + '<button class="btn" data-click="formateurQuizStart()" style="margin-top:12px">🔄 Retenter</button>';
   const startBtn = document.getElementById('formateur-quiz-start');
   if (startBtn) startBtn.style.display = 'none';
   formateurRenderAttestationGate();
@@ -359,7 +359,7 @@ function renderGymCerveau(){
     html.push('<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">');
     html.push('<div><div style="font-size:15px;font-weight:700;color:var(--gold)">' + scoreLabel + '</div>');
     html.push('<div style="font-size:10px;color:var(--muted)">' + sessionsLabel + '</div></div>');
-    html.push('<button type="button" onclick="startGymExercise(\'' + z.id + '\')" style="font-size:11px;padding:6px 12px;background:var(--gold);color:var(--bg);border:none;border-radius:6px;font-weight:700;cursor:pointer">Commencer</button>');
+    html.push('<button type="button" data-click="startGymExercise(\'' + z.id + '\')" style="font-size:11px;padding:6px 12px;background:var(--gold);color:var(--bg);border:none;border-radius:6px;font-weight:700;cursor:pointer">Commencer</button>');
     html.push('</div>');
     html.push('</div>');
     return html.join('');
@@ -373,7 +373,7 @@ function renderGymCerveau(){
       const ex = GYM_ZONE_EXERCISE_MAP[weak.zone];
       banner.style.display = 'block';
       banner.innerHTML = '📊 D\'après ' + weak.count + ' de tes coups analysés en partie, tu perds en moyenne <strong>' + Math.round(weak.avgLoss) + ' points d\'éval</strong> de plus sur tes coups en zone <strong>' + weak.zone + '</strong> que sur tes meilleures zones. L\'exercice <strong>' + ex.label + '</strong> travaille ça (' + ex.why + ').'
-        + ' <button type="button" onclick="startGymExercise(\'' + ex.id + '\')" style="margin-left:6px;font-size:11px;padding:4px 10px;background:var(--gold);color:var(--bg);border:none;border-radius:6px;font-weight:700;cursor:pointer">Essayer</button>';
+        + ' <button type="button" data-click="startGymExercise(\'' + ex.id + '\')" style="margin-left:6px;font-size:11px;padding:4px 10px;background:var(--gold);color:var(--bg);border:none;border-radius:6px;font-weight:700;cursor:pointer">Essayer</button>';
     } else {
       banner.style.display = 'none';
     }

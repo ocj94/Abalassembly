@@ -48,7 +48,7 @@ function renderFriends() {
       '<div class="friend-status">'+(isSug ? '💡 '+f.reason : f.status)+'</div>',
       '</div>',
       '<span style="font-family:DM Mono,monospace;font-size:12px;color:var(--gold);margin-right:8px">'+f.elo+'</span>',
-      '<button onclick="showToast(\'Invitation envoyee a @'+f.handle+'!\')" class="defy-btn">'+(isSug?'Ajouter':'Defier')+'</button>',
+      '<button data-click="showToast(\'Invitation envoyee a @'+f.handle+'!\')" class="defy-btn">'+(isSug?'Ajouter':'Defier')+'</button>',
       '</div>'
     ].join('');
   }
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
    temps, un réglage global — comme A11Y ci-dessous — bascule l'affichage
    des blocs marqués class="tech-detail" (masqués par défaut).
    Usage dans une page :
-     <button class="tech-toggle-btn" onclick="toggleTechMode()">...</button>
+     <button class="tech-toggle-btn" data-click="toggleTechMode()">...</button>
      <div class="tech-detail" style="display:none">... contenu détaillé ...</div>
    applyTechMode() gère le texte du bouton et l'affichage ; à rappeler après
    tout rendu dynamique d'une page qui contient des blocs tech-detail.

@@ -9,6 +9,31 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.22]
+
+### No more code in the HTML: the CSP really protects
+- **The 1,011 handlers written in the HTML** (`onclick`, `onchange`, `oninput`,
+  `onkeydown`, `onmouseover`/`onmouseout`, `ontoggle`), in the pages and in the
+  HTML built by JavaScript, are replaced by data attributes:
+  `data-click="showPage('gym')"`, `data-change`, `data-input`, `data-keydown`,
+  `data-toggle`, plus `data-entree` (Enter key), `data-fond` (click on a
+  dialog's backdrop) and `data-survol` (style while hovered). The browser never
+  runs them: a single listener (`src/main/00a-actions.js`) reads them, only calls
+  the 460 functions on the site's list of actions (`tools/actions.js`), and only
+  accepts simple values as arguments. Clicks bubble up the elements as before.
+- **CSP**: `script-src` no longer has `'unsafe-inline'`. The file's six script
+  blocks are named there by their SHA-256 hash, recomputed on every build. A
+  script slipped into the page by a username, a file or a message would not
+  run, even if an escape were forgotten. Compute threads (AI, Lab, compute
+  network) are still allowed.
+- Nothing changes for the player. Checked in Chromium with the new CSP: all 36
+  pages free of inline handlers and CSP violations, and a walkthrough (menu,
+  Brain Gym, a game against the AI that plays, Analysis, settings, hover,
+  dialogs, the Lab and its compute thread).
+- Tests: no inline handler left in the sources, exact hashes, list of actions
+  up to date, an interpreter that rejects anything that is not a simple value.
+  `CONTRIBUTING` and `SECURITY` explain the rule.
+
 ## [v3.21]
 
 ### No more Google Fonts, phone and accessibility

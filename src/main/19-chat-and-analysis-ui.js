@@ -332,15 +332,15 @@ function runAnalysis() {
         return '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);padding:2px 0">'+
           '<span>'+LABELS_EMPREINTE[ch]+'</span><span>percentile '+(c.percentile!=null?c.percentile+'ᵉ':'—')+'</span></div>';
       }).join(''),
-      '<button class="btn-ghost" style="font-size:11px;padding:5px 10px;margin-top:8px" onclick="openCorrelationsPanel()">📊 Ce que disent 150k+ positions réelles sur la victoire</button>',
+      '<button class="btn-ghost" style="font-size:11px;padding:5px 10px;margin-top:8px" data-click="openCorrelationsPanel()">📊 Ce que disent 150k+ positions réelles sur la victoire</button>',
       '<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:16px 0 8px">Positions historiques les plus proches</div>',
       histo.similaires.length ? histo.similaires.map(function(s){
         const fn = s.s === 'MIGS' ? 'loadMigsGame' : 'loadAOGame';
         return '<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border)">'+
           '<span>'+s.s+' · coup '+(s.m+1)+' · distance '+s.distance.toFixed(2)+'</span>'+
           '<span style="display:flex;gap:4px">'+
-          '<button class="btn-ghost" style="font-size:10px;padding:3px 8px" onclick="openTrajectoryChart(\''+s.s+'\','+s.g+')">📈 courbe</button>'+
-          '<button class="btn-ghost" style="font-size:10px;padding:3px 10px" onclick="'+fn+'('+s.g+')">▶ voir</button></span></div>';
+          '<button class="btn-ghost" style="font-size:10px;padding:3px 8px" data-click="openTrajectoryChart(\''+s.s+'\','+s.g+')">📈 courbe</button>'+
+          '<button class="btn-ghost" style="font-size:10px;padding:3px 10px" data-click="'+fn+'('+s.g+')">▶ voir</button></span></div>';
       }).join('') : '<div style="font-size:11px;color:var(--muted)">Aucune position comparable trouvée.</div>',
     ].join('');
   } else {
@@ -407,17 +407,17 @@ function runAnalysis() {
       '<div style="font-size:10px;color:var(--muted);margin:8px 0 3px">Billes les moins mobiles</div>'+
       moinsMobiles.map(function(c){ return '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);padding:1px 0"><span>case '+c.r+','+c.c+'</span><span>'+c.mobilite+' coup(s)</span></div>'; }).join('')+
       '<label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11px;color:var(--text);cursor:pointer">'+
-      '<input type="checkbox" onchange="toggleCarteTactique(this)" '+(_carteTactiqueVisible?'checked':'')+'> 🗺️ Afficher la carte visuelle</label>'+
+      '<input type="checkbox" data-change="toggleCarteTactique(this)" '+(_carteTactiqueVisible?'checked':'')+'> 🗺️ Afficher la carte visuelle</label>'+
       '<div id="carte-tactique-zone" style="display:'+(_carteTactiqueVisible?'':'none')+';margin-top:8px">'+
       '<div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap">'+
       Object.keys(LABELS_CARTE_TACTIQUE).map(function(d){
-        return '<button type="button" class="carte-dim-btn setup-opt'+(_carteTactiqueDim===d?' active':'')+'" style="font-size:10px;padding:4px 8px" data-dim="'+d+'" onclick="choisirDimCarteTactique(\''+d+'\')">'+LABELS_CARTE_TACTIQUE[d]+'</button>';
+        return '<button type="button" class="carte-dim-btn setup-opt'+(_carteTactiqueDim===d?' active':'')+'" style="font-size:10px;padding:4px 8px" data-dim="'+d+'" data-click="choisirDimCarteTactique(\''+d+'\')">'+LABELS_CARTE_TACTIQUE[d]+'</button>';
       }).join('')+
       '</div><div id="carte-tactique-svg" style="text-align:center"></div>'+
       '<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px">'+
-      '<button type="button" class="btn-ghost" style="font-size:14px;padding:4px 10px" onclick="carteTactiqueStepBack()" title="Coup précédent">◀</button>'+
-      '<button type="button" id="carte-tactique-play" class="btn-ghost" style="font-size:11px;padding:4px 10px" onclick="carteTactiqueTogglePlay()">⏸ Direct</button>'+
-      '<button type="button" class="btn-ghost" style="font-size:14px;padding:4px 10px" onclick="carteTactiqueStepForward()" title="Coup suivant">▶</button>'+
+      '<button type="button" class="btn-ghost" style="font-size:14px;padding:4px 10px" data-click="carteTactiqueStepBack()" title="Coup précédent">◀</button>'+
+      '<button type="button" id="carte-tactique-play" class="btn-ghost" style="font-size:11px;padding:4px 10px" data-click="carteTactiqueTogglePlay()">⏸ Direct</button>'+
+      '<button type="button" class="btn-ghost" style="font-size:14px;padding:4px 10px" data-click="carteTactiqueStepForward()" title="Coup suivant">▶</button>'+
       '</div>'+
       '<div id="carte-tactique-pos" style="text-align:center;font-size:10px;color:var(--muted);margin-top:4px">Position actuelle (direct)</div>'+
       '<div id="carte-tactique-legend" style="margin-top:10px;max-width:280px;margin-left:auto;margin-right:auto;text-align:left"></div>'+

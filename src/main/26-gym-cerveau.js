@@ -556,7 +556,7 @@ function gymStartDiagnostic(level){
   if (hintEl){
     hintEl.innerHTML = 'La bille ' + gymColorSwatch('black') + ' surlignée vient de bouger. Quel est le principal défaut de ce coup ?<br><div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">'
       + options.map(function(m){
-          return '<button type="button" onclick="_gymDiagnosticAnswer(\'' + m + '\')" style="text-align:left;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px">' + MOTIFS_COUP[m] + '</button>';
+          return '<button type="button" data-click="_gymDiagnosticAnswer(\'' + m + '\')" style="text-align:left;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px">' + MOTIFS_COUP[m] + '</button>';
         }).join('')
       + '</div>';
   }
@@ -629,8 +629,8 @@ function gymStartCertitude(level){
     const hintEl = document.getElementById('gym-exercise-hint');
     if (hintEl) hintEl.innerHTML = 'Manche ' + state.round + '/' + rounds + ' — ' + gymColorSwatch('black') + ' au trait. Gain forcé et prouvé, ou nulle ?'
       + '<div style="display:flex;gap:8px;margin-top:10px">'
-      + '<button type="button" onclick="_gymCertitudeAnswer(true)" style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px">✅ Gain prouvé</button>'
-      + '<button type="button" onclick="_gymCertitudeAnswer(false)" style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px">⬜ Nulle</button>'
+      + '<button type="button" data-click="_gymCertitudeAnswer(true)" style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px">✅ Gain prouvé</button>'
+      + '<button type="button" data-click="_gymCertitudeAnswer(false)" style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px">⬜ Nulle</button>'
       + '</div>';
     window._gymCertitudeIsWin = isWin; window._gymCertitudeDtw = dtw; window._gymCertitudeState = state;
     if (timerMs){
@@ -699,7 +699,7 @@ function gymStartRepertoire(level){
     hintEl.innerHTML = 'Marguerite belge, ' + gymColorSwatch('black') + ' au trait. Parmi ces coups réels, lequel a ' + question + ' sur ' + totalGames.toLocaleString('fr-FR') + ' parties de tournoi débutées ainsi ?'
       + '<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">'
       + shown.map(function(m){
-          return '<button type="button" onclick="_gymRepertoireAnswer(\'' + m.move + '\')" style="text-align:left;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px;font-family:\'DM Mono\',monospace">' + m.move + '</button>';
+          return '<button type="button" data-click="_gymRepertoireAnswer(\'' + m.move + '\')" style="text-align:left;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px;font-family:\'DM Mono\',monospace">' + m.move + '</button>';
         }).join('')
       + '</div>';
   }
@@ -760,8 +760,8 @@ function gymStartJugement(level){
   if (hintEl){
     hintEl.innerHTML = 'Laquelle des deux a la meilleure "' + label + '" (' + gymColorSwatch('black') + ', calcul reel du moteur) ?'
       + '<div style="display:flex;gap:8px;margin-top:10px">'
-      + '<button type="button" onclick="_gymJugementAnswer(\'A\')" style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px">Position A</button>'
-      + '<button type="button" onclick="_gymJugementAnswer(\'B\')" style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px">Position B</button>'
+      + '<button type="button" data-click="_gymJugementAnswer(\'A\')" style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px">Position A</button>'
+      + '<button type="button" data-click="_gymJugementAnswer(\'B\')" style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px">Position B</button>'
       + '</div>';
   }
   window._gymJugementCorrect = correct;
@@ -1045,11 +1045,11 @@ function renderDuelCerveau(msg){
   html += '<div style="font-size:12px;margin:8px 0;color:' + (co ? 'var(--accent-green-light)' : 'var(--muted)') + '">' + (co ? '🟢 Connecté' + (typeof _rtcOpponentName !== 'undefined' && _rtcOpponentName ? ' à ' + _rtcOpponentName : '') : '⚪ Pas connecté — un code à échanger une fois avec ton ami, sans compte') + '</div>';
   if (d && d.etat === 'invite') {
     html += '<div style="margin:6px 0;color:var(--gold);font-weight:600">' + d.adv + ' te défie !</div>'
-      + '<button class="ctrl-btn" onclick="accepterDuelCerveau(true)" style="width:auto;padding:6px 14px;margin-right:6px">Accepter</button>'
-      + '<button class="ctrl-btn" onclick="accepterDuelCerveau(false)" style="width:auto;padding:6px 14px">Refuser</button>';
+      + '<button class="ctrl-btn" data-click="accepterDuelCerveau(true)" style="width:auto;padding:6px 14px;margin-right:6px">Accepter</button>'
+      + '<button class="ctrl-btn" data-click="accepterDuelCerveau(false)" style="width:auto;padding:6px 14px">Refuser</button>';
   } else if (!d || d.etat === 'fini') {
-    html += '<button class="ctrl-btn" onclick="openRtcPanel()" style="width:auto;padding:6px 14px;margin-right:6px">' + (co ? 'Connexion' : 'Se connecter à un ami') + '</button>'
-      + '<button class="ctrl-btn" onclick="lancerDuelCerveau()" style="width:auto;padding:6px 14px' + (co ? ';background:var(--gold);color:var(--bg)' : ';opacity:.5') + '">' + (d ? 'Revanche' : 'Lancer un duel') + '</button>';
+    html += '<button class="ctrl-btn" data-click="openRtcPanel()" style="width:auto;padding:6px 14px;margin-right:6px">' + (co ? 'Connexion' : 'Se connecter à un ami') + '</button>'
+      + '<button class="ctrl-btn" data-click="lancerDuelCerveau()" style="width:auto;padding:6px 14px' + (co ? ';background:var(--gold);color:var(--bg)' : ';opacity:.5') + '">' + (d ? 'Revanche' : 'Lancer un duel') + '</button>';
   }
   if (d && (d.etat === 'jeu' || d.etat === 'fini')) {
     const zone = function(id){ const z = (typeof GYM_ZONES !== 'undefined') ? GYM_ZONES.find(function(x){ return x.id === id; }) : null; return z ? z.icon + ' ' + z.name : id; };

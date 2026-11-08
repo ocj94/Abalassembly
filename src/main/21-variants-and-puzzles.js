@@ -632,7 +632,7 @@ function renderVariants() {
   if (!grid || grid.children.length > 0) return;
   grid.innerHTML = variantsData.map(function(v) {
     const dc = v.diff==='Débutant'?'#4a9463':v.diff==='Facile'?'var(--accent-green-light)':v.diff==='Moyen'?'var(--gold)':v.diff==='Non évaluée'?'var(--muted)':'#e05c4b';
-    return '<div class="variant-card" data-id="'+v.id+'" data-players="'+v.players+'"'+(v.inventee?' data-inventee="1" data-categorie="'+v.categorie+'"':'')+' style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:all 0.2s" onclick="showVariantDetail(\''+v.id+'\')" onmouseover="this.style.borderColor=\'var(--gold-dim)\';this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.transform=\'none\'">'
+    return '<div class="variant-card" data-id="'+v.id+'" data-players="'+v.players+'"'+(v.inventee?' data-inventee="1" data-categorie="'+v.categorie+'"':'')+' style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:all 0.2s" data-click="showVariantDetail(\''+v.id+'\')" data-survol="border-color:var(--gold-dim);transform:translateY(-2px)">'
       +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
       +'<div style="font-size:28px">'+v.emoji+'</div>'
       +'<div style="font-size:11px;padding:2px 8px;border-radius:12px;background:rgba(0,0,0,0.3);color:'+dc+';border:1px solid '+dc+'44">'+v.diff+'</div>'
@@ -659,7 +659,7 @@ function showVariantDetail(id) {
     +'<div style="font-size:36px">'+v.emoji+'</div>'
     +'<div><div style="font-size:20px;font-weight:900;color:var(--white);font-family:\'Playfair Display\',serif">'+v.name+'</div>'
     +'<div style="font-size:12px;color:var(--muted);margin-top:3px">'+v.players+' joueur'+(parseInt(v.players)>1?'s':'')+' · '+v.duration+' · '+v.diff+'</div></div>'
-    +'<button onclick="document.getElementById(\'variant-detail\').style.display=\'none\'" style="margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px">×</button>'
+    +'<button data-click="cacher(\'variant-detail\')" style="margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px">×</button>'
     +'</div>'
     +'<p style="font-size:14px;color:var(--text);line-height:1.7;margin-bottom:12px">'+v.desc+'</p>'
     +_detailJouable(id)
@@ -696,7 +696,7 @@ function _detailJouable(id){
     + '<div style="flex:1;min-width:170px">'
     + '<div style="font-size:12px;color:var(--muted);margin-bottom:12px">Position de départ : '
     + L.black.length + ' billes noires, ' + L.white.length + ' billes blanches.</div>'
-    + '<button type="button" class="ctrl-btn" onclick="jouerVariante(\'' + layout + '\')" style="width:auto;padding:10px 18px;font-size:14px">▶ Jouer cette variante</button>'
+    + '<button type="button" class="ctrl-btn" data-click="jouerVariante(\'' + layout + '\')" style="width:auto;padding:10px 18px;font-size:14px">▶ Jouer cette variante</button>'
     + '</div></div>';
 }
 
@@ -854,7 +854,7 @@ function renderPuzzles() {
   const solvedTitles = _loadSolvedPuzzleTitles();
   puzzlesData.forEach(function(p){ if (solvedTitles.indexOf(p.title) !== -1) p.solved = true; });
   list.innerHTML = puzzlesData.map(function(p, i) {
-    return '<div class="puzzle-card' + (i===0?' active-puzzle':'') + '" onclick="loadPuzzle('+i+')" id="pcard-'+i+'" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:all 0.15s">' +
+    return '<div class="puzzle-card' + (i===0?' active-puzzle':'') + '" data-click="loadPuzzle('+i+')" id="pcard-'+i+'" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:all 0.15s">' +
       '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px">' +
       '<div style="width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:' + (p.diff==='easy'?'rgba(74,148,99,0.15)':p.diff==='hard'?'rgba(192,57,43,0.1)':'rgba(200,168,75,0.15)') + ';color:' + (p.diff==='easy'?'var(--accent-green-light)':p.diff==='hard'?'#e05c4b':'var(--gold)') + '">' + (p.diff==='easy'?'★':p.diff==='medium'?'★★':'★★★') + '</div>' +
       '<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--white)">' + p.title + '</div><div style="font-size:11px;color:var(--muted)">' + p.source + '</div></div>' +

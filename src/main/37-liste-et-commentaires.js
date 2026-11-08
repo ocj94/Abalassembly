@@ -130,7 +130,7 @@ function renderListeCoups() {
   const cour = _indexCourant();
   const td = function (d) {
     if (!d) return '<td class="lc-vide">…</td>';
-    return '<td class="lc-coup' + (d.i === cour ? ' lc-courant' : '') + '" data-i="' + d.i + '" onclick="_gotoMoveFromHistory(' + d.i + ')" title="' + _tr('Voir la position après ce coup', 'See the position after this move') + '">' + d.n + '</td>';
+    return '<td class="lc-coup' + (d.i === cour ? ' lc-courant' : '') + '" data-i="' + d.i + '" data-click="_gotoMoveFromHistory(' + d.i + ')" title="' + _tr('Voir la position après ce coup', 'See the position after this move') + '">' + d.n + '</td>';
   };
   hote.innerHTML = '<table class="liste-coups"><thead><tr><th>' + _tr('Coup', 'Move') + '</th><th>' + _tr('Noir', 'Black') + '</th><th>' + _tr('Blanc', 'White') + '</th></tr></thead><tbody>'
     + lignes.filter(Boolean).map(function (l) { return '<tr><td class="lc-num">' + l.num + '</td>' + td(l.black) + td(l.white) + '</tr>'; }).join('') + '</tbody></table>';
@@ -186,7 +186,7 @@ function renderCommentaires() {
     vus[cle] = (vus[cle] || 0) + 1;
     const C = _lignesCommentaire(d, L, vus[cle]);
     const M = _cleMesures(d.s);
-    h += '<div class="cmt' + (d.i === cour ? ' cmt-courant' : '') + '" data-i="' + d.i + '" onclick="_gotoMoveFromHistory(' + d.i + ')">'
+    h += '<div class="cmt' + (d.i === cour ? ' cmt-courant' : '') + '" data-i="' + d.i + '" data-click="_gotoMoveFromHistory(' + d.i + ')">'
       + '<div class="cmt-tete"><span class="cmt-num">' + d.num + '.</span> ' + nom(d.col) + ' <b>' + d.n + '</b>'
       + (C.estIA ? ' <span class="cmt-qui">' + _tr('IA', 'AI') + '</span>' : '') + '</div>'
       + C.lignes.map(function (x) { return '<div class="cmt-ligne cmt-' + x.k + '">' + x.t + '</div>'; }).join('')

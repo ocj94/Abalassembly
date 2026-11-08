@@ -171,12 +171,12 @@ function ouvrirResultatDefi(n) {
     + '<div><div style="font-size:24px;font-weight:800;color:var(--gold)">' + defiTrouves() + '</div><div style="font-size:11px;color:var(--muted)">✅ ' + _tr('défis trouvés', 'puzzles solved') + '</div></div>'
     + '</div>'
     + (fini ? '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px">'
-      + '<button class="share-copy" style="width:auto;padding:10px 18px;margin:0" onclick="partagerDefi(' + n + ')">📤 ' + _tr('Partager', 'Share') + '</button>'
-      + '<button class="share-close" style="width:auto;padding:10px 18px;margin:0" onclick="partagerImageDefi(' + n + ')">🖼️ ' + _tr('Image', 'Image') + '</button>'
+      + '<button class="share-copy" style="width:auto;padding:10px 18px;margin:0" data-click="partagerDefi(' + n + ')">📤 ' + _tr('Partager', 'Share') + '</button>'
+      + '<button class="share-close" style="width:auto;padding:10px 18px;margin:0" data-click="partagerImageDefi(' + n + ')">🖼️ ' + _tr('Image', 'Image') + '</button>'
       + '</div>'
-      : '<button class="share-copy" onclick="document.getElementById(\'defi-modal\').classList.remove(\'show\');jouerDefi(' + n + ')">▶ ' + _tr('Jouer le défi', 'Play the puzzle') + '</button>')
+      : '<button class="share-copy" data-click="retirerClasse(\'defi-modal\', \'show\');jouerDefi(' + n + ')">▶ ' + _tr('Jouer le défi', 'Play the puzzle') + '</button>')
     + (auj ? '<div style="font-size:12px;color:var(--muted);margin-top:14px">' + _tr('Prochain défi dans', 'Next puzzle in') + ' <span id="defi-prochain" style="font-family:\'DM Mono\',monospace;color:var(--text)">' + _defiProchain() + '</span></div>' : '')
-    + '<button class="share-close" style="margin-top:12px" onclick="fermerResultatDefi()">' + _tr('Fermer', 'Close') + '</button>'
+    + '<button class="share-close" style="margin-top:12px" data-click="fermerResultatDefi()">' + _tr('Fermer', 'Close') + '</button>'
     + '</div>';
   m.classList.add('show');
   clearInterval(_defiMinuteur);
@@ -198,7 +198,7 @@ function _defiResume(n) {
 // Carte de l'accueil (bandeau d'engagement)
 function carteDefiAccueil() {
   const n = defiNumero(), e = defiEtat(n), fini = !!(e && e.f), serie = defiSerie();
-  return '<div onclick="ouvrirDefi()" role="button" tabindex="0" onkeydown="if(event.key===\'Enter\')ouvrirDefi()" style="cursor:pointer;background:linear-gradient(135deg,rgba(74,148,99,0.1),rgba(45,90,61,0.05));border:1px solid rgba(74,148,99,0.25);border-radius:14px;padding:18px 20px;transition:transform .15s" onmouseover="this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.transform=\'\'">'
+  return '<div data-click="ouvrirDefi()" role="button" tabindex="0" data-entree="ouvrirDefi()" style="cursor:pointer;background:linear-gradient(135deg,rgba(74,148,99,0.1),rgba(45,90,61,0.05));border:1px solid rgba(74,148,99,0.25);border-radius:14px;padding:18px 20px;transition:transform .15s" data-survol="transform:translateY(-2px)">'
     + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'
     +   '<div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">' + _tr('Défi du jour', 'Daily puzzle') + ' #' + n + '</div>'
     +   '<div style="font-size:13px">' + (fini ? (e.f === 'v' ? '✅' : '⬛') : '🔥') + '</div>'
@@ -220,9 +220,9 @@ function renderDailyCard() {
     +   (serie > 0 ? ' 🔥 ' + _tr('Série : ', 'Streak: ') + serie + ' · ' : ' ') + (total ? _tr(total + ' trouvé' + (total > 1 ? 's' : ''), total + ' solved') : '')
     + '</div>'
     + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
-    + (fini ? '<button class="ctrl-btn" onclick="ouvrirResultatDefi(' + n + ')">📊 ' + _tr('Mon résultat', 'My result') + '</button>'
-            + '<button class="ctrl-btn" onclick="partagerDefi(' + n + ')">📤 ' + _tr('Partager', 'Share') + '</button>'
-            : '<button class="ctrl-btn primary" onclick="jouerDefi(' + n + ')">▶ ' + _tr('Jouer le défi #', 'Play puzzle #') + n + '</button>')
+    + (fini ? '<button class="ctrl-btn" data-click="ouvrirResultatDefi(' + n + ')">📊 ' + _tr('Mon résultat', 'My result') + '</button>'
+            + '<button class="ctrl-btn" data-click="partagerDefi(' + n + ')">📤 ' + _tr('Partager', 'Share') + '</button>'
+            : '<button class="ctrl-btn primary" data-click="jouerDefi(' + n + ')">▶ ' + _tr('Jouer le défi #', 'Play puzzle #') + n + '</button>')
     + '</div>';
 }
 
@@ -364,7 +364,7 @@ function _montrerImage(blob, nom) {
   m.innerHTML = '<div class="share-modal-box" style="max-width:460px;text-align:center">'
     + '<img src="' + url + '" alt="" style="width:100%;border-radius:10px;border:1px solid var(--border)">'
     + '<a class="share-copy" style="display:block;text-decoration:none;margin-top:12px" href="' + url + '" download="' + nom + '">⬇️ ' + _tr('Télécharger l’image', 'Download the image') + '</a>'
-    + '<button class="share-close" onclick="document.getElementById(\'image-modal\').classList.remove(\'show\')">' + _tr('Fermer', 'Close') + '</button>'
+    + '<button class="share-close" data-click="retirerClasse(\'image-modal\', \'show\')">' + _tr('Fermer', 'Close') + '</button>'
     + '</div>';
   m.classList.add('show');
 }
