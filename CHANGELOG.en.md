@@ -9,6 +9,26 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.21]
+
+### No more Google Fonts, phone and accessibility
+- **Self-hosted fonts**: Playfair Display, DM Sans and DM Mono are embedded in
+  the file (`fonts/`, SIL OFL 1.1 licence, `tools/polices.js`), as are the
+  Ecosystem page's fonts. Before, every visit called Google Fonts, which received
+  each visitor's IP address, contrary to the privacy policy; and offline, the
+  site fell back to substitute fonts. The site no longer calls any other site on
+  opening (checked in a browser), and the CSP no longer allows Google.
+- **Privacy policy**: the exact list of other sites that two features can call
+  (Excel import, live game on PlayStrategy), and the fact that the site computes
+  no device fingerprint.
+- **Phone**: the Analysis and Editor boards ran half off the screen (540 and
+  500 px on 390); they now shrink. The Photo page kept its 520 px column next to
+  the text: a rule written further down overrode the phone one. Same margin fix
+  on the home page. All 36 pages fit a 390 px screen.
+- **Accessibility**: 25 fields, 5 switches and 1 image had their label on
+  screen but not for screen readers; footer buttons and links taller for
+  fingers (at least 24 px).
+
 ## [v3.20]
 
 ### Brain Gym: the exercise on its own view, started with "Start"

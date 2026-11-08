@@ -1,5 +1,6 @@
 00-html.part
 01-jsonld.part
+01b-polices.part
 02-html.part
 03-script-utils-a.js
 04-html.part
