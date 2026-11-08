@@ -1,0 +1,52 @@
+# Wiki : recopie docs-fr/ dans le wiki GitHub à chaque poussée qui touche la doc.
+#
+# La documentation se corrige dans le dépôt (docs-fr/*.fr.md, relue et testée
+# avec le reste) ; le wiki n'en est que la copie, faite par tools/wiki.js.
+# Avant, il fallait la recoller à la main, et le wiki avait pris des mois de
+# retard. Les pages propres au wiki (sans équivalent dans docs-fr) ne sont pas
+# touchées. Se lance aussi à la main (onglet Actions → Wiki → Run workflow).
+name: Wiki
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs-fr/**'
+      - 'tools/wiki.js'
+      - '.github/workflows/wiki.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wiki
+  cancel-in-progress: false
+
+jobs:
+  wiki:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write   # le wiki d'un dépôt s'écrit avec le droit d'écriture sur son contenu
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+        with:
+          node-version: '22'
+      - name: Recopier docs-fr dans le wiki
+        env:
+          JETON: ${{ github.token }}
+          DEPOT: ${{ github.repository }}
+        run: |
+          git clone -q --depth 1 "https://x-access-token:${JETON}@github.com/${DEPOT}.wiki.git" "$RUNNER_TEMP/wiki"
+          node tools/wiki.js "$RUNNER_TEMP/wiki"
+          cd "$RUNNER_TEMP/wiki"
+          git add -A
+          if git diff --cached --quiet; then echo "Le wiki est déjà à jour."; exit 0; fi
+          git diff --cached --stat
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Wiki : recopie de docs-fr (${GITHUB_SHA::7})"
+          git push -q origin HEAD

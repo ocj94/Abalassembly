@@ -25,6 +25,10 @@ invisible offline — which contradicts the project's own principle.
   response time for an unknown email.
 - As long as the server is not online, nothing leaves the device (tested).
 - Privacy policy: one sentence about this protection.
+- **Wiki up to date, and kept so**: it is now copied from `docs-fr/` on every
+  documentation change (`tools/wiki.js`, run by CI). It was months behind; it
+  gains sixteen pages (Distributed computing, AI Observatory, Analysis…). Pages
+  written directly in the wiki stay.
 
 ## [v3.18]
 

@@ -7488,3 +7488,26 @@ test('v3.19, preuve de travail (captcha sans tiers) : SHA-256 du jeu identique a
   assert.ok(/_authServeur\(_rsUrl\(\) \|\| '', '\/auth\/login'/.test(_SRC_INDEX));
   assert.ok(!/hcaptcha|recaptcha|turnstile|challenges\.cloudflare/i.test(_SRC_INDEX), 'aucun service de captcha tiers');
 });
+
+test('v3.19, wiki : chaque lien des pages recopiees par tools/wiki.js mene quelque part (page du wiki, fichier du depot, image)', () => {
+  const fs = require('fs'), path = require('path');
+  const W = require('../tools/wiki.js'), R = path.join(__dirname, '..');
+  const pagesDepot = fs.readdirSync(path.join(R, 'docs-fr')).filter((f) => f.endsWith('.fr.md')).map((f) => f.replace(/\.fr\.md$/, ''));
+  const pagesWiki = new Set(pagesDepot.concat(W.WIKI_SEULEMENT.map((x) => x[0])));
+  const casses = [];
+  for (const p of pagesDepot) {
+    const texte = W.convertir(fs.readFileSync(path.join(R, 'docs-fr', p + '.fr.md'), 'utf8'));
+    for (const [, cible] of texte.matchAll(/\]\(([^)\s]*)\)/g)) {
+      const c = cible.split('#')[0];
+      if (!c) continue;
+      const depot = /^https:\/\/(github\.com\/ocj94\/Abalassembly\/(blob|tree)\/main|raw\.githubusercontent\.com\/ocj94\/Abalassembly\/main)\/(.+)$/.exec(c);
+      if (depot) { if (!fs.existsSync(path.join(R, depot[3]))) casses.push(p + ' → ' + cible); continue; }
+      if (/^(https?:|mailto:)/.test(c)) continue;
+      if (!pagesWiki.has(c)) casses.push(p + ' → ' + cible);
+    }
+  }
+  assert.deepStrictEqual(casses, []);
+  assert.strictEqual(W.lien('Analyse.fr.md#rapport'), 'Analyse#rapport');
+  assert.strictEqual(W.lien('../docs-img/reflexion-ia.webp'), 'https://raw.githubusercontent.com/ocj94/Abalassembly/main/docs-img/reflexion-ia.webp');
+  assert.strictEqual(W.lien('../games/'), 'https://github.com/ocj94/Abalassembly/tree/main/games/');
+});
