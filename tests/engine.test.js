@@ -7542,3 +7542,31 @@ test('v3.20, Gym Cerveau : Commencer ouvre l exercice sur sa vue sans le lancer 
   assert.strictEqual(_r58("_adrLire('gym-exercice')"), 'gymexo');
   assert.ok(/gymexo:\s+\{ id: 'gym-vue-exercice'/.test(_SRC_INDEX));
 }));
+
+test('v3.21, polices hebergees : plus aucun appel a Google Fonts (jeu, ecosysteme, CSP), polices embarquees a jour et sous licence, champs et interrupteurs nommes', () => {
+  const fs = require('fs'), path = require('path'), R = path.join(__dirname, '..');
+  const eco = fs.readFileSync(path.join(R, 'ecosysteme.html'), 'utf8');
+  for (const [nom, txt] of [['index.html', _SRC_INDEX], ['ecosysteme.html', eco]])
+    assert.ok(!/fonts\.googleapis|fonts\.gstatic/.test(txt), nom + ' appelle encore Google Fonts');
+  assert.match(_SRC_INDEX, /font-src 'self' data:;/);
+  // la piece embarquee correspond aux fichiers de fonts/ (sinon : node tools/polices.js && node tools/build.js)
+  const P = require('../tools/polices.js'), part = fs.readFileSync(path.join(R, 'src', '01b-polices.part'), 'utf8');
+  for (const [nom, slug, poids] of P.JEU) {
+    assert.ok(fs.existsSync(path.join(R, 'fonts', 'OFL-' + slug + '.txt')), 'licence de ' + nom);
+    for (const w of poids) {
+      const b64 = fs.readFileSync(path.join(R, 'fonts', P.fichier(slug, w))).toString('base64');
+      assert.ok(part.includes("font-family:'" + nom + "';font-style:normal;font-weight:" + w + ';font-display:swap;src:url(data:font/woff2;base64,' + b64 + ')'), nom + ' ' + w);
+    }
+  }
+  for (const [, slug, poids] of P.ECOSYSTEME) for (const w of poids) assert.ok(fs.existsSync(path.join(R, 'fonts', P.fichier(slug, w))), slug + ' ' + w);
+  assert.match(eco, /href="fonts\/ecosysteme\.css"/);
+  assert.match(_SRC_INDEX, /Autres sites contactés : <strong>aucun à l'ouverture<\/strong>/);
+  // accessibilite : les champs et les plateaux sans etiquette d'avant ont leur nom
+  ['settings-email', 'contrast-range', 'creator-c1', 'avfx-s1d', 'bench-depth', 'setup-layout-select'].forEach(id =>
+    assert.ok(new RegExp('id="' + id + '" aria-label="[^"]+"').test(_SRC_INDEX), id));
+  assert.match(_SRC_INDEX, /role="switch" aria-checked="'\+on\+'" aria-label="'\+/);
+  // telephone : les plateaux d'Analyse et d'Editeur retrecissent, la page Photo passe sur une colonne
+  assert.match(_SRC_INDEX, /\.outil-plateau canvas \{ width: 100%; height: auto; \}/);
+  assert.ok((_SRC_INDEX.match(/class="outil-plateau"/g) || []).length === 2);
+  assert.ok(_SRC_INDEX.lastIndexOf('.camera-layout { grid-template-columns: 1fr; }') > _SRC_INDEX.indexOf('.camera-layout {\n  min-height: 100vh'), 'la regle telephone vient apres la regle de base');
+});

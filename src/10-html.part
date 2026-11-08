@@ -44,10 +44,10 @@
     </div>
     <input id="migs-search" oninput="renderMigsList()" placeholder="Rechercher un joueur ou un N°…" style="margin:12px 18px 8px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px">
     <div style="display:flex;gap:8px;margin:0 18px 10px">
-      <select id="migs-filter-variant" onchange="renderMigsList()" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px">
+      <select id="migs-filter-variant" aria-label="Filtrer par variante" onchange="renderMigsList()" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px">
         <option value="">Toutes les variantes</option>
       </select>
-      <select id="migs-filter-length" onchange="renderMigsList()" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px">
+      <select id="migs-filter-length" aria-label="Filtrer par longueur de partie" onchange="renderMigsList()" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px">
         <option value="">Toutes longueurs</option>
         <option value="short">Courte (&lt; 20 coups)</option>
         <option value="medium">Moyenne (20-40)</option>

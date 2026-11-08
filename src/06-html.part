@@ -401,7 +401,7 @@
     </div>
   </footer>
   <!-- WordPress source banner -->
-  <div style="background:rgba(200,168,75,0.05);border-top:1px solid rgba(200,168,75,0.15);padding:14px 80px;display:flex;align-items:center;gap:14px">
+  <div class="bandeau-source" style="background:rgba(200,168,75,0.05);border-top:1px solid rgba(200,168,75,0.15);padding:14px 80px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
     <span style="font-size:18px">📝</span>
     <span style="font-size:13px;color:var(--muted)">Source de référence communautaire :</span>
     <a href="https://onlineabalone.wordpress.com/" target="_blank" rel="noopener"
@@ -441,7 +441,7 @@
       <!-- UPLOAD MODE -->
       <div id="mode-upload">
         <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
-          <input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleFileSelect(event)">
+          <input type="file" id="file-input" aria-label="Choisir une photo du plateau" accept="image/*" style="display:none" onchange="handleFileSelect(event)">
           <div id="upload-placeholder">
             <div class="upload-icon">📷</div>
             <div class="upload-text">Déposez une photo du plateau ici</div>
@@ -472,7 +472,7 @@
           <button class="cam-btn cam-live" onclick="startCamera()" style="margin-top:8px">🔴 Démarrer la caméra</button>
         </div>
         <canvas id="snap-canvas" style="display:none"></canvas>
-        <img id="snap-preview" style="display:none;width:100%;border-radius:14px;margin-top:12px;border:1px solid var(--border)">
+        <img id="snap-preview" alt="Aperçu de la photo du plateau" style="display:none;width:100%;border-radius:14px;margin-top:12px;border:1px solid var(--border)">
       </div>
 
       <!-- AR MODE : flux vidéo continu + calibration 4 coins + overlay temps réel.
@@ -615,7 +615,7 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
               <input id="scan-black-name" placeholder="Joueur ⚫ Noirs" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:12px;padding:7px 9px">
               <input id="scan-white-name" placeholder="Joueur ⚪ Blancs" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:12px;padding:7px 9px">
-              <select id="scan-variant" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:12px;padding:7px 9px;cursor:pointer">
+              <select id="scan-variant" aria-label="Variante de la partie photographiée" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:12px;padding:7px 9px;cursor:pointer">
                 <option value="custom">Variante : custom / inconnue</option>
                 <option value="standard">standard</option>
                 <option value="belgian">belge (belgian daisy)</option>
@@ -623,7 +623,7 @@
                 <option value="dutch">dutch daisy</option>
                 <option value="swiss">swiss daisy</option>
               </select>
-              <input id="scan-date" type="date" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:12px;padding:7px 9px">
+              <input id="scan-date" aria-label="Date de la partie" type="date" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:12px;padding:7px 9px">
             </div>
             <button class="cam-btn primary" style="width:100%;justify-content:center;margin-top:10px" onclick="scanRecSave()">💾 Sauvegarder la partie</button>
           </div>
@@ -752,7 +752,7 @@
 
       <div class="setup-row-lbl">Disposition de départ</div>
       <div id="setup-layout">
-        <select id="setup-layout-select" onchange="setupPickLayoutSelect(this)" class="setup-layout-select">
+        <select id="setup-layout-select" aria-label="Position de départ" onchange="setupPickLayoutSelect(this)" class="setup-layout-select">
         <option value="standard" title="Configuration officielle : 14 billes par camp sur 3 rangées" selected>Standard</option>
         <option value="decouverte" title="Plateau réduit du Mode Enfant : 7 billes par camp, pour débuter -- choisi explicitement ici, toujours exclu du tirage aléatoire">Découverte (7 billes, débutants)</option>
         <option value="belgian">Belgian Daisy</option>
@@ -2527,7 +2527,7 @@
             <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:12px">
               <div>
                 <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Thème de base</label>
-                <select id="creator-base" onchange="creatorUpdate()" style="width:100%;margin-top:4px;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">
+                <select id="creator-base" aria-label="Thème de base" onchange="creatorUpdate()" style="width:100%;margin-top:4px;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">
                   <option value="dark">Obsidian</option>
                   <option value="forest">Forêt</option>
                   <option value="ocean">Océan</option>
@@ -2561,24 +2561,24 @@
               <div style="display:flex;gap:12px">
                 <div style="flex:1">
                   <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Teinte claire</label>
-                  <input type="color" id="creator-c1" onchange="creatorUpdate()" style="width:100%;height:32px;margin-top:4px;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer">
+                  <input type="color" id="creator-c1" aria-label="Teinte claire" onchange="creatorUpdate()" style="width:100%;height:32px;margin-top:4px;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer">
                 </div>
                 <div style="flex:1">
                   <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Teinte sombre</label>
-                  <input type="color" id="creator-c2" onchange="creatorUpdate()" style="width:100%;height:32px;margin-top:4px;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer">
+                  <input type="color" id="creator-c2" aria-label="Teinte sombre" onchange="creatorUpdate()" style="width:100%;height:32px;margin-top:4px;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer">
                 </div>
                 <div style="flex:1">
                   <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Gouttière</label>
-                  <input type="color" id="creator-gutter" onchange="creatorUpdate()" style="width:100%;height:32px;margin-top:4px;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer">
+                  <input type="color" id="creator-gutter" aria-label="Couleur de la gouttière" onchange="creatorUpdate()" style="width:100%;height:32px;margin-top:4px;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer">
                 </div>
               </div>
               <div>
                 <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Densité de la texture — <span id="creator-densite-val">100%</span></label>
-                <input type="range" id="creator-densite" min="20" max="220" value="100" oninput="creatorUpdate()" style="width:100%;accent-color:var(--gold);margin-top:4px">
+                <input type="range" id="creator-densite" aria-label="Densité de la texture" min="20" max="220" value="100" oninput="creatorUpdate()" style="width:100%;accent-color:var(--gold);margin-top:4px">
               </div>
               <div>
                 <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Intensité — <span id="creator-intensite-val">100%</span></label>
-                <input type="range" id="creator-intensite" min="20" max="220" value="100" oninput="creatorUpdate()" style="width:100%;accent-color:var(--gold);margin-top:4px">
+                <input type="range" id="creator-intensite" aria-label="Intensité de la texture" min="20" max="220" value="100" oninput="creatorUpdate()" style="width:100%;accent-color:var(--gold);margin-top:4px">
               </div>
               <div style="display:flex;gap:8px;margin-top:6px">
                 <button onclick="creatorApply()" class="ctrl-btn primary" style="flex:1">Appliquer au plateau</button>
@@ -2623,14 +2623,14 @@
           <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:6px 14px;align-items:center;margin-top:6px;font-size:13px;color:var(--muted)">
             <span></span><span style="font-size:11px;text-align:center">Son</span><span style="font-size:11px;text-align:center">Vibration</span>
             <span>1D</span>
-            <input type="checkbox" id="avfx-s1d" onchange="setViewSound('1d', this.checked)" style="accent-color:var(--gold);justify-self:center">
-            <input type="checkbox" id="avfx-v1d" onchange="setViewVibration('1d', this.checked)" style="accent-color:var(--gold);justify-self:center">
+            <input type="checkbox" id="avfx-s1d" aria-label="Son en vue 1D" onchange="setViewSound('1d', this.checked)" style="accent-color:var(--gold);justify-self:center">
+            <input type="checkbox" id="avfx-v1d" aria-label="Vibration en vue 1D" onchange="setViewVibration('1d', this.checked)" style="accent-color:var(--gold);justify-self:center">
             <span>2D</span>
-            <input type="checkbox" id="avfx-s2d" onchange="setViewSound('2d', this.checked)" style="accent-color:var(--gold);justify-self:center">
-            <input type="checkbox" id="avfx-v2d" onchange="setViewVibration('2d', this.checked)" style="accent-color:var(--gold);justify-self:center">
+            <input type="checkbox" id="avfx-s2d" aria-label="Son en vue 2D" onchange="setViewSound('2d', this.checked)" style="accent-color:var(--gold);justify-self:center">
+            <input type="checkbox" id="avfx-v2d" aria-label="Vibration en vue 2D" onchange="setViewVibration('2d', this.checked)" style="accent-color:var(--gold);justify-self:center">
             <span>3D</span>
-            <input type="checkbox" id="avfx-s3d" onchange="setViewSound('3d', this.checked)" style="accent-color:var(--gold);justify-self:center">
-            <input type="checkbox" id="avfx-v3d" onchange="setViewVibration('3d', this.checked)" style="accent-color:var(--gold);justify-self:center">
+            <input type="checkbox" id="avfx-s3d" aria-label="Son en vue 3D" onchange="setViewSound('3d', this.checked)" style="accent-color:var(--gold);justify-self:center">
+            <input type="checkbox" id="avfx-v3d" aria-label="Vibration en vue 3D" onchange="setViewVibration('3d', this.checked)" style="accent-color:var(--gold);justify-self:center">
           </div>
         </div>
       </div>
@@ -2699,9 +2699,9 @@
           </div>
         </div>
         <div class="form-group"><label class="form-label">Nom d'utilisateur</label><input class="form-input" id="settings-username" placeholder="MonPseudo"></div>
-        <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="settings-email" type="email"></div>
+        <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="settings-email" aria-label="Email" type="email"></div>
         <div class="form-group"><label class="form-label">Pays</label>
-          <select class="form-input" id="settings-country" style="cursor:pointer">
+          <select class="form-input" id="settings-country" aria-label="Pays" style="cursor:pointer">
             <option value="">Selectionner...</option>
             <option value="FR">France</option><option value="BE">Belgique</option><option value="CH">Suisse</option><option value="DE">Allemagne</option><option value="JP">Japon</option><option value="US">Etats-Unis</option><option value="OTHER">Autre</option>
           </select>
@@ -2909,7 +2909,7 @@
           <!-- v2.97 : une notation historique en plus, sous chaque coup (Marc Ghigou, 1989 ou 1990) -->
           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 0">
             <span style="font-size:13px;color:var(--text)">Notation historique <span style="color:var(--muted);font-size:11px">(sous chaque coup)</span></span>
-            <select id="settings-notation-historique" onchange="choisirNotationHistorique(this.value)" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:12px;padding:5px 8px;cursor:pointer">
+            <select id="settings-notation-historique" aria-label="Notation historique sous chaque coup" onchange="choisirNotationHistorique(this.value)" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:12px;padding:5px 8px;cursor:pointer">
               <option value="">Aucune</option>
               <option value="ghigou90">Marc Ghigou, 1990 (A1-B2)</option>
               <option value="ghigou89">Marc Ghigou, 1989 (AB-M)</option>
@@ -3022,7 +3022,7 @@
               <label style="font-size:13px;color:var(--text)">Contraste général</label>
               <span style="font-size:12px;color:var(--gold);font-family:'DM Mono',monospace" id="contrast-val">100%</span>
             </div>
-            <input type="range" id="contrast-range" min="80" max="200" value="100" step="5"
+            <input type="range" id="contrast-range" aria-label="Contraste général" min="80" max="200" value="100" step="5"
               style="width:100%;accent-color:var(--gold);cursor:pointer"
               oninput="applyAccessibility()">
             <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px"><span>Doux</span><span>Normal</span><span>Élevé</span></div>
@@ -3032,7 +3032,7 @@
               <label style="font-size:13px;color:var(--text)">Luminosité</label>
               <span style="font-size:12px;color:var(--gold);font-family:'DM Mono',monospace" id="brightness-val">100%</span>
             </div>
-            <input type="range" id="brightness-range" min="60" max="140" value="100" step="5"
+            <input type="range" id="brightness-range" aria-label="Luminosité" min="60" max="140" value="100" step="5"
               style="width:100%;accent-color:var(--gold);cursor:pointer"
               oninput="applyAccessibility()">
             <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px"><span>Sombre</span><span>Normal</span><span>Clair</span></div>
@@ -3042,7 +3042,7 @@
               <label style="font-size:13px;color:var(--text)">Saturation des couleurs</label>
               <span style="font-size:12px;color:var(--gold);font-family:'DM Mono',monospace" id="saturation-val">100%</span>
             </div>
-            <input type="range" id="saturation-range" min="0" max="200" value="100" step="10"
+            <input type="range" id="saturation-range" aria-label="Saturation des couleurs" min="0" max="200" value="100" step="10"
               style="width:100%;accent-color:var(--gold);cursor:pointer"
               oninput="applyAccessibility()">
             <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px"><span>Niveaux de gris</span><span>Normal</span><span>Vif</span></div>
@@ -3270,9 +3270,9 @@
       <h2>Analyse de partie</h2>
       <p style="color:var(--muted);font-size:14px;max-width:640px">Rejoue une partie coup par coup, explore des variantes en jouant librement, et consulte l'évaluation de la position à chaque instant.</p>
     </div>
-    <div style="display:flex;gap:32px;padding:24px 60px 80px;flex-wrap:wrap;align-items:flex-start">
+    <div class="outil-zone" style="display:flex;gap:32px;padding:24px 60px 80px;flex-wrap:wrap;align-items:flex-start">
       <!-- Plateau d'analyse -->
-      <div style="flex-shrink:0">
+      <div class="outil-plateau" style="flex-shrink:0">
         <canvas id="analysis-board" width="540" height="540" style="border-radius:12px;box-shadow:0 0 0 1px var(--border),0 12px 40px rgba(0,0,0,0.4);cursor:pointer;max-width:100%"></canvas>
         <!-- Barre d'évaluation -->
         <div style="margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
@@ -3360,9 +3360,9 @@
       <h2>Éditeur de position</h2>
       <p style="color:var(--muted);font-size:14px;max-width:600px">Place librement les billes sur le plateau pour créer une position de départ, un puzzle ou une variante. Choisis un outil dans la palette, puis clique sur les cases.</p>
     </div>
-    <div style="display:flex;gap:32px;padding:24px 60px 80px;flex-wrap:wrap;align-items:flex-start">
+    <div class="outil-zone" style="display:flex;gap:32px;padding:24px 60px 80px;flex-wrap:wrap;align-items:flex-start">
       <!-- Plateau -->
-      <div style="flex-shrink:0">
+      <div class="outil-plateau" style="flex-shrink:0">
         <canvas id="editor-board" width="500" height="500" style="border-radius:12px;box-shadow:0 0 0 1px var(--border),0 12px 40px rgba(0,0,0,0.4);cursor:pointer;max-width:100%"></canvas>
         <div id="editor-status" style="text-align:center;font-size:13px;color:var(--muted);margin-top:10px">0 billes Joueur 1 · 0 billes Joueur 2</div>
       </div>
@@ -3949,7 +3949,7 @@
         </p>
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
           <label style="font-size:12px;color:var(--muted)">Profondeur test :</label>
-          <select id="bench-depth" style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px">
+          <select id="bench-depth" aria-label="Profondeur du test" style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px">
             <option value="3">3 (rapide)</option>
             <option value="4" selected>4</option>
             <option value="5">5</option>
@@ -4261,6 +4261,7 @@
     <p><strong style="color:var(--white)">En une phrase : ce site ne collecte aucune donnée personnelle.</strong></p>
     <p style="margin-top:16px">Abalassembly est un fichier unique qui tourne entièrement dans votre navigateur. Vos parties, votre progression, vos réglages et vos préférences restent stockés localement sur votre appareil (<code style="background:var(--surface2);padding:2px 6px;border-radius:4px">localStorage</code>) — rien n'est envoyé vers un serveur, parce qu'aucun serveur actif ne reçoit ces informations.</p>
     <p style="margin-top:16px">Un backend existe bien dans un dépôt séparé (comptes, sauvegarde en ligne, réseau de calcul du Labo) mais il est <strong>volontairement désactivé</strong> — tant qu'il ne l'est pas, aucune donnée ne quitte votre navigateur. Le jour où il sera en ligne, sa protection anti-robot sera une courte preuve de calcul faite par votre appareil (à l'inscription, et à la connexion après des mots de passe faux) : aucun service de « captcha » tiers, aucun cookie.</p>
+    <p style="margin-top:16px">Autres sites contactés : <strong>aucun à l'ouverture</strong>. Les polices sont dans le fichier lui-même (depuis la v3.21 ; avant, elles venaient de Google Fonts, qui recevait l'adresse IP de chaque visiteur). Seules deux fonctions peuvent appeler un autre site, et seulement quand vous les utilisez : l'import d'un tableur Excel (la bibliothèque SheetJS, chargée depuis jsDelivr ou unpkg, vérifiée par son empreinte) et la partie en direct sur PlayStrategy. La vue 3D utilise la copie de Three.js hébergée avec le site, et ne va sur jsDelivr ou unpkg que si cette copie manque. Le site ne calcule aucune « empreinte » de votre appareil pour vous reconnaître.</p>
     <p style="margin-top:16px">Effacer vos données : videz le stockage local de votre navigateur pour ce site (Réglages du navigateur → Confidentialité → Données de site), ou utilisez la fonction d'export/suppression si votre navigateur la propose.</p>
     <p style="margin-top:16px">Contact : passez par les <a href="https://github.com/ocj94/Abalassembly/issues" target="_blank" rel="noopener" style="color:var(--gold)">issues GitHub</a> du projet.</p>
   </div>
@@ -5172,42 +5173,42 @@
         <div style="font-size:18px">📁</div>
         <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--white)">altin/abalone-ai</div><div style="font-size:12px;color:var(--muted);margin-top:2px">6 algorithmes : Minimax, Alpha-Beta, PVS, MCTS + heuristiques h1+h2+h3</div></div>
         <div style="font-size:11px;color:var(--gold)">⭐⭐⭐</div>
-        <a href="https://github.com/altin/abalone-ai" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold-dim);text-decoration:none">↗</a>
+        <a href="https://github.com/altin/abalone-ai" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold-dim);text-decoration:none;display:inline-block;padding:4px 8px" aria-label="Ouvrir le dépôt sur GitHub">↗</a>
       </div>      <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
         <div style="font-size:18px">📁</div>
         <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--white)">soniquentin/Abalone_AI_Minimax</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Minimax optimisé — Polytechnique Montréal INF8175, rapport final en français</div></div>
         <div style="font-size:11px;color:var(--gold)">⭐⭐</div>
-        <a href="https://github.com/soniquentin/Abalone_AI_Minimax" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold-dim);text-decoration:none">↗</a>
+        <a href="https://github.com/soniquentin/Abalone_AI_Minimax" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold-dim);text-decoration:none;display:inline-block;padding:4px 8px" aria-label="Ouvrir le dépôt sur GitHub">↗</a>
       </div>      <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
         <div style="font-size:18px">📁</div>
         <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--white)">MichielVerloop/AbaloneAI</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Implémentation du papier académique 2012 Alpha-Beta + Belgian/German Daisy</div></div>
         <div style="font-size:11px;color:var(--gold)">⭐⭐</div>
-        <a href="https://github.com/MichielVerloop/AbaloneAI" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold-dim);text-decoration:none">↗</a>
+        <a href="https://github.com/MichielVerloop/AbaloneAI" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold-dim);text-decoration:none;display:inline-block;padding:4px 8px" aria-label="Ouvrir le dépôt sur GitHub">↗</a>
       </div>      <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
         <div style="font-size:18px">📁</div>
         <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--white)">jbyrne-strathy/Abalone-with-Good-Sport-AI</div><div style="font-size:12px;color:var(--muted);margin-top:2px">IA adaptative — s'ajuste au niveau du joueur (Hugh + Maximilian)</div></div>
         <div style="font-size:11px;color:var(--gold)">⭐⭐</div>
-        <a href="https://github.com/jbyrne-strathy/Abalone-with-Good-Sport-AI" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold-dim);text-decoration:none">↗</a>
+        <a href="https://github.com/jbyrne-strathy/Abalone-with-Good-Sport-AI" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold-dim);text-decoration:none;display:inline-block;padding:4px 8px" aria-label="Ouvrir le dépôt sur GitHub">↗</a>
       </div>      <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
         <div style="font-size:18px">📁</div>
         <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--white)">nsalleron/Abalone</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Négamax + Alpha-Beta + fonctions évaluation — code en français</div></div>
         <div style="font-size:11px;color:var(--gold)">⭐</div>
-        <a href="https://github.com/nsalleron/Abalone" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold-dim);text-decoration:none">↗</a>
+        <a href="https://github.com/nsalleron/Abalone" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold-dim);text-decoration:none;display:inline-block;padding:4px 8px" aria-label="Ouvrir le dépôt sur GitHub">↗</a>
       </div>      <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
         <div style="font-size:18px">📁</div>
         <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--white)">Cotix/Abalone</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Objectif : battre ABA-PRO (10 ply) avec C++ optimisé -O3</div></div>
         <div style="font-size:11px;color:var(--gold)">⭐</div>
-        <a href="https://github.com/Cotix/Abalone" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold-dim);text-decoration:none">↗</a>
+        <a href="https://github.com/Cotix/Abalone" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold-dim);text-decoration:none;display:inline-block;padding:4px 8px" aria-label="Ouvrir le dépôt sur GitHub">↗</a>
       </div>      <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
         <div style="font-size:18px">📁</div>
         <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--white)">Durganshu/Abalone-Game</div><div style="font-size:12px;color:var(--muted);margin-top:2px">MinMax + AlphaBeta parallélisé OpenMP + protocole réseau TCP</div></div>
         <div style="font-size:11px;color:var(--gold)">⭐</div>
-        <a href="https://github.com/Durganshu/Abalone-Game" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold-dim);text-decoration:none">↗</a>
+        <a href="https://github.com/Durganshu/Abalone-Game" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold-dim);text-decoration:none;display:inline-block;padding:4px 8px" aria-label="Ouvrir le dépôt sur GitHub">↗</a>
       </div>      <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
         <div style="font-size:18px">📁</div>
         <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--white)">thdemarty/abalone</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Plateau comme matrice rectangulaire étirée — représentation efficace</div></div>
         <div style="font-size:11px;color:var(--gold)">⭐</div>
-        <a href="https://github.com/thdemarty/abalone" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold-dim);text-decoration:none">↗</a>
+        <a href="https://github.com/thdemarty/abalone" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--gold-dim);text-decoration:none;display:inline-block;padding:4px 8px" aria-label="Ouvrir le dépôt sur GitHub">↗</a>
       </div>
     </div>
 

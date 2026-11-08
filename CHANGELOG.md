@@ -9,6 +9,28 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.21]
+
+### Plus de Google Fonts, téléphone et accessibilité
+- **Polices hébergées par le site** : Playfair Display, DM Sans et DM Mono sont
+  embarquées dans le fichier (`fonts/`, licence SIL OFL 1.1, `tools/polices.js`),
+  comme les polices de la page Écosystème. Avant, chaque visite appelait Google
+  Fonts, qui recevait l'adresse IP de chaque visiteur, contrairement à ce que
+  disait la politique de confidentialité ; et hors ligne, le site retombait sur
+  des polices de secours. Le site n'appelle plus aucun autre site à l'ouverture
+  (vérifié dans un navigateur), et la CSP n'autorise plus Google.
+- **Politique de confidentialité** : la liste exacte des autres sites que deux
+  fonctions peuvent appeler (import Excel, partie en direct sur PlayStrategy),
+  et le fait que le site ne calcule aucune empreinte de l'appareil.
+- **Téléphone** : les plateaux d'Analyse et de l'Éditeur sortaient à moitié de
+  l'écran (540 et 500 px sur 390) ; ils retrécissent maintenant. La page Photo
+  gardait sa colonne de 520 px à côté du texte : une règle écrite plus bas
+  écrasait celle du téléphone. Mêmes marges corrigées sur l'accueil. Les 36
+  pages tiennent dans un écran de 390 px.
+- **Accessibilité** : 25 champs, 5 interrupteurs et 1 image avaient leur
+  étiquette à l'écran mais pas pour les lecteurs d'écran ; boutons et liens du
+  pied de page plus hauts au doigt (24 px au moins).
+
 ## [v3.20]
 
 ### Gym Cerveau : l'exercice sur sa propre vue, lancé par « Démarrer »

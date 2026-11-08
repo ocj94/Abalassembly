@@ -1,5 +1,5 @@
 
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- polices : embarquees juste avant (src/01b-polices.part, v3.21), plus chargees depuis Google Fonts -->
 <style>
 :root { color-scheme: dark; }  /* meme raison que la balise meta color-scheme */
 
@@ -2352,6 +2352,29 @@ table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset
 @media (max-width: 900px) {
   .gym-layout { grid-template-columns: 1fr !important; padding: 0 16px 60px !important; }
   .gym-vue-exercice { padding: 18px 16px 60px !important; }
+  /* v3.21 : Analyse et Editeur sur telephone. Le plateau (540 et 500 px) etait dans un
+     bloc qui refusait de retrecir : la moitie droite sortait de l'ecran, sans defilement. */
+  .outil-zone { padding: 16px 16px 60px !important; gap: 20px !important; }
+  .outil-plateau { flex-shrink: 1 !important; min-width: 0; max-width: 100%; }
+  .outil-plateau canvas { width: 100%; height: auto; }
+  /* v3.21 : ces regles existaient plus haut (@media 900px) mais les regles de base, ecrites
+     apres, les ecrasaient : sur telephone, la page Photo gardait sa colonne de 520 px a cote
+     du texte, coupee a droite. Redites ici, apres les regles de base. */
+  .camera-layout { grid-template-columns: 1fr; }
+  .camera-main { padding: 80px 20px 32px; }
+  .camera-sidebar { border-left: none; border-top: 1px solid var(--border); padding: 28px 20px; }
+  .cam-title { font-size: 28px; }
+  .bandeau-source { padding: 14px 16px !important; gap: 6px 10px !important; }
+}
+/* v3.21 : sur ecran tactile, des boutons et liens de 13 a 20 px de haut, durs a viser au
+   doigt (minimum recommande : 24 px, WCAG 2.5.8) */
+@media (pointer: coarse) {
+  .btn, .ctrl-btn { min-height: 28px; }
+  .footer-col a { padding: 5px 0; }
+}
+@media (max-width: 599px) {
+  /* meme cas : la regle de base de .hero-stats (plus haut, hors @media) ecrasait ces marges */
+  .hero-stats { gap: 12px; padding-top: 20px; margin-top: 20px; }
 }
 
 @media (max-width: 900px) {

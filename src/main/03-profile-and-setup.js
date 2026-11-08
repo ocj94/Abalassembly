@@ -231,7 +231,7 @@ function renderA11yPanel() {
       + 'padding:13px 0;border-bottom:1px solid var(--border)">'
       + '<div style="flex:1"><div style="font-size:14px;color:var(--text);font-weight:600">'+label+'</div>'
       +   '<div style="font-size:11px;color:var(--muted);margin-top:2px">'+desc+'</div></div>'
-      + '<button onclick="setA11y(\''+key+'\','+(!on)+')" role="switch" aria-checked="'+on+'" '
+      + '<button onclick="setA11y(\''+key+'\','+(!on)+')" role="switch" aria-checked="'+on+'" aria-label="'+String(label).replace(/<[^>]*>/g, '').replace(/"/g, '&quot;')+'" '
       +   'style="flex:0 0 auto;width:46px;height:26px;border-radius:13px;border:1px solid var(--border);cursor:pointer;'
       +   'background:'+(on?'var(--gold)':'var(--surface2)')+';position:relative;transition:background .15s">'
       +   '<span style="position:absolute;top:2px;left:'+(on?'22px':'2px')+';width:20px;height:20px;border-radius:50%;'
