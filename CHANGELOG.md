@@ -25,6 +25,11 @@ donc invisible hors ligne — ce qui contredit le principe du projet.
   ouvertes continuent), même temps de réponse pour un email inconnu.
 - Tant que le serveur n'est pas en ligne, rien ne part de l'appareil (testé).
 - Politique de confidentialité : une phrase sur cette protection.
+- **Wiki à jour, et qui le reste** : il est maintenant recopié de `docs-fr/`
+  à chaque modification de la documentation (`tools/wiki.js`, lancé par la
+  CI). Il avait des mois de retard ; il gagne seize pages (Calcul distribué,
+  Observatoire IA, Analyse…). Les pages écrites directement dans le wiki
+  restent.
 
 ## [v3.18]
 
