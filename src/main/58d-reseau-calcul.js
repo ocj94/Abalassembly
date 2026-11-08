@@ -118,8 +118,10 @@ if (typeof window !== 'undefined' && window.addEventListener) window.addEventLis
 
 async function reseauConnexion() {
   const v = function (id) { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
-  const r = await _rsFetch('/auth/login', { email: v('rs-email'), password: (document.getElementById('rs-mdp') || {}).value || '', otp: v('rs-otp') || undefined });
+  const corps = { email: v('rs-email'), password: (document.getElementById('rs-mdp') || {}).value || '', otp: v('rs-otp') || undefined };
   const pw = document.getElementById('rs-mdp'); if (pw) pw.value = '';
+  // après des mots de passe faux pour ce compte, le serveur demande une preuve de travail (01-backend-api-layer.js)
+  const r = await _authServeur(_rsUrl() || '', '/auth/login', corps, false);
   if (r.statut === 200 && r.b.token) { RESEAU.jeton = r.b.token; RESEAU.user = r.b.user || null; RESEAU.erreur = null; }   // en mémoire seulement
   else RESEAU.erreur = r.b.mfaRequired ? 'code MFA demandé' : (r.b.error || 'connexion refusée');
   reseauRafraichir();

@@ -7441,3 +7441,50 @@ test('Labo, banc des niveaux : une partie entre hauts niveaux n\'est plus tuee p
   assert.strictEqual(ctx._labDelaiChien({ plies: 80, ms: 400 }), Math.max(120000, 3 * 80 * 400 + 30000));
   assert.strictEqual(ctx._labDelaiChien({ plies: 80, ms: 400, cfgA: { mode: 'hasard' }, cfgB: null }), 126000);
 });
+
+test('v3.19, preuve de travail (captcha sans tiers) : SHA-256 du jeu identique a celui de Node, defi resolu, demandee a l inscription et sur demande a la connexion, rien sans serveur', async () => {
+  const crypto = require('crypto');
+  const hex = (u) => Buffer.from(u).toString('hex');
+  // longueurs 0 a 200 : un, deux, quatre blocs, et les bords 55 / 56 / 64
+  for (const n of [0, 1, 3, 55, 56, 57, 63, 64, 65, 119, 120, 200]) {
+    const m = crypto.randomBytes(n);
+    assert.strictEqual(hex(ctx._sha256Octets(new Uint8Array(m))), crypto.createHash('sha256').update(m).digest('hex'), n + ' octets');
+  }
+  // un defi au format du serveur (abalassembly-api, src/preuve.js) : la reponse se verifie avec Node
+  const sel = crypto.randomBytes(16).toString('hex');
+  const defi = Buffer.from(JSON.stringify({ s: sel, e: Date.now() + 60000, b: 12 })).toString('base64url') + '.signature';
+  const p = await ctx._preuveResoudre(defi);
+  assert.strictEqual(p.defi, defi);
+  const h = crypto.createHash('sha256').update(sel + ':' + p.nonce).digest();
+  assert.ok(ctx._bitsNuls(new Uint8Array(h)) >= 12, '12 bits nuls en tete');
+  assert.strictEqual(ctx._bitsNuls(new Uint8Array([0, 0x0f])), 12);
+  assert.strictEqual(ctx._bitsNuls(new Uint8Array([0x80])), 0);
+
+  // les echanges : inscription = defi d abord ; connexion = defi seulement si le serveur le demande
+  const appels = []; const f0 = ctx.fetch;
+  const repondre = (statut, b) => Promise.resolve({ status: statut, json: () => Promise.resolve(b) });
+  const defiFacile = Buffer.from(JSON.stringify({ s: 'ab', e: 0, b: 2 })).toString('base64url') + '.x';
+  let echecs = 0;
+  ctx.fetch = (url, o) => {
+    const corps = o.body ? JSON.parse(o.body) : null; appels.push([url.replace('https://api.essai', ''), !!(corps && corps.preuve)]);
+    if (url.endsWith('/auth/defi')) return repondre(200, { defi: defiFacile, bits: 2 });
+    if (url.endsWith('/auth/login') && !corps.preuve && echecs >= 3) return repondre(401, { error: 'preuve', preuveRequise: true });
+    return repondre(200, { user: { username: 'Alex' }, token: 't' });
+  };
+  try {
+    assert.strictEqual((await ctx._authServeur('', '/auth/login', {}, false)).statut, 0);
+    assert.strictEqual(appels.length, 0, 'aucune requete sans serveur');
+    const ins = await ctx._authServeur('https://api.essai/', '/auth/signup', { email: 'a@b.c' }, true);
+    assert.strictEqual(ins.statut, 200);
+    assert.deepStrictEqual(appels.splice(0), [['/auth/defi', false], ['/auth/signup', true]]);
+    await ctx._authServeur('https://api.essai', '/auth/login', { email: 'a@b.c' }, false);
+    assert.deepStrictEqual(appels.splice(0), [['/auth/login', false]], 'joueur normal : aucune preuve');
+    echecs = 3;
+    const r = await ctx._authServeur('https://api.essai', '/auth/login', { email: 'a@b.c' }, false);
+    assert.strictEqual(r.statut, 200);
+    assert.deepStrictEqual(appels.splice(0), [['/auth/login', false], ['/auth/defi', false], ['/auth/login', true]]);
+  } finally { ctx.fetch = f0; }
+  // le Labo (reseau de calcul) passe par la meme connexion
+  assert.ok(/_authServeur\(_rsUrl\(\) \|\| '', '\/auth\/login'/.test(_SRC_INDEX));
+  assert.ok(!/hcaptcha|recaptcha|turnstile|challenges\.cloudflare/i.test(_SRC_INDEX), 'aucun service de captcha tiers');
+});

@@ -9,6 +9,23 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.19]
+
+### Server bot protection, with no third-party service
+- **Proof of work** (Abalassembly's "captcha"): the server hands out a signed
+  challenge, the device searches for an answer with SHA-256 — about 0.3 s on a
+  computer, a second on a phone, nothing to click. No script from another site,
+  no cookie: the computation lives in the game file, which still works offline.
+  Required at signup, and at login only after three wrong passwords for that
+  account: a normal player never sees it. The Lab login (compute network) uses
+  it too.
+- Server side (`abalassembly-api`): dedicated limits for login (10 per minute)
+  and signup (5 per hour), IPv6 counted per /64 block, an account locked for 15
+  minutes after ten wrong passwords (open sessions keep working), the same
+  response time for an unknown email.
+- As long as the server is not online, nothing leaves the device (tested).
+- Privacy policy: one sentence about this protection.
+
 ## [v3.18]
 
 ### Compute network: a scheduler, pluggable executors
