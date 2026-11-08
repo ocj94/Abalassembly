@@ -9,6 +9,21 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.20]
+
+### Gym Cerveau : l'exercice sur sa propre vue, lancé par « Démarrer »
+- « Commencer » ouvre l'exercice **à la place de la liste**, sur sa propre vue
+  (avant : un panneau à droite, ou sous la liste sur téléphone), avec son titre,
+  sa zone, sa consigne et le choix du niveau.
+- L'exercice ne part **qu'au clic sur ▶ Démarrer** : la position à mémoriser, le
+  chronomètre et les flashs n'avancent plus pendant qu'on lit la consigne ou
+  qu'on choisit le niveau. Changer de niveau remet le bouton Démarrer ; Rejouer
+  repart tout de suite.
+- « ← Tous les exercices » revient à la liste ; le Retour du navigateur ou du
+  téléphone aussi (adresse `#gym-exercice`). Quitter la page arrête l'exercice.
+- Le Duel Cerveau garde son décompte commun de 3 secondes : ses manches partent
+  sans bouton, sur la même vue, et son bandeau reste affiché pendant le duel.
+
 ## [v3.19]
 
 ### Protection anti-robot du serveur, sans service tiers

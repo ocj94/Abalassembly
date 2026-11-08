@@ -159,7 +159,7 @@ function gymFinish(exerciseId, scorePct, meta){
   const replayBtn = document.getElementById('gym-exercise-replay');
   if (replayBtn){
     replayBtn.style.display = 'block';
-    replayBtn.onclick = function(){ startGymExercise(exerciseId); };
+    replayBtn.onclick = function(){ _gymLancer(exerciseId); };   // Rejouer : on a deja clique, ca repart tout de suite
   }
   if (typeof _duelSurFin === 'function') _duelSurFin(exerciseId, scorePct);   // Duel Cerveau : la reponse part a l'adversaire
 }
@@ -906,7 +906,7 @@ function _duelAlea(graine){   // mulberry32 : meme graine -> meme suite, sur tou
 // lance un exercice avec le hasard remplace par la graine (generation synchrone)
 function _duelLancerExercice(id, graine){
   const vrai = Math.random; Math.random = _duelAlea(graine);
-  try { startGymExercise(id); } finally { Math.random = vrai; }
+  try { _gymLancer(id); } finally { Math.random = vrai; }
 }
 function _duelEnvoyer(type, donnees){
   if (typeof _rtcChannel === 'undefined' || !_rtcChannel || _rtcChannel.readyState !== 'open') return false;

@@ -2483,7 +2483,7 @@ table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset
 
 @media (max-width: 900px) {
   .gym-layout { grid-template-columns: 1fr !important; padding: 0 16px 60px !important; }
-  .gym-panel { position: static !important; }
+  .gym-vue-exercice { padding: 18px 16px 60px !important; }
 }
 
 @media (max-width: 900px) {
@@ -3265,7 +3265,7 @@ const I18N_EN = {
     '🔒 These are game exercises, not a medical tool: they diagnose and treat nothing. Scores measure performance on that exact exercise, not a general ability.',
   '🧠 Les schémas de cerveau sont illustratifs et simplifiés — pas une image médicale précise, juste un repère visuel de la zone généralement associée à chaque capacité.':
     '🧠 The brain diagrams are simplified illustrations — not an accurate medical image, just a visual cue for the area usually associated with each ability.',
-  'Choisis une zone ci-dessus pour commencer.': 'Pick an area above to start.',
+  '← Tous les exercices': '← All exercises', '▶ Démarrer': '▶ Start',
   '🧠 Mémoire': '🧠 Memory', '👁️ Acuité': '👁️ Acuity', '⚡ Réflexe': '⚡ Reflex', '🧩 Flexibilité': '🧩 Flexibility', '⚖️ Certitude': '⚖️ Certainty',
   '📖 Répertoire': '📖 Repertoire', '🎚️ Jugement': '🎚️ Judgment', '🎯 Mat au bord': '🎯 Edge mate',
   'Mémoire': 'Memory', 'Acuité': 'Acuity', 'Réflexe': 'Reflex', 'Flexibilité': 'Flexibility', 'Certitude': 'Certainty', 'Répertoire': 'Repertoire', 'Jugement': 'Judgment', 'Mat au bord': 'Edge mate',
@@ -7614,7 +7614,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
 <li><b>Problèmes</b> : des positions à résoudre, tirées de vraies parties.</li>
 <li><b>Ouvertures</b> : les débuts de partie, avec leurs taux de gain réels.</li>
 <li><b>Analyse</b> et <b>Mes statistiques</b> : ta progression, ton classement, ton style ; filtres par période et par type de partie ; tes résultats par niveau, style, couleur, disposition et adversaire ; ta précision partie par partie ; tes 12 dimensions et tes ouvertures face aux vrais joueurs ; export CSV. Dans la carte Éjections, tes remontées, où tombent tes billes et toi face aux vrais joueurs.</li>
-<li><b>Gym Cerveau</b> : des exercices courts de vision du jeu. <b>⚔️ Duel Cerveau</b> : relie-toi à un ami (<i>Se connecter à un ami</i>, même code que pour jouer en direct), puis <i>Lancer un duel</i> — 3 manches de vitesse, la même position pour vous deux ; le meilleur score gagne la manche, à égalité le plus rapide. Une barre face à face, aux couleurs du thème de chacun, montre qui pousse qui : au front, 1 bille contre 1 à égalité, jusqu'à 3 contre 1 pour celui qui mène ; la pastille verte ✓ veut dire que l'autre a déjà répondu.</li>
+<li><b>Gym Cerveau</b> : des exercices courts de vision du jeu. <i>Commencer</i> ouvre l'exercice sur sa propre page ; choisis le niveau, il part au clic sur <b>▶ Démarrer</b> (<i>← Tous les exercices</i> ou le Retour du navigateur pour revenir à la liste). <b>⚔️ Duel Cerveau</b> : relie-toi à un ami (<i>Se connecter à un ami</i>, même code que pour jouer en direct), puis <i>Lancer un duel</i> — 3 manches de vitesse, la même position pour vous deux ; le meilleur score gagne la manche, à égalité le plus rapide. Une barre face à face, aux couleurs du thème de chacun, montre qui pousse qui : au front, 1 bille contre 1 à égalité, jusqu'à 3 contre 1 pour celui qui mène ; la pastille verte ✓ veut dire que l'autre a déjà répondu.</li>
 <li><b>Formation Formateurs</b> : pour animer des ateliers.</li>
 </ul>
 </div></details>
@@ -8132,7 +8132,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
      PAGE: GYM CERVEAU
 ══════════════════════════════════════════ -->
 <div class="page" id="page-gym">
-  <div class="page-header" style="padding-bottom:32px">
+  <div class="page-header gym-liste" style="padding-bottom:32px">
     <div class="section-label">Apprentissage</div>
     <h2>🧠 Gym Cerveau</h2>
     <p style="color:var(--muted);font-size:14px;max-width:640px;margin-top:8px">
@@ -8148,12 +8148,22 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
   </div>
 
   <div id="duel-cerveau" style="margin:0 60px 20px;max-width:1200px;background:var(--surface);border:1px solid var(--gold-dim);border-radius:14px;padding:16px 20px"></div>
-  <div class="gym-layout" style="padding:0 60px 80px;display:grid;grid-template-columns:1fr 360px;gap:24px;max-width:1200px">
-    <div id="gym-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;align-content:start"></div>
+  <!-- la liste des exercices ; « Commencer » ouvre l'exercice sur sa propre vue (#gym-exercice), et il ne part qu'au clic sur « Démarrer » (v3.20) -->
+  <div id="gym-grid" class="gym-liste gym-layout" style="padding:0 60px 80px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;align-content:start;max-width:1200px"></div>
 
-    <div class="gym-panel" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;position:sticky;top:80px;align-self:start">
+  <div id="gym-vue-exercice" class="gym-vue-exercice" style="display:none;padding:28px 60px 80px;max-width:760px">
+    <button type="button" id="gym-exercice-retour" onclick="gymRetourListe()" style="margin-bottom:18px;background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer">← Tous les exercices</button>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+      <div id="gym-exercice-cerveau"></div>
+      <div>
+        <div class="section-label" id="gym-exercice-zone">Gym Cerveau</div>
+        <h2 id="gym-exercice-titre" style="margin:2px 0 0">Exercice</h2>
+      </div>
+    </div>
+    <p id="gym-exercice-desc" style="color:var(--muted);font-size:13px;margin:8px 0 18px"></p>
+    <div class="gym-panel" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px">Exercice en cours</div>
+        <div style="font-size:13px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px">Niveau</div>
         <div id="gym-exercise-timer" style="font-size:13px;font-weight:700;color:var(--gold);display:none">⏱ 0s</div>
       </div>
       <div style="display:flex;gap:6px;margin-bottom:12px">
@@ -8164,7 +8174,8 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
       </div>
       <style>@keyframes duelPression { from { opacity: .45; } to { opacity: 1; } }</style>
       <div id="duel-barres" style="display:none;margin-bottom:12px;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:10px"></div>
-      <div id="gym-exercise-board" style="min-height:180px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px">Choisis une zone ci-dessus pour commencer.</div>
+      <div id="gym-exercise-board" style="min-height:260px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;text-align:center"></div>
+      <button type="button" id="gym-exercise-start" onclick="gymDemarrer()" style="display:none;margin-top:12px;width:100%;font-size:15px;padding:12px;background:var(--gold);color:var(--bg);border:none;border-radius:8px;font-weight:700;cursor:pointer">▶ Démarrer</button>
       <div id="gym-exercise-hint" style="font-size:12px;color:var(--muted);margin-top:12px;min-height:16px"></div>
       <button id="gym-exercise-submit" class="btn" style="display:none;margin-top:12px;width:100%">Valider</button>
       <div id="gym-exercise-result" style="font-size:13px;color:var(--gold);font-weight:700;margin-top:12px;min-height:18px"></div>
@@ -8939,7 +8950,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v3.19';
+const APP_VERSION = 'v3.20';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -34406,7 +34417,7 @@ function gymFinish(exerciseId, scorePct, meta){
   const replayBtn = document.getElementById('gym-exercise-replay');
   if (replayBtn){
     replayBtn.style.display = 'block';
-    replayBtn.onclick = function(){ startGymExercise(exerciseId); };
+    replayBtn.onclick = function(){ _gymLancer(exerciseId); };   // Rejouer : on a deja clique, ca repart tout de suite
   }
   if (typeof _duelSurFin === 'function') _duelSurFin(exerciseId, scorePct);   // Duel Cerveau : la reponse part a l'adversaire
 }
@@ -35153,7 +35164,7 @@ function _duelAlea(graine){   // mulberry32 : meme graine -> meme suite, sur tou
 // lance un exercice avec le hasard remplace par la graine (generation synchrone)
 function _duelLancerExercice(id, graine){
   const vrai = Math.random; Math.random = _duelAlea(graine);
-  try { startGymExercise(id); } finally { Math.random = vrai; }
+  try { _gymLancer(id); } finally { Math.random = vrai; }
 }
 function _duelEnvoyer(type, donnees){
   if (typeof _rtcChannel === 'undefined' || !_rtcChannel || _rtcChannel.readyState !== 'open') return false;
@@ -35649,20 +35660,79 @@ function renderFormateurs(){
   formateurRenderAttestationGate();
 }
 
+/* Gym Cerveau, v3.20 (demande d'ocj94) : « Commencer » ouvre l'exercice sur sa propre
+   vue, a la place de la liste (avant : un panneau a droite, ou sous la liste sur
+   telephone), et l'exercice ne part qu'au clic sur « Démarrer » : la memoire, les
+   chronometres et les positions a flash ne commencent pas pendant qu'on lit la
+   consigne. Le Retour du navigateur revient a la liste (adresse #gym-exercice).
+   Le Duel Cerveau, qui a son propre decompte, lance ses manches sans attendre
+   (_gymLancer). */
+let _gymExercicePret = null;    // exercice affiche, en attente du clic sur « Démarrer »
+function _gymVue(exercice){
+  const liste = document.querySelectorAll ? document.querySelectorAll('#page-gym .gym-liste') : [];
+  Array.prototype.forEach.call(liste, function(el){ el.style.display = exercice ? 'none' : ''; });
+  const vue = document.getElementById('gym-vue-exercice');
+  if (vue) vue.style.display = exercice ? 'block' : 'none';
+  // le bandeau du Duel Cerveau reste visible pendant un duel, et sur la liste
+  const duel = document.getElementById('duel-cerveau');
+  if (duel) duel.style.display = (!exercice || (typeof _duel !== 'undefined' && _duel && _duel.etat === 'jeu')) ? '' : 'none';
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') { try { window.scrollTo(0, 0); } catch (e) {} }
+}
+function _gymEnTete(id){
+  const z = (typeof GYM_ZONES !== 'undefined') ? GYM_ZONES.find(function(x){ return x.id === id; }) : null;
+  const t = document.getElementById('gym-exercice-titre'); if (t) t.textContent = z ? z.icon + ' ' + z.name : id;
+  const zo = document.getElementById('gym-exercice-zone'); if (zo) zo.textContent = z ? z.zone : 'Gym Cerveau';
+  const d = document.getElementById('gym-exercice-desc'); if (d) d.textContent = z ? z.desc : '';
+  const c = document.getElementById('gym-exercice-cerveau'); if (c && typeof gymBrainSvg === 'function') c.innerHTML = gymBrainSvg(id, 56);
+}
+function _gymRemiseAZero(){
+  gymStopCountdown();
+  ['gym-exercise-result', 'gym-exercise-hint'].forEach(function(k){ const el = document.getElementById(k); if (el) el.textContent = ''; });
+  ['gym-exercise-submit', 'gym-exercise-replay'].forEach(function(k){ const el = document.getElementById(k); if (el) el.style.display = 'none'; });
+}
+// « Commencer » (et Essayer, la Formation formateurs) : ouvre l'exercice, sans le lancer
 function startGymExercise(id){
+  if (!GYM_STARTERS[id]) return;
+  _gymLastExerciseId = id;
+  _gymExercicePret = id;
+  _gymRemiseAZero();
+  _gymEnTete(id);
+  const plateau = document.getElementById('gym-exercise-board');
+  if (plateau) plateau.innerHTML = '<div style="padding:20px;line-height:1.6">Choisis ton niveau, puis clique sur <strong>▶ Démarrer</strong> quand tu es prêt.<br><span style="font-size:11px">Le chronomètre et l\u2019exercice ne partent qu\u2019à ce moment-là.</span></div>';
+  const go = document.getElementById('gym-exercise-start'); if (go) go.style.display = 'block';
+  _gymVue(true);
+}
+// « Démarrer »
+function gymDemarrer(){
+  const id = _gymExercicePret || _gymLastExerciseId;
+  if (id) _gymLancer(id);
+}
+// lance vraiment l'exercice (Démarrer, Rejouer, une manche de Duel)
+function _gymLancer(id){
   const fn = GYM_STARTERS[id];
   if (!fn) return;
   _gymLastExerciseId = id;
-  gymStopCountdown();
-  const resultEl = document.getElementById('gym-exercise-result');
-  if (resultEl) resultEl.textContent = '';
-  const hintEl = document.getElementById('gym-exercise-hint');
-  if (hintEl) hintEl.textContent = '';
-  const submitBtn = document.getElementById('gym-exercise-submit');
-  if (submitBtn) submitBtn.style.display = 'none';
-  const replayBtn = document.getElementById('gym-exercise-replay');
-  if (replayBtn) replayBtn.style.display = 'none';
+  _gymExercicePret = null;
+  _gymRemiseAZero();
+  _gymEnTete(id);
+  const go = document.getElementById('gym-exercise-start'); if (go) go.style.display = 'none';
+  _gymVue(true);
   fn();
+}
+// « ← Tous les exercices » (et en quittant la page) : retour a la liste, exercice arrete
+function gymRetourListe(){
+  _gymExercicePret = null;
+  gymStopCountdown();
+  _gymVue(false);
+}
+// quitter la page Gym (ou y revenir par le menu) remet la liste : un exercice ne reste pas ouvert en douce
+if (typeof showPage === 'function') {
+  const _showPageAvantGym = showPage;
+  showPage = function(name){
+    const vue = document.getElementById('gym-vue-exercice');
+    if (vue && vue.style.display !== 'none' && !(typeof _duel !== 'undefined' && _duel && _duel.etat === 'jeu' && name === 'gym')) gymRetourListe();
+    return _showPageAvantGym.apply(this, arguments);
+  };
 }
 
 function renderGymCerveau(){
@@ -35715,9 +35785,10 @@ function gymSetLevel(level){
     btn.style.borderColor = active ? 'var(--gold)' : 'var(--border)';
     btn.style.fontWeight = active ? '700' : '400';
   });
-  // Relance l'exercice en cours au nouveau niveau (sinon changer de niveau
-  // n'avait aucun effet visible tant qu'on ne relançait pas manuellement).
-  if (_gymLastExerciseId) startGymExercise(_gymLastExerciseId);
+  // Un exercice deja lance repart au nouveau niveau, mais attend de nouveau « Démarrer »
+  // (v3.20) : changer de niveau ne doit pas lancer le chronometre a la place du joueur.
+  const vue = document.getElementById('gym-vue-exercice');
+  if (_gymLastExerciseId && vue && vue.style.display !== 'none' && !(typeof _duel !== 'undefined' && _duel && _duel.etat === 'jeu')) startGymExercise(_gymLastExerciseId);
 }
 
 function renderCompare() {
@@ -43031,7 +43102,7 @@ const ADRESSES_PAGES = [
   ['variants', 'variantes', 'variants'],
   ['aide', 'aide', 'help'], ['learn', 'regles', 'rules'], ['plateau', 'plateau', 'real-board'], ['academy', 'academy', 'academy'],
   ['openings', 'ouvertures', 'openings'], ['analysis', 'analyse', 'analysis'], ['stats', 'mes-statistiques', 'my-statistics'],
-  ['gym', 'gym', 'brain-gym'], ['formateurs', 'formateurs', 'trainers'],
+  ['gym', 'gym', 'brain-gym'], ['gymexo', 'gym-exercice', 'brain-gym-exercise'], ['formateurs', 'formateurs', 'trainers'],
   ['lab', 'labo', 'lab'], ['library', 'bibliotheque', 'library'], ['tablebase', 'finales', 'endgames'], ['camera', 'photo', 'photo'],
   ['biblio', 'documentation', 'documentation'], ['github', 'github', 'github'], ['archi', 'architecture', 'architecture'],
   ['briefing', 'fiche-ia', 'ai-sheet'], ['museum', 'musee', 'museum'], ['pioneers', 'pionniers', 'pioneers'],
@@ -43053,9 +43124,11 @@ const _ADR_FENETRES = {
   import:   { id: 'apgn-import-modal', ouvrir: function(){ openApgnImportModal(); }, fermer: function(el){ el.remove(); } },
   library:  { id: 'migs-modal',        ouvrir: function(){ openMigsBrowser(); },     fermer: function(){ closeMigsBrowser(); } },
   briefing: { id: 'briefing-modal',    ouvrir: function(){ openSiteBriefing(); },    fermer: function(el){ el.remove(); } },
-  synchro:  { id: 'sync-modal',        ouvrir: function(){ openSyncModal(); },       fermer: function(){ closeSyncModal(); } }   // v2.69
+  synchro:  { id: 'sync-modal',        ouvrir: function(){ openSyncModal(); },       fermer: function(){ closeSyncModal(); } },  // v2.69
+  // v3.20 : l'exercice de Gym Cerveau a sa vue ; Retour revient a la liste
+  gymexo:   { id: 'gym-vue-exercice',  ouvrir: function(){ showPage('gym'); startGymExercise(_gymLastExerciseId || 'memory'); }, fermer: function(){ gymRetourListe(); } }
 };
-const _ADR_OUVREURS = { import: 'openApgnImportModal', library: 'openMigsBrowser', briefing: 'openSiteBriefing', synchro: 'openSyncModal' };
+const _ADR_OUVREURS = { import: 'openApgnImportModal', library: 'openMigsBrowser', briefing: 'openSiteBriefing', synchro: 'openSyncModal', gymexo: 'startGymExercise' };
 
 let _adrMode = null;          // null : l'utilisateur navigue (nouvelle entree d'historique) ; 'adresse' : on suit la barre d'adresse (on corrige sans empiler)
 let _adrPret = false;         // rien n'est ecrit dans l'adresse avant d'avoir lu celle d'arrivee

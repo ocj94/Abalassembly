@@ -26,7 +26,7 @@ const ADRESSES_PAGES = [
   ['variants', 'variantes', 'variants'],
   ['aide', 'aide', 'help'], ['learn', 'regles', 'rules'], ['plateau', 'plateau', 'real-board'], ['academy', 'academy', 'academy'],
   ['openings', 'ouvertures', 'openings'], ['analysis', 'analyse', 'analysis'], ['stats', 'mes-statistiques', 'my-statistics'],
-  ['gym', 'gym', 'brain-gym'], ['formateurs', 'formateurs', 'trainers'],
+  ['gym', 'gym', 'brain-gym'], ['gymexo', 'gym-exercice', 'brain-gym-exercise'], ['formateurs', 'formateurs', 'trainers'],
   ['lab', 'labo', 'lab'], ['library', 'bibliotheque', 'library'], ['tablebase', 'finales', 'endgames'], ['camera', 'photo', 'photo'],
   ['biblio', 'documentation', 'documentation'], ['github', 'github', 'github'], ['archi', 'architecture', 'architecture'],
   ['briefing', 'fiche-ia', 'ai-sheet'], ['museum', 'musee', 'museum'], ['pioneers', 'pionniers', 'pioneers'],
@@ -48,9 +48,11 @@ const _ADR_FENETRES = {
   import:   { id: 'apgn-import-modal', ouvrir: function(){ openApgnImportModal(); }, fermer: function(el){ el.remove(); } },
   library:  { id: 'migs-modal',        ouvrir: function(){ openMigsBrowser(); },     fermer: function(){ closeMigsBrowser(); } },
   briefing: { id: 'briefing-modal',    ouvrir: function(){ openSiteBriefing(); },    fermer: function(el){ el.remove(); } },
-  synchro:  { id: 'sync-modal',        ouvrir: function(){ openSyncModal(); },       fermer: function(){ closeSyncModal(); } }   // v2.69
+  synchro:  { id: 'sync-modal',        ouvrir: function(){ openSyncModal(); },       fermer: function(){ closeSyncModal(); } },  // v2.69
+  // v3.20 : l'exercice de Gym Cerveau a sa vue ; Retour revient a la liste
+  gymexo:   { id: 'gym-vue-exercice',  ouvrir: function(){ showPage('gym'); startGymExercise(_gymLastExerciseId || 'memory'); }, fermer: function(){ gymRetourListe(); } }
 };
-const _ADR_OUVREURS = { import: 'openApgnImportModal', library: 'openMigsBrowser', briefing: 'openSiteBriefing', synchro: 'openSyncModal' };
+const _ADR_OUVREURS = { import: 'openApgnImportModal', library: 'openMigsBrowser', briefing: 'openSiteBriefing', synchro: 'openSyncModal', gymexo: 'startGymExercise' };
 
 let _adrMode = null;          // null : l'utilisateur navigue (nouvelle entree d'historique) ; 'adresse' : on suit la barre d'adresse (on corrige sans empiler)
 let _adrPret = false;         // rien n'est ecrit dans l'adresse avant d'avoir lu celle d'arrivee

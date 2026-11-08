@@ -264,20 +264,79 @@ function renderFormateurs(){
   formateurRenderAttestationGate();
 }
 
+/* Gym Cerveau, v3.20 (demande d'ocj94) : « Commencer » ouvre l'exercice sur sa propre
+   vue, a la place de la liste (avant : un panneau a droite, ou sous la liste sur
+   telephone), et l'exercice ne part qu'au clic sur « Démarrer » : la memoire, les
+   chronometres et les positions a flash ne commencent pas pendant qu'on lit la
+   consigne. Le Retour du navigateur revient a la liste (adresse #gym-exercice).
+   Le Duel Cerveau, qui a son propre decompte, lance ses manches sans attendre
+   (_gymLancer). */
+let _gymExercicePret = null;    // exercice affiche, en attente du clic sur « Démarrer »
+function _gymVue(exercice){
+  const liste = document.querySelectorAll ? document.querySelectorAll('#page-gym .gym-liste') : [];
+  Array.prototype.forEach.call(liste, function(el){ el.style.display = exercice ? 'none' : ''; });
+  const vue = document.getElementById('gym-vue-exercice');
+  if (vue) vue.style.display = exercice ? 'block' : 'none';
+  // le bandeau du Duel Cerveau reste visible pendant un duel, et sur la liste
+  const duel = document.getElementById('duel-cerveau');
+  if (duel) duel.style.display = (!exercice || (typeof _duel !== 'undefined' && _duel && _duel.etat === 'jeu')) ? '' : 'none';
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') { try { window.scrollTo(0, 0); } catch (e) {} }
+}
+function _gymEnTete(id){
+  const z = (typeof GYM_ZONES !== 'undefined') ? GYM_ZONES.find(function(x){ return x.id === id; }) : null;
+  const t = document.getElementById('gym-exercice-titre'); if (t) t.textContent = z ? z.icon + ' ' + z.name : id;
+  const zo = document.getElementById('gym-exercice-zone'); if (zo) zo.textContent = z ? z.zone : 'Gym Cerveau';
+  const d = document.getElementById('gym-exercice-desc'); if (d) d.textContent = z ? z.desc : '';
+  const c = document.getElementById('gym-exercice-cerveau'); if (c && typeof gymBrainSvg === 'function') c.innerHTML = gymBrainSvg(id, 56);
+}
+function _gymRemiseAZero(){
+  gymStopCountdown();
+  ['gym-exercise-result', 'gym-exercise-hint'].forEach(function(k){ const el = document.getElementById(k); if (el) el.textContent = ''; });
+  ['gym-exercise-submit', 'gym-exercise-replay'].forEach(function(k){ const el = document.getElementById(k); if (el) el.style.display = 'none'; });
+}
+// « Commencer » (et Essayer, la Formation formateurs) : ouvre l'exercice, sans le lancer
 function startGymExercise(id){
+  if (!GYM_STARTERS[id]) return;
+  _gymLastExerciseId = id;
+  _gymExercicePret = id;
+  _gymRemiseAZero();
+  _gymEnTete(id);
+  const plateau = document.getElementById('gym-exercise-board');
+  if (plateau) plateau.innerHTML = '<div style="padding:20px;line-height:1.6">Choisis ton niveau, puis clique sur <strong>▶ Démarrer</strong> quand tu es prêt.<br><span style="font-size:11px">Le chronomètre et l\u2019exercice ne partent qu\u2019à ce moment-là.</span></div>';
+  const go = document.getElementById('gym-exercise-start'); if (go) go.style.display = 'block';
+  _gymVue(true);
+}
+// « Démarrer »
+function gymDemarrer(){
+  const id = _gymExercicePret || _gymLastExerciseId;
+  if (id) _gymLancer(id);
+}
+// lance vraiment l'exercice (Démarrer, Rejouer, une manche de Duel)
+function _gymLancer(id){
   const fn = GYM_STARTERS[id];
   if (!fn) return;
   _gymLastExerciseId = id;
-  gymStopCountdown();
-  const resultEl = document.getElementById('gym-exercise-result');
-  if (resultEl) resultEl.textContent = '';
-  const hintEl = document.getElementById('gym-exercise-hint');
-  if (hintEl) hintEl.textContent = '';
-  const submitBtn = document.getElementById('gym-exercise-submit');
-  if (submitBtn) submitBtn.style.display = 'none';
-  const replayBtn = document.getElementById('gym-exercise-replay');
-  if (replayBtn) replayBtn.style.display = 'none';
+  _gymExercicePret = null;
+  _gymRemiseAZero();
+  _gymEnTete(id);
+  const go = document.getElementById('gym-exercise-start'); if (go) go.style.display = 'none';
+  _gymVue(true);
   fn();
+}
+// « ← Tous les exercices » (et en quittant la page) : retour a la liste, exercice arrete
+function gymRetourListe(){
+  _gymExercicePret = null;
+  gymStopCountdown();
+  _gymVue(false);
+}
+// quitter la page Gym (ou y revenir par le menu) remet la liste : un exercice ne reste pas ouvert en douce
+if (typeof showPage === 'function') {
+  const _showPageAvantGym = showPage;
+  showPage = function(name){
+    const vue = document.getElementById('gym-vue-exercice');
+    if (vue && vue.style.display !== 'none' && !(typeof _duel !== 'undefined' && _duel && _duel.etat === 'jeu' && name === 'gym')) gymRetourListe();
+    return _showPageAvantGym.apply(this, arguments);
+  };
 }
 
 function renderGymCerveau(){
@@ -330,9 +389,10 @@ function gymSetLevel(level){
     btn.style.borderColor = active ? 'var(--gold)' : 'var(--border)';
     btn.style.fontWeight = active ? '700' : '400';
   });
-  // Relance l'exercice en cours au nouveau niveau (sinon changer de niveau
-  // n'avait aucun effet visible tant qu'on ne relançait pas manuellement).
-  if (_gymLastExerciseId) startGymExercise(_gymLastExerciseId);
+  // Un exercice deja lance repart au nouveau niveau, mais attend de nouveau « Démarrer »
+  // (v3.20) : changer de niveau ne doit pas lancer le chronometre a la place du joueur.
+  const vue = document.getElementById('gym-vue-exercice');
+  if (_gymLastExerciseId && vue && vue.style.display !== 'none' && !(typeof _duel !== 'undefined' && _duel && _duel.etat === 'jeu')) startGymExercise(_gymLastExerciseId);
 }
 
 function renderCompare() {
