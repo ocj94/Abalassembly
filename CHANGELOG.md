@@ -9,6 +9,23 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.19]
+
+### Protection anti-robot du serveur, sans service tiers
+- **Preuve de travail** (le « captcha » d'Abalassembly) : le serveur donne un
+  défi signé, l'appareil cherche une réponse par SHA-256 — environ 0,3 s sur un
+  ordinateur, une seconde sur un téléphone, rien à cliquer. Aucun script d'un
+  autre site, aucun cookie : le calcul tient dans le fichier du jeu, qui reste
+  utilisable hors ligne. Demandée à l'inscription, et à la connexion seulement
+  après trois mots de passe faux pour ce compte : un joueur normal ne la voit
+  jamais. La connexion du Labo (réseau de calcul) en profite aussi.
+- Côté serveur (`abalassembly-api`) : limites propres à la connexion (10 par
+  minute) et à l'inscription (5 par heure), IPv6 comptée par bloc /64,
+  blocage d'un compte 15 minutes après dix mots de passe faux (les sessions
+  ouvertes continuent), même temps de réponse pour un email inconnu.
+- Tant que le serveur n'est pas en ligne, rien ne part de l'appareil (testé).
+- Politique de confidentialité : une phrase sur cette protection.
+
 ## [v3.18]
 
 ### Réseau de calcul : un ordonnanceur, des exécutants branchables

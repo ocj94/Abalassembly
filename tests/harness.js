@@ -89,6 +89,7 @@ function contexteFactice() {
   ctx.Promise = Promise;
   ctx.TextDecoder = TextDecoder;
   ctx.TextEncoder = TextEncoder;   // empreintes de mot de passe (PBKDF2) des profils locaux, v2.57
+  ctx.AbortController = AbortController;   // connexion au serveur (preuve de travail), v3.19
   ctx.URLSearchParams = URLSearchParams;
   ctx.URL = URL;
   ctx.Blob = typeof Blob !== 'undefined' ? Blob : undefined;
