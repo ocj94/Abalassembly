@@ -7646,3 +7646,34 @@ test('v3.23, Musee : le filtre existe et ne s affiche que s il y a des pieces ; 
   assert.match(_SRC_INDEX, /@media \(min-width: 901px\) \{\n  #engage-bar \{ padding-top: 76px !important; \}\n  #page-aide > div:first-child \{ padding-top: 80px !important; \}/);
   assert.match(_SRC_INDEX, /id="gym-vue-exercice" class="gym-vue-exercice" style="display:none;padding:96px 60px 80px/);
 });
+
+test('v3.24, campagne auto-jeu : le formulaire du Labo envoie A seul, en parties, ouverture 8 ; le bilan affiche les positions', async () => {
+  const vm = require('vm'), lire = (c) => vm.runInContext(c, ctx);
+  const hote = { innerHTML: '' }, champs = { 'rs-c-type': 'autojeu', 'rs-c-nom': 'base 1', 'rs-c-a': 'n:3', 'rs-c-prof': '2', 'rs-c-paires': '1000' };
+  const g = ctx.document.getElementById, f0 = ctx.fetch, corps = [];
+  ctx.document.getElementById = (id) => id === 'lab-reseau-host' ? hote : (id in champs ? { value: champs[id], style: {} } : g.call(ctx.document, id));
+  ctx.fetch = (url, o) => { corps.push([url, o.body ? JSON.parse(o.body) : null]);
+    const rep = url.endsWith('/ordo/campagnes') ? { ok: true, campagne: 9, missions: 1000 } : { familles: [], missions: {}, campagnes: [], executants: [] };
+    return Promise.resolve({ status: 200, json: () => Promise.resolve(rep) }); };
+  lire("BACKEND.enabled = true; BACKEND.url = 'https://api.essai'; RESEAU.jeton = 'j'; RESEAU.user = { role: 'admin' };"
+    + "RESEAU.etat = { familles: [], missions: {}, campagnes: [{ id: 9, nom: 'base 1', type: 'autojeu', paires: 1000, etat: 'active', profondeur: 2,"
+    + " bilan: { type: 'autojeu', parties: 12, positions: 1234, noir: 5, blanc: 4, nulles: 3, fins: {} } }] };");
+  try {
+    ctx.renderReseau();
+    assert.match(hote.innerHTML, /🧠 <b>base 1<\/b> \(auto-jeu, profondeur 2, 1000 parties\) : 12 parties faites — 1\s?234 positions · Noirs 5 · nulles 3 · Blancs 4/);
+    assert.match(hote.innerHTML, /<option value="autojeu">auto-jeu \(base de positions\)<\/option>/);
+    await ctx.rsCreerCampagne();
+    const [url, b] = corps.find(c => c[0].endsWith('/ordo/campagnes'));
+    assert.strictEqual(url, 'https://api.essai/ordo/campagnes');
+    assert.strictEqual(b.type, 'autojeu'); assert.strictEqual(b.parties, 1000); assert.strictEqual(b.ouverture, 8);
+    assert.ok(!('poidsB' in b) && !('paires' in b), 'pas d adversaire');
+    assert.strictEqual(JSON.stringify(b.poidsA), JSON.stringify(lire("_rsPoids('n:3')")));
+    champs['rs-c-type'] = 'duel'; champs['rs-c-b'] = 'p:texel'; champs['rs-c-paires'] = '50'; corps.length = 0;
+    await ctx.rsCreerCampagne();
+    const d = corps.find(c => c[0].endsWith('/ordo/campagnes'))[1];
+    assert.strictEqual(d.type, undefined); assert.strictEqual(d.paires, 50); assert.ok(d.poidsB);
+  } finally {
+    ctx.fetch = f0; ctx.document.getElementById = g;
+    lire("BACKEND.enabled = false; BACKEND.url = null; RESEAU.jeton = null; RESEAU.user = null; RESEAU.etat = null; RESEAU.journal.length = 0;");
+  }
+});

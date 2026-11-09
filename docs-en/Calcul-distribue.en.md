@@ -33,6 +33,14 @@ Checked on 116 plies recomputed one by one in a fresh worker, up to depth 3, wit
 - splitting a live search across several machines (too many dependencies between branches, too much latency);
 - graphics cards (CUDA, WebGPU): alpha-beta doesn't benefit from them.
 
+## Since v3.24: self-play, the basis of a "shadow" neural network
+
+A campaign can also be of the **self-play** type (Lab → 🌐 Network, administration): a single AI setting plays against itself, each game from its own randomly drawn 8-ply opening. There is no winner to pick between two settings; the goal is to produce many varied games, verified by the server like all others.
+
+The server turns them into a **position database** (`scripts/exporter-positions.js` in the `abalassembly-api` repository): every position of every game, with the side to move, the marbles pushed out, the current judge's score and the final result from the side to move's point of view (won, drawn, lost). Positions from the random opening are marked, so they can be left out.
+
+This database will train a small neural network that will **not** replace the current judge: it will run alongside, "in the shadow", on the same positions, and the two will be compared (scores, chosen moves, which one best predicts the end of the game, biggest disagreements). The engine that plays stays today's, and verification by recomputation still holds, since the network decides no move.
+
 ## The study from before v3.18
 
 Four separate "volunteer computing grid" proposals (BOINC- or World Community Grid-style) had been studied. None had been adopted, and its reasons still hold for what they targeted: endgame tables and training a neural network. The blocker was this: **no calculation existed that would justify the infrastructure.** The Lab's duels, which are one, became the subject of v3.18.

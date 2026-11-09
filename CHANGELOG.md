@@ -9,6 +9,25 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.24]
+
+### Auto-jeu : la base de positions d'un réseau de neurones « en ombre »
+- Nouveau type de campagne dans le Labo (🌐 Réseau, administration) :
+  **auto-jeu**. Un réglage de l'IA joue contre lui-même, chaque partie avec sa
+  propre graine, donc sa propre ouverture de 8 demi-coups tirée au hasard. Les
+  parties sont distribuées aux exécutants (navigateurs, PC, conteneurs) et
+  vérifiées par recalcul comme les duels. Le bilan affiche les parties et les
+  positions produites, et le partage Noirs / nulles / Blancs.
+- Côté serveur (`abalassembly-api`) : `type: 'autojeu'` sur `POST /ordo/campagnes`
+  (migration 009), et `scripts/exporter-positions.js`, qui rejoue chaque partie
+  acceptée dans le moteur et écrit une ligne par position (plateau en 61 cases,
+  camp au trait, billes sorties, score du juge actuel, résultat final vu du
+  camp au trait, ouverture marquée), en NDJSON ou CSV. Testé jusque dans le
+  conteneur Docker.
+- C'est la première étape du réseau de neurones « en ombre » : il tournera à
+  côté du juge actuel, sans le remplacer, pour comparer les deux. Le moteur qui
+  joue ne change pas.
+
 ## [v3.23]
 
 ### Bande vide en haut des pages, bandeau de langue, filtre du Musée

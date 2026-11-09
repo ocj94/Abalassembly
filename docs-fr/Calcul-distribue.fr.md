@@ -33,6 +33,14 @@ Vérifié sur 116 demi-coups recalculés un à un dans un fil neuf, jusqu'à la 
 - la répartition d'une recherche en direct entre plusieurs machines (trop de dépendances entre les branches, trop de latence) ;
 - les cartes graphiques (CUDA, WebGPU) : l'alpha-bêta n'en profite pas.
 
+## Depuis la v3.24 : l'auto-jeu, la base d'un réseau de neurones « en ombre »
+
+Une campagne peut aussi être de type **auto-jeu** (Labo → 🌐 Réseau, administration) : un seul réglage de l'IA joue contre lui-même, chaque partie depuis sa propre ouverture de 8 demi-coups tirée au hasard. Il n'y a pas de vainqueur à désigner entre deux réglages ; le but est de produire beaucoup de parties variées, vérifiées par le serveur comme toutes les autres.
+
+Le serveur en tire une **base de positions** (`scripts/exporter-positions.js` du dépôt `abalassembly-api`) : chaque position de chaque partie, avec le camp au trait, les billes sorties, le score du juge actuel et le résultat final vu du camp au trait (gagnée, nulle, perdue). Les positions de l'ouverture tirée au hasard sont marquées, pour pouvoir les écarter.
+
+Cette base servira à entraîner un petit réseau de neurones qui ne remplacera **pas** le juge actuel : il tournera à côté, « en ombre », sur les mêmes positions, et on comparera les deux (scores, coups choisis, qui prédit le mieux la fin de la partie, plus gros désaccords). Le moteur qui joue reste celui d'aujourd'hui, et la vérification par recalcul reste valable, puisque le réseau ne décide d'aucun coup.
+
 ## L'étude d'avant la v3.18
 
 Quatre propositions distinctes de « grille de calcul volontaire » (façon World Community Grid ou BOINC) avaient été étudiées. Aucune n'avait été retenue, et ses raisons restent justes pour ce qu'elles visaient : les tables de finales et l'entraînement d'un réseau de neurones. Le blocage tenait à ceci : **il n'existait aucun calcul qui justifie l'infrastructure**. Les duels du Labo, qui en sont un, sont devenus l'objet de la v3.18.
