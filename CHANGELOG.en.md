@@ -9,6 +9,26 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.23]
+
+### Empty band at the top of pages, language banner, Museum filter
+- **Language banner** ("View Abalassembly in English?"): it showed at the top,
+  **under** the fixed top bar, so invisible, while pushing every page down by
+  its height. For any browser not in French, an empty band above the title, and
+  a language offer nobody saw. It now shows at the bottom of the screen.
+- **Phone**: several pages (Analysis, Editor, Gym, Lab…) kept the desktop top
+  bar margin (64 px) on top of the phone one (56 px); so did the Photo page. The
+  title moves up by 50 to 110 px depending on the page and browser language;
+  nothing goes under the bar.
+- **Desktop**: the home page, Help and the Brain Gym exercise view started
+  **under** the fixed top bar (top of the tiles, the "Help" title and the
+  "← All exercises" button hidden). They now start below the bar. Checked on
+  all 36 pages at 1280, 1000 and 390 px wide.
+- **Museum**: the seven filter buttons (Luxury, Wood, Travel…) called a function
+  that never existed. The filter now exists, and the buttons only show when
+  there are pieces to filter: the page has none yet, and honestly says it is
+  being prepared.
+
 ## [v3.22]
 
 ### No more code in the HTML: the CSP really protects

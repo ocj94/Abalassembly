@@ -7600,7 +7600,7 @@ test('v3.22, sans code dans le HTML : aucun gestionnaire en ligne, CSP sans unsa
   const A = require('../tools/actions.js');
   assert.strictEqual(fs.readFileSync(path.join(R, 'src', 'main', '00b-actions-liste.js'), 'utf8'), A.contenu(), 'node tools/actions.js');
   const tout = fichiers.filter(f => f.endsWith('.js')).map(f => fs.readFileSync(f, 'utf8')).join('\n');
-  const DEJA_ABSENTES = ['filterMuseum'];   // boutons du Musée : la fonction n'a jamais existé (avant v3.22 déjà)
+  const DEJA_ABSENTES = [];
   const absentes = A.noms().filter(n => !DEJA_ABSENTES.includes(n) && !new RegExp('(function\\s+' + n.replace(/\$/g, '\\$') + '\\s*\\(|(const|let|var)\\s+' + n.replace(/\$/g, '\\$') + '\\s*=|window\\.' + n.replace(/\$/g, '\\$') + '\\s*=)').test(tout));
   assert.deepStrictEqual(absentes, [], 'actions sans fonction');
   // 4. l'interpréteur : ce qu'il accepte, et ce qu'il refuse sans rien exécuter
@@ -7622,4 +7622,27 @@ test('v3.22, sans code dans le HTML : aucun gestionnaire en ligne, CSP sans unsa
     assert.strictEqual(an("f(1+1)"), 'null');
     assert.strictEqual(vm_run("typeof _ACTIONS.alert + typeof _ACTIONS.eval + typeof _ACTIONS.fetch"), 'undefinedundefinedundefined', 'alert, eval, fetch ne sont pas des actions');
   } finally { vm_run('console.error = console.__err'); }
+});
+
+test('v3.23, Musee : le filtre existe et ne s affiche que s il y a des pieces ; bandeau de langue en bas ; pas de double marge en haut sur telephone', () => {
+  const vm = require('vm'), lire = n => vm.runInContext(n, ctx);
+  assert.strictEqual(lire('typeof filterMuseum'), 'function');
+  assert.match(_SRC_INDEX, /id="museum-filter-btns"/);
+  assert.match(_SRC_INDEX, /style="display:none;gap:7px;flex-wrap:wrap;margin-bottom:24px" id="museum-filter-btns"/);
+  // un faux musee de trois pieces : le filtre montre la bonne
+  const cartes = ['luxe', 'bois', 'luxe voyage'].map(c => ({ getAttribute: () => c, style: { display: '' } }));
+  const boutons = [{ classList: { toggle(k, v) { this.v = v; } } }, { classList: { toggle(k, v) { this.v = v; } } }];
+  const qsa0 = ctx.document.querySelectorAll;
+  ctx.document.querySelectorAll = (s) => s.indexOf('museum-grid') >= 0 ? cartes : s.indexOf('filter-btn') >= 0 ? boutons : [];
+  try {
+    ctx.filterMuseum('luxe', boutons[1]);
+    assert.deepStrictEqual(cartes.map(c => c.style.display), ['', 'none', '']);
+    assert.deepStrictEqual(boutons.map(b => b.classList.v), [false, true]);
+    ctx.filterMuseum('all', boutons[0]);
+    assert.deepStrictEqual(cartes.map(c => c.style.display), ['', '', '']);
+  } finally { ctx.document.querySelectorAll = qsa0; }
+  assert.match(_SRC_INDEX, /#lang-banner \{[^}]*position: fixed; left: 0; right: 0; bottom: 0;/);
+  assert.match(_SRC_INDEX, /\.page > div\[style\*="padding-top:64px"\] \{ padding-top: 0 !important; \}/);
+  assert.match(_SRC_INDEX, /@media \(min-width: 901px\) \{\n  #engage-bar \{ padding-top: 76px !important; \}\n  #page-aide > div:first-child \{ padding-top: 80px !important; \}/);
+  assert.match(_SRC_INDEX, /id="gym-vue-exercice" class="gym-vue-exercice" style="display:none;padding:96px 60px 80px/);
 });

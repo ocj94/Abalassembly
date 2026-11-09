@@ -191,12 +191,17 @@ nav#top-nav {
 .help-option:hover { background: var(--surface2); }
 
 /* Language banner */
+/* v3.23 : en bas de l'ecran. En haut, elle passait sous la barre fixe du haut :
+   invisible, mais elle poussait chaque page de sa hauteur (une bande vide au-dessus du
+   titre, pour tout navigateur qui n'est pas en francais). */
 #lang-banner {
-  display: flex; align-items: center; gap: 12px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 900;
   padding: 10px 20px; background: var(--surface);
-  border-bottom: 1px solid var(--gold-dim);
+  border-top: 1px solid var(--gold-dim); box-shadow: 0 -6px 18px rgba(0,0,0,.35);
   font-size: 14px; color: var(--text);
 }
+
 .lang-banner-flag { font-size: 20px; }
 .lang-banner-text { flex: 1; }
 .lang-banner-action {
@@ -2392,6 +2397,19 @@ table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset
      qui permet d'ouvrir la sidebar sur mobile) */
   nav:not(#top-nav) { display: none !important; }
   .page { padding-top: 56px; }
+  /* v3.23 : plusieurs pages ont un bloc avec padding-top:64px (la hauteur de la barre du
+     haut sur ordinateur) ; sur telephone, .page le fait deja (56 px) : les deux
+     s'ajoutaient, une bande vide d'environ 64 px au-dessus du titre */
+  .page > div[style*="padding-top:64px"] { padding-top: 0 !important; }
+  .camera-layout { padding-top: 0; }
+  .camera-main { padding-top: 28px !important; }
+}
+/* v3.23 : sur ordinateur, l'accueil et l'Aide commencaient sous la barre fixe du haut
+   (leurs premiers blocs avaient 20 et 24 px de marge, pas les 56 de la barre) : le haut
+   des tuiles de l'accueil et le titre « Aide » etaient caches */
+@media (min-width: 901px) {
+  #engage-bar { padding-top: 76px !important; }
+  #page-aide > div:first-child { padding-top: 80px !important; }
 }
 
 /* ─── STATS PAGE ─── */

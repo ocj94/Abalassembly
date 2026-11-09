@@ -9,6 +9,27 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.23]
+
+### Bande vide en haut des pages, bandeau de langue, filtre du Musée
+- **Bandeau de langue** (« View Abalassembly in English? ») : il s'affichait en
+  haut, **sous** la barre fixe du haut, donc invisible, tout en poussant chaque
+  page de sa hauteur. Pour tout navigateur qui n'est pas en français, une bande
+  vide au-dessus du titre, et une proposition de langue que personne ne voyait.
+  Il s'affiche maintenant en bas de l'écran.
+- **Téléphone** : plusieurs pages (Analyse, Éditeur, Gym, Labo…) gardaient la
+  marge de la barre du haut de l'ordinateur (64 px) en plus de celle du
+  téléphone (56 px) ; la page Photo aussi. Le titre remonte de 50 à 110 px selon
+  la page et la langue du navigateur ; rien ne passe sous la barre.
+- **Ordinateur** : l'accueil, l'Aide et la vue d'exercice du Gym Cerveau
+  commençaient **sous** la barre fixe du haut (haut des tuiles, titre « Aide »
+  et bouton « ← Tous les exercices » cachés). Ils démarrent maintenant sous la
+  barre. Vérifié sur les 36 pages à 1280, 1000 et 390 px de large.
+- **Musée** : les sept boutons de filtre (Luxe, Bois, Voyage…) appelaient une
+  fonction qui n'avait jamais existé. Le filtre existe maintenant, et les
+  boutons ne s'affichent que s'il y a des pièces à filtrer : la page n'en a pas
+  encore, elle dit honnêtement « en cours de préparation ».
+
 ## [v3.22]
 
 ### Plus aucun code dans le HTML : la CSP protège vraiment

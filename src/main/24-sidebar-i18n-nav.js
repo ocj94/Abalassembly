@@ -648,9 +648,13 @@ function showPage(name) {
     // renderMuseum() n'existe pas encore : garde pour éviter un plantage de la
     // page (ReferenceError) et afficher un état vide honnête à la place.
     museum:     function(){
-      if (typeof renderMuseum === 'function') { renderMuseum(); return; }
+      if (typeof renderMuseum === 'function') renderMuseum();
       const g = document.getElementById('museum-grid');
       if (g && !g.innerHTML.trim()) g.innerHTML = '<div style="padding:24px;color:var(--muted);grid-column:1/-1">Contenu du musée en cours de préparation.</div>';
+      // v3.23 : les filtres ne s'affichent que s'il y a des pieces a filtrer (avant : sept
+      // boutons qui ne faisaient rien, au-dessus d'une page vide)
+      const f = document.getElementById('museum-filter-btns');
+      if (f) f.style.display = (g && g.querySelector('[data-cat]')) ? 'flex' : 'none';
     },
     tournament: function(){ renderTournament(); },
     trombi:     function(){ renderTrombi(); },
@@ -703,3 +707,13 @@ function updateTopBar() {
   }
 }
 
+/* v3.23 : filtre du Musée. Chaque pièce de #museum-grid porte data-cat="luxe" (ou bois,
+   voyage, couleur, special, pirate) ; « all » les montre toutes. Les boutons appelaient
+   cette fonction depuis le début, mais elle n'existait pas. */
+function filterMuseum(cat, btn) {
+  document.querySelectorAll('#museum-filter-btns .filter-btn').forEach(function (b) { b.classList.toggle('active', b === btn); });
+  document.querySelectorAll('#museum-grid [data-cat]').forEach(function (c) {
+    const cats = String(c.getAttribute('data-cat')).split(/\s+/);
+    c.style.display = (cat === 'all' || cats.indexOf(cat) >= 0) ? '' : 'none';
+  });
+}
