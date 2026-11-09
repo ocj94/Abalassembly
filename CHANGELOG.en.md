@@ -9,6 +9,24 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.24]
+
+### Self-play: the position database of a "shadow" neural network
+- New campaign type in the Lab (🌐 Network, administration): **self-play**. An
+  AI setting plays against itself, each game with its own seed, hence its own
+  randomly drawn 8-ply opening. Games are handed out to executors (browsers,
+  PCs, containers) and verified by recomputation like duels. The summary shows
+  the games and positions produced, and the Black / draw / White split.
+- Server side (`abalassembly-api`): `type: 'autojeu'` on `POST /ordo/campagnes`
+  (migration 009), and `scripts/exporter-positions.js`, which replays each
+  accepted game in the engine and writes one line per position (61-cell board,
+  side to move, marbles pushed out, current judge's score, final result from the
+  side to move, opening marked), as NDJSON or CSV. Tested right inside the
+  Docker container.
+- This is the first step of the "shadow" neural network: it will run alongside
+  the current judge, without replacing it, to compare the two. The engine that
+  plays does not change.
+
 ## [v3.23]
 
 ### Empty band at the top of pages, language banner, Museum filter

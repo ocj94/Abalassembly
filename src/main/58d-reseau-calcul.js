@@ -153,8 +153,14 @@ function _rsPoids(id) {
 }
 async function rsCreerCampagne() {
   const v = function (id) { return (document.getElementById(id) || {}).value; };
-  const corps = { nom: v('rs-c-nom') || 'campagne', poidsA: _rsPoids(v('rs-c-a')), poidsB: _rsPoids(v('rs-c-b')),
-    profondeur: parseInt(v('rs-c-prof'), 10) || 2, paires: parseInt(v('rs-c-paires'), 10) || 50, maxPlies: 80, ouverture: 6, arbitrage: 2 };
+  const auto = v('rs-c-type') === 'autojeu', n = parseInt(v('rs-c-paires'), 10) || 50;
+  /* v3.24 : « auto-jeu » = A contre lui-même, une graine (donc une ouverture au hasard) par partie,
+     pour constituer la base de positions d'un futur réseau de neurones « en ombre ». Ouverture de
+     8 demi-coups tirés au hasard (au lieu de 6) : des parties plus variées. */
+  const corps = auto
+    ? { type: 'autojeu', nom: v('rs-c-nom') || 'base de positions', poidsA: _rsPoids(v('rs-c-a')), profondeur: parseInt(v('rs-c-prof'), 10) || 2, parties: n, maxPlies: 80, ouverture: 8, arbitrage: 2 }
+    : { nom: v('rs-c-nom') || 'campagne', poidsA: _rsPoids(v('rs-c-a')), poidsB: _rsPoids(v('rs-c-b')),
+        profondeur: parseInt(v('rs-c-prof'), 10) || 2, paires: n, maxPlies: 80, ouverture: 6, arbitrage: 2 };
   const r = await _rsFetch('/ordo/campagnes', corps);
   RESEAU.erreur = r.statut === 200 ? null : (r.b.error || ('refusé : ' + r.statut));
   if (r.statut === 200) _rsNote('campagne ' + r.b.campagne + ' créée : ' + r.b.missions + ' missions');
@@ -187,9 +193,10 @@ function renderReseau() {
     });
     h += '</tbody></table><div class="lab-note">Missions : ' + ['en_file', 'attribuee', 'faite'].map(function (k) { return ({ en_file: 'en attente', attribuee: 'en cours', faite: 'faites' })[k] + ' ' + ((E.missions && E.missions[k]) || 0); }).join(' · ') + '</div>';
     (E.campagnes || []).forEach(function (c) {
-      const b = c.bilan;
-      h += '<div class="lab-etat">📋 <b>' + _obsE(c.nom) + '</b> (profondeur ' + c.profondeur + ', ' + c.paires + ' paires' + (c.etat === 'pause' ? ', en pause' : '') + ') : ' + b.parties + ' partie' + (b.parties > 1 ? 's' : '') + ' faite' + (b.parties > 1 ? 's' : '')
-        + ' — A ' + b.W + ' · nulles ' + b.D + ' · B ' + b.L + (b.elo != null ? ' · A ' + (b.elo >= 0 ? '+' : '') + b.elo + ' ± ' + b.marge + ' Elo' : '') + ' · SPRT : ' + b.sprt
+      const b = c.bilan, auto = c.type === 'autojeu';
+      h += '<div class="lab-etat">' + (auto ? '🧠' : '📋') + ' <b>' + _obsE(c.nom) + '</b> (' + (auto ? 'auto-jeu, ' : '') + 'profondeur ' + c.profondeur + ', ' + c.paires + (auto ? ' parties' : ' paires') + (c.etat === 'pause' ? ', en pause' : '') + ') : ' + b.parties + ' partie' + (b.parties > 1 ? 's' : '') + ' faite' + (b.parties > 1 ? 's' : '')
+        + (auto ? ' — ' + (b.positions || 0).toLocaleString('fr-FR') + ' positions · Noirs ' + b.noir + ' · nulles ' + b.nulles + ' · Blancs ' + b.blanc
+          : ' — A ' + b.W + ' · nulles ' + b.D + ' · B ' + b.L + (b.elo != null ? ' · A ' + (b.elo >= 0 ? '+' : '') + b.elo + ' ± ' + b.marge + ' Elo' : '') + ' · SPRT : ' + b.sprt)
         + (RESEAU.user && RESEAU.user.role === 'admin' ? ' <button class="ctrl-btn lab-discret" data-click="rsCampagneEtat(' + c.id + ',\'' + (c.etat === 'pause' ? 'active' : 'pause') + '\')">' + (c.etat === 'pause' ? 'reprendre' : 'pause') + '</button> <button class="ctrl-btn lab-discret" data-click="rsCampagneEtat(' + c.id + ',\'finie\')">finir</button>' : '') + '</div>';
     });
   }
@@ -208,8 +215,10 @@ function renderReseau() {
     if (RESEAU.journal.length) h += '<div class="lab-note" style="font-family:\'DM Mono\',monospace;white-space:pre-line">' + RESEAU.journal.map(_obsE).join('\n') + '</div>';
     if (RESEAU.user && RESEAU.user.role === 'admin') {
       const P = _rsPresets(), opt = function (sel) { return P.map(function (p) { return '<option value="' + p.id + '"' + (p.id === sel ? ' selected' : '') + '>' + _obsE(p.nom) + '</option>'; }).join(''); };
-      h += '<h4>Administration</h4><div class="lab-options">Nouvelle campagne : <input id="rs-c-nom" placeholder="nom" maxlength="60" style="width:10em"> A <select id="rs-c-a">' + opt('p:texel') + '</select> contre B <select id="rs-c-b">' + opt('n:3') + '</select>'
-        + ' profondeur <select id="rs-c-prof"><option>1</option><option selected>2</option><option>3</option><option>4</option></select> paires <input id="rs-c-paires" type="number" min="1" max="5000" value="50" style="width:5em"> <button class="ctrl-btn" data-click="rsCreerCampagne()">Créer</button></div>';
+      h += '<h4>Administration</h4><div class="lab-options">Nouvelle campagne : <select id="rs-c-type" data-change="rsTypeCampagne(this.value)"><option value="duel">duel A contre B</option><option value="autojeu">auto-jeu (base de positions)</option></select>'
+        + ' <input id="rs-c-nom" placeholder="nom" maxlength="60" style="width:10em"> A <select id="rs-c-a">' + opt('p:texel') + '</select><span id="rs-c-contre"> contre B <select id="rs-c-b">' + opt('n:3') + '</select></span>'
+        + ' profondeur <select id="rs-c-prof"><option>1</option><option selected>2</option><option>3</option><option>4</option></select> <span id="rs-c-unite">paires</span> <input id="rs-c-paires" type="number" min="1" max="5000" value="50" style="width:5em"> <button class="ctrl-btn" data-click="rsCreerCampagne()">Créer</button></div>'
+        + '<div class="lab-note" id="rs-c-aide" style="display:none">Auto-jeu : A joue contre lui-même, chaque partie depuis sa propre ouverture tirée au hasard (8 demi-coups). Les parties sont vérifiées comme les autres ; le serveur en tire la base de positions d’un futur réseau de neurones (<code>scripts/exporter-positions.js</code>), qui jouera « en ombre » à côté du juge actuel, sans le remplacer.</div>';
       const X = RESEAU.admin && RESEAU.admin.executants;
       if (X && X.length) {
         h += '<table class="lab-poids"><thead><tr><th>Exécutant</th><th>Compte</th><th>Cœurs</th><th>Faites</th><th>Refusées</th><th>Expirées</th><th>Vitesse</th><th></th></tr></thead><tbody>';
@@ -226,3 +235,13 @@ function renderReseau() {
   hote.innerHTML = h;
 }
 function renderLabReseau() { renderReseau(); if (_rsUrl() && !RESEAU.etat) reseauRafraichir(); }
+
+// v3.24 : le formulaire de campagne selon son type (duel : A contre B en paires ; auto-jeu : A seul, en parties)
+function rsTypeCampagne(type) {
+  const auto = type === 'autojeu';
+  const el = function (id) { return document.getElementById(id); };
+  if (el('rs-c-contre')) el('rs-c-contre').style.display = auto ? 'none' : '';
+  if (el('rs-c-unite')) el('rs-c-unite').textContent = auto ? 'parties' : 'paires';
+  if (el('rs-c-aide')) el('rs-c-aide').style.display = auto ? '' : 'none';
+  if (el('rs-c-paires') && auto && +el('rs-c-paires').value === 50) el('rs-c-paires').value = 1000;
+}
