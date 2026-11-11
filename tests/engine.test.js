@@ -7678,3 +7678,40 @@ test('v3.24, campagne auto-jeu : le formulaire du Labo envoie A seul, en parties
     lire("BACKEND.enabled = false; BACKEND.url = null; RESEAU.jeton = null; RESEAU.user = null; RESEAU.etat = null; RESEAU.journal.length = 0;");
   }
 });
+
+test('v3.25, accessibilite : contrastes AA des couleurs du site et des cartes de chaleur, plateaux nommes, clavier sur les data-click', () => {
+  const vm = require('vm'), lire = (c) => vm.runInContext(c, ctx);
+  const lin = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+  const lum = (h) => { const n = parseInt(h.slice(1), 16), c = [n >> 16 & 255, n >> 8 & 255, n & 255]; return 0.2126 * lin(c[0]) + 0.7152 * lin(c[1]) + 0.0722 * lin(c[2]); };
+  const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  // le premier bloc qui definit --muted est le :root du theme de base (le contraste renforce vient apres)
+  const racine = /\{[^{}]*--muted: #[0-9a-f]{6};[^{}]*\}/.exec(_SRC_INDEX)[0], v = (n) => new RegExp('--' + n + ': (#[0-9a-f]{6})').exec(racine)[1];
+  // texte secondaire et or attenue : au moins 4,5:1 sur le fond et sur les cartes
+  ['muted', 'gold-dim'].forEach(function (t) { ['bg', 'surface2'].forEach(function (f) {
+    assert.ok(ratio(v(t), v(f)) >= 4.5, '--' + t + ' sur --' + f + ' : ' + ratio(v(t), v(f)).toFixed(2));
+  }); });
+  // cartes de chaleur : quelle que soit l'intensite, la case garde une encre a 4,5:1
+  [[57, 135, 229], [230, 103, 103], [200, 168, 75], [47, 158, 127]].forEach(function (rgb) {
+    for (let a = 0; a <= 1.0001; a += 0.01) {
+      const r = lire('grFondLisible(' + JSON.stringify(rgb) + ', ' + a + ')'), al = +/,([\d.]+)\)$/.exec(r.fond)[1];
+      const fond = '#' + rgb.map((x, k) => Math.round(x * al + [0x15, 0x19, 0x18][k] * (1 - al)).toString(16).padStart(2, '0')).join('');
+      const encre = r.encre === '#fff' ? '#ffffff' : r.encre;
+      assert.ok(ratio(fond, encre) >= 4.5, rgb + ' a ' + a.toFixed(2) + ' : ' + ratio(fond, encre).toFixed(2));
+    }
+  });
+  // chaque zone de dessin a un nom, ou est marquee decorative
+  const canvas = _SRC_INDEX.match(/<canvas [^>]*>/g);
+  assert.ok(canvas.length >= 12);
+  canvas.forEach(function (c) { assert.ok(/aria-label="[^"]+"|aria-hidden="true"/.test(c), c.slice(0, 60)); });
+  // clavier : lien d'evitement en tete du body, Entree et Espace declenchent un data-click non natif
+  assert.match(_SRC_INDEX, /<body>\s*<!--[^>]*-->\s*<button class="lien-evitement" data-click="allerAuContenu\(\)">/);
+  assert.ok(lire("typeof _ACTIONS.allerAuContenu === 'function'"));
+  const essai = (tag, key, entree) => { let clics = 0, defaut = false;
+    const el = { nodeType: 1, tagName: tag, hasAttribute: (a) => a === 'data-click' || (entree && a === 'data-entree'), click: () => { clics++; } };
+    ctx.__e = { key: key, target: el, preventDefault: () => { defaut = true; } }; lire('_actClavier(__e)'); return [clics, defaut]; };
+  assert.deepStrictEqual(essai('DIV', 'Enter'), [1, true]);
+  assert.deepStrictEqual(essai('DIV', ' '), [1, true]);
+  assert.deepStrictEqual(essai('BUTTON', 'Enter'), [0, false]);     // un vrai bouton s'en charge seul
+  assert.deepStrictEqual(essai('DIV', 'Enter', true), [0, false]);  // data-entree s'en charge deja
+  assert.deepStrictEqual(essai('DIV', 'a'), [0, false]);
+});

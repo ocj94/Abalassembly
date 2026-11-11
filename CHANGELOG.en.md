@@ -9,6 +9,29 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.25]
+
+### Accessibility: contrast, named boards, the whole site by keyboard
+Items 14, 15 and 16 of the GDPR / CNIL / accessibility audit of 11 November 2026.
+- **Contrast (WCAG AA)**: secondary text grey goes from `#6b7570` (3.4 to 3.9
+  to 1) to `#8b948f` (4.8 to 6 to 1), dimmed gold from `#8a7235` to `#a68a44`.
+  Heat-map cells (Corpus stats, comeback table) pick their ink, dark or white,
+  and darken their fill a little when neither reaches 4.5 to 1. The large
+  numbers of the Rules and the Academy, unreadable at 15% opacity, are now
+  readable. axe-core on all 36 pages: 2,567 findings below the threshold
+  before (the side bar counted on every page), 0 after.
+- **Text alternatives**: the 15 drawing areas (game, analysis, puzzle, tutorial, editor and 3D
+  boards, board photo…) have a name; decorative previews are hidden from
+  screen readers.
+- **Keyboard**: every clickable element that is not a real button (home cards,
+  colour swatches, table rows…) can be reached with Tab and triggered with
+  Enter or Space, including those added to the page later. A "Skip to content"
+  link is the first Tab stop. Buttons that only show a cross are named "Close".
+  Lab tabs, History filters, Trainer checkboxes, move history: markup and names
+  fixed. axe-core (WCAG 2 A and AA): 0 violations on the 36 pages.
+- A test checks the contrast of the site colours and heat maps, the name of
+  every board and keyboard activation.
+
 ## [v3.24]
 
 ### Self-play: the position database of a "shadow" neural network

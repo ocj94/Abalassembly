@@ -28,6 +28,8 @@ They're named for what they **do**, never after a diagnosis. There's no "ADHD mo
 - **Persistence**: your settings survive a reload.
 - **Respecting the system**: on first launch, if your device asks for less animation, calm mode is already on.
 - **Reversibility**: one button resets everything to default.
+- **Contrast** (v3.25): all text reaches 4.5 to 1 against its background (WCAG AA), heat-map cells included; a test checks it.
+- **Keyboard** (v3.25): everything clickable can be reached with Tab and triggered with Enter or Space; "Skip to content" is the first stop. The board is played with the arrow keys and Page Up / Page Down.
 - **Honesty**: an automated test in the regression suite fails if the panel ever starts promising a therapeutic effect. The safeguard lives in the code, not just in the intent.
 
 ## For analytical minds

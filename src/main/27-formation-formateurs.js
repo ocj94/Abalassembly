@@ -83,7 +83,7 @@ function renderFormateurSeances(pub){
     const duree = pub==='adultes' ? s.dureeAdultes : s.dureeEnfants;
     return '<div style="background:var(--surface);border:1px solid '+(isDone?'var(--gold-dim)':'var(--border)')+';border-radius:10px;padding:18px 20px">'
       + '<div style="display:flex;align-items:flex-start;gap:14px">'
-      + '<label style="display:flex;align-items:center;padding-top:2px" class="formateur-noprint"><input type="checkbox" '+(isDone?'checked':'')+' data-change="formateurToggleSeance('+s.id+')" style="width:18px;height:18px;cursor:pointer"></label>'
+      + '<label style="display:flex;align-items:center;padding-top:2px" class="formateur-noprint"><input type="checkbox" aria-label="Séance '+s.id+' faite" '+(isDone?'checked':'')+' data-change="formateurToggleSeance('+s.id+')" style="width:18px;height:18px;cursor:pointer"></label>'
       + '<div style="flex:1">'
       + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:17px">'+s.icon+'</span><span style="font-size:14px;font-weight:700;color:var(--white)">Séance '+s.id+' — '+s.titre+'</span><span style="font-size:11px;color:var(--muted);margin-left:auto" class="formateur-noprint">'+duree+'</span></div>'
       + '<div style="font-size:12.5px;color:var(--gold);margin-bottom:8px">'+s.objectif+'</div>'

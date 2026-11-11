@@ -9,6 +9,31 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.25]
+
+### Accessibilité : contrastes, plateaux nommés, tout le site au clavier
+Points 14, 15 et 16 de l'audit RGPD / CNIL / accessibilité du 11 novembre 2026.
+- **Contrastes (WCAG AA)** : le gris des textes secondaires passe de `#6b7570`
+  (3,4 à 3,9 pour 1) à `#8b948f` (4,8 à 6 pour 1), l'or atténué de `#8a7235` à
+  `#a68a44`. Les cases des cartes de chaleur (Stats du corpus, tableau des
+  remontées) choisissent leur encre, sombre ou blanche, et foncent un peu leur
+  fond quand aucune n'atteint 4,5 pour 1. Les grands chiffres des Règles et de
+  l'Academy, illisibles à 15 % d'opacité, sont maintenant lisibles. Mesure
+  axe-core sur les 36 pages : 2 567 relevés sous le seuil avant (la barre latérale comptée sur chaque page), 0 après.
+- **Textes alternatifs** : les 15 zones de dessin (plateaux de jeu, d’analyse, des problèmes, du tutoriel,
+  de l'éditeur, en 3D, photo du plateau…) ont un nom ; les aperçus décoratifs
+  sont masqués aux lecteurs d'écran.
+- **Clavier** : chaque élément cliquable qui n'est pas un vrai bouton (cartes de
+  l'accueil, pastilles de couleur, lignes de tableau…) devient atteignable à la
+  touche Tab et se déclenche avec Entrée ou Espace, y compris ceux ajoutés plus
+  tard dans la page. Un lien « Aller au contenu » est le premier arrêt de Tab.
+  Les boutons qui n'affichent qu'une croix s'appellent « Fermer ». Onglets du
+  Labo, filtres de l'Historique, cases des Formateurs, historique des coups :
+  balisage et noms corrigés. axe-core (WCAG 2 A et AA) : 0 violation sur les
+  36 pages.
+- Un test vérifie les contrastes des couleurs du site et des cartes de chaleur,
+  le nom de chaque plateau et le déclenchement au clavier.
+
 ## [v3.24]
 
 ### Auto-jeu : la base de positions d'un réseau de neurones « en ombre »

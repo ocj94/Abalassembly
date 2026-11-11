@@ -215,6 +215,13 @@ const I18N_EN = {
   "Cette fois c'est l'autre camp qui gagne — à toi de rejouer !": 'This time the other side wins — play again!', 'Match nul ! 🤝': 'It’s a draw! 🤝',
   '📤 Partager': '📤 Share', '🔍 Revoir la partie': '🔍 Review the game', '⚠️ Revoir mes erreurs': '⚠️ Review my mistakes',
   '🧺 Blanchissage ! Victoire 6-0 sans perdre une bille !': '🧺 Whitewash! A 6-0 win without losing a single marble!', 'Partie': 'Game', '💬 Chat': '💬 Chat', '📊 Analyse': '📊 Analysis', '🤖 Bots': '🤖 Bots',
+  // v3.25 : accessibilite (lien d'evitement, noms des plateaux et des filtres)
+  'Aller au contenu': 'Skip to content', 'Sommaire des règles': 'Rules contents', 'Traduction automatique du chat': 'Automatic chat translation',
+  'Plateau de jeu (au clavier : flèches et Page haut / Page bas sur la grille accessible)': 'Game board (keyboard: arrow keys and Page Up / Page Down on the accessible grid)',
+  'Plateau d’analyse': 'Analysis board', 'Plateau de l’éditeur de position': 'Position editor board', 'Plateau en 3D': '3D board',
+  'Aperçu de la position de départ': 'Starting position preview', 'Photo du plateau : toucher les coins pour le repérer': 'Board photo: tap the corners to locate it',
+  'Calibrage : les coins du plateau sur la photo': 'Calibration: the board corners on the photo', 'Plateau détecté : toucher une case pour la corriger': 'Detected board: tap a cell to correct it',
+  'Filtrer par variante': 'Filter by variant', 'Plateau du problème': 'Puzzle board', 'Plateau du tutoriel': 'Tutorial board', 'Partie du Labo rejouée': 'Lab game replay', 'Filtrer par mode de jeu': 'Filter by game mode', 'Filtrer par résultat': 'Filter by result',
   'Historique des coups': 'Move list', 'Copier': 'Copy', 'Permutations': 'Permutations',
   '▸ Réflexion de l’IA': '▸ AI reasoning', '▾ Réflexion de l’IA': '▾ AI reasoning', '💡 Suggérer un coup': '💡 Suggest a move',
   '🧠 Pourquoi ce coup ?': '🧠 Why this move?', '⟨ Précédent': '⟨ Previous', 'Suivant ⟩': 'Next ⟩', '▶ Rejouer la partie': '▶ Replay the game',
