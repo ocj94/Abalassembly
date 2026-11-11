@@ -299,15 +299,15 @@ function _cfHtmlExplorateur(L){
   h += '<div class="sb-onglets">' + bouton('camp', 'black', _tr('Camp : Noirs', 'Side: Black')) + bouton('camp', 'white', _tr('Camp : Blancs', 'Side: White')) + '</div>';
   h += '<div class="sb-onglets">' + bouton('moment', 'tout', _tr('Toute la partie', 'Whole game')) + bouton('moment', 'debut', _tr('Début (0–29)', 'Opening (0–29)')) + bouton('moment', 'milieu', _tr('Milieu (30–69)', 'Middle (30–69)')) + bouton('moment', 'fin', _tr('Fin (70 et +)', 'End (70+)')) + '</div>';
   if (!rows.length) return h + '<div class="gr-vide">' + _tr('Aucune partie avec ces réglages.', 'No game with these settings.') + '</div>';
-  h += '<div class="cf-ex" role="table"><div class="cf-ex-l cf-ex-ent" role="row"><span>' + _tr('Score N–B', 'Score B–W') + '</span><span>' + _tr('Parties', 'Games') + '</span><span>' + _tr('V / D / N / ?', 'W / L / D / ?') + '</span><span>' + _tr('Taux de victoire de ', 'Win rate of ') + camp + '</span></div>';
+  h += '<div class="cf-ex" role="table"><div class="cf-ex-l cf-ex-ent" role="row"><span role="columnheader">' + _tr('Score N–B', 'Score B–W') + '</span><span role="columnheader">' + _tr('Parties', 'Games') + '</span><span role="columnheader">' + _tr('V / D / N / ?', 'W / L / D / ?') + '</span><span role="columnheader">' + _tr('Taux de victoire de ', 'Win rate of ') + camp + '</span></div>';
   rows.forEach(function(r){
     const dec = r.v + r.d, w = dec ? grWilson(r.v, dec) : null, cle = r.nb + '-' + r.nw, ouvert = _cfExOuvert === cle;
     const barre = w ? '<span class="sb-div-piste"><span class="sb-div-barre" style="' + (w.p >= 0.5 ? 'left:50%' : 'right:50%') + ';width:' + (100 * Math.abs(w.p - 0.5)).toFixed(1) + '%;background:' + (w.p >= 0.5 ? _SB_VERT : _SB_ORANGE) + '"></span>'
       + '<span class="sb-div-ic" style="left:' + (100 * w.bas).toFixed(1) + '%;width:' + Math.max(0.4, 100 * (w.haut - w.bas)).toFixed(1) + '%"></span></span>' : '<span></span>';
     h += '<div class="cf-ex-l' + (ouvert ? ' cf-ex-ouvert' : '') + (dec < GR_PEU ? ' cf-ex-peu' : '') + '" role="row" tabindex="0" data-click="corpusExplorer(\'ouvrir\',\'' + cle + '\')" data-entree="corpusExplorer(\'ouvrir\',\'' + cle + '\')"'
       + ' title="' + grEchapper(r.v + _tr(' victoires, ', ' wins, ') + r.d + _tr(' défaites, ', ' losses, ') + r.nul + _tr(' nulles, ', ' draws, ') + r.inconnu + _tr(' au résultat inconnu', ' with an unknown result') + (w ? ' · ' + grFourchette(r.v, dec) : '') + grPeu(dec)) + '">'
-      + '<span class="cf-ex-score">' + r.nb + ' – ' + r.nw + '</span><span>' + grNb(r.n) + '</span><span class="cf-ex-vdn">' + r.v + ' / ' + r.d + ' / ' + r.nul + ' / ' + r.inconnu + '</span>'
-      + '<span class="cf-ex-taux">' + barre + '<b>' + (w ? grPct(w.p) : '—') + '</b> <i>' + (w ? grMarge(r.v, dec) : '') + (dec < GR_PEU ? ' ⚠' : '') + '</i></span></div>';
+      + '<span class="cf-ex-score" role="cell">' + r.nb + ' – ' + r.nw + '</span><span role="cell">' + grNb(r.n) + '</span><span class="cf-ex-vdn" role="cell">' + r.v + ' / ' + r.d + ' / ' + r.nul + ' / ' + r.inconnu + '</span>'
+      + '<span class="cf-ex-taux" role="cell">' + barre + '<b>' + (w ? grPct(w.p) : '—') + '</b> <i>' + (w ? grMarge(r.v, dec) : '') + (dec < GR_PEU ? ' ⚠' : '') + '</i></span></div>';
     if (ouvert) h += _cfHtmlExParties(r);
   });
   h += '</div>';

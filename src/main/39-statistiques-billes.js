@@ -797,18 +797,20 @@ function _sbHtmlBilles(v){
   // 3. les remontees
   const r = function(a, b){ const e = v.remontees[a + '-' + b]; return (e && e.n >= 30) ? e.g / e.n * 100 : null; };
   let grille = '<div class="sb-grille" role="table" aria-label="' + _tr('Tableau des remontées', 'Comeback table') + '">'
-    + '<div class="sb-g-coin" role="columnheader">' + _tr('mène ↓ · l’autre →', 'leader ↓ · other →') + '</div>';
+    + '<div class="sb-g-ligne" role="row"><div class="sb-g-coin" role="columnheader">' + _tr('mène ↓ · l’autre →', 'leader ↓ · other →') + '</div>';
   for (let b = 0; b < 5; b++) grille += '<div class="sb-g-ent" role="columnheader">' + b + '</div>';
+  grille += '</div>';
   for (let a = 1; a <= 5; a++) {
-    grille += '<div class="sb-g-ent" role="rowheader">' + a + '</div>';
+    grille += '<div class="sb-g-ligne" role="row"><div class="sb-g-ent" role="rowheader">' + a + '</div>';
     for (let b = 0; b < 5; b++) {
       if (b >= a) { grille += '<div class="sb-g-vide" role="cell"></div>'; continue; }
       const e = v.remontees[a + '-' + b], q = r(a, b);
       if (q === null) { grille += '<div class="sb-g-case sb-g-rare" role="cell" title="' + _tr('Moins de 30 parties', 'Fewer than 30 games') + '">—</div>'; continue; }
-      const alpha = 0.14 + Math.max(0, q - 50) / 50 * 0.8, clair = alpha > 0.55;
-      grille += '<div class="sb-g-case" role="cell" tabindex="0" style="background:rgba(47,158,127,' + alpha.toFixed(2) + ');color:' + (clair ? '#fff' : 'var(--text)') + '" title="'
+      const fd = grFondLisible([47, 158, 127], 0.14 + Math.max(0, q - 50) / 50 * 0.8);   // v3.25 : encre lisible (WCAG AA)
+      grille += '<div class="sb-g-case" role="cell" tabindex="0" style="background:' + fd.fond + ';color:' + fd.encre + '" title="'
         + _tr('À ' + a + '-' + b + ', le camp qui mène gagne ' + _sbPct(q) + ' de ' + _dimNb(e.n) + ' parties', 'At ' + a + '-' + b + ', the leading side wins ' + _sbPct(q) + ' of ' + _dimNb(e.n) + ' games') + ' (' + grFourchette(e.g, e.n) + ')' + grPeu(e.n) + '">' + Math.round(q) + ' %</div>';
     }
+    grille += '</div>';
   }
   grille += '</div>';
   const r10 = r(1, 0), r20 = r(2, 0), r30 = r(3, 0), r31 = r(3, 1);

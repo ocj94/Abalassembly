@@ -1049,7 +1049,7 @@ function renderDuelCerveau(msg){
       + '<button class="ctrl-btn" data-click="accepterDuelCerveau(false)" style="width:auto;padding:6px 14px">Refuser</button>';
   } else if (!d || d.etat === 'fini') {
     html += '<button class="ctrl-btn" data-click="openRtcPanel()" style="width:auto;padding:6px 14px;margin-right:6px">' + (co ? 'Connexion' : 'Se connecter à un ami') + '</button>'
-      + '<button class="ctrl-btn" data-click="lancerDuelCerveau()" style="width:auto;padding:6px 14px' + (co ? ';background:var(--gold);color:var(--bg)' : ';opacity:.5') + '">' + (d ? 'Revanche' : 'Lancer un duel') + '</button>';
+      + '<button class="ctrl-btn" data-click="lancerDuelCerveau()" style="width:auto;padding:6px 14px' + (co ? ';background:var(--gold);color:var(--bg)' : ';color:var(--muted)') + '">' + (d ? 'Revanche' : 'Lancer un duel') + '</button>';
   }
   if (d && (d.etat === 'jeu' || d.etat === 'fini')) {
     const zone = function(id){ const z = (typeof GYM_ZONES !== 'undefined') ? GYM_ZONES.find(function(x){ return x.id === id; }) : null; return z ? z.icon + ' ' + z.name : id; };

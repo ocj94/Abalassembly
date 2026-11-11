@@ -806,6 +806,7 @@ function playMarbleRainTransition(onDone) {
   try {
     overlay = document.createElement('canvas');
     overlay.id = 'marble-rain';
+    overlay.setAttribute('aria-hidden', 'true');   // v3.25 : pluie de billes decorative
     overlay.style.cssText = 'position:fixed;inset:0;z-index:99998;pointer-events:none;transition:opacity 0.4s ease';
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const W = window.innerWidth, H = window.innerHeight;

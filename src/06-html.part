@@ -354,10 +354,10 @@
   <footer>
     <div class="footer-brand">
       <div class="footer-logo" style="display:flex;align-items:center;gap:0">
-        <div style="display:flex;align-items:flex-end;gap:2px;margin-right:4px">
-          <span style="font-size:10px;font-weight:900;color:var(--gold);font-family:'DM Mono',monospace;opacity:0.6">3,</span>
-          <span style="font-size:8px;font-weight:900;color:var(--gold);font-family:'DM Mono',monospace;opacity:0.5">2,</span>
-          <span style="font-size:6px;font-weight:900;color:var(--gold);font-family:'DM Mono',monospace;opacity:0.4">1</span>
+        <div style="display:flex;align-items:flex-end;gap:2px;margin-right:4px" aria-hidden="true">
+          <span class="logo-decompte" data-chiffre="3," style="font-size:10px;font-weight:900;color:var(--gold);font-family:'DM Mono',monospace;opacity:0.6"></span>
+          <span class="logo-decompte" data-chiffre="2," style="font-size:8px;font-weight:900;color:var(--gold);font-family:'DM Mono',monospace;opacity:0.5"></span>
+          <span class="logo-decompte" data-chiffre="1" style="font-size:6px;font-weight:900;color:var(--gold);font-family:'DM Mono',monospace;opacity:0.4"></span>
         </div>
         <div style="display:flex;align-items:flex-end;gap:2px;margin-right:5px">
           <div style="width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#888,#111)"></div>
@@ -471,7 +471,7 @@
           <div style="font-size:13px;color:var(--muted);text-align:center;max-width:320px">Pointez votre caméra vers le plateau Abalone physique puis capturez l'image</div>
           <button class="cam-btn cam-live" data-click="startCamera()" style="margin-top:8px">🔴 Démarrer la caméra</button>
         </div>
-        <canvas id="snap-canvas" style="display:none"></canvas>
+        <canvas id="snap-canvas" aria-hidden="true" style="display:none"></canvas>
         <img id="snap-preview" alt="Aperçu de la photo du plateau" style="display:none;width:100%;border-radius:14px;margin-top:12px;border:1px solid var(--border)">
       </div>
 
@@ -491,7 +491,7 @@
         </div>
         <div id="ar-live-wrap" style="display:none;position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:#000">
           <video id="ar-video" autoplay playsinline muted style="display:block;width:100%;height:60vh;max-height:520px;object-fit:cover"></video>
-          <canvas id="ar-canvas" style="position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair"></canvas>
+          <canvas id="ar-canvas" aria-label="Photo du plateau : toucher les coins pour le repérer" role="img" style="position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair"></canvas>
           <div id="ar-status" style="position:absolute;top:10px;left:10px;right:10px;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,0.55);color:#e8dcc0;font-size:12px;pointer-events:none">Calibration : tape les 4 coins (haut-gauche → haut-droit → bas-droit → bas-gauche)</div>
         </div>
         <div id="ar-controls" style="display:none;margin-top:12px;flex-wrap:wrap;gap:8px">
@@ -527,7 +527,7 @@
         <div id="det-calib-title" style="font-weight:700;color:var(--gold);margin-bottom:8px">📐 Tapez les 4 coins du plateau</div>
         <div id="det-calib-hint" style="font-size:12px;color:var(--muted);margin-bottom:10px">Dans l'ordre : coin supérieur-gauche → supérieur-droit → inférieur-droit → inférieur-gauche</div>
         <div style="position:relative;max-width:100%;touch-action:none">
-          <canvas id="det-calib-canvas" style="width:100%;border-radius:10px;cursor:crosshair;display:block"></canvas>
+          <canvas id="det-calib-canvas" aria-label="Calibrage : les coins du plateau sur la photo" role="img" style="width:100%;border-radius:10px;cursor:crosshair;display:block"></canvas>
         </div>
         <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
           <button class="cam-btn" data-click="detCalibReset()">↺ Recommencer</button>
@@ -540,7 +540,7 @@
         <div style="font-weight:700;color:var(--gold);margin-bottom:8px">🔍 Vérifiez la détection</div>
         <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Tapez une case pour corriger : vide → noir → blanc → vide. Réglez l'orientation si besoin.</div>
         <div style="position:relative;max-width:100%">
-          <canvas id="det-correct-canvas" style="width:100%;border-radius:10px;cursor:pointer;display:block"></canvas>
+          <canvas id="det-correct-canvas" aria-label="Plateau détecté : toucher une case pour la corriger" role="img" style="width:100%;border-radius:10px;cursor:pointer;display:block"></canvas>
         </div>
         <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
           <button class="cam-btn" data-click="detFlipVertical()">↕️ Retourner</button>
@@ -577,7 +577,7 @@
         <!-- Mini board reconstruction -->
         <div class="board-preview-mini">
           <h4>🗺 Position reconstituée</h4>
-          <canvas id="mini-board-canvas" width="400" height="400"></canvas>
+          <canvas id="mini-board-canvas" aria-label="Aperçu de la position de départ" role="img" width="400" height="400"></canvas>
         </div>
 
         <!-- AI analysis text -->
@@ -1151,7 +1151,7 @@
           <span class="clock-time" id="clock-top-time">10:00</span>
         </div>
         <div id="board-stage">
-        <canvas id="board" width="640" height="640"></canvas>
+        <canvas id="board" aria-label="Plateau de jeu (au clavier : flèches et Page haut / Page bas sur la grille accessible)" role="img" width="640" height="640"></canvas>
         <!-- Vues 1D et 3D : elles remplacent le canvas 2D, elles doivent donc
              occuper SA place, entre les deux barres de joueur. Placees apres
              clock-bottom, elles rejetaient les deux barres au-dessus du plateau
@@ -1165,7 +1165,7 @@
           <pre id="board-1d-text" style="margin:0;font-family:'DM Mono',ui-monospace,'Courier New',monospace;color:#e8e8e8;white-space:pre;user-select:text"></pre>
         </div>
         <div id="board-3d" style="display:none;position:absolute;inset:0;border-radius:12px;overflow:hidden;background:#14141a">
-          <canvas id="board-3d-canvas" style="width:100%;height:100%;display:block;cursor:grab"></canvas>
+          <canvas id="board-3d-canvas" aria-label="Plateau en 3D" role="img" style="width:100%;height:100%;display:block;cursor:grab"></canvas>
           <!-- En bas-a-droite, en miroir du panneau zoom/rotation (bas-a-gauche,
                construit plus bas dans le script) : les deux ne se chevauchent
                jamais, quelle que soit la largeur de l'ecran. -->
@@ -1289,7 +1289,7 @@
           <span class="status-dot active"></span>
           <span id="game-status-text">À votre tour — Coup 14</span>
         </div>
-        <div class="move-history">
+        <div class="move-history" tabindex="0" aria-label="Historique des coups">
           <h4>Historique des coups</h4>
           <div class="move-list" id="move-list">
             <div class="move-head"><span></span><span></span><span>Aba-Pro</span><span>Nacre</span></div>
@@ -1504,7 +1504,7 @@
 <!-- ─── PAGE: LEARN ─── -->
 <div class="page" id="page-learn">
   <div class="learn-wrap">
-    <div class="learn-sidebar">
+    <div class="learn-sidebar" tabindex="0" aria-label="Sommaire des règles">
       <div class="sidebar-section">
         <div class="sidebar-title">Introduction</div>
         <div class="sidebar-link active" data-click="showLearnSection('intro',this)">Qu'est-ce qu'Abalone ?</div>
@@ -2290,16 +2290,16 @@
       <div id="avatar-picker" style="display:none;position:absolute;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:110px;box-shadow:0 8px 30px rgba(0,0,0,0.5)">
         <div style="font-size:11px;color:var(--muted);margin-bottom:10px;letter-spacing:1px;text-transform:uppercase">Couleur avatar</div>
         <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
-          <div data-click="setAvatarColor('#2d5a3d')" style="width:26px;height:26px;border-radius:50%;background:#2d5a3d;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
-          <div data-click="setAvatarColor('#1c3d5a')" style="width:26px;height:26px;border-radius:50%;background:#1c3d5a;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
-          <div data-click="setAvatarColor('#5a1c3d')" style="width:26px;height:26px;border-radius:50%;background:#5a1c3d;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
-          <div data-click="setAvatarColor('#4a1c5a')" style="width:26px;height:26px;border-radius:50%;background:#4a1c5a;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
-          <div data-click="setAvatarColor('#c8a84b')" style="width:26px;height:26px;border-radius:50%;background:#c8a84b;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
-          <div data-click="setAvatarColor('#5a3a1c')" style="width:26px;height:26px;border-radius:50%;background:#5a3a1c;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
-          <div data-click="setAvatarColor('#1c4a4a')" style="width:26px;height:26px;border-radius:50%;background:#1c4a4a;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
-          <div data-click="setAvatarColor('#3d4a1c')" style="width:26px;height:26px;border-radius:50%;background:#3d4a1c;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
-          <div data-click="setAvatarColor('#2a2a2a')" style="width:26px;height:26px;border-radius:50%;background:#2a2a2a;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
-          <div data-click="setAvatarColor('#1a1a4a')" style="width:26px;height:26px;border-radius:50%;background:#1a1a4a;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
+          <div data-click="setAvatarColor('#2d5a3d')" role="button" aria-label="Couleur d’avatar #2d5a3d" style="width:26px;height:26px;border-radius:50%;background:#2d5a3d;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
+          <div data-click="setAvatarColor('#1c3d5a')" role="button" aria-label="Couleur d’avatar #1c3d5a" style="width:26px;height:26px;border-radius:50%;background:#1c3d5a;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
+          <div data-click="setAvatarColor('#5a1c3d')" role="button" aria-label="Couleur d’avatar #5a1c3d" style="width:26px;height:26px;border-radius:50%;background:#5a1c3d;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
+          <div data-click="setAvatarColor('#4a1c5a')" role="button" aria-label="Couleur d’avatar #4a1c5a" style="width:26px;height:26px;border-radius:50%;background:#4a1c5a;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
+          <div data-click="setAvatarColor('#c8a84b')" role="button" aria-label="Couleur d’avatar #c8a84b" style="width:26px;height:26px;border-radius:50%;background:#c8a84b;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
+          <div data-click="setAvatarColor('#5a3a1c')" role="button" aria-label="Couleur d’avatar #5a3a1c" style="width:26px;height:26px;border-radius:50%;background:#5a3a1c;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
+          <div data-click="setAvatarColor('#1c4a4a')" role="button" aria-label="Couleur d’avatar #1c4a4a" style="width:26px;height:26px;border-radius:50%;background:#1c4a4a;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
+          <div data-click="setAvatarColor('#3d4a1c')" role="button" aria-label="Couleur d’avatar #3d4a1c" style="width:26px;height:26px;border-radius:50%;background:#3d4a1c;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
+          <div data-click="setAvatarColor('#2a2a2a')" role="button" aria-label="Couleur d’avatar #2a2a2a" style="width:26px;height:26px;border-radius:50%;background:#2a2a2a;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
+          <div data-click="setAvatarColor('#1a1a4a')" role="button" aria-label="Couleur d’avatar #1a1a4a" style="width:26px;height:26px;border-radius:50%;background:#1a1a4a;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
         </div>
         <button data-click="cacher('avatar-picker')" style="margin-top:10px;width:100%;padding:5px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer;font-size:12px">Fermer</button>
       </div>
@@ -2516,10 +2516,10 @@
           </summary>
           <div style="padding:18px;border-top:1px solid var(--border);display:flex;gap:20px;flex-wrap:wrap">
             <div style="flex:0 0 200px">
-              <canvas id="creator-preview" width="200" height="200" style="width:200px;height:200px;border-radius:12px;border:1px solid var(--border);display:block"></canvas>
+              <canvas id="creator-preview" aria-hidden="true" width="200" height="200" style="width:200px;height:200px;border-radius:12px;border:1px solid var(--border);display:block"></canvas>
               <div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center">Aperçu 2D</div>
               <div id="creator-preview-3d-wrap" style="position:relative;width:200px;height:200px;margin-top:10px;border-radius:12px;border:1px solid var(--border);overflow:hidden;background:#14141a">
-                <canvas id="creator-preview-3d-canvas" width="200" height="200" style="width:200px;height:200px;display:block"></canvas>
+                <canvas id="creator-preview-3d-canvas" aria-hidden="true" width="200" height="200" style="width:200px;height:200px;display:block"></canvas>
                 <div id="creator-3d-loader" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;text-align:center;padding:10px">Ouvre le panneau pour charger l'aperçu 3D…</div>
               </div>
               <div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center">Aperçu 3D — même recette, même moteur</div>
@@ -2688,13 +2688,13 @@
           <div>
             <div style="font-size:13px;font-weight:600;color:var(--white);margin-bottom:4px">Couleurs d'avatar disponibles</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap">
-              <div data-click="setAvatarColor('#2d5a3d')" style="width:22px;height:22px;border-radius:50%;background:#2d5a3d;cursor:pointer"></div>
-              <div data-click="setAvatarColor('#1c3d5a')" style="width:22px;height:22px;border-radius:50%;background:#1c3d5a;cursor:pointer"></div>
-              <div data-click="setAvatarColor('#4a1c5a')" style="width:22px;height:22px;border-radius:50%;background:#4a1c5a;cursor:pointer"></div>
-              <div data-click="setAvatarColor('#5a1c3d')" style="width:22px;height:22px;border-radius:50%;background:#5a1c3d;cursor:pointer"></div>
-              <div data-click="setAvatarColor('#c8a84b')" style="width:22px;height:22px;border-radius:50%;background:#c8a84b;cursor:pointer"></div>
-              <div data-click="setAvatarColor('#5a3a1c')" style="width:22px;height:22px;border-radius:50%;background:#5a3a1c;cursor:pointer"></div>
-              <div data-click="setAvatarColor('#1c4a4a')" style="width:22px;height:22px;border-radius:50%;background:#1c4a4a;cursor:pointer"></div>
+              <div data-click="setAvatarColor('#2d5a3d')" role="button" aria-label="Couleur d’avatar #2d5a3d" style="width:22px;height:22px;border-radius:50%;background:#2d5a3d;cursor:pointer"></div>
+              <div data-click="setAvatarColor('#1c3d5a')" role="button" aria-label="Couleur d’avatar #1c3d5a" style="width:22px;height:22px;border-radius:50%;background:#1c3d5a;cursor:pointer"></div>
+              <div data-click="setAvatarColor('#4a1c5a')" role="button" aria-label="Couleur d’avatar #4a1c5a" style="width:22px;height:22px;border-radius:50%;background:#4a1c5a;cursor:pointer"></div>
+              <div data-click="setAvatarColor('#5a1c3d')" role="button" aria-label="Couleur d’avatar #5a1c3d" style="width:22px;height:22px;border-radius:50%;background:#5a1c3d;cursor:pointer"></div>
+              <div data-click="setAvatarColor('#c8a84b')" role="button" aria-label="Couleur d’avatar #c8a84b" style="width:22px;height:22px;border-radius:50%;background:#c8a84b;cursor:pointer"></div>
+              <div data-click="setAvatarColor('#5a3a1c')" role="button" aria-label="Couleur d’avatar #5a3a1c" style="width:22px;height:22px;border-radius:50%;background:#5a3a1c;cursor:pointer"></div>
+              <div data-click="setAvatarColor('#1c4a4a')" role="button" aria-label="Couleur d’avatar #1c4a4a" style="width:22px;height:22px;border-radius:50%;background:#1c4a4a;cursor:pointer"></div>
             </div>
           </div>
         </div>
@@ -3139,7 +3139,7 @@
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:16px">
           <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Aperçu en direct</div>
           <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-            <canvas id="access-preview-canvas" width="120" height="120" style="border-radius:8px;flex-shrink:0"></canvas>
+            <canvas id="access-preview-canvas" aria-hidden="true" width="120" height="120" style="border-radius:8px;flex-shrink:0"></canvas>
             <div>
               <div id="access-mode-label" style="font-size:14px;font-weight:600;color:var(--white);margin-bottom:4px">Mode Standard</div>
               <div id="access-mode-desc" style="font-size:12px;color:var(--muted);line-height:1.6;max-width:220px">Affichage par défaut — billes noires et blanches sans modification.</div>
@@ -3191,16 +3191,16 @@
       <!-- Les 10 Commandements : HTML ecrit en dur. Avant, du code JavaScript (une interpolation de
          gabarit avec map/join) etait place dans le HTML statique, hors de tout script : il ne s'executait jamais et
          s'affichait tel quel sur la page de l'Academie. Signale par une analyse externe, verifie. -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">I</div><div style="font-size:14px;color:var(--text);line-height:1.6">Vise le centre</div></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">II</div><div style="font-size:14px;color:var(--text);line-height:1.6">Garde tes billes groupées</div></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">III</div><div style="font-size:14px;color:var(--text);line-height:1.6">Évite les bords</div></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">IV</div><div style="font-size:14px;color:var(--text);line-height:1.6">Attaque sur 2 fronts</div></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">V</div><div style="font-size:14px;color:var(--text);line-height:1.6">Anticipe les ripostes</div></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">VI</div><div style="font-size:14px;color:var(--text);line-height:1.6">Utilise le Sumito</div></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">VII</div><div style="font-size:14px;color:var(--text);line-height:1.6">Ne gaspille pas les coups</div></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">VIII</div><div style="font-size:14px;color:var(--text);line-height:1.6">Connais les positions bloquées</div></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">IX</div><div style="font-size:14px;color:var(--text);line-height:1.6">Adapte-toi au style adverse</div></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">X</div><div style="font-size:14px;color:var(--text);line-height:1.6">Joue et rejoue</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:var(--gold-dim);min-width:32px">I</div><div style="font-size:14px;color:var(--text);line-height:1.6">Vise le centre</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:var(--gold-dim);min-width:32px">II</div><div style="font-size:14px;color:var(--text);line-height:1.6">Garde tes billes groupées</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:var(--gold-dim);min-width:32px">III</div><div style="font-size:14px;color:var(--text);line-height:1.6">Évite les bords</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:var(--gold-dim);min-width:32px">IV</div><div style="font-size:14px;color:var(--text);line-height:1.6">Attaque sur 2 fronts</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:var(--gold-dim);min-width:32px">V</div><div style="font-size:14px;color:var(--text);line-height:1.6">Anticipe les ripostes</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:var(--gold-dim);min-width:32px">VI</div><div style="font-size:14px;color:var(--text);line-height:1.6">Utilise le Sumito</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:var(--gold-dim);min-width:32px">VII</div><div style="font-size:14px;color:var(--text);line-height:1.6">Ne gaspille pas les coups</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:var(--gold-dim);min-width:32px">VIII</div><div style="font-size:14px;color:var(--text);line-height:1.6">Connais les positions bloquées</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:var(--gold-dim);min-width:32px">IX</div><div style="font-size:14px;color:var(--text);line-height:1.6">Adapte-toi au style adverse</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:var(--gold-dim);min-width:32px">X</div><div style="font-size:14px;color:var(--text);line-height:1.6">Joue et rejoue</div></div>
     </div>
     <div style="margin-top:32px;padding:18px 22px;background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.2);border-radius:8px;font-size:14px;color:var(--text);line-height:1.7">
       📚 Source complète : <a href="https://onlineabalone.wordpress.com/abalone-academy/un-peu-de-theorie/les-dix-commandements-du-joueur-debutant/" target="_blank" rel="noopener noreferrer" style="color:var(--gold)">Abalone Academy — Les 10 commandements</a>
@@ -3273,7 +3273,7 @@
     <div class="outil-zone" style="display:flex;gap:32px;padding:24px 60px 80px;flex-wrap:wrap;align-items:flex-start">
       <!-- Plateau d'analyse -->
       <div class="outil-plateau" style="flex-shrink:0">
-        <canvas id="analysis-board" width="540" height="540" style="border-radius:12px;box-shadow:0 0 0 1px var(--border),0 12px 40px rgba(0,0,0,0.4);cursor:pointer;max-width:100%"></canvas>
+        <canvas id="analysis-board" aria-label="Plateau d’analyse" role="img" width="540" height="540" style="border-radius:12px;box-shadow:0 0 0 1px var(--border),0 12px 40px rgba(0,0,0,0.4);cursor:pointer;max-width:100%"></canvas>
         <!-- Barre d'évaluation -->
         <div style="margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -3363,7 +3363,7 @@
     <div class="outil-zone" style="display:flex;gap:32px;padding:24px 60px 80px;flex-wrap:wrap;align-items:flex-start">
       <!-- Plateau -->
       <div class="outil-plateau" style="flex-shrink:0">
-        <canvas id="editor-board" width="500" height="500" style="border-radius:12px;box-shadow:0 0 0 1px var(--border),0 12px 40px rgba(0,0,0,0.4);cursor:pointer;max-width:100%"></canvas>
+        <canvas id="editor-board" aria-label="Plateau de l’éditeur de position" role="img" width="500" height="500" style="border-radius:12px;box-shadow:0 0 0 1px var(--border),0 12px 40px rgba(0,0,0,0.4);cursor:pointer;max-width:100%"></canvas>
         <div id="editor-status" style="text-align:center;font-size:13px;color:var(--muted);margin-top:10px">0 billes Joueur 1 · 0 billes Joueur 2</div>
       </div>
       <!-- Panneau de contrôle -->
@@ -3547,7 +3547,7 @@
       <!-- Interactive board -->
       <div style="display:flex;align-items:center;justify-content:center;margin:20px 0;position:relative">
         <div style="position:relative">
-          <canvas id="puzzle-board" width="400" height="400" style="border-radius:12px;box-shadow:0 0 0 1px var(--border),0 12px 40px rgba(0,0,0,0.4);cursor:pointer"></canvas>
+          <canvas id="puzzle-board" role="img" aria-label="Plateau du problème" width="400" height="400" style="border-radius:12px;box-shadow:0 0 0 1px var(--border),0 12px 40px rgba(0,0,0,0.4);cursor:pointer"></canvas>
           <div style="text-align:center;margin-top:10px;font-size:12px;color:var(--muted);font-family:'DM Mono',monospace" id="puzzle-msg">⚫ Sélectionnez une bille noire</div>
           <!-- Result overlay -->
           <div id="puzzle-result-overlay" style="display:none;position:absolute;inset:0;background:rgba(13,15,14,0.88);backdrop-filter:blur(6px);border-radius:12px;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center">
@@ -3669,7 +3669,7 @@
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:11px;color:var(--muted)">🌐 Traduction auto</span>
           <label style="position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0">
-            <input type="checkbox" id="gchat-translate" checked style="opacity:0;width:0;height:0" data-change="basculerTraductionChat(this)">
+            <input type="checkbox" id="gchat-translate" aria-label="Traduction automatique du chat" checked style="opacity:0;width:0;height:0" data-change="basculerTraductionChat(this)">
             <span style="position:absolute;inset:0;background:var(--gold);border-radius:12px;cursor:pointer;transition:0.2s"></span>
           </label>
         </div>
@@ -3886,16 +3886,16 @@
       </div>
     </div>
     <div class="lab-onglets" id="lab-onglets" role="tablist" aria-label="Outils du Labo">
-      <button data-onglet="tableau" data-click="laboOnglet('tableau')">📊 Tableau de bord</button>
-      <button data-onglet="auto" data-click="laboOnglet('auto')">🔁 Auto-amélioration</button>
-      <button data-onglet="texel" data-click="laboOnglet('texel')">📐 Méthode Texel</button>
-      <button data-onglet="styles" data-click="laboOnglet('styles')">🏆 Tournoi des styles</button>
-      <button data-onglet="niveaux" data-click="laboOnglet('niveaux')">📶 Niveaux</button>
-      <button data-onglet="humains" data-click="laboOnglet('humains')">🧑 Comme les humains</button>
-      <button data-onglet="contretoi" data-click="laboOnglet('contretoi')">🎯 Contre toi</button>
-      <button data-onglet="ouvertures" data-click="laboOnglet('ouvertures')">📖 Ouvertures</button>
-      <button data-onglet="reseau" data-click="laboOnglet('reseau')">🌐 Réseau de calcul</button>
-      <button data-onglet="outils" data-click="laboOnglet('outils')">🧰 Autres outils</button>
+      <button role="tab" aria-selected="false" data-onglet="tableau" data-click="laboOnglet('tableau')">📊 Tableau de bord</button>
+      <button role="tab" aria-selected="false" data-onglet="auto" data-click="laboOnglet('auto')">🔁 Auto-amélioration</button>
+      <button role="tab" aria-selected="false" data-onglet="texel" data-click="laboOnglet('texel')">📐 Méthode Texel</button>
+      <button role="tab" aria-selected="false" data-onglet="styles" data-click="laboOnglet('styles')">🏆 Tournoi des styles</button>
+      <button role="tab" aria-selected="false" data-onglet="niveaux" data-click="laboOnglet('niveaux')">📶 Niveaux</button>
+      <button role="tab" aria-selected="false" data-onglet="humains" data-click="laboOnglet('humains')">🧑 Comme les humains</button>
+      <button role="tab" aria-selected="false" data-onglet="contretoi" data-click="laboOnglet('contretoi')">🎯 Contre toi</button>
+      <button role="tab" aria-selected="false" data-onglet="ouvertures" data-click="laboOnglet('ouvertures')">📖 Ouvertures</button>
+      <button role="tab" aria-selected="false" data-onglet="reseau" data-click="laboOnglet('reseau')">🌐 Réseau de calcul</button>
+      <button role="tab" aria-selected="false" data-onglet="outils" data-click="laboOnglet('outils')">🧰 Autres outils</button>
     </div>
     <section class="lab-zone" data-onglet="tableau" hidden>
       <h3>📊 Tableau de bord du Labo</h3>
@@ -4991,7 +4991,7 @@
     </div>
 
     <div style="margin-top:32px;padding:18px;background:var(--surface);border:1px solid var(--border);border-radius:12px;font-size:13px;color:var(--muted)">
-      Sources : blog <a href="https://abalone-online.over-blog.com/" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:none">Abalone Online</a>, publications académiques (Graz, Maastricht, Lisbonne, Yeditepe) et travaux de Laurent Pagli. Les noms cités appartiennent à leurs auteurs ; cette page leur rend hommage à titre informatif.
+      Sources : blog <a href="https://abalone-online.over-blog.com/" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:underline">Abalone Online</a>, publications académiques (Graz, Maastricht, Lisbonne, Yeditepe) et travaux de Laurent Pagli. Les noms cités appartiennent à leurs auteurs ; cette page leur rend hommage à titre informatif.
     </div>
   </div>
 </div>
@@ -5397,7 +5397,7 @@
     </div>
     <h2 id="tuto-title" style="font-family:'Playfair Display',serif;color:var(--white);margin-bottom:8px">Bienvenue !</h2>
     <p id="tuto-text" style="font-size:14px;color:var(--text);line-height:1.6;margin-bottom:16px;min-height:60px"></p>
-    <canvas id="tuto-board" width="400" height="400" style="border-radius:12px;box-shadow:0 0 0 1px var(--border),0 12px 40px rgba(0,0,0,0.4);cursor:pointer;max-width:100%"></canvas>
+    <canvas id="tuto-board" role="img" aria-label="Plateau du tutoriel" width="400" height="400" style="border-radius:12px;box-shadow:0 0 0 1px var(--border),0 12px 40px rgba(0,0,0,0.4);cursor:pointer;max-width:100%"></canvas>
     <div id="tuto-feedback" style="font-size:13px;font-weight:600;min-height:24px;margin-top:12px;color:var(--gold)"></div>
     <div style="display:flex;gap:10px;justify-content:center;margin-top:8px">
       <button id="tuto-prev" data-click="tutorialPrev()" style="padding:10px 20px;background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif">⟨ Précédent</button>

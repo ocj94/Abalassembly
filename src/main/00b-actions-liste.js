@@ -1,4 +1,4 @@
-/* Généré par tools/actions.js : ne pas modifier à la main. 461 actions.
+/* Généré par tools/actions.js : ne pas modifier à la main. 462 actions.
    Les seules fonctions que les attributs data-click, data-change… peuvent appeler
    (src/main/00a-actions.js). Chaque entrée renvoie la fonction au moment du clic. */
 const _ACTIONS = {
@@ -46,6 +46,7 @@ const _ACTIONS = {
   adopterContreMoi: function () { return adopterContreMoi; },
   advCancelImport: function () { return advCancelImport; },
   advConfirmImport: function () { return advConfirmImport; },
+  allerAuContenu: function () { return allerAuContenu; },
   analysisFromEditor: function () { return analysisFromEditor; },
   analysisFromStandard: function () { return analysisFromStandard; },
   analysisGoto: function () { return analysisGoto; },

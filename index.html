@@ -20,7 +20,7 @@
 <!-- v2.96 : connect-src ouvert a playstrategy.org, et a lui seul. Les fonctions PlayStrategy (partie en direct,
      tournois, import par lien) etaient bloquees par cette regle depuis leur ajout ; le site n'y envoie qu'un pseudo
      ou un lien, en lecture seule. Si PlayStrategy refuse les requetes venant d'un autre site (CORS), le message le dit. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' blob: 'sha256-8STPnbw+E3XBBZTJlKw/YzNCMzYXmKRZpCk2DlyHjcE=' 'sha256-xrClgwYGFk8hhEGMu2u07LSxLn0oQO68guvmE6vMhXw=' 'sha256-m27Wg5TWdw9E1hbV7aJgwgAnZq+LlHkwEsxI4I930R0=' 'sha256-gSyrMtmtJdU8wMNT2YIGl1JVeCHwNXcuQhdjf9Zsebw=' 'sha256-vPSSUR0q4b8wSgnee15gQgz67URxhHm4MgCgzbsfq2Q=' 'sha256-l+8IXMf8DU5SgvLOVQP3Yf8/vU6jr/z0Fms4QMYrWas='; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://playstrategy.org https://cdn.jsdelivr.net https://unpkg.com; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' blob: 'sha256-8STPnbw+E3XBBZTJlKw/YzNCMzYXmKRZpCk2DlyHjcE=' 'sha256-xrClgwYGFk8hhEGMu2u07LSxLn0oQO68guvmE6vMhXw=' 'sha256-x+bA9ar1ozWHjh/Ohqn7s6G1I9RCEEaBeZJKa1WyPZM=' 'sha256-htlftkhcOevDs/FOxTHDC9vx/bazaIHTRKDuzHwyeUE=' 'sha256-vPSSUR0q4b8wSgnee15gQgz67URxhHm4MgCgzbsfq2Q=' 'sha256-l+8IXMf8DU5SgvLOVQP3Yf8/vU6jr/z0Fms4QMYrWas='; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://playstrategy.org https://cdn.jsdelivr.net https://unpkg.com; base-uri 'self'; form-action 'self'">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#151918">
@@ -154,10 +154,10 @@
   --border: #2a3330;
   --gold: #c8a84b;
   --gold-light: #e8c96e;
-  --gold-dim: #8a7235;
+  --gold-dim: #a68a44;     /* v3.25 : etait #8a7235, 3,8:1 sur le fond ; 4,9:1 a 5,3:1 maintenant (WCAG AA) */
   --cream: #f0ead6;
   --text: #d4cfc4;
-  --muted: #6b7570;
+  --muted: #8b948f;        /* v3.25 : etait #6b7570, 3,4:1 a 3,9:1 ; 4,8:1 a 6:1 maintenant sur les fonds du site (WCAG AA) */
   --white: #f8f5ee;
   --black-marble: #1a1a1a;
   --white-marble: #e8e0d0;
@@ -457,7 +457,7 @@ html[dir="rtl"] .lang-option { text-align: right; }
 /* Group headers + collapsible "En ligne (bientôt)" section */
 .sidebar-group-label {
   font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-  color: var(--muted); padding: 14px 12px 6px; opacity: 0.75;
+  color: var(--muted); padding: 14px 12px 6px;
 }
 .sidebar-items > .sidebar-group-label:first-child { padding-top: 0; }
 .sidebar-collapse { display: block; }
@@ -706,7 +706,7 @@ h2 {
   color: var(--gold); font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
   text-transform: uppercase; vertical-align: middle;
 }
-.feature-card.feature-upcoming { opacity: 0.82; }
+.feature-card.feature-upcoming { border-style: dashed; }   /* v3.25 : etait opacity 0.82, texte sous 4,5:1 ; « Bientôt » et la bordure en pointilles le disent deja */
 
 /* ─── LEADERBOARD PAGE ─── */
 .page-header {
@@ -798,7 +798,7 @@ h2 {
 }
 .rule-num {
   font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 900;
-  color: rgba(200,168,75,0.15); line-height: 1; margin-bottom: 8px;
+  color: var(--gold-dim); line-height: 1; margin-bottom: 8px;   /* v3.25 : etait or a 15 %, illisible (1,3:1) ; ces nombres (14, 61…) sont du contenu */
 }
 .rule-title { font-size: 16px; font-weight: 600; color: var(--white); margin-bottom: 8px; }
 .rule-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
@@ -2138,6 +2138,12 @@ table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset
 .sb-tab-l span:not(:first-child) { text-align:right; font-variant-numeric:tabular-nums; }
 .sb-tab-ent { color:var(--muted); font-size:11px; }
 .sb-legende-grille { font-size:11.5px; color:var(--muted); line-height:1.5; }
+.sb-g-ligne { display:contents; }
+/* v3.25 : lien d'évitement, visible seulement quand il a le focus clavier */
+.lien-evitement { position:fixed; left:12px; top:-80px; z-index:2147483000; padding:10px 16px; border-radius:8px; border:2px solid var(--gold); background:var(--bg); color:var(--cream); font:600 14px 'DM Sans',sans-serif; }
+.lien-evitement:focus { top:12px; }
+.logo-decompte::before { content: attr(data-chiffre); }   /* v3.25 : le « 3, 2, 1 » du logo est un dessin, pas du texte a lire */
+[data-click][role="button"]:focus-visible, [data-click][tabindex="0"]:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
 .sb-grille { display:grid; grid-template-columns:auto repeat(5, minmax(0,1fr)); gap:3px; max-width:440px; margin:10px 0 2px; }
 .sb-g-coin { font-size:10px; color:var(--muted); align-self:end; padding:0 6px 4px 0; white-space:nowrap; }
 .sb-g-ent { font-size:11px; color:var(--muted); text-align:center; align-self:center; padding:2px 6px; font-weight:700; }
@@ -2612,7 +2618,7 @@ table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset
 }
 .event-live-badge {
   display: inline-block; padding: 2px 8px; border-radius: 4px;
-  background: #e05c4b; color: #fff; font-size: 10px; font-weight: 800;
+  background: #c0392b; color: #fff; font-size: 10px; font-weight: 800;
   letter-spacing: 1px; margin-left: 6px;
 }
 .news-card {
@@ -2739,6 +2745,8 @@ body.kids-mode #bnav-settings { display: none !important; }
 </style>
 </head>
 <body>
+<!-- v3.25 : lien d'évitement, le premier arrêt de la touche Tab -->
+<button class="lien-evitement" data-click="allerAuContenu()">Aller au contenu</button>
 
 <!-- ═══════════════════════════════════════════════════════════
      MODE PROJECTEUR — detection precoce (avant l'intro), pour que
@@ -3103,6 +3111,13 @@ const I18N_EN = {
   "Cette fois c'est l'autre camp qui gagne — à toi de rejouer !": 'This time the other side wins — play again!', 'Match nul ! 🤝': 'It’s a draw! 🤝',
   '📤 Partager': '📤 Share', '🔍 Revoir la partie': '🔍 Review the game', '⚠️ Revoir mes erreurs': '⚠️ Review my mistakes',
   '🧺 Blanchissage ! Victoire 6-0 sans perdre une bille !': '🧺 Whitewash! A 6-0 win without losing a single marble!', 'Partie': 'Game', '💬 Chat': '💬 Chat', '📊 Analyse': '📊 Analysis', '🤖 Bots': '🤖 Bots',
+  // v3.25 : accessibilite (lien d'evitement, noms des plateaux et des filtres)
+  'Aller au contenu': 'Skip to content', 'Sommaire des règles': 'Rules contents', 'Traduction automatique du chat': 'Automatic chat translation',
+  'Plateau de jeu (au clavier : flèches et Page haut / Page bas sur la grille accessible)': 'Game board (keyboard: arrow keys and Page Up / Page Down on the accessible grid)',
+  'Plateau d’analyse': 'Analysis board', 'Plateau de l’éditeur de position': 'Position editor board', 'Plateau en 3D': '3D board',
+  'Aperçu de la position de départ': 'Starting position preview', 'Photo du plateau : toucher les coins pour le repérer': 'Board photo: tap the corners to locate it',
+  'Calibrage : les coins du plateau sur la photo': 'Calibration: the board corners on the photo', 'Plateau détecté : toucher une case pour la corriger': 'Detected board: tap a cell to correct it',
+  'Filtrer par variante': 'Filter by variant', 'Plateau du problème': 'Puzzle board', 'Plateau du tutoriel': 'Tutorial board', 'Partie du Labo rejouée': 'Lab game replay', 'Filtrer par mode de jeu': 'Filter by game mode', 'Filtrer par résultat': 'Filter by result',
   'Historique des coups': 'Move list', 'Copier': 'Copy', 'Permutations': 'Permutations',
   '▸ Réflexion de l’IA': '▸ AI reasoning', '▾ Réflexion de l’IA': '▾ AI reasoning', '💡 Suggérer un coup': '💡 Suggest a move',
   '🧠 Pourquoi ce coup ?': '🧠 Why this move?', '⟨ Précédent': '⟨ Previous', 'Suivant ⟩': 'Next ⟩', '▶ Rejouer la partie': '▶ Replay the game',
@@ -3944,10 +3959,10 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
   <footer>
     <div class="footer-brand">
       <div class="footer-logo" style="display:flex;align-items:center;gap:0">
-        <div style="display:flex;align-items:flex-end;gap:2px;margin-right:4px">
-          <span style="font-size:10px;font-weight:900;color:var(--gold);font-family:'DM Mono',monospace;opacity:0.6">3,</span>
-          <span style="font-size:8px;font-weight:900;color:var(--gold);font-family:'DM Mono',monospace;opacity:0.5">2,</span>
-          <span style="font-size:6px;font-weight:900;color:var(--gold);font-family:'DM Mono',monospace;opacity:0.4">1</span>
+        <div style="display:flex;align-items:flex-end;gap:2px;margin-right:4px" aria-hidden="true">
+          <span class="logo-decompte" data-chiffre="3," style="font-size:10px;font-weight:900;color:var(--gold);font-family:'DM Mono',monospace;opacity:0.6"></span>
+          <span class="logo-decompte" data-chiffre="2," style="font-size:8px;font-weight:900;color:var(--gold);font-family:'DM Mono',monospace;opacity:0.5"></span>
+          <span class="logo-decompte" data-chiffre="1" style="font-size:6px;font-weight:900;color:var(--gold);font-family:'DM Mono',monospace;opacity:0.4"></span>
         </div>
         <div style="display:flex;align-items:flex-end;gap:2px;margin-right:5px">
           <div style="width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#888,#111)"></div>
@@ -4061,7 +4076,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
           <div style="font-size:13px;color:var(--muted);text-align:center;max-width:320px">Pointez votre caméra vers le plateau Abalone physique puis capturez l'image</div>
           <button class="cam-btn cam-live" data-click="startCamera()" style="margin-top:8px">🔴 Démarrer la caméra</button>
         </div>
-        <canvas id="snap-canvas" style="display:none"></canvas>
+        <canvas id="snap-canvas" aria-hidden="true" style="display:none"></canvas>
         <img id="snap-preview" alt="Aperçu de la photo du plateau" style="display:none;width:100%;border-radius:14px;margin-top:12px;border:1px solid var(--border)">
       </div>
 
@@ -4081,7 +4096,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
         </div>
         <div id="ar-live-wrap" style="display:none;position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:#000">
           <video id="ar-video" autoplay playsinline muted style="display:block;width:100%;height:60vh;max-height:520px;object-fit:cover"></video>
-          <canvas id="ar-canvas" style="position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair"></canvas>
+          <canvas id="ar-canvas" aria-label="Photo du plateau : toucher les coins pour le repérer" role="img" style="position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair"></canvas>
           <div id="ar-status" style="position:absolute;top:10px;left:10px;right:10px;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,0.55);color:#e8dcc0;font-size:12px;pointer-events:none">Calibration : tape les 4 coins (haut-gauche → haut-droit → bas-droit → bas-gauche)</div>
         </div>
         <div id="ar-controls" style="display:none;margin-top:12px;flex-wrap:wrap;gap:8px">
@@ -4117,7 +4132,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
         <div id="det-calib-title" style="font-weight:700;color:var(--gold);margin-bottom:8px">📐 Tapez les 4 coins du plateau</div>
         <div id="det-calib-hint" style="font-size:12px;color:var(--muted);margin-bottom:10px">Dans l'ordre : coin supérieur-gauche → supérieur-droit → inférieur-droit → inférieur-gauche</div>
         <div style="position:relative;max-width:100%;touch-action:none">
-          <canvas id="det-calib-canvas" style="width:100%;border-radius:10px;cursor:crosshair;display:block"></canvas>
+          <canvas id="det-calib-canvas" aria-label="Calibrage : les coins du plateau sur la photo" role="img" style="width:100%;border-radius:10px;cursor:crosshair;display:block"></canvas>
         </div>
         <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
           <button class="cam-btn" data-click="detCalibReset()">↺ Recommencer</button>
@@ -4130,7 +4145,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
         <div style="font-weight:700;color:var(--gold);margin-bottom:8px">🔍 Vérifiez la détection</div>
         <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Tapez une case pour corriger : vide → noir → blanc → vide. Réglez l'orientation si besoin.</div>
         <div style="position:relative;max-width:100%">
-          <canvas id="det-correct-canvas" style="width:100%;border-radius:10px;cursor:pointer;display:block"></canvas>
+          <canvas id="det-correct-canvas" aria-label="Plateau détecté : toucher une case pour la corriger" role="img" style="width:100%;border-radius:10px;cursor:pointer;display:block"></canvas>
         </div>
         <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
           <button class="cam-btn" data-click="detFlipVertical()">↕️ Retourner</button>
@@ -4167,7 +4182,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
         <!-- Mini board reconstruction -->
         <div class="board-preview-mini">
           <h4>🗺 Position reconstituée</h4>
-          <canvas id="mini-board-canvas" width="400" height="400"></canvas>
+          <canvas id="mini-board-canvas" aria-label="Aperçu de la position de départ" role="img" width="400" height="400"></canvas>
         </div>
 
         <!-- AI analysis text -->
@@ -4741,7 +4756,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
           <span class="clock-time" id="clock-top-time">10:00</span>
         </div>
         <div id="board-stage">
-        <canvas id="board" width="640" height="640"></canvas>
+        <canvas id="board" aria-label="Plateau de jeu (au clavier : flèches et Page haut / Page bas sur la grille accessible)" role="img" width="640" height="640"></canvas>
         <!-- Vues 1D et 3D : elles remplacent le canvas 2D, elles doivent donc
              occuper SA place, entre les deux barres de joueur. Placees apres
              clock-bottom, elles rejetaient les deux barres au-dessus du plateau
@@ -4755,7 +4770,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
           <pre id="board-1d-text" style="margin:0;font-family:'DM Mono',ui-monospace,'Courier New',monospace;color:#e8e8e8;white-space:pre;user-select:text"></pre>
         </div>
         <div id="board-3d" style="display:none;position:absolute;inset:0;border-radius:12px;overflow:hidden;background:#14141a">
-          <canvas id="board-3d-canvas" style="width:100%;height:100%;display:block;cursor:grab"></canvas>
+          <canvas id="board-3d-canvas" aria-label="Plateau en 3D" role="img" style="width:100%;height:100%;display:block;cursor:grab"></canvas>
           <!-- En bas-a-droite, en miroir du panneau zoom/rotation (bas-a-gauche,
                construit plus bas dans le script) : les deux ne se chevauchent
                jamais, quelle que soit la largeur de l'ecran. -->
@@ -4879,7 +4894,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
           <span class="status-dot active"></span>
           <span id="game-status-text">À votre tour — Coup 14</span>
         </div>
-        <div class="move-history">
+        <div class="move-history" tabindex="0" aria-label="Historique des coups">
           <h4>Historique des coups</h4>
           <div class="move-list" id="move-list">
             <div class="move-head"><span></span><span></span><span>Aba-Pro</span><span>Nacre</span></div>
@@ -5094,7 +5109,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
 <!-- ─── PAGE: LEARN ─── -->
 <div class="page" id="page-learn">
   <div class="learn-wrap">
-    <div class="learn-sidebar">
+    <div class="learn-sidebar" tabindex="0" aria-label="Sommaire des règles">
       <div class="sidebar-section">
         <div class="sidebar-title">Introduction</div>
         <div class="sidebar-link active" data-click="showLearnSection('intro',this)">Qu'est-ce qu'Abalone ?</div>
@@ -5880,16 +5895,16 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
       <div id="avatar-picker" style="display:none;position:absolute;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:110px;box-shadow:0 8px 30px rgba(0,0,0,0.5)">
         <div style="font-size:11px;color:var(--muted);margin-bottom:10px;letter-spacing:1px;text-transform:uppercase">Couleur avatar</div>
         <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
-          <div data-click="setAvatarColor('#2d5a3d')" style="width:26px;height:26px;border-radius:50%;background:#2d5a3d;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
-          <div data-click="setAvatarColor('#1c3d5a')" style="width:26px;height:26px;border-radius:50%;background:#1c3d5a;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
-          <div data-click="setAvatarColor('#5a1c3d')" style="width:26px;height:26px;border-radius:50%;background:#5a1c3d;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
-          <div data-click="setAvatarColor('#4a1c5a')" style="width:26px;height:26px;border-radius:50%;background:#4a1c5a;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
-          <div data-click="setAvatarColor('#c8a84b')" style="width:26px;height:26px;border-radius:50%;background:#c8a84b;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
-          <div data-click="setAvatarColor('#5a3a1c')" style="width:26px;height:26px;border-radius:50%;background:#5a3a1c;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
-          <div data-click="setAvatarColor('#1c4a4a')" style="width:26px;height:26px;border-radius:50%;background:#1c4a4a;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
-          <div data-click="setAvatarColor('#3d4a1c')" style="width:26px;height:26px;border-radius:50%;background:#3d4a1c;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
-          <div data-click="setAvatarColor('#2a2a2a')" style="width:26px;height:26px;border-radius:50%;background:#2a2a2a;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
-          <div data-click="setAvatarColor('#1a1a4a')" style="width:26px;height:26px;border-radius:50%;background:#1a1a4a;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
+          <div data-click="setAvatarColor('#2d5a3d')" role="button" aria-label="Couleur d’avatar #2d5a3d" style="width:26px;height:26px;border-radius:50%;background:#2d5a3d;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
+          <div data-click="setAvatarColor('#1c3d5a')" role="button" aria-label="Couleur d’avatar #1c3d5a" style="width:26px;height:26px;border-radius:50%;background:#1c3d5a;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
+          <div data-click="setAvatarColor('#5a1c3d')" role="button" aria-label="Couleur d’avatar #5a1c3d" style="width:26px;height:26px;border-radius:50%;background:#5a1c3d;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
+          <div data-click="setAvatarColor('#4a1c5a')" role="button" aria-label="Couleur d’avatar #4a1c5a" style="width:26px;height:26px;border-radius:50%;background:#4a1c5a;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
+          <div data-click="setAvatarColor('#c8a84b')" role="button" aria-label="Couleur d’avatar #c8a84b" style="width:26px;height:26px;border-radius:50%;background:#c8a84b;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
+          <div data-click="setAvatarColor('#5a3a1c')" role="button" aria-label="Couleur d’avatar #5a3a1c" style="width:26px;height:26px;border-radius:50%;background:#5a3a1c;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
+          <div data-click="setAvatarColor('#1c4a4a')" role="button" aria-label="Couleur d’avatar #1c4a4a" style="width:26px;height:26px;border-radius:50%;background:#1c4a4a;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
+          <div data-click="setAvatarColor('#3d4a1c')" role="button" aria-label="Couleur d’avatar #3d4a1c" style="width:26px;height:26px;border-radius:50%;background:#3d4a1c;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
+          <div data-click="setAvatarColor('#2a2a2a')" role="button" aria-label="Couleur d’avatar #2a2a2a" style="width:26px;height:26px;border-radius:50%;background:#2a2a2a;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
+          <div data-click="setAvatarColor('#1a1a4a')" role="button" aria-label="Couleur d’avatar #1a1a4a" style="width:26px;height:26px;border-radius:50%;background:#1a1a4a;cursor:pointer;border:2px solid transparent" data-survol="border-color:var(--gold)"></div>
         </div>
         <button data-click="cacher('avatar-picker')" style="margin-top:10px;width:100%;padding:5px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer;font-size:12px">Fermer</button>
       </div>
@@ -6106,10 +6121,10 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
           </summary>
           <div style="padding:18px;border-top:1px solid var(--border);display:flex;gap:20px;flex-wrap:wrap">
             <div style="flex:0 0 200px">
-              <canvas id="creator-preview" width="200" height="200" style="width:200px;height:200px;border-radius:12px;border:1px solid var(--border);display:block"></canvas>
+              <canvas id="creator-preview" aria-hidden="true" width="200" height="200" style="width:200px;height:200px;border-radius:12px;border:1px solid var(--border);display:block"></canvas>
               <div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center">Aperçu 2D</div>
               <div id="creator-preview-3d-wrap" style="position:relative;width:200px;height:200px;margin-top:10px;border-radius:12px;border:1px solid var(--border);overflow:hidden;background:#14141a">
-                <canvas id="creator-preview-3d-canvas" width="200" height="200" style="width:200px;height:200px;display:block"></canvas>
+                <canvas id="creator-preview-3d-canvas" aria-hidden="true" width="200" height="200" style="width:200px;height:200px;display:block"></canvas>
                 <div id="creator-3d-loader" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;text-align:center;padding:10px">Ouvre le panneau pour charger l'aperçu 3D…</div>
               </div>
               <div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center">Aperçu 3D — même recette, même moteur</div>
@@ -6278,13 +6293,13 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
           <div>
             <div style="font-size:13px;font-weight:600;color:var(--white);margin-bottom:4px">Couleurs d'avatar disponibles</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap">
-              <div data-click="setAvatarColor('#2d5a3d')" style="width:22px;height:22px;border-radius:50%;background:#2d5a3d;cursor:pointer"></div>
-              <div data-click="setAvatarColor('#1c3d5a')" style="width:22px;height:22px;border-radius:50%;background:#1c3d5a;cursor:pointer"></div>
-              <div data-click="setAvatarColor('#4a1c5a')" style="width:22px;height:22px;border-radius:50%;background:#4a1c5a;cursor:pointer"></div>
-              <div data-click="setAvatarColor('#5a1c3d')" style="width:22px;height:22px;border-radius:50%;background:#5a1c3d;cursor:pointer"></div>
-              <div data-click="setAvatarColor('#c8a84b')" style="width:22px;height:22px;border-radius:50%;background:#c8a84b;cursor:pointer"></div>
-              <div data-click="setAvatarColor('#5a3a1c')" style="width:22px;height:22px;border-radius:50%;background:#5a3a1c;cursor:pointer"></div>
-              <div data-click="setAvatarColor('#1c4a4a')" style="width:22px;height:22px;border-radius:50%;background:#1c4a4a;cursor:pointer"></div>
+              <div data-click="setAvatarColor('#2d5a3d')" role="button" aria-label="Couleur d’avatar #2d5a3d" style="width:22px;height:22px;border-radius:50%;background:#2d5a3d;cursor:pointer"></div>
+              <div data-click="setAvatarColor('#1c3d5a')" role="button" aria-label="Couleur d’avatar #1c3d5a" style="width:22px;height:22px;border-radius:50%;background:#1c3d5a;cursor:pointer"></div>
+              <div data-click="setAvatarColor('#4a1c5a')" role="button" aria-label="Couleur d’avatar #4a1c5a" style="width:22px;height:22px;border-radius:50%;background:#4a1c5a;cursor:pointer"></div>
+              <div data-click="setAvatarColor('#5a1c3d')" role="button" aria-label="Couleur d’avatar #5a1c3d" style="width:22px;height:22px;border-radius:50%;background:#5a1c3d;cursor:pointer"></div>
+              <div data-click="setAvatarColor('#c8a84b')" role="button" aria-label="Couleur d’avatar #c8a84b" style="width:22px;height:22px;border-radius:50%;background:#c8a84b;cursor:pointer"></div>
+              <div data-click="setAvatarColor('#5a3a1c')" role="button" aria-label="Couleur d’avatar #5a3a1c" style="width:22px;height:22px;border-radius:50%;background:#5a3a1c;cursor:pointer"></div>
+              <div data-click="setAvatarColor('#1c4a4a')" role="button" aria-label="Couleur d’avatar #1c4a4a" style="width:22px;height:22px;border-radius:50%;background:#1c4a4a;cursor:pointer"></div>
             </div>
           </div>
         </div>
@@ -6729,7 +6744,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:16px">
           <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Aperçu en direct</div>
           <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-            <canvas id="access-preview-canvas" width="120" height="120" style="border-radius:8px;flex-shrink:0"></canvas>
+            <canvas id="access-preview-canvas" aria-hidden="true" width="120" height="120" style="border-radius:8px;flex-shrink:0"></canvas>
             <div>
               <div id="access-mode-label" style="font-size:14px;font-weight:600;color:var(--white);margin-bottom:4px">Mode Standard</div>
               <div id="access-mode-desc" style="font-size:12px;color:var(--muted);line-height:1.6;max-width:220px">Affichage par défaut — billes noires et blanches sans modification.</div>
@@ -6781,16 +6796,16 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
       <!-- Les 10 Commandements : HTML ecrit en dur. Avant, du code JavaScript (une interpolation de
          gabarit avec map/join) etait place dans le HTML statique, hors de tout script : il ne s'executait jamais et
          s'affichait tel quel sur la page de l'Academie. Signale par une analyse externe, verifie. -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">I</div><div style="font-size:14px;color:var(--text);line-height:1.6">Vise le centre</div></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">II</div><div style="font-size:14px;color:var(--text);line-height:1.6">Garde tes billes groupées</div></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">III</div><div style="font-size:14px;color:var(--text);line-height:1.6">Évite les bords</div></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">IV</div><div style="font-size:14px;color:var(--text);line-height:1.6">Attaque sur 2 fronts</div></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">V</div><div style="font-size:14px;color:var(--text);line-height:1.6">Anticipe les ripostes</div></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">VI</div><div style="font-size:14px;color:var(--text);line-height:1.6">Utilise le Sumito</div></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">VII</div><div style="font-size:14px;color:var(--text);line-height:1.6">Ne gaspille pas les coups</div></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">VIII</div><div style="font-size:14px;color:var(--text);line-height:1.6">Connais les positions bloquées</div></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">IX</div><div style="font-size:14px;color:var(--text);line-height:1.6">Adapte-toi au style adverse</div></div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:rgba(200,168,75,0.2);min-width:32px">X</div><div style="font-size:14px;color:var(--text);line-height:1.6">Joue et rejoue</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:var(--gold-dim);min-width:32px">I</div><div style="font-size:14px;color:var(--text);line-height:1.6">Vise le centre</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:var(--gold-dim);min-width:32px">II</div><div style="font-size:14px;color:var(--text);line-height:1.6">Garde tes billes groupées</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:var(--gold-dim);min-width:32px">III</div><div style="font-size:14px;color:var(--text);line-height:1.6">Évite les bords</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:var(--gold-dim);min-width:32px">IV</div><div style="font-size:14px;color:var(--text);line-height:1.6">Attaque sur 2 fronts</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:var(--gold-dim);min-width:32px">V</div><div style="font-size:14px;color:var(--text);line-height:1.6">Anticipe les ripostes</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:var(--gold-dim);min-width:32px">VI</div><div style="font-size:14px;color:var(--text);line-height:1.6">Utilise le Sumito</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:var(--gold-dim);min-width:32px">VII</div><div style="font-size:14px;color:var(--text);line-height:1.6">Ne gaspille pas les coups</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:var(--gold-dim);min-width:32px">VIII</div><div style="font-size:14px;color:var(--text);line-height:1.6">Connais les positions bloquées</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:var(--gold-dim);min-width:32px">IX</div><div style="font-size:14px;color:var(--text);line-height:1.6">Adapte-toi au style adverse</div></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start"><div style="font-family:Playfair Display,serif;font-size:28px;font-weight:900;color:var(--gold-dim);min-width:32px">X</div><div style="font-size:14px;color:var(--text);line-height:1.6">Joue et rejoue</div></div>
     </div>
     <div style="margin-top:32px;padding:18px 22px;background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.2);border-radius:8px;font-size:14px;color:var(--text);line-height:1.7">
       📚 Source complète : <a href="https://onlineabalone.wordpress.com/abalone-academy/un-peu-de-theorie/les-dix-commandements-du-joueur-debutant/" target="_blank" rel="noopener noreferrer" style="color:var(--gold)">Abalone Academy — Les 10 commandements</a>
@@ -6863,7 +6878,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
     <div class="outil-zone" style="display:flex;gap:32px;padding:24px 60px 80px;flex-wrap:wrap;align-items:flex-start">
       <!-- Plateau d'analyse -->
       <div class="outil-plateau" style="flex-shrink:0">
-        <canvas id="analysis-board" width="540" height="540" style="border-radius:12px;box-shadow:0 0 0 1px var(--border),0 12px 40px rgba(0,0,0,0.4);cursor:pointer;max-width:100%"></canvas>
+        <canvas id="analysis-board" aria-label="Plateau d’analyse" role="img" width="540" height="540" style="border-radius:12px;box-shadow:0 0 0 1px var(--border),0 12px 40px rgba(0,0,0,0.4);cursor:pointer;max-width:100%"></canvas>
         <!-- Barre d'évaluation -->
         <div style="margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -6953,7 +6968,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
     <div class="outil-zone" style="display:flex;gap:32px;padding:24px 60px 80px;flex-wrap:wrap;align-items:flex-start">
       <!-- Plateau -->
       <div class="outil-plateau" style="flex-shrink:0">
-        <canvas id="editor-board" width="500" height="500" style="border-radius:12px;box-shadow:0 0 0 1px var(--border),0 12px 40px rgba(0,0,0,0.4);cursor:pointer;max-width:100%"></canvas>
+        <canvas id="editor-board" aria-label="Plateau de l’éditeur de position" role="img" width="500" height="500" style="border-radius:12px;box-shadow:0 0 0 1px var(--border),0 12px 40px rgba(0,0,0,0.4);cursor:pointer;max-width:100%"></canvas>
         <div id="editor-status" style="text-align:center;font-size:13px;color:var(--muted);margin-top:10px">0 billes Joueur 1 · 0 billes Joueur 2</div>
       </div>
       <!-- Panneau de contrôle -->
@@ -7137,7 +7152,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
       <!-- Interactive board -->
       <div style="display:flex;align-items:center;justify-content:center;margin:20px 0;position:relative">
         <div style="position:relative">
-          <canvas id="puzzle-board" width="400" height="400" style="border-radius:12px;box-shadow:0 0 0 1px var(--border),0 12px 40px rgba(0,0,0,0.4);cursor:pointer"></canvas>
+          <canvas id="puzzle-board" role="img" aria-label="Plateau du problème" width="400" height="400" style="border-radius:12px;box-shadow:0 0 0 1px var(--border),0 12px 40px rgba(0,0,0,0.4);cursor:pointer"></canvas>
           <div style="text-align:center;margin-top:10px;font-size:12px;color:var(--muted);font-family:'DM Mono',monospace" id="puzzle-msg">⚫ Sélectionnez une bille noire</div>
           <!-- Result overlay -->
           <div id="puzzle-result-overlay" style="display:none;position:absolute;inset:0;background:rgba(13,15,14,0.88);backdrop-filter:blur(6px);border-radius:12px;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center">
@@ -7259,7 +7274,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:11px;color:var(--muted)">🌐 Traduction auto</span>
           <label style="position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0">
-            <input type="checkbox" id="gchat-translate" checked style="opacity:0;width:0;height:0" data-change="basculerTraductionChat(this)">
+            <input type="checkbox" id="gchat-translate" aria-label="Traduction automatique du chat" checked style="opacity:0;width:0;height:0" data-change="basculerTraductionChat(this)">
             <span style="position:absolute;inset:0;background:var(--gold);border-radius:12px;cursor:pointer;transition:0.2s"></span>
           </label>
         </div>
@@ -7476,16 +7491,16 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
       </div>
     </div>
     <div class="lab-onglets" id="lab-onglets" role="tablist" aria-label="Outils du Labo">
-      <button data-onglet="tableau" data-click="laboOnglet('tableau')">📊 Tableau de bord</button>
-      <button data-onglet="auto" data-click="laboOnglet('auto')">🔁 Auto-amélioration</button>
-      <button data-onglet="texel" data-click="laboOnglet('texel')">📐 Méthode Texel</button>
-      <button data-onglet="styles" data-click="laboOnglet('styles')">🏆 Tournoi des styles</button>
-      <button data-onglet="niveaux" data-click="laboOnglet('niveaux')">📶 Niveaux</button>
-      <button data-onglet="humains" data-click="laboOnglet('humains')">🧑 Comme les humains</button>
-      <button data-onglet="contretoi" data-click="laboOnglet('contretoi')">🎯 Contre toi</button>
-      <button data-onglet="ouvertures" data-click="laboOnglet('ouvertures')">📖 Ouvertures</button>
-      <button data-onglet="reseau" data-click="laboOnglet('reseau')">🌐 Réseau de calcul</button>
-      <button data-onglet="outils" data-click="laboOnglet('outils')">🧰 Autres outils</button>
+      <button role="tab" aria-selected="false" data-onglet="tableau" data-click="laboOnglet('tableau')">📊 Tableau de bord</button>
+      <button role="tab" aria-selected="false" data-onglet="auto" data-click="laboOnglet('auto')">🔁 Auto-amélioration</button>
+      <button role="tab" aria-selected="false" data-onglet="texel" data-click="laboOnglet('texel')">📐 Méthode Texel</button>
+      <button role="tab" aria-selected="false" data-onglet="styles" data-click="laboOnglet('styles')">🏆 Tournoi des styles</button>
+      <button role="tab" aria-selected="false" data-onglet="niveaux" data-click="laboOnglet('niveaux')">📶 Niveaux</button>
+      <button role="tab" aria-selected="false" data-onglet="humains" data-click="laboOnglet('humains')">🧑 Comme les humains</button>
+      <button role="tab" aria-selected="false" data-onglet="contretoi" data-click="laboOnglet('contretoi')">🎯 Contre toi</button>
+      <button role="tab" aria-selected="false" data-onglet="ouvertures" data-click="laboOnglet('ouvertures')">📖 Ouvertures</button>
+      <button role="tab" aria-selected="false" data-onglet="reseau" data-click="laboOnglet('reseau')">🌐 Réseau de calcul</button>
+      <button role="tab" aria-selected="false" data-onglet="outils" data-click="laboOnglet('outils')">🧰 Autres outils</button>
     </div>
     <section class="lab-zone" data-onglet="tableau" hidden>
       <h3>📊 Tableau de bord du Labo</h3>
@@ -8581,7 +8596,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
     </div>
 
     <div style="margin-top:32px;padding:18px;background:var(--surface);border:1px solid var(--border);border-radius:12px;font-size:13px;color:var(--muted)">
-      Sources : blog <a href="https://abalone-online.over-blog.com/" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:none">Abalone Online</a>, publications académiques (Graz, Maastricht, Lisbonne, Yeditepe) et travaux de Laurent Pagli. Les noms cités appartiennent à leurs auteurs ; cette page leur rend hommage à titre informatif.
+      Sources : blog <a href="https://abalone-online.over-blog.com/" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:underline">Abalone Online</a>, publications académiques (Graz, Maastricht, Lisbonne, Yeditepe) et travaux de Laurent Pagli. Les noms cités appartiennent à leurs auteurs ; cette page leur rend hommage à titre informatif.
     </div>
   </div>
 </div>
@@ -8987,7 +9002,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
     </div>
     <h2 id="tuto-title" style="font-family:'Playfair Display',serif;color:var(--white);margin-bottom:8px">Bienvenue !</h2>
     <p id="tuto-text" style="font-size:14px;color:var(--text);line-height:1.6;margin-bottom:16px;min-height:60px"></p>
-    <canvas id="tuto-board" width="400" height="400" style="border-radius:12px;box-shadow:0 0 0 1px var(--border),0 12px 40px rgba(0,0,0,0.4);cursor:pointer;max-width:100%"></canvas>
+    <canvas id="tuto-board" role="img" aria-label="Plateau du tutoriel" width="400" height="400" style="border-radius:12px;box-shadow:0 0 0 1px var(--border),0 12px 40px rgba(0,0,0,0.4);cursor:pointer;max-width:100%"></canvas>
     <div id="tuto-feedback" style="font-size:13px;font-weight:600;min-height:24px;margin-top:12px;color:var(--gold)"></div>
     <div style="display:flex;gap:10px;justify-content:center;margin-top:8px">
       <button id="tuto-prev" data-click="tutorialPrev()" style="padding:10px 20px;background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif">⟨ Précédent</button>
@@ -9004,7 +9019,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v3.24';
+const APP_VERSION = 'v3.25';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -9578,6 +9593,53 @@ if (typeof document !== 'undefined' && document.addEventListener) {
   document.addEventListener('mouseout', function (e) { _actSurvol(e, false); });
 }
 
+/* Clavier (v3.25) : un data-click posé sur un élément qui n'est pas un vrai bouton (une carte, une
+   pastille, une ligne) n'était atteignable qu'à la souris. Chacun reçoit ici tabindex="0" et, s'il
+   ne contient pas lui-même de commande, role="button" ; Entrée et Espace le déclenchent comme un
+   clic. Les boutons qui n'affichent qu'une croix (✕) reçoivent le nom « Fermer ». Une seule passe
+   au chargement, puis à chaque ajout dans la page (les rendus en innerHTML), regroupée par image. */
+const _ACT_NATIFS = { BUTTON: 1, A: 1, INPUT: 1, SELECT: 1, TEXTAREA: 1, SUMMARY: 1, LABEL: 1, OPTION: 1 };
+const _ACT_CROIX = /^[\s✕×✖❌⨯xX]*$/;
+function _actRendreActivables() {
+  document.querySelectorAll('[data-click]:not([tabindex])').forEach(function (el) {
+    if (_ACT_NATIFS[el.tagName] || (el.tagName === 'A' && el.hasAttribute('href'))) return;
+    if (el.closest('[aria-hidden="true"]')) return;
+    el.setAttribute('tabindex', '0');
+    if (!el.hasAttribute('role') && !el.querySelector('button, a[href], input, select, textarea, [data-click]')) el.setAttribute('role', 'button');
+  });
+  document.querySelectorAll('button:not([aria-label])').forEach(function (b) {
+    const t = b.textContent;
+    if (t && t.trim() && _ACT_CROIX.test(t) && !b.title) b.setAttribute('aria-label', typeof _tr === 'function' ? _tr('Fermer', 'Close') : 'Fermer');
+  });
+}
+let _actPasseDemandee = false;
+function _actDemanderPasse() {
+  if (_actPasseDemandee) return;
+  _actPasseDemandee = true;
+  (window.requestAnimationFrame || setTimeout)(function () { _actPasseDemandee = false; _actRendreActivables(); });
+}
+// Entrée ou Espace sur un élément rendu activable : un clic, comme sur un vrai bouton
+function _actClavier(e) {
+  if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+  const el = e.target;
+  if (!el || el.nodeType !== 1 || !el.hasAttribute('data-click') || _ACT_NATIFS[el.tagName]) return;
+  if (e.key === 'Enter' && el.hasAttribute('data-entree')) return;   // data-entree s'en charge déjà
+  e.preventDefault();
+  el.click();
+}
+// lien d'évitement : met le focus au début de la page affichée
+function allerAuContenu() {
+  const p = document.querySelector('.page.active') || document.querySelector('main') || document.body;
+  const cible = p.querySelector('h1, h2, h3') || p;
+  if (!cible.hasAttribute('tabindex')) cible.setAttribute('tabindex', '-1');
+  cible.focus();
+}
+if (typeof document !== 'undefined' && document.addEventListener) {
+  document.addEventListener('keydown', _actClavier);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _actRendreActivables); else _actRendreActivables();
+  if (typeof MutationObserver !== 'undefined') new MutationObserver(_actDemanderPasse).observe(document.documentElement, { childList: true, subtree: true });
+}
+
 /* Petites actions qui remplaçaient du code écrit dans les attributs */
 function ouvrirLien(url) { window.open(url, '_blank', 'noopener,noreferrer'); }
 function imprimer() { window.print(); }
@@ -9601,7 +9663,7 @@ function basculerIndicesCoups(el) { showMoveHints = el.checked; if (typeof drawB
 function basculerTraductionChat(el) { interrupteurCouleur(el); showToast(el.checked ? '🌐 Traduction automatique activée' : 'Traduction désactivée'); }
 function viderHistoriqueConfirme() { if (confirm('Effacer tout l\'historique de parties ? Irréversible.')) { clearGameHistory(); _renderHistoryList(); } }
 function setA11yNombre(cle, valeur) { setA11y(cle, parseFloat(valeur)); }
-/* Généré par tools/actions.js : ne pas modifier à la main. 461 actions.
+/* Généré par tools/actions.js : ne pas modifier à la main. 462 actions.
    Les seules fonctions que les attributs data-click, data-change… peuvent appeler
    (src/main/00a-actions.js). Chaque entrée renvoie la fonction au moment du clic. */
 const _ACTIONS = {
@@ -9649,6 +9711,7 @@ const _ACTIONS = {
   adopterContreMoi: function () { return adopterContreMoi; },
   advCancelImport: function () { return advCancelImport; },
   advConfirmImport: function () { return advConfirmImport; },
+  allerAuContenu: function () { return allerAuContenu; },
   analysisFromEditor: function () { return analysisFromEditor; },
   analysisFromStandard: function () { return analysisFromStandard; },
   analysisGoto: function () { return analysisGoto; },
@@ -17134,6 +17197,7 @@ function playMarbleRainTransition(onDone) {
   try {
     overlay = document.createElement('canvas');
     overlay.id = 'marble-rain';
+    overlay.setAttribute('aria-hidden', 'true');   // v3.25 : pluie de billes decorative
     overlay.style.cssText = 'position:fixed;inset:0;z-index:99998;pointer-events:none;transition:opacity 0.4s ease';
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const W = window.innerWidth, H = window.innerHeight;
@@ -36040,7 +36104,7 @@ function renderDuelCerveau(msg){
       + '<button class="ctrl-btn" data-click="accepterDuelCerveau(false)" style="width:auto;padding:6px 14px">Refuser</button>';
   } else if (!d || d.etat === 'fini') {
     html += '<button class="ctrl-btn" data-click="openRtcPanel()" style="width:auto;padding:6px 14px;margin-right:6px">' + (co ? 'Connexion' : 'Se connecter à un ami') + '</button>'
-      + '<button class="ctrl-btn" data-click="lancerDuelCerveau()" style="width:auto;padding:6px 14px' + (co ? ';background:var(--gold);color:var(--bg)' : ';opacity:.5') + '">' + (d ? 'Revanche' : 'Lancer un duel') + '</button>';
+      + '<button class="ctrl-btn" data-click="lancerDuelCerveau()" style="width:auto;padding:6px 14px' + (co ? ';background:var(--gold);color:var(--bg)' : ';color:var(--muted)') + '">' + (d ? 'Revanche' : 'Lancer un duel') + '</button>';
   }
   if (d && (d.etat === 'jeu' || d.etat === 'fini')) {
     const zone = function(id){ const z = (typeof GYM_ZONES !== 'undefined') ? GYM_ZONES.find(function(x){ return x.id === id; }) : null; return z ? z.icon + ' ' + z.name : id; };
@@ -36212,7 +36276,7 @@ function renderFormateurSeances(pub){
     const duree = pub==='adultes' ? s.dureeAdultes : s.dureeEnfants;
     return '<div style="background:var(--surface);border:1px solid '+(isDone?'var(--gold-dim)':'var(--border)')+';border-radius:10px;padding:18px 20px">'
       + '<div style="display:flex;align-items:flex-start;gap:14px">'
-      + '<label style="display:flex;align-items:center;padding-top:2px" class="formateur-noprint"><input type="checkbox" '+(isDone?'checked':'')+' data-change="formateurToggleSeance('+s.id+')" style="width:18px;height:18px;cursor:pointer"></label>'
+      + '<label style="display:flex;align-items:center;padding-top:2px" class="formateur-noprint"><input type="checkbox" aria-label="Séance '+s.id+' faite" '+(isDone?'checked':'')+' data-change="formateurToggleSeance('+s.id+')" style="width:18px;height:18px;cursor:pointer"></label>'
       + '<div style="flex:1">'
       + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:17px">'+s.icon+'</span><span style="font-size:14px;font-weight:700;color:var(--white)">Séance '+s.id+' — '+s.titre+'</span><span style="font-size:11px;color:var(--muted);margin-left:auto" class="formateur-noprint">'+duree+'</span></div>'
       + '<div style="font-size:12.5px;color:var(--gold);margin-bottom:8px">'+s.objectif+'</div>'
@@ -40721,9 +40785,9 @@ function renderHistoriquePage(){
         }).join('')
       : '';
     host.innerHTML =
-      '<select data-change="_historySetFilter(\'variant\', this.value)" style="flex:1;min-width:120px;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px"><option value="all">Toutes variantes</option>' + variantOptions + '</select>'
-      + '<select data-change="_historySetFilter(\'mode\', this.value)" style="flex:1;min-width:100px;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px"><option value="all">Tous modes</option><option value="ai">Contre IA</option><option value="local">Local/code</option></select>'
-      + '<select data-change="_historySetFilter(\'result\', this.value)" style="flex:1;min-width:100px;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px"><option value="all">Tout résultat</option><option value="victoire">Victoires</option><option value="defaite">Défaites</option><option value="nulle">Nulles</option></select>'
+      '<select aria-label="Filtrer par variante" data-change="_historySetFilter(\'variant\', this.value)" style="flex:1;min-width:120px;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px"><option value="all">Toutes variantes</option>' + variantOptions + '</select>'
+      + '<select aria-label="Filtrer par mode de jeu" data-change="_historySetFilter(\'mode\', this.value)" style="flex:1;min-width:100px;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px"><option value="all">Tous modes</option><option value="ai">Contre IA</option><option value="local">Local/code</option></select>'
+      + '<select aria-label="Filtrer par résultat" data-change="_historySetFilter(\'result\', this.value)" style="flex:1;min-width:100px;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px"><option value="all">Tout résultat</option><option value="victoire">Victoires</option><option value="defaite">Défaites</option><option value="nulle">Nulles</option></select>'
       + '<input type="text" placeholder="Rechercher (variante, nom...)" data-input="_historySetFilter(\'search\', this.value)" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;box-sizing:border-box;flex-basis:100%;margin-top:2px">';
     host.dataset.built = '1';
   }
@@ -43539,18 +43603,20 @@ function _sbHtmlBilles(v){
   // 3. les remontees
   const r = function(a, b){ const e = v.remontees[a + '-' + b]; return (e && e.n >= 30) ? e.g / e.n * 100 : null; };
   let grille = '<div class="sb-grille" role="table" aria-label="' + _tr('Tableau des remontées', 'Comeback table') + '">'
-    + '<div class="sb-g-coin" role="columnheader">' + _tr('mène ↓ · l’autre →', 'leader ↓ · other →') + '</div>';
+    + '<div class="sb-g-ligne" role="row"><div class="sb-g-coin" role="columnheader">' + _tr('mène ↓ · l’autre →', 'leader ↓ · other →') + '</div>';
   for (let b = 0; b < 5; b++) grille += '<div class="sb-g-ent" role="columnheader">' + b + '</div>';
+  grille += '</div>';
   for (let a = 1; a <= 5; a++) {
-    grille += '<div class="sb-g-ent" role="rowheader">' + a + '</div>';
+    grille += '<div class="sb-g-ligne" role="row"><div class="sb-g-ent" role="rowheader">' + a + '</div>';
     for (let b = 0; b < 5; b++) {
       if (b >= a) { grille += '<div class="sb-g-vide" role="cell"></div>'; continue; }
       const e = v.remontees[a + '-' + b], q = r(a, b);
       if (q === null) { grille += '<div class="sb-g-case sb-g-rare" role="cell" title="' + _tr('Moins de 30 parties', 'Fewer than 30 games') + '">—</div>'; continue; }
-      const alpha = 0.14 + Math.max(0, q - 50) / 50 * 0.8, clair = alpha > 0.55;
-      grille += '<div class="sb-g-case" role="cell" tabindex="0" style="background:rgba(47,158,127,' + alpha.toFixed(2) + ');color:' + (clair ? '#fff' : 'var(--text)') + '" title="'
+      const fd = grFondLisible([47, 158, 127], 0.14 + Math.max(0, q - 50) / 50 * 0.8);   // v3.25 : encre lisible (WCAG AA)
+      grille += '<div class="sb-g-case" role="cell" tabindex="0" style="background:' + fd.fond + ';color:' + fd.encre + '" title="'
         + _tr('À ' + a + '-' + b + ', le camp qui mène gagne ' + _sbPct(q) + ' de ' + _dimNb(e.n) + ' parties', 'At ' + a + '-' + b + ', the leading side wins ' + _sbPct(q) + ' of ' + _dimNb(e.n) + ' games') + ' (' + grFourchette(e.g, e.n) + ')' + grPeu(e.n) + '">' + Math.round(q) + ' %</div>';
     }
+    grille += '</div>';
   }
   grille += '</div>';
   const r10 = r(1, 0), r20 = r(2, 0), r30 = r(3, 0), r31 = r(3, 1);
@@ -45929,7 +45995,7 @@ function _laboOngletMemo(){ try { const o = localStorage.getItem('abaLabOnglet')
 function laboOnglet(nom){
   if (LAB_ONGLETS.indexOf(nom) < 0) nom = 'auto';
   try { localStorage.setItem('abaLabOnglet', nom); } catch (e) {}
-  document.querySelectorAll('#lab-onglets button').forEach(function(b){ b.classList.toggle('actif', b.getAttribute('data-onglet') === nom); });
+  document.querySelectorAll('#lab-onglets button').forEach(function(b){ const actif = b.getAttribute('data-onglet') === nom; b.classList.toggle('actif', actif); b.setAttribute('aria-selected', actif ? 'true' : 'false'); });
   document.querySelectorAll('#page-lab .lab-zone').forEach(function(z){ z.hidden = z.getAttribute('data-onglet') !== nom; });
   laboRendreOnglet(nom);
 }
@@ -45966,7 +46032,7 @@ try {
        principaux.
 ═══════════════════════════════════════════ */
 const GR_SERIES = ['#3987e5', '#d95926', '#199e70', '#c98500', '#d55181', '#008300', '#9085e9', '#e66767'];
-const GR_OR = '#c8a84b', GR_REF = '#8a948f', GR_POS = '#3987e5', GR_NEG = '#e66767', GR_MILIEU = '#383835';
+const GR_OR = '#c8a84b', GR_REF = '#8a948f', GR_POS = '#4790ea', GR_NEG = '#e66767', GR_MILIEU = '#383835';
 
 function grEchapper(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 function grLargeur(el, defaut){ const w = el && el.clientWidth ? el.clientWidth : (defaut || 600); return Math.max(260, Math.min(760, Math.round(w))); }
@@ -46183,6 +46249,24 @@ function grPile(segments, o){
   return h;
 }
 
+/* Fond translucide + encre lisible (v3.25, WCAG AA) : la case colorée rgba(rgb, alpha) posée sur le
+   fond du site ; on garde l'encre (sombre ou blanche) qui contraste le plus, et si aucune n'atteint
+   4,5:1 (teintes moyennes), on fonce un peu la case jusqu'à ce que l'encre sombre y arrive. */
+const _GR_FOND_PAGE = [0x15, 0x19, 0x18], _GR_ENCRE_SOMBRE = '#0d0f0e';
+function _grLum(c){ return 0.2126 * _grLin(c[0]) + 0.7152 * _grLin(c[1]) + 0.0722 * _grLin(c[2]); }
+function _grLin(v){ v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
+function _grContraste(a, b){ const x = _grLum(a), y = _grLum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
+function grFondLisible(rgb, alpha){
+  let a = Math.max(0, Math.min(1, alpha));
+  for (;;) {
+    const c = rgb.map(function(v, k){ return Math.round(v * a + _GR_FOND_PAGE[k] * (1 - a)); });
+    const sombre = _grContraste(c, [13, 15, 14]), blanc = _grContraste(c, [255, 255, 255]);
+    if (blanc >= 4.5 && blanc >= sombre) return { fond: 'rgba(' + rgb.join(',') + ',' + a.toFixed(2) + ')', encre: '#fff' };
+    if (sombre >= 4.5 || a >= 1) return { fond: 'rgba(' + rgb.join(',') + ',' + a.toFixed(2) + ')', encre: _GR_ENCRE_SOMBRE };
+    a = Math.min(1, a + 0.02);
+  }
+}
+
 /* ─── Carte de chaleur (tableau HTML) : f(i, j) -> { v, txt, tip } ou null ───
    o.echelle : 'or' (grandeur, 0 -> max) ou 'signe' (o.centre au milieu, bleu au-dessus, rouge en dessous) */
 function grCarte(lignes, colonnes, f, o){
@@ -46192,8 +46276,8 @@ function grCarte(lignes, colonnes, f, o){
   const mx = o.max != null ? o.max : Math.max.apply(null, vals.concat([0])), mn = o.min != null ? o.min : Math.min.apply(null, vals.concat([0]));
   const centre = o.centre != null ? o.centre : 0, ecart = Math.max(Math.abs(mx - centre), Math.abs(mn - centre)) || 1;
   const fond = function(v){
-    if (o.echelle === 'signe') { const t = Math.min(1, Math.abs(v - centre) / ecart); return { c: v >= centre ? 'rgba(57,135,229,' + (0.12 + 0.78 * t).toFixed(2) + ')' : 'rgba(230,103,103,' + (0.12 + 0.78 * t).toFixed(2) + ')', fort: t > 0.55 }; }
-    const t = mx > 0 ? Math.max(0, v) / mx : 0; return { c: 'rgba(200,168,75,' + (0.06 + 0.86 * t).toFixed(2) + ')', fort: t > 0.55 };
+    if (o.echelle === 'signe') { const t = Math.min(1, Math.abs(v - centre) / ecart); return grFondLisible(v >= centre ? [57, 135, 229] : [230, 103, 103], 0.12 + 0.78 * t); }
+    const t = mx > 0 ? Math.max(0, v) / mx : 0; return grFondLisible([200, 168, 75], 0.06 + 0.86 * t);
   };
   let h = '<div class="gr-carte-cadre"><table class="gr-carte"><thead><tr><th></th>' + colonnes.map(function(c){ return '<th>' + grEchapper(c) + '</th>'; }).join('') + '</tr></thead><tbody>';
   lignes.forEach(function(l, i){
@@ -46202,7 +46286,7 @@ function grCarte(lignes, colonnes, f, o){
       const x = f(i, j);
       if (!x || x.v == null || !isFinite(x.v)) { h += '<td class="gr-carte-vide">' + (x && x.txt ? grEchapper(x.txt) : '') + '</td>'; return; }
       const fd = fond(x.v);
-      h += '<td style="background:' + fd.c + ';color:' + (fd.fort ? '#0d0f0e' : 'var(--text)') + '"' + _grTip([x.tip || (l + ' · ' + c + _dimDp() + (x.txt || grNb(x.v)))]) + '>' + grEchapper(x.txt != null ? x.txt : grNb(x.v)) + '</td>';
+      h += '<td style="background:' + fd.fond + ';color:' + fd.encre + '"' + _grTip([x.tip || (l + ' · ' + c + _dimDp() + (x.txt || grNb(x.v)))]) + '>' + grEchapper(x.txt != null ? x.txt : grNb(x.v)) + '</td>';
     });
     h += '</tr>';
   });
@@ -46663,15 +46747,15 @@ function _cfHtmlExplorateur(L){
   h += '<div class="sb-onglets">' + bouton('camp', 'black', _tr('Camp : Noirs', 'Side: Black')) + bouton('camp', 'white', _tr('Camp : Blancs', 'Side: White')) + '</div>';
   h += '<div class="sb-onglets">' + bouton('moment', 'tout', _tr('Toute la partie', 'Whole game')) + bouton('moment', 'debut', _tr('Début (0–29)', 'Opening (0–29)')) + bouton('moment', 'milieu', _tr('Milieu (30–69)', 'Middle (30–69)')) + bouton('moment', 'fin', _tr('Fin (70 et +)', 'End (70+)')) + '</div>';
   if (!rows.length) return h + '<div class="gr-vide">' + _tr('Aucune partie avec ces réglages.', 'No game with these settings.') + '</div>';
-  h += '<div class="cf-ex" role="table"><div class="cf-ex-l cf-ex-ent" role="row"><span>' + _tr('Score N–B', 'Score B–W') + '</span><span>' + _tr('Parties', 'Games') + '</span><span>' + _tr('V / D / N / ?', 'W / L / D / ?') + '</span><span>' + _tr('Taux de victoire de ', 'Win rate of ') + camp + '</span></div>';
+  h += '<div class="cf-ex" role="table"><div class="cf-ex-l cf-ex-ent" role="row"><span role="columnheader">' + _tr('Score N–B', 'Score B–W') + '</span><span role="columnheader">' + _tr('Parties', 'Games') + '</span><span role="columnheader">' + _tr('V / D / N / ?', 'W / L / D / ?') + '</span><span role="columnheader">' + _tr('Taux de victoire de ', 'Win rate of ') + camp + '</span></div>';
   rows.forEach(function(r){
     const dec = r.v + r.d, w = dec ? grWilson(r.v, dec) : null, cle = r.nb + '-' + r.nw, ouvert = _cfExOuvert === cle;
     const barre = w ? '<span class="sb-div-piste"><span class="sb-div-barre" style="' + (w.p >= 0.5 ? 'left:50%' : 'right:50%') + ';width:' + (100 * Math.abs(w.p - 0.5)).toFixed(1) + '%;background:' + (w.p >= 0.5 ? _SB_VERT : _SB_ORANGE) + '"></span>'
       + '<span class="sb-div-ic" style="left:' + (100 * w.bas).toFixed(1) + '%;width:' + Math.max(0.4, 100 * (w.haut - w.bas)).toFixed(1) + '%"></span></span>' : '<span></span>';
     h += '<div class="cf-ex-l' + (ouvert ? ' cf-ex-ouvert' : '') + (dec < GR_PEU ? ' cf-ex-peu' : '') + '" role="row" tabindex="0" data-click="corpusExplorer(\'ouvrir\',\'' + cle + '\')" data-entree="corpusExplorer(\'ouvrir\',\'' + cle + '\')"'
       + ' title="' + grEchapper(r.v + _tr(' victoires, ', ' wins, ') + r.d + _tr(' défaites, ', ' losses, ') + r.nul + _tr(' nulles, ', ' draws, ') + r.inconnu + _tr(' au résultat inconnu', ' with an unknown result') + (w ? ' · ' + grFourchette(r.v, dec) : '') + grPeu(dec)) + '">'
-      + '<span class="cf-ex-score">' + r.nb + ' – ' + r.nw + '</span><span>' + grNb(r.n) + '</span><span class="cf-ex-vdn">' + r.v + ' / ' + r.d + ' / ' + r.nul + ' / ' + r.inconnu + '</span>'
-      + '<span class="cf-ex-taux">' + barre + '<b>' + (w ? grPct(w.p) : '—') + '</b> <i>' + (w ? grMarge(r.v, dec) : '') + (dec < GR_PEU ? ' ⚠' : '') + '</i></span></div>';
+      + '<span class="cf-ex-score" role="cell">' + r.nb + ' – ' + r.nw + '</span><span role="cell">' + grNb(r.n) + '</span><span class="cf-ex-vdn" role="cell">' + r.v + ' / ' + r.d + ' / ' + r.nul + ' / ' + r.inconnu + '</span>'
+      + '<span class="cf-ex-taux" role="cell">' + barre + '<b>' + (w ? grPct(w.p) : '—') + '</b> <i>' + (w ? grMarge(r.v, dec) : '') + (dec < GR_PEU ? ' ⚠' : '') + '</i></span></div>';
     if (ouvert) h += _cfHtmlExParties(r);
   });
   h += '</div>';
@@ -52060,7 +52144,7 @@ window.refresh3DIfActive = function() {
       <span style="font-weight:800;color:var(--gold)">▶ Replay — partie du Labo</span>
       <button class="ctrl-btn" data-click="closeLabReplay()" style="width:auto;padding:2px 10px">✕</button>
     </div>
-    <canvas id="lr-canvas" width="360" height="320" style="width:100%;background:var(--surface);border-radius:10px"></canvas>
+    <canvas id="lr-canvas" role="img" aria-label="Partie du Labo rejouée" width="360" height="320" style="width:100%;background:var(--surface);border-radius:10px"></canvas>
     <div id="lr-info" style="font-size:12px;color:var(--muted);margin:8px 0;text-align:center">…</div>
     <div style="display:flex;gap:6px;justify-content:center;align-items:center">
       <button class="ctrl-btn" data-click="labReplayStep(-999)" style="width:auto;padding:4px 10px">⏮</button>

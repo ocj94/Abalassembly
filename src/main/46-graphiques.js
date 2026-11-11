@@ -19,7 +19,7 @@
        principaux.
 ═══════════════════════════════════════════ */
 const GR_SERIES = ['#3987e5', '#d95926', '#199e70', '#c98500', '#d55181', '#008300', '#9085e9', '#e66767'];
-const GR_OR = '#c8a84b', GR_REF = '#8a948f', GR_POS = '#3987e5', GR_NEG = '#e66767', GR_MILIEU = '#383835';
+const GR_OR = '#c8a84b', GR_REF = '#8a948f', GR_POS = '#4790ea', GR_NEG = '#e66767', GR_MILIEU = '#383835';
 
 function grEchapper(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 function grLargeur(el, defaut){ const w = el && el.clientWidth ? el.clientWidth : (defaut || 600); return Math.max(260, Math.min(760, Math.round(w))); }
@@ -236,6 +236,24 @@ function grPile(segments, o){
   return h;
 }
 
+/* Fond translucide + encre lisible (v3.25, WCAG AA) : la case colorée rgba(rgb, alpha) posée sur le
+   fond du site ; on garde l'encre (sombre ou blanche) qui contraste le plus, et si aucune n'atteint
+   4,5:1 (teintes moyennes), on fonce un peu la case jusqu'à ce que l'encre sombre y arrive. */
+const _GR_FOND_PAGE = [0x15, 0x19, 0x18], _GR_ENCRE_SOMBRE = '#0d0f0e';
+function _grLum(c){ return 0.2126 * _grLin(c[0]) + 0.7152 * _grLin(c[1]) + 0.0722 * _grLin(c[2]); }
+function _grLin(v){ v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
+function _grContraste(a, b){ const x = _grLum(a), y = _grLum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
+function grFondLisible(rgb, alpha){
+  let a = Math.max(0, Math.min(1, alpha));
+  for (;;) {
+    const c = rgb.map(function(v, k){ return Math.round(v * a + _GR_FOND_PAGE[k] * (1 - a)); });
+    const sombre = _grContraste(c, [13, 15, 14]), blanc = _grContraste(c, [255, 255, 255]);
+    if (blanc >= 4.5 && blanc >= sombre) return { fond: 'rgba(' + rgb.join(',') + ',' + a.toFixed(2) + ')', encre: '#fff' };
+    if (sombre >= 4.5 || a >= 1) return { fond: 'rgba(' + rgb.join(',') + ',' + a.toFixed(2) + ')', encre: _GR_ENCRE_SOMBRE };
+    a = Math.min(1, a + 0.02);
+  }
+}
+
 /* ─── Carte de chaleur (tableau HTML) : f(i, j) -> { v, txt, tip } ou null ───
    o.echelle : 'or' (grandeur, 0 -> max) ou 'signe' (o.centre au milieu, bleu au-dessus, rouge en dessous) */
 function grCarte(lignes, colonnes, f, o){
@@ -245,8 +263,8 @@ function grCarte(lignes, colonnes, f, o){
   const mx = o.max != null ? o.max : Math.max.apply(null, vals.concat([0])), mn = o.min != null ? o.min : Math.min.apply(null, vals.concat([0]));
   const centre = o.centre != null ? o.centre : 0, ecart = Math.max(Math.abs(mx - centre), Math.abs(mn - centre)) || 1;
   const fond = function(v){
-    if (o.echelle === 'signe') { const t = Math.min(1, Math.abs(v - centre) / ecart); return { c: v >= centre ? 'rgba(57,135,229,' + (0.12 + 0.78 * t).toFixed(2) + ')' : 'rgba(230,103,103,' + (0.12 + 0.78 * t).toFixed(2) + ')', fort: t > 0.55 }; }
-    const t = mx > 0 ? Math.max(0, v) / mx : 0; return { c: 'rgba(200,168,75,' + (0.06 + 0.86 * t).toFixed(2) + ')', fort: t > 0.55 };
+    if (o.echelle === 'signe') { const t = Math.min(1, Math.abs(v - centre) / ecart); return grFondLisible(v >= centre ? [57, 135, 229] : [230, 103, 103], 0.12 + 0.78 * t); }
+    const t = mx > 0 ? Math.max(0, v) / mx : 0; return grFondLisible([200, 168, 75], 0.06 + 0.86 * t);
   };
   let h = '<div class="gr-carte-cadre"><table class="gr-carte"><thead><tr><th></th>' + colonnes.map(function(c){ return '<th>' + grEchapper(c) + '</th>'; }).join('') + '</tr></thead><tbody>';
   lignes.forEach(function(l, i){
@@ -255,7 +273,7 @@ function grCarte(lignes, colonnes, f, o){
       const x = f(i, j);
       if (!x || x.v == null || !isFinite(x.v)) { h += '<td class="gr-carte-vide">' + (x && x.txt ? grEchapper(x.txt) : '') + '</td>'; return; }
       const fd = fond(x.v);
-      h += '<td style="background:' + fd.c + ';color:' + (fd.fort ? '#0d0f0e' : 'var(--text)') + '"' + _grTip([x.tip || (l + ' · ' + c + _dimDp() + (x.txt || grNb(x.v)))]) + '>' + grEchapper(x.txt != null ? x.txt : grNb(x.v)) + '</td>';
+      h += '<td style="background:' + fd.fond + ';color:' + fd.encre + '"' + _grTip([x.tip || (l + ' · ' + c + _dimDp() + (x.txt || grNb(x.v)))]) + '>' + grEchapper(x.txt != null ? x.txt : grNb(x.v)) + '</td>';
     });
     h += '</tr>';
   });

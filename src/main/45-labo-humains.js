@@ -357,7 +357,7 @@ function _laboOngletMemo(){ try { const o = localStorage.getItem('abaLabOnglet')
 function laboOnglet(nom){
   if (LAB_ONGLETS.indexOf(nom) < 0) nom = 'auto';
   try { localStorage.setItem('abaLabOnglet', nom); } catch (e) {}
-  document.querySelectorAll('#lab-onglets button').forEach(function(b){ b.classList.toggle('actif', b.getAttribute('data-onglet') === nom); });
+  document.querySelectorAll('#lab-onglets button').forEach(function(b){ const actif = b.getAttribute('data-onglet') === nom; b.classList.toggle('actif', actif); b.setAttribute('aria-selected', actif ? 'true' : 'false'); });
   document.querySelectorAll('#page-lab .lab-zone').forEach(function(z){ z.hidden = z.getAttribute('data-onglet') !== nom; });
   laboRendreOnglet(nom);
 }

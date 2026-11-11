@@ -169,6 +169,53 @@ if (typeof document !== 'undefined' && document.addEventListener) {
   document.addEventListener('mouseout', function (e) { _actSurvol(e, false); });
 }
 
+/* Clavier (v3.25) : un data-click posé sur un élément qui n'est pas un vrai bouton (une carte, une
+   pastille, une ligne) n'était atteignable qu'à la souris. Chacun reçoit ici tabindex="0" et, s'il
+   ne contient pas lui-même de commande, role="button" ; Entrée et Espace le déclenchent comme un
+   clic. Les boutons qui n'affichent qu'une croix (✕) reçoivent le nom « Fermer ». Une seule passe
+   au chargement, puis à chaque ajout dans la page (les rendus en innerHTML), regroupée par image. */
+const _ACT_NATIFS = { BUTTON: 1, A: 1, INPUT: 1, SELECT: 1, TEXTAREA: 1, SUMMARY: 1, LABEL: 1, OPTION: 1 };
+const _ACT_CROIX = /^[\s✕×✖❌⨯xX]*$/;
+function _actRendreActivables() {
+  document.querySelectorAll('[data-click]:not([tabindex])').forEach(function (el) {
+    if (_ACT_NATIFS[el.tagName] || (el.tagName === 'A' && el.hasAttribute('href'))) return;
+    if (el.closest('[aria-hidden="true"]')) return;
+    el.setAttribute('tabindex', '0');
+    if (!el.hasAttribute('role') && !el.querySelector('button, a[href], input, select, textarea, [data-click]')) el.setAttribute('role', 'button');
+  });
+  document.querySelectorAll('button:not([aria-label])').forEach(function (b) {
+    const t = b.textContent;
+    if (t && t.trim() && _ACT_CROIX.test(t) && !b.title) b.setAttribute('aria-label', typeof _tr === 'function' ? _tr('Fermer', 'Close') : 'Fermer');
+  });
+}
+let _actPasseDemandee = false;
+function _actDemanderPasse() {
+  if (_actPasseDemandee) return;
+  _actPasseDemandee = true;
+  (window.requestAnimationFrame || setTimeout)(function () { _actPasseDemandee = false; _actRendreActivables(); });
+}
+// Entrée ou Espace sur un élément rendu activable : un clic, comme sur un vrai bouton
+function _actClavier(e) {
+  if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+  const el = e.target;
+  if (!el || el.nodeType !== 1 || !el.hasAttribute('data-click') || _ACT_NATIFS[el.tagName]) return;
+  if (e.key === 'Enter' && el.hasAttribute('data-entree')) return;   // data-entree s'en charge déjà
+  e.preventDefault();
+  el.click();
+}
+// lien d'évitement : met le focus au début de la page affichée
+function allerAuContenu() {
+  const p = document.querySelector('.page.active') || document.querySelector('main') || document.body;
+  const cible = p.querySelector('h1, h2, h3') || p;
+  if (!cible.hasAttribute('tabindex')) cible.setAttribute('tabindex', '-1');
+  cible.focus();
+}
+if (typeof document !== 'undefined' && document.addEventListener) {
+  document.addEventListener('keydown', _actClavier);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _actRendreActivables); else _actRendreActivables();
+  if (typeof MutationObserver !== 'undefined') new MutationObserver(_actDemanderPasse).observe(document.documentElement, { childList: true, subtree: true });
+}
+
 /* Petites actions qui remplaçaient du code écrit dans les attributs */
 function ouvrirLien(url) { window.open(url, '_blank', 'noopener,noreferrer'); }
 function imprimer() { window.print(); }

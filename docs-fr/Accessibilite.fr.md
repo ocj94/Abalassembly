@@ -28,6 +28,8 @@ Menu ☰ → **Paramètres** → section **Confort & accessibilité**.
 - **Persistance** : vos réglages survivent à un rechargement.
 - **Respect du système** : au premier lancement, si votre appareil demande moins d'animations, le mode calme est actif d'emblée.
 - **Réversibilité** : un bouton remet tout par défaut.
+- **Contrastes** (v3.25) : tous les textes atteignent 4,5 pour 1 sur leur fond (WCAG AA), y compris les cases des cartes de chaleur ; un test le vérifie.
+- **Clavier** (v3.25) : tout ce qui se clique s'atteint à la touche Tab et se déclenche avec Entrée ou Espace ; « Aller au contenu » est le premier arrêt. Le plateau se joue aux flèches et à Page haut / Page bas.
 - **Honnêteté** : un test automatique de la suite de régression échoue si le panneau se met à promettre un effet thérapeutique. Le garde-fou est dans le code, pas seulement dans l'intention.
 
 ## Pour les esprits analytiques

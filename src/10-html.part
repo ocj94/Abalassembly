@@ -129,7 +129,7 @@
       <span style="font-weight:800;color:var(--gold)">▶ Replay — partie du Labo</span>
       <button class="ctrl-btn" data-click="closeLabReplay()" style="width:auto;padding:2px 10px">✕</button>
     </div>
-    <canvas id="lr-canvas" width="360" height="320" style="width:100%;background:var(--surface);border-radius:10px"></canvas>
+    <canvas id="lr-canvas" role="img" aria-label="Partie du Labo rejouée" width="360" height="320" style="width:100%;background:var(--surface);border-radius:10px"></canvas>
     <div id="lr-info" style="font-size:12px;color:var(--muted);margin:8px 0;text-align:center">…</div>
     <div style="display:flex;gap:6px;justify-content:center;align-items:center">
       <button class="ctrl-btn" data-click="labReplayStep(-999)" style="width:auto;padding:4px 10px">⏮</button>
