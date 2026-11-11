@@ -23,6 +23,8 @@ Checked on 116 plies recomputed one by one in a fresh worker, up to depth 3, wit
 
 ![The Lab's Compute network tab, plugged into a local test server: executor families, campaign in progress, this device and its log](../docs-img/reseau-calcul.webp)
 
+The network's overall blueprint is in the [site blueprints](Plans.en.md#2-the-compute-network).
+
 *Captured with a test server on the same machine, since the live page can't connect to one yet.*
 
 **In the game**, it's the Lab's **🌐 Compute network** tab: sign in, choose how many cores to lend, plug in. As long as the server isn't online, the tab says so and **nothing leaves** the device. What leaves, once plugged in: the account, the number of cores, the engine's fingerprint and the games played. On a PC, the Node executor in the `abalassembly-api` repository does the same from the command line.

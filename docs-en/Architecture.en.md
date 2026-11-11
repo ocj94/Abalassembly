@@ -6,6 +6,8 @@ Four maps for understanding how Abalassembly is built. They are **written by han
 
 Checked against the code in v2.96 (before: v2.66; the Texel weights, move quality, humans and programs, the 60 starting positions, the games cited without their moves and the APGN files were missing, and the security rule blocked PlayStrategy). The figures on the site page are gathered in `ARCHI_CHIFFRES` (`src/main/34-architecture-diagrams-briefing.js`), and a test compares them with the embedded data: one more game or puzzle, and the test asks for the update.
 
+For a drawn overview (pages, AI, Lab, server), see the [site blueprints](Plans.en.md).
+
 ---
 
 ## 1. How the AI picks its move

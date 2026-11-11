@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<style>
+  @font-face{font-family:'DM Mono';src:url('../../fonts/dm-mono-latin-400-normal.woff2') format('woff2');font-weight:400}
+  @font-face{font-family:'DM Mono';src:url('../../fonts/dm-mono-latin-500-normal.woff2') format('woff2');font-weight:500}
+  html,body{margin:0;background:#0b2a4a}
+  svg{display:block}
+  text{font-family:'DM Mono',monospace;fill:#e8f1ff}
+  .t{font-size:15px;font-weight:500;letter-spacing:.5px}
+  .s{font-size:11.5px;fill:#a9c7ee}
+  .xs{font-size:10px;fill:#8fb2de}
+  .h{font-size:13px;font-weight:500;fill:#ffffff;letter-spacing:1.5px}
+  .lbl{font-size:10.5px;fill:#d6e6ff}
+  .trait{stroke:#e8f1ff;stroke-width:1.6;fill:none}
+  .fin{stroke:#bcd4f5;stroke-width:1;fill:none}
+  .prevu{stroke:#9fbbe0;stroke-width:1.4;fill:none;stroke-dasharray:7 5}
+  .fleche{stroke:#e8f1ff;stroke-width:1.3;fill:none;marker-end:url(#pointe)}
+  .retour{stroke:#7fe0c4;stroke-width:1.3;fill:none;marker-end:url(#pointeV)}
+  .fprevu{stroke:#9fbbe0;stroke-width:1.2;fill:none;stroke-dasharray:6 5;marker-end:url(#pointe)}
+  .cote{stroke:#8fb2de;stroke-width:.8;fill:none}
+</style></head><body>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1060" viewBox="0 0 1600 1060">
+  <defs>
+    <pattern id="g1" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#2a5585" stroke-width=".5"/></pattern>
+    <pattern id="g2" width="100" height="100" patternUnits="userSpaceOnUse"><rect width="100" height="100" fill="url(#g1)"/><path d="M100 0H0V100" fill="none" stroke="#3a6aa0" stroke-width="1"/></pattern>
+    <marker id="pointe" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 1L9 5L0 9z" fill="#e8f1ff"/></marker>
+    <marker id="pointeV" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 1L9 5L0 9z" fill="#7fe0c4"/></marker>
+  </defs>
+  <rect width="1600" height="1060" fill="#0b2a4a"/>
+  <rect width="1600" height="1060" fill="url(#g2)"/>
+  <!-- cadre de plan -->
+  <rect x="18" y="18" width="1564" height="1024" class="trait"/>
+  <rect x="26" y="26" width="1548" height="1008" class="fin"/>
+
+  <!-- titre -->
+  <text x="52" y="66" style="font-size:24px;font-weight:500;letter-spacing:4px">ABALASSEMBLY · RÉSEAU DE CALCUL</text>
+  <text x="52" y="90" class="s">Plan d'ensemble — ordonnanceur et familles d'exécutants branchables / débranchables</text>
+
+  <!-- ═══ LABO ═══ -->
+  <g transform="translate(60,130)">
+    <rect width="330" height="150" rx="4" class="trait"/>
+    <text x="16" y="28" class="h">① LABO IA (dans le jeu)</text>
+    <line x1="16" y1="40" x2="314" y2="40" class="fin"/>
+    <text x="16" y="62" class="s">Campagnes : duel ou auto-jeu</text>
+    <text x="16" y="80" class="s">Arrêt SPRT (≥ 30 parties)</text>
+    <text x="16" y="98" class="s">Onglet 🌐 Réseau : brancher,</text>
+    <text x="16" y="116" class="s">suivre, piloter (admin + MFA)</text>
+    <text x="16" y="138" class="xs">src/main/58d-reseau-calcul.js</text>
+  </g>
+  <path d="M390 190 H560" class="fleche"/>
+  <text x="404" y="180" class="lbl">crée une campagne</text>
+  <text x="404" y="208" class="xs">POST /ordo/campagnes</text>
+
+  <!-- ═══ API / ORDONNANCEUR ═══ -->
+  <g transform="translate(560,118)">
+    <rect width="620" height="330" rx="4" class="trait" style="stroke-width:2.2"/>
+    <rect x="6" y="6" width="608" height="318" rx="2" class="fin"/>
+    <text x="22" y="36" class="h">② SERVEUR abalassembly-api · ORDONNANCEUR /ordo</text>
+    <text x="22" y="56" class="xs">Fastify 5 · Node 22 · conteneur Docker « api »</text>
+    <line x1="22" y1="68" x2="598" y2="68" class="fin"/>
+
+    <g transform="translate(22,84)">
+      <rect width="180" height="92" class="fin"/>
+      <text x="10" y="22" class="t" style="font-size:13px">File de missions</text>
+      <text x="10" y="42" class="xs">1 mission = 1 partie</text>
+      <text x="10" y="58" class="xs">seed + couleurs + ouverture</text>
+      <text x="10" y="74" class="xs">priorité, déduplication</text>
+    </g>
+    <g transform="translate(220,84)">
+      <rect width="180" height="92" class="fin"/>
+      <text x="10" y="22" class="t" style="font-size:13px">Baux + jetons</text>
+      <text x="10" y="42" class="xs">bail 60 s, renouvelé</text>
+      <text x="10" y="58" class="xs">par signe de vie (20 s)</text>
+      <text x="10" y="74" class="xs">expiré → remis en file</text>
+    </g>
+    <g transform="translate(418,84)">
+      <rect width="180" height="92" class="fin"/>
+      <text x="10" y="22" class="t" style="font-size:13px">Interrupteurs</text>
+      <text x="10" y="42" class="xs">1 par famille (admin)</text>
+      <text x="10" y="58" class="xs">1 par exécutant</text>
+      <text x="10" y="74" class="xs">coupure auto si triche</text>
+    </g>
+    <g transform="translate(22,192)">
+      <rect width="378" height="78" class="fin"/>
+      <text x="10" y="22" class="t" style="font-size:13px">Vérificateur (fil séparé)</text>
+      <text x="10" y="42" class="xs">moteur déterministe : rejoue la partie et recalcule</text>
+      <text x="10" y="58" class="xs">3 demi-coups au hasard → identiques ou refus</text>
+      <text x="10" y="72" class="xs" style="fill:#7fe0c4">(au lieu d'un quorum : 1 seule exécution suffit)</text>
+    </g>
+    <g transform="translate(418,192)">
+      <rect width="180" height="78" class="fin"/>
+      <text x="10" y="22" class="t" style="font-size:13px">Bilan</text>
+      <text x="10" y="42" class="xs">V / N / D, Elo</text>
+      <text x="10" y="58" class="xs">SPRT : A meilleur ?</text>
+      <text x="10" y="72" class="xs">par famille</text>
+    </g>
+    <text x="22" y="300" class="xs">Anti-robots : 10 connexions/min, preuve de travail · rôles : joueur / calcul / admin (MFA)</text>
+    <text x="22" y="316" class="xs">Moteur unique partout : moteur/fil-v3.18.js, empreinte SHA-256 86ff4bf9… vérifiée</text>
+  </g>
+
+  <!-- ═══ BASES ═══ -->
+  <g transform="translate(1250,140)">
+    <ellipse cx="110" cy="16" rx="110" ry="16" class="trait"/>
+    <path d="M0 16 V112 A110 16 0 0 0 220 112 V16" class="trait"/>
+    <path d="M0 48 A110 16 0 0 0 220 48" class="fin"/>
+    <text x="110" y="76" text-anchor="middle" class="h">PostgreSQL 16</text>
+    <text x="110" y="96" text-anchor="middle" class="xs">campagnes · missions</text>
+    <text x="110" y="110" text-anchor="middle" class="xs">tentatives · exécutants</text>
+  </g>
+  <g transform="translate(1250,300)">
+    <ellipse cx="110" cy="14" rx="110" ry="14" class="trait"/>
+    <path d="M0 14 V80 A110 14 0 0 0 220 80 V14" class="trait"/>
+    <text x="110" y="52" text-anchor="middle" class="h">Redis 7</text>
+    <text x="110" y="70" text-anchor="middle" class="xs">limites · jetons révoqués</text>
+  </g>
+  <path d="M1180 210 H1246" class="fleche"/>
+  <path d="M1180 350 H1246" class="fleche"/>
+
+  <!-- bus de distribution -->
+  <path d="M870 448 V520" class="trait"/>
+  <path d="M168 520 H1432" class="trait"/>
+  <circle cx="870" cy="520" r="4" fill="#e8f1ff"/>
+  <text x="884" y="490" class="lbl">HTTPS · JSON · protocole v1</text>
+  <text x="884" y="506" class="xs">réclamer → jouer → rendre</text>
+
+  <!-- ═══ FAMILLES ═══ -->
+  <!-- gabarit : x de départ, largeur 236 -->
+  <g id="familles">
+    <!-- 1 navigateur -->
+    <g transform="translate(50,600)">
+      <path d="M118 -80 V0" class="fleche"/>
+      <path d="M100 0 V-74" class="retour"/>
+      <text x="126" y="-46" class="xs">mission + bail</text>
+      <text x="8" y="-30" class="xs" style="fill:#7fe0c4">résultat</text>
+      <rect width="236" height="190" rx="4" class="trait"/>
+      <text x="14" y="28" class="h">NAVIGATEUR</text>
+      <g transform="translate(176,12)"><rect width="44" height="22" rx="11" fill="#7fe0c4"/><circle cx="33" cy="11" r="8" fill="#0b2a4a"/></g>
+      <line x1="14" y1="42" x2="222" y2="42" class="fin"/>
+      <text x="14" y="64" class="s">bouton « Contribuer »</text>
+      <text x="14" y="82" class="s">du Labo</text>
+      <text x="14" y="104" class="xs">Web Workers (1 par cœur)</text>
+      <text x="14" y="120" class="xs">JavaScript, sans installation</text>
+      <text x="14" y="136" class="xs">s'arrête à la fermeture</text>
+      <text x="14" y="174" class="xs" style="fill:#7fe0c4">● EN SERVICE · v3.18</text>
+    </g>
+    <!-- 2 node -->
+    <g transform="translate(346,600)">
+      <path d="M118 -80 V0" class="fleche"/>
+      <path d="M100 0 V-74" class="retour"/>
+      <rect width="236" height="190" rx="4" class="trait"/>
+      <text x="14" y="28" class="h">NODE (PC)</text>
+      <g transform="translate(176,12)"><rect width="44" height="22" rx="11" fill="#7fe0c4"/><circle cx="33" cy="11" r="8" fill="#0b2a4a"/></g>
+      <line x1="14" y1="42" x2="222" y2="42" class="fin"/>
+      <text x="14" y="64" class="s">scripts/executant.js</text>
+      <text x="14" y="82" class="s">en ligne de commande</text>
+      <text x="14" y="104" class="xs">fils Node (--coeurs N)</text>
+      <text x="14" y="120" class="xs">reconnexion automatique</text>
+      <text x="14" y="136" class="xs">Ctrl-C : rend ses missions</text>
+      <text x="14" y="174" class="xs" style="fill:#7fe0c4">● EN SERVICE · v3.18</text>
+    </g>
+    <!-- 3 serveur docker -->
+    <g transform="translate(642,600)">
+      <path d="M118 -80 V0" class="fleche"/>
+      <path d="M100 0 V-74" class="retour"/>
+      <rect width="236" height="190" rx="4" class="trait"/>
+      <text x="14" y="28" class="h">SERVEUR</text>
+      <g transform="translate(176,12)"><rect width="44" height="22" rx="11" fill="#7fe0c4"/><circle cx="33" cy="11" r="8" fill="#0b2a4a"/></g>
+      <line x1="14" y1="42" x2="222" y2="42" class="fin"/>
+      <text x="14" y="64" class="s">conteneurs Docker</text>
+      <text x="14" y="82" class="s">service « executant »</text>
+      <text x="14" y="104" class="xs">--scale executant=N</text>
+      <text x="14" y="120" class="xs">compte « calcul » (sans admin)</text>
+      <text x="14" y="136" class="xs">docker stop : débranche</text>
+      <text x="14" y="174" class="xs" style="fill:#7fe0c4">● EN SERVICE · testé en CI</text>
+    </g>
+    <!-- 4 natif -->
+    <g transform="translate(938,600)">
+      <path d="M118 -80 V0" class="fprevu"/>
+      <rect width="236" height="190" rx="4" class="prevu"/>
+      <text x="14" y="28" class="h" style="fill:#c8daf2">NATIF</text>
+      <g transform="translate(176,12)"><rect width="44" height="22" rx="11" fill="none" stroke="#9fbbe0" stroke-dasharray="3 3"/><circle cx="11" cy="11" r="8" fill="none" stroke="#9fbbe0"/></g>
+      <line x1="14" y1="42" x2="222" y2="42" class="fin" style="stroke-dasharray:4 4"/>
+      <text x="14" y="64" class="s">agent installé sur PC</text>
+      <text x="14" y="82" class="s">CPU, plus tard GPU</text>
+      <text x="14" y="104" class="xs">moteur compilé (C / Rust)</text>
+      <text x="14" y="120" class="xs">doit donner les mêmes coups</text>
+      <text x="14" y="136" class="xs">que le moteur de référence</text>
+      <text x="14" y="174" class="xs">○ PRÉVU · famille réservée</text>
+    </g>
+    <!-- 5 boinc -->
+    <g transform="translate(1234,600)">
+      <path d="M118 -80 V0" class="fprevu"/>
+      <rect width="236" height="190" rx="4" class="prevu"/>
+      <text x="14" y="28" class="h" style="fill:#c8daf2">BOINC</text>
+      <g transform="translate(176,12)"><rect width="44" height="22" rx="11" fill="none" stroke="#9fbbe0" stroke-dasharray="3 3"/><circle cx="11" cy="11" r="8" fill="none" stroke="#9fbbe0"/></g>
+      <line x1="14" y1="42" x2="222" y2="42" class="fin" style="stroke-dasharray:4 4"/>
+      <text x="14" y="64" class="s">bénévoles BOINC</text>
+      <text x="14" y="82" class="s">calcul de longue durée</text>
+      <text x="14" y="104" class="xs">bail jusqu'à 24 h</text>
+      <text x="14" y="120" class="xs">passerelle BOINC ↔ /ordo</text>
+      <text x="14" y="136" class="xs">à écrire</text>
+      <text x="14" y="174" class="xs">○ PRÉVU · famille réservée</text>
+    </g>
+  </g>
+
+  <!-- cotes de durée max par famille -->
+  <g transform="translate(50,812)">
+    <path d="M0 6 H1420" class="cote"/>
+    <path d="M0 0 V12 M236 0 V12 M296 0 V12 M532 0 V12 M592 0 V12 M828 0 V12 M888 0 V12 M1124 0 V12 M1184 0 V12 M1420 0 V12" class="cote"/>
+    <text x="70" y="26" class="xs">durée max 5 min</text>
+    <text x="366" y="26" class="xs">durée max 1 h</text>
+    <text x="662" y="26" class="xs">durée max 1 h</text>
+    <text x="958" y="26" class="xs">durée max 1 h</text>
+    <text x="1250" y="26" class="xs">durée max 24 h</text>
+  </g>
+
+  <!-- ═══ LÉGENDE ═══ -->
+  <g transform="translate(50,870)">
+    <rect width="760" height="150" class="fin"/>
+    <text x="16" y="26" class="h">LÉGENDE</text>
+    <path d="M16 50 H76" class="trait"/><text x="90" y="54" class="s">construit et testé</text>
+    <path d="M16 76 H76" class="prevu"/><text x="90" y="80" class="s">prévu (famille déjà réservée dans l'ordonnanceur)</text>
+    <path d="M16 102 H76" class="fleche"/><text x="90" y="106" class="s">mission + bail (renouvelé par signe de vie)</text>
+    <path d="M16 128 H76" class="retour"/><text x="90" y="132" class="s">résultat (les coups joués), vérifié par recalcul avant d'être compté</text>
+    <g transform="translate(470,40)"><rect width="44" height="22" rx="11" fill="#7fe0c4"/><circle cx="33" cy="11" r="8" fill="#0b2a4a"/></g>
+    <text x="526" y="56" class="s">interrupteur : branché</text>
+    <g transform="translate(470,70)"><rect width="44" height="22" rx="11" fill="none" stroke="#9fbbe0" stroke-dasharray="3 3"/><circle cx="11" cy="11" r="8" fill="none" stroke="#9fbbe0"/></g>
+    <text x="526" y="86" class="s">pas encore branchable</text>
+  </g>
+
+  <!-- ═══ CARTOUCHE ═══ -->
+  <g transform="translate(1130,870)">
+    <rect width="420" height="150" class="trait"/>
+    <path d="M0 40 H420 M0 72 H420 M0 104 H420 M210 72 V150 M120 104 V150" class="fin"/>
+    <text x="14" y="27" class="h">ABALASSEMBLY · RÉSEAU DE CALCUL</text>
+    <text x="14" y="61" class="s">Ordonnanceur hybride, exécutants branchables</text>
+    <text x="14" y="93" class="xs">Projet : ocj94</text>
+    <text x="224" y="93" class="xs">Planche 2 / 3</text>
+    <text x="14" y="124" class="xs">Version</text><text x="14" y="140" class="s">v3.24</text>
+    <text x="134" y="124" class="xs">Date</text><text x="134" y="140" class="s">11/11/2026</text>
+    <text x="224" y="124" class="xs">Dessiné</text><text x="224" y="140" class="s">Claude</text>
+  </g>
+</svg>
+</body></html>

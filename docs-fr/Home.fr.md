@@ -18,6 +18,7 @@ Un jeu d'Abalone complet dans un seul fichier HTML : zéro dépendance, hors-lig
 - **[Empreintes historiques](Empreintes-historiques.fr.md)** — rareté, trajectoire, corrélations avec la victoire.
 - **[Benchmark moteur](Benchmark-moteur.fr.md)** — méthodologie et chiffres réellement mesurés.
 - **[Architecture](Architecture.fr.md)** — quatre schémas : moteur, données, modes de jeu, tables de finale.
+- **[Plans du site](Plans.fr.md)** — trois planches façon plan d'architecte : vue d'ensemble, réseau de calcul, fonctionnement de l'IA.
 - **[Calcul distribué](Calcul-distribue.fr.md)** — le réseau de calcul du Labo (v3.18) : un ordonnanceur et des exécutants branchables, chaque partie vérifiée ; et ce qui reste exclu.
 - **[Moteur multi-worker](Moteur-multi-worker.fr.md)** — ce qui marche, et une vraie limite non résolue, documentée honnêtement.
 - **[Ressources](Ressources.fr.md)** — tout ce qui existe autour du jeu : où jouer, serveurs disparus, compétitions, programmes, articles, encyclopédies, codes des variantes de MiGs.

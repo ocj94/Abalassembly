@@ -7412,7 +7412,8 @@ test('Observatoire IA : deux fleches qui partent de la meme bille ont chacune le
 test('Documentation illustree de l\'analyse : chaque image citee existe et reste legere, chaque page a sa traduction et son lien', () => {
   const fs = require('fs'), path = require('path'), R = f => path.join(__dirname, '..', f);
   const pages = [['docs-fr/Observatoire-IA.fr.md', 'docs-en/Observatoire-IA.en.md'], ['docs-fr/Analyse.fr.md', 'docs-en/Analyse.en.md'], ['docs-fr/Reflexion-IA.fr.md', 'docs-en/Reflexion-IA.en.md'],
-    ['docs-fr/Calcul-distribue.fr.md', 'docs-en/Calcul-distribue.en.md']];   // v3.18 : le reseau de calcul
+    ['docs-fr/Calcul-distribue.fr.md', 'docs-en/Calcul-distribue.en.md'],   // v3.18 : le reseau de calcul
+    ['docs-fr/Plans.fr.md', 'docs-en/Plans.en.md']];   // les plans du site, en deux langues
   const vues = new Set();
   pages.forEach(([fr, en]) => {
     [fr, en].forEach(f => {
