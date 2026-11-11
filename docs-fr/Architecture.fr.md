@@ -6,6 +6,8 @@ Quatre cartes pour comprendre comment Abalassembly est construit. Elles sont **�
 
 Vérifié contre le code en v2.96 (avant : v2.66 ; il manquait les poids Texel, la qualité des coups, les humains et les programmes, les 60 positions de départ, les parties citées sans leurs coups et les fichiers APGN, et la règle de sécurité bloquait PlayStrategy). Les chiffres de la page du site sont regroupés dans `ARCHI_CHIFFRES` (`src/main/34-architecture-diagrams-briefing.js`), et un test les compare aux données embarquées : une partie ou un problème de plus, et le test demande la mise à jour.
 
+Pour une vue d'ensemble dessinée (pages, IA, Labo, serveur), voir les [Plans du site](Plans.fr.md).
+
 ---
 
 ## 1. Comment l'IA choisit son coup

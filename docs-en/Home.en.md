@@ -18,6 +18,7 @@ A complete Abalone game in a single HTML file: zero dependencies, offline, GPL v
 - **[Historical fingerprints](Empreintes-historiques.en.md)** — rarity, trajectory, correlations with winning.
 - **[Engine benchmark](Benchmark-moteur.en.md)** — methodology and actually measured figures.
 - **[Architecture](Architecture.en.md)** — four diagrams: engine, data, game modes, endgame tables.
+- **[Site blueprints](Plans.en.md)** — three architect-style sheets: overview, compute network, how the AI works.
 - **[Distributed computing](Calcul-distribue.en.md)** — the Lab's compute network (v3.18): a scheduler and pluggable executors, every game verified; and what stays excluded.
 - **[Multi-worker engine](Moteur-multi-worker.en.md)** — what works, and a real unresolved limitation, documented honestly.
 - **[Resources](Ressources.en.md)** — everything around the game: where to play, servers that disappeared, competitions, programs, papers, encyclopedias, MiGs variant codes.

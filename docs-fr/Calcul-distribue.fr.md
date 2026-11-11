@@ -23,6 +23,8 @@ Vérifié sur 116 demi-coups recalculés un à un dans un fil neuf, jusqu'à la 
 
 ![L'onglet Réseau de calcul du Labo, branché sur un serveur de test local : familles d'exécutants, campagne en cours, cet appareil et son journal](../docs-img/reseau-calcul.webp)
 
+Le plan d'ensemble du réseau est dans les [Plans du site](Plans.fr.md#2-le-réseau-de-calcul).
+
 *Capture faite avec un serveur de test sur la même machine, la page en ligne ne pouvant pas encore s'y connecter.*
 
 **Dans le jeu**, c'est l'onglet **🌐 Réseau de calcul** du Labo : se connecter, choisir le nombre de cœurs prêtés, brancher. Tant que le serveur n'est pas en ligne, l'onglet le dit et **rien ne part** de l'appareil. Ce qui part, une fois branché : le compte, le nombre de cœurs, l'empreinte du moteur et les parties jouées. Sur un PC, l'exécutant Node du dépôt `abalassembly-api` fait la même chose en ligne de commande.

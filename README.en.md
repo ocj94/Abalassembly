@@ -209,6 +209,10 @@ An optional backend (accounts, sync, world ranking) exists in the separate [`aba
 
 ## Development
 
+To see how the site is built before reading the code, the **[site blueprints](docs-en/Plans.en.md)**: overview, compute network, how the AI works.
+
+<a href="docs-en/Plans.en.md"><img src="docs-img/plan-vue-ensemble.en.webp" width="100%" alt="Complete site blueprint"></a>
+
 The file is deliberately readable: commented sections, unminified code (only the **data** is compressed). To check integrity after a change:
 
 ```bash

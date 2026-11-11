@@ -209,6 +209,10 @@ Un backend optionnel (comptes, synchronisation, classement mondial) existe dans 
 
 ## Développement
 
+Pour voir comment le site est construit avant de lire le code, les **[plans du site](docs-fr/Plans.fr.md)** : vue d'ensemble, réseau de calcul, fonctionnement de l'IA.
+
+<a href="docs-fr/Plans.fr.md"><img src="docs-img/plan-vue-ensemble.fr.webp" width="100%" alt="Plan complet du site"></a>
+
 Le fichier est volontairement lisible : sections commentées, code non minifié (seules les **données** sont compressées). Pour vérifier l'intégrité après modification :
 
 ```bash
