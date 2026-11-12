@@ -1264,7 +1264,7 @@ function _obsDessinerSurPlateau(opts) {
 if (typeof document !== 'undefined' && typeof window !== 'undefined' && window.addEventListener) {
   window.addEventListener('load', function () { try { _obsRendu(); } catch (e) {} });
 }
-</script>
 
 // v3.22 : bouton « Voir les N coups »
+// (v3.27 : etait place apres la fin du bloc de script, donc jamais execute : le bouton ne faisait rien)
 function obsToutVoir() { OBS.tout = true; _obsRendu(); }

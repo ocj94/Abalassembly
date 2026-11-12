@@ -582,9 +582,16 @@ function _labRetourPrincipal(st){
   if(!st.cands || st.candsGen!==st.gen){ st.cands=labMutants(st.champion, st.gen, st.lastGood); st.candsGen=st.gen; }
   _labNouvellePhase(st,'screen');
 }
+// v3.27 : chaque reglage tranche est releve (ses poids, son verdict), pour la carte du Labo (60-cartes-donnees.js)
+function _labNoterEssai(st, w, nom, verdict, r){
+  st.essais=st.essais||[];
+  st.essais.push({ w:_labVecteur(w), nom:nom||'', v:verdict, gen:st.gen, r:(r==null||!isFinite(r))?null:Math.round(r*1000)/1000, t:Date.now() });
+  if(st.essais.length>600) st.essais.splice(0, st.essais.length-600);
+}
 function _labFinTri(st){
   const ratio=function(c){ const n=_labPentaN(c.penta); return n ? _labPoints(c.penta)/(2*n) : 0; };
   const tries=st.cands.slice().sort(function(a,b){ return ratio(b)-ratio(a); }), best=tries[0];
+  st.cands.forEach(function(c){ if(c!==best || ratio(best)<0.5) _labNoterEssai(st, c.w, c.name, 'tri', ratio(c)); });
   if(!best || ratio(best)<0.5){
     // aucun mutant a 50 % au tri : inutile de lancer une confirmation de plusieurs heures
     st.history.unshift({gen:st.gen, type:'✗ tri', name:'aucun mutant à 50 % ('+st.cands.map(function(c){ return c.name+' : '+Math.round(100*ratio(c))+' %'; }).join(', ')+')', score:null,
@@ -602,6 +609,7 @@ function _labNoterChampion(st, nom){
   if(st.champions.length>200) st.champions.splice(1, st.champions.length-200);
 }
 function _labAdopt(st, cf){
+  _labNoterEssai(st, cf.w, cf.name, 'adopte', _labPentaN(cf.penta) ? _labPoints(cf.penta)/(2*_labPentaN(cf.penta)) : null);
   st.champion=_labComplet(cf.w); st.championGen=st.gen;
   _labNoterChampion(st, cf.name);
   _labEnregistrerChampion(st, st.champion);
@@ -615,6 +623,7 @@ function _labAdopt(st, cf){
   } else _labRetourPrincipal(st);
 }
 function _labReject(st, cf, undecided){
+  _labNoterEssai(st, cf.w, cf.name, undecided ? 'indecis' : 'rejete', _labPentaN(cf.penta) ? _labPoints(cf.penta)/(2*_labPentaN(cf.penta)) : null);
   st.history.unshift({gen:st.gen, type:(undecided?'❓ indécis (plafond '+LAB_CFG.confCapPaires+' paires)':'✗ rejeté (SPRT)'), name:cf.name, score:_labPoints(cf.penta), games:2*_labPentaN(cf.penta), elo:_labEloStrP(cf.penta)});
   st.gen++; st.confirm=null; _labRetourPrincipal(st);
 }

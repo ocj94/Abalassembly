@@ -344,6 +344,7 @@ function _cfRendreTout(){
   if (typeof _c3RendreTout === 'function') _c3RendreTout();   // v2.83 : temps morts, sortie du corpus, positions deja vues, billes seules, contacts, avant une bille perdue
   if (typeof _cdRendreTout === 'function') _cdRendreTout();   // v2.86 : les dimensions au fil de la partie, le point de non-retour
   if (typeof _sbRendreCorpus === 'function') _sbRendreCorpus();
+  if (typeof carteCorpusRendre === 'function') carteCorpusRendre();   // v3.27 : la carte des parties
   grSurRedim('corpus', 'corpus-ouvertures', function(){ const h2 = document.getElementById('corpus-ouvertures'); if (h2 && STATS_PARTIES) h2.innerHTML = _cfHtmlOuvertures(_cfParties(), grLargeur(h2, 640) - 40); });
 }
 // appele par renderCorpusStatsPage (34) : les donnees d'abord, puis les cartes

@@ -260,8 +260,10 @@ function renderMesStatsPlus(){
   hp.innerHTML = carte(_tr('Résultats détaillés', 'Detailed results'), _msHtmlResultats(L, W))
     + carte(_tr('Ma progression', 'My progress'), _msHtmlProgression(L, W))
     + carte(_tr('Ma qualité de jeu face aux vrais joueurs', 'My quality of play against real players'), '<div id="ms-qualite">' + _msHtmlQualite() + '</div>')
-    + carte(_tr('Moi contre le corpus', 'Me against the corpus'), '<div id="ms-corpus"></div>');
+    + carte(_tr('Moi contre le corpus', 'Me against the corpus'), '<div id="ms-corpus"></div>')
+    + carte(_tr('La carte de mes parties', 'The map of my games'), '<div id="carte-mes"></div>');   // v3.27 (60-cartes-donnees.js)
   _msRendreCorpus();
+  if (typeof carteMesRendre === 'function') carteMesRendre();
   grSurRedim('messtats', 'ms-plus', function(){ _msFiltreApplique = true; try { renderMesStatsPlus(); } finally { _msFiltreApplique = false; } });
 }
 

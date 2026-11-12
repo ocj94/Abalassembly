@@ -66,9 +66,11 @@ function renderLabTableau(){
   }
   // les filtres du journal, puis ses graphiques
   const sel = function(k, O){ return '<select data-change="labTbFiltrer(\'' + k + '\',this.value)">' + Object.keys(O).map(function(v){ return '<option value="' + v + '"' + (String(f[k]) === v ? ' selected' : '') + '>' + O[v] + '</option>'; }).join('') + '</select>'; };
+  // v3.27 : la carte des reglages essayes (60-cartes-donnees.js)
+  h += '<div class="gr-titre">La carte des réglages essayés</div><div id="carte-labo"></div>';
   h += '<div class="gr-titre">Le journal des parties</div>';
   h += '<div class="gr-filtres"><label>Période ' + sel('periode', LAB_TB_PERIODES) + '</label><label>Phase ' + sel('phase', LAB_TB_PHASES) + '</label><span>' + grNb(L.length) + ' partie' + (L.length > 1 ? 's' : '') + '</span></div>';
-  if (!L.length) { h += '<div class="gr-vide">Aucune partie dans le journal pour ces filtres : lance le Labo.</div>'; hote.innerHTML = h; grSurRedim('tableau', 'lab-tableau-host', renderLabTableau); return; }
+  if (!L.length) { h += '<div class="gr-vide">Aucune partie dans le journal pour ces filtres : lance le Labo.</div>'; hote.innerHTML = h; if (typeof carteLaboRendre === 'function') carteLaboRendre(); grSurRedim('tableau', 'lab-tableau-host', renderLabTableau); return; }
   // parties par jour
   const jours = {}; L.forEach(function(r){ const d = new Date(r.t); const k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); jours[k] = (jours[k] || 0) + 1; });
   const nbJ = f.periode || 30, J = [];
@@ -94,5 +96,6 @@ function renderLabTableau(){
     { lab: 'Standard + hasard', v: dep.hasard.n, couleur: GR_REF, txt: grNb(dep.hasard.n) + (dep.hasard.n ? ' · ' + grNb(dep.hasard.p / dep.hasard.n, 0) + ' demi-coups en moyenne' : '') }], {});
   h += grChiffres(['Jour', 'Parties'], J.filter(function(x){ return x.v; }).map(function(x){ return [x.tip.split(_dimDp())[0], x.v]; }));
   hote.innerHTML = h;
+  if (typeof carteLaboRendre === 'function') carteLaboRendre();
   grSurRedim('tableau', 'lab-tableau-host', renderLabTableau);
 }

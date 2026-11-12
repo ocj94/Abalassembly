@@ -7413,7 +7413,8 @@ test('Documentation illustree de l\'analyse : chaque image citee existe et reste
   const fs = require('fs'), path = require('path'), R = f => path.join(__dirname, '..', f);
   const pages = [['docs-fr/Observatoire-IA.fr.md', 'docs-en/Observatoire-IA.en.md'], ['docs-fr/Analyse.fr.md', 'docs-en/Analyse.en.md'], ['docs-fr/Reflexion-IA.fr.md', 'docs-en/Reflexion-IA.en.md'],
     ['docs-fr/Calcul-distribue.fr.md', 'docs-en/Calcul-distribue.en.md'],   // v3.18 : le reseau de calcul
-    ['docs-fr/Plans.fr.md', 'docs-en/Plans.en.md']];   // les plans du site, en deux langues
+    ['docs-fr/Plans.fr.md', 'docs-en/Plans.en.md'],
+    ['docs-fr/Cartes-des-donnees.fr.md', 'docs-en/Cartes-des-donnees.en.md']];   // v3.27 : les cartes des donnees   // les plans du site, en deux langues
   const vues = new Set();
   pages.forEach(([fr, en]) => {
     [fr, en].forEach(f => {
@@ -7752,4 +7753,56 @@ test('v3.26, RGPD minimisation : plus d e-mail dans les profils locaux (ceux d a
   assert.match(_SRC_INDEX, /anonymiserParties\(MIGS_GAMES, \[2, 3\]\); anonymiserParties\(AO_GAMES, \[1, 2, 3\]\)/);
   assert.match(_SRC_INDEX, /anonymiserParties\(PARTIES_REFERENCE, \[1, 2, 3\]\);\s*anonymiserParties\(PARTIES_TRACES, \[2, 3\]\);/);
   assert.match(_SRC_INDEX, /anonymiserParties\(PS_TOURNOI_YEARLY_2026, \[2, 3\], \[4\]\)/);
+});
+
+test('v3.27, cartes des donnees : ACP (axes, projection), t-SNE (familles separees, deterministe), echantillon, essais du Labo', () => {
+  const vm = require('vm'), lire = (c) => vm.runInContext(c, ctx);
+  // ACP : des points sur une droite de direction (1, 2, 0) + un peu de bruit sur z -> l'axe 1 porte presque tout
+  const r = lire(`(function(){
+    const n = 200, d = 3, X = new Float64Array(n * d);
+    for (let i = 0; i < n; i++) { const t = i / n - 0.5; X[i*3] = t; X[i*3+1] = 2 * t; X[i*3+2] = 0.01 * Math.sin(i * 7.3); }
+    const A = carteACP(X, n, d, 3), p = A.projeter([X[30], X[31], X[32]]);
+    return { part: A.axes[0].part, p0: Array.from(A.axes[0].poids), proj: p[0], y: A.Y[10 * 3], somme: A.axes.reduce((s, a) => s + a.part, 0) };
+  })()`);
+  assert.ok(r.part > 0.6, 'axe 1 : ' + r.part);   // x et y centres-reduits : deux des trois variables suivent l axe
+  assert.ok(Math.abs(r.p0[0] - r.p0[1]) < 1e-6 && r.p0[0] > 0.7, 'x et y pesent pareil (reduites) : ' + r.p0);
+  assert.ok(Math.abs(r.proj - r.y) < 1e-9, 'projeter() redonne la coordonnee du point');
+  assert.ok(Math.abs(r.somme - 1) < 1e-6, 'les 3 axes expliquent toute la variance de 3 variables');
+  // une colonne constante ne fait pas planter (ecart-type nul)
+  assert.ok(lire('(function(){ const X = new Float64Array([1,5,2,5,3,5,4,5]); const A = carteACP(X, 4, 2, 2); return isFinite(A.Y[0]) && A.axes[0].part > 0.99; })()'));
+  // t-SNE : deux familles de 25 points en 6 dimensions, bien separees sur la carte ; meme graine, meme carte
+  const ts = lire(`(function(){
+    const n = 50, d = 6, Z = new Float64Array(n * d); let s = 1;
+    const h = () => { s = (s * 16807) % 2147483647; return s / 2147483647 - 0.5; };
+    for (let i = 0; i < n; i++) for (let j = 0; j < d; j++) Z[i*d+j] = (i < 25 ? 3 : -3) + h();
+    const Y = _carteTsneCalcul(Z, n, d, 2, 10, 600, 42, null), Y2 = _carteTsneCalcul(Z, n, d, 2, 10, 600, 42, null);
+    const dist = (a, b) => Math.hypot(Y[a*2] - Y[b*2], Y[a*2+1] - Y[b*2+1]);
+    let maxIntra = 0, minInter = Infinity;
+    for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) { if ((a < 25) === (b < 25)) maxIntra = Math.max(maxIntra, dist(a, b)); else minInter = Math.min(minInter, dist(a, b)); }
+    return { maxIntra: maxIntra, minInter: minInter, pareil: Array.from(Y).every((v, i) => v === Y2[i]) };
+  })()`);
+  assert.ok(ts.minInter > ts.maxIntra, 'familles separees : la plus courte distance entre familles (' + ts.minInter.toFixed(1) + ') depasse la plus longue dans une famille (' + ts.maxIntra.toFixed(1) + ')');
+  assert.ok(ts.pareil, 'deterministe');
+  // echantillon : la taille voulue, sans doublon, toujours le meme
+  const e = lire('carteEchantillon(10000, 1200, 11)');
+  assert.strictEqual(e.length, 1200); assert.strictEqual(new Set(e).size, 1200);
+  assert.deepStrictEqual(Array.from(e), Array.from(lire('carteEchantillon(10000, 1200, 11)')));
+  assert.strictEqual(lire('carteEchantillon(5, 10).length'), 5);
+  // le Labo releve chaque reglage tranche, 600 au plus, et la carte les reprend
+  const lab = lire(`(function(){ const st = { gen: 4, champion: _labComplet({}), champions: [{ gen: 1, w: _labVecteur(_labComplet({})), nom: 'depart' }] };
+    for (let i = 0; i < 650; i++) { const w = _labComplet({}); w.center = i % 40; _labNoterEssai(st, w, 'm' + i, i % 2 ? 'rejete' : 'tri', 0.4); }
+    return { n: st.essais.length, premier: st.essais[0].nom, pts: _carteLaboPoints(st).length, w: st.essais[0].w.length }; })()`);
+  assert.strictEqual(lab.n, 600); assert.strictEqual(lab.premier, 'm50', 'les plus anciens partent');
+  assert.strictEqual(lab.w, lire('SPSA_KEYS.length'));
+  assert.strictEqual(lab.pts, 601, 'champion + essais');
+  // branchements : les 4 cartes ont leur hote et leur appel
+  assert.match(_SRC_INDEX, /<div id="carte-analyse">/);
+  assert.match(_SRC_INDEX, /if \(typeof carteCorpusRendre === 'function'\) carteCorpusRendre\(\);/);
+  assert.match(_SRC_INDEX, /if \(typeof carteMesRendre === 'function'\) carteMesRendre\(\);/);
+  assert.match(_SRC_INDEX, /if \(typeof carteLaboRendre === 'function'\) carteLaboRendre\(\);/);
+  ['carteReglage', 'carteBasculer', 'carteZoom', 'carteTourner', 'carteMesLancer', 'carteAnalyseRendre'].forEach(f => assert.ok(lire('typeof _ACTIONS.' + f + ' === "function"'), f));
+  // aucun module du script principal ne ferme le bloc lui-meme (v3.22 : obsToutVoir etait apres la fin du bloc, jamais execute)
+  const dir = require('path').join(__dirname, '..', 'src', 'main');
+  require('fs').readdirSync(dir).filter(f => /\.js$/.test(f)).forEach(f => assert.ok(!/<\/script/i.test(require('fs').readFileSync(require('path').join(dir, f), 'utf8')), f + ' contient une balise de fin de script'));
+  assert.ok(lire('typeof obsToutVoir === "function" && typeof _ACTIONS.obsToutVoir === "function"'), 'le bouton « Voir les N coups » marche');
 });

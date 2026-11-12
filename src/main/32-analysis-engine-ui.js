@@ -147,6 +147,7 @@ function updateAnalysisEval() {
 }
 
 function renderAnalysisMoves() {
+  if (typeof carteAnalyseSignal === 'function') carteAnalyseSignal();   // v3.27 : la carte de la partie suit la partie chargee
   const host = document.getElementById('analysis-moves');
   if (!host) return;
   if (analysisHistory.length <= 1) {
