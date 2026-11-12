@@ -53,7 +53,8 @@ in the site (library, replayable and analysable) but **not yet counted in the
 corpus statistics**: the data banks will be recomputed once, when all the
 planned games are in.
 
-- Today: 11 casual games, 1,007 plies
+- Today: 15 casual games, 1,372 plies
+  - `KntP8TmA` (28 May 2025, no clock, 231 plies, won 6-4), `wpp0UG4c` and `B3YcJJKv` (29 May 2025, lost on time after 3 plies), `LIu9Ltk9` (29 May 2025, no clock, 128 plies, won 6-4)
   - `MxbIzwOB`, `6mqKM9vY`, `RpnjUrjG` (28 May 2025, no clock, 102, 87 and 186 plies: won 6-4, 6-5 and 6-5)
   - `FPEZWejN`, `HtlXNktv`, `5YGrgSbG` (27 May 2025, 10+0, 113, 36 and 107 plies: won 6-2, resignation at 0-0, loss on time at 3-3)
   - `RCZ6myBN` (9 August 2026, 10+0, 62 plies, Black resigns)
@@ -64,11 +65,13 @@ planned games are in.
 - Notation: Aba-Pro. Every move was converted from PlayStrategy's notation by
   `psConvertirSequence` (its replay semantics), then checked by a second,
   independent decoding: same moves, all legal, no ambiguity
-- Validation: 11 out of 11 fully replay
+- Validation: 15 out of 15 fully replay
 - Notation: first cell, the tail marble; second cell, a cell on its path (in
   2026, where the last pushed marble lands; in 2025, depending on the move,
   where the leading marble lands or simply the next cell). The whole chain
-  moves that way; `psConvertirSequence` reads all these forms
+  moves that way; `psConvertirSequence` reads all these forms. Sideways
+  move: one end, then the cell the other end reaches; the distance between
+  the two cells gives the group's size
 
 ## Not published
 

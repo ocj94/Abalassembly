@@ -293,7 +293,7 @@ ANON(PS, [2, 3], [4]);
 const PS2 = (source === 'ps-autres' || source === 'all') ? grabArray('PS_PARTIES_A_INTEGRER') : [];
 ANON(PS2, [2, 3], [4]);
 // v3.30 : les fins que le rejeu ne peut pas lire (perte au temps), d'apres le PGN de PlayStrategy
-const FINS_PS = { '5YGrgSbG': 'Au temps' };
+const FINS_PS = { '5YGrgSbG': 'Au temps', 'wpp0UG4c': 'Au temps', 'B3YcJJKv': 'Au temps' };
 const exporterPS = function(liste, evenement){
   for (const g of liste) {
     if (n++ >= limit) break;

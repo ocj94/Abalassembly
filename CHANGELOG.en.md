@@ -9,6 +9,22 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.32]
+
+### Four PlayStrategy games from 28 and 29 May 2025, still waiting for the recomputation
+- **Airisson – Gramgroum**, `KntP8TmA` (28 May, no clock, 231 plies, Airisson
+  wins 6-4). **Gramgroum – Airisson**, `wpp0UG4c` and `B3YcJJKv` (29 May,
+  Gramgroum wins on time after 3 plies) and `LIu9Ltk9` (29 May, no clock,
+  128 plies, Airisson wins 6-4).
+- **Sideways move**: the group's size comes from the distance between the two
+  cells written, as PlayStrategy does. In `KntP8TmA`, at ply 223, "d2e4"
+  moves two marbles (d2-d3 to e3-e4), not three. `psConvertirSequence`
+  already applied this rule; the second decoding now applies it too and finds
+  a single reading for the 15 waiting games, identical move for move.
+- The two losses on time are recorded in `tools/to-apgn.js`
+  (`Termination "Au temps"`). Library: "15 other games";
+  `games/playstrategy-parties.apgn` updated; corpus statistics unchanged.
+
 ## [v3.31]
 
 ### Three PlayStrategy games from 28 May 2025, still waiting for the recomputation

@@ -9,6 +9,24 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.32]
+
+### Quatre parties PlayStrategy des 28 et 29 mai 2025, toujours en attente du recalcul
+- **Airisson – Gramgroum**, `KntP8TmA` (28 mai, sans pendule, 231 demi-coups,
+  Airisson gagne 6-4). **Gramgroum – Airisson**, `wpp0UG4c` et `B3YcJJKv`
+  (29 mai, Gramgroum gagne au temps après 3 demi-coups) et `LIu9Ltk9`
+  (29 mai, sans pendule, 128 demi-coups, Airisson gagne 6-4).
+- **Coup latéral** : la taille du groupe se lit dans la distance entre les
+  deux cases notées, comme le fait PlayStrategy. Dans `KntP8TmA`, au
+  demi-coup 223, « d2e4 » déplace deux billes (d2-d3 vers e3-e4), pas trois.
+  `psConvertirSequence` appliquait déjà cette règle ; le second décodage
+  l'applique désormais et trouve une seule lecture pour les 15 parties en
+  attente, identique coup pour coup.
+- Les deux pertes au temps sont notées dans `tools/to-apgn.js`
+  (`Termination "Au temps"`). Bibliothèque : « 15 autres parties » ;
+  `games/playstrategy-parties.apgn` à jour ; statistiques du corpus
+  inchangées.
+
 ## [v3.31]
 
 ### Trois parties PlayStrategy du 28 mai 2025, toujours en attente du recalcul
