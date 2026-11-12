@@ -15,7 +15,10 @@ function ensureGameBanks(){
   if(_banksReady) return _banksReady;
   if(typeof DecompressionStream==='undefined'){ _banksReady=Promise.resolve(false); return _banksReady; }
   _banksReady=Promise.all([_inflB64(MIGS_B64),_inflB64(AO_B64),_inflB64(TREES_B64)])
-    .then(function(r){ MIGS_GAMES=JSON.parse(r[0]); AO_GAMES=JSON.parse(r[1]); OPENING_TREES=JSON.parse(r[2]); return true; })
+    .then(function(r){ MIGS_GAMES=JSON.parse(r[0]); AO_GAMES=JSON.parse(r[1]); OPENING_TREES=JSON.parse(r[2]);
+      // v3.26 (RGPD) : les joueurs qui ont demande le retrait de leur pseudo (00c-pseudos-retires.js)
+      if (typeof anonymiserParties === 'function') { anonymiserParties(MIGS_GAMES, [2, 3]); anonymiserParties(AO_GAMES, [1, 2, 3]); }
+      return true; })
     .catch(function(){ return false; });
   return _banksReady;
 }

@@ -9,6 +9,29 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.26]
+
+### GDPR: keep only useful data, and a right to object for published players
+Item 8 of the GDPR / CNIL audit of 11 November 2026.
+- **No more e-mail in the local profile.** It was only used to sign in again on
+  the same device, which the name already does. The field is gone from profile
+  creation and Settings. E-mails entered before are erased from the device the
+  next time the site opens (profile registry and session). Sign-in and "Forgot
+  your password?" use the name.
+- **Usernames in published games.** The privacy policy now says why the site
+  publishes players' usernames (legitimate interest: archives of games played
+  in public) and how to object (GDPR, art. 21), no reason needed. A "Remove my
+  username" issue template reminds that issues are public and only asks for the
+  username.
+- **Removal in one line.** `src/main/00c-pseudos-retires.js` holds the list of
+  removed usernames (empty today). Each one becomes "Joueur retiré" (removed
+  player) in every published game: MiGs, Abalone Online, reference and traced
+  games, the PlayStrategy tournament, and the APGN files exported by
+  `tools/to-apgn.js`. Case and accents are ignored. Two removed players in the
+  same game stay distinct, so the winner stays right.
+- A test checks there is no e-mail, that old ones are erased, that usernames
+  are removed and that every game bank is wired.
+
 ## [v3.25]
 
 ### Accessibility: contrast, named boards, the whole site by keyboard

@@ -10,6 +10,7 @@
 main/00-bootstrap-engagement.js
 main/00a-actions.js
 main/00b-actions-liste.js
+main/00c-pseudos-retires.js
 main/01-backend-api-layer.js
 main/02-social-features.js
 main/03-profile-and-setup.js

@@ -59,3 +59,15 @@ doivent pas être publiées avant cet accord.
 node tools/to-apgn.js --source migs --out games/migs-2016-2017.apgn
 node tools/to-apgn.js --source ps --out games/playstrategy-yearly-2026.apgn
 ```
+
+## Pseudos des joueurs (RGPD)
+
+Ces parties portent le pseudo de leurs joueurs, publié au titre de l'intérêt
+légitime (archives de parties jouées en public). Un joueur peut demander le
+retrait du sien, sans se justifier : modèle d'issue « Retirer mon pseudo ».
+
+Pour le retirer : ajouter le pseudo à `PSEUDOS_RETIRES` dans
+`src/main/00c-pseudos-retires.js`, puis `node tools/build.js` et régénérer ces
+fichiers avec les commandes ci-dessus. Le pseudo devient « Joueur retiré » sur
+le site et dans les fichiers. Répondre dans le mois (RGPD, article 12).
+

@@ -1,0 +1,45 @@
+name: Retirer mon pseudo / Remove my username
+description: Vous êtes un joueur d'une partie publiée et vous ne voulez plus que votre pseudo y apparaisse (RGPD, article 21).
+title: "Retrait de pseudo"
+labels: ["rgpd"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Le site publie des parties jouées en public (MiGs, Abalone Online, tournois
+        PlayStrategy, parties de référence) avec le pseudo des joueurs. Vous pouvez
+        demander que le vôtre soit retiré, **sans avoir à vous justifier**. Il sera
+        remplacé par « Joueur retiré » partout sur le site, au plus tard un mois après
+        votre demande.
+
+        ⚠️ Une issue GitHub est **publique**. N'écrivez ici ni votre nom réel, ni votre
+        adresse, ni rien d'autre que le pseudo à retirer.
+
+        *The site publishes publicly played games with the players' usernames. You can
+        ask for yours to be removed, no reason needed. GitHub issues are public: only
+        write the username to remove.*
+  - type: input
+    id: pseudo
+    attributes:
+      label: Le pseudo à retirer / Username to remove
+      description: Tel qu'il apparaît sur le site.
+    validations:
+      required: true
+  - type: dropdown
+    id: source
+    attributes:
+      label: Où apparaît-il ? / Where does it appear?
+      multiple: true
+      options:
+        - MiGs
+        - Abalone Online
+        - PlayStrategy
+        - Parties de référence / Reference games
+        - Je ne sais pas / I don't know
+  - type: checkboxes
+    id: moi
+    attributes:
+      label: Confirmation
+      options:
+        - label: Ce pseudo est le mien. / This username is mine.
+          required: true

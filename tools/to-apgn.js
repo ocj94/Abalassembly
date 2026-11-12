@@ -225,6 +225,13 @@ if (['migs', 'ao', 'ps', 'all'].indexOf(source) < 0) {
 const MIGS = JSON.parse(zlib.inflateRawSync(Buffer.from(grabB64('MIGS_B64'), 'base64')).toString('utf8'));
 const AO = JSON.parse(zlib.inflateRawSync(Buffer.from(grabB64('AO_B64'), 'base64')).toString('utf8'));
 
+/* v3.26 (RGPD) : les pseudos que leurs joueurs ont demande de retirer (00c-pseudos-retires.js)
+   deviennent « Joueur retire » dans les fichiers exportes aussi, avec les fonctions du jeu. */
+const ANON = new Function(grabConstDecl('PSEUDOS_RETIRES') + '\n' + grabConstDecl('PSEUDO_RETIRE') + '\nlet _pseudosRetiresSet = null;\n'
+  + grabFn('_pseudoCle') + '\n' + grabFn('pseudoEstRetire') + '\n' + grabFn('anonymiserParties') + '\nreturn anonymiserParties;')();
+ANON(MIGS, [2, 3]);
+ANON(AO, [1, 2, 3]);
+
 const games = [];
 const rejected = [];
 let n = 0;
@@ -279,6 +286,7 @@ for (const g of ((source === 'ao' || source === 'all') ? AO : [])) {
    enregistre par PlayStrategy ; la fin se lit dans le rejeu : 6 billes = au score, sinon abandon
    (dont 3 parties sans un seul coup). « Normal » chez PlayStrategy ne veut pas dire 6 billes. */
 const PS = (source === 'ps' || source === 'all') ? grabArray('PS_TOURNOI_YEARLY_2026') : [];
+ANON(PS, [2, 3], [4]);
 for (const g of PS) {
   if (n++ >= limit) break;
   const r = replay(boardFromLayout('belgian'), g[5], 0, 0);

@@ -1005,7 +1005,6 @@ async function submitLogin() {
 ──────────────────────────────────────────── */
 async function submitSignup() {
   const username = document.getElementById('signup-username').value.trim();
-  const email    = document.getElementById('signup-email').value.trim();
   const champPw  = document.getElementById('signup-pw');
   const pw       = champPw.value;
   const terms    = document.getElementById('signup-terms').checked;
@@ -1013,12 +1012,11 @@ async function submitSignup() {
   if (username.length > 24) { showToast(_tr('⚠️ Nom d\'utilisateur trop long (max. 24 caractères)', '⚠️ Username too long (max. 24 characters)')); return; }
   // Caractères autorisés : lettres, chiffres, espace, tiret, underscore, point (anti-injection)
   if (!/^[\p{L}\p{N} _.\-]+$/u.test(username)) { showToast(_tr('⚠️ Le nom contient des caractères non autorisés', '⚠️ The name contains characters that are not allowed')); return; }
-  // l'e-mail est facultatif : il sert seulement a se reconnecter ici, rien ne lui est envoye
-  if (email && !/^[^\s@]+@[^\s@]+$/.test(email)) { showToast(_tr('⚠️ Adresse e-mail invalide', '⚠️ Invalid e-mail address')); return; }
+  // v3.26 (RGPD, minimisation) : plus d'e-mail ; il ne servait qu'a se reconnecter ici, le nom suffit
   if (!pw || pw.length < 8) { showToast(_tr('⚠️ Mot de passe trop court (min. 8 caractères)', '⚠️ Password too short (min. 8 characters)')); return; }
   if (!terms) { showToast(_tr('⚠️ Veuillez accepter les conditions d\'utilisation', '⚠️ Please accept the terms of use')); return; }
-  _loginEmail = email || username;
-  const r = await profilCreation(username, email, pw);
+  _loginEmail = username;
+  const r = await profilCreation(username, pw);
   if (!r.ok) { shakeModal('modal-signup'); showToast(r.msg); return; }
   champPw.value = '';
   closeModal('signup');

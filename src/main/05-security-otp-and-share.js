@@ -8,12 +8,17 @@
    La progression (parties, XP, problemes) reste celle de l'appareil, quel que soit le profil.
 ═══════════════════════════════════════════ */
 const PROFILS_KEY = 'abalone_profils';
-const _PROFIL_CHAMPS = ['username', 'email', 'role', 'color', 'bio', 'country', 'joinDate', 'passwordHash', 'passwordSalt'];
+const _PROFIL_CHAMPS = ['username', 'role', 'color', 'bio', 'country', 'joinDate', 'passwordHash', 'passwordSalt'];
 function _profilCle(nom) { return String(nom || '').trim().toLowerCase(); }
 function _profilsLire() {
   try {
     const o = JSON.parse(localStorage.getItem(PROFILS_KEY) || '{}');
-    return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {};
+    if (!(o && typeof o === 'object' && !Array.isArray(o))) return {};
+    // v3.26 (RGPD, minimisation) : les profils ne gardent plus d'e-mail ; ceux d'avant perdent le leur ici
+    let purge = false;
+    for (const k in o) if (o[k] && 'email' in o[k]) { delete o[k].email; purge = true; }
+    if (purge) _profilsEcrire(o);
+    return o;
   } catch (e) { return {}; }
 }
 function _profilsEcrire(o) { try { localStorage.setItem(PROFILS_KEY, JSON.stringify(o)); } catch (e) {} }
@@ -27,16 +32,12 @@ function _profilMaj(u) {
   tous[cle] = p;
   _profilsEcrire(tous);
 }
-/* Cherche un profil par nom ou par e-mail, sans tenir compte des majuscules. */
+/* Cherche un profil par nom, sans tenir compte des majuscules. */
 function _profilTrouver(ident) {
   const q = _profilCle(ident);
   if (!q) return null;
   const tous = _profilsLire();
-  if (tous[q]) return { cle: q, profil: tous[q] };
-  for (const cle in tous) {
-    if (tous[cle] && tous[cle].email && _profilCle(tous[cle].email) === q) return { cle: cle, profil: tous[cle] };
-  }
-  return null;
+  return tous[q] ? { cle: q, profil: tous[q] } : null;
 }
 async function profilConnexion(ident, mdp) {
   const t = _profilTrouver(ident);
@@ -57,13 +58,13 @@ async function profilConnexion(ident, mdp) {
   updateNavAuth();
   return { ok: true, profil: currentUser, nouveauMdp: nouveauMdp };
 }
-async function profilCreation(nom, email, mdp) {
-  if (_profilTrouver(nom) || (email && _profilTrouver(email))) {
-    return { ok: false, msg: _tr('⚠️ Ce nom ou cet e-mail a déjà un profil dans ce navigateur : connectez-vous.',
-                                 '⚠️ This name or e-mail already has a profile in this browser: sign in.') };
+async function profilCreation(nom, mdp) {
+  if (_profilTrouver(nom)) {
+    return { ok: false, msg: _tr('⚠️ Ce nom a déjà un profil dans ce navigateur : connectez-vous.',
+                                 '⚠️ This name already has a profile in this browser: sign in.') };
   }
   const h = await SEC.hashPassword(mdp);
-  currentUser = { username: nom, email: email || '', role: 'player', color: '#2d5a3d', bio: '', country: '',
+  currentUser = { username: nom, role: 'player', color: '#2d5a3d', bio: '', country: '',
     joinDate: new Date().toLocaleDateString(currentLang() === 'EN' ? 'en-GB' : 'fr-FR', { month: 'long', year: 'numeric' }),
     passwordHash: h.hash, passwordSalt: h.salt };
   await saveSession(currentUser);
@@ -75,7 +76,7 @@ async function profilCreation(nom, email, mdp) {
 function profilOublie() {
   const champ = document.getElementById('forgot-ident');
   const ident = ((champ && champ.value) || '').trim();
-  if (!ident) { shakeModal('modal-forgot'); showToast(_tr('⚠️ Indiquez le nom ou l’e-mail du profil', '⚠️ Enter the profile’s name or e-mail')); return; }
+  if (!ident) { shakeModal('modal-forgot'); showToast(_tr('⚠️ Indiquez le nom du profil', '⚠️ Enter the profile’s name')); return; }
   const t = _profilTrouver(ident);
   if (!t) { shakeModal('modal-forgot'); showToast(_tr('Aucun profil « ' + ident + ' » dans ce navigateur', 'No profile “' + ident + '” in this browser')); return; }
   const ok = confirm(_tr('Effacer le profil « ' + t.profil.username + ' » de ce navigateur ?\n\nVos parties, votre XP et vos problèmes résolus restent sur cet appareil : seuls le nom, le mot de passe et la couleur du profil sont effacés. Vous pourrez le recréer tout de suite.',
@@ -87,7 +88,6 @@ function profilOublie() {
   closeModal('forgot');
   openModal('signup');
   const su = document.getElementById('signup-username'); if (su) su.value = t.profil.username;
-  const se = document.getElementById('signup-email'); if (se) se.value = t.profil.email || '';
 }
 /* Chemin serveur (dormant tant que BACKEND.enabled===false) : si le serveur authentifie, on
    utilise SON utilisateur. Renvoie true si la connexion a ete faite ainsi. */
@@ -242,6 +242,8 @@ function initSession() {
         return;
       }
       currentUser = data;
+      // v3.26 (RGPD, minimisation) : une session d'avant perd son e-mail, reecrite sans lui
+      if ('email' in currentUser) { delete currentUser.email; saveSession(currentUser); }
       // Masquer le mot de passe en mémoire si stocké en clair (migration)
       if (currentUser.password && !currentUser.passwordHash) {
         currentUser.password = '***'; // ne plus stocker en clair
@@ -455,7 +457,7 @@ function saveGeneralSettings() {
     if (nouveau.length < 3 || nouveau.length > 24 || !/^[\p{L}\p{N} _.\-]+$/u.test(nouveau)) { showToast(_tr('⚠️ Nom : 3 à 24 lettres, chiffres, espaces, - _ .', '⚠️ Name: 3 to 24 letters, digits, spaces, - _ .')); return; }
     if (_profilTrouver(nouveau)) { showToast(_tr('⚠️ Ce nom a déjà un profil dans ce navigateur', '⚠️ This name already has a profile in this browser')); return; }
   }
-  const fields = { username:'settings-username', email:'settings-email', country:'settings-country', bio:'settings-bio' };
+  const fields = { username:'settings-username', country:'settings-country', bio:'settings-bio' };
   for (const [key,id] of Object.entries(fields)) {
     const el = document.getElementById(id);
     if (el && el.value.trim()) currentUser[key] = el.value.trim();
