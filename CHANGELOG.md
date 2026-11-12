@@ -9,6 +9,22 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.31]
+
+### Trois parties PlayStrategy du 28 mai 2025, toujours en attente du recalcul
+- **Gramgroum – Airisson**, trois parties amicales sans pendule : `MxbIzwOB`
+  (102 demi-coups, Airisson gagne 6-4), `6mqKM9vY` (87, Airisson gagne 6-5),
+  `RpnjUrjG` (186, Airisson gagne 6-5).
+- **Notation, précisée** : la seconde case d'un coup en ligne est une case de la
+  trajectoire, pas toujours la même. Dans `RpnjUrjG`, au demi-coup 181,
+  « f9e8 » déplace la chaîne f9-e8-d7 : le joueur a seulement visé la case
+  voisine. `psConvertirSequence` suit la chaîne et lit toutes ces formes. Le
+  second décodage, élargi à toute case de la trajectoire, trouve une seule
+  lecture pour chacune des 11 parties en attente, identique coup pour coup, et
+  la 6e bille tombe chaque fois au dernier demi-coup.
+- Bibliothèque : « 11 autres parties » ; `games/playstrategy-parties.apgn` à
+  jour ; statistiques du corpus inchangées.
+
 ## [v3.30]
 
 ### Trois parties PlayStrategy de 2025, toujours en attente du recalcul

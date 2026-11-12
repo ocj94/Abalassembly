@@ -53,7 +53,8 @@ in the site (library, replayable and analysable) but **not yet counted in the
 corpus statistics**: the data banks will be recomputed once, when all the
 planned games are in.
 
-- Today: 8 casual games, 632 plies
+- Today: 11 casual games, 1,007 plies
+  - `MxbIzwOB`, `6mqKM9vY`, `RpnjUrjG` (28 May 2025, no clock, 102, 87 and 186 plies: won 6-4, 6-5 and 6-5)
   - `FPEZWejN`, `HtlXNktv`, `5YGrgSbG` (27 May 2025, 10+0, 113, 36 and 107 plies: won 6-2, resignation at 0-0, loss on time at 3-3)
   - `RCZ6myBN` (9 August 2026, 10+0, 62 plies, Black resigns)
   - `Dg90Vkbh`, `gcOnhSVq` (14 August 2026, "10 d/5" time control, 99 and 54 plies, won 6-0 and 6-4)
@@ -63,10 +64,11 @@ planned games are in.
 - Notation: Aba-Pro. Every move was converted from PlayStrategy's notation by
   `psConvertirSequence` (its replay semantics), then checked by a second,
   independent decoding: same moves, all legal, no ambiguity
-- Validation: 8 out of 8 fully replay
-- The 2025 PGNs write pushes differently (second cell: where the player's
-  leading marble arrives, not the last pushed marble); `psConvertirSequence`
-  reads both notations
+- Validation: 11 out of 11 fully replay
+- Notation: first cell, the tail marble; second cell, a cell on its path (in
+  2026, where the last pushed marble lands; in 2025, depending on the move,
+  where the leading marble lands or simply the next cell). The whole chain
+  moves that way; `psConvertirSequence` reads all these forms
 
 ## Not published
 

@@ -9,6 +9,22 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.31]
+
+### Three PlayStrategy games from 28 May 2025, still waiting for the recomputation
+- **Gramgroum – Airisson**, three casual games with no clock: `MxbIzwOB`
+  (102 plies, Airisson wins 6-4), `6mqKM9vY` (87, Airisson wins 6-5),
+  `RpnjUrjG` (186, Airisson wins 6-5).
+- **Notation, refined**: the second cell of an inline move is a cell on the
+  path, not always the same one. In `RpnjUrjG`, at ply 181, "f9e8" moves the
+  chain f9-e8-d7: the player only aimed at the next cell.
+  `psConvertirSequence` follows the chain and reads all these forms. The
+  second decoding, widened to any cell on the path, finds a single reading for
+  each of the 11 waiting games, identical move for move, and the 6th marble
+  always falls on the last ply.
+- Library: "11 other games"; `games/playstrategy-parties.apgn` updated;
+  corpus statistics unchanged.
+
 ## [v3.30]
 
 ### Three PlayStrategy games from 2025, still waiting for the recomputation
