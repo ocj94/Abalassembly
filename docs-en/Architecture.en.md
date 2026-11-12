@@ -64,13 +64,13 @@ Everything starts from the real games embedded in the file.
 
 ```mermaid
 flowchart LR
-    S1[MIGS<br/>2,589 games<br/>Belgian Daisy] --> C[Corpus<br/>4,580 real games]
+    S1[MIGS<br/>2,589 games<br/>Belgian Daisy] --> C[Corpus<br/>4,595 real games]
     S2[AbalOnline<br/>1,890 games<br/>18 layouts] --> C
-    S3[PlayStrategy tournament 2026<br/>93 games] --> C
+    S3[PlayStrategy 2025-2026<br/>108 games: 93 from the tournament<br/>+ 15 casual games] --> C
     S4[Reference games<br/>8 games] --> C
 
     C --> O[Opening books<br/>tree of 13 layouts<br/>and static book]
-    C --> E[Fingerprints<br/>427,272 positions × 12 dimensions]
+    C --> E[Fingerprints<br/>428,644 positions × 12 dimensions]
     C --> R[Every game replayed<br/>move by move, offline]
     C --> P[Puzzles<br/>138, each sourced]
     C --> LP[Lab positions<br/>25,204 quiet + 3,866 starts]
@@ -99,8 +99,8 @@ flowchart LR
 
 **Details:**
 
-- The **opening books** and the AI's fallback (question 3) only read the MIGS and AbalOnline games (418,595 positions). The 8,677 positions of the PlayStrategy and reference games are added for the 12 dimensions of Game statistics (v2.59), hence 427,272.
-- **Every game replayed**: `tools/stats-parties.js` replays offline, with the real engine, the 4,580 games (ejections, kinds of moves, chances, the 12 dimensions of both sides at moves 20, 40 and 60); the result is embedded compressed. It feeds the Game statistics page (falling marbles, what wins games, how real players play — v2.63 to v2.65), the comparisons in My statistics and the line on the end-of-game screen. A test replays a sample and compares.
+- The **opening books** and the AI's fallback (question 3) only read the MIGS and AbalOnline games (418,595 positions). The 10,049 positions of the PlayStrategy and reference games are added for the 12 dimensions of Game statistics (v2.59), hence 428,644 (v3.33).
+- **Every game replayed**: `tools/stats-parties.js` replays offline, with the real engine, the 4,595 games (ejections, kinds of moves, chances, the 12 dimensions of both sides at moves 20, 40 and 60); the result is embedded compressed. It feeds the Game statistics page (falling marbles, what wins games, how real players play — v2.63 to v2.65), the comparisons in My statistics and the line on the end-of-game screen. A test replays a sample and compares.
 
 - **Lab positions** (v2.70): `tools/labo-positions.js` replays the complete games offline and keeps, for each one, up to 6 quiet positions (no ejection possible for the side to move), with the move played and the result, and one starting position between plies 8 and 16, at 0-0. The Lab's duels start from these positions (Belgian Daisy by default); the Texel method tunes the weights on the results; "Like humans" and "Against you" on the moves played. A test checks that they follow the corpus.
 

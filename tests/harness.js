@@ -118,6 +118,7 @@ const PASSERELLE = `
   if (typeof board !== 'undefined')            relier('board', function(){return board;}, function(v){board=v;});
   if (typeof boardSnapshots !== 'undefined')   relier('boardSnapshots', function(){return boardSnapshots;}, function(v){boardSnapshots=v;});
   if (typeof PS_TOURNOI_YEARLY_2026 !== 'undefined') relier('PS_TOURNOI_YEARLY_2026', function(){return PS_TOURNOI_YEARLY_2026;});
+  if (typeof PS_CORPUS !== 'undefined')        relier('PS_CORPUS', function(){return PS_CORPUS;});   // v3.33
   if (typeof _psLiveActive !== 'undefined')    relier('_psLiveActive', function(){return _psLiveActive;});
   if (typeof PS_GAMES !== 'undefined')         relier('PS_GAMES', function(){return PS_GAMES;}, function(v){PS_GAMES=v;});
   if (typeof MIGS_GAMES !== 'undefined')       relier('MIGS_GAMES', function(){return MIGS_GAMES;}, function(v){MIGS_GAMES=v;});

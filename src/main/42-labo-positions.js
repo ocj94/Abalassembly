@@ -3,7 +3,7 @@
    Demande d'ocj94 : « amelioration du Labo », puis « les 6 » (les six outils
    proposes). Un audit avait montre que les parties du Labo ne ressemblaient pas
    aux vraies : toujours la disposition Standard, 6 coups tires au hasard, alors
-   que 2 688 des 4 580 parties du corpus sont en Marguerite belge (384 en
+   que 2 688 des 4 580 parties du corpus (v2.70 ; 2 703 sur 4 595 en v3.33) sont en Marguerite belge (384 en
    Standard). Les outils du Labo partent maintenant de vraies positions.
 
    Ecrit hors ligne par tools/labo-positions.js (rejouer tout le corpus prend

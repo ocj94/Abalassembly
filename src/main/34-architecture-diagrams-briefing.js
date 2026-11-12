@@ -31,8 +31,8 @@
    playstrategy.org en meme temps.
 ═══════════════════════════════════════════ */
 const ARCHI_CHIFFRES = {
-  migs: 2589, ao: 1890, ps: 93, ref: 8,        // parties de chaque source (_sbBanques)
-  empreintes: 427272,                           // positions mesurees : EMPREINTES_HISTORIQUES + EMPREINTES_COMPLEMENT
+  migs: 2589, ao: 1890, ps: 108, ref: 8,       // parties de chaque source (_sbBanques) ; v3.33 : ps = 93 du tournoi + 15 amicales
+  empreintes: 428644,                           // positions mesurees : EMPREINTES_HISTORIQUES + EMPREINTES_COMPLEMENT
   dispositionsLivre: 13,                        // dispositions de l'arbre d'ouvertures (OPENING_TREES)
   puzzles: 138,                                 // PUZZLES
   historique: 200,                              // HIST_MAX
@@ -83,7 +83,7 @@ function _archiCarteIA(){
 /* 2. D'ou viennent les donnees */
 function _archiCarteDonnees(){
   const C = ARCHI_CHIFFRES, total = C.migs + C.ao + C.ps + C.ref;
-  const sources = [['MIGS', C.migs], ['AbalOnline', C.ao], [_tr('Tournoi PlayStrategy 2026', 'PlayStrategy tournament 2026'), C.ps], [_tr('Parties de référence', 'Reference games'), C.ref]];
+  const sources = [['MIGS', C.migs], ['AbalOnline', C.ao], [_tr('PlayStrategy (tournoi 2026 et amicales)', 'PlayStrategy (2026 tournament and casual games)'), C.ps], [_tr('Parties de référence', 'Reference games'), C.ref]];
   let h = '<div class="archi-puces">' + sources.map(function(s){ return '<div class="archi-boite">' + s[0] + '<br>' + _archiN(s[1]) + ' ' + _tr('parties', 'games') + '</div>'; }).join('') + '</div>'
     + _archiFleche()
     + '<div class="archi-boite archi-r archi-centre">' + _tr('Corpus : ' + _archiN(total) + ' parties réelles, embarquées dans le fichier', 'Corpus: ' + _archiN(total) + ' real games, embedded in the file') + '</div>'
@@ -413,8 +413,8 @@ async function renderCorpusStatsPage(){
     // l'ecart a 50 %, pas l'ecart entre les deux camps (qui est le double) : « plus souvent que l'autre » le laissait croire
     + (avantage != null ? '<div style="font-size:12px;color:var(--text)">' + _tr('Celui qui commence gagne <strong style="color:var(--gold)">' + avantage + ' points de pourcentage</strong> de plus qu’un partage égal (50 %).',
                                                                               'The side that moves first wins <strong style="color:var(--gold)">' + avantage + ' percentage points</strong> more than an even split (50 %).') + '</div>' : ''),
-    _tr('Sur ' + nb(s.decided) + ' parties dont le vainqueur est connu avec certitude. Les parties MIGS terminées par abandon ou fin de temps sont exclues : impossible de savoir qui a abandonné depuis les seules données.' + (s.nPs ? ' Les ' + s.nPs + ' parties du tournoi PlayStrategy comptent avec le résultat enregistré par le serveur, abandons compris.' : ''),
-        'Over ' + nb(s.decided) + ' games whose winner is known for certain. MIGS games that ended by resignation or on time are left out: the data alone cannot tell who resigned.' + (s.nPs ? ' The ' + s.nPs + ' games of the PlayStrategy tournament count with the result recorded by the server, resignations included.' : '')));
+    _tr('Sur ' + nb(s.decided) + ' parties dont le vainqueur est connu avec certitude. Les parties MIGS terminées par abandon ou fin de temps sont exclues : impossible de savoir qui a abandonné depuis les seules données.' + (s.nPs ? ' Les ' + s.nPs + ' parties PlayStrategy (tournoi et amicales) comptent avec le résultat enregistré par le serveur, abandons et pertes au temps compris.' : ''),
+        'Over ' + nb(s.decided) + ' games whose winner is known for certain. MIGS games that ended by resignation or on time are left out: the data alone cannot tell who resigned.' + (s.nPs ? ' The ' + s.nPs + ' PlayStrategy games (tournament and casual) count with the result recorded by the server, resignations and losses on time included.' : '')));
 
   const coups = function(n){ return n == null ? '—' : (typeof n === 'number' && n % 1 ? _dimDec(n, 1) : nb(n)) + ' ' + _tr('coups', 'moves'); };
   html += card(_tr('Durée d’une partie', 'Length of a game'),
@@ -437,8 +437,8 @@ async function renderCorpusStatsPage(){
     s.topVariants.map(function(v){
       return ligne(_nomVarianteCorpus(v[0]), nb(v[1]) + ' ' + _tr('parties', 'games'));
     }).join(''),
-    _tr(s.nVariants + ' variantes distinctes recensées dans le corpus AbalOnline (' + nb(s.nAo) + ' parties)' + (s.nPs ? ', plus le Belgian Daisy du tournoi PlayStrategy (' + s.nPs + ' parties)' : '') + '.',
-        s.nVariants + ' distinct variants recorded in the AbalOnline corpus (' + nb(s.nAo) + ' games)' + (s.nPs ? ', plus the Belgian Daisy of the PlayStrategy tournament (' + s.nPs + ' games)' : '') + '.'));
+    _tr(s.nVariants + ' variantes distinctes recensées dans le corpus AbalOnline (' + nb(s.nAo) + ' parties)' + (s.nPs ? ', plus le Belgian Daisy des parties PlayStrategy (' + s.nPs + ' parties)' : '') + '.',
+        s.nVariants + ' distinct variants recorded in the AbalOnline corpus (' + nb(s.nAo) + ' games)' + (s.nPs ? ', plus the Belgian Daisy of the PlayStrategy games (' + s.nPs + ' games)' : '') + '.'));
 
   // Les 12 dimensions et leur redondance suivent, dans leurs propres cartes (v2.59, voir _dimsPreparer)
   autres.innerHTML = html;
@@ -480,7 +480,7 @@ function _dimReperes(etroit){
 // Parties que la page compte, par source, et celles qui ont leurs mesures
 function _dimCouverture(){
   const K = _empCorpusDonnees(); if (!K) return null;
-  const PS = (typeof PS_TOURNOI_YEARLY_2026 !== 'undefined') ? PS_TOURNOI_YEARLY_2026 : [];
+  const PS = (typeof PS_CORPUS !== 'undefined') ? PS_CORPUS : []   /* v3.33 : tournoi + amicales */;
   const REF = (typeof PARTIES_REFERENCE !== 'undefined') ? PARTIES_REFERENCE : [];
   const avecCoups = function(seq){ return !!String(seq || '').replace(/\d+\./g, ' ').trim(); };
   const attendu = { MIGS: MIGS_GAMES.length, AO: AO_GAMES.length,

@@ -48,19 +48,17 @@ The 93 games of PlayStrategy's **Yearly Abalone Arena**, played on
 
 ## `playstrategy-parties.apgn`
 
-Other games played on **PlayStrategy**, sent one at a time (v3.28). They are
-in the site (library, replayable and analysable) but **not yet counted in the
-corpus statistics**: the data banks will be recomputed once, when all the
-planned games are in.
+Other games played on **PlayStrategy**, sent one at a time (v3.28 to
+v3.32), then brought into the corpus all at once (v3.33): they count in the
+game statistics, the maps, the Lab and move quality.
 
-- Today: 15 casual games, 1,372 plies
-  - `KntP8TmA` (28 May 2025, no clock, 231 plies, won 6-4), `wpp0UG4c` and `B3YcJJKv` (29 May 2025, lost on time after 3 plies), `LIu9Ltk9` (29 May 2025, no clock, 128 plies, won 6-4)
-  - `MxbIzwOB`, `6mqKM9vY`, `RpnjUrjG` (28 May 2025, no clock, 102, 87 and 186 plies: won 6-4, 6-5 and 6-5)
+- 15 casual games, 1,372 plies, sorted by date:
   - `FPEZWejN`, `HtlXNktv`, `5YGrgSbG` (27 May 2025, 10+0, 113, 36 and 107 plies: won 6-2, resignation at 0-0, loss on time at 3-3)
+  - `MxbIzwOB`, `6mqKM9vY`, `RpnjUrjG`, `KntP8TmA` (28 May 2025, no clock, 102, 87, 186 and 231 plies: won 6-4, 6-5, 6-5 and 6-4)
+  - `wpp0UG4c`, `B3YcJJKv` (29 May 2025, lost on time after 3 plies), `LIu9Ltk9` (29 May 2025, no clock, 128 plies, won 6-4)
   - `RCZ6myBN` (9 August 2026, 10+0, 62 plies, Black resigns)
   - `Dg90Vkbh`, `gcOnhSVq` (14 August 2026, "10 d/5" time control, 99 and 54 plies, won 6-0 and 6-4)
-  - `aXsgzzHx` (17 August 2026, "12 d/1" time control, 78 plies, won 6-4)
-  - `HrczjlFo` (17 August 2026, "12 d/1" time control, 83 plies, White resigns at 4-1)
+  - `aXsgzzHx`, `HrczjlFo` (17 August 2026, "12 d/1" time control, 78 and 83 plies, won 6-4, White resigns at 4-1)
 - Layout: Belgian daisy ("Abalone" on PlayStrategy)
 - Notation: Aba-Pro. Every move was converted from PlayStrategy's notation by
   `psConvertirSequence` (its replay semantics), then checked by a second,
@@ -90,14 +88,14 @@ node tools/to-apgn.js --source ps-autres --out games/playstrategy-parties.apgn
 
 ## Adding games
 
-1. Add the game to `PS_PARTIES_A_INTEGRER` (`src/main/16-corpus-data-tools.js`),
-   moves converted by `psConvertirSequence`, then `node tools/build.js` and
-   regenerate `playstrategy-parties.apgn` with the command above.
-2. Once all the games are in, bring them into the corpus: add them to the
-   banks (`_sbBanques`, `src/main/39-statistiques-billes.js`), then recompute
-   `tools/stats-parties.js`, `tools/labo-positions.js`,
-   `tools/empreintes-complement.js` and `tools/qualite-coups.js` (several
-   hours), and update the figures quoted (4,580 games…).
+1. Add the game to `PS_PARTIES_AMICALES` (`src/main/16-corpus-data-tools.js`),
+   at its date, moves converted by `psConvertirSequence`, then
+   `node tools/build.js` and regenerate `playstrategy-parties.apgn` with the
+   command above.
+2. It goes into the corpus's PlayStrategy bank by itself (`PS_CORPUS`):
+   recompute `tools/qualite-coups.js`, `tools/stats-parties.js`,
+   `tools/labo-positions.js` and `tools/empreintes-complement.js`, then update
+   the figures quoted (4,595 games…); the tests say which.
 
 ## Players' usernames (GDPR)
 

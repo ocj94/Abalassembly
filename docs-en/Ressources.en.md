@@ -20,7 +20,7 @@ Updated: 30 October 2026.
 | [PlayAbalone](https://www.playabalone.com) | Free browser version, against AIs (cited by the English Wikipedia). |
 | [abalone.stellarflow.fr](https://abalone.stellarflow.fr/) | Unofficial version to play with a friend: a lobby, a code to share. No history, no export. |
 | Asmodee's official app · [Steam](https://store.steampowered.com/app/279480/Abalone/) | The publisher's versions: online, but closed (no export, no game database). |
-| [Abalassembly](https://ocj94.github.io/Abalassembly/) | This project: a single file, offline, 189 starting positions, 4,580 real games. |
+| [Abalassembly](https://ocj94.github.io/Abalassembly/) | This project: a single file, offline, 189 starting positions, 4,595 real games. |
 
 ## 2. Servers that disappeared
 
