@@ -53,7 +53,8 @@ in the site (library, replayable and analysable) but **not yet counted in the
 corpus statistics**: the data banks will be recomputed once, when all the
 planned games are in.
 
-- Today: 5 casual games, 376 plies
+- Today: 8 casual games, 632 plies
+  - `FPEZWejN`, `HtlXNktv`, `5YGrgSbG` (27 May 2025, 10+0, 113, 36 and 107 plies: won 6-2, resignation at 0-0, loss on time at 3-3)
   - `RCZ6myBN` (9 August 2026, 10+0, 62 plies, Black resigns)
   - `Dg90Vkbh`, `gcOnhSVq` (14 August 2026, "10 d/5" time control, 99 and 54 plies, won 6-0 and 6-4)
   - `aXsgzzHx` (17 August 2026, "12 d/1" time control, 78 plies, won 6-4)
@@ -62,7 +63,10 @@ planned games are in.
 - Notation: Aba-Pro. Every move was converted from PlayStrategy's notation by
   `psConvertirSequence` (its replay semantics), then checked by a second,
   independent decoding: same moves, all legal, no ambiguity
-- Validation: 5 out of 5 fully replay
+- Validation: 8 out of 8 fully replay
+- The 2025 PGNs write pushes differently (second cell: where the player's
+  leading marble arrives, not the last pushed marble); `psConvertirSequence`
+  reads both notations
 
 ## Not published
 
