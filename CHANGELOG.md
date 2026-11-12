@@ -9,6 +9,30 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.26]
+
+### RGPD : ne garder que les données utiles, et un droit d'opposition pour les joueurs publiés
+Point 8 de l'audit RGPD / CNIL du 11 novembre 2026.
+- **Plus d'e-mail dans le profil local.** Il ne servait qu'à se reconnecter sur
+  le même appareil, ce que le nom fait déjà. Le champ disparaît de la création
+  de profil et des Paramètres. Les e-mails saisis avant sont effacés de
+  l'appareil à la prochaine ouverture (registre des profils et session).
+  La connexion et « Mot de passe oublié » se font par le nom.
+- **Pseudos des parties publiées.** La politique de confidentialité dit
+  maintenant pourquoi le site publie les pseudos des joueurs (intérêt légitime :
+  archives de parties jouées en public) et comment s'y opposer (RGPD, art. 21),
+  sans justification. Un modèle d'issue « Retirer mon pseudo » rappelle que
+  l'issue est publique et ne demande que le pseudo.
+- **Retrait en une ligne.** `src/main/00c-pseudos-retires.js` tient la liste des
+  pseudos retirés (vide aujourd'hui). Chaque pseudo de la liste devient
+  « Joueur retiré » dans toutes les parties publiées : MiGs, Abalone Online,
+  parties de référence et tracées, tournoi PlayStrategy, et les fichiers APGN
+  exportés par `tools/to-apgn.js`. Majuscules et accents sont ignorés. Deux
+  joueurs retirés d'une même partie restent distincts, pour que le vainqueur
+  reste juste.
+- Un test vérifie l'absence d'e-mail, l'effacement des anciens, le retrait des
+  pseudos et son branchement sur chaque banque de parties.
+
 ## [v3.25]
 
 ### Accessibilité : contrastes, plateaux nommés, tout le site au clavier

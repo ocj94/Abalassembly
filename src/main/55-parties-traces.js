@@ -117,3 +117,11 @@ function _ptHtml(q, variantFilter, lengthFilter){
   });
   return h + '</details>';
 }
+
+// v3.26 (RGPD) : pseudos retires a la demande des joueurs (00c-pseudos-retires.js), dans les
+// parties de reference, les parties tracees et le tournoi PlayStrategy embarque
+if (typeof anonymiserParties === 'function') {
+  anonymiserParties(PARTIES_REFERENCE, [1, 2, 3]);
+  anonymiserParties(PARTIES_TRACES, [2, 3]);
+  if (typeof PS_TOURNOI_YEARLY_2026 !== 'undefined') anonymiserParties(PS_TOURNOI_YEARLY_2026, [2, 3], [4]);
+}

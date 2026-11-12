@@ -58,7 +58,7 @@ function renderProfile() {
   set('ps-puzzles-sub', defis ? _tr('+ '+defis+' défi'+(defis>1?'s':'')+' du jour', '+ '+defis+' daily puzzle'+(defis>1?'s':'')) : '-');
 
   // Settings pre-fill
-  const fieldMap = {username:'settings-username', email:'settings-email', country:'settings-country', bio:'settings-bio'};
+  const fieldMap = {username:'settings-username', country:'settings-country', bio:'settings-bio'};
   for (const [k,id] of Object.entries(fieldMap)) {
     const el=document.getElementById(id);
     if (el) el.value = u[k]||'';

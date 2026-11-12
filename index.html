@@ -20,7 +20,7 @@
 <!-- v2.96 : connect-src ouvert a playstrategy.org, et a lui seul. Les fonctions PlayStrategy (partie en direct,
      tournois, import par lien) etaient bloquees par cette regle depuis leur ajout ; le site n'y envoie qu'un pseudo
      ou un lien, en lecture seule. Si PlayStrategy refuse les requetes venant d'un autre site (CORS), le message le dit. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' blob: 'sha256-8STPnbw+E3XBBZTJlKw/YzNCMzYXmKRZpCk2DlyHjcE=' 'sha256-xrClgwYGFk8hhEGMu2u07LSxLn0oQO68guvmE6vMhXw=' 'sha256-x+bA9ar1ozWHjh/Ohqn7s6G1I9RCEEaBeZJKa1WyPZM=' 'sha256-htlftkhcOevDs/FOxTHDC9vx/bazaIHTRKDuzHwyeUE=' 'sha256-vPSSUR0q4b8wSgnee15gQgz67URxhHm4MgCgzbsfq2Q=' 'sha256-l+8IXMf8DU5SgvLOVQP3Yf8/vU6jr/z0Fms4QMYrWas='; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://playstrategy.org https://cdn.jsdelivr.net https://unpkg.com; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' blob: 'sha256-8STPnbw+E3XBBZTJlKw/YzNCMzYXmKRZpCk2DlyHjcE=' 'sha256-xrClgwYGFk8hhEGMu2u07LSxLn0oQO68guvmE6vMhXw=' 'sha256-/Wyo501FDre3YydI7rBeWLmlc3k1Zhvprq/Qekjlbg8=' 'sha256-AEvrmVmyqt9//20EM5Fz1NIE7ZgrwMAVHVsIPASI9D0=' 'sha256-vPSSUR0q4b8wSgnee15gQgz67URxhHm4MgCgzbsfq2Q=' 'sha256-l+8IXMf8DU5SgvLOVQP3Yf8/vU6jr/z0Fms4QMYrWas='; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://playstrategy.org https://cdn.jsdelivr.net https://unpkg.com; base-uri 'self'; form-action 'self'">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#151918">
@@ -3021,17 +3021,17 @@ const I18N_EN = {
   'Pas de serveur : votre profil, vos parties et votre progression restent': 'No server: your profile, your games and your progress stay',
   'dans ce navigateur, sur cet appareil': 'in this browser, on this device',
   ". Rien n'est envoyé, aucun e-mail ne vous sera écrit. N'y mettez pas un mot de passe qui vous sert ailleurs. Pour changer d'appareil : Paramètres → Exporter mes données.": '. Nothing is sent, and no e-mail will ever be written to you. Do not use a password you use elsewhere. To change devices: Settings → Export my data.',
-  "Nom d'utilisateur ou e-mail": 'Username or e-mail', 'Mot de passe': 'Password', 'Mot de passe oublié ?': 'Forgot your password?',
+  "Nom d'utilisateur": 'Username', 'Mot de passe': 'Password', 'Mot de passe oublié ?': 'Forgot your password?',
   'Continuer →': 'Continue →', 'Pas encore de profil ?': 'No profile yet?', "C'est fait !": 'Done!', 'Bienvenue,': 'Welcome,',
   'Profil enregistré dans ce navigateur': 'Profile saved in this browser', 'Accéder à mon profil →': 'Go to my profile →',
   "Un nom, un mot de passe, et c'est parti. Le profil est facultatif : on peut jouer sans.": 'A name, a password, and off you go. A profile is optional: you can play without one.',
-  '3 à 24 caractères · affiché sur cet appareil': '3 to 24 characters · shown on this device', 'Adresse e-mail (facultatif)': 'E-mail address (optional)',
-  'Sert seulement à vous reconnecter ici.': 'Only used to sign in again here.', 'Au moins 8 caractères': 'At least 8 characters', 'vous@exemple.com': 'you@example.com',
+  '3 à 24 caractères · affiché sur cet appareil': '3 to 24 characters · shown on this device',
+  'Au moins 8 caractères': 'At least 8 characters',
   "J'accepte les": 'I accept the', 'mentions légales': 'legal notice', 'et la': 'and the', 'politique de confidentialité': 'privacy policy',
   'Déjà un profil dans ce navigateur ?': 'Already have a profile in this browser?', 'Mot de passe oublié': 'Forgotten password',
   'Sans serveur, aucun e-mail ne peut vous être envoyé. Mais votre progression (parties, XP, problèmes) ne dépend pas du mot de passe : elle reste sur cet appareil. Vous pouvez effacer le profil et le recréer aussitôt.':
     'Without a server, no e-mail can be sent to you. But your progress (games, XP, puzzles) does not depend on the password: it stays on this device. You can delete the profile and create it again right away.',
-  "Nom d'utilisateur ou e-mail du profil": 'Username or e-mail of the profile', 'Effacer ce profil et le recréer': 'Delete this profile and create it again',
+  "Nom d'utilisateur du profil": 'Username of the profile', 'Effacer ce profil et le recréer': 'Delete this profile and create it again',
   '← Retour à la connexion': '← Back to sign in', 'Afficher le mot de passe': 'Show the password',
   'Une image carrée du résultat et du plateau final': 'A square image of the result and the final board',
   // ── configuration de partie ──
@@ -6304,7 +6304,6 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
           </div>
         </div>
         <div class="form-group"><label class="form-label">Nom d'utilisateur</label><input class="form-input" id="settings-username" placeholder="MonPseudo"></div>
-        <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="settings-email" aria-label="Email" type="email"></div>
         <div class="form-group"><label class="form-label">Pays</label>
           <select class="form-input" id="settings-country" aria-label="Pays" style="cursor:pointer">
             <option value="">Selectionner...</option>
@@ -7863,10 +7862,12 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
     <h2>Politique de confidentialité</h2>
   </div>
   <div style="padding:0 60px 80px;max-width:720px;color:var(--text);line-height:1.8;font-size:15px">
-    <p><strong style="color:var(--white)">En une phrase : ce site ne collecte aucune donnée personnelle.</strong></p>
+    <p><strong style="color:var(--white)">En une phrase : ce site ne collecte aucune donnée personnelle sur ses visiteurs.</strong></p>
     <p style="margin-top:16px">Abalassembly est un fichier unique qui tourne entièrement dans votre navigateur. Vos parties, votre progression, vos réglages et vos préférences restent stockés localement sur votre appareil (<code style="background:var(--surface2);padding:2px 6px;border-radius:4px">localStorage</code>) — rien n'est envoyé vers un serveur, parce qu'aucun serveur actif ne reçoit ces informations.</p>
     <p style="margin-top:16px">Un backend existe bien dans un dépôt séparé (comptes, sauvegarde en ligne, réseau de calcul du Labo) mais il est <strong>volontairement désactivé</strong> — tant qu'il ne l'est pas, aucune donnée ne quitte votre navigateur. Le jour où il sera en ligne, sa protection anti-robot sera une courte preuve de calcul faite par votre appareil (à l'inscription, et à la connexion après des mots de passe faux) : aucun service de « captcha » tiers, aucun cookie.</p>
     <p style="margin-top:16px">Autres sites contactés : <strong>aucun à l'ouverture</strong>. Les polices sont dans le fichier lui-même (depuis la v3.21 ; avant, elles venaient de Google Fonts, qui recevait l'adresse IP de chaque visiteur). Seules deux fonctions peuvent appeler un autre site, et seulement quand vous les utilisez : l'import d'un tableur Excel (la bibliothèque SheetJS, chargée depuis jsDelivr ou unpkg, vérifiée par son empreinte) et la partie en direct sur PlayStrategy. La vue 3D utilise la copie de Three.js hébergée avec le site, et ne va sur jsDelivr ou unpkg que si cette copie manque. Le site ne calcule aucune « empreinte » de votre appareil pour vous reconnaître.</p>
+    <p style="margin-top:16px">Votre profil local ne demande que ce qui sert : un nom (affiché sur cet appareil) et un mot de passe, gardé seulement sous forme d'empreinte. Pays et biographie sont facultatifs. Aucune adresse e-mail n'est demandée (depuis la v3.26 ; celles saisies avant ont été effacées de l'appareil).</p>
+    <p style="margin-top:16px"><strong style="color:var(--white)">Joueurs des parties publiées.</strong> La bibliothèque, les statistiques et l'Analyse s'appuient sur des milliers de parties jouées en public (serveur MiGs, Abalone Online, tournois PlayStrategy, parties de référence), avec le pseudo de leurs joueurs. Ces pseudos sont publiés au titre de l'intérêt légitime : garder la mémoire du jeu et permettre son étude. Si l'un d'eux est le vôtre, vous pouvez vous y opposer (RGPD, article 21), sans avoir à vous justifier : demandez-le par une <a href="https://github.com/ocj94/Abalassembly/issues/new?template=retrait-pseudo.yml" target="_blank" rel="noopener" style="color:var(--gold)">demande de retrait de pseudo</a>. Votre pseudo est alors remplacé par « Joueur retiré » partout sur le site ; les coups restent, la partie ne dit plus qui l'a jouée. Vous pouvez aussi saisir la <a href="https://www.cnil.fr/fr/plaintes" target="_blank" rel="noopener" style="color:var(--gold)">CNIL</a>.</p>
     <p style="margin-top:16px">Effacer vos données : videz le stockage local de votre navigateur pour ce site (Réglages du navigateur → Confidentialité → Données de site), ou utilisez la fonction d'export/suppression si votre navigateur la propose.</p>
     <p style="margin-top:16px">Contact : passez par les <a href="https://github.com/ocj94/Abalassembly/issues" target="_blank" rel="noopener" style="color:var(--gold)">issues GitHub</a> du projet.</p>
   </div>
@@ -8873,7 +8874,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
       <span>📱</span><span>Pas de serveur : votre profil, vos parties et votre progression restent <b style="color:var(--text)">dans ce navigateur, sur cet appareil</b>. Rien n'est envoyé, aucun e-mail ne vous sera écrit. N'y mettez pas un mot de passe qui vous sert ailleurs. Pour changer d'appareil : Paramètres → Exporter mes données.</span>
     </div>
     <div class="form-group">
-      <label class="form-label">Nom d'utilisateur ou e-mail</label>
+      <label class="form-label">Nom d'utilisateur</label>
       <input class="form-input" id="login-email" type="text" placeholder="MarbleKing42" autocomplete="username" data-entree="submitLogin()">
     </div>
     <div class="form-group" style="position:relative">
@@ -8926,11 +8927,6 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
       <input class="form-input" id="signup-username" type="text" placeholder="MarbleKing42" autocomplete="username">
       <div style="font-size:11px;color:var(--muted);margin-top:5px">3 à 24 caractères · affiché sur cet appareil</div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Adresse e-mail (facultatif)</label>
-      <input class="form-input" id="signup-email" type="email" placeholder="vous@exemple.com" autocomplete="email">
-      <div style="font-size:11px;color:var(--muted);margin-top:5px">Sert seulement à vous reconnecter ici.</div>
-    </div>
     <div class="form-group" style="position:relative">
       <label class="form-label">Mot de passe</label>
       <input class="form-input" id="signup-pw" type="password" placeholder="Au moins 8 caractères" autocomplete="new-password" data-input="checkPwStrength(this.value,'-2')" style="padding-right:44px">
@@ -8969,7 +8965,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
     <h3 style="text-align:center">Mot de passe oublié</h3>
     <p style="text-align:center">Sans serveur, aucun e-mail ne peut vous être envoyé. Mais votre progression (parties, XP, problèmes) ne dépend pas du mot de passe : elle reste sur cet appareil. Vous pouvez effacer le profil et le recréer aussitôt.</p>
     <div class="form-group">
-      <label class="form-label">Nom d'utilisateur ou e-mail du profil</label>
+      <label class="form-label">Nom d'utilisateur du profil</label>
       <input class="form-input" id="forgot-ident" type="text" placeholder="MarbleKing42" data-entree="profilOublie()">
     </div>
     <button class="modal-submit" data-click="profilOublie()">Effacer ce profil et le recréer</button>
@@ -9019,7 +9015,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v3.25';
+const APP_VERSION = 'v3.26';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -10130,6 +10126,58 @@ const _ACTIONS = {
   vpRenommer: function () { return vpRenommer; },
   vpRetirerEnfant: function () { return vpRetirerEnfant; }
 };
+/* ═══ Pseudos retirés des parties publiées (v3.26, RGPD) ════════════════════════════════
+   Le site publie des milliers de parties d'archives (MiGs, Abalone Online, tournois
+   PlayStrategy, parties de référence) avec le pseudo de leurs joueurs. Un pseudo est une
+   donnée personnelle : on les publie au titre de l'intérêt légitime (archives de parties
+   jouées en public, utiles à l'étude du jeu), et chaque joueur peut s'y opposer
+   (RGPD, art. 21), sans avoir à se justifier.
+
+   Pour retirer un joueur : ajouter son pseudo, tel qu'il apparaît, à PSEUDOS_RETIRES
+   (majuscules et accents ignorés), reconstruire le site (node tools/build.js). Partout où
+   le site affiche ces parties, il devient « Joueur retiré ». Les coups restent : la partie
+   ne dit plus qui l'a jouée. Penser aussi aux fichiers du dossier games/ (games/README.md). */
+const PSEUDOS_RETIRES = [
+  // 'pseudo',   // date de la demande
+];
+const PSEUDO_RETIRE = 'Joueur retiré';
+function _pseudoCle(n) { return String(n == null ? '' : n).normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase(); }
+let _pseudosRetiresSet = null;
+function pseudoEstRetire(n) {
+  if (!_pseudosRetiresSet) _pseudosRetiresSet = new Set(PSEUDOS_RETIRES.map(_pseudoCle).filter(Boolean));
+  return !!n && _pseudosRetiresSet.has(_pseudoCle(n));
+}
+/* Remplace, dans chaque partie de liste, les pseudos retirés des colonnes indices ; dans les
+   colonnes textes (« X gagne »…), le pseudo est remplacé là où il apparaît. Deux joueurs
+   retirés dans la même partie restent distincts (« Joueur retiré », « Joueur retiré 2 »),
+   pour que le vainqueur reste juste. Renvoie le nombre de champs changés. */
+function anonymiserParties(liste, indices, textes) {
+  if (!Array.isArray(liste) || !PSEUDOS_RETIRES.length) return 0;
+  let n = 0;
+  liste.forEach(function (g) {
+    if (!Array.isArray(g)) return;
+    const vus = new Map();
+    const etiquette = function (v) {
+      const k = _pseudoCle(v);
+      if (!vus.has(k)) vus.set(k, vus.size ? PSEUDO_RETIRE + ' ' + (vus.size + 1) : PSEUDO_RETIRE);
+      return vus.get(k);
+    };
+    indices.forEach(function (i) {
+      if (typeof g[i] === 'string' && pseudoEstRetire(g[i])) { const v = etiquette(g[i]); if (v !== g[i]) { g[i] = v; n++; } }
+    });
+    (textes || []).forEach(function (i) {
+      if (typeof g[i] !== 'string') return;
+      let t = g[i];
+      PSEUDOS_RETIRES.forEach(function (p) {
+        // le pseudo entier seulement (« Bob » ne touche pas « Bobby »)
+        const re = new RegExp('(?<![\\p{L}\\p{N}_])' + String(p).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?![\\p{L}\\p{N}_])', 'giu');
+        if (re.test(t)) t = t.replace(re, etiquette(p));
+      });
+      if (t !== g[i]) { g[i] = t; n++; }
+    });
+  });
+  return n;
+}
 /* ════════════════════════════════════════════════════════════════
    COUCHE API — aiguillage local / backend (feature flag)
    ----------------------------------------------------------------
@@ -12996,7 +13044,6 @@ async function submitLogin() {
 ──────────────────────────────────────────── */
 async function submitSignup() {
   const username = document.getElementById('signup-username').value.trim();
-  const email    = document.getElementById('signup-email').value.trim();
   const champPw  = document.getElementById('signup-pw');
   const pw       = champPw.value;
   const terms    = document.getElementById('signup-terms').checked;
@@ -13004,12 +13051,11 @@ async function submitSignup() {
   if (username.length > 24) { showToast(_tr('⚠️ Nom d\'utilisateur trop long (max. 24 caractères)', '⚠️ Username too long (max. 24 characters)')); return; }
   // Caractères autorisés : lettres, chiffres, espace, tiret, underscore, point (anti-injection)
   if (!/^[\p{L}\p{N} _.\-]+$/u.test(username)) { showToast(_tr('⚠️ Le nom contient des caractères non autorisés', '⚠️ The name contains characters that are not allowed')); return; }
-  // l'e-mail est facultatif : il sert seulement a se reconnecter ici, rien ne lui est envoye
-  if (email && !/^[^\s@]+@[^\s@]+$/.test(email)) { showToast(_tr('⚠️ Adresse e-mail invalide', '⚠️ Invalid e-mail address')); return; }
+  // v3.26 (RGPD, minimisation) : plus d'e-mail ; il ne servait qu'a se reconnecter ici, le nom suffit
   if (!pw || pw.length < 8) { showToast(_tr('⚠️ Mot de passe trop court (min. 8 caractères)', '⚠️ Password too short (min. 8 characters)')); return; }
   if (!terms) { showToast(_tr('⚠️ Veuillez accepter les conditions d\'utilisation', '⚠️ Please accept the terms of use')); return; }
-  _loginEmail = email || username;
-  const r = await profilCreation(username, email, pw);
+  _loginEmail = username;
+  const r = await profilCreation(username, pw);
   if (!r.ok) { shakeModal('modal-signup'); showToast(r.msg); return; }
   champPw.value = '';
   closeModal('signup');
@@ -13025,12 +13071,17 @@ async function submitSignup() {
    La progression (parties, XP, problemes) reste celle de l'appareil, quel que soit le profil.
 ═══════════════════════════════════════════ */
 const PROFILS_KEY = 'abalone_profils';
-const _PROFIL_CHAMPS = ['username', 'email', 'role', 'color', 'bio', 'country', 'joinDate', 'passwordHash', 'passwordSalt'];
+const _PROFIL_CHAMPS = ['username', 'role', 'color', 'bio', 'country', 'joinDate', 'passwordHash', 'passwordSalt'];
 function _profilCle(nom) { return String(nom || '').trim().toLowerCase(); }
 function _profilsLire() {
   try {
     const o = JSON.parse(localStorage.getItem(PROFILS_KEY) || '{}');
-    return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {};
+    if (!(o && typeof o === 'object' && !Array.isArray(o))) return {};
+    // v3.26 (RGPD, minimisation) : les profils ne gardent plus d'e-mail ; ceux d'avant perdent le leur ici
+    let purge = false;
+    for (const k in o) if (o[k] && 'email' in o[k]) { delete o[k].email; purge = true; }
+    if (purge) _profilsEcrire(o);
+    return o;
   } catch (e) { return {}; }
 }
 function _profilsEcrire(o) { try { localStorage.setItem(PROFILS_KEY, JSON.stringify(o)); } catch (e) {} }
@@ -13044,16 +13095,12 @@ function _profilMaj(u) {
   tous[cle] = p;
   _profilsEcrire(tous);
 }
-/* Cherche un profil par nom ou par e-mail, sans tenir compte des majuscules. */
+/* Cherche un profil par nom, sans tenir compte des majuscules. */
 function _profilTrouver(ident) {
   const q = _profilCle(ident);
   if (!q) return null;
   const tous = _profilsLire();
-  if (tous[q]) return { cle: q, profil: tous[q] };
-  for (const cle in tous) {
-    if (tous[cle] && tous[cle].email && _profilCle(tous[cle].email) === q) return { cle: cle, profil: tous[cle] };
-  }
-  return null;
+  return tous[q] ? { cle: q, profil: tous[q] } : null;
 }
 async function profilConnexion(ident, mdp) {
   const t = _profilTrouver(ident);
@@ -13074,13 +13121,13 @@ async function profilConnexion(ident, mdp) {
   updateNavAuth();
   return { ok: true, profil: currentUser, nouveauMdp: nouveauMdp };
 }
-async function profilCreation(nom, email, mdp) {
-  if (_profilTrouver(nom) || (email && _profilTrouver(email))) {
-    return { ok: false, msg: _tr('⚠️ Ce nom ou cet e-mail a déjà un profil dans ce navigateur : connectez-vous.',
-                                 '⚠️ This name or e-mail already has a profile in this browser: sign in.') };
+async function profilCreation(nom, mdp) {
+  if (_profilTrouver(nom)) {
+    return { ok: false, msg: _tr('⚠️ Ce nom a déjà un profil dans ce navigateur : connectez-vous.',
+                                 '⚠️ This name already has a profile in this browser: sign in.') };
   }
   const h = await SEC.hashPassword(mdp);
-  currentUser = { username: nom, email: email || '', role: 'player', color: '#2d5a3d', bio: '', country: '',
+  currentUser = { username: nom, role: 'player', color: '#2d5a3d', bio: '', country: '',
     joinDate: new Date().toLocaleDateString(currentLang() === 'EN' ? 'en-GB' : 'fr-FR', { month: 'long', year: 'numeric' }),
     passwordHash: h.hash, passwordSalt: h.salt };
   await saveSession(currentUser);
@@ -13092,7 +13139,7 @@ async function profilCreation(nom, email, mdp) {
 function profilOublie() {
   const champ = document.getElementById('forgot-ident');
   const ident = ((champ && champ.value) || '').trim();
-  if (!ident) { shakeModal('modal-forgot'); showToast(_tr('⚠️ Indiquez le nom ou l’e-mail du profil', '⚠️ Enter the profile’s name or e-mail')); return; }
+  if (!ident) { shakeModal('modal-forgot'); showToast(_tr('⚠️ Indiquez le nom du profil', '⚠️ Enter the profile’s name')); return; }
   const t = _profilTrouver(ident);
   if (!t) { shakeModal('modal-forgot'); showToast(_tr('Aucun profil « ' + ident + ' » dans ce navigateur', 'No profile “' + ident + '” in this browser')); return; }
   const ok = confirm(_tr('Effacer le profil « ' + t.profil.username + ' » de ce navigateur ?\n\nVos parties, votre XP et vos problèmes résolus restent sur cet appareil : seuls le nom, le mot de passe et la couleur du profil sont effacés. Vous pourrez le recréer tout de suite.',
@@ -13104,7 +13151,6 @@ function profilOublie() {
   closeModal('forgot');
   openModal('signup');
   const su = document.getElementById('signup-username'); if (su) su.value = t.profil.username;
-  const se = document.getElementById('signup-email'); if (se) se.value = t.profil.email || '';
 }
 /* Chemin serveur (dormant tant que BACKEND.enabled===false) : si le serveur authentifie, on
    utilise SON utilisateur. Renvoie true si la connexion a ete faite ainsi. */
@@ -13259,6 +13305,8 @@ function initSession() {
         return;
       }
       currentUser = data;
+      // v3.26 (RGPD, minimisation) : une session d'avant perd son e-mail, reecrite sans lui
+      if ('email' in currentUser) { delete currentUser.email; saveSession(currentUser); }
       // Masquer le mot de passe en mémoire si stocké en clair (migration)
       if (currentUser.password && !currentUser.passwordHash) {
         currentUser.password = '***'; // ne plus stocker en clair
@@ -13472,7 +13520,7 @@ function saveGeneralSettings() {
     if (nouveau.length < 3 || nouveau.length > 24 || !/^[\p{L}\p{N} _.\-]+$/u.test(nouveau)) { showToast(_tr('⚠️ Nom : 3 à 24 lettres, chiffres, espaces, - _ .', '⚠️ Name: 3 to 24 letters, digits, spaces, - _ .')); return; }
     if (_profilTrouver(nouveau)) { showToast(_tr('⚠️ Ce nom a déjà un profil dans ce navigateur', '⚠️ This name already has a profile in this browser')); return; }
   }
-  const fields = { username:'settings-username', email:'settings-email', country:'settings-country', bio:'settings-bio' };
+  const fields = { username:'settings-username', country:'settings-country', bio:'settings-bio' };
   for (const [key,id] of Object.entries(fields)) {
     const el = document.getElementById(id);
     if (el && el.value.trim()) currentUser[key] = el.value.trim();
@@ -13917,7 +13965,7 @@ function renderProfile() {
   set('ps-puzzles-sub', defis ? _tr('+ '+defis+' défi'+(defis>1?'s':'')+' du jour', '+ '+defis+' daily puzzle'+(defis>1?'s':'')) : '-');
 
   // Settings pre-fill
-  const fieldMap = {username:'settings-username', email:'settings-email', country:'settings-country', bio:'settings-bio'};
+  const fieldMap = {username:'settings-username', country:'settings-country', bio:'settings-bio'};
   for (const [k,id] of Object.entries(fieldMap)) {
     const el=document.getElementById(id);
     if (el) el.value = u[k]||'';
@@ -23800,7 +23848,10 @@ function ensureGameBanks(){
   if(_banksReady) return _banksReady;
   if(typeof DecompressionStream==='undefined'){ _banksReady=Promise.resolve(false); return _banksReady; }
   _banksReady=Promise.all([_inflB64(MIGS_B64),_inflB64(AO_B64),_inflB64(TREES_B64)])
-    .then(function(r){ MIGS_GAMES=JSON.parse(r[0]); AO_GAMES=JSON.parse(r[1]); OPENING_TREES=JSON.parse(r[2]); return true; })
+    .then(function(r){ MIGS_GAMES=JSON.parse(r[0]); AO_GAMES=JSON.parse(r[1]); OPENING_TREES=JSON.parse(r[2]);
+      // v3.26 (RGPD) : les joueurs qui ont demande le retrait de leur pseudo (00c-pseudos-retires.js)
+      if (typeof anonymiserParties === 'function') { anonymiserParties(MIGS_GAMES, [2, 3]); anonymiserParties(AO_GAMES, [1, 2, 3]); }
+      return true; })
     .catch(function(){ return false; });
   return _banksReady;
 }
@@ -48347,6 +48398,14 @@ function _ptHtml(q, variantFilter, lengthFilter){
       : '<div class="pt-trace pt-perdue" style="padding:7px 8px;font-size:13px;opacity:.75"><div style="display:flex;justify-content:space-between;gap:10px"><span>' + joueurs + '</span>' + droite + '</div>' + sous + '</div>';
   });
   return h + '</details>';
+}
+
+// v3.26 (RGPD) : pseudos retires a la demande des joueurs (00c-pseudos-retires.js), dans les
+// parties de reference, les parties tracees et le tournoi PlayStrategy embarque
+if (typeof anonymiserParties === 'function') {
+  anonymiserParties(PARTIES_REFERENCE, [1, 2, 3]);
+  anonymiserParties(PARTIES_TRACES, [2, 3]);
+  if (typeof PS_TOURNOI_YEARLY_2026 !== 'undefined') anonymiserParties(PS_TOURNOI_YEARLY_2026, [2, 3], [4]);
 }
 /* ═══════════════════════════════════════════
    HUMAINS ET PROGRAMMES (v2.91)

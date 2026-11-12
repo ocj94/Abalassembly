@@ -3066,14 +3066,14 @@ test('v2.57 comptes : un profil local a un vrai mot de passe ; plus de compte «
   const u0 = ctx.currentUser, sess = ctx.localStorage.getItem('abalone_session'), reg = ctx.localStorage.getItem('abalone_profils');
   try {
     ctx.localStorage.removeItem('abalone_profils');
-    let r = await ctx.profilCreation('Alex', 'alex@exemple.org', 'motdepasse1');
+    let r = await ctx.profilCreation('Alex', 'motdepasse1');
     assert.ok(r.ok); assert.strictEqual(ctx.currentUser.username, 'Alex');
     const p = JSON.parse(ctx.localStorage.getItem('abalone_profils')).alex;
     assert.ok(p && /^[0-9a-f]{64}$/.test(p.passwordHash), 'empreinte PBKDF2 gardee'); assert.strictEqual(p.password, undefined, 'jamais le mot de passe lui-meme');
-    r = await ctx.profilCreation('ALEX', '', 'autremotdepasse'); assert.ok(!r.ok, 'meme nom : refuse');
+    r = await ctx.profilCreation('ALEX', 'autremotdepasse'); assert.ok(!r.ok, 'meme nom : refuse');
     r = await ctx.profilConnexion('alex', 'mauvais'); assert.ok(!r.ok); assert.match(r.msg, /Mot de passe incorrect/);
     r = await ctx.profilConnexion('Inconnu', 'x'); assert.ok(!r.ok); assert.match(r.msg, /Aucun profil « Inconnu »/);
-    r = await ctx.profilConnexion('ALEX@exemple.org', 'motdepasse1'); assert.ok(r.ok, 'par l e-mail aussi, sans tenir compte des majuscules');
+    r = await ctx.profilConnexion('ALEX', 'motdepasse1'); assert.ok(r.ok, 'par le nom, sans tenir compte des majuscules');
     // un profil d'avant (aucun mot de passe garde) : le premier mot de passe donne devient le sien
     const tous = JSON.parse(ctx.localStorage.getItem('abalone_profils')); tous.ancien = { username: 'Ancien', color: '#2d5a3d' };
     ctx.localStorage.setItem('abalone_profils', JSON.stringify(tous));
@@ -7564,7 +7564,7 @@ test('v3.21, polices hebergees : plus aucun appel a Google Fonts (jeu, ecosystem
   assert.match(eco, /href="fonts\/ecosysteme\.css"/);
   assert.match(_SRC_INDEX, /Autres sites contactés : <strong>aucun à l'ouverture<\/strong>/);
   // accessibilite : les champs et les plateaux sans etiquette d'avant ont leur nom
-  ['settings-email', 'contrast-range', 'creator-c1', 'avfx-s1d', 'bench-depth', 'setup-layout-select'].forEach(id =>
+  ['contrast-range', 'creator-c1', 'avfx-s1d', 'bench-depth', 'setup-layout-select'].forEach(id =>
     assert.ok(new RegExp('id="' + id + '" aria-label="[^"]+"').test(_SRC_INDEX), id));
   assert.match(_SRC_INDEX, /role="switch" aria-checked="'\+on\+'" aria-label="'\+/);
   // telephone : les plateaux d'Analyse et d'Editeur retrecissent, la page Photo passe sur une colonne
@@ -7714,4 +7714,42 @@ test('v3.25, accessibilite : contrastes AA des couleurs du site et des cartes de
   assert.deepStrictEqual(essai('BUTTON', 'Enter'), [0, false]);     // un vrai bouton s'en charge seul
   assert.deepStrictEqual(essai('DIV', 'Enter', true), [0, false]);  // data-entree s'en charge deja
   assert.deepStrictEqual(essai('DIV', 'a'), [0, false]);
+});
+
+test('v3.26, RGPD minimisation : plus d e-mail dans les profils locaux (ceux d avant le perdent) ; pseudos retires des parties publiees', async () => {
+  const vm = require('vm'), lire = (c) => vm.runInContext(c, ctx);
+  // 1. le formulaire et les reglages ne demandent plus d'e-mail
+  ['id="signup-email"', 'id="settings-email"', 'Adresse e-mail (facultatif)', "Nom d'utilisateur ou e-mail"].forEach(t => assert.strictEqual(_SRC_INDEX.indexOf(t), -1, 'encore present : ' + t));
+  const u0 = ctx.currentUser, sess = ctx.localStorage.getItem('abalone_session'), reg = ctx.localStorage.getItem('abalone_profils');
+  try {
+    ctx.localStorage.setItem('abalone_profils', JSON.stringify({ bob: { username: 'Bob', email: 'bob@exemple.org', color: '#2d5a3d' } }));
+    const tous = lire('_profilsLire()');
+    assert.strictEqual(tous.bob.email, undefined, 'e-mail retire a la lecture');
+    assert.ok(!/email/.test(ctx.localStorage.getItem('abalone_profils')), 'et efface du stockage');
+    const r = await ctx.profilCreation('Alex', 'motdepasse1');
+    assert.ok(r.ok); assert.ok(!('email' in ctx.currentUser));
+    assert.ok(!('email' in JSON.parse(ctx.localStorage.getItem('abalone_profils')).alex));
+    assert.strictEqual(lire('_profilTrouver("bob@exemple.org")'), null, 'plus de recherche par e-mail');
+  } finally {
+    ctx.currentUser = u0;
+    if (sess === null) ctx.localStorage.removeItem('abalone_session'); else ctx.localStorage.setItem('abalone_session', sess);
+    if (reg === null) ctx.localStorage.removeItem('abalone_profils'); else ctx.localStorage.setItem('abalone_profils', reg);
+  }
+  // 2. pseudos retires : aucun aujourd'hui, et le mecanisme marche
+  assert.strictEqual(lire('PSEUDOS_RETIRES.length'), 0, 'la liste publiee est vide');
+  assert.strictEqual(lire('anonymiserParties([["d","Bob","Alex","Bob"]], [1, 2, 3])'), 0, 'liste vide : rien ne change');
+  lire('PSEUDOS_RETIRES.push("Bob", "Charlie"); _pseudosRetiresSet = null;');
+  try {
+    const g = lire('(function(){ const L = [["2020-01-01","BOB","Alex","bob","x"], ["2020-01-02","Bob","Charlie","Charlie","x"], ["id","2026-01-01","Bob","Alex","Bob gagne","a1b2"]];'
+      + ' anonymiserParties(L.slice(0, 2), [1, 2, 3]); anonymiserParties(L.slice(2), [2, 3], [4]); return L; })()');
+    assert.deepStrictEqual(Array.from(g[0]), ['2020-01-01', 'Joueur retiré', 'Alex', 'Joueur retiré', 'x'], 'majuscules ignorees, vainqueur coherent');
+    assert.deepStrictEqual(Array.from(g[1]), ['2020-01-02', 'Joueur retiré', 'Joueur retiré 2', 'Joueur retiré 2', 'x'], 'deux retires restent distincts');
+    assert.deepStrictEqual(Array.from(g[2]), ['id', '2026-01-01', 'Joueur retiré', 'Alex', 'Joueur retiré gagne', 'a1b2'], 'texte du resultat aussi');
+    assert.strictEqual(lire('pseudoEstRetire("Bób")'), true, 'accents ignores');
+    assert.strictEqual(lire('(function(){ const L = [["i","d","Bobby","Alex","Bobby gagne"]]; anonymiserParties(L, [2, 3], [4]); return L[0][4]; })()'), 'Bobby gagne', 'un autre pseudo qui commence pareil ne bouge pas');
+  } finally { lire('PSEUDOS_RETIRES.length = 0; _pseudosRetiresSet = null;'); }
+  // 3. branche sur toutes les banques de parties publiees
+  assert.match(_SRC_INDEX, /anonymiserParties\(MIGS_GAMES, \[2, 3\]\); anonymiserParties\(AO_GAMES, \[1, 2, 3\]\)/);
+  assert.match(_SRC_INDEX, /anonymiserParties\(PARTIES_REFERENCE, \[1, 2, 3\]\);\s*anonymiserParties\(PARTIES_TRACES, \[2, 3\]\);/);
+  assert.match(_SRC_INDEX, /anonymiserParties\(PS_TOURNOI_YEARLY_2026, \[2, 3\], \[4\]\)/);
 });
