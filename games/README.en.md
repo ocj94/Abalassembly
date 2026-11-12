@@ -46,6 +46,21 @@ The 93 games of PlayStrategy's **Yearly Abalone Arena**, played on
 - Result: the one recorded by PlayStrategy; the ending (`Termination`) is
   read from the replay
 
+## `playstrategy-parties.apgn`
+
+Other games played on **PlayStrategy**, sent one at a time (v3.28). They are
+in the site (library, replayable and analysable) but **not yet counted in the
+corpus statistics**: the data banks will be recomputed once, when all the
+planned games are in.
+
+- Today: 1 game, `RCZ6myBN` (9 August 2026, casual 10+0 game, 62 plies,
+  Black resigns)
+- Layout: Belgian daisy ("Abalone" on PlayStrategy)
+- Notation: Aba-Pro. Every move was converted from PlayStrategy's notation by
+  `psConvertirSequence` (its replay semantics), then checked by a second,
+  independent decoding: same moves, all legal, no ambiguity
+- Validation: 1 out of 1 fully replays
+
 ## Not published
 
 The same file also contains 1,891 games from **abal.online**, Vincent
@@ -58,4 +73,29 @@ published before that consent is given.
 ```
 node tools/to-apgn.js --source migs --out games/migs-2016-2017.apgn
 node tools/to-apgn.js --source ps --out games/playstrategy-yearly-2026.apgn
+node tools/to-apgn.js --source ps-autres --out games/playstrategy-parties.apgn
 ```
+
+## Adding games
+
+1. Add the game to `PS_PARTIES_A_INTEGRER` (`src/main/16-corpus-data-tools.js`),
+   moves converted by `psConvertirSequence`, then `node tools/build.js` and
+   regenerate `playstrategy-parties.apgn` with the command above.
+2. Once all the games are in, bring them into the corpus: add them to the
+   banks (`_sbBanques`, `src/main/39-statistiques-billes.js`), then recompute
+   `tools/stats-parties.js`, `tools/labo-positions.js`,
+   `tools/empreintes-complement.js` and `tools/qualite-coups.js` (several
+   hours), and update the figures quoted (4,580 games…).
+
+## Players' usernames (GDPR)
+
+These games carry their players' usernames, published on the basis of
+legitimate interest (archives of games played in public). A player can ask
+for theirs to be removed, no reason needed: "Remove my username" issue
+template.
+
+To remove it: add the username to `PSEUDOS_RETIRES` in
+`src/main/00c-pseudos-retires.js`, then `node tools/build.js` and regenerate
+these files with the commands above. The username becomes "Joueur retiré"
+(removed player) on the site and in the files. Reply within a month (GDPR,
+article 12).
