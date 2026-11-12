@@ -9,6 +9,19 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.29]
+
+### Quatre parties PlayStrategy de plus, toujours en attente du recalcul
+- **Airisson – Sok_imsoo**, quatre parties amicales envoyées par ocj94 en PGN :
+  `Dg90Vkbh` et `gcOnhSVq` (14 août 2026, cadence « 10 d/5 »), `aXsgzzHx` et
+  `HrczjlFo` (17 août 2026, cadence « 12 d/1 »). Airisson gagne les quatre :
+  trois au score (6-0, 6-4, 6-4), une par abandon (4-1).
+- Converties par `psConvertirSequence`, puis vérifiées par le second décodage
+  indépendant : mêmes coups sur les 314 demi-coups, aucune ambiguïté.
+- Bibliothèque (« 5 autres parties PlayStrategy, pas encore comptées ») et
+  `games/playstrategy-parties.apgn` à jour. Les statistiques du corpus ne
+  changent pas : le recalcul se fera quand toutes les parties seront là.
+
 ## [v3.28]
 
 ### Une partie PlayStrategy de plus, en attente du recalcul des banques
