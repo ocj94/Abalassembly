@@ -235,3 +235,90 @@
 81. d7c6 c3d3 82. f8f7 f4f5 83. c7d7 c4d4 84. d7e8 f5f6 85. d5e6 d3e4
 86. e6f7 h9h8 87. c5d6 g9h9 88. f7g8 d4f6d5 89. g8f8 e4f5e5 90. d6c6d7 e3g5e4
 91. f9e8 d5e6 92. c7d7 e4f5 93. d7e7 h7h8 0-1
+
+[Event "PlayStrategy KntP8TmA"]
+[Date "2025.05.28"]
+[Black "Airisson"]
+[White "Gramgroum"]
+[Variant "belgian"]
+[Result "1-0"]
+[Notation "Aba-Pro"]
+[Termination "Au score"]
+[Plies "231"]
+[Source "PlayStrategy"]
+
+1. i9h8 g4g5f4 2. i8h7 h4h6g3 3. h7g6 g4f4 4. a2b3 c5c6d5 5. g6f5 d5d6e5
+6. b3c3 b4b6c5 7. c3d3 c5c7d5 8. h8g7 e6d5 9. b1c2c1 d6d5 10. f5e4 d7d6
+11. c1d2 g5h6f5 12. g8g7 a4a5b4 13. g7g6 g4f3 14. e5e4 b4c4 15. e2e3 e5d4
+16. f6e5 b5b4 17. g6g5 e1e2 18. e5e4 e1f2 19. h9h8 i5i6h5 20. g3g4 d4c3
+21. d2e2 a1b2 22. f2e2 h5h6 23. h8g7 h6h7 24. g6f6 h7g6 25. e2e3 h8h7
+26. e3e4 f3e3 27. e6f6 h6h7 28. g6f6 h7g6 29. e6e5 c2c3 30. f6g7 i9h9
+31. g7h8f7 h9g9 32. f7g8f6 e2f3 33. g5h5 g9g8 34. h5g4 g8f7 35. e5e4 f5e5
+36. f6f5 g6f6 37. g7g6 f6f7e6 38. g6g5 e6d5 39. f3e3 c5c4 40. f5f4 e5d5
+41. e4e3 c5c4 42. f4g5e4 e7d6 43. c1d2 c2b2 44. f5e4 b2c3 45. e2e3 a2a3
+46. e1e2 a4b5 47. c2d3 b5b4 48. d2e3 c5d6 49. f3g4 b2c3 50. h5g5 b3b2
+51. d1e2 b2c3 52. f6g7g6 c3d4 53. h7h6 c5d5 54. g6g5 d6e6 55. g5f4 a3b4
+56. g3f2 c5d6 57. f2e2 b4c5 58. h6g5 c4d5 59. c2d3 g6h7g7 60. g4f4 g7f6
+61. h5g4 d6c5 62. f3f4 f8e7 63. c3d3 h8g7 64. g5f5h6 c5d5 65. h6g6 d6d5
+66. f3e3 c6d6 67. g6f6 c6c5 68. d6e6 e7d6 69. e6f6 d5d6e6 70. d1d2 c3c4
+71. h6g6 f7e7 72. f4e4 c6c5 73. g4f4 c4d5 74. f4e4 b4b5 75. f7f6 c5d5
+76. c4d4 a4b5 77. g6g5 c6d6 78. g6g5 d6e6 79. c3c2 b5c5 80. g3g4f2 g7h7
+81. f3e3 d7e7 82. d2c2 f7g7 83. g5f4 c5d6 84. f2f3 d5e5 85. d2e2 g5f5
+86. f2f3 d5e5 87. g5f4 d6d5 88. f4e4 g6f6 89. f3f4 d6e6 90. d2d3 f5e5
+91. f4e3 f7e7 92. e2e4f3 d5e5 93. d2d3 e7e6 94. f3f4e2 e6e5 95. c4d4 e3f4
+96. e1e2 e5f5 97. e2e3 d6d7e7 98. c3d4 f4f5 99. b2c3 e8e7 100. e3e4 g6f6
+101. c2d3 g5g6 102. d3e4 g8g7 103. d6d5 e8e7 104. d5d4 h5i6 105. g5f5 d5e6
+106. g8f8 e6e7 107. c5d5 h8h7 108. e3e4f3 f6f7 109. f5d5f6 f8f7
+110. f3f4 h7i8h8 111. c3d4 i6h6i7 112. d2d3e3 g6g7 113. f9e9 e7e8
+114. f4f5 i7h7 115. e5e6 h7g7 116. d7e8 1-0
+
+[Event "PlayStrategy wpp0UG4c"]
+[Date "2025.05.29"]
+[Black "Gramgroum"]
+[White "Airisson"]
+[Variant "belgian"]
+[Result "1-0"]
+[Notation "Aba-Pro"]
+[Termination "Au temps"]
+[Plies "3"]
+[Source "PlayStrategy"]
+
+1. a1b2 i5h5 2. a2b3 1-0
+
+[Event "PlayStrategy B3YcJJKv"]
+[Date "2025.05.29"]
+[Black "Gramgroum"]
+[White "Airisson"]
+[Variant "belgian"]
+[Result "1-0"]
+[Notation "Aba-Pro"]
+[Termination "Au temps"]
+[Plies "3"]
+[Source "PlayStrategy"]
+
+1. a1b2 i5h5 2. a2b3 1-0
+
+[Event "PlayStrategy LIu9Ltk9"]
+[Date "2025.05.29"]
+[Black "Gramgroum"]
+[White "Airisson"]
+[Variant "belgian"]
+[Result "0-1"]
+[Notation "Aba-Pro"]
+[Termination "Au score"]
+[Plies "128"]
+[Source "PlayStrategy"]
+
+1. a1b2 i5h5 2. i8h7 i6h6 3. h8g7 c5c6d5 4. a2b3 h6g6 5. c2c3 g4g5
+6. g8g9f7 d6d5 7. c5d6 b4b6c5 8. e6d6 b6c7 9. f7f8e6 d4d5 10. e7d7 a4a5b4
+11. b2c3 f5f6 12. c7d7 g5h6 13. i9h8 f7g7 14. h8h9g8 h5h6 15. g8g9f7 b4c5
+16. e5e6 d8e8 17. c6d7 h6g5 18. d7e8 g5g6 19. g9f9 h8g8 20. d8d7 h4h5
+21. i7h6 g8g7 22. d7e7 g5g6 23. e7e6 i7h7 24. c3d4 h7g7 25. f6e6 g6g7
+26. e9d8 g7g8 27. d3d4e3 f7e7 28. e4e5 c5c6 29. b3c4b4 c7d7 30. e3e4 b5c6b6
+31. f7e6 c7d7 32. e6d6 b6c7 33. c6c5 f7f8 34. c4d4 e7f8e6 35. b4c5b3 e9e8
+36. d6c5 e8e7 37. c5d5 g9f9f8 38. h6g5 f8e8 39. g5f4 h5g5 40. b1c2 d7c7d6
+41. c2d3 c6d6 42. d3e4 d8e8 43. d4e5 g6g7 44. f6e5 d6e6 45. f5e4 f6h8f5
+46. f4e3 h7g6 47. c4d4 f4f5 48. b3c4 f5g5 49. e5d4 e8e7 50. d5c4 h5g5g4
+51. e4d3 e5f6e4 52. d4c3 e6g8e5 53. e3d2 g7f6 54. b3b4 f4e4 55. c1c2 g4f4
+56. d2d3 e7g9e6 57. c4c3 f7e6 58. b2c3 g6f6 59. b4a4b3 e6d5 60. c1c2 a1b2
+61. e5d4 c5c6b4 62. d4c4 d6d5 63. a3a2 d5d4 64. c4b4 f5e4 0-1

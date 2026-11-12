@@ -53,7 +53,8 @@ Elles sont dans le site (bibliothèque, rejouables et analysables) mais **pas
 encore comptées dans les statistiques du corpus** : les banques de données
 seront recalculées une seule fois, quand toutes les parties prévues seront là.
 
-- Aujourd'hui : 11 parties amicales, 1 007 demi-coups
+- Aujourd'hui : 15 parties amicales, 1 372 demi-coups
+  - `KntP8TmA` (28 mai 2025, sans pendule, 231 demi-coups, gagnée 6-4), `wpp0UG4c` et `B3YcJJKv` (29 mai 2025, perdues au temps après 3 demi-coups), `LIu9Ltk9` (29 mai 2025, sans pendule, 128 demi-coups, gagnée 6-4)
   - `MxbIzwOB`, `6mqKM9vY`, `RpnjUrjG` (28 mai 2025, sans pendule, 102, 87 et 186 demi-coups : gagnées 6-4, 6-5 et 6-5)
   - `FPEZWejN`, `HtlXNktv`, `5YGrgSbG` (27 mai 2025, 10+0, 113, 36 et 107 demi-coups : gagnée 6-2, abandon à 0-0, perte au temps à 3-3)
   - `RCZ6myBN` (9 août 2026, 10+0, 62 demi-coups, abandon des Noirs)
@@ -65,12 +66,13 @@ seront recalculées une seule fois, quand toutes les parties prévues seront là
   PlayStrategy par `psConvertirSequence` (sa sémantique de rejeu), puis
   vérifié par un second décodage indépendant : mêmes coups, tous légaux,
   aucune ambiguïté
-- Validation : 11 sur 11 rejouent intégralement
+- Validation : 15 sur 15 rejouent intégralement
 - Notation : première case, la bille de queue ; seconde case, une case de sa
   trajectoire (en 2026, là où arrive la dernière bille poussée ; en 2025, selon
   les coups, là où arrive la bille de tête ou simplement la case voisine). Toute
   la chaîne part dans cette direction ; `psConvertirSequence` lit toutes ces
-  formes
+  formes. Coup latéral : une extrémité, puis la case où arrive l'autre ; la
+  distance entre les deux cases donne la taille du groupe
 
 ## Non publié
 
