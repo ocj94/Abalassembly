@@ -9,6 +9,29 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.28]
+
+### Une partie PlayStrategy de plus, en attente du recalcul des banques
+- **ll – Airisson** (PlayStrategy `RCZ6myBN`, 9 août 2026, partie amicale
+  10+0, Marguerite belge, 62 demi-coups, les Noirs abandonnent à 3 billes à 0).
+  Envoyée par ocj94 en PGN. Elle est dans la bibliothèque (liste PlayStrategy,
+  rejouable et analysable) et dans le nouveau fichier
+  `games/playstrategy-parties.apgn`.
+- **Pas encore dans les statistiques du corpus**, à la demande d'ocj94 :
+  d'autres parties vont suivre, et les banques (statistiques des parties,
+  positions du Labo, empreintes, qualité des coups) seront recalculées une
+  seule fois. Elles sont rangées dans `PS_PARTIES_A_INTEGRER`. La bibliothèque
+  signale « 1 autre partie PlayStrategy, pas encore comptée ». La marche à
+  suivre est dans `games/README.md` (« Ajouter des parties »).
+- **Notation de PlayStrategy** : ses PGN écrivent chaque coup en deux cases
+  (« a1d4 » : la bille de queue et la case où arrive le bout de la chaîne ; un
+  coup de côté : une extrémité et la case où arrive l'autre, jamais deux cases
+  voisines). La partie a été convertie par `psConvertirSequence`, puis par un
+  second décodage indépendant : mêmes 62 coups, tous légaux, aucune ambiguïté.
+- `tools/to-apgn.js --source ps-autres`. Un test rejoue chaque partie en
+  attente et vérifie qu'elle est dans la bibliothèque, pas encore dans les
+  banques. `games/README.en.md` gagne aussi la section sur les pseudos.
+
 ## [v3.27]
 
 ### Les cartes des données : nuages de points en couleur, en 2D ou en 3D

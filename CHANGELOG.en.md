@@ -9,6 +9,27 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.28]
+
+### One more PlayStrategy game, waiting for the data banks to be recomputed
+- **ll – Airisson** (PlayStrategy `RCZ6myBN`, 9 August 2026, casual 10+0
+  game, Belgian daisy, 62 plies, Black resigns at 3 marbles to 0). Sent by
+  ocj94 as a PGN. It is in the library (PlayStrategy list, replayable and
+  analysable) and in the new file `games/playstrategy-parties.apgn`.
+- **Not yet in the corpus statistics**, at ocj94's request: more games will
+  follow, and the banks (game statistics, Lab positions, fingerprints, move
+  quality) will be recomputed once. They are kept in `PS_PARTIES_A_INTEGRER`.
+  The library says "1 other PlayStrategy game, not yet counted". The steps
+  are in `games/README.md` ("Adding games").
+- **PlayStrategy's notation**: its PGNs write each move as two cells ("a1d4":
+  the tail marble and the cell the end of the chain reaches; a sideways move:
+  one end and the cell the other end reaches, never two neighbouring cells).
+  The game was converted by `psConvertirSequence`, then by a second,
+  independent decoding: same 62 moves, all legal, no ambiguity.
+- `tools/to-apgn.js --source ps-autres`. A test replays every waiting game and
+  checks it is in the library and not yet in the banks. `games/README.en.md`
+  also gets the section on usernames.
+
 ## [v3.27]
 
 ### Data maps: coloured clouds of points, in 2D or 3D

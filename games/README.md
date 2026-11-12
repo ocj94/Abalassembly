@@ -46,6 +46,22 @@ Les 93 parties du tournoi **Yearly Abalone Arena** de PlayStrategy, joué le
 - Résultat : celui enregistré par PlayStrategy ; la fin de partie
   (`Termination`) est lue dans le rejeu
 
+## `playstrategy-parties.apgn`
+
+D'autres parties jouées sur **PlayStrategy**, envoyées une par une (v3.28).
+Elles sont dans le site (bibliothèque, rejouables et analysables) mais **pas
+encore comptées dans les statistiques du corpus** : les banques de données
+seront recalculées une seule fois, quand toutes les parties prévues seront là.
+
+- Aujourd'hui : 1 partie, `RCZ6myBN` (9 août 2026, partie amicale 10+0,
+  62 demi-coups, abandon des Noirs)
+- Disposition : marguerite belge (« Abalone » sur PlayStrategy)
+- Notation : Aba-Pro. Chaque coup a été converti depuis la notation de
+  PlayStrategy par `psConvertirSequence` (sa sémantique de rejeu), puis
+  vérifié par un second décodage indépendant : mêmes coups, tous légaux,
+  aucune ambiguïté
+- Validation : 1 sur 1 rejoue intégralement
+
 ## Non publié
 
 Le fichier unique contient également 1 891 parties provenant d'**abal.online**,
@@ -58,7 +74,19 @@ doivent pas être publiées avant cet accord.
 ```
 node tools/to-apgn.js --source migs --out games/migs-2016-2017.apgn
 node tools/to-apgn.js --source ps --out games/playstrategy-yearly-2026.apgn
+node tools/to-apgn.js --source ps-autres --out games/playstrategy-parties.apgn
 ```
+
+## Ajouter des parties
+
+1. Ajouter la partie à `PS_PARTIES_A_INTEGRER` (`src/main/16-corpus-data-tools.js`),
+   coups convertis par `psConvertirSequence`, puis `node tools/build.js` et
+   régénérer `playstrategy-parties.apgn` avec la commande ci-dessus.
+2. Quand toutes les parties sont là, les faire entrer dans le corpus : les
+   ajouter aux banques (`_sbBanques`, `src/main/39-statistiques-billes.js`), puis
+   recalculer `tools/stats-parties.js`, `tools/labo-positions.js`,
+   `tools/empreintes-complement.js` et `tools/qualite-coups.js` (plusieurs
+   heures), et mettre à jour les chiffres cités (4 580 parties…).
 
 ## Pseudos des joueurs (RGPD)
 

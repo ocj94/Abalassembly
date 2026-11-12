@@ -124,4 +124,5 @@ if (typeof anonymiserParties === 'function') {
   anonymiserParties(PARTIES_REFERENCE, [1, 2, 3]);
   anonymiserParties(PARTIES_TRACES, [2, 3]);
   if (typeof PS_TOURNOI_YEARLY_2026 !== 'undefined') anonymiserParties(PS_TOURNOI_YEARLY_2026, [2, 3], [4]);
+  if (typeof PS_PARTIES_A_INTEGRER !== 'undefined') anonymiserParties(PS_PARTIES_A_INTEGRER, [2, 3], [4]);   // v3.28
 }

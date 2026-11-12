@@ -6090,7 +6090,7 @@ test('v2.91 : fichiers APGN -- les 93 parties du Yearly et les programmes, ident
   const fs = require('fs'), path = require('path'), os = require('os'), { execFileSync } = require('child_process');
   const racine = path.join(__dirname, '..'), tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'apgn-'));
   try {
-    for (const [src, f] of [['ps', 'playstrategy-yearly-2026.apgn'], ['migs', 'migs-2016-2017.apgn']]) {
+    for (const [src, f] of [['ps', 'playstrategy-yearly-2026.apgn'], ['ps-autres', 'playstrategy-parties.apgn'], ['migs', 'migs-2016-2017.apgn']]) {
       const sortie = execFileSync(process.execPath, [path.join(racine, 'tools', 'to-apgn.js'), '--source', src, '--out', path.join(tmp, f)], { encoding: 'utf8', timeout: 240000 });
       assert.match(sortie, /parties rejetees  : 0/, src);
       assert.ok(fs.readFileSync(path.join(tmp, f), 'utf8') === fs.readFileSync(path.join(racine, 'games', f), 'utf8'), 'games/' + f + ' a jour');
@@ -7805,4 +7805,36 @@ test('v3.27, cartes des donnees : ACP (axes, projection), t-SNE (familles separe
   const dir = require('path').join(__dirname, '..', 'src', 'main');
   require('fs').readdirSync(dir).filter(f => /\.js$/.test(f)).forEach(f => assert.ok(!/<\/script/i.test(require('fs').readFileSync(require('path').join(dir, f), 'utf8')), f + ' contient une balise de fin de script'));
   assert.ok(lire('typeof obsToutVoir === "function" && typeof _ACTIONS.obsToutVoir === "function"'), 'le bouton « Voir les N coups » marche');
+});
+
+test('v3.28, parties PlayStrategy en attente : rejouees en entier, dans la bibliotheque et le fichier APGN, pas encore dans les banques du corpus', () => {
+  const vm = require('vm'), lire = (c) => vm.runInContext(c, ctx);
+  const P = lire('PS_PARTIES_A_INTEGRER');
+  assert.ok(P.length >= 1);
+  P.forEach(function(g){
+    assert.strictEqual(g.length, 6, g[0]);
+    assert.ok(/^[A-Za-z0-9]{8}$/.test(g[0]), 'identifiant PlayStrategy ' + g[0]);
+    assert.ok(g[4] === g[2] + ' gagne' || g[4] === g[3] + ' gagne', 'resultat lisible : ' + g[4]);
+    // chaque jeton Aba-Pro designe un coup legal, de la Marguerite belge jusqu'au dernier coup
+    ctx.__seq = g[5];
+    const r = lire(`(function(){
+      const sauve = { board: board, cb: CapturedByBlack.get(), cw: CapturedByWhite.get(), layout: currentLayout };
+      try {
+        currentLayout = 'belgian'; initBoardState(); CapturedByBlack.set(0); CapturedByWhite.set(0);
+        let col = 'black', n = 0;
+        for (const t of __seq.split(' ')) { const m = resolveAbaProToken(t, col); if (!m) return { n: n, faute: t }; applyMove({ cells: m.cells, dir: m.dir, info: validateMove(m.cells, m.dir, col) }, col); n++; col = col === 'black' ? 'white' : 'black'; }
+        return { n: n, cb: CapturedByBlack.get(), cw: CapturedByWhite.get() };
+      } finally { board = sauve.board; CapturedByBlack.set(sauve.cb); CapturedByWhite.set(sauve.cw); currentLayout = sauve.layout; }
+    })()`);
+    assert.ok(!r.faute, g[0] + ' : coup illegal ' + r.faute + ' au demi-coup ' + (r.n + 1));
+    assert.strictEqual(r.n, g[5].split(' ').length, g[0] + ' : rejouee en entier');
+    if (r.cb >= 6 || r.cw >= 6) assert.strictEqual(g[4], (r.cb >= 6 ? g[2] : g[3]) + ' gagne', g[0] + ' : le vainqueur au score');
+    // dans la bibliotheque, pas dans les banques (en attente du recalcul)
+    assert.ok(lire('PS_GAMES.some(function(x){ return x[0] === ' + JSON.stringify(g[0]) + '; })'), g[0] + ' dans la bibliotheque');
+    assert.ok(!lire('_sbBanques()[2].some(function(x){ return x[0] === ' + JSON.stringify(g[0]) + '; })'), g[0] + ' pas encore dans les banques');
+  });
+  assert.strictEqual(lire('_sbBanques()[2].length'), 93, 'le corpus garde ses 93 parties PlayStrategy jusqu au recalcul');
+  // la premiere : RCZ6myBN, ll contre Airisson, 62 demi-coups, les Blancs gagnent par abandon a 3-0
+  const g = P.find(function(x){ return x[0] === 'RCZ6myBN'; });
+  assert.ok(g); assert.strictEqual(g[5].split(' ').length, 62); assert.strictEqual(g[4], 'Airisson gagne');
 });

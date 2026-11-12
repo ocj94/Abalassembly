@@ -6,7 +6,7 @@
  * rejet, avec le numero du coup fautif. Un format d'echange qui accepterait
  * des parties fausses ne vaudrait rien.
  *
- * Usage :  node tools/to-apgn.js [--source migs|ao|ps|all] [--out f.apgn] [--limit N]
+ * Usage :  node tools/to-apgn.js [--source migs|ao|ps|ps-autres|all] [--out f.apgn] [--limit N]
  *
  * --source migs : les 2589 parties du serveur MiGs, ferme le 30/05/2017.
  * --source ao   : les parties AbalOnline. NE PAS diffuser sans l'accord de
@@ -15,6 +15,8 @@
  *                 PlayStrategy (18/09/2026), publiees avec l'accord de
  *                 Vincent. Coups deja convertis de la notation PlayStrategy en
  *                 Aba-Pro (psConvertirSequence, verifies un a un).
+ * --source ps-autres : v3.28, les autres parties PlayStrategy embarquees
+ *                 (PS_PARTIES_A_INTEGRER), pas encore dans les banques du corpus.
  *
  * v2.91 : un camp tenu par un programme (estIA, 56-humains-programmes.js)
  * porte la balise BlackType / WhiteType "program", comme en PGN. Absente :
@@ -218,8 +220,8 @@ const outPath = (args.indexOf('--out') >= 0) ? args[args.indexOf('--out') + 1]
   : path.join(ROOT, 'games', 'abalassembly.apgn');
 const limit = (args.indexOf('--limit') >= 0) ? parseInt(args[args.indexOf('--limit') + 1], 10) : Infinity;
 const source = (args.indexOf('--source') >= 0) ? args[args.indexOf('--source') + 1] : 'all';
-if (['migs', 'ao', 'ps', 'all'].indexOf(source) < 0) {
-  console.error("--source doit valoir migs, ao, ps ou all"); process.exit(2);
+if (['migs', 'ao', 'ps', 'ps-autres', 'all'].indexOf(source) < 0) {
+  console.error("--source doit valoir migs, ao, ps, ps-autres ou all"); process.exit(2);
 }
 
 const MIGS = JSON.parse(zlib.inflateRawSync(Buffer.from(grabB64('MIGS_B64'), 'base64')).toString('utf8'));
@@ -287,25 +289,32 @@ for (const g of ((source === 'ao' || source === 'all') ? AO : [])) {
    (dont 3 parties sans un seul coup). « Normal » chez PlayStrategy ne veut pas dire 6 billes. */
 const PS = (source === 'ps' || source === 'all') ? grabArray('PS_TOURNOI_YEARLY_2026') : [];
 ANON(PS, [2, 3], [4]);
-for (const g of PS) {
-  if (n++ >= limit) break;
-  const r = replay(boardFromLayout('belgian'), g[5], 0, 0);
-  if (!r.ok) { rejected.push({ src: 'PlayStrategy ' + g[0], ply: r.ply, token: r.token }); continue; }
-  const res = (g[4] === g[2] + ' gagne') ? '1-0' : (g[4] === g[3] + ' gagne') ? '0-1' : '*';
-  const fin = (r.capB >= 6 || r.capW >= 6) ? 'Au score' : 'Abandon';
-  if (fin === 'Au score' && res !== (r.capB >= 6 ? '1-0' : '0-1')) { rejected.push({ src: 'PlayStrategy ' + g[0], ply: r.played.length, token: 'resultat contraire au rejeu' }); continue; }
-  games.push([
-    tag('Event', 'Yearly Abalone Arena (PlayStrategy ' + g[0] + ')'),
-    tag('Date', String(g[1]).replace(/-/g, '.')),
-    tag('Black', g[2]), tag('White', g[3]),
-    tag('Variant', 'belgian'),
-    tag('Result', res),
-    tag('Notation', 'Aba-Pro'),
-    tag('Termination', fin),
-    tag('Plies', r.played.length),
-    tag('Source', 'PlayStrategy')
-  ].concat(typesCamps(g[2], g[3])).join('\n') + '\n\n' + movetext(r.played, res));
-}
+// v3.28 : les autres parties PlayStrategy (PS_PARTIES_A_INTEGRER), meme traitement, leur propre evenement
+const PS2 = (source === 'ps-autres' || source === 'all') ? grabArray('PS_PARTIES_A_INTEGRER') : [];
+ANON(PS2, [2, 3], [4]);
+const exporterPS = function(liste, evenement){
+  for (const g of liste) {
+    if (n++ >= limit) break;
+    const r = replay(boardFromLayout('belgian'), g[5], 0, 0);
+    if (!r.ok) { rejected.push({ src: 'PlayStrategy ' + g[0], ply: r.ply, token: r.token }); continue; }
+    const res = (g[4] === g[2] + ' gagne') ? '1-0' : (g[4] === g[3] + ' gagne') ? '0-1' : '*';
+    const fin = (r.capB >= 6 || r.capW >= 6) ? 'Au score' : 'Abandon';
+    if (fin === 'Au score' && res !== (r.capB >= 6 ? '1-0' : '0-1')) { rejected.push({ src: 'PlayStrategy ' + g[0], ply: r.played.length, token: 'resultat contraire au rejeu' }); continue; }
+    games.push([
+      tag('Event', evenement(g)),
+      tag('Date', String(g[1]).replace(/-/g, '.')),
+      tag('Black', g[2]), tag('White', g[3]),
+      tag('Variant', 'belgian'),
+      tag('Result', res),
+      tag('Notation', 'Aba-Pro'),
+      tag('Termination', fin),
+      tag('Plies', r.played.length),
+      tag('Source', 'PlayStrategy')
+    ].concat(typesCamps(g[2], g[3])).join('\n') + '\n\n' + movetext(r.played, res));
+  }
+};
+exporterPS(PS, function(g){ return 'Yearly Abalone Arena (PlayStrategy ' + g[0] + ')'; });
+exporterPS(PS2, function(g){ return 'PlayStrategy ' + g[0]; });
 
 fs.mkdirSync(path.dirname(outPath), { recursive: true });
 fs.writeFileSync(outPath, games.join('\n\n') + '\n');
