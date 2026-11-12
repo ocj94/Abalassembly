@@ -9,6 +9,27 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.33]
+
+### The 15 casual PlayStrategy games join the corpus
+- At ocj94's request ("add the 15 games"), the games sent from v3.28 to v3.32
+  now count everywhere: game statistics, data maps, Lab positions,
+  fingerprints (12 dimensions), move quality, the Players filter. **Corpus:
+  4,595 games** (4,592 distinct), 108 of them from PlayStrategy: the 93 from
+  the tournament and the 15 casual games (2025-2026), sorted by date.
+- `PS_PARTIES_A_INTEGRER` becomes `PS_PARTIES_AMICALES`. The corpus's
+  PlayStrategy bank is the constant `PS_CORPUS` (tournament, then casual
+  games): a game followed live, added to `PS_GAMES`, still never enters it.
+- Data recomputed: `15-stats-parties`, `15-labo-positions` (29,160 positions),
+  `15-empreintes-complement` (10,049 positions, 428,644 in all) and
+  `15-qualite-coups` (419,418 moves). For move quality, the results of the
+  4,580 games already analysed were kept as they were (same engine, same
+  evaluation; three games recomputed as a check, identical): only the 15 new
+  ones were analysed.
+- Figures updated: home page, Architecture page, READMEs, documentation,
+  blueprints. The library now shows "15 casual PlayStrategy games
+  (2025-2026)".
+
 ## [v3.32]
 
 ### Four PlayStrategy games from 28 and 29 May 2025, still waiting for the recomputation

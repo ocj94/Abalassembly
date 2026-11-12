@@ -16,7 +16,7 @@
  *                 Vincent. Coups deja convertis de la notation PlayStrategy en
  *                 Aba-Pro (psConvertirSequence, verifies un a un).
  * --source ps-autres : v3.28, les autres parties PlayStrategy embarquees
- *                 (PS_PARTIES_A_INTEGRER), pas encore dans les banques du corpus.
+ *                 (PS_PARTIES_AMICALES), dans le corpus depuis v3.33.
  *
  * v2.91 : un camp tenu par un programme (estIA, 56-humains-programmes.js)
  * porte la balise BlackType / WhiteType "program", comme en PGN. Absente :
@@ -289,8 +289,8 @@ for (const g of ((source === 'ao' || source === 'all') ? AO : [])) {
    (dont 3 parties sans un seul coup). « Normal » chez PlayStrategy ne veut pas dire 6 billes. */
 const PS = (source === 'ps' || source === 'all') ? grabArray('PS_TOURNOI_YEARLY_2026') : [];
 ANON(PS, [2, 3], [4]);
-// v3.28 : les autres parties PlayStrategy (PS_PARTIES_A_INTEGRER), meme traitement, leur propre evenement
-const PS2 = (source === 'ps-autres' || source === 'all') ? grabArray('PS_PARTIES_A_INTEGRER') : [];
+// v3.28 : les autres parties PlayStrategy (PS_PARTIES_AMICALES), meme traitement, leur propre evenement
+const PS2 = (source === 'ps-autres' || source === 'all') ? grabArray('PS_PARTIES_AMICALES') : [];
 ANON(PS2, [2, 3], [4]);
 // v3.30 : les fins que le rejeu ne peut pas lire (perte au temps), d'apres le PGN de PlayStrategy
 const FINS_PS = { '5YGrgSbG': 'Au temps', 'wpp0UG4c': 'Au temps', 'B3YcJJKv': 'Au temps' };

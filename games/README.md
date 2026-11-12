@@ -48,19 +48,17 @@ Les 93 parties du tournoi **Yearly Abalone Arena** de PlayStrategy, joué le
 
 ## `playstrategy-parties.apgn`
 
-D'autres parties jouées sur **PlayStrategy**, envoyées une par une (v3.28).
-Elles sont dans le site (bibliothèque, rejouables et analysables) mais **pas
-encore comptées dans les statistiques du corpus** : les banques de données
-seront recalculées une seule fois, quand toutes les parties prévues seront là.
+D'autres parties jouées sur **PlayStrategy**, envoyées une par une (v3.28 à
+v3.32), puis entrées toutes ensemble dans le corpus (v3.33) : elles comptent
+dans les statistiques du jeu, les cartes, le Labo et la qualité des coups.
 
-- Aujourd'hui : 15 parties amicales, 1 372 demi-coups
-  - `KntP8TmA` (28 mai 2025, sans pendule, 231 demi-coups, gagnée 6-4), `wpp0UG4c` et `B3YcJJKv` (29 mai 2025, perdues au temps après 3 demi-coups), `LIu9Ltk9` (29 mai 2025, sans pendule, 128 demi-coups, gagnée 6-4)
-  - `MxbIzwOB`, `6mqKM9vY`, `RpnjUrjG` (28 mai 2025, sans pendule, 102, 87 et 186 demi-coups : gagnées 6-4, 6-5 et 6-5)
+- 15 parties amicales, 1 372 demi-coups, classées par date :
   - `FPEZWejN`, `HtlXNktv`, `5YGrgSbG` (27 mai 2025, 10+0, 113, 36 et 107 demi-coups : gagnée 6-2, abandon à 0-0, perte au temps à 3-3)
+  - `MxbIzwOB`, `6mqKM9vY`, `RpnjUrjG`, `KntP8TmA` (28 mai 2025, sans pendule, 102, 87, 186 et 231 demi-coups : gagnées 6-4, 6-5, 6-5 et 6-4)
+  - `wpp0UG4c`, `B3YcJJKv` (29 mai 2025, perdues au temps après 3 demi-coups), `LIu9Ltk9` (29 mai 2025, sans pendule, 128 demi-coups, gagnée 6-4)
   - `RCZ6myBN` (9 août 2026, 10+0, 62 demi-coups, abandon des Noirs)
   - `Dg90Vkbh`, `gcOnhSVq` (14 août 2026, cadence « 10 d/5 », 99 et 54 demi-coups, gagnées 6-0 et 6-4)
-  - `aXsgzzHx` (17 août 2026, cadence « 12 d/1 », 78 demi-coups, gagnée 6-4)
-  - `HrczjlFo` (17 août 2026, cadence « 12 d/1 », 83 demi-coups, abandon des Blancs à 4-1)
+  - `aXsgzzHx`, `HrczjlFo` (17 août 2026, cadence « 12 d/1 », 78 et 83 demi-coups, gagnée 6-4, abandon des Blancs à 4-1)
 - Disposition : marguerite belge (« Abalone » sur PlayStrategy)
 - Notation : Aba-Pro. Chaque coup a été converti depuis la notation de
   PlayStrategy par `psConvertirSequence` (sa sémantique de rejeu), puis
@@ -91,14 +89,13 @@ node tools/to-apgn.js --source ps-autres --out games/playstrategy-parties.apgn
 
 ## Ajouter des parties
 
-1. Ajouter la partie à `PS_PARTIES_A_INTEGRER` (`src/main/16-corpus-data-tools.js`),
-   coups convertis par `psConvertirSequence`, puis `node tools/build.js` et
-   régénérer `playstrategy-parties.apgn` avec la commande ci-dessus.
-2. Quand toutes les parties sont là, les faire entrer dans le corpus : les
-   ajouter aux banques (`_sbBanques`, `src/main/39-statistiques-billes.js`), puis
-   recalculer `tools/stats-parties.js`, `tools/labo-positions.js`,
-   `tools/empreintes-complement.js` et `tools/qualite-coups.js` (plusieurs
-   heures), et mettre à jour les chiffres cités (4 580 parties…).
+1. Ajouter la partie à `PS_PARTIES_AMICALES` (`src/main/16-corpus-data-tools.js`),
+   à sa date, coups convertis par `psConvertirSequence`, puis `node tools/build.js`
+   et régénérer `playstrategy-parties.apgn` avec la commande ci-dessus.
+2. Elle entre d'elle-même dans la banque PlayStrategy du corpus (`PS_CORPUS`) :
+   recalculer `tools/qualite-coups.js`, `tools/stats-parties.js`,
+   `tools/labo-positions.js` et `tools/empreintes-complement.js`, puis mettre à
+   jour les chiffres cités (4 595 parties…) ; les tests disent lesquels.
 
 ## Pseudos des joueurs (RGPD)
 

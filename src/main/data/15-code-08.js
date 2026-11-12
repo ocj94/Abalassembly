@@ -43,7 +43,7 @@ function ensureEmpreintesComplement(){
    modifiee sans relancer tools/empreintes-complement.js ne correspond plus :
    un test le signale, et la page dit combien de parties ne sont pas comptees. */
 function _empComplementSignature(){
-  const PS = (typeof PS_TOURNOI_YEARLY_2026 !== 'undefined') ? PS_TOURNOI_YEARLY_2026 : [];
+  const PS = (typeof PS_CORPUS !== 'undefined') ? PS_CORPUS : []   /* v3.33 : tournoi + amicales */;
   const REF = (typeof PARTIES_REFERENCE !== 'undefined') ? PARTIES_REFERENCE : [];
   let h = 2166136261;
   const fnv = function(s){ for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } };

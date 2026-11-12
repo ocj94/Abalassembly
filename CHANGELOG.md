@@ -9,6 +9,28 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.33]
+
+### Les 15 parties amicales PlayStrategy entrent dans le corpus
+- À la demande d'ocj94 (« ajoute les 15 parties »), les parties envoyées de
+  v3.28 à v3.32 comptent maintenant partout : statistiques du jeu, cartes des
+  données, positions du Labo, empreintes (12 dimensions), qualité des coups,
+  filtre Joueurs. **Corpus : 4 595 parties** (4 592 distinctes), dont 108
+  PlayStrategy : les 93 du tournoi et les 15 amicales (2025-2026), classées par
+  date.
+- `PS_PARTIES_A_INTEGRER` devient `PS_PARTIES_AMICALES`. La banque
+  PlayStrategy du corpus est la constante `PS_CORPUS` (tournoi puis amicales) :
+  une partie suivie en direct, ajoutée à `PS_GAMES`, n'y entre toujours pas.
+- Données recalculées : `15-stats-parties`, `15-labo-positions` (29 160
+  positions), `15-empreintes-complement` (10 049 positions, total 428 644) et
+  `15-qualite-coups` (419 418 coups). Pour la qualité des coups, les résultats
+  des 4 580 parties déjà analysées ont été repris tels quels (même moteur, même
+  évaluation ; trois parties recalculées pour contrôle, identiques) : seules
+  les 15 nouvelles ont été analysées.
+- Chiffres mis à jour : accueil, page Architecture, README, documentation,
+  plans. La bibliothèque présente maintenant « 15 parties amicales
+  PlayStrategy (2025-2026) ».
+
 ## [v3.32]
 
 ### Quatre parties PlayStrategy des 28 et 29 mai 2025, toujours en attente du recalcul

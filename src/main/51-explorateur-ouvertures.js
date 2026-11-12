@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════
    STATISTIQUES DU JEU : L'EXPLORATEUR D'OUVERTURES DU CORPUS (v2.80)
    Demande d'ocj94 (point 2 des propositions d'IA) : comme l'explorateur d'ouvertures des
-   echecs, mais sur TOUT le corpus -- les 4 577 parties distinctes, toutes les dispositions
+   echecs, mais sur TOUT le corpus -- les 4 577 parties distinctes (4 592 depuis v3.33), toutes les dispositions
    (sauf la disposition libre, ou chaque partie part d'un plateau different), et les filtres
    de la page (source, longueur, annee). La page Ouvertures garde le sien (2 126 parties de
    tournoi en Marguerite belge, 90 positions).

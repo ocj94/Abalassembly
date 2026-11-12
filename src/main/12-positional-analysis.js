@@ -1162,7 +1162,7 @@ async function computeCorpusStats(onProgress){
   // le serveur PlayStrategy, abandons compris -- le serveur sait qui a
   // abandonne, contrairement aux archives MIGS (d'ou leur exclusion).
   // P1 = noir (verifie sur la position de depart, identique au Belgian Daisy).
-  const PS = (typeof PS_TOURNOI_YEARLY_2026 !== 'undefined') ? PS_TOURNOI_YEARLY_2026 : [];
+  const PS = (typeof PS_CORPUS !== 'undefined') ? PS_CORPUS : []   /* v3.33 : tournoi + amicales */;
   let psBlack = 0, psWhite = 0;
   PS.forEach(function(g){
     if (g[4] === g[2] + ' gagne') psBlack++;

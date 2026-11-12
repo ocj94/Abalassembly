@@ -33,7 +33,7 @@ const jetons = seq => String(seq || '').replace(/\d+\./g, ' ').trim().split(/\s+
 
 // [source (0 PlayStrategy, 1 reference), index, disposition de depart, coups]
 const parties = [];
-Array.from(ctx.PS_TOURNOI_YEARLY_2026).forEach((g, i) => parties.push([0, i, 'belgian', g[5]]));   // P1 = Noirs, Marguerite belge
+Array.from(ctx.PS_CORPUS).forEach((g, i) => parties.push([0, i, 'belgian', g[5]]));   // P1 = Noirs, Marguerite belge ; v3.33 : tournoi + amicales
 Array.from(ctx.PARTIES_REFERENCE).forEach((g, i) => parties.push([1, i, g[4], g[6]]));            // [date, noir, blanc, vainqueur, disposition, source, coups]
 
 const lignes = [];

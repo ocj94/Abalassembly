@@ -42,7 +42,7 @@ function _sbBanques(){
   return [
     (typeof MIGS_GAMES !== 'undefined') ? MIGS_GAMES : [],
     (typeof AO_GAMES !== 'undefined') ? AO_GAMES : [],
-    (typeof PS_TOURNOI_YEARLY_2026 !== 'undefined') ? PS_TOURNOI_YEARLY_2026 : [],
+    (typeof PS_CORPUS !== 'undefined') ? PS_CORPUS : []   /* v3.33 : tournoi + amicales */,
     (typeof PARTIES_REFERENCE !== 'undefined') ? PARTIES_REFERENCE : []
   ];
 }
