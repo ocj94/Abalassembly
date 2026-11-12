@@ -7844,5 +7844,8 @@ test('v3.28, parties PlayStrategy en attente : rejouees en entier, dans la bibli
   const att2 = { FPEZWejN: 113, HtlXNktv: 36, '5YGrgSbG': 107 };
   Object.keys(att2).forEach(function(id){ const x = P.find(function(y){ return y[0] === id; }); assert.ok(x, id); assert.strictEqual(x[5].split(' ').length, att2[id], id); });
   assert.strictEqual(P.find(function(y){ return y[0] === 'HtlXNktv'; })[4], 'Gramgroum gagne');
-  assert.strictEqual(P.length, 8);
+  // v3.31 : trois parties du 28/05/2025 ; RpnjUrjG note « f9e8 » une chaine de trois billes (demi-coup 181)
+  const att3 = { MxbIzwOB: 102, '6mqKM9vY': 87, RpnjUrjG: 186 };
+  Object.keys(att3).forEach(function(id){ const x = P.find(function(y){ return y[0] === id; }); assert.ok(x, id); assert.strictEqual(x[5].split(' ').length, att3[id], id); });
+  assert.strictEqual(P.length, 11);
 });
