@@ -9,6 +9,42 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.27]
+
+### Les cartes des données : nuages de points en couleur, en 2D ou en 3D
+- **Quatre cartes** :
+  - **Statistiques du jeu** : un point par camp et par partie du corpus,
+    placé par la moyenne de ses 12 dimensions, coloré par résultat, source,
+    camp, longueur ou joueurs. La carte suit les filtres de la page.
+  - **Mes statistiques** : tes parties au milieu de celles des vrais joueurs,
+    colorées par résultat, niveau de l'IA, couleur ou date. Tes parties sont
+    mesurées une fois, sur demande, puis gardées sur l'appareil.
+  - **Labo** (tableau de bord) : les réglages des 16 poids, c'est-à-dire les
+    champions (reliés dans l'ordre), les mutants adoptés, rejetés, indécis
+    ou écartés au tri, le chemin du SPSA et les mutants en test.
+  - **Analyse** : le chemin de la partie chargée, une ligne par camp et par
+    demi-coup, parmi 4 000 positions de vrais joueurs. Un clic sur un point
+    mène à ce demi-coup.
+- **Deux méthodes** : l'ACP, instantanée, dont les axes sont expliqués sous la
+  carte (« Axe 1 (35 %) : plus de soutien moyen, plus de cohésion moyenne ») ;
+  t-SNE, qui révèle les familles de parties, calculé dans un fil séparé sur
+  1 200 points au plus (environ 10 s). Même entrée, même carte.
+- **Rendu maison**, sans bibliothèque, en 2D ou en 3D tournante (souris,
+  doigt, flèches du clavier, zoom). Un passage sur un point en donne le détail,
+  un clic l'ouvre ; un clic dans la légende masque un groupe. Les réglages sont
+  retenus. axe-core : 0 violation.
+- **Le Labo relève chaque réglage tranché** (poids, verdict, score) pour sa
+  carte, 600 au plus.
+- **Correction** : depuis la v3.22, le bouton « Voir les N coups » de
+  l'Observatoire ne faisait rien. Sa fonction était placée après la fin du bloc
+  de script : elle n'était jamais exécutée et s'affichait comme du texte en bas
+  de la page. La fin du script principal est maintenant une pièce à part
+  (`src/07z-fin-script-principal.part`), et un test vérifie qu'aucun module ne
+  la porte.
+- Documentation : page « Cartes des données » (FR/EN). Tests : ACP, t-SNE
+  (familles séparées, résultat déterministe), échantillon, relevé du Labo,
+  branchements.
+
 ## [v3.26]
 
 ### RGPD : ne garder que les données utiles, et un droit d'opposition pour les joueurs publiés

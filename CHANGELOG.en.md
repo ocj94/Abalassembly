@@ -9,6 +9,39 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.27]
+
+### Data maps: coloured clouds of points, in 2D or 3D
+- **Four maps**:
+  - **Game statistics**: one point per side and per corpus game, placed by the
+    average of its 12 dimensions, coloured by result, source, side, length or
+    players. The map follows the page's filters.
+  - **My statistics**: your games among real players' games, coloured by
+    result, AI level, colour or date. Your games are measured once, on request,
+    then kept on the device.
+  - **Lab** (dashboard): the settings of the 16 weights, that is the champions
+    (linked in order), the adopted, rejected, undecided or screened-out
+    mutants, the SPSA path and the mutants being tested.
+  - **Analysis**: the path of the loaded game, one line per side and per ply,
+    among 4,000 real players' positions. Clicking a point goes to that ply.
+- **Two methods**: PCA, instant, with its axes explained under the map ("Axis 1
+  (35%): more average support, more average cohesion"); t-SNE, which reveals
+  families of games, computed in a separate thread on at most 1,200 points
+  (about 10 s). Same input, same map.
+- **Home-made rendering**, no library, in 2D or rotating 3D (mouse, finger,
+  arrow keys, zoom). Hovering over a point gives its details, clicking opens it;
+  clicking the legend hides a group. Settings are remembered. axe-core: 0
+  violations.
+- **The Lab records every decided setting** (weights, verdict, score) for its
+  map, 600 at most.
+- **Fix**: since v3.22, the Observatory's "Show the N moves" button did
+  nothing. Its function sat after the end of the script block: it never ran
+  and showed as text at the bottom of the page. The end of the main script is
+  now a separate piece (`src/07z-fin-script-principal.part`), and a test checks
+  that no module carries it.
+- Documentation: "Data maps" page (FR/EN). Tests: PCA, t-SNE (separated
+  families, deterministic result), sampling, Lab record, wiring.
+
 ## [v3.26]
 
 ### GDPR: keep only useful data, and a right to object for published players

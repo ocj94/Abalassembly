@@ -345,6 +345,8 @@ async function renderCorpusStatsPage(){
      joueurs (a la fin). Hotes poses ici, remplis par 39-statistiques-billes.js sans attendre. */
   // v2.72 : les filtres et le resume en tete ; gagner selon l'avance, premiers coups, ou sont les billes apres les billes qui tombent (48-corpus-plus.js)
   host.innerHTML = '<div id="corpus-filtres"></div><div id="corpus-resume"></div>'
+    // v3.27 : la carte des parties en 12 dimensions (60-cartes-donnees.js)
+    + _carteStats(_tr('La carte des parties', 'The map of the games'), '<div id="carte-corpus"></div>')
     + '<div id="corpus-autres"><div style="font-size:13px;color:var(--muted);margin-bottom:16px" id="corpus-progress">' + _tr('Calcul en cours (première fois seulement — mis en cache ensuite)…', 'Computing (first time only — cached afterwards)…') + '</div></div>'
     + '<div id="corpus-trait"></div><div id="corpus-annees"></div>'   // v2.81 : apres l'avantage du premier joueur (dans corpus-autres)
     + '<div id="billes-section"></div><div id="corpus-tempsmorts"></div><div id="corpus-avance"></div><div id="corpus-bascule"></div><div id="corpus-explorateur"></div><div id="corpus-ouvertures"></div><div id="corpus-explorateur-ouv"></div><div id="corpus-sortie"></div><div id="corpus-dejavues"></div><div id="corpus-occupation"></div><div id="corpus-variantes"></div>'
