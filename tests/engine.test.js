@@ -7837,4 +7837,8 @@ test('v3.28, parties PlayStrategy en attente : rejouees en entier, dans la bibli
   // la premiere : RCZ6myBN, ll contre Airisson, 62 demi-coups, les Blancs gagnent par abandon a 3-0
   const g = P.find(function(x){ return x[0] === 'RCZ6myBN'; });
   assert.ok(g); assert.strictEqual(g[5].split(' ').length, 62); assert.strictEqual(g[4], 'Airisson gagne');
+  // v3.29 : quatre parties de plus, Airisson contre Sok_imsoo (14 et 17/08/2026)
+  const att = { Dg90Vkbh: 99, gcOnhSVq: 54, aXsgzzHx: 78, HrczjlFo: 83 };
+  Object.keys(att).forEach(function(id){ const x = P.find(function(y){ return y[0] === id; }); assert.ok(x, id); assert.strictEqual(x[5].split(' ').length, att[id], id); });
+  assert.strictEqual(P.length, 5);
 });

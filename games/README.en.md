@@ -53,13 +53,16 @@ in the site (library, replayable and analysable) but **not yet counted in the
 corpus statistics**: the data banks will be recomputed once, when all the
 planned games are in.
 
-- Today: 1 game, `RCZ6myBN` (9 August 2026, casual 10+0 game, 62 plies,
-  Black resigns)
+- Today: 5 casual games, 376 plies
+  - `RCZ6myBN` (9 August 2026, 10+0, 62 plies, Black resigns)
+  - `Dg90Vkbh`, `gcOnhSVq` (14 August 2026, "10 d/5" time control, 99 and 54 plies, won 6-0 and 6-4)
+  - `aXsgzzHx` (17 August 2026, "12 d/1" time control, 78 plies, won 6-4)
+  - `HrczjlFo` (17 August 2026, "12 d/1" time control, 83 plies, White resigns at 4-1)
 - Layout: Belgian daisy ("Abalone" on PlayStrategy)
 - Notation: Aba-Pro. Every move was converted from PlayStrategy's notation by
   `psConvertirSequence` (its replay semantics), then checked by a second,
   independent decoding: same moves, all legal, no ambiguity
-- Validation: 1 out of 1 fully replays
+- Validation: 5 out of 5 fully replay
 
 ## Not published
 

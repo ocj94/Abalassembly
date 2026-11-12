@@ -9,6 +9,19 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.29]
+
+### Four more PlayStrategy games, still waiting for the recomputation
+- **Airisson – Sok_imsoo**, four casual games sent by ocj94 as PGNs:
+  `Dg90Vkbh` and `gcOnhSVq` (14 August 2026, "10 d/5" time control),
+  `aXsgzzHx` and `HrczjlFo` (17 August 2026, "12 d/1"). Airisson wins all
+  four: three on the score (6-0, 6-4, 6-4), one by resignation (4-1).
+- Converted by `psConvertirSequence`, then checked by the second, independent
+  decoding: same moves on all 314 plies, no ambiguity.
+- Library ("5 other PlayStrategy games, not yet counted") and
+  `games/playstrategy-parties.apgn` updated. The corpus statistics don't
+  change: the recomputation will happen once all the games are in.
+
 ## [v3.28]
 
 ### One more PlayStrategy game, waiting for the data banks to be recomputed
