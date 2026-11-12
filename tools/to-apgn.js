@@ -292,13 +292,15 @@ ANON(PS, [2, 3], [4]);
 // v3.28 : les autres parties PlayStrategy (PS_PARTIES_A_INTEGRER), meme traitement, leur propre evenement
 const PS2 = (source === 'ps-autres' || source === 'all') ? grabArray('PS_PARTIES_A_INTEGRER') : [];
 ANON(PS2, [2, 3], [4]);
+// v3.30 : les fins que le rejeu ne peut pas lire (perte au temps), d'apres le PGN de PlayStrategy
+const FINS_PS = { '5YGrgSbG': 'Au temps' };
 const exporterPS = function(liste, evenement){
   for (const g of liste) {
     if (n++ >= limit) break;
     const r = replay(boardFromLayout('belgian'), g[5], 0, 0);
     if (!r.ok) { rejected.push({ src: 'PlayStrategy ' + g[0], ply: r.ply, token: r.token }); continue; }
     const res = (g[4] === g[2] + ' gagne') ? '1-0' : (g[4] === g[3] + ' gagne') ? '0-1' : '*';
-    const fin = (r.capB >= 6 || r.capW >= 6) ? 'Au score' : 'Abandon';
+    const fin = (r.capB >= 6 || r.capW >= 6) ? 'Au score' : (FINS_PS[g[0]] || 'Abandon');
     if (fin === 'Au score' && res !== (r.capB >= 6 ? '1-0' : '0-1')) { rejected.push({ src: 'PlayStrategy ' + g[0], ply: r.played.length, token: 'resultat contraire au rejeu' }); continue; }
     games.push([
       tag('Event', evenement(g)),

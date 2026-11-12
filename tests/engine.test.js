@@ -7840,5 +7840,9 @@ test('v3.28, parties PlayStrategy en attente : rejouees en entier, dans la bibli
   // v3.29 : quatre parties de plus, Airisson contre Sok_imsoo (14 et 17/08/2026)
   const att = { Dg90Vkbh: 99, gcOnhSVq: 54, aXsgzzHx: 78, HrczjlFo: 83 };
   Object.keys(att).forEach(function(id){ const x = P.find(function(y){ return y[0] === id; }); assert.ok(x, id); assert.strictEqual(x[5].split(' ').length, att[id], id); });
-  assert.strictEqual(P.length, 5);
+  // v3.30 : trois parties de 2025, Airisson contre Gramgroum (notation des poussees de 2025)
+  const att2 = { FPEZWejN: 113, HtlXNktv: 36, '5YGrgSbG': 107 };
+  Object.keys(att2).forEach(function(id){ const x = P.find(function(y){ return y[0] === id; }); assert.ok(x, id); assert.strictEqual(x[5].split(' ').length, att2[id], id); });
+  assert.strictEqual(P.find(function(y){ return y[0] === 'HtlXNktv'; })[4], 'Gramgroum gagne');
+  assert.strictEqual(P.length, 8);
 });

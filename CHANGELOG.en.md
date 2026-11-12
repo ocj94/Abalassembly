@@ -9,6 +9,21 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.30]
+
+### Three PlayStrategy games from 2025, still waiting for the recomputation
+- **Airisson – Gramgroum**, three casual 10+0 games from 27 May 2025:
+  `FPEZWejN` (Airisson wins 6-2), `HtlXNktv` (Airisson resigns at 0-0,
+  Gramgroum wins), `5YGrgSbG` (Airisson wins on time at 3-3).
+- **2025 notation**: for a push, the second cell is where the player's leading
+  marble arrives, not the last pushed marble as in 2026. `psConvertirSequence`
+  reads both (it moves the whole chain); the second, independent decoding,
+  redone with the 2025 rule, finds a single reading and the same moves on all
+  256 plies.
+- A loss on time can't be seen in the replay: `tools/to-apgn.js` records it
+  (`Termination "Au temps"`). Library: "8 other games";
+  `games/playstrategy-parties.apgn` updated; corpus statistics unchanged.
+
 ## [v3.29]
 
 ### Four more PlayStrategy games, still waiting for the recomputation

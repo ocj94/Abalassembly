@@ -9,6 +9,21 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.30]
+
+### Trois parties PlayStrategy de 2025, toujours en attente du recalcul
+- **Airisson – Gramgroum**, trois parties amicales 10+0 du 27 mai 2025 :
+  `FPEZWejN` (Airisson gagne 6-2), `HtlXNktv` (Airisson abandonne à 0-0,
+  Gramgroum gagne), `5YGrgSbG` (Airisson gagne au temps à 3-3).
+- **Notation de 2025** : pour une poussée, la seconde case est celle où arrive
+  la bille de tête du joueur, pas la dernière bille poussée comme en 2026.
+  `psConvertirSequence` lit les deux (il déplace toute la chaîne) ; le second
+  décodage indépendant, refait avec la règle de 2025, donne une seule lecture
+  et les mêmes coups sur les 256 demi-coups.
+- La perte au temps ne se voit pas dans le rejeu : `tools/to-apgn.js` la note
+  (`Termination "Au temps"`). Bibliothèque : « 8 autres parties » ;
+  `games/playstrategy-parties.apgn` à jour ; statistiques du corpus inchangées.
+
 ## [v3.29]
 
 ### Quatre parties PlayStrategy de plus, toujours en attente du recalcul

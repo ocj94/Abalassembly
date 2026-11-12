@@ -53,7 +53,8 @@ Elles sont dans le site (bibliothèque, rejouables et analysables) mais **pas
 encore comptées dans les statistiques du corpus** : les banques de données
 seront recalculées une seule fois, quand toutes les parties prévues seront là.
 
-- Aujourd'hui : 5 parties amicales, 376 demi-coups
+- Aujourd'hui : 8 parties amicales, 632 demi-coups
+  - `FPEZWejN`, `HtlXNktv`, `5YGrgSbG` (27 mai 2025, 10+0, 113, 36 et 107 demi-coups : gagnée 6-2, abandon à 0-0, perte au temps à 3-3)
   - `RCZ6myBN` (9 août 2026, 10+0, 62 demi-coups, abandon des Noirs)
   - `Dg90Vkbh`, `gcOnhSVq` (14 août 2026, cadence « 10 d/5 », 99 et 54 demi-coups, gagnées 6-0 et 6-4)
   - `aXsgzzHx` (17 août 2026, cadence « 12 d/1 », 78 demi-coups, gagnée 6-4)
@@ -63,7 +64,10 @@ seront recalculées une seule fois, quand toutes les parties prévues seront là
   PlayStrategy par `psConvertirSequence` (sa sémantique de rejeu), puis
   vérifié par un second décodage indépendant : mêmes coups, tous légaux,
   aucune ambiguïté
-- Validation : 5 sur 5 rejouent intégralement
+- Validation : 8 sur 8 rejouent intégralement
+- Les PGN de 2025 notent les poussées autrement (seconde case : là où arrive
+  la bille de tête du joueur, et non la dernière bille poussée) ;
+  `psConvertirSequence` lit les deux notations
 
 ## Non publié
 
