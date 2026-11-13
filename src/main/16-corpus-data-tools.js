@@ -401,10 +401,55 @@ const PS_PARTIES_AMICALES = [
   ["aXsgzzHx","2026-08-17","Sok_imsoo","Airisson","Airisson gagne","a1b2 i5h5 a2b3 i6h6 i9h8 g4g5 h9g8 g5g6 i8h8 h4h5g4 h8g8 g5g6 g9f8 a5b5 c2c3 c6c7d6 b3c4 f5g6 b2c3 g6h7 c5d5 b4b6c5 f5e5 e8d8 c3d3 c6d6 f8f7 h7i8h8 c5d5 h6h7 c4d4 a4b5 f7f6 c7d7 d5e5 c6d6 h6g5 d6e6 d3e4 i8h8 d4e4 f8g9 e5f5 d8d7 h5i6 i5h5 f5g5 f6d6f5 e4f4 i9h9 e3f3 e5d5f6 h5g5 e7d7d6 f5g6 e5f5 f3g4 f5f6 h5h6 f7g7 i7i6 i8h7 i5h4 e6f6 f4g5 c6d6 h6g5 f6g7 f8e7 i7h6 f4g5 h9h8 i6h5 h8h7 f3g4 g8g9h8 g4h5 h8h7"],
   ["HrczjlFo","2026-08-17","Airisson","Sok_imsoo","Airisson gagne","a1b2 i5h5 i9h8 i6h6 h8g7 a4b4 a2b3 h6g6 g7g8f7 b4c5 c2c3d2 b5c6 c4d4 h4g4 f7e6 c5d6 e4e5 h5g5 e7e6 d6e7 c5d5 g4g5 b1b3c1 g6f6 c3d4 g7h8f7 d5e5 i5h5i6 i8h7 c4c5 d2d3 g8f7 g5f5 e4f4 d4d5 d8e8 c2d3c3 e8e7 c4d4 f7e6 d4e4 e5d4 c1c2 a5b6 f4g4 b5c5 g8h9g7 e6d5 f6h8e6 c6c5 c1c2d2 c7c6 f5h7f6 c6b5 b3b2 c3b3 h4g4 b6b5 g4e4h5 i6h6 h8g7 b4b3 d2d3e3 e7f8e8 d6e6 f9e8 e6f6 d7e8d6 g6h6 e7d6 h5g5g4 b3b2 i6h6h5 b1b2 g8g7 d6e6 g6f5 e6d6 h5g4 d6c5 g5f4 c3c4 g7f6"]
 ];
-/* v3.33 : la banque PlayStrategy du corpus, le tournoi puis les amicales. Constante : PS_GAMES (ci-dessous)
-   peut recevoir une partie suivie en direct, qui ne doit jamais entrer dans le corpus commun. */
+/* v3.33 : la banque PlayStrategy du corpus COMMUN, le tournoi puis les amicales. Constante : les donnees
+   precalculees (signature _sbSignature) en dependent. Les parties ajoutees sur un appareil (v3.34,
+   psAjoutsLire) n'y entrent pas : elles s'ajoutent a cote, dans psCorpusEtendu. */
 const PS_CORPUS = PS_TOURNOI_YEARLY_2026.concat(PS_PARTIES_AMICALES);
-let PS_GAMES = PS_CORPUS.slice();   // le tournoi et les amicales, visibles par tous des l'ouverture
+/* v3.34 (demande d'ocj94 : « ajoute-les au corpus », choix « directement dans le corpus ») : les parties
+   PlayStrategy importees (par pseudo ou lien de tournoi) ou suivies en direct jusqu'a leur fin entrent
+   dans le corpus DE CE NAVIGATEUR. Gardees dans localStorage (cle abaPSAjouts), elles comptent dans la
+   page Statistiques du jeu (computeCorpusStats : vainqueurs, longueurs, dispositions, total) et dans la
+   bibliotheque. Les donnees precalculees hors ligne (statistiques des parties, cartes, Labo, empreintes,
+   qualite des coups) restent celles du corpus commun : elles ne peuvent pas les couvrir, et la page le dit.
+   Seules entrent les parties d'Abalone converties EN ENTIER (psConvertirSequence verifie chaque coup) et
+   absentes du corpus commun. Le bouton « Retirer » de la bibliotheque les enleve toutes. */
+const PS_AJOUTS_CLE = 'abaPSAjouts', PS_AJOUTS_MAX = 2000;
+function _psLigneValide(g){
+  return Array.isArray(g) && g.length === 6 && /^[A-Za-z0-9]{8}$/.test(String(g[0]))
+    && [1, 2, 3, 4, 5].every(function(i){ return typeof g[i] === 'string'; })
+    && /^([a-i][1-9]){2,3}( ([a-i][1-9]){2,3})*$/.test(g[5]) && g[4].indexOf('(partielle') < 0;
+}
+function psAjoutsLire(){
+  let L = [];
+  try { L = JSON.parse(localStorage.getItem(PS_AJOUTS_CLE) || '[]'); } catch (e) { L = []; }
+  if (!Array.isArray(L)) return [];
+  const communs = new Set(PS_CORPUS.map(function(g){ return g[0]; })), vus = new Set();
+  L = L.filter(function(g){ if (!_psLigneValide(g) || communs.has(g[0]) || vus.has(g[0])) return false; vus.add(g[0]); return true; });
+  if (typeof anonymiserParties === 'function') anonymiserParties(L, [2, 3], [4]);   // un pseudo retire l'est aussi ici
+  return L;
+}
+/* Ajoute au corpus de ce navigateur les parties valides et nouvelles ; renvoie le nombre ajoute. */
+function psAjouterAuCorpus(lignes){
+  const L = psAjoutsLire(), deja = new Set(PS_CORPUS.concat(L).map(function(g){ return g[0]; }));
+  let n = 0;
+  (lignes || []).forEach(function(g){
+    if (!_psLigneValide(g) || deja.has(g[0]) || L.length >= PS_AJOUTS_MAX) return;
+    L.push(g.slice()); deja.add(g[0]); n++;
+  });
+  if (n) {
+    L.sort(function(a, b){ return a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0; });
+    try { localStorage.setItem(PS_AJOUTS_CLE, JSON.stringify(L)); } catch (e) { return 0; }
+  }
+  return n;
+}
+function psCorpusEtendu(){ return PS_CORPUS.concat(psAjoutsLire()); }
+function psAjoutsVider(){
+  try { localStorage.removeItem(PS_AJOUTS_CLE); } catch (e) {}
+  PS_GAMES = PS_CORPUS.slice();
+  renderPSGamesList();
+  if (typeof showToast === 'function') showToast(_tr('Parties ajoutées retirées du corpus.', 'Added games removed from the corpus.'));
+}
+let PS_GAMES = psCorpusEtendu();   // le tournoi, les amicales, puis les parties ajoutees sur cet appareil (v3.34)
 
 /* ═══════════════════════════════════════════════════════════════
    SUIVI EN DIRECT D'UNE PARTIE PLAYSTRATEGY
@@ -508,7 +553,14 @@ async function psLiveDemarrer(){
   try {
     while (_psLiveActive) {
       const { value, done } = await lecteur.read();
-      if (done) { if (_psLiveActive) statut.textContent = 'Partie terminée — flux fermé.'; break; }
+      if (done) {
+        if (_psLiveActive) {
+          statut.textContent = 'Partie terminée — flux fermé.';
+          // v3.34 : la partie entiere entre dans le corpus de ce navigateur
+          _psAjouterPartieSuivie(id).then(function(r){ if (r && statut.isConnected) statut.textContent = 'Partie terminée — ' + r; });
+        }
+        break;
+      }
       reste += decodeur.decode(value, { stream: true });
       const lignes = reste.split('\n'); reste = lignes.pop();
       for (const l of lignes) {
@@ -532,6 +584,37 @@ async function psLiveDemarrer(){
     if (_psLiveActive) statut.textContent = 'Connexion interrompue.';
   }
 }
+/* v3.34 : une partie suivie en direct, une fois finie, est relue en entier par l'export d'un de ses
+   joueurs (GET /api/games/user/:id, le meme que l'import : CORS ouvert sur /api/), puis convertie par
+   psGameToMigsFormat et ajoutee au corpus de ce navigateur. Ses joueurs : GET /api/game/:id
+   (controllers.Api.game, lu dans le code de PlayStrategy). Renvoie une phrase pour le statut, ou null. */
+async function _psAjouterPartieSuivie(id){
+  try {
+    const r = await fetch('https://playstrategy.org/api/game/' + id, { headers: { 'Accept': 'application/json' } });
+    if (!r.ok) return null;
+    const g = await r.json();
+    if (!g || String(g.variant || '').toLowerCase() !== 'abalone') return null;
+    if (g.status === 'started' || g.status === 'created') return null;
+    const joueurs = ['p1', 'p2'].map(function(c){ return g.players && g.players[c] && g.players[c].userId; }).filter(Boolean);
+    for (const u of joueurs) {
+      const rep = await fetch('https://playstrategy.org/api/games/user/' + encodeURIComponent(u) + '?perfType=abalone&max=30&moves=true&tags=false&opening=false',
+        { headers: { 'Accept': 'application/x-ndjson' } });
+      if (!rep.ok) continue;
+      const lignes = (await rep.text()).trim().split('\n');
+      for (const l of lignes) {
+        let rec; try { rec = JSON.parse(l); } catch (e) { continue; }
+        if (!rec || rec.id !== id) continue;
+        const ligne = psGameToMigsFormat(rec);
+        if (!ligne) return null;
+        if (!_psLigneValide(ligne)) return 'conversion incomplète, partie non ajoutée au corpus.';
+        const n = psAjouterAuCorpus([ligne]);
+        if (!PS_GAMES.some(function(x){ return x[0] === id; })) PS_GAMES.push(ligne);
+        return n ? 'ajoutée au corpus (sur cet appareil).' : 'déjà dans le corpus.';
+      }
+    }
+  } catch (e) { /* reseau : la partie reste seulement suivie */ }
+  return null;
+}
 function openPSLiveModal(){
   if (document.getElementById('ps-live-modal')) { document.getElementById('ps-live-modal').style.display = 'flex'; return; }
   const modal = document.createElement('div');
@@ -548,7 +631,7 @@ function openPSLiveModal(){
     + '<button type="button" data-click="psLiveDemarrer()" class="ctrl-btn" style="width:auto;padding:8px 12px">Suivre</button></div>'
     + '<div id="ps-live-statut" style="font-size:12px;color:var(--muted);min-height:16px;margin-bottom:10px"></div>'
     + '<div id="ps-live-board"></div>'
-    + '<div style="font-size:11px;color:var(--muted);margin-top:10px">Lecture seule : on ne peut pas jouer depuis cette fenêtre.</div>'
+    + '<div style="font-size:11px;color:var(--muted);margin-top:10px">Lecture seule : on ne peut pas jouer depuis cette fenêtre. Une fois finie, la partie entre dans le corpus de cet appareil.</div>'
     + '</div>';
   document.body.appendChild(modal);
 }
@@ -788,9 +871,11 @@ async function fetchPSGames(){
   }
 
   PS_GAMES = Object.values(byId);
+  const ajoutees = psAjouterAuCorpus(PS_GAMES);   // v3.34 : les parties completes et nouvelles entrent dans le corpus de ce navigateur
   if (statusEl) {
     statusEl.textContent = PS_GAMES.length
-      ? '✅ ' + PS_GAMES.length + ' partie' + (PS_GAMES.length>1?'s':'') + ' au total (+' + totalNew + ' nouvelle' + (totalNew>1?'s':'') + ').'
+      ? '✅ ' + PS_GAMES.length + ' partie' + (PS_GAMES.length>1?'s':'') + ' au total (+' + totalNew + ' nouvelle' + (totalNew>1?'s':'') + ')'
+        + (ajoutees ? ', dont ' + ajoutees + ' ajoutée' + (ajoutees>1?'s':'') + ' au corpus (sur cet appareil).' : '.')
       : '⚠️ Aucune partie Abalone trouvée pour ces pseudos.';
   }
   renderPSGamesList();
@@ -820,7 +905,10 @@ function renderPSGamesList(){
   // v3.28 : les autres parties embarquees ; v3.33 : comptees dans le corpus
   const nbAmicales = PS_GAMES.filter(function(g){ return PS_PARTIES_AMICALES.some(function(t){ return t[0] === g[0]; }); }).length;
   const entete2 = nbAmicales ? '<div style="font-size:12px;color:var(--muted);margin:-4px 0 10px">➕ ' + nbAmicales + ' partie' + (nbAmicales > 1 ? 's' : '') + ' amicale' + (nbAmicales > 1 ? 's' : '') + ' PlayStrategy (2025-2026)</div>' : '';
-  listEl.innerHTML = entete + entete2 + PS_GAMES.map(function(g, idx){
+  // v3.34 : les parties ajoutees au corpus de ce navigateur
+  const nbAjouts = psAjoutsLire().length;
+  const entete3 = nbAjouts ? '<div style="font-size:12px;color:var(--muted);margin:-4px 0 10px">📥 ' + nbAjouts + ' partie' + (nbAjouts > 1 ? 's' : '') + ' ajoutée' + (nbAjouts > 1 ? 's' : '') + ' par toi, comptée' + (nbAjouts > 1 ? 's' : '') + ' dans le corpus de cet appareil · <button class="ctrl-btn" data-click="psAjoutsVider()" style="font-size:11px;padding:2px 8px">Retirer</button></div>' : '';
+  listEl.innerHTML = entete + entete2 + entete3 + PS_GAMES.map(function(g, idx){
     const moveCount = _migsMoveCount(g[5]);
     return '<div data-click="loadPSGame(' + idx + ')" style="padding:10px 12px;border-radius:8px;cursor:pointer;border:1px solid var(--border);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center" data-survol="background:var(--surface2)">'
       + '<div><div style="font-size:13px;font-weight:600;color:var(--text)">' + (typeof _iaNom === 'function' ? _iaNom(g[2]) : escapeHtml(g[2])) + ' vs ' + (typeof _iaNom === 'function' ? _iaNom(g[3]) : escapeHtml(g[3])) + '</div>'

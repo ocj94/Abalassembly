@@ -395,13 +395,15 @@ async function renderCorpusStatsPage(){
   let html = '';
   html += '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">' + _tr(
       'Sources : MIGS (' + nb(s.nMigs) + ' parties), AbalOnline (' + nb(s.nAo) + ')'
-      + (s.nPs ? ', Yearly Abalone Arena de PlayStrategy (' + s.nPs + (s.nPsSansCoup ? ', dont ' + s.nPsSansCoup + ' abandonnées avant le premier coup' : '') + ')' : '') + (s.nRef ? ', parties de référence des variantes (' + s.nRef + ')' : '') + '. Toutes les parties comptent, même abandonnées.'
+      + (s.nPs ? ', PlayStrategy (' + s.nPs + ' : tournoi Yearly Abalone Arena et parties amicales' + (s.nPsAjouts ? ', dont ' + nb(s.nPsAjouts) + ' ajoutée' + (s.nPsAjouts > 1 ? 's' : '') + ' par toi sur cet appareil' : '') + (s.nPsSansCoup ? ' ; ' + s.nPsSansCoup + ' abandonnées avant le premier coup' : '') + ')' : '') + (s.nRef ? ', parties de référence des variantes (' + s.nRef + ')' : '') + '. Toutes les parties comptent, même abandonnées.'
       + (s.nPs ? ' Le livre d’ouvertures reste calculé sur MIGS et AbalOnline (précalculé hors ligne).' : '')
-      + (s.nDoublons ? ' ' + _corpusPhraseDoublons(s, 'FR') : ''),
+      + (s.nDoublons ? ' ' + _corpusPhraseDoublons(s, 'FR') : '')
+      + (s.nPsAjouts ? ' Tes parties ajoutées comptent dans ce résumé ; les cartes et mesures précalculées (billes, 12 dimensions, Labo, qualité des coups) portent sur le corpus commun de ' + nb(s.totalGames - s.nPsAjouts) + ' parties.' : ''),
       'Sources: MIGS (' + nb(s.nMigs) + ' games), AbalOnline (' + nb(s.nAo) + ')'
-      + (s.nPs ? ', PlayStrategy’s Yearly Abalone Arena (' + s.nPs + (s.nPsSansCoup ? ', including ' + s.nPsSansCoup + ' resigned before the first move' : '') + ')' : '') + (s.nRef ? ', reference games of the variants (' + s.nRef + ')' : '') + '. Every game counts, even resigned ones.'
+      + (s.nPs ? ', PlayStrategy (' + s.nPs + ': the Yearly Abalone Arena tournament and casual games' + (s.nPsAjouts ? ', ' + nb(s.nPsAjouts) + ' of them added by you on this device' : '') + (s.nPsSansCoup ? '; ' + s.nPsSansCoup + ' resigned before the first move' : '') + ')' : '') + (s.nRef ? ', reference games of the variants (' + s.nRef + ')' : '') + '. Every game counts, even resigned ones.'
       + (s.nPs ? ' The opening book is still computed on MIGS and AbalOnline (precomputed offline).' : '')
-      + (s.nDoublons ? ' ' + _corpusPhraseDoublons(s, 'EN') : '')) + '</div>';
+      + (s.nDoublons ? ' ' + _corpusPhraseDoublons(s, 'EN') : '')
+      + (s.nPsAjouts ? ' Your added games count in this summary; the precomputed cards and measures (marbles, 12 dimensions, Lab, move quality) cover the shared corpus of ' + nb(s.totalGames - s.nPsAjouts) + ' games.' : '')) + '</div>';
 
   const camp = function(nom, pct, n){
     return '<div style="flex:1;text-align:center"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">' + nom + '</div>'

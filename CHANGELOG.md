@@ -9,6 +9,27 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.34]
+
+### Les parties importées ou suivies en direct entrent dans le corpus (de cet appareil)
+- Demande d'ocj94 : « ajoute-les au corpus », avec le choix « directement dans
+  le corpus ». Les parties d'Abalone importées depuis PlayStrategy (par pseudo
+  ou lien de tournoi) et celles suivies en direct jusqu'à leur fin comptent
+  maintenant dans la page Statistiques du jeu de ce navigateur : vainqueurs
+  (avantage des Noirs), longueur des parties, dispositions, total.
+- Seules entrent les parties converties **en entier** (chaque coup vérifié par
+  `psConvertirSequence`) et absentes du corpus commun. Elles sont gardées sur
+  l'appareil (`localStorage`, clé `abaPSAjouts`) et la bibliothèque les
+  annonce (« 📥 N parties ajoutées par toi ») avec un bouton **Retirer**.
+- Partie suivie en direct : à la fin du flux, le site lit ses joueurs
+  (`/api/game/:id`) puis la partie entière dans l'export d'un joueur
+  (`/api/games/user/:id`, le même que l'import), la convertit et l'ajoute.
+  Une partie en cours ou d'une autre variante n'entre pas.
+- Le corpus commun ne change pas (4 595 parties, `PS_CORPUS`), ni ses données
+  précalculées hors ligne (billes, 12 dimensions, cartes, Labo, qualité des
+  coups) : elles ne peuvent pas couvrir des parties ajoutées sur un appareil,
+  et la page Statistiques du jeu le dit quand il y en a.
+
 ## [v3.33]
 
 ### Les 15 parties amicales PlayStrategy entrent dans le corpus
