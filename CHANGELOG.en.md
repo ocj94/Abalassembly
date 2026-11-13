@@ -9,6 +9,26 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.34]
+
+### Imported or live-followed games join the corpus (on this device)
+- ocj94's request: "add them to the corpus", choosing "directly in the
+  corpus". Abalone games imported from PlayStrategy (by username or tournament
+  link) and games followed live to their end now count in this browser's Game
+  statistics page: winners (Black's advantage), game length, layouts, total.
+- Only games converted **in full** (every move checked by
+  `psConvertirSequence`) and absent from the shared corpus get in. They are
+  kept on the device (`localStorage`, key `abaPSAjouts`) and the library
+  shows them ("📥 N games added by you") with a **Remove** button.
+- Live-followed game: when the stream ends, the site reads its players
+  (`/api/game/:id`), then the whole game in a player's export
+  (`/api/games/user/:id`, the same as the import), converts it and adds it.
+  A game still in progress or from another variant does not get in.
+- The shared corpus does not change (4,595 games, `PS_CORPUS`), nor does its
+  data precomputed offline (marbles, 12 dimensions, maps, Lab, move quality):
+  it cannot cover games added on one device, and the Game statistics page says
+  so when there are some.
+
 ## [v3.33]
 
 ### The 15 casual PlayStrategy games join the corpus

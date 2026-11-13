@@ -70,7 +70,7 @@
       <div id="ps-equipes-abalone"></div>
       <div id="ps-directs-abalone" style="margin-bottom:16px"></div>
       <p style="font-size:12px;color:var(--muted);margin:0 0 12px;line-height:1.6">
-        Récupère de vraies parties d'Abalone jouées sur <a href="https://playstrategy.org" target="_blank" rel="noopener">playstrategy.org</a> (abal.online), directement depuis ton navigateur — rien n'est envoyé à un serveur intermédiaire. Un pseudo par ligne pour en récupérer plusieurs d'un coup — ou un lien de tournoi (arena ou suisse) pour en importer toutes les parties.
+        Récupère de vraies parties d'Abalone jouées sur <a href="https://playstrategy.org" target="_blank" rel="noopener">playstrategy.org</a> (abal.online), directement depuis ton navigateur — rien n'est envoyé à un serveur intermédiaire. Un pseudo par ligne pour en récupérer plusieurs d'un coup — ou un lien de tournoi (arena ou suisse) pour en importer toutes les parties. Les parties d'Abalone converties en entier entrent dans le corpus de cet appareil (page Statistiques du jeu) ; « Retirer » les enlève.
       </p>
       <textarea id="ps-import-usernames" placeholder="Un pseudo par ligne, ex :&#10;ocj94&#10;saabalone&#10;vincent" rows="4" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-family:'DM Mono',monospace;resize:vertical;margin-bottom:8px"></textarea>
       <div style="display:flex;gap:8px;margin-bottom:10px">

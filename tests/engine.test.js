@@ -632,12 +632,17 @@ test('import par lien de tournoi : les parties Abalone entrent, le Grand Abalone
   const rec = (id, variant) => JSON.stringify({ id, variant, createdAt: Date.UTC(2026,8,18), winner: 'p1',
     status: 'mate', players: { p1: { user: { name: 'A' } }, p2: { user: { name: 'B' } } }, moves: 'a1d4 i5f5 a2c4 i6g6' });
   ctx.fetch = async () => ({ ok: true, text: async () => rec('abal0001', 'abalone') + '\n' + rec('gran0001', 'grandabalone') + '\n' });
+  const rendreAvant = ctx.renderPSGamesList;
   ctx.renderPSGamesList = () => {};
   await ctx.fetchPSGames();
-  ctx.document.getElementById = origine;
+  ctx.document.getElementById = origine; ctx.renderPSGamesList = rendreAvant;
   const ids = ctx.PS_GAMES.map(g => g[0]);
   assert.ok(ids.includes('abal0001'));
   assert.ok(!ids.includes('gran0001'), 'plateau incompatible, jamais importe');
+  // v3.34 : la partie Abalone, convertie en entier, entre dans le corpus de cet appareil
+  const aj = require('vm').runInContext('psAjoutsLire()', ctx).map(g => g[0]);
+  assert.deepStrictEqual(Array.from(aj), ['abal0001']);
+  ctx.localStorage.removeItem('abaPSAjouts'); ctx.PS_GAMES = require('vm').runInContext('PS_CORPUS.slice()', ctx);
 });
 
 test("PIEGE : sans partie en cours, current-game renvoie la DERNIERE partie -- elle ne passe pas pour du direct", async () => {
@@ -709,11 +714,68 @@ test('corpus : MIGS + AbalOnline + 93 parties du tournoi + 15 amicales PlayStrat
   assert.ok(bel && bel[1] === 114, 'Belgian Daisy : les 93 parties du tournoi + les 15 amicales + les 6 parties KAAH');
 });
 
-test("corpus : les parties importees a la volee n'y entrent pas (meme corpus pour tous)", async () => {
+test("corpus : une partie seulement affichee n'y entre pas ; v3.34 : une partie ajoutee (psAjouterAuCorpus) y entre, sur cet appareil", async () => {
+  const vm = require('vm'), lire = c => vm.runInContext(c, ctx);
   ctx.PS_GAMES.push(['vol00001', '2026-09-01', 'X', 'Y', 'X gagne', 'a1b2 i5h5']);
-  const s = await ctx.computeCorpusStats(() => {});
+  let s = await ctx.computeCorpusStats(() => {});
   ctx.PS_GAMES.pop();
-  assert.strictEqual(s.totalGames, 4595);
+  assert.strictEqual(s.totalGames, 4595); assert.strictEqual(s.nPsAjouts, 0);
+  try {
+    // refusees : partielle, coups illisibles, deja dans le corpus commun, identifiant invalide
+    assert.strictEqual(ctx.psAjouterAuCorpus([
+      ['vol00002', '2026-09-01', 'X', 'Y', 'X gagne (partielle : 2/5 coups)', 'a1b2 i5h5'],
+      ['vol00003', '2026-09-01', 'X', 'Y', 'X gagne', 'a1b2 zz'],
+      lire('PS_CORPUS[0]').slice(), ['court', '2026-09-01', 'X', 'Y', 'X gagne', 'a1b2']]), 0);
+    // acceptees, une seule fois
+    assert.strictEqual(ctx.psAjouterAuCorpus([['vol00001', '2026-09-01', 'Alex', 'Bob', 'Alex gagne', 'a1b2 i5h5 a2b3']]), 1);
+    assert.strictEqual(ctx.psAjouterAuCorpus([['vol00001', '2026-09-01', 'Alex', 'Bob', 'Alex gagne', 'a1b2 i5h5 a2b3']]), 0);
+    s = await ctx.computeCorpusStats(() => {});
+    assert.strictEqual(s.totalGames, 4596); assert.strictEqual(s.nPs, 109); assert.strictEqual(s.nPsAjouts, 1);
+    // le corpus commun et ses donnees precalculees ne bougent pas
+    assert.strictEqual(lire('_sbBanques()[2].length'), 108);
+    assert.ok(/^2589-1890-108-8-/.test(lire('_sbSignature()')));
+    // la bibliotheque le dit, et « Retirer » les enleve
+    const el = { innerHTML: '' }, avant = ctx.document.getElementById;
+    ctx.document.getElementById = id => id === 'ps-import-list' ? el : avant(id);
+    try {
+      ctx.PS_GAMES = lire('psCorpusEtendu()'); ctx.renderPSGamesList();
+      assert.match(el.innerHTML, /📥 1 partie ajoutée par toi, comptée dans le corpus de cet appareil/);
+      assert.match(el.innerHTML, /data-click="psAjoutsVider\(\)"/);
+      ctx.showToast = () => {}; ctx.psAjoutsVider();
+      assert.doesNotMatch(el.innerHTML, /📥/);
+    } finally { ctx.document.getElementById = avant; }
+    s = await ctx.computeCorpusStats(() => {});
+    assert.strictEqual(s.totalGames, 4595); assert.strictEqual(lire('PS_GAMES.length'), 108);
+  } finally { ctx.localStorage.removeItem('abaPSAjouts'); ctx.PS_GAMES = lire('PS_CORPUS.slice()'); }
+});
+
+test('v3.34 : une partie suivie en direct, une fois finie, entre en entier dans le corpus de cet appareil', async () => {
+  const vm = require('vm'), lire = c => vm.runInContext(c, ctx);
+  const fetchAvant = ctx.fetch, appels = [];
+  const rec = { id: 'Live0001', variant: 'abalone', status: 'resign', winner: 'p2', createdAt: Date.UTC(2026, 10, 12),
+    players: { p1: { user: { name: 'Alex' } }, p2: { user: { name: 'Bob' } } }, moves: 'a1d4 a5d5 a2c4 i5f5' };
+  const rep = (corps, type) => Promise.resolve({ ok: true, json: () => Promise.resolve(corps), text: () => Promise.resolve(type === 'nd' ? corps.map(x => JSON.stringify(x)).join('\n') : JSON.stringify(corps)) });
+  ctx.fetch = (url) => {
+    appels.push(url);
+    if (/\/api\/game\/Live0001$/.test(url)) return rep({ id: 'Live0001', variant: 'abalone', status: 'resign', players: { p1: { userId: 'alex' }, p2: { userId: 'bob' } } });
+    if (/\/api\/games\/user\/alex\?/.test(url)) return rep([{ id: 'Autre001', variant: 'abalone' }, rec], 'nd');
+    return Promise.resolve({ ok: false });
+  };
+  try {
+    const r = await ctx._psAjouterPartieSuivie('Live0001');
+    assert.strictEqual(r, 'ajoutée au corpus (sur cet appareil).');
+    assert.ok(appels[0].indexOf('https://playstrategy.org/api/game/Live0001') === 0);
+    const g = lire('psAjoutsLire()').find(x => x[0] === 'Live0001');
+    assert.ok(g); assert.strictEqual(g[2], 'Alex'); assert.strictEqual(g[4], 'Bob gagne'); assert.strictEqual(g[5].split(' ').length, 4);
+    assert.ok(lire('PS_GAMES.some(x => x[0] === "Live0001")'));
+    assert.strictEqual(await ctx._psAjouterPartieSuivie('Live0001'), 'déjà dans le corpus.');
+    // une partie encore en cours n'entre pas
+    ctx.fetch = () => rep({ id: 'Live0002', variant: 'abalone', status: 'started', players: {} });
+    assert.strictEqual(await ctx._psAjouterPartieSuivie('Live0002'), null);
+    // une autre variante non plus
+    ctx.fetch = () => rep({ id: 'Live0003', variant: 'grandabalone', status: 'mate', players: {} });
+    assert.strictEqual(await ctx._psAjouterPartieSuivie('Live0003'), null);
+  } finally { ctx.fetch = fetchAvant; ctx.localStorage.removeItem('abaPSAjouts'); ctx.PS_GAMES = lire('PS_CORPUS.slice()'); }
 });
 
 test('bibliotheque : une partie sans coup est annoncee, jamais chargee comme une partie jouee', () => {

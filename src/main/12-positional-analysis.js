@@ -1154,15 +1154,17 @@ async function computeCorpusStats(onProgress){
   let migsBlack = 0, migsWhite = 0;
   migsWinners.forEach(function(v){ if (v === 'black') migsBlack++; else if (v === 'white') migsWhite++; });
 
-  // --- Tournoi PlayStrategy embarque ---
-  // Seule la banque EMBARQUEE compte : verifiee coup par coup, et identique
-  // pour tout le monde. Les parties importees a la volee (par pseudo ou par
-  // lien) ne sont ni sauvegardees ni communes a tous : elles fausseraient un
-  // corpus cense etre le meme pour chacun. Vainqueur : celui enregistre par
+  // --- Parties PlayStrategy ---
+  // La banque embarquee (tournoi + amicales), verifiee coup par coup, puis
+  // (v3.34, choix d'ocj94) les parties importees ou suivies en direct sur CET
+  // appareil (psAjoutsLire, converties en entier). Le corpus de cette page peut
+  // donc differer d'un navigateur a l'autre ; les donnees precalculees, non.
+  // Vainqueur : celui enregistre par
   // le serveur PlayStrategy, abandons compris -- le serveur sait qui a
   // abandonne, contrairement aux archives MIGS (d'ou leur exclusion).
   // P1 = noir (verifie sur la position de depart, identique au Belgian Daisy).
-  const PS = (typeof PS_CORPUS !== 'undefined') ? PS_CORPUS : []   /* v3.33 : tournoi + amicales */;
+  const PS = (typeof psCorpusEtendu === 'function') ? psCorpusEtendu() : ((typeof PS_CORPUS !== 'undefined') ? PS_CORPUS : []);   /* v3.33 : tournoi + amicales ; v3.34 : + ajouts locaux */
+  const nPsAjouts = PS.length - ((typeof PS_CORPUS !== 'undefined') ? PS_CORPUS.length : 0);
   let psBlack = 0, psWhite = 0;
   PS.forEach(function(g){
     if (g[4] === g[2] + ' gagne') psBlack++;
@@ -1205,7 +1207,7 @@ async function computeCorpusStats(onProgress){
   return {
     totalGames: MIGS_GAMES.length + AO_GAMES.length + PS.length + REF.length, nRef: REF.length,
     nDoublons: dbl ? dbl.n : 0, nDoublonsAO: aoDbl.size,   // v2.77 : totalDistinctes = totalGames - nDoublons
-    nMigs: MIGS_GAMES.length, nAo: AO_GAMES.length, nPs: PS.length, nLens: lens.length,
+    nMigs: MIGS_GAMES.length, nAo: AO_GAMES.length, nPs: PS.length, nPsAjouts: nPsAjouts, nLens: lens.length,
     nPsSansCoup: PS.filter(function(g){ return !String(g[5]||'').trim(); }).length,
     decided: decided,
     black: black, white: white,
