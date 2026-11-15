@@ -7917,3 +7917,36 @@ test('v3.28-v3.33, parties amicales PlayStrategy : rejouees en entier, dans la b
   Object.keys(att4).forEach(function(id){ const x = P.find(function(y){ return y[0] === id; }); assert.ok(x, id); assert.strictEqual(x[5].split(' ').length, att4[id], id); });
   assert.strictEqual(P.length, 15);
 });
+
+// ─── v3.35 : audit de securite du 15/11/2026 (effacement complet, import « Mes donnees » encadre) ───
+test("v3.35 : « Réinitialiser toutes vos données » efface toutes les clés aba…, et n'appelle le serveur qu'après confirmation", () => {
+  const vm = require('vm'), lire = c => vm.runInContext(c, ctx);
+  const ls = ctx.localStorage;
+  ['abaGameHistory', 'abaPSAjouts', 'abaCarteMes', 'abalone_session', 'abaLabDataLog', 'aba_notif_prefs'].forEach(k => ls.setItem(k, '1'));
+  ls.setItem('autreSite', 'garde');
+  // « Annuler » : rien n'est efface, rien n'est demande au serveur
+  let appels = 0; const apiAvant = lire('api.deleteAccount'); lire('api').deleteAccount = () => { appels++; };
+  const confAvant = ctx.confirm; ctx.confirm = () => false;
+  try { ctx.resetAllData(); } finally { ctx.confirm = confAvant; lire('api').deleteAccount = apiAvant; }
+  assert.strictEqual(appels, 0); assert.strictEqual(ls.getItem('abaGameHistory'), '1');
+  // l'effacement lui-meme
+  const n = ctx._resetEffacerStockage();
+  assert.ok(n >= 6, n + ' cles effacees');
+  const reste = []; for (let i = 0; i < ls.length; i++) { const k = ls.key(i); if (/^aba/.test(k)) reste.push(k); }
+  assert.deepStrictEqual(reste, []);
+  assert.strictEqual(ls.getItem('autreSite'), 'garde', 'les cles d un autre site restent');
+  ls.removeItem('autreSite');
+});
+
+test('v3.35 : import « Mes données » — clés et valeurs contrôlées', () => {
+  assert.ok(ctx._importCleAcceptable('abaGameHistory')); assert.ok(ctx._importCleAcceptable('abalone_tournament_2026-11'));
+  assert.ok(!ctx._importCleAcceptable('aba<b>')); assert.ok(!ctx._importCleAcceptable('autre')); assert.ok(!ctx._importCleAcceptable('aba' + 'x'.repeat(200)));
+  assert.strictEqual(ctx._importValeur('{"a":1}'), '{"a":1}');
+  assert.strictEqual(ctx._importValeur({ a: 1 }), '{"a":1}');
+  assert.strictEqual(ctx._importValeur('fr'), 'fr');
+  assert.ok(ctx._importValeur('QUJD'.repeat(200)), 'une session chiffree (base64) passe');
+  assert.strictEqual(ctx._importValeur('<img src=x onerror=alert(1)>'), null);
+  assert.strictEqual(ctx._importValeur('x'.repeat(5 * 1024 * 1024 + 1)), null);
+  assert.strictEqual(ctx._importValeur(undefined), null);
+  assert.strictEqual(require('vm').runInContext('IMPORT_MAX_OCTETS', ctx), 20 * 1024 * 1024);
+});

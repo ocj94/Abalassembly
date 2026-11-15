@@ -334,6 +334,19 @@ async function exportMyData() {
    sur les cles (prefixe aba ou abalone) qu'a l'export, pour ne jamais ecrire
    de cle arbitraire dans localStorage depuis un fichier externe. Confirmation
    avant ecrasement, meme pattern que resetAllData() (action destructive). */
+/* Import « Mes données » : garde-fous (audit de sécurité du 15/11/2026). Avant, ni la taille du
+   fichier ni le contenu des valeurs n'étaient contrôlés : un fichier piégé pouvait remplir le stockage
+   ou poser des valeurs absurdes. Maintenant : 20 Mo au plus, 1 000 clés au plus, des noms de clé
+   simples, et chaque valeur est du JSON valide ou un texte sans balise HTML, 5 Mo au plus. */
+const IMPORT_MAX_OCTETS = 20 * 1024 * 1024, IMPORT_MAX_CLES = 1000, IMPORT_MAX_VALEUR = 5 * 1024 * 1024;
+function _importCleAcceptable(k) { return typeof k === 'string' && k.length <= 120 && /^aba[A-Za-z0-9_.:-]*$/.test(k); }
+function _importValeur(v) {
+  // renvoie le texte a ecrire, ou null si la valeur est refusee
+  const t = typeof v === 'string' ? v : (v !== null && typeof v === 'object') || typeof v === 'number' || typeof v === 'boolean' ? JSON.stringify(v) : null;
+  if (t === null || t.length > IMPORT_MAX_VALEUR) return null;
+  try { JSON.parse(t); return t; } catch (e) {}               // du JSON valide
+  return /[<>]/.test(t) ? null : t;                           // ou du texte sans balise (reglage, session chiffree en base64)
+}
 function importMyData() {
   const input = document.createElement('input');
   input.type = 'file';
@@ -341,6 +354,7 @@ function importMyData() {
   input.onchange = function(e) {
     const file = e.target.files[0];
     if (!file) return;
+    if (file.size > IMPORT_MAX_OCTETS) { showToast('⚠️ Fichier trop gros (20 Mo au plus) — ce n\'est pas un export Abalassembly'); return; }
     const reader = new FileReader();
     reader.onload = function(ev) {
       let bundle;
@@ -350,20 +364,22 @@ function importMyData() {
         showToast('⚠️ Format non reconnu — ce n\'est pas un export Abalassembly');
         return;
       }
-      const keys = Object.keys(bundle.data).filter(function(k){
+      let keys = Object.keys(bundle.data).filter(function(k){
         if (k === 'abaSyncAppareil' || k === 'abaSyncDerniere') return false;   // v2.69 : cet appareil garde son identite
-        return k.indexOf('aba') === 0 || k.indexOf('abalone') === 0;
+        return _importCleAcceptable(k);
       });
       if (!keys.length) { showToast('⚠️ Fichier vide, rien à importer'); return; }
-      const ok = confirm('⚠️ Importer ces données remplacera ta progression actuelle sur cet appareil (' + keys.length + ' élément(s) : XP, parties, réglages...).\n\nContinuer ?');
+      if (keys.length > IMPORT_MAX_CLES) { showToast('⚠️ Trop d\'éléments (' + keys.length + ') — ce n\'est pas un export Abalassembly'); return; }
+      const valeurs = {}, refusees = [];
+      keys.forEach(function(k){ const t = _importValeur(bundle.data[k]); if (t === null) refusees.push(k); else valeurs[k] = t; });
+      keys = keys.filter(function(k){ return k in valeurs; });
+      if (!keys.length) { showToast('⚠️ Aucune donnée valide dans ce fichier'); return; }
+      const ok = confirm('⚠️ Importer ces données remplacera ta progression actuelle sur cet appareil (' + keys.length + ' élément(s) : XP, parties, réglages...).'
+        + (refusees.length ? '\n\n' + refusees.length + ' élément(s) illisible(s) seront ignorés.' : '') + '\n\nContinuer ?');
       if (!ok) return;
       let imported = 0;
       keys.forEach(function(k){
-        try {
-          const v = bundle.data[k];
-          localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v));
-          imported++;
-        } catch(e){}
+        try { localStorage.setItem(k, valeurs[k]); imported++; } catch(e){}
       });
       showToast('✅ ' + imported + ' élément(s) importé(s). Rechargement…');
       setTimeout(function(){ location.reload(); }, 1200);
@@ -373,36 +389,44 @@ function importMyData() {
   input.click();
 }
 
-function resetAllData() {
-  // Si connecté à un backend : demander aussi la suppression serveur (droit à l'oubli)
-  try{ if(typeof api!=='undefined' && api.online && typeof currentUser!=='undefined' && currentUser){ api.deleteAccount(); } }catch(e){}
-  const ok = confirm('⚠️ Réinitialiser toutes vos données ?\n\nCela effacera définitivement :\n• Votre progression (XP, niveau, ELO)\n• Vos statistiques (victoires, défaites, radar)\n• Votre historique de parties\n• Vos préférences et votre session\n\nCette action est irréversible.');
-  if (!ok) return;
-
-  // Toutes les clés de stockage de l'application
-  const keys = [
-    'abalone_progress', 'abalone_session', 'abalone_profils', 'abalone_a11y', 'abalone_lang',
-    'abalone_lang_banner_dismissed', 'abalone_marble_skin', 'abalone_referral_credits',
-    'abalone_sidebar', 'abalone_token_secret', 'abalone_welcome_seen'
-  ];
+/* Effacer toutes ses donnees (audit de securite du 15/11/2026). Avant, seules 11 cles etaient
+   effacees : l'historique des parties, les parties scannees ou ajoutees au corpus, le Labo, la
+   synchro et une soixantaine d'autres restaient sur l'appareil, malgre la promesse d'effacement
+   definitif. Toutes les cles de l'application commencent par « aba » (abalone_..., aba...) : on les
+   efface toutes, plus le cache du partage de fichiers. La demande au serveur (droit a l'oubli) ne part
+   plus qu'apres la confirmation : avant, un « Annuler » ne l'arretait pas. */
+const _RESET_PREFIXE = 'aba';
+function _resetEffacerStockage() {
+  let n = 0;
   try {
-    keys.forEach(function(k){ localStorage.removeItem(k); });
-    // Clés dynamiques (tournois inscrits : abalone_tournament_AAAA-MM)
     for (let i = localStorage.length - 1; i >= 0; i--) {
-      const key = localStorage.key(i);
-      if (key && key.indexOf('abalone_tournament_') === 0) localStorage.removeItem(key);
+      const k = localStorage.key(i);
+      if (k && k.indexOf(_RESET_PREFIXE) === 0) { localStorage.removeItem(k); n++; }
     }
-  } catch(e) {}
-
-  // Réinitialise l'état en mémoire
-  if (typeof defaultProgress === 'function') {
-    progress = defaultProgress();
-    saveProgress(progress);
-  }
+  } catch (e) {}
+  try {
+    for (let i = sessionStorage.length - 1; i >= 0; i--) {
+      const k = sessionStorage.key(i);
+      if (k && k.indexOf(_RESET_PREFIXE) === 0) sessionStorage.removeItem(k);
+    }
+  } catch (e) {}
+  try { if (typeof caches !== 'undefined') caches.delete('abalassembly-partage'); } catch (e) {}
+  return n;
+}
+function resetAllData() {
+  const ok = confirm('⚠️ Réinitialiser toutes vos données ?\n\nCela effacera définitivement de cet appareil :\n• Votre progression (XP, niveau, ELO) et vos statistiques\n• Votre historique de parties, vos parties scannées et ajoutées au corpus\n• Vos profils, votre session et vos préférences\n• Le Labo, l\'entraînement et la synchronisation\n\nCette action est irréversible.');
+  if (!ok) return;
+  // Connecté à un serveur : lui demander aussi l'effacement (droit à l'oubli)
+  try{ if(typeof api!=='undefined' && api.online && typeof currentUser!=='undefined' && currentUser){ api.deleteAccount(); } }catch(e){}
   currentUser = null;
-  try { clearSession(); } catch(e) {}
-
-  showToast('🗑️ Toutes vos données ont été réinitialisées');
+  const n = _resetEffacerStockage();
+  // Jusqu'au rechargement, plus aucune écriture « aba… » : un minuteur (défi du jour, sauvegarde
+  // automatique) ne doit pas recréer une donnée qu'on vient d'effacer.
+  try {
+    const ecrire = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (k, v) { if (String(k).indexOf(_RESET_PREFIXE) === 0) return; return ecrire.call(this, k, v); };
+  } catch (e) {}
+  showToast('🗑️ Toutes vos données ont été effacées (' + n + ' élément' + (n > 1 ? 's' : '') + ')');
   // Recharge la page pour repartir d'un état propre
   setTimeout(function(){ location.reload(); }, 1200);
 }

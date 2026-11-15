@@ -9,6 +9,27 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.35]
+
+### Sécurité : corrections de l'audit du 15 novembre 2026 (site)
+- **« Réinitialiser toutes vos données » efface vraiment tout** (correction 2).
+  Avant, seules 11 clés partaient : l'historique des parties, les parties
+  scannées et ajoutées au corpus, le Labo, la synchro et une soixantaine
+  d'autres restaient. Maintenant toutes les clés `aba…` et `abalone…`, plus le
+  cache du partage de fichiers ; jusqu'au rechargement, aucun minuteur ne peut
+  en réécrire. La demande d'effacement au serveur ne part plus qu'après la
+  confirmation (un « Annuler » ne l'arrêtait pas).
+- **Import « Mes données » encadré** (correction 13) : 20 Mo au plus, 1 000
+  éléments au plus, des noms de clé simples, chaque valeur en JSON valide ou en
+  texte sans balise HTML, 5 Mo au plus. Une sauvegarde normale passe en entier
+  (vérifié sur 107 clés, session chiffrée comprise).
+- **CSP** (correction 14) : `img-src 'self' data: blob:` au lieu de
+  `https:` — le site n'affiche aucune image venue d'ailleurs, donc rien ne
+  pourrait charger une image de pistage.
+- **Profils locaux** (correction 15) : l'inscription et la page Mot de passe
+  disent que ce mot de passe sépare les profils de l'appareil mais ne protège
+  pas les données contre quelqu'un qui a l'appareil en main.
+
 ## [v3.34]
 
 ### Les parties importées ou suivies en direct entrent dans le corpus (de cet appareil)

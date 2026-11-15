@@ -2711,6 +2711,7 @@
       <!-- SECURITY -->
       <div class="settings-panel" id="spanel-security">
         <div style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:20px">Changer le mot de passe</div>
+        <div style="font-size:12px;color:var(--muted);margin:-12px 0 16px">🔑 Sur cet appareil, le mot de passe sépare les profils ; il ne chiffre pas vos données, que quelqu'un ayant l'appareil en main peut lire dans le navigateur.</div>
         <div class="form-group"><label class="form-label">Mot de passe actuel</label><input class="form-input" id="pw-current" type="password" placeholder="Mot de passe actuel"></div>
         <div class="form-group" style="position:relative"><label class="form-label">Nouveau mot de passe</label><input class="form-input" id="pw-new" type="password" placeholder="Min. 8 caracteres" data-input="checkPwStrength(this.value)" style="padding-right:44px"><button data-click="togglePw('pw-new',this)" style="position:absolute;right:12px;bottom:10px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px">&#128065;</button>
           <div id="pw-strength-bar" style="height:3px;border-radius:2px;margin-top:6px;background:var(--border);overflow:hidden"><div id="pw-strength-fill" style="height:100%;width:0%;transition:all 0.3s;border-radius:2px"></div></div>
@@ -5335,6 +5336,7 @@
         <div id="pw-strength-fill-2" style="height:100%;width:0%;transition:all 0.3s;border-radius:2px"></div>
       </div>
       <div id="pw-strength-label-2" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:5px">🔑 Ce mot de passe sépare les profils de cet appareil. Il ne protège pas vos données contre quelqu'un qui a l'appareil en main : elles restent lisibles dans le navigateur.</div>
     </div>
     <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:18px">
       <input type="checkbox" id="signup-terms" style="accent-color:var(--gold);margin-top:2px;flex-shrink:0">

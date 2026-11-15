@@ -20,7 +20,7 @@
 <!-- v2.96 : connect-src ouvert a playstrategy.org, et a lui seul. Les fonctions PlayStrategy (partie en direct,
      tournois, import par lien) etaient bloquees par cette regle depuis leur ajout ; le site n'y envoie qu'un pseudo
      ou un lien, en lecture seule. Si PlayStrategy refuse les requetes venant d'un autre site (CORS), le message le dit. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' blob: 'sha256-8STPnbw+E3XBBZTJlKw/YzNCMzYXmKRZpCk2DlyHjcE=' 'sha256-xrClgwYGFk8hhEGMu2u07LSxLn0oQO68guvmE6vMhXw=' 'sha256-/Wyo501FDre3YydI7rBeWLmlc3k1Zhvprq/Qekjlbg8=' 'sha256-Ei8lhwpYUzWZfXHIcOiURO+qM+XeVkfeTfi1OPssPfU=' 'sha256-vPSSUR0q4b8wSgnee15gQgz67URxhHm4MgCgzbsfq2Q=' 'sha256-l+8IXMf8DU5SgvLOVQP3Yf8/vU6jr/z0Fms4QMYrWas='; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://playstrategy.org https://cdn.jsdelivr.net https://unpkg.com; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' blob: 'sha256-8STPnbw+E3XBBZTJlKw/YzNCMzYXmKRZpCk2DlyHjcE=' 'sha256-xrClgwYGFk8hhEGMu2u07LSxLn0oQO68guvmE6vMhXw=' 'sha256-/Wyo501FDre3YydI7rBeWLmlc3k1Zhvprq/Qekjlbg8=' 'sha256-dgZdsJpQrEDh/lHm9SIk+bs5me9ufi9USs54uMtXzZs=' 'sha256-vPSSUR0q4b8wSgnee15gQgz67URxhHm4MgCgzbsfq2Q=' 'sha256-l+8IXMf8DU5SgvLOVQP3Yf8/vU6jr/z0Fms4QMYrWas='; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://playstrategy.org https://cdn.jsdelivr.net https://unpkg.com; base-uri 'self'; form-action 'self'">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#151918">
@@ -6333,6 +6333,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
       <!-- SECURITY -->
       <div class="settings-panel" id="spanel-security">
         <div style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:20px">Changer le mot de passe</div>
+        <div style="font-size:12px;color:var(--muted);margin:-12px 0 16px">🔑 Sur cet appareil, le mot de passe sépare les profils ; il ne chiffre pas vos données, que quelqu'un ayant l'appareil en main peut lire dans le navigateur.</div>
         <div class="form-group"><label class="form-label">Mot de passe actuel</label><input class="form-input" id="pw-current" type="password" placeholder="Mot de passe actuel"></div>
         <div class="form-group" style="position:relative"><label class="form-label">Nouveau mot de passe</label><input class="form-input" id="pw-new" type="password" placeholder="Min. 8 caracteres" data-input="checkPwStrength(this.value)" style="padding-right:44px"><button data-click="togglePw('pw-new',this)" style="position:absolute;right:12px;bottom:10px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px">&#128065;</button>
           <div id="pw-strength-bar" style="height:3px;border-radius:2px;margin-top:6px;background:var(--border);overflow:hidden"><div id="pw-strength-fill" style="height:100%;width:0%;transition:all 0.3s;border-radius:2px"></div></div>
@@ -8957,6 +8958,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
         <div id="pw-strength-fill-2" style="height:100%;width:0%;transition:all 0.3s;border-radius:2px"></div>
       </div>
       <div id="pw-strength-label-2" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:5px">🔑 Ce mot de passe sépare les profils de cet appareil. Il ne protège pas vos données contre quelqu'un qui a l'appareil en main : elles restent lisibles dans le navigateur.</div>
     </div>
     <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:18px">
       <input type="checkbox" id="signup-terms" style="accent-color:var(--gold);margin-top:2px;flex-shrink:0">
@@ -9037,7 +9039,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v3.34';
+const APP_VERSION = 'v3.35';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -13426,6 +13428,19 @@ async function exportMyData() {
    sur les cles (prefixe aba ou abalone) qu'a l'export, pour ne jamais ecrire
    de cle arbitraire dans localStorage depuis un fichier externe. Confirmation
    avant ecrasement, meme pattern que resetAllData() (action destructive). */
+/* Import « Mes données » : garde-fous (audit de sécurité du 15/11/2026). Avant, ni la taille du
+   fichier ni le contenu des valeurs n'étaient contrôlés : un fichier piégé pouvait remplir le stockage
+   ou poser des valeurs absurdes. Maintenant : 20 Mo au plus, 1 000 clés au plus, des noms de clé
+   simples, et chaque valeur est du JSON valide ou un texte sans balise HTML, 5 Mo au plus. */
+const IMPORT_MAX_OCTETS = 20 * 1024 * 1024, IMPORT_MAX_CLES = 1000, IMPORT_MAX_VALEUR = 5 * 1024 * 1024;
+function _importCleAcceptable(k) { return typeof k === 'string' && k.length <= 120 && /^aba[A-Za-z0-9_.:-]*$/.test(k); }
+function _importValeur(v) {
+  // renvoie le texte a ecrire, ou null si la valeur est refusee
+  const t = typeof v === 'string' ? v : (v !== null && typeof v === 'object') || typeof v === 'number' || typeof v === 'boolean' ? JSON.stringify(v) : null;
+  if (t === null || t.length > IMPORT_MAX_VALEUR) return null;
+  try { JSON.parse(t); return t; } catch (e) {}               // du JSON valide
+  return /[<>]/.test(t) ? null : t;                           // ou du texte sans balise (reglage, session chiffree en base64)
+}
 function importMyData() {
   const input = document.createElement('input');
   input.type = 'file';
@@ -13433,6 +13448,7 @@ function importMyData() {
   input.onchange = function(e) {
     const file = e.target.files[0];
     if (!file) return;
+    if (file.size > IMPORT_MAX_OCTETS) { showToast('⚠️ Fichier trop gros (20 Mo au plus) — ce n\'est pas un export Abalassembly'); return; }
     const reader = new FileReader();
     reader.onload = function(ev) {
       let bundle;
@@ -13442,20 +13458,22 @@ function importMyData() {
         showToast('⚠️ Format non reconnu — ce n\'est pas un export Abalassembly');
         return;
       }
-      const keys = Object.keys(bundle.data).filter(function(k){
+      let keys = Object.keys(bundle.data).filter(function(k){
         if (k === 'abaSyncAppareil' || k === 'abaSyncDerniere') return false;   // v2.69 : cet appareil garde son identite
-        return k.indexOf('aba') === 0 || k.indexOf('abalone') === 0;
+        return _importCleAcceptable(k);
       });
       if (!keys.length) { showToast('⚠️ Fichier vide, rien à importer'); return; }
-      const ok = confirm('⚠️ Importer ces données remplacera ta progression actuelle sur cet appareil (' + keys.length + ' élément(s) : XP, parties, réglages...).\n\nContinuer ?');
+      if (keys.length > IMPORT_MAX_CLES) { showToast('⚠️ Trop d\'éléments (' + keys.length + ') — ce n\'est pas un export Abalassembly'); return; }
+      const valeurs = {}, refusees = [];
+      keys.forEach(function(k){ const t = _importValeur(bundle.data[k]); if (t === null) refusees.push(k); else valeurs[k] = t; });
+      keys = keys.filter(function(k){ return k in valeurs; });
+      if (!keys.length) { showToast('⚠️ Aucune donnée valide dans ce fichier'); return; }
+      const ok = confirm('⚠️ Importer ces données remplacera ta progression actuelle sur cet appareil (' + keys.length + ' élément(s) : XP, parties, réglages...).'
+        + (refusees.length ? '\n\n' + refusees.length + ' élément(s) illisible(s) seront ignorés.' : '') + '\n\nContinuer ?');
       if (!ok) return;
       let imported = 0;
       keys.forEach(function(k){
-        try {
-          const v = bundle.data[k];
-          localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v));
-          imported++;
-        } catch(e){}
+        try { localStorage.setItem(k, valeurs[k]); imported++; } catch(e){}
       });
       showToast('✅ ' + imported + ' élément(s) importé(s). Rechargement…');
       setTimeout(function(){ location.reload(); }, 1200);
@@ -13465,36 +13483,44 @@ function importMyData() {
   input.click();
 }
 
-function resetAllData() {
-  // Si connecté à un backend : demander aussi la suppression serveur (droit à l'oubli)
-  try{ if(typeof api!=='undefined' && api.online && typeof currentUser!=='undefined' && currentUser){ api.deleteAccount(); } }catch(e){}
-  const ok = confirm('⚠️ Réinitialiser toutes vos données ?\n\nCela effacera définitivement :\n• Votre progression (XP, niveau, ELO)\n• Vos statistiques (victoires, défaites, radar)\n• Votre historique de parties\n• Vos préférences et votre session\n\nCette action est irréversible.');
-  if (!ok) return;
-
-  // Toutes les clés de stockage de l'application
-  const keys = [
-    'abalone_progress', 'abalone_session', 'abalone_profils', 'abalone_a11y', 'abalone_lang',
-    'abalone_lang_banner_dismissed', 'abalone_marble_skin', 'abalone_referral_credits',
-    'abalone_sidebar', 'abalone_token_secret', 'abalone_welcome_seen'
-  ];
+/* Effacer toutes ses donnees (audit de securite du 15/11/2026). Avant, seules 11 cles etaient
+   effacees : l'historique des parties, les parties scannees ou ajoutees au corpus, le Labo, la
+   synchro et une soixantaine d'autres restaient sur l'appareil, malgre la promesse d'effacement
+   definitif. Toutes les cles de l'application commencent par « aba » (abalone_..., aba...) : on les
+   efface toutes, plus le cache du partage de fichiers. La demande au serveur (droit a l'oubli) ne part
+   plus qu'apres la confirmation : avant, un « Annuler » ne l'arretait pas. */
+const _RESET_PREFIXE = 'aba';
+function _resetEffacerStockage() {
+  let n = 0;
   try {
-    keys.forEach(function(k){ localStorage.removeItem(k); });
-    // Clés dynamiques (tournois inscrits : abalone_tournament_AAAA-MM)
     for (let i = localStorage.length - 1; i >= 0; i--) {
-      const key = localStorage.key(i);
-      if (key && key.indexOf('abalone_tournament_') === 0) localStorage.removeItem(key);
+      const k = localStorage.key(i);
+      if (k && k.indexOf(_RESET_PREFIXE) === 0) { localStorage.removeItem(k); n++; }
     }
-  } catch(e) {}
-
-  // Réinitialise l'état en mémoire
-  if (typeof defaultProgress === 'function') {
-    progress = defaultProgress();
-    saveProgress(progress);
-  }
+  } catch (e) {}
+  try {
+    for (let i = sessionStorage.length - 1; i >= 0; i--) {
+      const k = sessionStorage.key(i);
+      if (k && k.indexOf(_RESET_PREFIXE) === 0) sessionStorage.removeItem(k);
+    }
+  } catch (e) {}
+  try { if (typeof caches !== 'undefined') caches.delete('abalassembly-partage'); } catch (e) {}
+  return n;
+}
+function resetAllData() {
+  const ok = confirm('⚠️ Réinitialiser toutes vos données ?\n\nCela effacera définitivement de cet appareil :\n• Votre progression (XP, niveau, ELO) et vos statistiques\n• Votre historique de parties, vos parties scannées et ajoutées au corpus\n• Vos profils, votre session et vos préférences\n• Le Labo, l\'entraînement et la synchronisation\n\nCette action est irréversible.');
+  if (!ok) return;
+  // Connecté à un serveur : lui demander aussi l'effacement (droit à l'oubli)
+  try{ if(typeof api!=='undefined' && api.online && typeof currentUser!=='undefined' && currentUser){ api.deleteAccount(); } }catch(e){}
   currentUser = null;
-  try { clearSession(); } catch(e) {}
-
-  showToast('🗑️ Toutes vos données ont été réinitialisées');
+  const n = _resetEffacerStockage();
+  // Jusqu'au rechargement, plus aucune écriture « aba… » : un minuteur (défi du jour, sauvegarde
+  // automatique) ne doit pas recréer une donnée qu'on vient d'effacer.
+  try {
+    const ecrire = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (k, v) { if (String(k).indexOf(_RESET_PREFIXE) === 0) return; return ecrire.call(this, k, v); };
+  } catch (e) {}
+  showToast('🗑️ Toutes vos données ont été effacées (' + n + ' élément' + (n > 1 ? 's' : '') + ')');
   // Recharge la page pour repartir d'un état propre
   setTimeout(function(){ location.reload(); }, 1200);
 }

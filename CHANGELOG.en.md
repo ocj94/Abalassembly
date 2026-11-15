@@ -9,6 +9,25 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.35]
+
+### Security: fixes from the 15 November 2026 audit (site)
+- **"Reset all your data" really erases everything** (fix 2). Before, only 11
+  keys went: game history, scanned games and games added to the corpus, the
+  Lab, sync and about sixty others stayed. Now every `aba…` and `abalone…` key
+  goes, plus the file-sharing cache; until the reload, no timer can write one
+  back. The erasure request to the server is only sent after confirmation
+  ("Cancel" did not stop it).
+- **"My data" import bounded** (fix 13): 20 MB at most, 1,000 items at most,
+  simple key names, each value valid JSON or text without HTML tags, 5 MB at
+  most. A normal backup goes through whole (checked on 107 keys, encrypted
+  session included).
+- **CSP** (fix 14): `img-src 'self' data: blob:` instead of `https:` — the
+  site shows no image from elsewhere, so nothing could load a tracking image.
+- **Local profiles** (fix 15): sign-up and the Password page say this password
+  separates the device's profiles but does not protect the data from someone
+  holding the device.
+
 ## [v3.34]
 
 ### Imported or live-followed games join the corpus (on this device)
