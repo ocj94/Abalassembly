@@ -8034,3 +8034,70 @@ test('v3.36 : Observatoire — les mesures d’un coup et de la partie (choix se
   lire("OBS.hist = []; OBS.rev = -1; OBS.live = null");
   ctx.localStorage.removeItem('abaObsNuage');
 });
+
+// ─── v3.37 : Labo, les cinq lectures du journal (47b-labo-stats.js) ───
+test('v3.37 : Labo — paires, parcours des tests, réglages, scores finaux, séances', () => {
+  const vm = require('vm'), lire = c => vm.runInContext(c, ctx);
+  const CLE = lire('LAB_DATA_KEY');
+  const g = (o) => Object.assign({ t: 0, gen: 1, phase: 'cand', mutant: 'm', mutKey: '', winner: 'A', why: '6capt', plies: 60,
+    cb: 6, cw: 2, colorA: 'black', seed: 1, paire: 0, wA: {}, wB: {}, depart: 'corpus', ms: 4000 }, o);
+
+  // ── 6. les paires : deux parties, mêmes test et numéro, couleurs opposées ──
+  const paire = (p, a, b, c0) => [g({ t: 1000 + p * 10, paire: p, colorA: c0, winner: a }), g({ t: 1001 + p * 10, paire: p, colorA: c0 === 'black' ? 'white' : 'black', winner: b })];
+  let L = [].concat(paire(0, 'A', 'A', 'black'), paire(1, 'A', 'B', 'black'), paire(2, 'B', 'B', 'white'), paire(3, 'D', 'A', 'black'), paire(4, 'B', 'A', 'black'));
+  let P = ctx._labStPaires(L);
+  assert.strictEqual(P.length, 5);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(P.map(p => p.score))), [2, 1, 0, 1.5, 1]);
+  // paire 0 : A gagne les deux, donc une fois en Noir et une fois en Blanc -> ce n'est PAS la position
+  // paire 1 : A gagne en Noir, puis B gagne alors que B a les Noirs -> les Noirs gagnent deux fois : la position décide
+  // paire 2 : B gagne les deux, une fois en Noir une fois en Blanc -> pas la position
+  // paire 3 : une nulle -> jamais « la position décide »
+  // paire 4 : les Blancs gagnent les deux (B en Blanc, puis A en Blanc) -> la position décide
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(P.map(p => p.position))), [false, true, false, false, true]);
+  assert.strictEqual(ctx._labStPaires([g({ paire: 0, colorA: 'black' })]).length, 0, 'une paire incomplète ne compte pas');
+  assert.strictEqual(ctx._labStPaires([g({ t: 1, paire: 0, colorA: 'black' }), g({ t: 2, paire: 0, colorA: 'black' })]).length, 0, 'deux fois la même couleur : écartée');
+  assert.strictEqual(ctx._labStPaires([g({ t: 1, paire: 0, colorA: 'black', phase: 'cand' }), g({ t: 2, paire: 0, colorA: 'white', phase: 'confirm' })]).length, 0, 'phases différentes : pas la même paire');
+
+  // ── 7. le parcours d'un test de confirmation, et son verdict ──
+  L = [];
+  for (let p = 0; p < 5; p++) L = L.concat(paire(p, p < 4 ? 'A' : 'B', p < 3 ? 'A' : 'B', 'black').map(r => Object.assign(r, { phase: 'confirm', mutant: 'mut-A', gen: 4 })));
+  const st = { gen: 4, history: [{ gen: 4, type: '✅ adopté (SPRT)', name: 'mut-A', elo: 11 }] };
+  const T = ctx._labStTests(L, st);
+  assert.strictEqual(T.length, 1);
+  assert.strictEqual(T[0].paires, 5); assert.strictEqual(T[0].verdict, 'adopte'); assert.strictEqual(T[0].elo, 11);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(T[0].pts)), [[1, 1], [2, 2], [3, 3], [4, 3], [5, 2]], 'avance cumulée : +1 par paire gagnée, 0 à égalité, −1 perdue');
+  assert.strictEqual(T[0].fin, 2);
+  assert.strictEqual(ctx._labStTests(L, { history: [] })[0].verdict, null, 'sans entrée dans l’historique : pas de verdict');
+  assert.strictEqual(ctx._labStTests(L.slice(0, 4), st).length, 0, 'moins de 3 paires : pas de courbe');
+
+  // ── 8. les réglages : le sens vient des poids de la partie (wA contre wB) ──
+  L = [];
+  for (let i = 0; i < 8; i++) L.push(g({ t: i, phase: 'cand', mutKey: 'center', wA: { center: 50 }, wB: { center: 30 }, winner: i < 5 ? 'A' : (i === 7 ? 'D' : 'B') }));
+  for (let i = 0; i < 6; i++) L.push(g({ t: 100 + i, phase: 'cand', mutKey: 'mob', wA: { mob: 10 }, wB: { mob: 30 }, winner: 'B' }));
+  L.push(g({ t: 200, phase: 'cand', mutKey: 'edge', wA: { edge: 5 }, wB: { edge: 5 }, winner: 'A' }));   // poids inchangé : ignorée
+  L.push(g({ t: 201, phase: 'confirm', mutKey: 'edge', wA: { edge: 9 }, wB: { edge: 5 }, winner: 'A' })); // pas du tri : ignorée
+  const R = ctx._labStReglages(L);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(R.map(x => [x.cle, x.sens, x.n, x.p]))), [['center', '+', 8, 5.5], ['mob', '−', 6, 0]]);
+  assert.ok(!R.some(x => x.cle === 'edge'), 'un poids inchangé ou hors tri ne donne pas de réglage');
+
+  // ── 9. la grille des scores : vue du camp testé, quelle que soit sa couleur ──
+  const S = ctx._labStScores([g({ colorA: 'black', cb: 6, cw: 2 }), g({ colorA: 'white', cb: 1, cw: 6 }), g({ colorA: 'black', cb: 0, cw: 6 }), g({ cb: '', cw: '' })]);
+  assert.strictEqual(S.n, 3, 'une partie sans score final ne compte pas');
+  assert.strictEqual(S.g[6][2], 1); assert.strictEqual(S.g[6][1], 1); assert.strictEqual(S.g[0][6], 1);
+
+  // ── 10. les séances : coupées à 10 minutes d'écart ──
+  const base = 1e12;
+  const Q = ctx._labStSeances([g({ t: base, ms: 1000, plies: 10 }), g({ t: base + 60000, ms: 3000, plies: 20 }),
+    g({ t: base + 60000 + 900000, ms: 2000, plies: 10 }), g({ t: base + 60000 + 960000, ms: 2000, plies: 10 })]);
+  assert.strictEqual(Q.length, 2);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(Q.map(s => [s.n, s.ms, s.plies]))), [[2, 4000, 30], [2, 4000, 20]]);
+  assert.strictEqual(ctx._labStSeances([g({ t: base, ms: 1000 }), g({ t: base + 1000, ms: 0 })]).length, 0, 'une seule partie chronométrée : séance écartée');
+
+  // ── le bloc entier : les cinq titres, et chacun son message quand il n'a rien ──
+  ctx.localStorage.setItem(CLE, JSON.stringify(L));
+  let h = ctx.labStatsHtml(L, st, 640);
+  ['Le résultat des paires', 'Le parcours des tests', 'Quels réglages paient', 'Le score final des parties', 'La vitesse de calcul'].forEach(t => assert.ok(h.includes(t), t));
+  h = ctx.labStatsHtml([], { history: [] }, 640);
+  assert.strictEqual((h.match(/gr-vide/g) || []).length, 5, 'journal vide : les cinq blocs le disent, aucun ne plante');
+  ctx.localStorage.removeItem(CLE);
+});

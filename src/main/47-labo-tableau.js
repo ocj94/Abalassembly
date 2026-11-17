@@ -94,6 +94,8 @@ function renderLabTableau(){
   L.forEach(function(r){ const k = (r.depart && r.depart !== 'hasard') ? 'corpus' : 'hasard'; dep[k].n++; dep[k].p += r.plies || 0; });
   h += '<div class="gr-titre">D’où partent les parties</div>' + grBarres([{ lab: 'Vraies positions', v: dep.corpus.n, txt: grNb(dep.corpus.n) + (dep.corpus.n ? ' · ' + grNb(dep.corpus.p / dep.corpus.n, 0) + ' demi-coups en moyenne' : '') },
     { lab: 'Standard + hasard', v: dep.hasard.n, couleur: GR_REF, txt: grNb(dep.hasard.n) + (dep.hasard.n ? ' · ' + grNb(dep.hasard.p / dep.hasard.n, 0) + ' demi-coups en moyenne' : '') }], {});
+  // v3.37 : les cinq lectures du journal (47b-labo-stats.js)
+  if (typeof labStatsHtml === 'function') h += labStatsHtml(L, st, W);
   h += grChiffres(['Jour', 'Parties'], J.filter(function(x){ return x.v; }).map(function(x){ return [x.tip.split(_dimDp())[0], x.v]; }));
   hote.innerHTML = h;
   if (typeof carteLaboRendre === 'function') carteLaboRendre();

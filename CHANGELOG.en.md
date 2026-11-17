@@ -9,6 +9,31 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.37]
+
+### Lab: five readings of the game journal
+ocj94's request: more figures and charts, here on what the Lab has actually
+played. Everything comes from the game journal (the last 2,000) and the test
+history: no game is replayed, nothing is estimated. The dashboard's period and
+phase filters apply.
+
+- **How the pairs ended.** A pair is the same position played twice with the
+  colours swapped. The five possible results (2 – 0 down to 0 – 2), the share of
+  pairs with a winner, and the share where **the position decides**: both games
+  won by the same colour, whichever side was playing it.
+- **How the tests unfolded.** The mutant's lead over the champion, pair after
+  pair, for the last six confirmation tests, each curve coloured by its verdict
+  (adopted, rejected, undecided) taken from the history.
+- **Which settings pay off.** While sorting mutants, the Lab changes one weight
+  at a time: the score of the games where that weight was raised or lowered, with
+  its 95 % margin of error (Wilson interval). The direction comes from the game's
+  own weights, not from a hand-written list.
+- **The final score of the games**, as a grid (marbles taken on each side), and
+  the curve of marbles saved by the loser, next to the one for the real corpus
+  games.
+- **Computing speed**, session after session: seconds per game and milliseconds
+  per ply. A session is a run of games less than ten minutes apart.
+
 ## [v3.36]
 
 ### AI Observatory: a "Statistics" tab on the game in progress

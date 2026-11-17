@@ -9,6 +9,32 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.37]
+
+### Labo : cinq lectures du journal des parties
+Demande d'ocj94 : plus de chiffres et de graphiques, ici sur ce que le Labo a
+réellement joué. Tout vient du journal des parties (les 2 000 dernières) et de
+l'historique des tests : aucune partie n'est rejouée, rien n'est estimé. Les
+filtres période et phase du tableau de bord s'appliquent.
+
+- **Le résultat des paires.** Une paire, c'est la même position jouée deux fois,
+  couleurs inversées. Répartition des cinq résultats possibles (2 – 0 à 0 – 2),
+  part des paires départagées, et part de celles où **la position décide** : les
+  deux parties gagnées par la même couleur, quel que soit le camp qui la jouait.
+- **Le parcours des tests.** L'avance du mutant sur le champion, paire après
+  paire, pour les six derniers tests de confirmation, chaque courbe colorée selon
+  son verdict (adopté, rejeté, indécis) repris de l'historique.
+- **Quels réglages paient.** Pendant le tri des mutants, le Labo change un poids
+  à la fois : le score des parties où ce poids a été monté ou baissé, avec sa
+  marge d'erreur à 95 % (intervalle de Wilson). Le sens vient des poids de la
+  partie elle-même, pas d'une liste écrite à la main.
+- **Le score final des parties**, en grille (billes prises de chaque côté), et la
+  courbe des billes sauvées par le perdant, à côté de celle des vraies parties du
+  corpus.
+- **La vitesse de calcul**, séance après séance : secondes par partie et
+  millisecondes par demi-coup. Une séance est une suite de parties qui
+  s'enchaînent, à moins de dix minutes l'une de l'autre.
+
 ## [v3.36]
 
 ### Observatoire IA : un onglet « Statistiques » sur la partie en cours

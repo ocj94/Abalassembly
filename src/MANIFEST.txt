@@ -84,6 +84,7 @@ main/44-labo-bancs.js
 main/45-labo-humains.js
 main/46-graphiques.js
 main/47-labo-tableau.js
+main/47b-labo-stats.js
 main/48-corpus-plus.js
 main/49-mes-stats-plus.js
 main/50-qualite-coups.js
