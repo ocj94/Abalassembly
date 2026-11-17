@@ -125,6 +125,17 @@ function _sbClasser(t, mv, info){
   else t[n === 1 ? 0 : (n === 2 ? 1 : 2)]++;
   if (info.type === 'push') t[5]++;
 }
+/* v3.39 (demande d'ocj94, « la rose des directions ») : le rang d'une direction dans AX_DIRS
+   (0 Est, 1 Ouest, 2 Nord-Est, 3 Nord, 4 Sud-Ouest, 5 Sud -- memes noms que directionName) ; -1 si inconnue. */
+function _sbDirIndex(dir){
+  if (!dir) return -1;
+  for (let i = 0; i < AX_DIRS.length; i++) if (AX_DIRS[i].q === dir.q && AX_DIRS[i].r === dir.r) return i;
+  return -1;
+}
+/* Les 24 compteurs de direction d'un camp : 0-17 les 6 directions par phase (ouverture, milieu, finale),
+   18-23 les 6 directions des poussees, toutes phases. */
+const _SB_DIRS_N = 24;
+
 /* v2.80 (demande d'ocj94, « les types de sumito ») : le type d'une poussee -- 0 : 2 contre 1, 1 : 3 contre 1,
    2 : 3 contre 2 ; -1 pour un coup qui ne pousse pas. info.push : le nombre de billes adverses poussees. */
 function _sbTypePoussee(mv, info){
@@ -196,6 +207,7 @@ function _sbRejouerPartie(src, g, avecDims, extra){
     // v2.81 : demi-coup de la premiere poussee de chaque type (Noirs 0..2, Blancs 3..5 ; 0 = jamais),
     // positions repetees, et nombre de coups legaux aux demi-coups _SB_BRANCHES
     fp: [0, 0, 0, 0, 0, 0], rep: null, br: _SB_BRANCHES.map(function(){ return 0; }),
+    dN: new Array(_SB_DIRS_N).fill(0), dB: new Array(_SB_DIRS_N).fill(0),   // v3.39 : la rose des directions
     /* v2.83 : les billes seules, par camp (Noirs 0..3, Blancs 4..7) : [demi-coups passes seule par ses billes,
        demi-coups passes accompagnees, billes tombees alors qu'elles etaient seules, tombees accompagnees] ;
        puis les periodes d'isolement : [8] finies par la chute, [9] par une voisine retrouvee, [10] par la fin */
@@ -254,6 +266,10 @@ function _sbRejouerPartie(src, g, avecDims, extra){
       const caseEj = _sbCaseEjectee(mv, info);
       const tp = _sbTypePoussee(mv, info);
       if (tp >= 0) { (col === 'black' ? rec.pN : rec.pB)[tp]++; const f = (col === 'black' ? 0 : 3) + tp; if (!rec.fp[f]) rec.fp[f] = k + 1; }
+      // v3.39 : la direction jouee, par phase (phase AVANT le coup, meme regle que partout : les billes deja tombees)
+      const di = _sbDirIndex(mv.dir);
+      if (di >= 0) { const d = col === 'black' ? rec.dN : rec.dB, ph = (rec.cb === 0 && rec.cw === 0) ? 0 : (Math.max(rec.cb, rec.cw) >= 3 ? 2 : 1);
+        d[ph * 6 + di]++; if (info && info.type === 'push') d[18 + di]++; }
       const suivi = _sbDeplacerIdentites(ident, mv, info);
       if (X && k < _SB_NOUVEAUTE_MAX) X.cles.push(_sbCleCoup(mv));
       prefixe = fnv(prefixe, _sbCleCoup(mv) + ';');

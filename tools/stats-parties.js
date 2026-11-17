@@ -77,7 +77,7 @@ if (arg > 0) {
       const conn = connaissance(tous, ctx), ext = totauxCorpus(tous, ctx);
       tous.forEach(([src, i, dispo, rec], k) => {
         let d = dispos.indexOf(dispo); if (d < 0) { dispos.push(dispo); d = dispos.length - 1; }
-        p.push(ctx._sbEncoder(rec, d).concat([conn[k]]));   // v2.83 : [13] la place de la partie dans le corpus
+        p.push(ctx._sbEncoder(rec, d).concat([conn[k], rec.dN.concat(rec.dB)]));   // v2.83 : [13] la place de la partie dans le corpus ; v3.39 : [14] la rose des directions
         if (rec.complet) bilan.complets++;
         if (rec.g === 1 || rec.g === 2) bilan.decides++;
         if (rec.n < rec.nj && rec.cb < 6 && rec.cw < 6) bilan.nonFinies++;   // coup illisible avant la fin

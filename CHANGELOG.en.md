@@ -9,6 +9,35 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.39]
+
+### Game statistics: five more cards
+ocj94's request. Everything comes from the data already embedded (one record per
+game) and from the game banks for the dates: no game is replayed in the browser.
+The page's filters apply, as they do to the other cards marked 🔎.
+
+- **Runs and ripostes.** When a marble has just fallen, who pushes the next one
+  off: the same side (53 % over the whole corpus) or the other? With the median
+  gap between two marbles, the share of immediate answers, and the breakdown by
+  moment of the game.
+- **Changes of leader.** How many times the lead changes sides in a game,
+  whether a see-saw game lasts longer, and the share of games where the first to
+  score keeps the lead to the end.
+- **Activity month by month.** The corpus by year and month, as a grid, with
+  each year's total.
+- **Does experience pay off?** For each game between two humans, did the side
+  with more games in the corpus win, by experience gap. No handle is shown, and
+  a test checks it.
+- **The compass of directions.** The six playing directions, by side, by moment
+  of the game, and those of the pushes.
+
+### Data
+- `tools/stats-parties.js` now records, for each game, the six directions played
+  by side and by phase, plus those of the pushes (`p[14]`, 48 numbers). The
+  embedded file goes from 501 to 675 kB.
+- `computeEjectionStats` (v3.38) and this compass use the same direction
+  classification as the board, `AX_DIRS`.
+
 ## [v3.38]
 
 ### My statistics: four more readings

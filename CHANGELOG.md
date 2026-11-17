@@ -9,6 +9,36 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.39]
+
+### Statistiques du jeu : cinq cartes de plus
+Demande d'ocj94. Tout vient des données déjà embarquées (un enregistrement par
+partie) et des banques de parties pour les dates : aucune partie n'est rejouée
+dans le navigateur. Les filtres de la page s'appliquent, comme aux autres cartes
+marquées 🔎.
+
+- **Séries et ripostes.** Quand une bille vient de tomber, qui fait tomber la
+  suivante : le même camp (53 % sur tout le corpus) ou l'autre ? Avec l'écart
+  médian entre deux billes, la part de réponses immédiates, et le détail selon
+  le moment de la partie.
+- **Les changements de meneur.** Combien de fois l'avance change de camp dans
+  une partie, si une partie disputée dure plus longtemps, et la part des parties
+  où le premier à marquer garde la tête jusqu'au bout.
+- **L'activité mois par mois.** Le corpus par année et par mois, en grille, et
+  le total de chaque année.
+- **L'expérience paie-t-elle ?** Pour chaque partie entre deux humains, le camp
+  qui a le plus de parties dans le corpus a-t-il gagné, selon l'écart
+  d'expérience. Aucun pseudo n'est affiché, et un test le vérifie.
+- **La rose des directions.** Les six directions de jeu, par camp, selon le
+  moment de la partie, et celles des poussées.
+
+### Données
+- `tools/stats-parties.js` enregistre maintenant, pour chaque partie, les six
+  directions jouées par camp et par phase, plus celles des poussées
+  (`p[14]`, 48 nombres). Le fichier embarqué passe de 501 à 675 ko.
+- `computeEjectionStats` (v3.38) et cette rose utilisent le même classement des
+  directions que le plateau, `AX_DIRS`.
+
 ## [v3.38]
 
 ### Mes statistiques : quatre lectures de plus

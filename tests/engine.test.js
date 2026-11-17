@@ -5651,7 +5651,7 @@ test('corpus v2.81 : donnees embarquees -- premieres poussees, repetitions et co
   await ctx.ensureGameBanks(); assert.ok(await ctx.ensureStatsParties());
   const D = _r63('STATS_PARTIES'), BR = Array.from(_r63('_SB_BRANCHES'));
   D.p.forEach((p, k) => {
-    assert.ok(p.length === 14 && p[9].length === 6 && p[11].length === BR.length, 'partie ' + k + ' : relancer node tools/stats-parties.js');
+    assert.ok(p.length === 15 && p[9].length === 6 && p[11].length === BR.length && p[14].length === 48, 'partie ' + k + ' : relancer node tools/stats-parties.js');
     p[9].forEach((v, i) => assert.ok(v === 0 || (v >= 1 && v <= p[1] && (v % 2 === (i < 3 ? 1 : 0))), 'premiere poussee jouee par le bon camp, partie ' + k));
     if (p[10]) assert.ok(p[10][0] >= 4 && p[10][0] <= p[1] && p[10][1] >= 4 && p[10][1] % 2 === 0 && p[10][2] >= 1 && p[10][3] >= 2, 'repetition, partie ' + k);
     BR.forEach((ply, i) => assert.ok(ply > p[1] ? p[11][i] === 0 : p[11][i] > 0, 'coups possibles, partie ' + k));
@@ -8186,4 +8186,80 @@ test('v3.38 : tes parties vues par l’IA, tes fins de partie, ton calendrier et
       assert.ok(ctx._mpHtmlDefis(640).includes('gr-vide'));
     }));
   } finally { lire('progress.defis = ' + JSON.stringify(sauveD || {})); }
+});
+
+// ─── v3.39 : corpus, cinq cartes de plus (48b-corpus-series.js) ───
+test('v3.39 : séries et ripostes, changements de meneur, rose des directions', async () => {
+  // une partie fabriquée : p[4] = [demi-coup, code] par bille tombée (code impair = une blanche tombe, donc les Noirs marquent)
+  const jeu = (ej, g, plies) => ({ k: 0, p: [g == null ? 0 : g, plies || 100, 1, 0, ej, [], [], 0, [], [], 0, [], [], null, new Array(48).fill(0)] });
+  // N au 10e, N au 12e (il enchaîne), B au 20e (riposte), N au 21e (riposte)
+  const L1 = [jeu([10, 1, 12, 1, 20, 0, 21, 1], 1)];
+  const s = ctx._csSeries(L1);
+  assert.strictEqual(s.suites, 1); assert.strictEqual(s.ripostes, 2);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(s.ecartsTous)), [2, 8, 1]);
+  assert.strictEqual(s.parMoment[0][0] + s.parMoment[0][1], 1, 'la 1re réponse est après la 1re bille');
+  assert.strictEqual(s.parMoment[1][0] + s.parMoment[1][1], 2, 'les deux suivantes sont après la 2e ou la 3e');
+  assert.strictEqual(ctx._csSeries([jeu([10, 1], 1)]).suites + ctx._csSeries([jeu([10, 1], 1)]).ripostes, 0, 'une seule bille : pas de réponse');
+
+  // meneurs : N, N, B, B, B -> 1-0, 2-0, 2-1, 2-2, 2-3 : un seul changement (à la 5e), et les Blancs gagnent
+  const m = ctx._csMeneurs([jeu([2, 1, 4, 1, 6, 0, 8, 0, 10, 0], 2)]);
+  assert.strictEqual(m.parties, 1); assert.strictEqual(m.total, 1);
+  assert.strictEqual(m.jamaisRattrape, 0);
+  assert.strictEqual(m.premierGagne.n, 1); assert.strictEqual(m.premierGagne.g, 0, 'le premier à marquer est Noir, mais Blanc gagne');
+  const m2 = ctx._csMeneurs([jeu([2, 1, 4, 1], 1)]);
+  assert.strictEqual(m2.total, 0); assert.strictEqual(m2.jamaisRattrape, 1); assert.strictEqual(m2.premierGagne.g, 1);
+  assert.strictEqual(ctx._csMeneurs([jeu([], 1)]).parties, 0, 'aucune bille tombée : la partie ne compte pas');
+
+  // la rose : 48 nombres, 24 par camp (6 directions × 3 phases, puis 6 pour les poussées)
+  const d = new Array(48).fill(0);
+  d[3] = 5;         // Noirs, ouverture, direction 3
+  d[6 + 0] = 2;     // Noirs, milieu, direction 0
+  d[18 + 3] = 4;    // Noirs, poussées, direction 3
+  d[24 + 12 + 5] = 7;   // Blancs, finale, direction 5
+  const r = ctx._csRose([{ k: 0, p: [1, 100, 1, 0, [], [], [], 0, [], [], 0, [], [], null, d] }]);
+  assert.strictEqual(r.parties, 1);
+  assert.strictEqual(r.N.tot, 7); assert.strictEqual(r.B.tot, 7);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(r.N.phases[0])), [0, 0, 0, 5, 0, 0]);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(r.N.pouss)), [0, 0, 0, 4, 0, 0]);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(r.B.phases[2])), [0, 0, 0, 0, 0, 7]);
+  assert.strictEqual(ctx._csRose([{ k: 0, p: [1, 100, 1, 0, [], [], [], 0, [], [], 0, [], [], null, null] }]).parties, 0, 'une partie sans rose est ignorée');
+});
+
+test('v3.39 : corpus — les cinq cartes sur les vraies parties, sans jamais afficher un pseudo', async () => {
+  await _charger57();
+  await _enFrancais54(() => _dom54(async () => {
+    const L = ctx._cfParties();
+    assert.ok(L.length > 4000, 'tout le corpus, sans filtre');
+    // les directions sont bien dans les données embarquées
+    const r = ctx._csRose(L);
+    assert.strictEqual(r.parties, L.length, 'chaque partie porte sa rose (sinon : node tools/stats-parties.js)');
+    assert.ok(r.N.tot > 100000 && r.B.tot > 100000);
+    const somme = t => t.reduce((a, b) => a + b, 0);
+    const N = r.N.phases.reduce((a, p) => a.map((v, i) => v + p[i]), [0, 0, 0, 0, 0, 0]);
+    // les Noirs partent du bas de l'écran : ils jouent plus souvent vers le haut (direction 3) que vers le bas (5)
+    assert.ok(N[3] > N[5], 'les Noirs avancent vers la moitié d’en face');
+    const B = r.B.phases.reduce((a, p) => a.map((v, i) => v + p[i]), [0, 0, 0, 0, 0, 0]);
+    assert.ok(B[4] > B[2], 'les Blancs aussi, dans l’autre sens');
+    assert.ok(Math.abs(somme(N) - r.N.tot) < 1e-9);
+    // la date d'une partie : celle de sa banque
+    const B0 = ctx._sbBanques();
+    assert.strictEqual(ctx._csDate(0), String(B0[0][0][1]), 'MIGS : la date est au rang 1');
+    assert.strictEqual(ctx._csDate(B0[0].length), String(B0[1][0][0]), 'AbalOnline : au rang 0');
+    // les cinq cartes : du contenu, pas de NaN, et aucun pseudo du corpus
+    const W = 640;
+    const cartes = [ctx._csHtmlSeries(L, W), ctx._csHtmlMeneurs(L, W), ctx._csHtmlMois(L), ctx._csHtmlExperience(L, W), ctx._csHtmlRose(L, W)];
+    cartes.forEach((h, i) => {
+      assert.ok(h.length > 1500, 'carte ' + i + ' trop courte');
+      assert.doesNotMatch(h, /NaN|undefined/, 'carte ' + i);
+      assert.strictEqual((h.match(/gr-vide/g) || []).length, 0, 'carte ' + i + ' : aucun bloc vide sur tout le corpus');
+    });
+    const tout = cartes.join('\n');
+    ['Séries et ripostes', 'Les changements de meneur', 'L’activité mois par mois', 'L’expérience paie-t-elle ?', 'La rose des directions'].forEach(t => assert.ok(tout.includes(t), t));
+    // aucun pseudo de joueur ne doit sortir : on prend les 40 plus présents du corpus
+    const X = ctx._csExperience();
+    const noms = Object.keys(X.n).map(k => k.split('§')[1]).filter(n => n && n.length >= 4)
+      .sort((a, b) => X.n['0§' + b] + X.n['1§' + b] - (X.n['0§' + a] + X.n['1§' + a])).slice(0, 40);
+    assert.ok(noms.length >= 20, 'des joueurs connus pour le contrôle');
+    noms.forEach(n => assert.ok(!tout.toLowerCase().includes(n.toLowerCase()), 'un pseudo est apparu : ' + n));
+  }));
 });

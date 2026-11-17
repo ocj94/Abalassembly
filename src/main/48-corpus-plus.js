@@ -342,6 +342,7 @@ function _cfRendreTout(){
   if (typeof _eoRendreTout === 'function') _eoRendreTout();   // v2.80 : l'explorateur d'ouvertures
   if (typeof _ctRendreTout === 'function') _ctRendreTout();   // v2.81 : le trait, les annees, premieres poussees, repetitions, coups possibles
   if (typeof _c3RendreTout === 'function') _c3RendreTout();   // v2.83 : temps morts, sortie du corpus, positions deja vues, billes seules, contacts, avant une bille perdue
+  if (typeof _csRendreTout === 'function') _csRendreTout();   // v3.39 : series, meneurs, mois, experience, rose des directions
   if (typeof _cdRendreTout === 'function') _cdRendreTout();   // v2.86 : les dimensions au fil de la partie, le point de non-retour
   if (typeof _sbRendreCorpus === 'function') _sbRendreCorpus();
   if (typeof carteCorpusRendre === 'function') carteCorpusRendre();   // v3.27 : la carte des parties
