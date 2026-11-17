@@ -20,7 +20,7 @@
 <!-- v2.96 : connect-src ouvert a playstrategy.org, et a lui seul. Les fonctions PlayStrategy (partie en direct,
      tournois, import par lien) etaient bloquees par cette regle depuis leur ajout ; le site n'y envoie qu'un pseudo
      ou un lien, en lecture seule. Si PlayStrategy refuse les requetes venant d'un autre site (CORS), le message le dit. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' blob: 'sha256-8STPnbw+E3XBBZTJlKw/YzNCMzYXmKRZpCk2DlyHjcE=' 'sha256-xrClgwYGFk8hhEGMu2u07LSxLn0oQO68guvmE6vMhXw=' 'sha256-/Wyo501FDre3YydI7rBeWLmlc3k1Zhvprq/Qekjlbg8=' 'sha256-iOtRhFdSJ1UJKZS8B8xTrt6R+iFR3/RF1yLba8dosRo=' 'sha256-vPSSUR0q4b8wSgnee15gQgz67URxhHm4MgCgzbsfq2Q=' 'sha256-l+8IXMf8DU5SgvLOVQP3Yf8/vU6jr/z0Fms4QMYrWas='; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://playstrategy.org https://cdn.jsdelivr.net https://unpkg.com; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' blob: 'sha256-8STPnbw+E3XBBZTJlKw/YzNCMzYXmKRZpCk2DlyHjcE=' 'sha256-xrClgwYGFk8hhEGMu2u07LSxLn0oQO68guvmE6vMhXw=' 'sha256-/Wyo501FDre3YydI7rBeWLmlc3k1Zhvprq/Qekjlbg8=' 'sha256-W+OzLYqwhVSMlZ1oK+mwUPfvjiT1hTje7DjP3LPjE30=' 'sha256-vPSSUR0q4b8wSgnee15gQgz67URxhHm4MgCgzbsfq2Q=' 'sha256-l+8IXMf8DU5SgvLOVQP3Yf8/vU6jr/z0Fms4QMYrWas='; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://playstrategy.org https://cdn.jsdelivr.net https://unpkg.com; base-uri 'self'; form-action 'self'">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#151918">
@@ -9048,7 +9048,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v3.39';
+const APP_VERSION = 'v3.40';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -52242,10 +52242,10 @@ function carteEchantillon(n, m, graine){
 function carteCalculer(base, extra, methode, dim, rapport){
   const d = base.d, ne = extra ? extra.n : 0;
   if (methode !== 'tsne') {
-    const A = carteACP(base.X, base.n, d, 3), Ye = new Float64Array(ne * 3);
-    for (let i = 0; i < ne; i++) { const p = A.projeter(extra.X.subarray(i * d, (i + 1) * d)); Ye.set(p, i * 3); }
+    const A = carteACP(base.X, base.n, d, 4), Ye = new Float64Array(ne * 4);   // v3.40 : 4 axes, pour pouvoir choisir lesquels
+    for (let i = 0; i < ne; i++) { const p = A.projeter(extra.X.subarray(i * d, (i + 1) * d)); Ye.set(p, i * 4); }
     const idx = []; for (let i = 0; i < base.n; i++) idx.push(i);
-    return Promise.resolve({ base: idx, Yb: A.Y, Ye: Ye, k: 3, axes: A.axes });
+    return Promise.resolve({ base: idx, Yb: A.Y, Ye: Ye, k: 4, axes: A.axes });
   }
   const idx = carteEchantillon(base.n, Math.max(50, CARTE_TSNE_MAX - ne), 11);
   const n = idx.length + ne, X = new Float64Array(n * d);
@@ -52307,8 +52307,30 @@ function carteDessiner(hote, C){
   const etendue = function(f){ const v = C.points.map(f).map(Math.abs).sort(function(a, b){ return a - b; }); if (!v.length) return 1; const q = v[Math.min(v.length - 1, Math.floor(0.995 * (v.length - 1)))]; return (q || v[v.length - 1] || 1) * 1.1; };
   E.dense = C.points.length > 3000;   // beaucoup de points : plus petits et plus transparents, pour voir la densité
   E.ext = [etendue(function(p){ return p.x; }), etendue(function(p){ return p.y; }), etendue(function(p){ return p.z || 0; })];
+  E.liens = carteLiens(C.points, C.liens || 0);   // v3.40 : une seule fois, pas a chaque rotation
+  E.liensTropDePoints = !!(C.liens && C.points.length > CARTE_LIENS_MAX);
   _carteBrancher(E);
   _carteRendu(E);
+}
+/* v3.40 : les liens entre plus proches voisins, calcules sur les coordonnees de la carte (c'est ce que
+   l'oeil compare). Cout en n carre : au-dela de CARTE_LIENS_MAX points, on n'en fait pas -- la carte le dit.
+   Rend [i, j] sans doublon (i < j). */
+const CARTE_LIENS_MAX = 1500;
+const CARTE_SOL_FILS = 400;   // au-dela de tant de points visibles, l'ombre au sol est dessinee sans les fils
+function carteLiens(points, k){
+  if (!k || !points.length || points.length > CARTE_LIENS_MAX) return [];
+  const n = points.length, vus = {}, out = [];
+  for (let i = 0; i < n; i++) {
+    const a = points[i], meilleurs = [];
+    for (let j = 0; j < n; j++) {
+      if (j === i) continue;
+      const b = points[j], dx = a.x - b.x, dy = a.y - b.y, dz = (a.z || 0) - (b.z || 0), d = dx * dx + dy * dy + dz * dz;
+      if (meilleurs.length < k) { meilleurs.push({ j: j, d: d }); meilleurs.sort(function(x, y){ return x.d - y.d; }); }
+      else if (d < meilleurs[k - 1].d) { meilleurs[k - 1] = { j: j, d: d }; meilleurs.sort(function(x, y){ return x.d - y.d; }); }
+    }
+    meilleurs.forEach(function(m){ const a2 = Math.min(i, m.j), b2 = Math.max(i, m.j), c = a2 + ':' + b2; if (!vus[c]) { vus[c] = 1; out.push([a2, b2]); } });
+  }
+  return out;
 }
 function _carteBorne(v){ return Math.max(-1.04, Math.min(1.04, v)); }
 function _carteProjeter(E, p){
@@ -52348,6 +52370,35 @@ function _carteRendu(E){
   // les points, du plus loin au plus près ; les points mis en avant (r) par-dessus
   const ecran = C.points.map(function(p, i){ const s = _carteProjeter(E, p); s.i = i; return s; });
   E.ecran = ecran;
+  const visible = function(i){ return ecran[i] && !E.caches[C.points[i].g]; };
+  /* v3.40 : l'ombre au sol -- chaque point posé sur le plancher du cube (y = -R), relié par un fil.
+     Dessinée avant les points, pour rester derrière eux. */
+  if (C.d3 && C.sol) {
+    const R = Math.max(E.ext[0], E.ext[1], E.ext[2]);
+    let n = 0; C.points.forEach(function(p, i){ if (visible(i)) n++; });
+    const fils = n <= CARTE_SOL_FILS;   // au-dela, les fils mangent le nuage : on ne garde que l'ombre
+    ctx.lineWidth = 1;
+    C.points.forEach(function(p, i){
+      if (!visible(i)) return;
+      const s = ecran[i], b = _carteProjeter(E, { x: p.x, y: -R, z: p.z || 0 });
+      const g = C.groupes[p.g], coul = g ? g.couleur : CARTE_GRIS;
+      if (fils) { ctx.globalAlpha = 0.16; ctx.strokeStyle = coul; ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
+      ctx.globalAlpha = fils ? 0.32 : 0.22; ctx.fillStyle = coul;
+      ctx.beginPath(); ctx.arc(b.x, b.y, Math.max(0.9, 1.5 * Math.max(0.6, Math.min(1.8, b.f))), 0, 2 * Math.PI); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+  // v3.40 : les liens entre plus proches voisins
+  if (E.liens && E.liens.length) {
+    ctx.lineWidth = 1; ctx.globalAlpha = 0.22;
+    E.liens.forEach(function(l){
+      if (!visible(l[0]) || !visible(l[1])) return;
+      const a = ecran[l[0]], b = ecran[l[1]], g = C.groupes[C.points[l[0]].g];
+      ctx.strokeStyle = (g && C.points[l[0]].g === C.points[l[1]].g) ? g.couleur : CARTE_GRIS;
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    });
+    ctx.globalAlpha = 1;
+  }
   const ordre = ecran.filter(function(s){ return !E.caches[C.points[s.i].g]; }).sort(function(a, b){ return (C.points[a.i].r || 0) - (C.points[b.i].r || 0) || a.z - b.z; });
   ordre.forEach(function(s){
     const p = C.points[s.i], g = C.groupes[p.g], r = (p.r || (E.dense ? 1.7 : 2.2)) * (C.d3 ? Math.max(0.6, Math.min(1.8, s.f)) : 1);
@@ -52433,18 +52484,29 @@ function _carteSelect(id, cle, valeur, options, etiquette){
 }
 function carteReglages(id, couleurs){
   const m = cartePref(id, 'methode', 'acp'), v = cartePref(id, 'vue', '2d'), c = cartePref(id, 'couleur', couleurs[0][0]);
-  return '<div class="gr-filtres carte-reglages">'
+  let h = '<div class="gr-filtres carte-reglages">'
     + _carteSelect(id, 'couleur', c, couleurs, _tr('Couleur', 'Colour'))
     + _carteSelect(id, 'methode', m, [['acp', _tr('ACP (axes expliqués)', 'PCA (explained axes)')], ['tsne', _tr('t-SNE (familles)', 't-SNE (families)')]], _tr('Méthode', 'Method'))
-    + _carteSelect(id, 'vue', v, [['2d', '2D'], ['3d', _tr('3D tournante', 'Rotating 3D')]], _tr('Vue', 'View'))
-    + '</div>';
+    + _carteSelect(id, 'vue', v, [['2d', '2D'], ['3d', _tr('3D tournante', 'Rotating 3D')]], _tr('Vue', 'View'));
+  /* v3.40 (demande d'ocj94, d'apres ses captures) : les trois reglages du dessin.
+     Le choix des axes n'a de sens qu'avec l'ACP : t-SNE n'en calcule que deux, sans signification. */
+  if (m === 'acp') h += _carteSelect(id, 'axes', cartePref(id, 'axes', v === '3d' ? '123' : '12'),
+    v === '3d' ? [['123', _tr('1, 2 et 3', '1, 2 and 3')], ['124', _tr('1, 2 et 4', '1, 2 and 4')], ['134', _tr('1, 3 et 4', '1, 3 and 4')], ['234', _tr('2, 3 et 4', '2, 3 and 4')]]
+              : [['12', _tr('1 et 2', '1 and 2')], ['13', _tr('1 et 3', '1 and 3')], ['23', _tr('2 et 3', '2 and 3')], ['34', _tr('3 et 4', '3 and 4')]], _tr('Axes', 'Axes'));
+  if (v === '3d') h += _carteSelect(id, 'sol', cartePref(id, 'sol', 'non'), [['non', _tr('non', 'no')], ['oui', _tr('oui', 'yes')]], _tr('Ombre au sol', 'Floor shadow'));
+  h += _carteSelect(id, 'liens', cartePref(id, 'liens', 'non'), [['non', _tr('aucun', 'none')], ['2', _tr('2 plus proches', '2 nearest')], ['4', _tr('4 plus proches', '4 nearest')]], _tr('Liens', 'Links'));
+  return h + '</div>';
 }
 function carteAide(methode, d3){
   return '<div class="gr-sous">' + (methode === 'tsne'
     ? _tr('t-SNE rapproche les points qui se ressemblent : les paquets sont des familles. Ses axes n’ont pas de sens et les distances entre paquets éloignés non plus.', 't-SNE brings similar points together: the clusters are families. Its axes have no meaning, nor do distances between far-apart clusters.')
     : _tr('L’ACP montre les directions où les points diffèrent le plus ; chaque axe est expliqué sous la carte.', 'PCA shows the directions in which the points differ most; each axis is explained under the map.'))
     + (d3 ? ' ' + _tr('Fais tourner la carte à la souris, au doigt ou aux flèches du clavier.', 'Rotate the map with the mouse, a finger or the arrow keys.') : '')
-    + ' ' + _tr('Passe sur un point pour le détail ; clique sur un groupe de la légende pour le masquer.', 'Hover over a point for details; click a legend group to hide it.') + '</div>';
+    + ' ' + _tr('Passe sur un point pour le détail ; clique sur un groupe de la légende pour le masquer.', 'Hover over a point for details; click a legend group to hide it.')
+    + (d3 ? ' ' + _tr('« Ombre au sol » pose chaque point sur le plancher du cube : on lit mieux sa hauteur.',
+      '“Floor shadow” drops each point onto the floor of the cube: its height reads better.') : '')
+    + ' ' + _tr('« Liens » relie chaque point à ses plus proches voisins sur la carte, ce qui fait ressortir les familles.',
+      '“Links” joins each point to its nearest neighbours on the map, which brings the families out.') + '</div>';
 }
 /* Pose une carte complète dans hote : réglages, calcul (ACP ou t-SNE), dessin, explication des axes.
    S : { id, couleurs: [[cle, nom]], noms: noms des dimensions, base: { X, n, d }, extra?, groupes(cleCouleur)
@@ -52462,17 +52524,26 @@ function carteDresser(hote, S){
     .then(function(R){
       if (_CARTES['_jeton_' + id] !== jeton) return;     // un réglage a changé pendant le calcul : ce résultat n'est plus voulu
       const k = R.k, groupes = S.groupes(cle), points = [];
-      const enX = function(Y, q){ return { x: Y[q * k], y: Y[q * k + 1], z: dim === 3 ? Y[q * k + 2] : 0 }; };
+      /* v3.40 : quels axes de l'ACP sont montres. '134' = axe 1 en abscisse, 3 en ordonnee, 4 en profondeur.
+         t-SNE n'a que ses deux (ou trois) sorties : le reglage ne s'y applique pas. */
+      const choix = (R.axes ? String(cartePref(id, 'axes', d3 ? '123' : '12')) : '').split('').map(Number).filter(function(x){ return x >= 1 && x <= k; });
+      const col = (choix.length >= dim ? choix : [1, 2, 3]).slice(0, 3).map(function(x){ return x - 1; });
+      const enX = function(Y, q){ return { x: Y[q * k + col[0]], y: Y[q * k + col[1]], z: dim === 3 ? Y[q * k + (col[2] != null ? col[2] : 2)] : 0 }; };
       R.base.forEach(function(i, q){ points.push(Object.assign(enX(R.Yb, q), S.point(false, i, cle))); });
       const debutExtra = points.length;
       for (let i = 0; S.extra && i < S.extra.n; i++) points.push(Object.assign(enX(R.Ye, i), S.point(true, i, cle)));
-      const axes = R.axes ? [1, 2, 3].map(function(q){ return _tr('Axe ', 'Axis ') + q; }) : null;
+      const axes = R.axes ? col.map(function(c){ return _tr('Axe ', 'Axis ') + (c + 1); }) : null;
       carteDessiner(zone(), { id: id, groupes: groupes, points: points, d3: d3, axes: axes,
+        sol: d3 && cartePref(id, 'sol', 'non') === 'oui', liens: +cartePref(id, 'liens', 'non') || 0,
         lignes: S.lignes ? S.lignes(debutExtra, points) : null,
         aria: S.aria + ' ' + (methode === 'tsne' ? 't-SNE' : _tr('ACP', 'PCA')) + ', ' + (d3 ? '3D' : '2D') + ', ' + grNb(points.length) + _tr(' points.', ' points.') });
       const ha = document.getElementById('carte-a-' + id);
-      if (ha) ha.innerHTML = R.axes ? '<div class="gr-sous">' + R.axes.slice(0, dim).map(function(a, q){ return carteDecrireAxe(a, S.noms, q); }).join('<br>') + '</div>'
+      if (ha) ha.innerHTML = R.axes ? '<div class="gr-sous">' + col.slice(0, dim).map(function(c){ return carteDecrireAxe(R.axes[c], S.noms, c); }).join('<br>') + '</div>'
         : '<div class="gr-sous">' + _tr('Échantillon : ', 'Sample: ') + grNb(R.base.length) + _tr(' points de fond sur ', ' background points out of ') + grNb(S.base.n) + (S.extra && S.extra.n ? ', + ' + grNb(S.extra.n) : '') + '.</div>';
+      // v3.40 : les liens coutent n carre ; au-dela de CARTE_LIENS_MAX points, la carte le dit plutot que de ramer
+      const Ec = _CARTES[id];
+      if (ha && Ec && Ec.liensTropDePoints) ha.innerHTML += '<div class="gr-sous">' + _tr('Les liens ne sont pas tracés au-delà de ' + grNb(CARTE_LIENS_MAX) + ' points : passe en t-SNE (échantillon) ou masque des groupes.',
+        'Links are not drawn beyond ' + grNb(CARTE_LIENS_MAX) + ' points: switch to t-SNE (a sample) or hide some groups.') + '</div>';
     })
     .catch(function(e){ const z = zone(); if (z) z.innerHTML = '<div class="gr-vide">❌ ' + grEchapper(e && e.message || e) + '</div>'; });
 }

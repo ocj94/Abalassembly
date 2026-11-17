@@ -9,6 +9,30 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.40]
+
+### Data maps: multi-dimensional views
+ocj94's request, based on his screenshots. The corpus and analysis maps (PCA and
+t-SNE) gain three settings that reveal what a scatter plot hides:
+
+- **Choice of axes.** PCA now computes four axes instead of three, and a menu
+  says which ones are shown: "1 and 2", "1, 3 and 4"… The first axis often
+  dwarfs the others; looking from the side reveals families it was hiding. Each
+  axis is still explained under the map. The setting does not appear for t-SNE,
+  whose axes mean nothing.
+- **Floor shadow**, in the 3D view: each point is dropped onto the floor of the
+  cube and joined by a stem, so its height reads without rotating the map. Past
+  400 visible points the stems would swamp the cloud, so only the shadow stays.
+- **Nearest-neighbour links.** Each point is joined to its 2 or 4 nearest
+  neighbours on the map: the cloud becomes a network and the families stand out.
+  A link takes the group's colour when both its points belong to it, grey
+  otherwise — and that grey is exactly what one looks for: a bridge between two
+  families. The computation costs n²: past 1,500 points the map says so instead
+  of crawling.
+
+All three settings are remembered between visits, like the colour, the method
+and the view.
+
 ## [v3.39]
 
 ### Game statistics: five more cards

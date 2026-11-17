@@ -9,6 +9,31 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.40]
+
+### Cartes des données : les vues en plusieurs dimensions
+Demande d'ocj94, d'après ses captures d'écran. Les cartes du corpus et de
+l'analyse (ACP et t-SNE) gagnent trois réglages, qui rendent lisible ce qu'un
+nuage de points cache :
+
+- **Le choix des axes.** L'ACP calcule maintenant quatre axes au lieu de trois,
+  et un menu dit lesquels sont montrés : « 1 et 2 », « 1, 3 et 4 »… Le premier
+  axe écrase souvent les autres ; le regarder de côté montre des familles
+  qu'il masquait. Chaque axe reste expliqué sous la carte. Le réglage
+  n'apparaît pas en t-SNE, dont les axes n'ont aucun sens.
+- **L'ombre au sol**, en vue 3D : chaque point est posé sur le plancher du cube
+  et relié par un fil, pour lire sa hauteur sans faire tourner la carte. Au-delà
+  de 400 points visibles les fils mangeraient le nuage, donc seule l'ombre reste.
+- **Les liens entre plus proches voisins.** Chaque point est relié à ses 2 ou 4
+  voisins les plus proches sur la carte : le nuage devient un réseau, et les
+  familles sautent aux yeux. Un lien prend la couleur du groupe quand ses deux
+  points en viennent, du gris sinon — ce gris est exactement ce qu'on cherche :
+  un pont entre deux familles. Le calcul coûte n² : au-delà de 1 500 points la
+  carte le dit au lieu de ramer.
+
+Les trois réglages sont retenus d'une visite à l'autre, comme la couleur, la
+méthode et la vue.
+
 ## [v3.39]
 
 ### Statistiques du jeu : cinq cartes de plus

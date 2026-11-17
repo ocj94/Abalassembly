@@ -8263,3 +8263,47 @@ test('v3.39 : corpus — les cinq cartes sur les vraies parties, sans jamais aff
     noms.forEach(n => assert.ok(!tout.toLowerCase().includes(n.toLowerCase()), 'un pseudo est apparu : ' + n));
   }));
 });
+
+// ─── v3.40 : les cartes des données — ombre au sol, liens, choix des axes ───
+test('v3.40 : liens entre plus proches voisins, et les réglages de la carte', () => {
+  const vm = require('vm'), lire = c => vm.runInContext(c, ctx);
+  // quatre points en carré : chacun a deux voisins à distance 1, le quatrième en diagonale
+  const P = [{ x: 0, y: 0, z: 0, g: 0 }, { x: 1, y: 0, z: 0, g: 0 }, { x: 0, y: 1, z: 0, g: 1 }, { x: 1, y: 1, z: 0, g: 1 }];
+  // à égalité de distance, le plus proche est le premier rencontré : 0→1, 1→0, 2→0, 3→1, soit trois arêtes
+  const L1 = ctx.carteLiens(P, 1);
+  assert.strictEqual(L1.length, 3, 'un voisin chacun, les doublons fondus');
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(L1.slice().sort())), [[0, 1], [0, 2], [1, 3]]);
+  const L2 = ctx.carteLiens(P, 2);
+  assert.strictEqual(L2.length, 4, 'les quatre côtés du carré, pas les diagonales');
+  L2.forEach(l => { assert.ok(l[0] < l[1], 'chaque arête est rangée une seule fois'); });
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(L2.slice().sort())), [[0, 1], [0, 2], [1, 3], [2, 3]]);
+  assert.strictEqual(ctx.carteLiens(P, 0).length, 0, 'aucun lien demandé');
+  // la 3e dimension compte
+  const Q = [{ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 1 }, { x: 0, y: 0, z: 9 }];
+  // le 3e point est loin : son plus proche reste le 2e, donc deux arêtes et pas de raccourci 0-2
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(ctx.carteLiens(Q, 1))), [[0, 1], [1, 2]]);
+  // au-delà du plafond, pas de calcul : la carte le dira
+  const gros = []; for (let i = 0; i < lire('CARTE_LIENS_MAX') + 1; i++) gros.push({ x: i, y: 0, z: 0 });
+  assert.strictEqual(ctx.carteLiens(gros, 2).length, 0, 'trop de points : aucun lien');
+
+  // les réglages : les trois nouveaux apparaissent au bon moment
+  const sauve = ctx.localStorage.getItem('abaCartes');
+  try {
+    ctx.carteReglage('essai', 'methode', 'acp'); ctx.carteReglage('essai', 'vue', '2d');
+    let h = ctx.carteReglages('essai', [['a', 'A']]);
+    assert.ok(h.includes('Axes') && h.includes('Liens'), '2D + ACP : axes et liens');
+    assert.ok(!h.includes('Ombre au sol'), 'pas d’ombre au sol en 2D');
+    assert.ok(h.includes('1 et 2') && h.includes('3 et 4'), 'quatre axes au choix');
+    ctx.carteReglage('essai', 'vue', '3d');
+    h = ctx.carteReglages('essai', [['a', 'A']]);
+    assert.ok(h.includes('Ombre au sol') && h.includes('1, 2 et 3'), '3D : ombre au sol et trois axes');
+    ctx.carteReglage('essai', 'methode', 'tsne');
+    h = ctx.carteReglages('essai', [['a', 'A']]);
+    assert.ok(!h.includes('Axes'), 't-SNE : pas de choix d’axes, ses sorties n’ont pas de sens');
+    assert.ok(h.includes('Liens') && h.includes('Ombre au sol'));
+    // le réglage est retenu d'une fois sur l'autre
+    ctx.carteReglage('essai', 'liens', '4');
+    assert.strictEqual(ctx.cartePref('essai', 'liens', 'non'), '4');
+    assert.ok(String(ctx.localStorage.getItem('abaCartes')).includes('"liens":"4"'));
+  } finally { if (sauve === null) ctx.localStorage.removeItem('abaCartes'); else ctx.localStorage.setItem('abaCartes', sauve); }
+});
