@@ -99,6 +99,7 @@ main/58b-temps-reels.js
 main/58c-proba-mesuree.js
 main/58d-reseau-calcul.js
 main/59-observatoire-ia.js
+main/59b-observatoire-stats.js
 main/60-cartes-donnees.js
 07z-fin-script-principal.part
 08-html.part

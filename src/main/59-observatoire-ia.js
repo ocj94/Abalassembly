@@ -54,7 +54,7 @@ try {
 function obsDemande() { return !!(OBS.ouvert || OBS.bandeau); }
 function _obsCompact(n) { n = Math.round(n || 0); return n < 10000 ? n.toLocaleString('fr-FR') : n < 1e6 ? Math.round(n / 1000) + ' k' : (n / 1e6).toFixed(1).replace('.', ',') + ' M'; }
 const _OBS_ONGLETS = [['general', 'Vue générale', 'Overview'], ['recherche', 'Recherche', 'Search'], ['evaluation', 'Évaluation', 'Evaluation'],
-                      ['decision', 'Décision', 'Decision'], ['historique', 'Historique', 'History']];
+                      ['decision', 'Décision', 'Decision'], ['historique', 'Historique', 'History'], ['stats', 'Statistiques', 'Statistics']];   // v3.36 : 59b-observatoire-stats.js
 const _OBS_NIVEAUX = [['spectateur', 'Spectateur', 'Spectator'], ['analyste', 'Analyste', 'Analyst'], ['developpeur', 'Développeur', 'Developer']];
 function _obsT(fr, en) { return (typeof _tr === 'function') ? _tr(fr, en) : fr; }
 function _obsE(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -914,6 +914,7 @@ function _obsComparer(e, ret, alts) {
 function _obsRapportDonnees() {
   return { application: 'Abalassembly ' + (typeof APP_VERSION !== 'undefined' ? APP_VERSION : ''), outil: 'Observatoire IA', date: new Date().toISOString(),
     unites: 'points internes : une bille de plus = 1000, une éjection = 2000 ; pas une probabilité de gagner (chanceDeGain : mesurée sur de vraies parties, en %, si elle a été calculée)',
+    statistiques: (typeof _obsStResume === 'function') ? _obsStResume() : null,   // v3.36 : les nombres de l'onglet Statistiques
     coups: OBS.hist.map(function (e) {
       if (e.source) return { n: e.n, couleur: e.couleur, sansCalcul: e.source };
       const nom = function (k) { return (e.noms && e.noms[k]) || '?'; }, f = e.det && e.cle ? _obsLigneDet(e.det, e.cle) : null;
@@ -1146,11 +1147,11 @@ function _obsOptionsHTML() {
     + '</div>';
 }
 function _obsCorpsGrand(V) {   // plein ecran : tous les onglets a la fois, en tableau de bord
-  const blocs = [['general', _obsTabGeneral], ['recherche', _obsTabRecherche], ['decision', _obsTabDecision], ['evaluation', _obsTabEvaluation], ['historique', _obsTabHistorique]];
+  const blocs = [['general', _obsTabGeneral], ['recherche', _obsTabRecherche], ['decision', _obsTabDecision], ['evaluation', _obsTabEvaluation], ['historique', _obsTabHistorique], ['stats', function () { return _obsTabStats(); }]];
   return '<div class="obs-dash">' + blocs.map(function (b) {
     const o = _OBS_ONGLETS.find(function (x) { return x[0] === b[0]; });
     let c = ''; try { c = b[1](V); } catch (e) { c = '<div class="obs-vide">' + _obsE(e && e.message) + '</div>'; }
-    if (b[0] !== 'general' && b[0] !== 'historique' && (V.mode === 'vide' || V.mode === 'source')) c = '<div class="obs-vide">…</div>';   // pas cinq fois le meme message
+    if (b[0] !== 'general' && b[0] !== 'historique' && b[0] !== 'stats' && (V.mode === 'vide' || V.mode === 'source')) c = '<div class="obs-vide">…</div>';   // pas cinq fois le meme message
     return '<section class="obs-bloc obs-bloc-' + b[0] + '"><h4>' + _obsT(o[1], o[2]) + '</h4>' + c + '</section>';
   }).join('') + '</div>';
 }
@@ -1202,7 +1203,7 @@ function _obsRendu() {
   let corps = '';
   try {
     corps = OBS.grand ? _obsCorpsGrand(V)
-      : onglet === 'general' ? _obsTabGeneral(V) : onglet === 'recherche' ? _obsTabRecherche(V) : onglet === 'evaluation' ? _obsTabEvaluation(V) : onglet === 'decision' ? _obsTabDecision(V) : _obsTabHistorique();
+      : onglet === 'general' ? _obsTabGeneral(V) : onglet === 'recherche' ? _obsTabRecherche(V) : onglet === 'evaluation' ? _obsTabEvaluation(V) : onglet === 'decision' ? _obsTabDecision(V) : onglet === 'stats' ? _obsTabStats() : _obsTabHistorique();
   } catch (e) { corps = '<div class="obs-vide">' + _obsT('Erreur d’affichage : ', 'Display error: ') + _obsE(e && e.message) + '</div>'; }
   p.innerHTML = '<div class="obs-entete"><b>🔭 ' + _obsT('Observatoire IA', 'AI Observatory') + '</b>' + etat
     + '<button class="obs-ic" data-click="obsFiger()" title="' + _obsT('Figer l’affichage pendant le calcul', 'Freeze the display while searching') + '">' + (OBS.fige ? '▶' : '⏸') + '</button>'

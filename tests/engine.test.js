@@ -7950,3 +7950,87 @@ test('v3.35 : import « Mes données » — clés et valeurs contrôlées', () =
   assert.strictEqual(ctx._importValeur(undefined), null);
   assert.strictEqual(require('vm').runInContext('IMPORT_MAX_OCTETS', ctx), 20 * 1024 * 1024);
 });
+
+// ─── v3.36 : Observatoire IA, onglet « Statistiques » (59b-observatoire-stats.js) et nuage de points (grNuage) ───
+test('v3.36 : nuage de points — corrélation, droite des moindres carrés, un cercle par point', () => {
+  const droite = [0, 1, 2, 3, 4].map(x => ({ x, y: 2 * x + 1 }));
+  const c = ctx.grCorrelation(droite);
+  assert.ok(Math.abs(c.r - 1) < 1e-12 && Math.abs(c.pente - 2) < 1e-12 && Math.abs(c.ordonnee - 1) < 1e-12 && c.n === 5);
+  assert.ok(Math.abs(ctx.grCorrelation(droite.map(p => ({ x: p.x, y: -p.y }))).r + 1) < 1e-12, 'pente négative : r = -1');
+  assert.strictEqual(ctx.grCorrelation([{ x: 1, y: 5 }, { x: 2, y: 5 }, { x: 3, y: 5 }]), null, 'une mesure constante : pas de corrélation');
+  assert.strictEqual(ctx.grCorrelation([{ x: 1, y: 1 }, { x: 2, y: 2 }]), null, 'moins de 3 points');
+  assert.strictEqual(ctx.grCorrelation([{ x: 1, y: 1 }, { x: null, y: 2 }, { x: 2, y: NaN }, { x: 3, y: 2 }]), null, 'les points sans valeur ne comptent pas');
+  // r calculé à la main : x = 1,2,3,4 ; y = 2,1,4,3 -> r = 0,6
+  assert.ok(Math.abs(ctx.grCorrelation([{ x: 1, y: 2 }, { x: 2, y: 1 }, { x: 3, y: 4 }, { x: 4, y: 3 }]).r - 0.6) < 1e-12);
+  const svg = ctx.grNuage(300, droite.concat([{ x: null, y: 3 }]), { droite: true, titreX: 'abscisse', titreY: 'ordonnée' });
+  assert.strictEqual((svg.match(/<circle /g) || []).length, 5, 'le point sans abscisse n est pas dessiné');
+  assert.ok(svg.includes('stroke-dasharray') && svg.includes('abscisse') && svg.includes('ordonnée'));
+  assert.ok(ctx.grNuage(300, [], {}).includes('gr-vide'));
+  assert.ok(/lien fort/.test(ctx.grLienTexte(0.9)) && /pas de lien/.test(ctx.grLienTexte(0.1)) && /sens inverse/.test(ctx.grLienTexte(-0.6)));
+});
+
+test('v3.36 : Observatoire — les mesures d’un coup et de la partie (choix serré, stabilité, croissance)', () => {
+  const vm = require('vm'), lire = c => vm.runInContext(c, ctx);
+  const hist = [
+    // b en tête à la profondeur 1, puis a : un changement, a en tête depuis la profondeur 2 ; écart 20 (serré), b à moins de 100 points
+    { n: 2, couleur: 'white', cle: 'a', noms: { a: 'a1b2', b: 'c3d4', c: 'e5f6' }, score: 500, prof: 3, ms: 2000, budget: 4000, noeuds: 360, coupures: 90, tt: 10,
+      tous: [['a', 500], ['b', 480], ['c', 100]], parProfs: { 1: [['b', 300], ['a', 290]], 2: [['a', 400], ['b', 380]], 3: [['a', 500], ['b', 480]] },
+      profs: { 1: { nodes: 10, cuts: 1, ms: 1 }, 2: { nodes: 50, cuts: 9, ms: 5 }, 3: { nodes: 300, cuts: 80, ms: 30 } } },
+    { n: 3, couleur: 'white', source: 'livre' },
+    // choix net (une bille et plus), jamais remis en cause
+    { n: 4, couleur: 'white', cle: 'x', noms: { x: 'g7f6', y: 'h8g7' }, score: 1500, prof: 2, ms: 1000, budget: 4000, noeuds: 80, coupures: 8, tt: 20,
+      tous: [['x', 1500], ['y', 200]], parProfs: { 1: [['x', 1500], ['y', 200]], 2: [['x', 1500], ['y', 200]] }, profs: { 1: { nodes: 20, cuts: 2, ms: 1 }, 2: { nodes: 60, cuts: 6, ms: 3 } } },
+    // deux coups à égalité en tête à la fin : q (joué) compte « en tête » ; la dernière profondeur a changé le meilleur coup
+    { n: 6, couleur: 'white', cle: 'q', noms: { p: 'a1a2', q: 'b1b2', r: 'c1c2' }, score: 100, prof: 2, ms: 3000, budget: 3600000, noeuds: 900, coupures: 90, tt: 30,
+      tous: [['p', 100], ['q', 100], ['r', -50]], parProfs: { 1: [['r', 10], ['p', 0], ['q', 0]], 2: [['p', 100], ['q', 100], ['r', -50]] } },
+    { n: 8, couleur: 'white', source: 'table' }, { n: 10, couleur: 'white', source: 'stat' },
+    // gain forcé : pas d'écart mesuré ; le coup joué n'est pas le mieux noté de la liste
+    { n: 12, couleur: 'white', cle: 'z', noms: { w: 'd1d2', z: 'e1e2' }, score: 99990, prof: 1, ms: 500, budget: 4000, noeuds: 50, coupures: 5, tt: 0,
+      tous: [['w', 99990], ['z', 300]], parProfs: { 1: [['w', 99990], ['z', 300]] } }
+  ];
+  const m = ctx._obsStCoup(hist[0]);
+  assert.strictEqual(m.ecart, 20); assert.strictEqual(m.proches, 1); assert.strictEqual(m.candidats, 3); assert.strictEqual(m.rang, 1);
+  assert.strictEqual(m.changements, 1); assert.strictEqual(m.dernier, false); assert.strictEqual(m.depuis, 2);
+  assert.strictEqual(m.vitesse, 180); assert.strictEqual(m.coupures, 0.25);
+  assert.strictEqual(m.croissance[2], 5); assert.strictEqual(m.croissance[3], 6);
+  assert.strictEqual(ctx._obsStCoup(hist[1]), null, 'un coup du livre n a pas de mesure');
+  const q = ctx._obsStCoup(hist[3]);
+  assert.strictEqual(q.ecart, 0); assert.strictEqual(q.proches, 1); assert.strictEqual(q.rang, 2); assert.strictEqual(q.changements, 1); assert.strictEqual(q.dernier, true); assert.strictEqual(q.depuis, 2);
+  const z = ctx._obsStCoup(hist[6]);
+  assert.strictEqual(z.decide, true); assert.strictEqual(z.ecart, null); assert.strictEqual(z.note, null); assert.strictEqual(z.depuis, 0); assert.strictEqual(z.rang, 2);
+
+  const S = ctx._obsStatsPartie(hist);
+  assert.strictEqual(S.total, 7); assert.strictEqual(S.coups.length, 4);
+  assert.strictEqual(S.sources.calcul, 4); assert.strictEqual(S.sources.livre, 2); assert.strictEqual(S.sources.table, 1);
+  assert.strictEqual(S.profMed, 2); assert.strictEqual(S.msMed, 1500);
+  // temps limité : coups 2, 4 et 12 -> (2000 + 1000 + 500) / 12000 ; le coup 6, au temps illimité, n'y entre pas
+  assert.ok(Math.abs(S.partTemps - 3500 / 12000) < 1e-12);
+  assert.strictEqual(S.choix.n, 3); assert.strictEqual(S.choix.serres, 2); assert.strictEqual(S.choix.nets, 1); assert.strictEqual(S.choix.decides, 1);
+  assert.strictEqual(S.choix.ecartMed, 20); assert.deepStrictEqual(Array.from(S.choix.tranches), [1, 1, 0, 0, 0, 1]);
+  assert.strictEqual(S.stabilite.n, 3); assert.strictEqual(S.stabilite.stables, 1); assert.strictEqual(S.stabilite.dernier, 1); assert.strictEqual(S.stabilite.pasEnTete, 0);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(S.stabilite.depuis)), { 1: 1, 2: 2 });
+  assert.ok(Math.abs(S.stabilite.changementsMoy - 2 / 3) < 1e-12);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(S.croissance)), [{ d: 2, n: 2, med: 4 }, { d: 3, n: 1, med: 6 }]);
+
+  // l'onglet : vide, sans calcul, puis complet
+  lire("OBS.hist = []; OBS.niveau = 'analyste'");
+  assert.ok(ctx._obsTabStats().includes('obs-vide'));
+  lire('OBS.hist = [{ n: 1, couleur: "white", source: "livre" }]');
+  let h = ctx._obsTabStats();
+  assert.ok(h.includes('sans recherche') && h.includes('livre d’ouvertures'), 'des coups sans calcul : le message, et d où ils viennent');
+  lire('OBS.hist = ' + JSON.stringify(hist));
+  h = ctx._obsTabStats();
+  ['Profondeur, temps et vitesse', 'Le choix était-il serré ?', 'La stabilité du choix', 'L’élagage au fil de la partie', 'D’où viennent les coups', 'Deux mesures, l’une contre l’autre', 'Corrélation r = '].forEach(t => assert.ok(h.includes(t), t));
+  assert.ok(h.includes('2 / 3') && h.includes('1 / 3'), 'choix serrés 2 sur 3, nets 1 sur 3');
+  assert.ok(h.includes('data-change="obsStatsAxe(\'x\', this.value)"'));
+  assert.ok(lire('_OBS_ONGLETS').some(o => o[0] === 'stats') && typeof lire('_ACTIONS.obsStatsAxe') === 'function', 'l onglet et son action sont déclarés');
+  // changer une mesure du nuage : retenue, et refusée si elle n'existe pas
+  ctx.obsStatsAxe('x', 'ms'); assert.strictEqual(lire('_obsStAxes.x'), 'ms'); assert.strictEqual(ctx.localStorage.getItem('abaObsNuage'), 'ms|ms');
+  ctx.obsStatsAxe('x', 'inconnue'); assert.strictEqual(lire('_obsStAxes.x'), 'ms');
+  ctx.obsStatsAxe('x', 'candidats');
+  // le rapport téléchargeable porte les mêmes nombres
+  const R = ctx._obsRapportDonnees();
+  assert.strictEqual(R.statistiques.coupsCalcules, 4); assert.strictEqual(R.statistiques.choix.serres, 2); assert.strictEqual(R.statistiques.stabilite.jamaisRemisEnCause, 1);
+  lire("OBS.hist = []; OBS.rev = -1; OBS.live = null");
+  ctx.localStorage.removeItem('abaObsNuage');
+});

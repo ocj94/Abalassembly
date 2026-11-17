@@ -9,6 +9,38 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.36]
+
+### Observatoire IA : un onglet « Statistiques » sur la partie en cours
+Demande d'ocj94 : plus de chiffres et de graphiques, ici sur les coups de l'IA
+que l'Observatoire garde déjà (60 au plus). Tout vient des mesures envoyées par
+le moteur à chaque coup : rien n'est recalculé, rien n'est estimé. Un coup joué
+sans recherche (livre d'ouvertures, table de finale, empreinte) reste hors des
+moyennes, et le tableau dit combien il y en a eu.
+
+- **Profondeur, temps et vitesse, coup après coup.** Les médianes en tête, puis
+  trois graphiques : profondeur atteinte, temps utilisé contre temps accordé, et
+  positions examinées par seconde.
+- **Le choix était-il serré ?** L'écart entre le coup le mieux noté et le
+  suivant, à la dernière profondeur terminée par tous les fils ; 1 000 points
+  valent une bille. Un histogramme des écarts, le nombre de choix serrés
+  (moins de 50 points) et de choix nets (une bille ou plus). Les positions déjà
+  décidées (gain ou perte forcés) sont comptées à part.
+- **La stabilité du choix.** Depuis quelle profondeur le coup joué est en tête
+  sans plus la quitter, combien de fois le meilleur coup a changé en cours de
+  recherche, et si la dernière profondeur a renversé la décision.
+- **L'élagage au fil de la partie.** Coupures α-β et table de transposition en
+  pourcentage des positions, coup après coup. Au niveau Analyste, le facteur de
+  croissance d'une profondeur à la suivante.
+- **Deux mesures, l'une contre l'autre** (nuage de points). Dix mesures au choix
+  sur chaque axe, la droite des moindres carrés et la corrélation de Pearson,
+  dite en mots. Le choix des axes est retenu d'une partie à l'autre.
+- Le rapport téléchargeable (.json) porte les mêmes nombres, sous `statistiques`.
+
+### Ajouté
+- `grNuage` et `grCorrelation` dans la bibliothèque de graphiques (module 46) :
+  nuage de points, groupes de couleurs, droite des moindres carrés, corrélation.
+
 ## [v3.35]
 
 ### Sécurité : corrections de l'audit du 15 novembre 2026 (site)

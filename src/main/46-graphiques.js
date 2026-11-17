@@ -329,6 +329,70 @@ function grMultiples(W, items, o){
   return s + '</div>';
 }
 
+/* ─── Nuage de points (v3.36) : la relation entre deux mesures. pts = [{ x, y, g, tip: [lignes] }] ;
+   o.groupes = [{ nom, couleur }] (un point prend la couleur de son groupe g, l'or sinon) ; o.droite : trace la
+   droite des moindres carres ; o.titreX, o.titreY ; o.fmtX, o.fmtY ; o.zeroX, o.zeroY : l'axe part de 0 ; o.h.
+   Demande d'ocj94 (captures « Scatter Plots: Relationships ») : voir si deux mesures vont ensemble. ─── */
+// correlation de Pearson (r de -1 a 1) et droite des moindres carres ; null si elle n'est pas definie
+// (moins de 3 points, ou une des deux mesures ne varie pas)
+function grCorrelation(pts){
+  const P = (pts || []).filter(function(p){ return p && p.x != null && p.y != null && isFinite(p.x) && isFinite(p.y); }), n = P.length;
+  if (n < 3) return null;
+  let mx = 0, my = 0; P.forEach(function(p){ mx += p.x; my += p.y; }); mx /= n; my /= n;
+  let sxx = 0, syy = 0, sxy = 0; P.forEach(function(p){ const a = p.x - mx, b = p.y - my; sxx += a * a; syy += b * b; sxy += a * b; });
+  if (!(sxx > 1e-12) || !(syy > 1e-12)) return null;
+  return { r: sxy / Math.sqrt(sxx * syy), pente: sxy / sxx, ordonnee: my - sxy / sxx * mx, n: n };
+}
+// « va nettement avec », « va un peu avec »… : la force d'un lien, en mots (memes seuils partout)
+function grLienTexte(r){
+  if (r == null) return _tr('lien non mesurable', 'link not measurable');
+  const a = Math.abs(r), sens = r > 0 ? _tr('ensemble', 'together') : _tr('en sens inverse', 'in opposite directions');
+  if (a < 0.2) return _tr('pas de lien visible', 'no visible link');
+  return (a < 0.5 ? _tr('lien faible', 'weak link') : a < 0.8 ? _tr('lien net', 'clear link') : _tr('lien fort', 'strong link')) + _tr(' : elles varient ', ': they move ') + sens;
+}
+function grNuage(W, pts, o){
+  o = o || {};
+  const P = (pts || []).filter(function(p){ return p && p.x != null && p.y != null && isFinite(p.x) && isFinite(p.y); });
+  if (!P.length) return '<div class="gr-vide">' + (o.vide || _tr('Pas encore de données.', 'No data yet.')) + '</div>';
+  const H = o.h || 230, haut = 12, bas = o.titreX ? 36 : 24, g = o.gauche || 46, d = 14;
+  let x0 = Math.min.apply(null, P.map(function(p){ return p.x; })), x1 = Math.max.apply(null, P.map(function(p){ return p.x; }));
+  let y0 = Math.min.apply(null, P.map(function(p){ return p.y; })), y1 = Math.max.apply(null, P.map(function(p){ return p.y; }));
+  if (o.zeroX) x0 = Math.min(x0, 0); if (o.zeroY) y0 = Math.min(y0, 0);
+  if (x1 === x0) { x0 -= 1; x1 += 1; }
+  if (y1 === y0) { y0 -= 1; y1 += 1; }
+  const lw = W - g - d, lh = H - haut - bas;
+  // les deux axes s'arretent sur des graduations rondes, au-dela des points
+  const rond = function(a, b, n){ const t = grGraduations(a, b, n); if (t.length > 1) { const pas = t[1] - t[0]; while (t[0] > a + 1e-9) t.unshift((t[0] - pas) || 0); while (t[t.length - 1] < b - 1e-9) t.push((t[t.length - 1] + pas) || 0); } return t; };
+  const tx = rond(x0, x1, Math.max(2, Math.min(6, Math.floor(lw / 64)))), ty = rond(y0, y1, 4);
+  x0 = Math.min(x0, tx[0]); x1 = Math.max(x1, tx[tx.length - 1]); y0 = Math.min(y0, ty[0]); y1 = Math.max(y1, ty[ty.length - 1]);
+  const X = function(v){ return g + (v - x0) / (x1 - x0) * lw; }, Y = function(v){ return haut + lh - (v - y0) / (y1 - y0) * lh; };
+  const fx = o.fmtX || function(v){ return grNb(v); }, fy = o.fmtY || function(v){ return grNb(v); };
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="' + grEchapper(o.aria || '') + '" xmlns="http://www.w3.org/2000/svg" style="display:block;' + _grPolice() + '">';
+  ty.forEach(function(v){ const y = Y(v).toFixed(1); s += '<line x1="' + g + '" x2="' + (W - d) + '" y1="' + y + '" y2="' + y + '" class="gr-grille"/><text x="' + (g - 6) + '" y="' + (+y + 3.5) + '" text-anchor="end" class="gr-axe">' + fy(v) + '</text>'; });
+  tx.forEach(function(v){ const x = X(v).toFixed(1); s += '<line x1="' + x + '" x2="' + x + '" y1="' + haut + '" y2="' + (haut + lh) + '" class="gr-grille"/><text x="' + x + '" y="' + (haut + lh + 15) + '" text-anchor="middle" class="gr-axe">' + fx(v) + '</text>'; });
+  s += '<line x1="' + g + '" x2="' + (W - d) + '" y1="' + (haut + lh) + '" y2="' + (haut + lh) + '" class="gr-base"/><line x1="' + g + '" x2="' + g + '" y1="' + haut + '" y2="' + (haut + lh) + '" class="gr-base"/>';
+  if (o.titreX) s += '<text x="' + (W - d) + '" y="' + (H - 3) + '" text-anchor="end" class="gr-axe">' + grEchapper(o.titreX) + ' →</text>';
+  if (o.titreY) s += '<text x="' + (g + 4) + '" y="' + (haut + 10) + '" class="gr-axe">↑ ' + grEchapper(o.titreY) + '</text>';
+  if (o.droite) {   // la droite des moindres carres, coupee au cadre
+    const c = grCorrelation(P);
+    if (c) {
+      let a = x0, b = x1;
+      if (Math.abs(c.pente) > 1e-12) { const u = (y0 - c.ordonnee) / c.pente, v = (y1 - c.ordonnee) / c.pente; a = Math.max(a, Math.min(u, v)); b = Math.min(b, Math.max(u, v)); }
+      if (b > a) s += '<line x1="' + X(a).toFixed(1) + '" y1="' + Y(c.ordonnee + c.pente * a).toFixed(1) + '" x2="' + X(b).toFixed(1) + '" y2="' + Y(c.ordonnee + c.pente * b).toFixed(1) + '" stroke="' + GR_REF + '" stroke-width="2" stroke-dasharray="5 4" stroke-linecap="round"/>';
+    }
+  }
+  const G = o.groupes || [], r = o.r || (P.length > 150 ? 3 : 4.5);
+  P.forEach(function(p){
+    const c = (G[p.g] && G[p.g].couleur) || GR_OR;
+    s += '<circle cx="' + X(p.x).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="' + r + '" fill="' + c + '" fill-opacity="' + (P.length > 150 ? 0.6 : 0.85) + '" stroke="var(--surface)" stroke-width="1.5" class="gr-pt"'
+      + _grTip(p.tip || [fx(p.x) + ' ; ' + fy(p.y)]) + '/>';
+  });
+  s += '</svg>';
+  const vus = {}; P.forEach(function(p){ if (G[p.g]) vus[p.g] = 1; });
+  const L = G.map(function(x, i){ return vus[i] ? { nom: x.nom, couleur: x.couleur } : null; }).filter(Boolean);
+  return '<div class="gr">' + s + (L.length >= 2 ? grLegende(L) : '') + '</div>';
+}
+
 /* ─── Tuiles de chiffres et tableau des chiffres ─── */
 function grTuiles(T){ return '<div class="gr-tuiles">' + T.map(function(t){ return '<div class="gr-tuile"><span>' + grEchapper(t.lab) + '</span><b>' + t.v + '</b>' + (t.sous ? '<small>' + t.sous + '</small>' : '') + '</div>'; }).join('') + '</div>'; }
 function grChiffres(entetes, lignes){

@@ -1,4 +1,4 @@
-/* Généré par tools/actions.js : ne pas modifier à la main. 469 actions.
+/* Généré par tools/actions.js : ne pas modifier à la main. 470 actions.
    Les seules fonctions que les attributs data-click, data-change… peuvent appeler
    (src/main/00a-actions.js). Chaque entrée renvoie la fonction au moment du clic. */
 const _ACTIONS = {
@@ -256,6 +256,7 @@ const _ACTIONS = {
   obsReduire: function () { return obsReduire; },
   obsRevoir: function () { return obsRevoir; },
   obsRevoirPas: function () { return obsRevoirPas; },
+  obsStatsAxe: function () { return obsStatsAxe; },
   obsToutVoir: function () { return obsToutVoir; },
   opExploreBack: function () { return opExploreBack; },
   opExploreMove: function () { return opExploreMove; },

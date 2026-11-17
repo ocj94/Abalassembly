@@ -9,6 +9,38 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.36]
+
+### AI Observatory: a "Statistics" tab on the game in progress
+ocj94's request: more figures and charts, here on the AI moves the Observatory
+already keeps (60 at most). Everything comes from the measures the engine sends
+at each move: nothing is recomputed, nothing is estimated. A move played without
+a search (opening book, endgame table, fingerprint) stays out of the averages,
+and the tab says how many there were.
+
+- **Depth, time and speed, move after move.** Medians at the top, then three
+  charts: depth reached, time used against time allowed, and positions searched
+  per second.
+- **Was the choice close?** The gap between the best-scored move and the next
+  one, at the last depth completed by every thread; 1,000 points are worth one
+  marble. A histogram of the gaps, the number of close calls (under 50 points)
+  and of clear choices (a marble or more). Already decided positions (forced win
+  or loss) are counted separately.
+- **How stable the choice was.** Since which depth the move played has been on
+  top without leaving it again, how many times the best move changed during the
+  search, and whether the last depth overturned the decision.
+- **Pruning over the game.** α-β cutoffs and transposition table as a percentage
+  of the positions searched, move after move. At Analyst level, the growth factor
+  from one depth to the next.
+- **Two measures against each other** (scatter plot). Ten measures to choose from
+  on each axis, the least-squares line and Pearson's correlation, stated in
+  words. The axis choice is remembered from one game to the next.
+- The downloadable report (.json) carries the same figures, under `statistiques`.
+
+### Added
+- `grNuage` and `grCorrelation` in the chart library (module 46): scatter plot,
+  colour groups, least-squares line, correlation.
+
 ## [v3.35]
 
 ### Security: fixes from the 15 November 2026 audit (site)
