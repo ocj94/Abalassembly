@@ -73,6 +73,9 @@
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-history" data-click="showPage('historique'); fermerMenuMobile();">
       <span class="s-icon">🕓</span><span class="s-label">Historique</span>
     </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-campagne" data-click="showPage('campagne'); fermerMenuMobile();">
+      <span class="s-icon">⚔️</span><span class="s-label">Campagne</span>
+    </button>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-corpusstats" data-click="showPage('corpusstats'); fermerMenuMobile();">
       <span class="s-icon">📈</span><span class="s-label">Stats du corpus</span>
     </button>
@@ -4079,6 +4082,7 @@
 <ul>
 <li><b>Règles du jeu</b> et <b>Abalone Academy</b> : les règles, puis les principes de stratégie.</li>
 <li><b>Sur un vrai plateau</b> : apprendre Abalone aux enfants à partir de 3 ans, sans écran — la sécurité, les règles d’or, 8 petites étapes avec leurs schémas, un carnet de progrès et une fiche à imprimer.</li>
+<li><b>Campagne</b> : vingt-quatre adversaires nommés, du plus simple au plus fort, en quatre chapitres. Chacun a sa disposition de départ, son niveau et son style ; certains te font jouer les blancs ou mettent une pendule. Bats-en un pour ouvrir le suivant. Un encadré dans <i>Mes statistiques</i> rappelle où tu en es. Tout se joue hors ligne, contre le moteur du site, et une partie ne compte que si elle a bien été jouée dans les conditions de l’adversaire.</li>
 <li><b>Problèmes</b> : des positions à résoudre, tirées de vraies parties.</li>
 <li><b>Ouvertures</b> : les débuts de partie, avec leurs taux de gain réels.</li>
 <li><b>Analyse</b> et <b>Mes statistiques</b> : ta progression, ton classement, ton style ; filtres par période et par type de partie ; tes résultats par niveau, style, couleur, disposition et adversaire ; ta précision partie par partie ; tes 12 dimensions et tes ouvertures face aux vrais joueurs ; export CSV. Dans la carte Éjections, tes remontées, où tombent tes billes et toi face aux vrais joueurs.</li>
@@ -4418,6 +4422,9 @@
   </div>
   <div style="padding:0 60px 80px;max-width:800px">
 
+    <!-- v3.41 : ou en est la campagne, rempli par renderStats() -->
+    <div id="ms-campagne"></div>
+
     <!-- Period tabs -->
     <div class="stats-period-tabs" id="stats-period">
       <button class="period-tab" data-click="setStatsPeriod(7,this)">7 jours</button>
@@ -4573,6 +4580,23 @@
     <div class="en-only" style="font-size:13px;color:var(--muted);margin-bottom:20px">Measures of Abalone itself, computed from the real games built into the site (MIGS, AbalOnline, PlayStrategy and reference games) — not from your own games, which are in <a href="#" data-click="showPage('stats');return false;" style="color:var(--gold)">My statistics</a>. Every figure gives its source.</div>
     <div id="corpus-stats-body"></div>
     <div id="reflexion-stats-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGE: LA CAMPAGNE (v3.41)
+     Vingt-quatre adversaires nommes, en quatre chapitres. Le contenu est
+     construit par renderCampagnePage() dans 61-campagne.js.
+══════════════════════════════════════════ -->
+<div class="page" id="page-campagne">
+  <div class="page-header" style="padding-bottom:32px">
+    <div class="section-label"><span class="fr-only">Un chemin dans le jeu</span><span class="en-only">A path through the game</span></div>
+    <h2>⚔️ <span class="fr-only">La campagne</span><span class="en-only">The campaign</span></h2>
+  </div>
+  <div style="padding:0 60px 80px;max-width:680px">
+    <div class="fr-only" style="font-size:13px;color:var(--muted);margin-bottom:20px">Vingt-quatre adversaires, du plus simple au plus fort. Chacun a sa disposition de départ, son niveau et son caractère ; certains imposent une contrainte. Bats-en un pour ouvrir le suivant. Tout se joue hors ligne, contre le moteur du site.</div>
+    <div class="en-only" style="font-size:13px;color:var(--muted);margin-bottom:20px">Twenty-four opponents, from the easiest to the strongest. Each has its own starting layout, level and character; some impose a constraint. Beat one to unlock the next. It all runs offline, against the site's own engine.</div>
+    <div id="campagne-corps"></div>
   </div>
 </div>
 

@@ -664,6 +664,7 @@ function showPage(name) {
     formateurs: function(){ if (typeof renderFormateurs === 'function') renderFormateurs(); },
     historique: function(){ if (typeof renderHistoriquePage === 'function') renderHistoriquePage(); },
     corpusstats:function(){ if (typeof renderCorpusStatsPage === 'function') renderCorpusStatsPage(); },
+    campagne:   function(){ if (typeof renderCampagnePage === 'function') renderCampagnePage(); },
     plateau:    function(){ if (typeof renderPlateauPage === 'function') renderPlateauPage(); },
     archi:      function(){ if (typeof renderArchiPage === 'function') renderArchiPage(); },
     compare:    function(){ renderCompare(); },

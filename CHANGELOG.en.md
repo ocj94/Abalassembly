@@ -9,6 +9,31 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.41]
+
+### The campaign
+ocj94's request after seeing the competing app "Abalone – Play Online": it was
+the only serious gap against it. Twenty-four named opponents in four chapters —
+*First steps*, *Training camp*, *The tacticians*, *The masters* — from Pebble,
+seven marbles each on the reduced board, to the Old Master, level 10 on the
+standard layout.
+
+Each opponent is a starting layout, a level, a style, and sometimes a
+constraint: playing White, a five-minute clock, a three-minute blitz. Nothing
+new under the hood — the site already has 189 layouts and ten levels; the
+campaign merely traces a path through them, for someone who opens the site not
+knowing what to do. Each card carries a word from the opponent and a tip that
+fits its position.
+
+Beat one to unlock the next. A game only counts if it was really played on the
+opponent's terms: same layout, same level, against the AI, at least one move —
+otherwise nothing is recorded, not even the attempt. The first win keeps its
+date and move count; playing again does not overwrite it.
+
+Progress travels with device sync: an opponent once beaten stays beaten, keeping
+the earliest win and the best move count. A panel in *My statistics* shows where
+you stand, and the address `#campaign` opens the page directly.
+
 ## [v3.40]
 
 ### Data maps: multi-dimensional views

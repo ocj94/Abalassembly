@@ -8307,3 +8307,128 @@ test('v3.40 : liens entre plus proches voisins, et les réglages de la carte', (
     assert.ok(String(ctx.localStorage.getItem('abaCartes')).includes('"liens":"4"'));
   } finally { if (sauve === null) ctx.localStorage.removeItem('abaCartes'); else ctx.localStorage.setItem('abaCartes', sauve); }
 });
+
+// ─── v3.41 : la campagne — structure, déblocage, crédit d'une victoire ───
+test('v3.41 : les vingt-quatre adversaires sont jouables tels quels', () => {
+  const ctx = chargerMoteur();
+  const C = ctx.CAMPAGNE;
+  assert.strictEqual(C.length, 24);
+  assert.strictEqual(ctx.CAMP_CHAPITRES.length, 4);
+  // chaque identifiant est unique : sans ça, deux adversaires partageraient leur progression
+  assert.strictEqual(new Set(C.map(a => a.id)).size, 24);
+  C.forEach(function (a) {
+    // la disposition existe vraiment dans le moteur
+    assert.ok(ctx.LAYOUTS[a.plateau], a.id + ' : disposition inconnue ' + a.plateau);
+    // le niveau existe dans la table de l'IA
+    assert.ok(ctx.AI_DIFFICULTY_CONFIG[a.niv], a.id + ' : niveau inconnu ' + a.niv);
+    // la disposition a un nom lisible, pas sa clé brute
+    assert.notStrictEqual(ctx.campNomPlateau(a.plateau), a.plateau, a.id + ' : disposition sans nom');
+    // les deux langues sont remplies
+    assert.ok(a.en && a.motEn && a.tipEn, a.id + ' : traduction manquante');
+  });
+  // la difficulté ne redescend jamais le long de l'échelle
+  for (let i = 1; i < C.length; i++) {
+    assert.ok(parseInt(C[i].niv, 10) >= parseInt(C[i - 1].niv, 10),
+      C[i].id + ' est plus facile que le précédent');
+  }
+});
+
+test('v3.41 : un adversaire ne s’ouvre qu’une fois le précédent battu', () => {
+  const ctx = chargerMoteur();
+  const sauve = JSON.stringify(ctx.progress.campagne || {});
+  try {
+    ctx.progress.campagne = {};
+    assert.strictEqual(ctx.campOuvert(0), true);   // le premier est toujours ouvert
+    assert.strictEqual(ctx.campOuvert(1), false);
+    assert.strictEqual(ctx.campVictoires(), 0);
+    assert.strictEqual(ctx.campProchain().id, ctx.CAMPAGNE[0].id);
+    // un essai perdu n'ouvre rien
+    ctx.progress.campagne[ctx.CAMPAGNE[0].id] = { e: 3 };
+    assert.strictEqual(ctx.campOuvert(1), false);
+    // une victoire ouvre le suivant, et lui seul
+    ctx.progress.campagne[ctx.CAMPAGNE[0].id] = { e: 4, d: '2026-11-17T00:00:00.000Z', c: 31 };
+    assert.strictEqual(ctx.campOuvert(1), true);
+    assert.strictEqual(ctx.campOuvert(2), false);
+    assert.strictEqual(ctx.campVictoires(), 1);
+    assert.strictEqual(ctx.campProchain().id, ctx.CAMPAGNE[1].id);
+  } finally { ctx.progress.campagne = JSON.parse(sauve); }
+});
+
+test('v3.41 : une victoire n’est créditée que si la partie est bien celle de l’adversaire', () => {
+  const ctx = chargerMoteur();
+  const a = ctx.CAMPAGNE[1];   // Brindille : standard, niveau 1
+  const sauve = JSON.stringify(ctx.progress.campagne || {});
+  const modeAvant = ctx.GameMode.get(), coupsAvant = ctx.MoveCount.get(), planAvant = ctx.currentLayout;
+  const diffAvant = ctx._setupCfg.diff;
+  const poser = function () {
+    ctx.localStorage.setItem('abaCampagneEnCours', a.id);
+    ctx.GameMode.set('ai'); ctx.currentLayout = a.plateau; ctx.MoveCount.set(40); ctx._setupCfg.diff = a.niv;
+  };
+  try {
+    ctx.progress.campagne = {};
+    // sans partie de campagne en cours : rien du tout
+    ctx.localStorage.removeItem('abaCampagneEnCours');
+    assert.strictEqual(ctx.campagneFinDePartie(true), null);
+    assert.deepStrictEqual(JSON.parse(JSON.stringify(ctx.progress.campagne)), {});
+
+    // mauvaise disposition : rien n'est compté, pas même l'essai
+    poser(); ctx.currentLayout = 'belgian';
+    assert.strictEqual(ctx.campagneFinDePartie(true), null);
+    assert.deepStrictEqual(JSON.parse(JSON.stringify(ctx.progress.campagne)), {});
+
+    // mauvais niveau : pareil
+    poser(); ctx._setupCfg.diff = '7';
+    assert.strictEqual(ctx.campagneFinDePartie(true), null);
+    assert.deepStrictEqual(JSON.parse(JSON.stringify(ctx.progress.campagne)), {});
+
+    // aucun coup joué : pareil
+    poser(); ctx.MoveCount.set(0);
+    assert.strictEqual(ctx.campagneFinDePartie(true), null);
+    assert.deepStrictEqual(JSON.parse(JSON.stringify(ctx.progress.campagne)), {});
+
+    // une défaite dans les règles : un essai de plus, toujours pas battu
+    poser();
+    let e = ctx.campagneFinDePartie(false);
+    assert.strictEqual(e.e, 1);
+    assert.strictEqual(e.d, undefined);
+    assert.strictEqual(ctx.campFait(a.id), false);
+    // la partie en cours est consommée : une seconde fin ne recompte rien
+    assert.strictEqual(ctx.campagneFinDePartie(false), null);
+
+    // la victoire : date et nombre de coups gardés
+    poser();
+    e = ctx.campagneFinDePartie(true);
+    assert.strictEqual(e.e, 2);
+    assert.strictEqual(e.c, 40);
+    assert.ok(e.d);
+    assert.strictEqual(ctx.campFait(a.id), true);
+
+    // rejouer plus tard ne réécrit pas la première victoire
+    const premiere = e.d;
+    poser(); ctx.MoveCount.set(90);
+    e = ctx.campagneFinDePartie(true);
+    assert.strictEqual(e.d, premiere);
+    assert.strictEqual(e.c, 40);
+    assert.strictEqual(e.e, 3);
+  } finally {
+    ctx.progress.campagne = JSON.parse(sauve);
+    ctx.localStorage.removeItem('abaCampagneEnCours');
+    ctx.GameMode.set(modeAvant); ctx.MoveCount.set(coupsAvant); ctx.currentLayout = planAvant; ctx._setupCfg.diff = diffAvant;
+  }
+});
+
+test('v3.41 : la campagne se fusionne entre appareils sans perdre une victoire', () => {
+  const ctx = chargerMoteur();
+  const A = { campagne: { galet: { e: 2, d: '2026-11-10T00:00:00.000Z', c: 28 }, brindille: { e: 1 } } };
+  const B = { campagne: { galet: { e: 5, d: '2026-11-15T00:00:00.000Z', c: 22 }, meche: { e: 3, d: '2026-11-16T00:00:00.000Z', c: 44 } } };
+  const r = ctx._syncFusionProgression(A, B).v.campagne;
+  // la plus ancienne victoire gagne, le meilleur score de coups aussi, les essais sont au plus haut
+  assert.strictEqual(r.galet.d, '2026-11-10T00:00:00.000Z');
+  assert.strictEqual(r.galet.c, 22);
+  assert.strictEqual(r.galet.e, 5);
+  // un adversaire battu seulement sur l'autre appareil n'est jamais perdu
+  assert.strictEqual(r.meche.d, '2026-11-16T00:00:00.000Z');
+  // un essai sans victoire reste un essai
+  assert.strictEqual(r.brindille.e, 1);
+  assert.strictEqual(r.brindille.d, undefined);
+});

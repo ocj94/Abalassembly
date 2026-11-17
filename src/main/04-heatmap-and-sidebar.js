@@ -425,6 +425,8 @@ function renderProfileProgression() {
   const gotCount = Object.keys(progress.badges).length;
 
   host.innerHTML =
+  /* v3.41 : ou en est la campagne, en une ligne cliquable au-dessus du reste. */
+  ((typeof campagneLigneProfil === 'function') ? campagneLigneProfil() : '')+
   '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:16px">'+
 
     // Niveau + XP

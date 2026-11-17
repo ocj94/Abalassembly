@@ -222,6 +222,9 @@ const PASSERELLE = `
   if (typeof CapturedByWhite !== 'undefined')  relier('CapturedByWhite', function(){return CapturedByWhite;});
   if (typeof MoveCount !== 'undefined')        relier('MoveCount', function(){return MoveCount;});
   if (typeof GameOver !== 'undefined')         relier('GameOver', function(){return GameOver;});
+  // la campagne (v3.41)
+  if (typeof CAMPAGNE !== 'undefined')         relier('CAMPAGNE', function(){return CAMPAGNE;});
+  if (typeof CAMP_CHAPITRES !== 'undefined')   relier('CAMP_CHAPITRES', function(){return CAMP_CHAPITRES;});
 })();
 `;
 

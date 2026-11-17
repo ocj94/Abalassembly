@@ -9,6 +9,32 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.41]
+
+### La campagne
+Demande d'ocj94 après avoir vu l'application concurrente « Abalone – Play
+Online » : c'était le seul manque sérieux face à elle. Vingt-quatre adversaires
+nommés, en quatre chapitres — *Premiers pas*, *Le camp d'entraînement*, *Les
+tacticiens*, *Les maîtres* — de Galet, sept billes chacun sur le plateau réduit,
+jusqu'au Vieux Maître, niveau 10 sur la disposition standard.
+
+Chaque adversaire est une disposition de départ, un niveau, un style, et parfois
+une contrainte : jouer les blancs, une pendule de cinq minutes, un blitz de trois
+minutes. Rien de nouveau sous le capot — le site a déjà 189 dispositions et dix
+niveaux ; la campagne ne fait que tracer un chemin dedans, pour qui ouvre le site
+sans savoir quoi faire. Chaque carte porte un mot de l'adversaire et un conseil
+qui va avec sa position.
+
+Bats-en un pour ouvrir le suivant. Une partie ne compte que si elle a vraiment
+été jouée dans ses conditions : même disposition, même niveau, contre l'IA, au
+moins un coup joué — sinon rien n'est compté, pas même l'essai. La première
+victoire garde sa date et son nombre de coups ; rejouer ne la réécrit pas.
+
+La progression voyage avec la synchronisation des appareils : un adversaire battu
+le reste, on garde la plus ancienne victoire et le meilleur nombre de coups.
+Un encadré dans *Mes statistiques* rappelle où tu en es, et l'adresse
+`#campagne` ouvre la page directement.
+
 ## [v3.40]
 
 ### Cartes des données : les vues en plusieurs dimensions

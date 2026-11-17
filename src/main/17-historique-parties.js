@@ -245,6 +245,12 @@ function triggerWin(winner, reason) {
     awardBadge('shutout');
     showToast('🧺 Blanchissage ! Victoire 6-0 sans perdre une bille !');
   }
+  /* v3.41 : la campagne. Ne fait rien si aucune partie de campagne n'est en
+     cours ; la verification que la partie correspond bien a l'adversaire est
+     dans campagneFinDePartie() elle-meme. */
+  if (typeof campagneFinDePartie === 'function') {
+    try { campagneFinDePartie(jeGagne); } catch (e) { if (window.console) console.warn('campagne:', e && e.message); }
+  }
 }
 
 

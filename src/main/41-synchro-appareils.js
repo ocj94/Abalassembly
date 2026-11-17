@@ -214,6 +214,23 @@ function _syncFusionProgression(a, b){
     r.badges = Object.assign({}, b.badges || {}, a.badges || {});
     Object.keys(b.badges || {}).forEach(function(k){ if (a.badges && a.badges[k] && String(b.badges[k]) < String(a.badges[k])) r.badges[k] = b.badges[k]; });   // obtenu le plus tot
   }
+  /* v3.41 : la campagne. Un adversaire battu le reste : on garde la plus
+     ancienne victoire, le meilleur nombre de coups, et la somme la plus haute
+     d'essais — jamais une victoire effacee par un appareil en retard. */
+  if (a.campagne || b.campagne) {
+    r.campagne = {};
+    const ids = Object.keys(a.campagne || {}).concat(Object.keys(b.campagne || {}));
+    ids.forEach(function(k){
+      if (r.campagne[k]) return;
+      const x = (a.campagne || {})[k] || {}, y = (b.campagne || {})[k] || {}, o = {};
+      o.e = Math.max(x.e || 0, y.e || 0);
+      const d = [x.d, y.d].filter(Boolean).sort();
+      if (d.length) o.d = d[0];
+      const c = [x.c, y.c].filter(function(v){ return v > 0; });
+      if (c.length) o.c = Math.min.apply(null, c);
+      r.campagne[k] = o;
+    });
+  }
   if (a.skinsSeen || b.skinsSeen) r.skinsSeen = Object.assign({}, b.skinsSeen || {}, a.skinsSeen || {});
   if (a.defis || b.defis) r.defis = _syncFusionDefis(a.defis, b.defis);
   [['weekly', 'week'], ['dailyGame', 'day'], ['monthly', 'month']].forEach(function(p){

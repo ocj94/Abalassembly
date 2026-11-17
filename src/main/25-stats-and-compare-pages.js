@@ -19,6 +19,12 @@ function renderStats() {
     if (typeof renderColorStats === 'function') renderColorStats();
     if (typeof renderMesStatsPlus === 'function') renderMesStatsPlus();
   } finally { _msFiltreApplique = false; }
+  /* v3.41 : la campagne, avant la garde « pas d'utilisateur » -- elle vit en
+     local comme l'historique, elle n'a aucune raison d'attendre un compte. */
+  (function(){
+    const h = document.getElementById('ms-campagne');
+    if (h && typeof campagneLigneProfil === 'function') h.innerHTML = campagneLigneProfil();
+  })();
   const u = currentUser;
   if (!u) return;
   const el = function(id,v) { const e=document.getElementById(id); if(e) e.textContent=v; };

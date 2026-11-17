@@ -2624,6 +2624,37 @@ body.kids-mode a[target="_blank"] {
 }
 body.kids-mode #nav-settings,
 body.kids-mode #bnav-settings { display: none !important; }
+
+/* ── La campagne (v3.41) ── */
+.camp-resume { border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:22px; }
+.camp-score { font-size:28px; font-weight:700; color:var(--gold); line-height:1; }
+.camp-barre { height:6px; background:var(--border); border-radius:99px; margin:11px 0 9px; overflow:hidden; }
+.camp-barre span { display:block; height:100%; background:var(--gold); border-radius:99px; }
+.camp-suite { font-size:13px; color:var(--muted); }
+.camp-chapitre { font-size:12px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); margin:26px 0 10px; }
+.camp-chapitre span { color:var(--gold); }
+.camp-grille { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.camp-carte { border:1px solid var(--border); border-radius:12px; padding:13px; display:flex; flex-direction:column; gap:7px; }
+.camp-carte.camp-fait { border-color:var(--gold-dim); }
+.camp-carte.camp-ferme { opacity:.45; }
+.camp-tete { display:flex; flex-wrap:wrap; align-items:baseline; gap:7px; }
+.camp-emo { font-size:20px; line-height:1; }
+.camp-nom { font-weight:600; font-size:15px; }
+.camp-niv { font-size:11.5px; color:var(--muted); width:100%; }
+.camp-mot { font-size:13px; color:var(--text); }
+.camp-marques { display:flex; flex-wrap:wrap; gap:5px; }
+.camp-marque { font-size:11px; border:1px solid var(--gold-dim); color:var(--gold); border-radius:99px; padding:2px 8px; }
+.camp-tip { font-size:12px; color:var(--muted); }
+.camp-bilan { font-size:12px; color:var(--gold); }
+.camp-bilan.camp-essais { color:var(--muted); }
+.camp-btn { margin-top:auto; background:none; border:1px solid var(--gold-dim); color:var(--gold); border-radius:8px; padding:7px 12px; font-size:13px; cursor:pointer; }
+.camp-btn:hover { background:var(--gold-dim); }
+.camp-ligne { display:flex; align-items:center; gap:10px; border:1px solid var(--border); border-radius:10px; padding:10px 13px; cursor:pointer; margin-bottom:12px; }
+.camp-ligne-t { font-size:13px; }
+.camp-ligne-n { color:var(--gold); font-weight:600; font-size:13px; }
+.camp-ligne-s { margin-left:auto; font-size:12px; color:var(--muted); }
+@media (max-width:600px) { .camp-grille { grid-template-columns:1fr; } }
+
 </style>
 </head>
 <body>
