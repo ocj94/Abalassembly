@@ -9,6 +9,31 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.38]
+
+### Mes statistiques : quatre lectures de plus
+Demande d'ocj94. Tout vient de ce qui est déjà sur l'appareil : l'historique des
+parties, dont les notes que l'IA a données coup par coup, et le rejeu de tes
+parties que la page faisait déjà. Aucune partie n'est rejouée en plus.
+
+- **Tes parties vues par l'IA.** L'IA note chaque position pendant qu'elle
+  réfléchit, et ces notes sont gardées avec la partie ; aucun graphique ne s'en
+  servait. Les voici de ton côté : la courbe de ta dernière partie notée, ton
+  meilleur et ton pire moment partie par partie, le nombre de fois où tu menais
+  d'au moins une bille et demie et où tu as perdu (et l'inverse), et le demi-coup
+  médian où la partie bascule.
+- **Comment finissent tes parties.** La raison de la fin (six billes, abandon,
+  nulle…), la grille de ton score final — billes faites contre billes perdues —
+  et, quand tu gagnes à six billes, combien l'adversaire en avait prises, à côté
+  des vraies parties du corpus.
+- **Le détail de tes poussées.** 2 contre 1, 3 contre 1, 3 contre 2 : comment
+  elles se répartissent et combien éjectent, avec le repère des vrais joueurs.
+  `computeEjectionStats` les compte maintenant pendant le rejeu, exactement
+  comme le corpus les compte (`_sbTypePoussee`).
+- **Ton calendrier et tes défis du jour.** Une case par jour sur les douze
+  derniers mois ; et pour les défis : trouvés, du premier coup, sans indice,
+  temps médian, erreurs avant de trouver, série en cours.
+
 ## [v3.37]
 
 ### Labo : cinq lectures du journal des parties

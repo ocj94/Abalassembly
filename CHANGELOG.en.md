@@ -9,6 +9,30 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.38]
+
+### My statistics: four more readings
+ocj94's request. Everything comes from what is already on the device: the game
+history, including the scores the AI gave move by move, and the replay of your
+games the page already did. No game is replayed on top of that.
+
+- **Your games as the AI saw them.** The AI scores every position while it
+  thinks, and those scores are kept with the game; no chart used them. Here they
+  are from your side: the curve of your last scored game, your best and worst
+  moment game by game, how many times you led by at least a marble and a half and
+  still lost (and the reverse), and the median ply where the game tips.
+- **How your games end.** The reason for the ending (six marbles, resignation,
+  draw…), the grid of your final score — marbles taken against marbles lost —
+  and, when you win at six marbles, how many the opponent had taken, next to the
+  real corpus games.
+- **Your pushes in detail.** 2 against 1, 3 against 1, 3 against 2: how they
+  break down and how many push a marble off, with the real players' mark.
+  `computeEjectionStats` now counts them during the replay, exactly as the corpus
+  counts them (`_sbTypePoussee`).
+- **Your calendar and your daily challenges.** One cell per day over the last
+  twelve months; and for the challenges: solved, first try, without a hint,
+  median time, mistakes before solving, current streak.
+
 ## [v3.37]
 
 ### Lab: five readings of the game journal

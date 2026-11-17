@@ -2262,6 +2262,10 @@ table.liste-coups td.lc-courant { outline:1px dashed var(--gold); outline-offset
 .gr-carte thead th { text-align:center; }
 .gr-carte td { padding:5px 6px; text-align:center; border-radius:3px; min-width:30px; font-variant-numeric:tabular-nums; outline:none; white-space:nowrap; }
 .gr-carte-vide { color:var(--muted); }
+/* v3.38 : le calendrier de Mes statistiques -- 31 colonnes de jours, sans texte dans les cases : des
+   cases etroites, sinon la grille deborde de sa carte et la fin du mois est coupee. */
+.mp-cal .gr-carte td { min-width:0; width:14px; padding:5px 0; }
+.mp-cal .gr-carte th { padding:3px 4px; font-size:10.5px; }
 .gr-echelle { display:flex; align-items:center; gap:8px; font-size:10.5px; color:var(--muted); margin:4px 0; }
 .gr-echelle i { flex:0 1 160px; height:8px; border-radius:4px; }
 .gr-echelle-or { background:linear-gradient(90deg, rgba(200,168,75,0.06), rgba(200,168,75,0.94)); }

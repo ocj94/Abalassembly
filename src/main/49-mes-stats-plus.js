@@ -262,6 +262,8 @@ function renderMesStatsPlus(){
     + carte(_tr('Ma qualité de jeu face aux vrais joueurs', 'My quality of play against real players'), '<div id="ms-qualite">' + _msHtmlQualite() + '</div>')
     + carte(_tr('Moi contre le corpus', 'Me against the corpus'), '<div id="ms-corpus"></div>')
     + carte(_tr('La carte de mes parties', 'The map of my games'), '<div id="carte-mes"></div>');   // v3.27 (60-cartes-donnees.js)
+  // v3.38 : quatre lectures de plus (49b-mes-stats-ia.js) -- ajoutees apres, pour que _msDernier.ej soit deja rempli
+  if (typeof mesStatsIaHtml === 'function') hp.innerHTML += carte(_tr('Mes parties, vues de plus près', 'My games, looked at more closely'), mesStatsIaHtml(L, W), 'ms-ia');
   _msRendreCorpus();
   if (typeof carteMesRendre === 'function') carteMesRendre();
   grSurRedim('messtats', 'ms-plus', function(){ _msFiltreApplique = true; try { renderMesStatsPlus(); } finally { _msFiltreApplique = false; } });

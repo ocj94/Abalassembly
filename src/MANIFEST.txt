@@ -87,6 +87,7 @@ main/47-labo-tableau.js
 main/47b-labo-stats.js
 main/48-corpus-plus.js
 main/49-mes-stats-plus.js
+main/49b-mes-stats-ia.js
 main/50-qualite-coups.js
 main/51-explorateur-ouvertures.js
 main/52-corpus-tendances.js

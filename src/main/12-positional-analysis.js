@@ -909,6 +909,7 @@ function computeEjectionStats(){
      Une avance prise par la 6e bille (la partie est finie) ne compte pas. Meme regle que _sbConversion. */
   const conversion = { mene: [null, { n: 0, g: 0 }, { n: 0, g: 0 }, { n: 0, g: 0 }], menee: [null, { n: 0, g: 0 }, { n: 0, g: 0 }, { n: 0, g: 0 }] };
   const carteSubies = new Array(61).fill(0), sortes = [0, 0, 0, 0, 0, 0, 0, 0];
+  const poussees = [0, 0, 0, 0, 0, 0];   // v3.38 : 2 c. 1, 3 c. 1, 3 c. 2 ; puis les memes qui ejectent
   const avecSb = (typeof _sbClasser === 'function');
   const parties = [];   // v2.73 : partie par partie (Ma progression, export CSV)
 
@@ -937,6 +938,10 @@ function computeEjectionStats(){
         const uneOpportunite = legal.some(function(m){ return m.dir && validateMove(m.cells, m.dir, turn).ejection; });
         if (uneOpportunite) { opportunites++; sortes[7]++; }
         if (avecSb) _sbClasser(sortes, mv, v);
+        /* v3.38 : le detail de tes poussees (2 contre 1, 3 contre 1, 3 contre 2), compte comme dans le
+           corpus (_sbTypePoussee) : 0-2 tentees, 3-5 celles qui ejectent. Sert a te comparer aux vrais
+           joueurs, qui ont deja ce detail (_sbAgreger().poussees). */
+        if (avecSb && typeof _sbTypePoussee === 'function') { const tp = _sbTypePoussee(mv, v); if (tp >= 0) { poussees[tp]++; if (v.ejection) poussees[tp + 3]++; } }
         if (v.ejection) {
           realisees++; thisGameEj++; byPhase[phase]++; sortes[6]++;
           if (firstEjThisGame === null) firstEjThisGame = ply;
@@ -981,7 +986,8 @@ function computeEjectionStats(){
     partiesAvecEjection: firstEjPlies.length,
     meilleurePartie: bestGame,
     byPhase: byPhase,
-    premiere: premiere, carteSubies: carteSubies, sortes: sortes, parties: parties, conversion: conversion
+    premiere: premiere, carteSubies: carteSubies, sortes: sortes, parties: parties, conversion: conversion,
+    poussees: poussees   // v3.38
   };
 }
 

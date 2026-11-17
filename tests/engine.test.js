@@ -8101,3 +8101,89 @@ test('v3.37 : Labo — paires, parcours des tests, réglages, scores finaux, sé
   assert.strictEqual((h.match(/gr-vide/g) || []).length, 5, 'journal vide : les cinq blocs le disent, aucun ne plante');
   ctx.localStorage.removeItem(CLE);
 });
+
+// ─── v3.38 : Mes statistiques, quatre lectures de plus (49b-mes-stats-ia.js) ───
+test('v3.38 : le détail de tes poussées — mêmes comptes que le corpus pour les mêmes parties', async () => {
+  const D = await _charger57();
+  const M = ctx.MIGS_GAMES;
+  const idx = []; for (let i = 0; i < M.length && idx.length < 3; i++) if (M[i][4] === 'Au score' && [1, 2].includes(D.p[i][0])) idx.push(i);
+  const entrees = idx.map((i, k) => _texte57(M[i], D.p[i][0], k !== 1)).map(t => ctx._parseBulkHistoryText(t, 'Alex')[0].entry);
+  const sauve = ctx.localStorage.getItem(ctx.GAME_HISTORY_KEY);
+  try {
+    ctx.localStorage.setItem(ctx.GAME_HISTORY_KEY, JSON.stringify(entrees));
+    const s = JSON.parse(JSON.stringify(ctx.computeEjectionStats()));
+    require('vm').runInContext('_msDernier.ej = ' + JSON.stringify(s), ctx);   // ce que la page garde du rejeu
+    // attendu : p[8] = pN (6) puis pB (6) ; Alex a les Noirs sauf la deuxième partie
+    const att = [0, 0, 0, 0, 0, 0];
+    idx.forEach((i, k) => { const p8 = D.p[i][8], base = (k !== 1) ? 0 : 6; for (let t = 0; t < 6; t++) att[t] += p8[base + t]; });
+    assert.deepStrictEqual(s.poussees, att, 'les poussées comptées chez toi = celles du corpus pour ton camp');
+    assert.strictEqual(s.poussees[0] + s.poussees[1] + s.poussees[2], s.sortes[5], 'toute poussée est classée dans un des trois types');
+    assert.ok(s.poussees[3] + s.poussees[4] + s.poussees[5] <= s.poussees[0] + s.poussees[1] + s.poussees[2], 'celles qui éjectent sont un sous-ensemble');
+    await _enFrancais54(() => _dom54(() => {
+      const h = ctx._mpHtmlPoussees(640);
+      ['Le détail de tes poussées', '2 contre 1', '3 contre 1', '3 contre 2', 'Celles qui éjectent', 'corpus'].forEach(t => assert.ok(h.includes(t), t));
+      assert.doesNotMatch(h, /NaN|undefined/);
+    }));
+  } finally { if (sauve === null) ctx.localStorage.removeItem(ctx.GAME_HISTORY_KEY); else ctx.localStorage.setItem(ctx.GAME_HISTORY_KEY, sauve); }
+});
+
+test('v3.38 : tes parties vues par l’IA, tes fins de partie, ton calendrier et tes défis', async () => {
+  const vm = require('vm'), lire = c => vm.runInContext(c, ctx);
+  // ── 11. les notes de l'IA : gardées de SON point de vue, retournées pour toi ──
+  const ev = (t) => t.map(x => x === null ? 0 : [x, 3, 900, 'm']);
+  const p1 = { id: 'a', date: '2026-11-10T10:00:00Z', mode: 'ai', winner: 'white', humanColor: 'black', moveCount: 6, evals: ev([null, -2000, null, -500, null, 3000]) };
+  const p2 = { id: 'b', date: '2026-11-09T10:00:00Z', mode: 'ai', winner: 'black', humanColor: 'black', moveCount: 4, evals: ev([2500, -1000]) };
+  const p3 = { id: 'c', date: '2026-11-08T10:00:00Z', mode: 'ai', winner: 'black', humanColor: 'black', moveCount: 4, evals: ev([99999, 100]) };  // une seule note utilisable
+  const p4 = { id: 'd', date: '2026-11-07T10:00:00Z', mode: 'local', winner: 'black', humanColor: 'black', moveCount: 4, evals: ev([100, 200]) };  // pas contre l'IA
+  const P = ctx._mpPartiesNotees([p1, p2, p3, p4]);
+  assert.strictEqual(P.length, 2, 'une partie à une seule note, et une partie locale, ne comptent pas');
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(P[0].pts)), [[1, 2000], [3, 500], [5, -3000]], 'le signe est retourné : la note de l’IA devient la tienne');
+  assert.strictEqual(P[0].max, 2000); assert.strictEqual(P[0].min, -3000);
+  assert.strictEqual(P[0].bascule, 5, 'le dernier passage d’un côté à l’autre de zéro');
+  assert.strictEqual(P[1].bascule, 1);
+  await _enFrancais54(() => _dom54(() => {
+    const h = ctx._mpHtmlVueIA([p1, p2, p3, p4], 640);
+    assert.ok(h.includes('Tes parties vues par l’IA'));
+    assert.ok(/Avance perdue[\s\S]{0,200}>1</.test(h.replace(/\s+/g, ' ')) || h.includes('Avance perdue'), 'la tuile existe');
+    assert.doesNotMatch(h, /NaN|undefined/);
+    // p1 : tu menais de 2 billes et tu as perdu -> avance perdue ; p2 : mené de 2,5 billes et tu as gagné -> remontée
+    const P2 = ctx._mpPartiesNotees([p1, p2]);
+    assert.strictEqual(P2.filter(x => x.resultat === 'defaite' && x.max >= lire('MP_AVANCE')).length, 1);
+    assert.strictEqual(P2.filter(x => x.resultat === 'victoire' && x.min <= -lire('MP_AVANCE')).length, 1);
+    // le seuil compte : mené d'une seule bille, ce n'est pas une remontée
+    const p5 = { id: 'e', date: '2026-11-06T10:00:00Z', mode: 'ai', winner: 'black', humanColor: 'black', moveCount: 4, evals: ev([1000, -200]) };
+    assert.strictEqual(ctx._mpPartiesNotees([p5]).filter(x => x.resultat === 'victoire' && x.min <= -lire('MP_AVANCE')).length, 0);
+    assert.ok(ctx._mpHtmlVueIA([p4], 640).includes('gr-vide'), 'aucune partie notée : le bloc le dit');
+  }));
+
+  // ── 12. comment finissent tes parties ──
+  await _enFrancais54(() => _dom54(() => {
+    const L = [{ id: 'x', date: '2026-11-10T10:00:00Z', winner: 'black', reason: 'capture' }, { id: 'y', date: '2026-11-10T10:00:00Z', winner: 'white', reason: 'resign' },
+      { id: 'z', date: '2026-11-10T10:00:00Z', winner: null, reason: 'draw' }, { id: 'w', date: '2026-11-10T10:00:00Z' }];
+    const h = ctx._mpHtmlFins(L, 640);
+    ['Comment finissent tes parties', 'six billes éjectées', 'abandon', 'nulle'].forEach(t => assert.ok(h.includes(t), t));
+    assert.ok(ctx._mpHtmlFins([{ id: 'q', date: '2026-11-10T10:00:00Z' }], 640).includes('gr-vide'), 'aucune partie terminée : le bloc le dit');
+  }));
+
+  // ── 14. le calendrier et les défis ──
+  const J = ctx._mpCalendrier([{ date: '2026-11-10T10:00:00Z' }, { date: '2026-11-10T22:00:00Z' }, { date: '2026-11-09T10:00:00Z' }, { date: 'n’importe quoi' }]);
+  const C = JSON.parse(JSON.stringify(J));
+  assert.strictEqual(Object.keys(C).length, 2, 'une date illisible ne crée pas de jour');
+  assert.strictEqual(C[Object.keys(C).sort()[1]], 2, 'deux parties le même jour comptent 2');
+  const sauveD = lire('progress.defis');
+  try {
+    lire('progress.defis = ' + JSON.stringify({ 1: { e: 'v', f: 'v', j: 1, ms: 10000 }, 2: { e: 'xxv', f: 'v', j: 2, ms: 40000 },
+      3: { e: 'xiv', f: 'v', j: 3, ms: 60000 }, 4: { e: 'xxxxs', f: 's', j: 4, ms: 90000 }, 5: { e: 'x' } }));
+    await _enFrancais54(() => _dom54(() => {
+      const h = ctx._mpHtmlDefis(640);
+      assert.ok(h.includes('Tes défis du jour'));
+      assert.ok(h.includes('>4<'), '4 défis terminés (le 5e est en cours)');
+      assert.ok(/>33\s*%</.test(h) || h.includes('33 %'), 'du premier coup : 1 sur 3 trouvés');
+      assert.ok(/>67\s*%</.test(h) || h.includes('67 %'), 'sans indice : 2 sur 3');
+      assert.ok(h.includes('1,0 min') || h.includes('60,0 s') || h.includes('40,0 s'), 'le temps médian des défis trouvés');
+      assert.doesNotMatch(h, /NaN|undefined/);
+      lire('progress.defis = {}');
+      assert.ok(ctx._mpHtmlDefis(640).includes('gr-vide'));
+    }));
+  } finally { lire('progress.defis = ' + JSON.stringify(sauveD || {})); }
+});
