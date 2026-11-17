@@ -658,7 +658,7 @@ function showPage(name) {
     },
     tournament: function(){ renderTournament(); },
     trombi:     function(){ renderTrombi(); },
-    settings:   function(){ renderProfile(); if(typeof syncRadarToggle==='function') syncRadarToggle(); if(typeof syncDisplayToggles==='function') syncDisplayToggles(); if(typeof syncViewAVFXToggles==='function') syncViewAVFXToggles(); },
+    settings:   function(){ if(typeof voixRendreReglages==='function') voixRendreReglages(); renderProfile(); if(typeof syncRadarToggle==='function') syncRadarToggle(); if(typeof syncDisplayToggles==='function') syncDisplayToggles(); if(typeof syncViewAVFXToggles==='function') syncViewAVFXToggles(); },
     stats:      function(){ renderStats(); },
     gym:        function(){ if (typeof renderGymCerveau === 'function') renderGymCerveau(); },
     formateurs: function(){ if (typeof renderFormateurs === 'function') renderFormateurs(); },

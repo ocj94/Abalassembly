@@ -9,6 +9,39 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.42]
+
+### Move announcements
+ocj94's request: "on every move the voice would say the move, a1 to a2". On
+every move played, a voice announces it in coordinates — "A 1 to B 1", "White,
+three marbles, I 8 to H 7", "two marbles, E 5 to F 6, push". Useful for
+replaying the game on a real board without taking your eyes off the marbles,
+and useful generally when you are not looking at the screen.
+
+The text follows the **Aba-Pro notation already shown** on the board: for a
+group, the tail marble's departure and arrival. A test checks that the cells
+spoken, put back together, are exactly those of `moveToABAPRO` — so the voice
+can never announce anything other than what is written. It only adds what the
+notation does not say: the number of marbles, the push, the ejection, and the
+side when the move is not yours.
+
+Cells are written "A 1" rather than "a1": run together, speech synthesis says
+them as one blur and they become impossible to follow.
+
+Settings in *Settings → Permissions → Move announcements*: the switch, which
+moves to announce (all, yours, the opponent's), the rate, the browser voice,
+and the side. A button plays a real example move, not an invented phrase.
+
+It all goes through the browser's speech synthesis: no audio file, no network,
+the site stays a single file. When the browser has none, the settings say so
+instead of staying silent with no explanation.
+
+### Documentation
+New wiki page, [Playing on a physical board](docs-en/Plateau-physique.en.md):
+what the camera and the AR mode already do, and why a push — which moves up to
+five marbles at once — breaks down into single-cell moves as soon as you start
+with the leading marble.
+
 ## [v3.41]
 
 ### The campaign

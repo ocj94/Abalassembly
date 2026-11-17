@@ -9,6 +9,40 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.42]
+
+### La voix des coups
+Demande d'ocj94 : « à chaque déplacement la voix dirait le mouvement, a1 en
+a2 ». À chaque coup joué, une voix annonce le déplacement en coordonnées —
+« A 1 en B 1 », « Blancs, trois billes, I 8 en H 7 », « deux billes, E 5 en
+F 6, poussée ». Utile pour rejouer la partie sur un vrai plateau sans quitter
+les billes des yeux, et utile tout court quand on ne regarde pas l'écran.
+
+Le texte suit la **notation Aba-Pro déjà affichée** sur le plateau : pour un
+groupe, le départ et l'arrivée de la bille de queue. Un test vérifie que les
+cases prononcées, recollées, sont exactement celles de `moveToABAPRO` — la voix
+ne peut donc jamais annoncer autre chose que ce qui est écrit. Elle ajoute
+seulement ce que la notation ne dit pas : le nombre de billes, la poussée,
+l'éjection, et le camp quand ce n'est pas toi qui joues.
+
+Les cases sont écrites « A 1 » et non « a1 » : collées, la synthèse les
+prononce d'un bloc et on ne les suit plus.
+
+Réglages dans *Paramètres → Autorisations → Voix des coups* : l'interrupteur,
+quels coups annoncer (tous, les tiens, ceux d'en face), le débit, la voix du
+navigateur, et le camp. Un bouton fait entendre un vrai coup d'exemple, pas une
+phrase inventée.
+
+Tout passe par la synthèse vocale du navigateur : aucun fichier audio, aucun
+réseau, le site reste un seul fichier. Quand le navigateur n'en a pas, les
+réglages le disent au lieu de rester muets sans explication.
+
+### Documentation
+Nouvelle page du wiki, [Jouer sur un plateau physique](docs-fr/Plateau-physique.fr.md) :
+ce que la caméra et le mode AR savent déjà faire, et pourquoi une poussée — qui
+déplace jusqu'à cinq billes d'un coup — se décompose en déplacements d'une seule
+case dès lors qu'on commence par la bille de devant.
+
 ## [v3.41]
 
 ### La campagne

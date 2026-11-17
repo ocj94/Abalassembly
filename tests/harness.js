@@ -225,6 +225,8 @@ const PASSERELLE = `
   // la campagne (v3.41)
   if (typeof CAMPAGNE !== 'undefined')         relier('CAMPAGNE', function(){return CAMPAGNE;});
   if (typeof CAMP_CHAPITRES !== 'undefined')   relier('CAMP_CHAPITRES', function(){return CAMP_CHAPITRES;});
+  // la voix des coups (v3.42)
+  if (typeof VOIX !== 'undefined')             relier('VOIX', function(){return VOIX;}, function(v){VOIX=v;});
 })();
 `;
 

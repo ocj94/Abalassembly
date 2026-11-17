@@ -2625,6 +2625,12 @@ body.kids-mode a[target="_blank"] {
 body.kids-mode #nav-settings,
 body.kids-mode #bnav-settings { display: none !important; }
 
+/* ── La voix des coups (v3.42) ── */
+.voix-ligne { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:10px 0; font-size:13px; }
+.voix-ligne select { background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:6px 9px; font-size:13px; max-width:62%; }
+.voix-btn { background:none; border:1px solid var(--gold-dim); color:var(--gold); border-radius:8px; padding:7px 12px; font-size:13px; cursor:pointer; margin-top:6px; }
+.voix-btn:hover { background:var(--gold-dim); }
+
 /* ── La campagne (v3.41) ── */
 .camp-resume { border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:22px; }
 .camp-score { font-size:28px; font-weight:700; color:var(--gold); line-height:1; }

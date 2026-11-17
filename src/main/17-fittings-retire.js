@@ -170,6 +170,12 @@ function formatMoveABAPRO(fromR, fromC, toR, toC, type) {
 
 function addMoveToHistory(move, color, moveInfo) {
   if (typeof disarmInactivityCancel === 'function') disarmInactivityCancel();  // un coup a été joué → plus d'annulation auto
+  /* v3.42 : la voix des coups. Ici plutot que dans chaque appelant : c'est le
+     seul point par ou passent tous les coups reellement joues (humain, IA,
+     partie en direct, duel de robots), et jamais une relecture. */
+  if (typeof voixCoupJoue === 'function' && moveInfo) {
+    try { voixCoupJoue(color, moveInfo); } catch (e) { if (window.console) console.warn('voix:', e && e.message); }
+  }
   if (typeof _tClockTick==='function') _tClockTick();
   // Save snapshot for replay (avec les infos du coup pour recalculer la notation)
   boardSnapshots.push({

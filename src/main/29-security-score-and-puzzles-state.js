@@ -66,6 +66,8 @@ function showSettingsTab(tab) {
   // ils paraitraient tous eteints a chaque ouverture.
   if (tab === 'notifs' && typeof notifPrefsAppliquerUI === 'function') notifPrefsAppliquerUI();
   if (tab === 'accessibility' && typeof renderA11yPanel === 'function') renderA11yPanel();
+  // v3.42 : la liste des voix du navigateur peut arriver apres le chargement
+  if (tab === 'permissions' && typeof voixRendreReglages === 'function') voixRendreReglages();
 }
 
 

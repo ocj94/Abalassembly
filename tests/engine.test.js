@@ -8432,3 +8432,95 @@ test('v3.41 : la campagne se fusionne entre appareils sans perdre une victoire',
   assert.strictEqual(r.brindille.e, 1);
   assert.strictEqual(r.brindille.d, undefined);
 });
+
+// ─── v3.42 : la voix des coups ───
+test('v3.42 : la voix dit exactement ce que la notation affiche', () => {
+  const ctx = chargerMoteur();
+  const rc = ctx.abaproToRc;
+  const cas = [
+    [['a1'], { q: 0, r: -1 }, 'move'],
+    [['e5', 'e6'], { q: 1, r: -1 }, 'push'],
+    [['e5', 'e6', 'e7'], { q: 1, r: -1 }, 'push'],
+    [['c3', 'c4', 'c5'], { q: 0, r: -1 }, 'broadside'],
+    [['d4', 'e5'], { q: -1, r: 0 }, 'move']
+  ];
+  cas.forEach(function (x) {
+    const cells = x[0].map(rc), info = { cells: cells, dir: x[1], type: x[2] };
+    const aba = ctx.moveToABAPRO(cells, x[1], x[2]);
+    const dites = ctx.voixPhrase('black', info, true).match(/[A-I] [1-9]/g) || [];
+    // les cases prononcées, recollées, sont celles de la notation Aba-Pro : la
+    // voix ne peut donc jamais annoncer autre chose que ce qui est affiché
+    assert.strictEqual(dites.map(function (s) { return s.replace(' ', '').toLowerCase(); }).join(''), aba,
+      x[0].join('+') + ' ' + x[2]);
+  });
+});
+
+test('v3.42 : la phrase dit le nombre de billes, la poussée, l’éjection et le camp', () => {
+  const ctx = chargerMoteur();
+  const rc = ctx.abaproToRc, N = { q: 1, r: -1 };
+  const sauve = JSON.parse(JSON.stringify(ctx.VOIX));
+  try {
+    ctx.VOIX.camp = true;
+    // mon propre coup : pas de camp annoncé, c'est moi qui joue
+    assert.ok(!/Noirs|Blancs/.test(ctx.voixPhrase('black', { cells: [rc('a1')], dir: N, type: 'move' }, true)));
+    // le coup d'en face : le camp est dit
+    assert.ok(/^Blancs, /.test(ctx.voixPhrase('white', { cells: [rc('a1')], dir: N, type: 'move' }, false)));
+    // ... sauf si on a coupé cette annonce
+    ctx.VOIX.camp = false;
+    assert.ok(!/Blancs/.test(ctx.voixPhrase('white', { cells: [rc('a1')], dir: N, type: 'move' }, false)));
+    ctx.VOIX.camp = true;
+    // une bille seule ne dit pas « une bille » : ce serait du bruit
+    assert.ok(!/bille/.test(ctx.voixPhrase('black', { cells: [rc('a1')], dir: N, type: 'move' }, true)));
+    assert.ok(/deux billes/.test(ctx.voixPhrase('black', { cells: [rc('e5'), rc('e6')], dir: N, type: 'move' }, true)));
+    assert.ok(/trois billes/.test(ctx.voixPhrase('black', { cells: [rc('e5'), rc('e6'), rc('e7')], dir: N, type: 'move' }, true)));
+    // poussée et éjection : l'éjection remplace la poussée, elle la contient
+    const p = ctx.voixPhrase('black', { cells: [rc('e5'), rc('e6')], dir: N, type: 'push' }, true);
+    assert.ok(/poussée$/.test(p), p);
+    const j = ctx.voixPhrase('black', { cells: [rc('e5'), rc('e6')], dir: N, type: 'push', ejection: true }, true);
+    assert.ok(/éjection$/.test(j) && !/poussée/.test(j), j);
+    // un coup sans direction ou sans bille ne fait jamais parler
+    assert.strictEqual(ctx.voixPhrase('black', { cells: [], dir: N, type: 'move' }, true), '');
+    assert.strictEqual(ctx.voixPhrase('black', { cells: [rc('a1')], dir: null, type: 'move' }, true), '');
+  } finally { Object.keys(sauve).forEach(function (k) { ctx.VOIX[k] = sauve[k]; }); }
+});
+
+test('v3.42 : la voix ne parle que des coups choisis dans les réglages', () => {
+  const ctx = chargerMoteur();
+  const rc = ctx.abaproToRc, N = { q: 1, r: -1 };
+  const sauve = JSON.parse(JSON.stringify(ctx.VOIX));
+  const dites = [];
+  const sS = ctx.speechSynthesis, sU = ctx.SpeechSynthesisUtterance;
+  const modeAvant = ctx.GameMode.get(), camAvant = ctx.HumanColor.get();
+  try {
+    // une synthèse vocale de théâtre : on note ce qui aurait été prononcé
+    ctx.speechSynthesis = { cancel: function () { }, speak: function (u) { dites.push(u.text); }, getVoices: function () { return []; } };
+    ctx.SpeechSynthesisUtterance = function (t) { this.text = t; };
+    ctx.GameMode.set('ai'); ctx.HumanColor.set('black');   // monCamp() = noir
+    const coup = { cells: [rc('a1')], dir: N, type: 'move' };
+
+    ctx.VOIX.on = false; ctx.VOIX.qui = 'tous';
+    assert.strictEqual(ctx.voixCoupJoue('black', coup), '');   // coupée : rien
+    assert.strictEqual(dites.length, 0);
+
+    ctx.VOIX.on = true;
+    assert.ok(ctx.voixCoupJoue('black', coup));                 // tous : les deux camps
+    assert.ok(ctx.voixCoupJoue('white', coup));
+    assert.strictEqual(dites.length, 2);
+
+    ctx.VOIX.qui = 'moi';
+    assert.ok(ctx.voixCoupJoue('black', coup));
+    assert.strictEqual(ctx.voixCoupJoue('white', coup), '');
+    assert.strictEqual(dites.length, 3);
+
+    ctx.VOIX.qui = 'adverse';
+    assert.strictEqual(ctx.voixCoupJoue('black', coup), '');
+    assert.ok(ctx.voixCoupJoue('white', coup));
+    assert.strictEqual(dites.length, 4);
+    // ce qui est prononcé contient bien une case, pas un texte vide
+    assert.ok(/[A-I] [1-9]/.test(dites[dites.length - 1]), dites[dites.length - 1]);
+  } finally {
+    Object.keys(sauve).forEach(function (k) { ctx.VOIX[k] = sauve[k]; });
+    ctx.speechSynthesis = sS; ctx.SpeechSynthesisUtterance = sU;
+    ctx.GameMode.set(modeAvant); ctx.HumanColor.set(camAvant);
+  }
+});

@@ -2891,6 +2891,10 @@
             <span class="setup-sw"></span>
           </label>
 
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:14px 0 4px">Voix des coups</div>
+          <!-- v3.42 : rempli par voixRendreReglages() -- la liste des voix du navigateur n'existe qu'a l'execution -->
+          <div id="voix-reglages"></div>
+
           <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:14px 0 4px">Coordonnées des cases</div>
           <label class="setup-toggle">
             <span>Afficher les repères a1…i9 sur le plateau</span>
@@ -4082,6 +4086,7 @@
 <ul>
 <li><b>Règles du jeu</b> et <b>Abalone Academy</b> : les règles, puis les principes de stratégie.</li>
 <li><b>Sur un vrai plateau</b> : apprendre Abalone aux enfants à partir de 3 ans, sans écran — la sécurité, les règles d’or, 8 petites étapes avec leurs schémas, un carnet de progrès et une fiche à imprimer.</li>
+<li><b>Voix des coups</b> (Paramètres → Autorisations → <i>Voix des coups</i>) : à chaque coup, une voix annonce le déplacement en coordonnées — « A 1 en B 1 », « Blancs, trois billes, I 8 en H 7 ». Pratique pour rejouer la partie sur un vrai plateau sans quitter les billes des yeux. Tu choisis quels coups sont annoncés (tous, les tiens, ceux d’en face), le débit, la voix du navigateur, et si le camp est dit. Le texte suit la notation Aba-Pro affichée sur le plateau, donc la voix ne peut jamais dire autre chose que ce qui est écrit.</li>
 <li><b>Campagne</b> : vingt-quatre adversaires nommés, du plus simple au plus fort, en quatre chapitres. Chacun a sa disposition de départ, son niveau et son style ; certains te font jouer les blancs ou mettent une pendule. Bats-en un pour ouvrir le suivant. Un encadré dans <i>Mes statistiques</i> rappelle où tu en es. Tout se joue hors ligne, contre le moteur du site, et une partie ne compte que si elle a bien été jouée dans les conditions de l’adversaire.</li>
 <li><b>Problèmes</b> : des positions à résoudre, tirées de vraies parties.</li>
 <li><b>Ouvertures</b> : les débuts de partie, avec leurs taux de gain réels.</li>
