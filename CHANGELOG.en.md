@@ -9,6 +9,42 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.47]
+
+### Two nets against pushed secrets
+After the tool list ocj94 sent (Strix, gitleaks, Semgrep, Trivy…), the
+repository was put through the sieve — and the only thing genuinely missing was
+what the best comment under the post said: **a pre-commit hook and a CI check do
+not catch the same things.** The hook stops the key before it enters the
+history; CI catches whoever skipped the hook.
+
+- `tools/scan-secrets.js` — **no dependencies at all**, so it runs even in an
+  empty Codespace, and costs a second. GitHub token, AWS key, private key, Slack
+  token, Google key, Stripe token, JWT, plus a general rule on `secret = "…"`
+  assignments filtered by entropy. It stays quiet on `exemple`, `placeholder`,
+  `xxxx`, on `index.html` (the assembled site repeats everything else) and on
+  binaries. The value found is never printed in full.
+- `tools/githooks/pre-commit` — install once per clone:
+  `git config core.hooksPath tools/githooks`. The hook lives in the repository,
+  so it follows clones.
+- A `secrets` job in the verification: the same scanner over the 1,014 tracked
+  files, then **the real gitleaks over the whole history**. The binary is pinned
+  by version *and* by SHA-256 digest — a replaced release would not pass. The
+  job runs in parallel, so it does not lengthen the verification.
+
+### What the sweep found
+Nothing to fix, and that is the good news: gitleaks found **no leak** across the
+1,744 commits of history nor in the files. Semgrep, with eleven rules written
+for this code (the online registry being unreachable from the workshop), raised
+47 alerts of which **none survives triage** — 21 `http://` that were the SVG
+namespace, 18 `target="_blank"` that did carry their `rel="noopener"`, 5
+`new Function` in tools that only run in CI, 3 harmless window openings. The
+three workflows already declare their permissions and pin their actions by SHA.
+
+New wiki page: [Never push a key](docs-en/Secrets.en.md), with the full triage
+and the rule that matters — **a pushed key is a lost key, deleting the commit
+does not un-leak it, it must be revoked.**
+
 ## [v3.46]
 
 ### Seven two-minute lessons

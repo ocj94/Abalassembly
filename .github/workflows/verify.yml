@@ -97,3 +97,56 @@ jobs:
           name: audit-puzzles
           path: audit-puzzles.json
           if-no-files-found: ignore
+
+  # ─── Secrets (v3.47) ───
+  # Deux filets valent mieux qu'un : le crochet avant-commit
+  # (tools/githooks/pre-commit) arrete une cle AVANT qu'elle entre dans
+  # l'historique, ce job rattrape celui qui a saute le crochet. Il tourne en
+  # parallele du reste, donc il n'allonge pas la verification.
+  #
+  # Un commit efface ne « des-fuite » rien : si une cle a ete poussee, elle doit
+  # etre revoquee. Ce job existe pour que ca n'arrive pas.
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt avec tout son historique
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+        with:
+          fetch-depth: 0   # gitleaks balaie l'historique, pas seulement le dernier commit
+
+      - name: Installer Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+        with:
+          node-version: '20'
+
+      # Le meme scanner que le crochet : s'il se casse, on le sait ici.
+      - name: Scanner maison sur les fichiers suivis
+        run: git ls-files | xargs node tools/scan-secrets.js
+
+      # Le vrai gitleaks connait des centaines de formats que le scanner maison
+      # n'aura jamais. Binaire epingle par version ET par empreinte : une
+      # release remplacee ne passerait pas.
+      - name: Installer gitleaks
+        env:
+          GITLEAKS_VERSION: 8.21.2
+          GITLEAKS_SHA256: 5bc41815076e6ed6ef8fbecc9d9b75bcae31f39029ceb55da08086315316e3ba
+        run: |
+          curl -sSL -o gitleaks.tgz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  gitleaks.tgz" | sha256sum -c -
+          tar xzf gitleaks.tgz gitleaks
+          ./gitleaks version
+
+      - name: gitleaks sur tout l'historique
+        run: ./gitleaks git --redact --no-banner --report-format json --report-path gitleaks-historique.json .
+
+      - name: gitleaks sur les fichiers du dépôt
+        run: ./gitleaks dir --redact --no-banner --report-format json --report-path gitleaks-fichiers.json .
+
+      - name: Rapport gitleaks
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        with:
+          name: gitleaks
+          path: gitleaks-*.json
+          if-no-files-found: ignore

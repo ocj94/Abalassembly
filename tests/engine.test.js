@@ -8842,3 +8842,60 @@ test('v3.46 : la progression se garde et enchaîne sur la leçon suivante', () =
     assert.strictEqual(ctx.lecProchaine(), 0);
   } finally { ctx.progress.lecons = JSON.parse(sauve); ctx.showToast = _toast; }
 });
+
+// ─── v3.47 : le scanner de secrets (crochet avant-commit) ───
+test('v3.47 : le scanner attrape les formats connus et laisse passer les exemples', () => {
+  const scan = require('../tools/scan-secrets.js');
+  const fs = require('fs'), os = require('os'), path = require('path');
+  const dossier = fs.mkdtempSync(path.join(os.tmpdir(), 'secrets-'));
+  const ecrire = function (nom, texte) { const f = path.join(dossier, nom); fs.writeFileSync(f, texte); return f; };
+
+  // Les formats que le scanner doit connaître. Les valeurs sont RECOLLÉES à
+  // l'exécution : écrites en un seul morceau, elles feraient sonner le crochet
+  // avant-commit sur ce fichier même — ce qui est exactement son travail.
+  const vrais = [
+    ['github', 'const t = "gh' + 'p_a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8";'],
+    ['github-long', 'const t = "github' + '_pat_11ABCDEFGHIJKLMNOPQRSTU_vWxYz0123456789abcdefghij";'],
+    ['aws', 'const k = "AK' + 'IAIOSFODNN7EXAMPLF";'],
+    ['prive', '-----BEGIN RSA PRI' + 'VATE KEY-----'],
+    ['google', 'const g = "AI' + 'zaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY";']
+  ];
+  vrais.forEach(function (x) {
+    const r = scan.examiner(ecrire(x[0] + '.js', x[1] + '\n'));
+    assert.strictEqual(r.length, 1, x[0] + ' : devrait être repéré');
+    // la valeur n'est jamais affichée en entier, même dans le rapport
+    assert.ok(r[0].apercu.indexOf('…') > 0 && r[0].apercu.length < 10, 'l’aperçu doit rester masqué');
+  });
+
+  // ce qui ne doit PAS faire sonner
+  const faux = [
+    ['exemple.js', 'const t = "gh' + 'p_exemple0000000000000000000000000000000000";'],
+    ['placeholder.js', 'const api_key = "votre_cle_ici_a_remplacer_xxxx";'],
+    ['mot.js', 'const password = "aaaaaaaaaaaaaaaaaaaaaaaaa";'],   // 25 caractères, mais une seule lettre : pas une clé
+    ['court.js', 'const token = "abc123";']
+  ];
+  faux.forEach(function (x) {
+    assert.deepStrictEqual(scan.examiner(ecrire(x[0], x[1] + '\n')), [], x[0] + ' : faux positif');
+  });
+
+  // un secret affecté, avec assez d'entropie, est repéré
+  const alea = 'Zq7Z2mK9pW4x' + 'R1tV6yB3nL8cJ5hG0dF';
+  const r = scan.examiner(ecrire('affecte.js', 'const secret = "' + alea + '";\n'));
+  assert.strictEqual(r.length, 1);
+  assert.strictEqual(r[0].quoi, 'secret affecté');
+
+  // l'entropie sait distinguer une clé d'une répétition
+  assert.ok(scan.entropie(alea) > 4);
+  assert.ok(scan.entropie('aaaaaaaaaaaaaaaaaaaaaaaaa') < 1);
+
+  fs.rmSync(dossier, { recursive: true, force: true });
+});
+
+test('v3.47 : le fichier construit et les binaires ne sont pas scannés', () => {
+  const scan = require('../tools/scan-secrets.js');
+  // index.html est le site assemblé : il répète tout le reste, le scanner y
+  // perdrait son temps et doublerait chaque alerte
+  assert.deepStrictEqual(scan.examiner('index.html'), []);
+  // un chemin qui n'existe pas ne fait pas tomber le crochet
+  assert.deepStrictEqual(scan.examiner('rien/du/tout.js'), []);
+});

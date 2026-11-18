@@ -23,6 +23,7 @@ A complete Abalone game in a single HTML file: zero dependencies, offline, GPL v
 - **[Distributed computing](Calcul-distribue.en.md)** — the Lab's compute network (v3.18): a scheduler and pluggable executors, every game verified; and what stays excluded.
 - **[Multi-worker engine](Moteur-multi-worker.en.md)** — what works, and a real unresolved limitation, documented honestly.
 - **[Resources](Ressources.en.md)** — everything around the game: where to play, servers that disappeared, competitions, programs, papers, encyclopedias, MiGs variant codes.
+- **[Never push a key](Secrets.en.md)** — the pre-commit hook, the CI check, and why deleting a commit does not un-leak anything.
 - **[Playing on a physical board](Plateau-physique.en.md)** — what the camera and the AR mode already do, and why a push breaks down into single-cell moves.
 - **[Variants](Variantes.en.md)** — playable versus documented only, across the three places on the site that describe them.
 - **[Function glossary](Glossaire-fonctions.en.md)** — 1,236 functions extracted from the real code, sorted by letter with their code section.

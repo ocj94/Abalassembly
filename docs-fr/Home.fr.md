@@ -23,6 +23,7 @@ Un jeu d'Abalone complet dans un seul fichier HTML : zéro dépendance, hors-lig
 - **[Calcul distribué](Calcul-distribue.fr.md)** — le réseau de calcul du Labo (v3.18) : un ordonnanceur et des exécutants branchables, chaque partie vérifiée ; et ce qui reste exclu.
 - **[Moteur multi-worker](Moteur-multi-worker.fr.md)** — ce qui marche, et une vraie limite non résolue, documentée honnêtement.
 - **[Ressources](Ressources.fr.md)** — tout ce qui existe autour du jeu : où jouer, serveurs disparus, compétitions, programmes, articles, encyclopédies, codes des variantes de MiGs.
+- **[Ne pas pousser de clé](Secrets.fr.md)** — le crochet avant-commit, le contrôle en intégration continue, et pourquoi effacer un commit ne dés-fuite rien.
 - **[Jouer sur un plateau physique](Plateau-physique.fr.md)** — ce que la caméra et le mode AR savent déjà faire, et pourquoi une poussée se décompose en déplacements d'une seule case.
 - **[Variantes](Variantes.fr.md)** — jouables contre documentées seulement, à travers les trois endroits du site qui en parlent.
 - **[Glossaire des fonctions](Glossaire-fonctions.fr.md)** — 1236 fonctions extraites du code réel, classées par lettre avec leur section de code.

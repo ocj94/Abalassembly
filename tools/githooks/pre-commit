@@ -1,0 +1,11 @@
+#!/bin/sh
+# Crochet avant-commit (v3.47) — installe-le une fois avec :
+#     git config core.hooksPath tools/githooks
+# Le crochet vit alors dans le depot : il suit les clones et les Codespaces.
+#
+# Il arrete une cle AVANT qu'elle entre dans l'historique. L'integration
+# continue passe ensuite le vrai gitleaks sur tout l'historique, pour celui qui
+# aurait saute le crochet. Les deux ne rattrapent pas les memes choses.
+#
+# Pour passer outre une fois : git commit --no-verify
+node tools/scan-secrets.js --staged --silencieux || exit 1

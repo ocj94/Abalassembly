@@ -9,6 +9,44 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.47]
+
+### Deux filets contre les secrets poussés
+Après la liste d'outils envoyée par ocj94 (Strix, gitleaks, Semgrep, Trivy…),
+le dépôt est passé au crible — et la seule chose qui manquait vraiment, c'est ce
+que disait le meilleur commentaire sous la publication : **un crochet
+avant-commit et un contrôle en intégration continue n'attrapent pas les mêmes
+choses.** Le crochet arrête la clé avant qu'elle entre dans l'historique ; la CI
+rattrape celui qui a sauté le crochet.
+
+- `tools/scan-secrets.js` — **sans aucune dépendance**, donc il tourne même dans
+  un Codespace vide, et il coûte une seconde. Jeton GitHub, clé AWS, clé privée,
+  jeton Slack, clé Google, jeton Stripe, JWT, plus une règle générale sur les
+  affectations `secret = "…"` filtrée par entropie. Il se tait sur `exemple`,
+  `placeholder`, `xxxx`, sur `index.html` (le site assemblé répète tout le
+  reste) et sur les binaires. La valeur trouvée n'est jamais affichée en entier.
+- `tools/githooks/pre-commit` — à installer une fois par clone :
+  `git config core.hooksPath tools/githooks`. Le crochet vit dans le dépôt,
+  donc il suit les clones.
+- Un job `secrets` dans la vérification : le même scanner sur les 1 014 fichiers
+  suivis, puis **le vrai gitleaks sur tout l'historique**. Le binaire est épinglé
+  par version *et* par empreinte SHA-256 — une release remplacée ne passerait
+  pas. Le job tourne en parallèle, il n'allonge pas la vérification.
+
+### Ce que le balayage a donné
+Rien à corriger, et c'est la bonne nouvelle : gitleaks n'a trouvé **aucune
+fuite** sur les 1 744 commits de l'historique ni dans les fichiers. Semgrep, avec
+onze règles écrites pour ce code (le registre en ligne étant inaccessible depuis
+l'atelier), a levé 47 alertes dont **aucune ne tient après tri** — 21 `http://`
+qui étaient l'espace de noms SVG, 18 `target="_blank"` qui portaient bien leur
+`rel="noopener"`, 5 `new Function` dans des outils qui ne tournent qu'en CI, 3
+ouvertures de fenêtre sans danger. Les trois workflows déclarent déjà leurs
+droits et épinglent leurs actions par SHA.
+
+Nouvelle page du wiki : [Ne pas pousser de clé](docs-fr/Secrets.fr.md), avec le
+détail du tri et la règle qui compte — **une clé poussée est une clé perdue,
+effacer le commit ne la dés-fuite pas, il faut la révoquer.**
+
 ## [v3.46]
 
 ### Sept leçons de deux minutes
