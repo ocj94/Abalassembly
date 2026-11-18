@@ -20,7 +20,7 @@
 <!-- v2.96 : connect-src ouvert a playstrategy.org, et a lui seul. Les fonctions PlayStrategy (partie en direct,
      tournois, import par lien) etaient bloquees par cette regle depuis leur ajout ; le site n'y envoie qu'un pseudo
      ou un lien, en lecture seule. Si PlayStrategy refuse les requetes venant d'un autre site (CORS), le message le dit. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' blob: 'sha256-8STPnbw+E3XBBZTJlKw/YzNCMzYXmKRZpCk2DlyHjcE=' 'sha256-xrClgwYGFk8hhEGMu2u07LSxLn0oQO68guvmE6vMhXw=' 'sha256-/Wyo501FDre3YydI7rBeWLmlc3k1Zhvprq/Qekjlbg8=' 'sha256-5WGA4gaVAy6AT8i2BoAIl5+qIbHdwF3RGsTohVbAIiE=' 'sha256-vPSSUR0q4b8wSgnee15gQgz67URxhHm4MgCgzbsfq2Q=' 'sha256-l+8IXMf8DU5SgvLOVQP3Yf8/vU6jr/z0Fms4QMYrWas='; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://playstrategy.org https://cdn.jsdelivr.net https://unpkg.com; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' blob: 'sha256-8STPnbw+E3XBBZTJlKw/YzNCMzYXmKRZpCk2DlyHjcE=' 'sha256-xrClgwYGFk8hhEGMu2u07LSxLn0oQO68guvmE6vMhXw=' 'sha256-/Wyo501FDre3YydI7rBeWLmlc3k1Zhvprq/Qekjlbg8=' 'sha256-/useld7Uzuxxzeg8iO6SxEmG384s4y/vL13KQX9delk=' 'sha256-vPSSUR0q4b8wSgnee15gQgz67URxhHm4MgCgzbsfq2Q=' 'sha256-l+8IXMf8DU5SgvLOVQP3Yf8/vU6jr/z0Fms4QMYrWas='; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://playstrategy.org https://cdn.jsdelivr.net https://unpkg.com; base-uri 'self'; form-action 'self'">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#151918">
@@ -2769,6 +2769,34 @@ body.kids-mode a[target="_blank"] {
 body.kids-mode #nav-settings,
 body.kids-mode #bnav-settings { display: none !important; }
 
+/* ── Le calendrier (v3.44) ── */
+.cal-barre { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.cal-fleche { background:none; border:1px solid var(--border); color:var(--text); border-radius:8px; padding:5px 11px; cursor:pointer; font-size:13px; }
+.cal-fleche:hover { border-color:var(--gold-dim); color:var(--gold); }
+.cal-periode { font-size:13.5px; color:var(--muted); flex:1; text-align:center; }
+.cal-auj { background:none; border:1px solid var(--gold-dim); color:var(--gold); border-radius:8px; padding:5px 11px; cursor:pointer; font-size:12.5px; }
+.cal-grille { display:grid; border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+.cal-coin { background:var(--surface2); }
+.cal-tete { background:var(--surface2); font-size:12px; text-align:center; padding:8px 2px; border-left:1px solid var(--border); }
+.cal-tete.cal-auj-col { color:var(--gold); font-weight:600; }
+.cal-h { font-size:10.5px; color:var(--muted); text-align:right; padding:4px 6px 0 0; border-top:1px solid var(--border); }
+.cal-h-bande { padding-top:9px; }
+.cal-bande { border-top:1px solid var(--border); border-left:1px solid var(--border); padding:5px 4px; min-height:30px; }
+.cal-defi { font-size:10.5px; display:inline-block; border-radius:6px; padding:3px 6px; line-height:1.25; }
+.cal-defi-reussi { background:rgba(90,180,140,0.18); color:#8fd6b4; }
+.cal-defi-manque { background:rgba(200,90,90,0.16); color:#e09a9a; }
+.cal-defi-aujourdhui { background:var(--gold-dim); color:var(--gold); }
+.cal-defi-nonjoue, .cal-defi-avenir { color:var(--muted); }
+.cal-case { border-top:1px solid var(--border); border-left:1px solid var(--border); min-height:30px; padding:2px; }
+.cal-case.cal-auj-col { background:rgba(212,169,67,0.04); }
+.cal-bloc { border-radius:6px; padding:3px 5px; margin-bottom:2px; font-size:10.5px; line-height:1.3; overflow:hidden; }
+.cal-bloc b { display:block; font-weight:600; }
+.cal-bloc span { color:rgba(255,255,255,0.72); }
+.cal-partie { background:rgba(212,169,67,0.20); color:var(--gold); }
+.cal-labo { background:rgba(110,150,220,0.20); color:#9dbcf0; }
+.cal-pied { font-size:12.5px; color:var(--muted); margin-top:12px; }
+.cal-vide { font-size:13px; color:var(--muted); margin-top:8px; max-width:560px; }
+
 /* ── Le menu en catégories (v3.43) ── */
 .menu-cat-ouverte, .menu-cat-active { background: var(--surface2) !important; }
 .menu-cat-active .s-label, .menu-cat-active .s-icon { color: var(--gold); }
@@ -3792,6 +3820,9 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
     </button>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-history" data-click="showPage('historique'); fermerMenuMobile();">
       <span class="s-icon">🕓</span><span class="s-label">Historique</span>
+    </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-calendrier" data-click="showPage('calendrier'); fermerMenuMobile();">
+      <span class="s-icon">📅</span><span class="s-label">Calendrier</span>
     </button>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-campagne" data-click="showPage('campagne'); fermerMenuMobile();">
       <span class="s-icon">⚔️</span><span class="s-label">Campagne</span>
@@ -7810,6 +7841,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
 <ul>
 <li><b>Règles du jeu</b> et <b>Abalone Academy</b> : les règles, puis les principes de stratégie.</li>
 <li><b>Sur un vrai plateau</b> : apprendre Abalone aux enfants à partir de 3 ans, sans écran — la sécurité, les règles d’or, 8 petites étapes avec leurs schémas, un carnet de progrès et une fiche à imprimer.</li>
+<li><b>Calendrier</b> : une grille jours × heures, comme une grille de programmes. Tes parties à leur heure, les séances du Labo du début à la fin, et le défi de chaque jour en tête de colonne. Les jours à venir ne sont pas vides : le défi d’un jour est calculé d’avance, pas tiré au sort, donc le calendrier annonce les prochains. Les flèches reculent ou avancent d’une fenêtre entière.</li>
 <li><b>Voix des coups</b> (Paramètres → Autorisations → <i>Voix des coups</i>) : à chaque coup, une voix annonce le déplacement en coordonnées — « A 1 en B 1 », « Blancs, trois billes, I 8 en H 7 ». Pratique pour rejouer la partie sur un vrai plateau sans quitter les billes des yeux. Tu choisis quels coups sont annoncés (tous, les tiens, ceux d’en face), le débit, la voix du navigateur, et si le camp est dit. Le texte suit la notation Aba-Pro affichée sur le plateau, donc la voix ne peut jamais dire autre chose que ce qui est écrit.</li>
 <li><b>Campagne</b> : vingt-quatre adversaires nommés, du plus simple au plus fort, en quatre chapitres. Chacun a sa disposition de départ, son niveau et son style ; certains te font jouer les blancs ou mettent une pendule. Bats-en un pour ouvrir le suivant. Un encadré dans <i>Mes statistiques</i> rappelle où tu en es. Tout se joue hors ligne, contre le moteur du site, et une partie ne compte que si elle a bien été jouée dans les conditions de l’adversaire.</li>
 <li><b>Problèmes</b> : des positions à résoudre, tirées de vraies parties.</li>
@@ -8309,6 +8341,22 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
     <div class="en-only" style="font-size:13px;color:var(--muted);margin-bottom:20px">Measures of Abalone itself, computed from the real games built into the site (MIGS, AbalOnline, PlayStrategy and reference games) — not from your own games, which are in <a href="#" data-click="showPage('stats');return false;" style="color:var(--gold)">My statistics</a>. Every figure gives its source.</div>
     <div id="corpus-stats-body"></div>
     <div id="reflexion-stats-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGE: LE CALENDRIER (v3.44)
+     Jours en colonnes, heures en lignes. Rempli par renderCalendrierPage().
+══════════════════════════════════════════ -->
+<div class="page" id="page-calendrier">
+  <div class="page-header" style="padding-bottom:32px">
+    <div class="section-label"><span class="fr-only">Ce que tu as joué, et ce qui vient</span><span class="en-only">What you played, and what is coming</span></div>
+    <h2>📅 <span class="fr-only">Calendrier</span><span class="en-only">Calendar</span></h2>
+  </div>
+  <div style="padding:0 60px 80px;max-width:1000px">
+    <div class="fr-only" style="font-size:13px;color:var(--muted);margin-bottom:18px">Tes parties à leur heure, les séances du Labo du début à la fin, et le défi de chaque jour en tête de colonne. Les jours à venir annoncent leur défi : il est calculé d’avance.</div>
+    <div class="en-only" style="font-size:13px;color:var(--muted);margin-bottom:18px">Your games at their hour, Lab sessions from start to finish, and each day’s challenge at the top of its column. Coming days announce their challenge: it is computed ahead.</div>
+    <div id="calendrier-corps"></div>
   </div>
 </div>
 
@@ -9170,7 +9218,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v3.43';
+const APP_VERSION = 'v3.44';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -9814,7 +9862,7 @@ function basculerIndicesCoups(el) { showMoveHints = el.checked; if (typeof drawB
 function basculerTraductionChat(el) { interrupteurCouleur(el); showToast(el.checked ? '🌐 Traduction automatique activée' : 'Traduction désactivée'); }
 function viderHistoriqueConfirme() { if (confirm('Effacer tout l\'historique de parties ? Irréversible.')) { clearGameHistory(); _renderHistoryList(); } }
 function setA11yNombre(cle, valeur) { setA11y(cle, parseFloat(valeur)); }
-/* Généré par tools/actions.js : ne pas modifier à la main. 476 actions.
+/* Généré par tools/actions.js : ne pas modifier à la main. 477 actions.
    Les seules fonctions que les attributs data-click, data-change… peuvent appeler
    (src/main/00a-actions.js). Chaque entrée renvoie la fonction au moment du clic. */
 const _ACTIONS = {
@@ -9892,6 +9940,7 @@ const _ACTIONS = {
   basculerPanneauReflexion: function () { return basculerPanneauReflexion; },
   basculerTraductionChat: function () { return basculerTraductionChat; },
   cacher: function () { return cacher; },
+  calDeplacer: function () { return calDeplacer; },
   campLancer: function () { return campLancer; },
   capturerReference: function () { return capturerReference; },
   carteAnalyseRendre: function () { return carteAnalyseRendre; },
@@ -35243,6 +35292,7 @@ function showPage(name) {
     historique: function(){ if (typeof renderHistoriquePage === 'function') renderHistoriquePage(); },
     corpusstats:function(){ if (typeof renderCorpusStatsPage === 'function') renderCorpusStatsPage(); },
     campagne:   function(){ if (typeof renderCampagnePage === 'function') renderCampagnePage(); },
+    calendrier: function(){ if (typeof renderCalendrierPage === 'function') renderCalendrierPage(); },
     plateau:    function(){ if (typeof renderPlateauPage === 'function') renderPlateauPage(); },
     archi:      function(){ if (typeof renderArchiPage === 'function') renderArchiPage(); },
     compare:    function(){ renderCompare(); },
@@ -44356,7 +44406,7 @@ function _sbRepereFinDePartie(winner, moi, deuxJoueurs){
 
 // [page (ou fenetre du menu), adresse en francais, adresse en anglais] -- dans l'ordre du menu
 const ADRESSES_PAGES = [
-  ['home', 'accueil', 'home'], ['setup', 'jouer', 'play'], ['game', 'partie', 'game'], ['historique', 'historique', 'history'], ['campagne', 'campagne', 'campaign'],
+  ['home', 'accueil', 'home'], ['setup', 'jouer', 'play'], ['game', 'partie', 'game'], ['historique', 'historique', 'history'], ['campagne', 'campagne', 'campaign'], ['calendrier', 'calendrier', 'calendar'],
   ['corpusstats', 'corpus', 'corpus'], ['import', 'importer', 'import'], ['puzzles', 'problemes', 'puzzles'], ['editor', 'editeur', 'editor'],
   ['variants', 'variantes', 'variants'],
   ['aide', 'aide', 'help'], ['learn', 'regles', 'rules'], ['plateau', 'plateau', 'real-board'], ['academy', 'academy', 'academy'],
@@ -53481,7 +53531,7 @@ const MENU_CATS = [
   { id: 'apprendre', fr: 'Apprendre', en: 'Learn',
     items: ['sid-learn', 'sid-academy', 'sid-openings', 'sid-plateau', 'sid-formateurs', 'sid-aide'] },
   { id: 'analyser', fr: 'Analyser', en: 'Analyse',
-    items: ['sid-analysis', 'sid-stats', 'sid-corpusstats', 'sid-library', 'sid-camera'] },
+    items: ['sid-analysis', 'sid-stats', 'sid-calendrier', 'sid-corpusstats', 'sid-library', 'sid-camera'] },
   { id: 'explorer', fr: 'Explorer', en: 'Explore',
     items: ['sid-lab', 'sid-archi', 'sid-briefing', 'sid-biblio', 'sid-github'] },
   { id: 'communaute', fr: 'Communauté', en: 'Community',
@@ -53610,6 +53660,215 @@ function menuSuivreActif() {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', demarrer);
   else demarrer();
 })();
+/* ═══════════════════════════════════════════
+   LE CALENDRIER  (v3.44)
+   Demande d'ocj94, d'apres la grille « ChessTV Schedule » de chess.com :
+   des jours en colonnes, des heures en lignes, et des blocs colores.
+
+   Ce que le site peut y mettre, sans rien inventer :
+   - les parties, qui portent une date complete -> placees a leur heure ;
+   - les seances du Labo, reconstituees du journal comme en v3.37 (une seance
+     se coupe apres dix minutes sans partie) -> un bloc du debut a la fin ;
+   - les defis du jour, qui n'ont qu'un jour et pas d'heure -> une bande en
+     tete de colonne, comme les evenements en haut de la grille de chess.com.
+
+   Les jours a venir ne sont pas vides : le defi d'un jour se calcule
+   (defiNumero / defiIndex sont deterministes depuis DEFI_DEBUT), donc le
+   calendrier annonce les prochains defis au lieu de s'arreter a aujourd'hui.
+
+   La grille ne montre pas les 24 heures : elle se cale sur l'amplitude de ce
+   qui s'est passe, avec six lignes au minimum. Une grille de minuit a minuit
+   serait vide aux trois quarts.
+═══════════════════════════════════════════ */
+const CAL_CLE = 'abaCalendrier';
+const CAL_SEANCE = 600000;       // meme coupure qu'au Labo : dix minutes
+const CAL_H_MIN = 6;             // au moins six lignes d'heures
+const CAL_JOURS_FR = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
+const CAL_JOURS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const CAL_MOIS_FR = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+const CAL_MOIS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+let _calDecalage = 0;            // en jours, 0 = la fenetre qui finit aujourd'hui + 2
+
+function _calT(fr, en) { return (typeof _tr === 'function') ? _tr(fr, en) : fr; }
+function _calE(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+/* La cle d'un jour civil LOCAL. Les dates sont stockees en ISO (UTC) : passer
+   par une cle locale evite qu'une partie de 00h30 compte pour la veille. */
+function calJour(d) { return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }
+function calDate(cle) { return new Date(Math.floor(cle / 10000), Math.floor(cle / 100) % 100 - 1, cle % 100); }
+
+/* Combien de colonnes : trois sur un telephone, sept sur un ecran large. */
+function calNbJours() {
+  const l = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1280;
+  return l < 700 ? 3 : (l < 1100 ? 5 : 7);
+}
+/* La fenetre affichee : elle se termine deux jours apres aujourd'hui, pour que
+   les prochains defis soient visibles sans avoir a avancer. */
+function calFenetre(n, decalage) {
+  const fin = new Date(); fin.setHours(12, 0, 0, 0);
+  fin.setDate(fin.getDate() + 2 + (decalage || 0));
+  const jours = [];
+  for (let i = n - 1; i >= 0; i--) { const d = new Date(fin); d.setDate(fin.getDate() - i); jours.push(d); }
+  return jours;
+}
+
+/* ── Ce qu'il y a a montrer ── */
+/* Les parties : une entree par partie, a son heure. */
+function calParties() {
+  if (typeof getGameHistory !== 'function') return [];
+  const out = [];
+  getGameHistory().forEach(function (g) {
+    const t = Date.parse(g.date); if (!t) return;
+    const d = new Date(t);
+    out.push({
+      genre: 'partie', t: t, jour: calJour(d), h: d.getHours() + d.getMinutes() / 60, duree: 0.5,
+      titre: (g.mode === 'ai' ? _calT('Partie contre l\'IA', 'Game vs AI') : _calT('Partie', 'Game')),
+      detail: (g.moveCount || 0) + _calT(' coups', ' moves')
+        + (g.winner ? ' · ' + (g.winner === (g.humanColor || 'black') ? _calT('gagnée', 'won') : _calT('perdue', 'lost')) : ''),
+      heure: d
+    });
+  });
+  return out;
+}
+/* Les seances du Labo : on recolle les entrees du journal separees de moins de
+   dix minutes, et le bloc va du debut a la fin de la seance. */
+function calSeances() {
+  if (typeof _labDataLoad !== 'function') return [];
+  const L = _labDataLoad().filter(function (e) { return e && e.t; }).sort(function (a, b) { return a.t - b.t; });
+  const out = []; let debut = null, fin = null, n = 0;
+  const poser = function () {
+    if (debut == null) return;
+    const a = new Date(debut), b = new Date(fin);
+    const hA = a.getHours() + a.getMinutes() / 60;
+    // une seance qui passe minuit est coupee a la fin du jour : une colonne = un jour
+    const hB = (calJour(b) === calJour(a)) ? b.getHours() + b.getMinutes() / 60 : 24;
+    out.push({
+      genre: 'labo', t: debut, jour: calJour(a), h: hA, duree: Math.max(0.5, hB - hA),
+      titre: _calT('Séance du Labo', 'Lab session'),
+      /* La duree se lit dans le texte plutot que dans la hauteur du bloc : une
+         case = une heure, un bloc qui deborderait ne serait pas lisible. */
+      detail: '→ ' + ((calJour(b) === calJour(a)) ? (b.getHours() + ':' + (b.getMinutes() < 10 ? '0' : '') + b.getMinutes()) : '24:00')
+        + ' · ' + n + _calT(' parties', ' games'), heure: a, fin: b
+    });
+  };
+  L.forEach(function (e) {
+    if (debut != null && e.t - fin > CAL_SEANCE) { poser(); debut = null; }
+    if (debut == null) { debut = e.t; n = 0; }
+    fin = e.t; n++;
+  });
+  poser();
+  return out;
+}
+/* Les defis : un par jour de la fenetre, passe ou a venir. */
+function calDefis(jours) {
+  if (typeof defiNumero !== 'function') return {};
+  const faits = (typeof progress !== 'undefined' && progress && progress.defis) ? progress.defis : {};
+  const aujourdhui = calJour(new Date());
+  const out = {};
+  jours.forEach(function (d) {
+    const k = calJour(d), n = defiNumero(d), e = faits[n];
+    let etat = 'avenir';
+    if (k < aujourdhui || k === aujourdhui) {
+      if (e && e.f === 'v' && e.j === n) etat = 'reussi';
+      else if (e) etat = 'manque';
+      else etat = (k === aujourdhui) ? 'aujourdhui' : 'nonjoue';
+    }
+    out[k] = { n: n, etat: etat, ms: (e && e.ms) || 0 };
+  });
+  return out;
+}
+
+/* L'amplitude d'heures a dessiner : ce qui est occupe, plus une ligne de marge,
+   et six lignes au minimum. */
+function calAmplitude(evts) {
+  // bornes exclusives : [14, 20] fait bien six lignes, de 14 h a 19 h
+  if (!evts.length) return [14, 14 + CAL_H_MIN];
+  let a = 24, b = 0;
+  evts.forEach(function (e) { a = Math.min(a, Math.floor(e.h)); b = Math.max(b, Math.ceil(e.h + e.duree)); });
+  a = Math.max(0, a - 1); b = Math.min(24, b + 1);
+  while (b - a < CAL_H_MIN) { if (a > 0) a--; else if (b < 24) b++; else break; }
+  return [a, b];
+}
+
+/* ── La page ── */
+function _calEtiquetteJour(d) {
+  const fr = (typeof currentLang !== 'function' || currentLang() !== 'EN');
+  return (fr ? CAL_JOURS_FR : CAL_JOURS_EN)[d.getDay()] + ' ' + d.getDate() + ' ' + (fr ? CAL_MOIS_FR : CAL_MOIS_EN)[d.getMonth()];
+}
+function _calHeure(h) { return (h < 10 ? '0' : '') + Math.floor(h) + ':00'; }
+
+function calendrierHtml() {
+  const n = calNbJours(), jours = calFenetre(n, _calDecalage);
+  const cles = jours.map(calJour), premier = cles[0], dernier = cles[cles.length - 1];
+  const tous = calParties().concat(calSeances()).filter(function (e) { return e.jour >= premier && e.jour <= dernier; });
+  const defis = calDefis(jours);
+  const [hA, hB] = calAmplitude(tous);
+  const aujourdhui = calJour(new Date());
+
+  let h = '<div class="cal-barre">';
+  h += '<button class="cal-fleche" data-click="calDeplacer(-' + n + ')" aria-label="' + _calT('jours précédents', 'previous days') + '">◀</button>';
+  h += '<span class="cal-periode">' + _calE(_calEtiquetteJour(jours[0]) + ' — ' + _calEtiquetteJour(jours[n - 1])) + '</span>';
+  h += '<button class="cal-fleche" data-click="calDeplacer(' + n + ')" aria-label="' + _calT('jours suivants', 'next days') + '">▶</button>';
+  if (_calDecalage !== 0) h += '<button class="cal-auj" data-click="calDeplacer(0, true)">' + _calT('Aujourd\'hui', 'Today') + '</button>';
+  h += '</div>';
+
+  h += '<div class="cal-grille" style="grid-template-columns:52px repeat(' + n + ',1fr)">';
+  // en-tete
+  h += '<div class="cal-coin"></div>';
+  jours.forEach(function (d) {
+    const k = calJour(d);
+    h += '<div class="cal-tete' + (k === aujourdhui ? ' cal-auj-col' : '') + '">' + _calE(_calEtiquetteJour(d)) + '</div>';
+  });
+  // bande des defis, hors de la grille horaire puisqu'un defi n'a pas d'heure
+  h += '<div class="cal-h cal-h-bande">' + _calT('défi', 'daily') + '</div>';
+  jours.forEach(function (d) {
+    const k = calJour(d), f = defis[k];
+    if (!f) { h += '<div class="cal-bande"></div>'; return; }
+    const mots = { reussi: ['✅', _calT('Défi n° ', 'Challenge #')], manque: ['❌', _calT('Défi n° ', 'Challenge #')],
+                   aujourdhui: ['🎯', _calT('Défi du jour n° ', 'Today\'s challenge #')], nonjoue: ['—', _calT('Défi n° ', 'Challenge #')],
+                   avenir: ['📅', _calT('Défi n° ', 'Challenge #')] }[f.etat];
+    h += '<div class="cal-bande"><span class="cal-defi cal-defi-' + f.etat + '">' + mots[0] + ' ' + _calE(mots[1] + f.n) + '</span></div>';
+  });
+  // grille horaire
+  for (let hh = hA; hh < hB; hh++) {
+    h += '<div class="cal-h">' + _calHeure(hh) + '</div>';
+    jours.forEach(function (d) {
+      const k = calJour(d);
+      const dedans = tous.filter(function (e) { return e.jour === k && Math.floor(e.h) === hh; });
+      h += '<div class="cal-case' + (k === aujourdhui ? ' cal-auj-col' : '') + '">';
+      dedans.forEach(function (e) {
+        const hauteur = Math.max(1, Math.round(e.duree * 10) / 10);
+        h += '<div class="cal-bloc cal-' + e.genre + '" style="min-height:' + (18 * hauteur) + 'px" title="'
+          + _calE(e.titre + ' · ' + e.detail) + '">'
+          + '<b>' + _calE(e.titre) + '</b><span>' + _calE(_calHeure(e.h).replace(':00', ':' + (e.heure.getMinutes() < 10 ? '0' : '') + e.heure.getMinutes()) + ' · ' + e.detail) + '</span></div>';
+      });
+      h += '</div>';
+    });
+  }
+  h += '</div>';
+
+  const nbP = tous.filter(function (e) { return e.genre === 'partie'; }).length;
+  const nbL = tous.filter(function (e) { return e.genre === 'labo'; }).length;
+  h += '<div class="cal-pied">' + nbP + _calT(' partie', ' game') + (nbP > 1 ? 's' : '')
+    + ' · ' + nbL + _calT(' séance', ' session') + (nbL > 1 ? 's' : '') + _calT(' du Labo', ' in the Lab')
+    + _calT(' sur ces ', ' over these ') + n + _calT(' jours.', ' days.') + '</div>';
+  if (!tous.length) {
+    h += '<div class="cal-vide">' + _calT('Rien de joué sur cette période. Les jours à venir annoncent quand même leur défi : il est calculé d\'avance, pas tiré au sort.',
+      'Nothing played in this period. Coming days still announce their challenge: it is computed ahead, not drawn at random.') + '</div>';
+  }
+  return h;
+}
+
+function calDeplacer(n, remiseAZero) {
+  _calDecalage = remiseAZero ? 0 : _calDecalage + n;
+  try { localStorage.setItem(CAL_CLE, String(_calDecalage)); } catch (e) { }
+  renderCalendrierPage();
+}
+
+function renderCalendrierPage() {
+  const hote = document.getElementById('calendrier-corps');
+  if (hote) hote.innerHTML = calendrierHtml();
+}
 <!-- fin du script principal (src/main/*.js) : une piece a part, pour qu'aucun module ne la porte (v3.27) -->
 </script>
 

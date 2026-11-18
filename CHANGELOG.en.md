@@ -9,6 +9,36 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.44]
+
+### The calendar
+ocj94's request, after chess.com's "ChessTV Schedule" grid: days as columns,
+hours as rows, coloured blocks. Three columns on a phone, five on a tablet,
+seven on a large screen.
+
+What the site can put there without inventing anything:
+
+- **games**, which carry a full date, placed at their hour, with the move count
+  and the result;
+- **Lab sessions**, stitched back together from the journal as in v3.37 — a
+  session breaks after ten minutes without a game — from start to finish;
+- **the daily challenge**, which has a day but no hour: a band at the top of the
+  column, like the events above chess.com's grid. Done, missed, not played, or
+  current.
+
+Coming days are not empty. A day's challenge is **computed ahead**
+(`defiNumero` depends only on the date), so the calendar announces the next ones
+instead of stopping at today. The window in fact ends two days after today, so
+they are visible without having to move forward.
+
+The grid does not show all twenty-four hours: it fits the span of what actually
+happened, with six rows at minimum. Midnight to midnight, it would be
+three-quarters empty. A session crossing midnight is cut at the end of the day —
+a column stays one day — and its length is read in the block's text rather than
+its height: one cell is one hour, and a block overflowing would not be legible.
+
+Page `#calendar`, in the 📊 *Analyse* category.
+
 ## [v3.43]
 
 ### The menu in categories

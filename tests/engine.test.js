@@ -8559,3 +8559,69 @@ test('v3.43 : aucune entrée rangée n’a disparu de la page, et le bas de barr
   assert.strictEqual(ctx.menuCatDe('sid-lab'), 'explorer');
   assert.strictEqual(ctx.menuCatDe('sid-campagne'), 'jouer');
 });
+
+// ─── v3.44 : le calendrier ───
+test('v3.44 : la fenêtre de jours va bien jusqu’à après-demain', () => {
+  const ctx = chargerMoteur();
+  const j = ctx.calFenetre(7, 0);
+  assert.strictEqual(j.length, 7);
+  // le dernier jour est après-demain : les prochains défis sont visibles sans avancer
+  const apresDemain = new Date(); apresDemain.setDate(apresDemain.getDate() + 2);
+  assert.strictEqual(ctx.calJour(j[6]), ctx.calJour(apresDemain));
+  // les jours se suivent, un par un, sans trou ni doublon
+  for (let i = 1; i < j.length; i++) {
+    assert.strictEqual(Math.round((j[i] - j[i - 1]) / 86400000), 1, 'trou entre les jours ' + i);
+  }
+  // la clé d'un jour est locale : une partie de 00h30 reste le jour même
+  const minuitPasse = new Date(2026, 10, 18, 0, 30);
+  assert.strictEqual(ctx.calJour(minuitPasse), 20261118);
+  assert.strictEqual(ctx.calDate(20261118).getDate(), 18);
+  // le décalage recule bien la fenêtre d'une semaine
+  const avant = ctx.calFenetre(7, -7);
+  assert.strictEqual(Math.round((j[0] - avant[0]) / 86400000), 7);
+});
+
+test('v3.44 : l’amplitude d’heures se cale sur ce qui est joué, jamais moins de six lignes', () => {
+  const ctx = chargerMoteur();
+  // rien à montrer : six lignes quand même, sinon la grille n'aurait pas de hauteur
+  const vide = ctx.calAmplitude([]);
+  assert.strictEqual(vide[1] - vide[0], 6);
+  // une seule partie à 14 h : la grille s'ouvre autour, avec le minimum de lignes
+  const une = ctx.calAmplitude([{ h: 14, duree: 0.5 }]);
+  assert.ok(une[0] <= 13 && une[1] >= 15, JSON.stringify(une));
+  assert.ok(une[1] - une[0] >= 6);
+  // deux événements éloignés : l'amplitude les couvre tous les deux, avec une marge
+  const deux = ctx.calAmplitude([{ h: 9, duree: 1 }, { h: 21, duree: 0.5 }]);
+  assert.ok(deux[0] <= 8 && deux[1] >= 22, JSON.stringify(deux));
+  // on ne sort jamais de la journée
+  const bords = ctx.calAmplitude([{ h: 0, duree: 0.5 }, { h: 23.5, duree: 0.5 }]);
+  assert.strictEqual(bords[0], 0);
+  assert.strictEqual(bords[1], 24);
+});
+
+test('v3.44 : le défi d’un jour à venir est annoncé, celui d’un jour joué est marqué', () => {
+  const ctx = chargerMoteur();
+  const sauve = JSON.stringify(ctx.progress.defis || {});
+  try {
+    const jours = ctx.calFenetre(3, 0);          // hier, aujourd'hui, demain... jusqu'à après-demain
+    const auj = new Date(), nAuj = ctx.defiNumero(auj);
+    ctx.progress.defis = {};
+    let d = ctx.calDefis(jours);
+    // les deux jours à venir sont annoncés, pas vides
+    assert.strictEqual(d[ctx.calJour(jours[1])].etat, 'avenir');
+    assert.strictEqual(d[ctx.calJour(jours[2])].etat, 'avenir');
+    // leur numéro suit celui d'aujourd'hui : il est calculé, pas tiré au sort
+    assert.strictEqual(d[ctx.calJour(jours[2])].n, nAuj + 2);
+    // aujourd'hui, pas encore joué
+    assert.strictEqual(d[ctx.calJour(auj)].etat, 'aujourdhui');
+    // réussi
+    ctx.progress.defis[nAuj] = { e: 'xxiv', f: 'v', j: nAuj, ms: 12000 };
+    d = ctx.calDefis(jours);
+    assert.strictEqual(d[ctx.calJour(auj)].etat, 'reussi');
+    assert.strictEqual(d[ctx.calJour(auj)].ms, 12000);
+    // tenté et manqué
+    ctx.progress.defis[nAuj] = { e: 'xxiv', f: 's', j: nAuj, ms: 4000 };
+    d = ctx.calDefis(jours);
+    assert.strictEqual(d[ctx.calJour(auj)].etat, 'manque');
+  } finally { ctx.progress.defis = JSON.parse(sauve); }
+});

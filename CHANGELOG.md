@@ -9,6 +9,37 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.44]
+
+### Le calendrier
+Demande d'ocj94, d'après la grille « ChessTV Schedule » de chess.com : des jours
+en colonnes, des heures en lignes, des blocs colorés. Trois colonnes sur un
+téléphone, cinq sur une tablette, sept sur un grand écran.
+
+Ce que le site peut y mettre sans rien inventer :
+
+- **les parties**, qui portent une date complète, posées à leur heure, avec le
+  nombre de coups et le résultat ;
+- **les séances du Labo**, recollées depuis le journal comme en v3.37 — une
+  séance se coupe après dix minutes sans partie — du début à la fin ;
+- **le défi du jour**, qui n'a qu'un jour et pas d'heure : une bande en tête de
+  colonne, comme les événements en haut de la grille de chess.com. Réussi,
+  manqué, pas joué, ou en cours.
+
+Les jours à venir ne sont pas vides. Le défi d'un jour est **calculé d'avance**
+(`defiNumero` ne dépend que de la date), donc le calendrier annonce les
+prochains au lieu de s'arrêter à aujourd'hui. La fenêtre se termine d'ailleurs
+deux jours après aujourd'hui, pour qu'ils soient visibles sans avoir à avancer.
+
+La grille ne montre pas les vingt-quatre heures : elle se cale sur l'amplitude de
+ce qui s'est passé, avec six lignes au minimum. De minuit à minuit, elle serait
+vide aux trois quarts. Une séance qui passe minuit est coupée à la fin du jour —
+une colonne reste un jour — et sa durée se lit dans le texte du bloc plutôt que
+dans sa hauteur : une case vaut une heure, un bloc qui déborderait ne serait pas
+lisible.
+
+Page `#calendrier`, dans la catégorie 📊 *Analyser*.
+
 ## [v3.43]
 
 ### Le menu en catégories

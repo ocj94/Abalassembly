@@ -229,6 +229,8 @@ const PASSERELLE = `
   if (typeof VOIX !== 'undefined')             relier('VOIX', function(){return VOIX;}, function(v){VOIX=v;});
   // le menu en categories (v3.43)
   if (typeof MENU_CATS !== 'undefined')        relier('MENU_CATS', function(){return MENU_CATS;});
+  // le calendrier (v3.44)
+  if (typeof _calDecalage !== 'undefined')     relier('_calDecalage', function(){return _calDecalage;}, function(v){_calDecalage=v;});
 })();
 `;
 

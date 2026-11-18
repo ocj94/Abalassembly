@@ -21,7 +21,7 @@ const MENU_CATS = [
   { id: 'apprendre', fr: 'Apprendre', en: 'Learn',
     items: ['sid-learn', 'sid-academy', 'sid-openings', 'sid-plateau', 'sid-formateurs', 'sid-aide'] },
   { id: 'analyser', fr: 'Analyser', en: 'Analyse',
-    items: ['sid-analysis', 'sid-stats', 'sid-corpusstats', 'sid-library', 'sid-camera'] },
+    items: ['sid-analysis', 'sid-stats', 'sid-calendrier', 'sid-corpusstats', 'sid-library', 'sid-camera'] },
   { id: 'explorer', fr: 'Explorer', en: 'Explore',
     items: ['sid-lab', 'sid-archi', 'sid-briefing', 'sid-biblio', 'sid-github'] },
   { id: 'communaute', fr: 'Communauté', en: 'Community',
