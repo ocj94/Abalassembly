@@ -9,6 +9,39 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.49]
+
+### Le blueprint remis à jour — et empêché de dériver
+Troisième fois qu'ocj94 pose la même question (« la partie Architecture
+correspond toujours ? » en v2.66, « …à ce qu'il y a maintenant ? » en v2.96,
+« le blueprint est à refaire ou il est bon ? » aujourd'hui). Cette fois, la
+réponse ne se contente pas de remettre le texte à jour : elle s'attaque à ce
+qui le fait dériver.
+
+**Le poids du fichier était faux de 43 %.** La fiche pour IA annonçait
+« ~7,7 Mo » quand `index.html` en fait 11,0 — trois relectures d'architecture
+ne l'avaient pas rattrapé, parce que personne ne pense à mesurer un fichier.
+Il est désormais **écrit par `tools/build.js`** après l'assemblage, dans
+`APP_POIDS`. La marque remplacée fait exactement la même longueur que la
+valeur, donc écrire le poids ne change pas le poids ; et la substitution a lieu
+**avant** la signature des scripts, sinon les empreintes de la CSP ne
+correspondraient plus et tous les scripts du site seraient bloqués. Le build
+vérifie lui-même cet invariant et s'arrête si la taille annoncée n'est pas
+celle du fichier écrit.
+
+**L'inventaire des pages est passé dans le wiki.** Les quarante pages du site,
+chacune avec son identifiant et une ligne sur ce qu'elle fait, dans les
+[Plans du site](docs-fr/Plans.fr.md). Un test compare cette liste aux `id="page-…"`
+de `index.html` : **une page ajoutée sans sa ligne, ou une ligne sans sa page,
+et la vérification échoue.** C'est ce qui doit empêcher une quatrième fois.
+
+**Les quatre cartes de la page Architecture tenaient encore.** L'ordre des
+questions de l'IA, les tables de finale et les échanges n'ont pas bougé, et
+tout ce qui a été ajouté entre la v3.40 et la v3.48 tourne hors ligne. Deux
+listes de consommateurs manquaient seulement : le Calendrier (qui relit les
+parties) et la Campagne et les Sept leçons (qui lisent les positions de
+départ). Les pages du wiki sont datées de la v3.49 et disent ce qui a été relu.
+
 ## [v3.48]
 
 ### Les noms d'un fichier importé ne sont plus du texte libre

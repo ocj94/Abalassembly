@@ -6,7 +6,16 @@
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v3.48';
+const APP_VERSION = 'v3.49';
+/* v3.49 : le poids du fichier, ecrit par tools/build.js apres l'assemblage.
+   Il etait ecrit a la main dans la fiche pour IA, et il annoncait 7,7 Mo quand
+   le fichier en faisait 11,0 : trois relectures d'architecture n'avaient pas
+   rattrape ce chiffre, parce que personne ne pense a mesurer un fichier.
+   La marque fait exactement neuf caracteres et la valeur aussi, donc la
+   substitution ne change pas la taille qu'elle annonce. Hors build (dans les
+   sources, dans les tests), la valeur n'est pas un nombre : ce qui l'affiche
+   doit le prevoir. */
+const APP_POIDS = Number('@@POIDS@@');
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;

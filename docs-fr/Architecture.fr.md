@@ -4,11 +4,15 @@
 
 Quatre cartes pour comprendre comment Abalassembly est construit. Elles sont **écrites à la main** et doivent être mises à jour quand l'architecture change — contrairement à la « Fiche pour IA » du site, qui compte tout à l'exécution. La page Architecture du site en donne la version courte, en français et en anglais.
 
-Vérifié contre le code en v2.96 (avant : v2.66 ; il manquait les poids Texel, la qualité des coups, les humains et les programmes, les 60 positions de départ, les parties citées sans leurs coups et les fichiers APGN, et la règle de sécurité bloquait PlayStrategy). Les chiffres de la page du site sont regroupés dans `ARCHI_CHIFFRES` (`src/main/34-architecture-diagrams-briefing.js`), et un test les compare aux données embarquées : une partie ou un problème de plus, et le test demande la mise à jour.
+Vérifié contre le code en v3.49 (avant : v2.96, v2.66 ; il manquait les poids Texel, la qualité des coups, les humains et les programmes, les 60 positions de départ, les parties citées sans leurs coups et les fichiers APGN, et la règle de sécurité bloquait PlayStrategy). Les chiffres de la page du site sont regroupés dans `ARCHI_CHIFFRES` (`src/main/34-architecture-diagrams-briefing.js`), et un test les compare aux données embarquées : une partie ou un problème de plus, et le test demande la mise à jour.
 
 Pour une vue d'ensemble dessinée (pages, IA, Labo, serveur), voir les [Plans du site](Plans.fr.md).
 
 ---
+
+Relecture de la v3.49 : les quatre cartes tenaient encore. L'ordre des questions de l'IA, les tables de finale et les échanges n'ont pas bougé, et **tout ce qui a été ajouté entre la v3.40 et la v3.48 tourne hors ligne** — campagne, voix des coups, menu en catégories, calendrier, vingt badges, sept leçons, les deux filets contre les secrets. Seules deux listes de consommateurs manquaient : le Calendrier (qui relit les parties) et la Campagne et les Sept leçons (qui lisent les positions de départ).
+
+Le poids du fichier, lui, était faux de 43 % : la fiche annonçait 7,7 Mo quand `index.html` en faisait 11,0. Il est désormais **écrit par `tools/build.js`** après l'assemblage, et un test le compare à la taille réelle du fichier. L'inventaire des pages est passé dans les [Plans du site](Plans.fr.md), vérifié par un test lui aussi : une page ajoutée sans sa ligne, et la vérification échoue.
 
 ## 1. Comment l'IA choisit son coup
 

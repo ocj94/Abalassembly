@@ -4,11 +4,15 @@
 
 Four maps for understanding how Abalassembly is built. They are **written by hand** and need to be updated when the architecture changes — unlike the site's own "AI briefing" page, which computes everything at runtime. The site's Architecture page gives the short version, in French and in English.
 
-Checked against the code in v2.96 (before: v2.66; the Texel weights, move quality, humans and programs, the 60 starting positions, the games cited without their moves and the APGN files were missing, and the security rule blocked PlayStrategy). The figures on the site page are gathered in `ARCHI_CHIFFRES` (`src/main/34-architecture-diagrams-briefing.js`), and a test compares them with the embedded data: one more game or puzzle, and the test asks for the update.
+Checked against the code in v3.49 (previously v2.96, and v2.66 before that; the Texel weights, move quality, humans and programs, the 60 starting positions, the games cited without their moves and the APGN files were missing, and the security rule blocked PlayStrategy). The figures on the site page are gathered in `ARCHI_CHIFFRES` (`src/main/34-architecture-diagrams-briefing.js`), and a test compares them with the embedded data: one more game or puzzle, and the test asks for the update.
 
 For a drawn overview (pages, AI, Lab, server), see the [site blueprints](Plans.en.md).
 
 ---
+
+v3.49 review: the four cards still held. The order of the AI's questions, the endgame tables and the exchanges have not moved, and **everything added between v3.40 and v3.48 runs offline** — campaign, move announcements, categorised menu, calendar, twenty badges, seven lessons, the two nets against secrets. Only two consumer lists were missing: the Calendar (which replays games) and the Campaign and Seven lessons (which read the starting layouts).
+
+The file weight, however, was wrong by 43%: the briefing said 7.7 MB when `index.html` was 11.0. It is now **written by `tools/build.js`** after assembly, and a test compares it with the file's real size. The page inventory has moved into the [Site blueprints](Plans.en.md), checked by a test as well: a page added without its line, and the verification fails.
 
 ## 1. How the AI picks its move
 

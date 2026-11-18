@@ -8943,3 +8943,41 @@ test('v3.48 : le libellé d’adversaire n’est jamais inséré sans échappeme
   });
   assert.deepStrictEqual(fautifs, [], 'insertion non échappée du libellé d’adversaire');
 });
+
+// ─── v3.49 : le blueprint ne doit plus pouvoir prendre du retard ───
+test('v3.49 : chaque page du site a sa ligne dans l’inventaire du wiki, et réciproquement', () => {
+  const fs = require('fs'), path = require('path');
+  const racine = path.join(__dirname, '..');
+  const dansLeSite = [...new Set((_SRC_INDEX.match(/id="page-[a-z0-9-]+"/g) || [])
+    .map(function (m) { return m.slice(9, -1); }))].sort();
+  assert.ok(dansLeSite.length >= 30, 'inventaire du site suspect : ' + dansLeSite.length + ' pages');
+
+  ['docs-fr/Plans.fr.md', 'docs-en/Plans.en.md'].forEach(function (f) {
+    const doc = fs.readFileSync(path.join(racine, f), 'utf8');
+    const dansLeWiki = [...new Set((doc.match(/\| `page-[a-z0-9-]+`/g) || [])
+      .map(function (m) { return m.slice(8, -1); }))].sort();
+    const manquantes = dansLeSite.filter(function (p) { return dansLeWiki.indexOf(p) < 0; });
+    const enTrop = dansLeWiki.filter(function (p) { return dansLeSite.indexOf(p) < 0; });
+    assert.deepStrictEqual(manquantes, [],
+      f + ' : page(s) du site absente(s) de l’inventaire — ajoute une ligne « | `page-x` | Nom | À quoi ça sert | »');
+    assert.deepStrictEqual(enTrop, [],
+      f + ' : page(s) listée(s) qui n’existent plus dans le site');
+  });
+});
+
+test('v3.49 : le poids annoncé par la fiche est celui du fichier, pas un chiffre écrit à la main', () => {
+  const fs = require('fs'), path = require('path');
+  const chemin = path.join(__dirname, '..', 'index.html');
+  const octets = fs.statSync(chemin).size;
+  // la constante écrite par tools/build.js
+  const m = _SRC_INDEX.match(/const APP_POIDS = Number\('(\d+)'\)/);
+  assert.ok(m, 'APP_POIDS doit être écrit dans index.html par le build');
+  assert.strictEqual(Number(m[1]), octets,
+    'le poids écrit (' + Number(m[1]) + ') diffère de la taille réelle (' + octets + ') : relancer node tools/build.js');
+  // la marque et la valeur font la même longueur : sans ça, écrire le poids le changerait
+  const build = require('../tools/build.js');
+  assert.strictEqual(m[1].length, build.POIDS_MARQUE.length);
+  // et plus aucun poids écrit à la main dans le code
+  const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'main', '34-architecture-diagrams-briefing.js'), 'utf8');
+  assert.ok(!/~\s*\d+[,.]\d+\s*Mo/.test(src), 'un poids en Mo est encore écrit en dur dans la fiche');
+});

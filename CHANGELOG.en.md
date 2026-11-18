@@ -9,6 +9,37 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.49]
+
+### The blueprint brought up to date — and stopped from drifting
+The third time ocj94 has asked the same question ("does the Architecture page
+still match?" in v2.66, "…match what is there now?" in v2.96, "is the blueprint
+to redo or is it fine?" today). This time the answer does not merely refresh
+the text: it goes after what makes it drift.
+
+**The file weight was wrong by 43%.** The AI briefing announced "~7.7 MB" when
+`index.html` is 11.0 — three architecture reviews had not caught it, because
+nobody thinks to measure a file. It is now **written by `tools/build.js`**
+after assembly, into `APP_POIDS`. The replaced marker is exactly as long as the
+value, so writing the weight does not change the weight; and the substitution
+happens **before** the scripts are signed, otherwise the CSP digests would no
+longer match and every script on the site would be blocked. The build checks
+that invariant itself and stops if the announced size is not the written file's.
+
+**The page inventory has moved into the wiki.** All forty pages of the site,
+each with its identifier and one line on what it does, in the
+[Site blueprints](docs-en/Plans.en.md). A test compares that list with the
+`id="page-…"` of `index.html`: **a page added without its line, or a line
+without its page, and the verification fails.** That is what should prevent a
+fourth time.
+
+**The four cards of the Architecture page still held.** The order of the AI's
+questions, the endgame tables and the exchanges have not moved, and everything
+added between v3.40 and v3.48 runs offline. Only two consumer lists were
+missing: the Calendar (which replays games) and the Campaign and Seven lessons
+(which read the starting layouts). The wiki pages are dated v3.49 and say what
+was reviewed.
+
 ## [v3.48]
 
 ### Player names from an imported file are no longer free text

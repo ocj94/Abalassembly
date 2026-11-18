@@ -20,7 +20,7 @@
 <!-- v2.96 : connect-src ouvert a playstrategy.org, et a lui seul. Les fonctions PlayStrategy (partie en direct,
      tournois, import par lien) etaient bloquees par cette regle depuis leur ajout ; le site n'y envoie qu'un pseudo
      ou un lien, en lecture seule. Si PlayStrategy refuse les requetes venant d'un autre site (CORS), le message le dit. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' blob: 'sha256-8STPnbw+E3XBBZTJlKw/YzNCMzYXmKRZpCk2DlyHjcE=' 'sha256-xrClgwYGFk8hhEGMu2u07LSxLn0oQO68guvmE6vMhXw=' 'sha256-HZyU3+0an9TgGloQr+5HE3QQ0KnxLRB2We/gOV57StA=' 'sha256-jg5OX++L11h6A1Z47Z8yG1wBWQdGea4iJRswn1peYHQ=' 'sha256-vPSSUR0q4b8wSgnee15gQgz67URxhHm4MgCgzbsfq2Q=' 'sha256-l+8IXMf8DU5SgvLOVQP3Yf8/vU6jr/z0Fms4QMYrWas='; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://playstrategy.org https://cdn.jsdelivr.net https://unpkg.com; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' blob: 'sha256-8STPnbw+E3XBBZTJlKw/YzNCMzYXmKRZpCk2DlyHjcE=' 'sha256-xrClgwYGFk8hhEGMu2u07LSxLn0oQO68guvmE6vMhXw=' 'sha256-HZyU3+0an9TgGloQr+5HE3QQ0KnxLRB2We/gOV57StA=' 'sha256-CJTt1xgq7UWALaUlMfVDU2X1YN0IbvGCnOCZ/nF7nBc=' 'sha256-vPSSUR0q4b8wSgnee15gQgz67URxhHm4MgCgzbsfq2Q=' 'sha256-l+8IXMf8DU5SgvLOVQP3Yf8/vU6jr/z0Fms4QMYrWas='; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://playstrategy.org https://cdn.jsdelivr.net https://unpkg.com; base-uri 'self'; form-action 'self'">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#151918">
@@ -9269,7 +9269,16 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v3.48';
+const APP_VERSION = 'v3.49';
+/* v3.49 : le poids du fichier, ecrit par tools/build.js apres l'assemblage.
+   Il etait ecrit a la main dans la fiche pour IA, et il annoncait 7,7 Mo quand
+   le fichier en faisait 11,0 : trois relectures d'architecture n'avaient pas
+   rattrape ce chiffre, parce que personne ne pense a mesurer un fichier.
+   La marque fait exactement neuf caracteres et la valeur aussi, donc la
+   substitution ne change pas la taille qu'elle annonce. Hors build (dans les
+   sources, dans les tests), la valeur n'est pas un nombre : ce qui l'affiche
+   doit le prevoir. */
+const APP_POIDS = Number('011576032');
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -40669,6 +40678,16 @@ function _historySetFilter(key, value){
    a jour. Le reste (l'ordre des questions de l'IA, les echanges) se relit a
    la main a chaque changement d'architecture, avec docs-fr/Architecture.fr.md
    et docs-en/Architecture.en.md.
+   v3.49, troisieme fois la meme question (« le blueprint est a refaire ou il
+   est bon ? »). Relu contre le code : les quatre cartes tenaient encore --
+   l'ordre des questions de l'IA, les tables de finale et les echanges n'ont
+   pas bouge depuis, et tout ce qui a ete ajoute entre la v3.40 et la v3.48
+   tourne hors ligne. Deux listes de consommateurs manquaient seulement : le
+   Calendrier (parties rejouees) et la Campagne et les Sept lecons (positions
+   de depart). Le POIDS du fichier, lui, etait faux de 43 % -- il est desormais
+   ecrit par tools/build.js, plus a la main, et un test le compare a la taille
+   reelle. L'inventaire des pages est passe dans le wiki, verifie par un test
+   lui aussi : c'est ce qui doit empecher une quatrieme fois.
    v2.96, meme demande (« la partie Architecture correspond a ce qu'il y a
    maintenant ? ») : non, encore. Manquaient depuis la v2.66 les poids Texel
    (v2.75, a partir du niveau 4), le style KAAH et le moteur NNUE
@@ -40743,7 +40762,7 @@ function _archiCarteDonnees(){
     [_tr('Empreintes : ' + _archiN(C.empreintes) + ' positions mesurées sur 12 dimensions', 'Fingerprints: ' + _archiN(C.empreintes) + ' positions measured on 12 dimensions'),
      _tr('L’IA (question 3), l’analyse de partie, les 12 dimensions des Statistiques du jeu', 'The AI (question 3), game analysis, the 12 dimensions of Game statistics')],
     [_tr('Chaque partie rejouée coup par coup, hors ligne : billes tombées, sortes de coups, camps comparés', 'Every game replayed move by move, offline: marbles pushed off, kinds of moves, sides compared'),
-     _tr('Statistiques du jeu, Mes statistiques, l’écran de fin de partie', 'Game statistics, My statistics, the end-of-game screen')],
+     _tr('Statistiques du jeu, Mes statistiques, le Calendrier, l’écran de fin de partie', 'Game statistics, My statistics, the Calendar, the end-of-game screen')],
     [_tr('Positions du Labo : des positions calmes avec le coup joué et le résultat, et des positions de départ pour les duels', 'Lab positions: quiet positions with the move played and the result, and starting positions for the duels'),
      _tr('Labo IA : duels, méthode Texel (dont les poids de l’IA à partir du niveau 4), comme les humains', 'AI Lab: duels, Texel method (including the AI’s weights from level 4), like humans')],
     [_tr('Qualité des coups : chaque partie analysée hors ligne par le moteur (billes offertes, coups critiques)', 'Move quality: every game analysed offline by the engine (marbles offered, critical moves)'),
@@ -40757,7 +40776,7 @@ function _archiCarteDonnees(){
     [_tr('Les parties MiGs et PlayStrategy en APGN, refaites par un outil et vérifiées par un test', 'The MiGs and PlayStrategy games in APGN, rebuilt by a tool and checked by a test'),
      _tr('Le dossier games/ du dépôt, pour les autres programmes', 'The repository’s games/ folder, for other programs')],
     [_tr(_archiN(C.dispositions) + ' positions de départ : 37 relevées par le projet gym-abalone et vérifiées case par case, 129 générées par le LLM Claude Opus 5.5 Extra et mesurées par le moteur', _archiN(C.dispositions) + ' starting positions: 37 read by the gym-abalone project and checked cell by cell, 129 generated by the LLM Claude Opus 5.5 Extra and measured by the engine'),
-     _tr('Jouer, Variantes, Éditeur', 'Play, Variants, Editor')]
+     _tr('Jouer, Variantes, Éditeur, Campagne, Sept leçons', 'Play, Variants, Editor, Campaign, Seven lessons')]
   ];
   h += '<div class="archi-usages">' + usages.map(function(u){
     return '<div class="archi-usage"><div class="archi-boite archi-c">' + u[0] + '</div>' + _archiBranche('', u[1], 'archi-dest') + '</div>';
@@ -41474,6 +41493,14 @@ function _extPlayMove(){
    L'inventaire se fait par DETECTION (typeof === 'function') : c'est ce
    qui permet de refuter « il manque X » de facon verifiable.
 ═══════════════════════════════════════════ */
+/* v3.49 : le poids vient du build (APP_POIDS), plus de la main. Hors build --
+   sources ouvertes telles quelles, suite de tests -- la valeur n'est pas un
+   nombre : on le dit plutot que d'afficher « NaN Mo ». */
+function _poidsFichier(){
+  if (typeof APP_POIDS !== 'number' || !isFinite(APP_POIDS) || APP_POIDS <= 0) return 'non mesure hors assemblage';
+  return '~' + (APP_POIDS / 1048576).toFixed(1).replace('.', ',') + ' Mo';
+}
+
 function buildSiteBriefing(){
   const has = function(n){ try { return typeof window[n] === 'function'; } catch(e){ return false; } };
   const num = function(v){ return (typeof v === 'number') ? v : null; };
@@ -41526,9 +41553,9 @@ function buildSiteBriefing(){
 
   P('');
   P('## Limites connues et ASSUMEES (ne pas les signaler comme des oublis)');
-  P('- Poids du fichier : ~7,7 Mo, dont plus de la moitie pour la base d\u2019empreintes.');
-  P('  Le decodage est deja differe, mais le TELECHARGEMENT ne peut pas l\u2019etre :');
-  P('  c\u2019est le prix assume du fichier unique hors ligne, pas un oubli.');
+  P('- Poids du fichier : ' + _poidsFichier() + ', dont plus de la moitie pour la base d\u2019empreintes.\n'
+    + '  Le decodage est deja differe, mais le TELECHARGEMENT ne peut pas l\u2019etre :\n'
+    + '  c\u2019est le prix assume du fichier unique hors ligne, pas un oubli.');
   P('- Comparabilite des scores entre workers : chaque worker a sa propre table de');
   P('  transposition (SharedArrayBuffer impossible sur GitHub Pages). Documente,');
   P('  non resolu, pas de solution propre connue dans ces contraintes.');

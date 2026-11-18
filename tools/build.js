@@ -66,8 +66,25 @@ function signerScripts(html) {
   return html.replace(MARQUE_EMPREINTES, empreintesScripts(html).join(' '));
 }
 
+/* La marque du poids : neuf caracteres, remplaces par neuf chiffres. Comme la
+   longueur ne bouge pas, la taille mesuree avant substitution est exactement
+   celle du fichier livre. Et comme la substitution a lieu AVANT la signature
+   des scripts, les empreintes de la CSP portent bien sur le contenu final --
+   patcher apres aurait bloque tous les scripts du site. */
+const POIDS_MARQUE = '@@POIDS@@';
+function ecrirePoids(html) {
+  if (!html.includes(POIDS_MARQUE)) return signerScripts(html);
+  const taille = Buffer.byteLength(signerScripts(html), 'utf8');
+  const out = signerScripts(html.split(POIDS_MARQUE).join(String(taille).padStart(POIDS_MARQUE.length, '0')));
+  const vraie = Buffer.byteLength(out, 'utf8');
+  if (vraie !== taille) {
+    throw new Error('le poids annonce (' + taille + ') n\'est pas celui du fichier (' + vraie + ') : la marque et la valeur doivent faire la meme longueur');
+  }
+  return out;
+}
+
 function main() {
-  const out = signerScripts(build());
+  const out = ecrirePoids(build());
   const before = fs.existsSync(OUT_FILE) ? fs.readFileSync(OUT_FILE, 'utf8') : null;
   fs.writeFileSync(OUT_FILE, out, 'utf8');
   console.log('index.html ecrit :', Buffer.byteLength(out, 'utf8'), 'octets,', names_count(), 'pieces assemblees');
@@ -98,4 +115,4 @@ function names_count() {
 }
 
 if (require.main === module) main();
-module.exports = { build, signerScripts, empreintesScripts };
+module.exports = { build, signerScripts, empreintesScripts, ecrirePoids, POIDS_MARQUE };
