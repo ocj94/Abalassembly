@@ -9,6 +9,39 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.45]
+
+### Nine more badges — twenty in all
+ocj94's request: the competing app advertises twenty, the site had eleven. The
+nine arriving are not further tiers on the same counters; they reward what the
+screens built over these days can actually measure.
+
+| | | |
+|---|---|---|
+| 🔄 | **Comeback** | Win a game where the AI had you behind by at least a marble and a half |
+| 💨 | **Swift** | Win in 25 moves or fewer |
+| 🏃 | **Marathon** | Win a game of 80 moves or more |
+| 🎲 | **Tourist** | Win on 5 different starting layouts |
+| ⚔️ | **First chapter** | Beat the first six campaign opponents |
+| 🎓 | **Grand Master** | Beat all twenty-four campaign opponents |
+| 📆 | **Ten days running** | 10 daily challenges solved in a row |
+| 🧪 | **Apprentice researcher** | The Lab reaches its 5th generation |
+| 🧠 | **Puzzler** | Solve 50 puzzles |
+
+Each is awarded from data **already recorded**, never from a new counter:
+nothing to migrate, and a badge earned yesterday unlocks on the next visit. The
+comeback is read with *My statistics*' own function (`_mpPartiesNotees`), so the
+badge and the page cannot contradict each other. "Tourist" recounts the history
+instead of keeping a counter — a deleted game must not leave a badge with
+nothing behind it.
+
+### Fixed along the way
+`_recordGameHistory()` now returns the game it has just archived, and
+`triggerWin()` passes it to the badges. Reading it back from the history would
+have been wrong twice over: the most recent entry is at the **front**, not the
+back, and when no move was played nothing is archived — the previous game would
+have been judged. An existing test caught it before it reached anyone.
+
 ## [v3.44]
 
 ### The calendar

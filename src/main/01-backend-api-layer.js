@@ -233,6 +233,8 @@ function checkBadges() {
   if (progress.puzzlesSolved >= 10) awardBadge('puzzle10');
   if (progress.level >= 5) awardBadge('level5');
   if (progress.level >= 10) awardBadge('level10');
+  // v3.45 : les neuf badges de plus, juges sur l'etat deja enregistre
+  if (typeof badgesPlusCompteurs === 'function') badgesPlusCompteurs();
 }
 
 // Détecte les skins de billes nouvellement débloqués et félicite le joueur.

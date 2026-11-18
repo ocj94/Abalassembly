@@ -184,6 +184,8 @@ function campagneFinDePartie(jeGagne) {
   if (jeGagne && !e.d) { e.d = new Date().toISOString(); e.c = coups; }
   st[id] = e;
   if (typeof saveProgress === 'function') saveProgress(progress);
+  // v3.45 : « Premier chapitre » et « Grand Maitre » se gagnent ici
+  if (jeGagne && typeof badgesPlusCompteurs === 'function') badgesPlusCompteurs();
   if (jeGagne) {
     const suite = CAMPAGNE[i + 1];
     if (typeof showToast === 'function') {

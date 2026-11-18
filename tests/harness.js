@@ -231,6 +231,9 @@ const PASSERELLE = `
   if (typeof MENU_CATS !== 'undefined')        relier('MENU_CATS', function(){return MENU_CATS;});
   // le calendrier (v3.44)
   if (typeof _calDecalage !== 'undefined')     relier('_calDecalage', function(){return _calDecalage;}, function(v){_calDecalage=v;});
+  // les badges (v3.45)
+  if (typeof BADGES !== 'undefined')           relier('BADGES', function(){return BADGES;});
+  if (typeof BADGES_PLUS !== 'undefined')      relier('BADGES_PLUS', function(){return BADGES_PLUS;});
 })();
 `;
 

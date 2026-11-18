@@ -20,7 +20,7 @@
 <!-- v2.96 : connect-src ouvert a playstrategy.org, et a lui seul. Les fonctions PlayStrategy (partie en direct,
      tournois, import par lien) etaient bloquees par cette regle depuis leur ajout ; le site n'y envoie qu'un pseudo
      ou un lien, en lecture seule. Si PlayStrategy refuse les requetes venant d'un autre site (CORS), le message le dit. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' blob: 'sha256-8STPnbw+E3XBBZTJlKw/YzNCMzYXmKRZpCk2DlyHjcE=' 'sha256-xrClgwYGFk8hhEGMu2u07LSxLn0oQO68guvmE6vMhXw=' 'sha256-/Wyo501FDre3YydI7rBeWLmlc3k1Zhvprq/Qekjlbg8=' 'sha256-/useld7Uzuxxzeg8iO6SxEmG384s4y/vL13KQX9delk=' 'sha256-vPSSUR0q4b8wSgnee15gQgz67URxhHm4MgCgzbsfq2Q=' 'sha256-l+8IXMf8DU5SgvLOVQP3Yf8/vU6jr/z0Fms4QMYrWas='; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://playstrategy.org https://cdn.jsdelivr.net https://unpkg.com; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' blob: 'sha256-8STPnbw+E3XBBZTJlKw/YzNCMzYXmKRZpCk2DlyHjcE=' 'sha256-xrClgwYGFk8hhEGMu2u07LSxLn0oQO68guvmE6vMhXw=' 'sha256-/Wyo501FDre3YydI7rBeWLmlc3k1Zhvprq/Qekjlbg8=' 'sha256-wjrswl5nu6BlmOH/fMOv/xGvUQ/YQzh32VG7TVfOeLw=' 'sha256-vPSSUR0q4b8wSgnee15gQgz67URxhHm4MgCgzbsfq2Q=' 'sha256-l+8IXMf8DU5SgvLOVQP3Yf8/vU6jr/z0Fms4QMYrWas='; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://playstrategy.org https://cdn.jsdelivr.net https://unpkg.com; base-uri 'self'; form-action 'self'">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#151918">
@@ -7841,6 +7841,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
 <ul>
 <li><b>Règles du jeu</b> et <b>Abalone Academy</b> : les règles, puis les principes de stratégie.</li>
 <li><b>Sur un vrai plateau</b> : apprendre Abalone aux enfants à partir de 3 ans, sans écran — la sécurité, les règles d’or, 8 petites étapes avec leurs schémas, un carnet de progrès et une fiche à imprimer.</li>
+<li><b>Badges</b> : vingt en tout, visibles dans ton profil. Neuf sont venus en v3.45 et ne sont pas des paliers de plus sur les mêmes compteurs : une remontée vue par l’IA, une victoire expéditive ou un marathon, cinq dispositions de départ gagnées, le premier chapitre puis toute la campagne, dix défis d’affilée, la cinquième génération du Labo, cinquante problèmes.</li>
 <li><b>Calendrier</b> : une grille jours × heures, comme une grille de programmes. Tes parties à leur heure, les séances du Labo du début à la fin, et le défi de chaque jour en tête de colonne. Les jours à venir ne sont pas vides : le défi d’un jour est calculé d’avance, pas tiré au sort, donc le calendrier annonce les prochains. Les flèches reculent ou avancent d’une fenêtre entière.</li>
 <li><b>Voix des coups</b> (Paramètres → Autorisations → <i>Voix des coups</i>) : à chaque coup, une voix annonce le déplacement en coordonnées — « A 1 en B 1 », « Blancs, trois billes, I 8 en H 7 ». Pratique pour rejouer la partie sur un vrai plateau sans quitter les billes des yeux. Tu choisis quels coups sont annoncés (tous, les tiens, ceux d’en face), le débit, la voix du navigateur, et si le camp est dit. Le texte suit la notation Aba-Pro affichée sur le plateau, donc la voix ne peut jamais dire autre chose que ce qui est écrit.</li>
 <li><b>Campagne</b> : vingt-quatre adversaires nommés, du plus simple au plus fort, en quatre chapitres. Chacun a sa disposition de départ, son niveau et son style ; certains te font jouer les blancs ou mettent une pendule. Bats-en un pour ouvrir le suivant. Un encadré dans <i>Mes statistiques</i> rappelle où tu en es. Tout se joue hors ligne, contre le moteur du site, et une partie ne compte que si elle a bien été jouée dans les conditions de l’adversaire.</li>
@@ -9218,7 +9219,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v3.44';
+const APP_VERSION = 'v3.45';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -10631,6 +10632,8 @@ function checkBadges() {
   if (progress.puzzlesSolved >= 10) awardBadge('puzzle10');
   if (progress.level >= 5) awardBadge('level5');
   if (progress.level >= 10) awardBadge('level10');
+  // v3.45 : les neuf badges de plus, juges sur l'etat deja enregistre
+  if (typeof badgesPlusCompteurs === 'function') badgesPlusCompteurs();
 }
 
 // Détecte les skins de billes nouvellement débloqués et félicite le joueur.
@@ -27876,7 +27879,9 @@ function _recordGameHistory(winner, reason){
     list.unshift(entry); // la plus recente en tete
     if (list.length > HIST_MAX) list = list.slice(0, HIST_MAX);
     localStorage.setItem(GAME_HISTORY_KEY, JSON.stringify(list));
+    return entry;   // v3.45 : la partie qui vient d'etre archivee, pour qui en a besoin
   } catch(e) { /* stockage indisponible ou plein -- ne bloque jamais la fin de partie pour autant */ }
+  return null;
 }
 
 function getGameHistory(){
@@ -27995,7 +28000,7 @@ function triggerWin(winner, reason) {
   if (typeof _tourneyMatch!=='undefined' && _tourneyMatch && typeof tourneyMatchEnd==='function') { tourneyMatchEnd(winner, reason); }
   clearInterval(timerInterval);
   stopGameTimer();      // arrête le chronomètre de partie
-  _recordGameHistory(winner, reason);   // archive AVANT d'effacer la sauvegarde de reprise
+  const _partieArchivee = _recordGameHistory(winner, reason);   // archive AVANT d'effacer la sauvegarde de reprise
   clearSavedGame();     // partie terminée = efface la sauvegarde
   soundWin();  // 🔊 fanfare de victoire
   const overlay = document.getElementById('win-overlay');
@@ -28070,6 +28075,11 @@ function triggerWin(winner, reason) {
   /* v3.41 : la campagne. Ne fait rien si aucune partie de campagne n'est en
      cours ; la verification que la partie correspond bien a l'adversaire est
      dans campagneFinDePartie() elle-meme. */
+  /* v3.45 : remontee, expeditive, marathon, touriste -- lus sur la partie qui
+     vient d'etre enregistree, donc apres _recordGameHistory. */
+  if (typeof badgesPlusFinDePartie === 'function') {
+    try { badgesPlusFinDePartie(jeGagne, _partieArchivee); } catch (e) { if (window.console) console.warn('badges:', e && e.message); }
+  }
   if (typeof campagneFinDePartie === 'function') {
     try { campagneFinDePartie(jeGagne); } catch (e) { if (window.console) console.warn('campagne:', e && e.message); }
   }
@@ -53224,6 +53234,8 @@ function campagneFinDePartie(jeGagne) {
   if (jeGagne && !e.d) { e.d = new Date().toISOString(); e.c = coups; }
   st[id] = e;
   if (typeof saveProgress === 'function') saveProgress(progress);
+  // v3.45 : « Premier chapitre » et « Grand Maitre » se gagnent ici
+  if (jeGagne && typeof badgesPlusCompteurs === 'function') badgesPlusCompteurs();
   if (jeGagne) {
     const suite = CAMPAGNE[i + 1];
     if (typeof showToast === 'function') {
@@ -53868,6 +53880,104 @@ function calDeplacer(n, remiseAZero) {
 function renderCalendrierPage() {
   const hote = document.getElementById('calendrier-corps');
   if (hote) hote.innerHTML = calendrierHtml();
+}
+/* ═══════════════════════════════════════════
+   NEUF BADGES DE PLUS  (v3.45)
+   Demande d'ocj94 : l'application concurrente en annonce vingt, le site en
+   avait onze. Les neuf qui suivent ne sont pas des paliers de plus sur les
+   memes compteurs — ils recompensent ce que les ecrans construits ces jours-ci
+   savent mesurer : une remontee vue par l'IA, la campagne, la serie de defis,
+   le Labo.
+
+   Chaque badge est attribue a partir de donnees DEJA enregistrees, jamais d'un
+   compteur nouveau : rien a migrer, et un badge gagne hier se debloque au
+   prochain passage. La remontee, en particulier, est lue avec la fonction meme
+   de « Mes statistiques » (_mpPartiesNotees) : le badge et la page ne peuvent
+   donc pas se contredire.
+═══════════════════════════════════════════ */
+const BP_VITE = 25;        // « expeditive » : 25 coups ou moins
+const BP_LONGUE = 80;      // « marathon » : 80 coups ou plus
+const BP_PLATEAUX = 5;     // « touriste » : cinq dispositions gagnees
+const BP_SERIE = 10;       // « dix jours de suite »
+const BP_GEN = 5;          // « apprenti chercheur » : cinquieme generation du Labo
+const BP_PUZZLES = 50;     // « casse-tete confirme »
+
+const BADGES_PLUS = [
+  { id: 'comeback',      icon: '🔄', name: 'Remontée',            desc: 'Gagner une partie où l’IA te voyait mené d’au moins une bille et demie' },
+  { id: 'quick_win',     icon: '💨', name: 'Expéditive',          desc: 'Gagner en ' + BP_VITE + ' coups ou moins' },
+  { id: 'long_game',     icon: '🏃', name: 'Marathon',            desc: 'Gagner une partie de ' + BP_LONGUE + ' coups ou plus' },
+  { id: 'variantes5',    icon: '🎲', name: 'Touriste',            desc: 'Gagner sur ' + BP_PLATEAUX + ' dispositions de départ différentes' },
+  { id: 'camp_chapitre', icon: '⚔️', name: 'Premier chapitre',    desc: 'Battre les six premiers adversaires de la campagne' },
+  { id: 'camp_fin',      icon: '🎓', name: 'Grand Maître',        desc: 'Battre les vingt-quatre adversaires de la campagne' },
+  { id: 'defi_serie10',  icon: '📆', name: 'Dix jours de suite',  desc: BP_SERIE + ' défis du jour réussis d’affilée' },
+  { id: 'lab_gen5',      icon: '🧪', name: 'Apprenti chercheur',  desc: 'Le Labo atteint sa ' + BP_GEN + 'e génération' },
+  { id: 'puzzle50',      icon: '🧠', name: 'Casse-tête confirmé', desc: 'Résoudre ' + BP_PUZZLES + ' problèmes' }
+];
+
+/* Les neuf rejoignent la table existante : la page du profil, le compte
+   « x / 20 » et la synchronisation les traitent comme les autres, sans une
+   ligne de plus ailleurs. */
+(function () {
+  if (typeof BADGES === 'undefined') return;
+  BADGES_PLUS.forEach(function (b) {
+    if (!BADGES.some(function (x) { return x.id === b.id; })) BADGES.push(b);
+  });
+})();
+
+/* ── Ce qui se juge sur la partie qui vient de finir ── */
+/* La partie archivee est passee en argument par triggerWin : la relire dans
+   l'historique serait doublement faux -- la plus recente y est EN TETE, et si
+   rien n'a ete archive (aucun coup joue) on jugerait la partie d'avant. Sans
+   cet argument, donc, aucun badge de partie. */
+function badgesPlusFinDePartie(jeGagne, partie) {
+  if (!jeGagne || !partie || typeof awardBadge !== 'function') return [];
+  const gagnes = [];
+  const H = (typeof getGameHistory === 'function') ? getGameHistory() : [];
+  const derniere = partie;
+  const coups = derniere.moveCount || 0;
+
+  if (coups > 0 && coups <= BP_VITE && awardBadge('quick_win')) gagnes.push('quick_win');
+  if (coups >= BP_LONGUE && awardBadge('long_game')) gagnes.push('long_game');
+
+  /* La remontee : lue avec la fonction de « Mes statistiques », pas avec une
+     regle recopiee. min <= -1500 veut dire que l'IA t'a vu mene d'au moins une
+     bille et demie a un moment de la partie. */
+  if (derniere && typeof _mpPartiesNotees === 'function' && typeof MP_AVANCE !== 'undefined') {
+    const P = _mpPartiesNotees([derniere]);
+    if (P.length && P[0].min <= -MP_AVANCE && awardBadge('comeback')) gagnes.push('comeback');
+  }
+
+  /* Touriste : cinq dispositions de depart differentes gagnees. On recompte
+     l'historique a chaque fois plutot que de tenir un compteur : une partie
+     effacee ne doit pas laisser un badge sans justification. */
+  const estMoi = (typeof estMaPartie === 'function') ? estMaPartie : function () { return true; };
+  const plateaux = {};
+  H.forEach(function (g) {
+    if (!estMoi(g) || !g.variant) return;
+    if (g.winner && g.winner === (g.humanColor || 'black')) plateaux[g.variant] = 1;
+  });
+  if (Object.keys(plateaux).length >= BP_PLATEAUX && awardBadge('variantes5')) gagnes.push('variantes5');
+  return gagnes;
+}
+
+/* ── Ce qui se juge sur l'etat enregistre ── */
+function badgesPlusCompteurs() {
+  if (typeof awardBadge !== 'function') return [];
+  const gagnes = [];
+  if (typeof progress !== 'undefined' && progress && progress.puzzlesSolved >= BP_PUZZLES && awardBadge('puzzle50')) gagnes.push('puzzle50');
+  if (typeof defiSerie === 'function' && defiSerie() >= BP_SERIE && awardBadge('defi_serie10')) gagnes.push('defi_serie10');
+  /* Le Labo : on lit la generation sans passer par labLoad(), qui migre l'etat
+     et le reecrit — un badge n'a pas a toucher a l'etat du Labo. */
+  try {
+    const s = JSON.parse(localStorage.getItem('abaLabState') || 'null');
+    if (s && s.gen >= BP_GEN && awardBadge('lab_gen5')) gagnes.push('lab_gen5');
+  } catch (e) { /* pas d'etat du Labo : rien a faire */ }
+  if (typeof campVictoires === 'function') {
+    const n = campVictoires();
+    if (n >= 6 && awardBadge('camp_chapitre')) gagnes.push('camp_chapitre');
+    if (typeof CAMPAGNE !== 'undefined' && n >= CAMPAGNE.length && awardBadge('camp_fin')) gagnes.push('camp_fin');
+  }
+  return gagnes;
 }
 <!-- fin du script principal (src/main/*.js) : une piece a part, pour qu'aucun module ne la porte (v3.27) -->
 </script>

@@ -9,6 +9,40 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.45]
+
+### Neuf badges de plus — vingt en tout
+Demande d'ocj94 : l'application concurrente en annonce vingt, le site en avait
+onze. Les neuf qui arrivent ne sont pas des paliers de plus sur les mêmes
+compteurs ; ils récompensent ce que les écrans construits ces jours-ci savent
+mesurer.
+
+| | | |
+|---|---|---|
+| 🔄 | **Remontée** | Gagner une partie où l'IA te voyait mené d'au moins une bille et demie |
+| 💨 | **Expéditive** | Gagner en 25 coups ou moins |
+| 🏃 | **Marathon** | Gagner une partie de 80 coups ou plus |
+| 🎲 | **Touriste** | Gagner sur 5 dispositions de départ différentes |
+| ⚔️ | **Premier chapitre** | Battre les six premiers adversaires de la campagne |
+| 🎓 | **Grand Maître** | Battre les vingt-quatre adversaires de la campagne |
+| 📆 | **Dix jours de suite** | 10 défis du jour réussis d'affilée |
+| 🧪 | **Apprenti chercheur** | Le Labo atteint sa 5ᵉ génération |
+| 🧠 | **Casse-tête confirmé** | Résoudre 50 problèmes |
+
+Chacun est attribué à partir de données **déjà enregistrées**, jamais d'un
+compteur nouveau : rien à migrer, et un badge mérité hier se débloque au
+prochain passage. La remontée est lue avec la fonction même de *Mes
+statistiques* (`_mpPartiesNotees`) : le badge et la page ne peuvent donc pas se
+contredire. « Touriste » recompte l'historique au lieu de tenir un compteur —
+une partie effacée ne doit pas laisser un badge sans justification.
+
+### Corrigé au passage
+`_recordGameHistory()` renvoie désormais la partie qu'elle vient d'archiver, et
+`triggerWin()` la passe aux badges. Les lire dans l'historique aurait été
+doublement faux : la plus récente y est **en tête**, pas en queue, et quand
+aucun coup n'a été joué rien n'est archivé — on aurait jugé la partie d'avant.
+Un test existant l'a attrapé avant que ça n'arrive à quiconque.
+
 ## [v3.44]
 
 ### Le calendrier

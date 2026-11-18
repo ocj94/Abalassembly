@@ -54,7 +54,9 @@ function _recordGameHistory(winner, reason){
     list.unshift(entry); // la plus recente en tete
     if (list.length > HIST_MAX) list = list.slice(0, HIST_MAX);
     localStorage.setItem(GAME_HISTORY_KEY, JSON.stringify(list));
+    return entry;   // v3.45 : la partie qui vient d'etre archivee, pour qui en a besoin
   } catch(e) { /* stockage indisponible ou plein -- ne bloque jamais la fin de partie pour autant */ }
+  return null;
 }
 
 function getGameHistory(){
@@ -173,7 +175,7 @@ function triggerWin(winner, reason) {
   if (typeof _tourneyMatch!=='undefined' && _tourneyMatch && typeof tourneyMatchEnd==='function') { tourneyMatchEnd(winner, reason); }
   clearInterval(timerInterval);
   stopGameTimer();      // arrête le chronomètre de partie
-  _recordGameHistory(winner, reason);   // archive AVANT d'effacer la sauvegarde de reprise
+  const _partieArchivee = _recordGameHistory(winner, reason);   // archive AVANT d'effacer la sauvegarde de reprise
   clearSavedGame();     // partie terminée = efface la sauvegarde
   soundWin();  // 🔊 fanfare de victoire
   const overlay = document.getElementById('win-overlay');
@@ -248,6 +250,11 @@ function triggerWin(winner, reason) {
   /* v3.41 : la campagne. Ne fait rien si aucune partie de campagne n'est en
      cours ; la verification que la partie correspond bien a l'adversaire est
      dans campagneFinDePartie() elle-meme. */
+  /* v3.45 : remontee, expeditive, marathon, touriste -- lus sur la partie qui
+     vient d'etre enregistree, donc apres _recordGameHistory. */
+  if (typeof badgesPlusFinDePartie === 'function') {
+    try { badgesPlusFinDePartie(jeGagne, _partieArchivee); } catch (e) { if (window.console) console.warn('badges:', e && e.message); }
+  }
   if (typeof campagneFinDePartie === 'function') {
     try { campagneFinDePartie(jeGagne); } catch (e) { if (window.console) console.warn('campagne:', e && e.message); }
   }

@@ -8625,3 +8625,129 @@ test('v3.44 : le défi d’un jour à venir est annoncé, celui d’un jour jou�
     assert.strictEqual(d[ctx.calJour(auj)].etat, 'manque');
   } finally { ctx.progress.defis = JSON.parse(sauve); }
 });
+
+// ─── v3.45 : neuf badges de plus ───
+test('v3.45 : vingt badges, tous distincts, tous décrits', () => {
+  const ctx = chargerMoteur();
+  assert.strictEqual(ctx.BADGES_PLUS.length, 9);
+  assert.strictEqual(ctx.BADGES.length, 20);
+  const ids = ctx.BADGES.map(function (b) { return b.id; });
+  assert.strictEqual(new Set(ids).size, 20, 'deux badges partagent un identifiant');
+  const icones = ctx.BADGES.map(function (b) { return b.icon; });
+  assert.strictEqual(new Set(icones).size, 20, 'deux badges partagent une icône');
+  ctx.BADGES.forEach(function (b) {
+    assert.ok(b.id && b.icon && b.name && b.desc, 'badge incomplet : ' + b.id);
+  });
+});
+
+test('v3.45 : la partie qui vient de finir donne les bons badges, et seulement eux', () => {
+  const ctx = chargerMoteur();
+  const sauveB = JSON.stringify(ctx.progress.badges || {});
+  const sauveH = ctx.localStorage.getItem('abaGameHistory');
+  // awardBadge affiche un toast : sans DOM, on le remplace le temps du test
+  const _toast = ctx.toastEngage, _son = ctx.soundBadge;
+  ctx.toastEngage = function () { }; ctx.soundBadge = function () { };
+  const partie = function (o) {
+    return Object.assign({ id: 'x', date: new Date().toISOString(), variant: 'standard', mode: 'ai',
+      humanColor: 'black', winner: 'black', reason: 'ejections', moveCount: 40, evals: [], code: 'c' }, o);
+  };
+  const poser = function (L) { ctx.localStorage.setItem('abaGameHistory', JSON.stringify(L)); };
+  try {
+    // une défaite ne donne jamais rien, même sur une partie qui cocherait tout
+    ctx.progress.badges = {}; poser([partie({ moveCount: 12 })]);
+    assert.deepStrictEqual(JSON.parse(JSON.stringify(ctx.badgesPlusFinDePartie(false, partie({ moveCount: 12 })))), []);
+
+    // gagnée en 20 coups : expéditive, et pas marathon
+    ctx.progress.badges = {}; poser([]);
+    let g = JSON.parse(JSON.stringify(ctx.badgesPlusFinDePartie(true, partie({ moveCount: 20 }))));
+    assert.ok(g.indexOf('quick_win') >= 0, JSON.stringify(g));
+    assert.strictEqual(g.indexOf('long_game'), -1);
+
+    // gagnée en 95 coups : marathon, et pas expéditive
+    ctx.progress.badges = {}; poser([]);
+    g = JSON.parse(JSON.stringify(ctx.badgesPlusFinDePartie(true, partie({ moveCount: 95 }))));
+    assert.ok(g.indexOf('long_game') >= 0, JSON.stringify(g));
+    assert.strictEqual(g.indexOf('quick_win'), -1);
+
+    // une remontée : l'IA note de son point de vue, donc +2000 veut dire que
+    // TOI tu étais mené de deux billes à ce moment-là
+    ctx.progress.badges = {};
+    poser([]);
+    g = JSON.parse(JSON.stringify(ctx.badgesPlusFinDePartie(true, partie({ evals: [[2000, 5, 10, 'o'], [1800, 5, 10, 'm'], [-500, 5, 10, 'f']] }))));
+    assert.ok(g.indexOf('comeback') >= 0, JSON.stringify(g));
+    // une partie menée de bout en bout n'est pas une remontée
+    ctx.progress.badges = {};
+    poser([]);
+    g = JSON.parse(JSON.stringify(ctx.badgesPlusFinDePartie(true, partie({ evals: [[-200, 5, 10, 'o'], [-900, 5, 10, 'm'], [-2000, 5, 10, 'f']] }))));
+    assert.strictEqual(g.indexOf('comeback'), -1, JSON.stringify(g));
+
+    // touriste : cinq dispositions gagnées, pas quatre, et les défaites ne comptent pas
+    const plateaux = ['standard', 'belgian', 'german', 'dutch'];
+    ctx.progress.badges = {};
+    poser(plateaux.map(function (v, i) { return partie({ id: 'g' + i, variant: v }); }));
+    g = JSON.parse(JSON.stringify(ctx.badgesPlusFinDePartie(true, partie({ variant: 'dutch' }))));
+    assert.strictEqual(g.indexOf('variantes5'), -1, 'quatre dispositions suffiraient ? ' + JSON.stringify(g));
+    ctx.progress.badges = {};
+    poser(plateaux.concat(['swiss']).map(function (v, i) { return partie({ id: 'g' + i, variant: v }); })
+      .concat([partie({ id: 'p', variant: 'star', winner: 'white' })]));
+    g = JSON.parse(JSON.stringify(ctx.badgesPlusFinDePartie(true, partie({ variant: 'swiss' }))));
+    assert.ok(g.indexOf('variantes5') >= 0, JSON.stringify(g));
+  } finally {
+    ctx.progress.badges = JSON.parse(sauveB);
+    ctx.toastEngage = _toast; ctx.soundBadge = _son;
+    if (sauveH == null) ctx.localStorage.removeItem('abaGameHistory'); else ctx.localStorage.setItem('abaGameHistory', sauveH);
+  }
+});
+
+test('v3.45 : les badges d’état se donnent sur ce qui est déjà enregistré', () => {
+  const ctx = chargerMoteur();
+  const sauveB = JSON.stringify(ctx.progress.badges || {});
+  const sauveC = JSON.stringify(ctx.progress.campagne || {});
+  const sauveP = ctx.progress.puzzlesSolved;
+  const sauveLab = ctx.localStorage.getItem('abaLabState');
+  const sauveD = JSON.stringify(ctx.progress.defis || {});
+  const _toast2 = ctx.toastEngage, _son2 = ctx.soundBadge;
+  ctx.toastEngage = function () { }; ctx.soundBadge = function () { };
+  ctx.progress.defis = {};   // sinon une série laissée par un autre test donnerait « Dix jours de suite »
+  try {
+    ctx.progress.badges = {}; ctx.progress.campagne = {}; ctx.progress.puzzlesSolved = 0;
+    ctx.localStorage.removeItem('abaLabState');
+    assert.deepStrictEqual(JSON.parse(JSON.stringify(ctx.badgesPlusCompteurs())), []);
+
+    // cinquante problèmes
+    ctx.progress.badges = {}; ctx.progress.puzzlesSolved = 50;
+    let g = JSON.parse(JSON.stringify(ctx.badgesPlusCompteurs()));
+    assert.ok(g.indexOf('puzzle50') >= 0, JSON.stringify(g));
+    ctx.progress.puzzlesSolved = 0;
+
+    // la cinquième génération du Labo
+    ctx.progress.badges = {};
+    ctx.localStorage.setItem('abaLabState', JSON.stringify({ gen: 5, champion: {}, phase: 'cand' }));
+    g = JSON.parse(JSON.stringify(ctx.badgesPlusCompteurs()));
+    assert.ok(g.indexOf('lab_gen5') >= 0, JSON.stringify(g));
+    // ... et pas à la quatrième
+    ctx.progress.badges = {};
+    ctx.localStorage.setItem('abaLabState', JSON.stringify({ gen: 4, champion: {}, phase: 'cand' }));
+    g = JSON.parse(JSON.stringify(ctx.badgesPlusCompteurs()));
+    assert.strictEqual(g.indexOf('lab_gen5'), -1, JSON.stringify(g));
+    ctx.localStorage.removeItem('abaLabState');
+
+    // la campagne : six adversaires pour le chapitre, les vingt-quatre pour le titre
+    ctx.progress.badges = {}; ctx.progress.campagne = {};
+    ctx.CAMPAGNE.slice(0, 6).forEach(function (a) { ctx.progress.campagne[a.id] = { e: 1, d: '2026-11-18T00:00:00.000Z', c: 30 }; });
+    g = JSON.parse(JSON.stringify(ctx.badgesPlusCompteurs()));
+    assert.ok(g.indexOf('camp_chapitre') >= 0, JSON.stringify(g));
+    assert.strictEqual(g.indexOf('camp_fin'), -1);
+    ctx.progress.badges = {};
+    ctx.CAMPAGNE.forEach(function (a) { ctx.progress.campagne[a.id] = { e: 1, d: '2026-11-18T00:00:00.000Z', c: 30 }; });
+    g = JSON.parse(JSON.stringify(ctx.badgesPlusCompteurs()));
+    assert.ok(g.indexOf('camp_fin') >= 0, JSON.stringify(g));
+  } finally {
+    ctx.progress.badges = JSON.parse(sauveB);
+    ctx.progress.campagne = JSON.parse(sauveC);
+    ctx.progress.puzzlesSolved = sauveP;
+    ctx.progress.defis = JSON.parse(sauveD);
+    ctx.toastEngage = _toast2; ctx.soundBadge = _son2;
+    if (sauveLab == null) ctx.localStorage.removeItem('abaLabState'); else ctx.localStorage.setItem('abaLabState', sauveLab);
+  }
+});
