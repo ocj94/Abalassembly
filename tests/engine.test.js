@@ -7493,7 +7493,12 @@ test('Documentation illustree de l\'analyse : chaque image citee existe et reste
     assert.ok(fs.readFileSync(R('docs-en/Home.en.md'), 'utf8').includes('](' + path.basename(en) + ')'), 'accueil EN -> ' + en);
   });
   // aucune image orpheline dans docs-img
-  fs.readdirSync(R('docs-img')).forEach(f => assert.ok(vues.has('docs-img/' + f), 'image non citee : ' + f));
+  // v3.50 : docs-img contient aussi les PDF assembles des planches, qui sont
+  // cites comme des LIENS et non comme des images (un PDF ne s'affiche pas dans
+  // une page markdown). Le test des planches verifie leur presence et leur
+  // citation ; ici on ne juge que les images.
+  fs.readdirSync(R('docs-img')).filter(f => /\.(webp|png|jpe?g|gif|svg)$/i.test(f))
+    .forEach(f => assert.ok(vues.has('docs-img/' + f), 'image non citee : ' + f));
 });
 
 test('Labo, banc des niveaux : une partie entre hauts niveaux n\'est plus tuee par le chien de garde (temps par coup des deux camps)', () => {
@@ -8980,4 +8985,41 @@ test('v3.49 : le poids annoncé par la fiche est celui du fichier, pas un chiffr
   // et plus aucun poids écrit à la main dans le code
   const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'main', '34-architecture-diagrams-briefing.js'), 'utf8');
   assert.ok(!/~\s*\d+[,.]\d+\s*Mo/.test(src), 'un poids en Mo est encore écrit en dur dans la fiche');
+});
+
+// ─── v3.50 : les cinq planches ───
+test('v3.50 : cinq planches, dans les deux langues, numérotées de 1 à 5', () => {
+  const fs = require('fs'), path = require('path');
+  const racine = path.join(__dirname, '..');
+  const planches = ['vue-ensemble', 'reseau-de-calcul', 'fonctionnement-ia', 'labo', 'observatoire'];
+  const numeros = { fr: [], en: [] };
+  ['fr', 'en'].forEach(function (lg) {
+    planches.forEach(function (n) {
+      const f = path.join(racine, 'tools', 'plans', n + '.' + lg + '.html');
+      assert.ok(fs.existsSync(f), 'planche manquante : ' + n + '.' + lg);
+      const s = fs.readFileSync(f, 'utf8');
+      // chaque planche dit son rang : « Planche 4 / 5 » ou « 1 / 5 — vue d'ensemble »
+      const m = s.match(/(\d) \/ 5/);
+      assert.ok(m, n + '.' + lg + ' : pas de numéro de planche sur 5');
+      numeros[lg].push(+m[1]);
+      // et l'image correspondante a bien été dessinée
+      assert.ok(fs.existsSync(path.join(racine, 'docs-img', 'plan-' + n + '.' + lg + '.webp')),
+        'image manquante : plan-' + n + '.' + lg + '.webp — relancer node tools/plans/rendu.js');
+    });
+    assert.deepStrictEqual(numeros[lg].slice().sort(), [1, 2, 3, 4, 5], lg + ' : numérotation des planches');
+  });
+  // le PDF assemblé existe dans les deux langues
+  ['fr', 'en'].forEach(function (lg) {
+    const f = path.join(racine, 'docs-img', 'abalassembly-plans.' + lg + '.pdf');
+    assert.ok(fs.existsSync(f), 'PDF manquant : ' + path.basename(f) + ' — relancer node tools/plans/pdf.js ' + lg);
+    assert.ok(fs.statSync(f).size > 100000, 'PDF suspect : ' + path.basename(f));
+  });
+  // et le wiki les présente toutes les cinq
+  ['docs-fr/Plans.fr.md', 'docs-en/Plans.en.md'].forEach(function (f) {
+    const doc = fs.readFileSync(path.join(racine, f), 'utf8');
+    planches.forEach(function (n) {
+      assert.ok(doc.indexOf('plan-' + n + '.') >= 0, f + ' : la planche ' + n + ' n’est pas montrée');
+    });
+    assert.ok(/abalassembly-plans\.(fr|en)\.pdf/.test(doc), f + ' : le PDF n’est pas proposé');
+  });
 });

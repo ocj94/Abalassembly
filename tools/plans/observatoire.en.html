@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<style>
+  @font-face{font-family:'DM Mono';src:url('../../fonts/dm-mono-latin-400-normal.woff2') format('woff2');font-weight:400}
+  @font-face{font-family:'DM Mono';src:url('../../fonts/dm-mono-latin-500-normal.woff2') format('woff2');font-weight:500}
+  html,body{margin:0;background:#0b2a4a}
+  svg{display:block}
+  text{font-family:'DM Mono',monospace;fill:#e8f1ff}
+  .t{font-size:15px;font-weight:500;letter-spacing:.5px}
+  .s{font-size:11.5px;fill:#a9c7ee}
+  .xs{font-size:10px;fill:#8fb2de}
+  .h{font-size:13px;font-weight:500;fill:#ffffff;letter-spacing:1.5px}
+  .lbl{font-size:10.5px;fill:#d6e6ff}
+  .trait{stroke:#e8f1ff;stroke-width:1.6;fill:none}
+  .fin{stroke:#bcd4f5;stroke-width:1;fill:none}
+  .prevu{stroke:#9fbbe0;stroke-width:1.4;fill:none;stroke-dasharray:7 5}
+  .fleche{stroke:#e8f1ff;stroke-width:1.3;fill:none;marker-end:url(#pointe)}
+  .retour{stroke:#7fe0c4;stroke-width:1.3;fill:none;marker-end:url(#pointeV)}
+  .cote{stroke:#8fb2de;stroke-width:.8;fill:none}
+  .ok{fill:#7fe0c4}
+</style></head><body>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080">
+  <defs>
+    <pattern id="g1" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#2a5585" stroke-width=".5"/></pattern>
+    <pattern id="g2" width="100" height="100" patternUnits="userSpaceOnUse"><rect width="100" height="100" fill="url(#g1)"/><path d="M100 0H0V100" fill="none" stroke="#3a6aa0" stroke-width="1"/></pattern>
+    <marker id="pointe" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 1L9 5L0 9z" fill="#e8f1ff"/></marker>
+    <marker id="pointeV" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 1L9 5L0 9z" fill="#7fe0c4"/></marker>
+  </defs>
+  <rect width="1600" height="1080" fill="#0b2a4a"/>
+  <rect width="1600" height="1080" fill="url(#g2)"/>
+  <rect x="18" y="18" width="1564" height="1044" class="trait"/>
+  <rect x="26" y="26" width="1548" height="1028" class="fin"/>
+
+  <text x="52" y="66" style="font-size:24px;font-weight:500;letter-spacing:4px">ABALASSEMBLY · THE AI OBSERVATORY</text>
+  <text x="52" y="90" class="s">What the AI measures while it thinks, and how it is read back</text>
+
+  <!-- la ligne du temps d'un coup -->
+  <text x="60" y="132" class="h">THE LIFE OF ONE AI MOVE</text>
+  <line x1="60" y1="144" x2="1540" y2="144" class="fin"/>
+
+  <g transform="translate(60,166)">
+    <rect width="300" height="150" rx="4" class="trait"/>
+    <text x="16" y="28" class="h">① obsDebut()</text>
+    <line x1="16" y1="40" x2="284" y2="40" class="fin"/>
+    <text x="16" y="62" class="s">It is the AI's turn.</text>
+    <text x="16" y="84" class="s">The side, the level, the style,</text>
+    <text x="16" y="102" class="s">the time allowed and the</text>
+    <text x="16" y="120" class="s">starting position are noted.</text>
+    <text x="16" y="142" class="xs">the clock starts at zero</text>
+  </g>
+
+  <path d="M360 241 H470" class="fleche"/>
+
+  <g transform="translate(470,166)">
+    <rect width="320" height="150" rx="4" class="trait"/>
+    <text x="16" y="28" class="h">② obsProgres()</text>
+    <line x1="16" y1="40" x2="304" y2="40" class="fin"/>
+    <text x="16" y="62" class="s">During the search, at every</text>
+    <text x="16" y="80" class="s">completed depth.</text>
+    <text x="16" y="104" class="s">One thread per core: what</text>
+    <text x="16" y="122" class="s">EACH thread found is kept.</text>
+    <text x="16" y="142" class="xs">the banner updates live</text>
+  </g>
+
+  <path d="M790 241 H900" class="fleche"/>
+
+  <g transform="translate(900,166)">
+    <rect width="640" height="150" rx="4" class="trait" style="stroke-width:2.2"/>
+    <rect x="6" y="6" width="628" height="138" rx="2" class="fin"/>
+    <text x="22" y="34" class="h">③ obsFin() — what is kept from the move</text>
+    <line x1="22" y1="46" x2="618" y2="46" class="fin"/>
+    <text x="22" y="68" class="s">· the chosen move, its score, the depth reached, the time, the positions visited</text>
+    <text x="22" y="88" class="s">· ALL root moves, scored, at the deepest depth completed by</text>
+    <text x="40" y="106" class="s">EVERY thread — not by the fastest one</text>
+    <text x="22" y="126" class="s">· each move's score at each depth: you watch the AI change its mind</text>
+  </g>
+
+  <path d="M1220 316 V372" class="fleche"/>
+  <text x="1234" y="352" class="lbl">one entry per move</text>
+
+  <!-- coup venu d'ailleurs -->
+  <g transform="translate(470,372)">
+    <rect width="320" height="110" rx="4" class="prevu"/>
+    <text x="16" y="28" class="h">obsSource()</text>
+    <line x1="16" y1="40" x2="304" y2="40" class="fin"/>
+    <text x="16" y="62" class="s">When the move does NOT come from</text>
+    <text x="16" y="80" class="s">the search: opening book, endgame</text>
+    <text x="16" y="98" class="s">table. It is said as such.</text>
+  </g>
+  <path d="M790 427 H1050" class="fleche"/>
+
+  <!-- le registre -->
+  <g transform="translate(1050,372)">
+    <rect width="490" height="110" rx="4" class="trait"/>
+    <text x="16" y="28" class="h">THE GAME'S RECORD</text>
+    <line x1="16" y1="40" x2="474" y2="40" class="fin"/>
+    <text x="16" y="64" class="s">An array in memory, one element per move.</text>
+    <text x="16" y="86" class="s">It lives as long as the game: nothing is sent anywhere.</text>
+  </g>
+
+  <!-- les six onglets -->
+  <text x="60" y="538" class="h">THE SIX TABS — six ways of reading the same measurement</text>
+  <line x1="60" y1="550" x2="1540" y2="550" class="fin"/>
+
+  <g transform="translate(60,572)">
+    <rect width="230" height="128" class="trait"/>
+    <text x="14" y="26" class="t" style="font-size:13px">Overview</text>
+    <line x1="14" y1="38" x2="216" y2="38" class="fin"/>
+    <text x="14" y="60" class="xs">The move played, its</text>
+    <text x="14" y="76" class="xs">score, who leads, by how much.</text>
+    <text x="14" y="100" class="xs">Readable knowing nothing</text>
+    <text x="14" y="116" class="xs">of the machinery.</text>
+  </g>
+  <g transform="translate(310,572)">
+    <rect width="230" height="128" class="trait"/>
+    <text x="14" y="26" class="t" style="font-size:13px">Search</text>
+    <line x1="14" y1="38" x2="216" y2="38" class="fin"/>
+    <text x="14" y="60" class="xs">Depth, nodes, speed,</text>
+    <text x="14" y="76" class="xs">pruning.</text>
+    <text x="14" y="100" class="xs">The tree, step by</text>
+    <text x="14" y="116" class="xs">step.</text>
+  </g>
+  <g transform="translate(560,572)">
+    <rect width="230" height="128" class="trait"/>
+    <text x="14" y="26" class="t" style="font-size:13px">Evaluation</text>
+    <line x1="14" y1="38" x2="216" y2="38" class="fin"/>
+    <text x="14" y="60" class="xs">The score broken down:</text>
+    <text x="14" y="76" class="xs">material, centre,</text>
+    <text x="14" y="92" class="xs">cohesion, threats.</text>
+    <text x="14" y="116" class="xs">Every weight, apart.</text>
+  </g>
+  <g transform="translate(810,572)">
+    <rect width="230" height="128" class="trait"/>
+    <text x="14" y="26" class="t" style="font-size:13px">Decision</text>
+    <line x1="14" y1="38" x2="216" y2="38" class="fin"/>
+    <text x="14" y="60" class="xs">Why THIS move and not</text>
+    <text x="14" y="76" class="xs">the second one.</text>
+    <text x="14" y="100" class="xs">The gap, and at which</text>
+    <text x="14" y="116" class="xs">depth it appeared.</text>
+  </g>
+  <g transform="translate(1060,572)">
+    <rect width="230" height="128" class="trait"/>
+    <text x="14" y="26" class="t" style="font-size:13px">History</text>
+    <line x1="14" y1="38" x2="216" y2="38" class="fin"/>
+    <text x="14" y="60" class="xs">Every move of the game,</text>
+    <text x="14" y="76" class="xs">one after another.</text>
+    <text x="14" y="100" class="xs">The curve of who leads.</text>
+  </g>
+  <g transform="translate(1310,572)">
+    <rect width="230" height="128" class="trait"/>
+    <text x="14" y="26" class="t" style="font-size:13px">Statistics</text>
+    <line x1="14" y1="38" x2="216" y2="38" class="fin"/>
+    <text x="14" y="60" class="xs">v3.36: the whole game</text>
+    <text x="14" y="76" class="xs">in charts — close calls,</text>
+    <text x="14" y="92" class="xs">stability, pruning,</text>
+    <text x="14" y="108" class="xs">speed.</text>
+  </g>
+
+  <!-- trois niveaux -->
+  <g transform="translate(60,728)">
+    <rect width="700" height="150" rx="4" class="trait"/>
+    <text x="16" y="28" class="h">THREE LEVELS OF READING</text>
+    <line x1="16" y1="40" x2="684" y2="40" class="fin"/>
+    <text x="16" y="66" class="s">Spectator — what is happening, in plain words, no jargon</text>
+    <text x="16" y="94" class="s">Analyst — the numbers that matter, with what they mean</text>
+    <text x="16" y="122" class="s">Developer — everything, including what only serves debugging</text>
+  </g>
+
+  <!-- sortie -->
+  <g transform="translate(790,728)">
+    <rect width="340" height="150" rx="4" class="trait"/>
+    <text x="16" y="28" class="h">GETTING SOMETHING OUT</text>
+    <line x1="16" y1="40" x2="324" y2="40" class="fin"/>
+    <text x="16" y="66" class="s">Copy the move's report</text>
+    <text x="16" y="94" class="s">Export the whole game (JSON)</text>
+    <text x="16" y="122" class="xs">the statistical summary is included</text>
+  </g>
+
+  <!-- ce qu'il ne fait pas -->
+  <g transform="translate(1160,728)">
+    <rect width="380" height="150" rx="4" class="fin"/>
+    <text x="16" y="28" class="h">WHAT IT DOES NOT DO</text>
+    <line x1="16" y1="40" x2="364" y2="40" class="fin"/>
+    <text x="16" y="64" class="s">It does not influence the move played:</text>
+    <text x="16" y="82" class="s">it watches, it decides nothing.</text>
+    <text x="16" y="108" class="s">Closed, it measures nothing —</text>
+    <text x="16" y="126" class="s">so it costs nothing.</text>
+  </g>
+
+  <text x="60" y="1002" class="xs">src/main/59-observatoire-ia.js · 59b-observatoire-stats.js · the measurements come from the AI itself (_mesuresCoupIA), never from a second run</text>
+
+  <!-- cartouche -->
+  <g transform="translate(1130,886)">
+    <rect width="410" height="150" class="trait"/>
+    <path d="M0 40 H410 M0 72 H410 M0 104 H410 M205 72 V150 M120 104 V150" class="fin"/>
+    <text x="14" y="27" class="h">ABALASSEMBLY · OBSERVATORY</text>
+    <text x="14" y="61" class="s">Live measurement, six readings, three levels</text>
+    <text x="14" y="93" class="xs">Project: ocj94</text>
+    <text x="219" y="93" class="xs">Sheet 5 / 5</text>
+    <text x="14" y="124" class="xs">Version</text><text x="14" y="140" class="s">v3.49</text>
+    <text x="134" y="124" class="xs">Date</text><text x="134" y="140" class="s">18/11/2026</text>
+    <text x="219" y="124" class="xs">Drawn</text><text x="219" y="140" class="s">Claude</text>
+  </g>
+</svg>
+</body></html>

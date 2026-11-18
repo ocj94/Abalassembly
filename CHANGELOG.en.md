@@ -9,6 +9,46 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.50]
+
+### Two more sheets, and the blueprint as a PDF
+ocj94's request: "show me the blueprint as a PDF — is the Lab's working in
+there? and the Observatory and the different workers?"
+
+Three-part answer. **The workers were already there**: that is sheet 2, the
+compute network — the scheduler, the leases, and the five families of workers
+(browser, Node, Docker in service; native and BOINC reserved). **The Lab and the
+Observatory had no sheet**; they each have one now.
+
+**Sheet 4 — The Lab.** The champion, the mutants, fast screening, SPRT
+confirmation, the verdict, stocktaking, SPSA mode. And, in an inset, the rule of
+pairs: every position played twice with colours swapped, same seed — without
+which one would measure Black's edge, not a setting's value. The figures come
+from `LAB_CFG_DEFAULT`, not from memory: 350 ms and 6 pairs in screening, 600 ms
+and up to 250 pairs in confirmation, H0 = 0 Elo, H1 = +35 Elo, α = β = 0.05.
+
+**Sheet 5 — The AI Observatory.** The life of one move: `obsDebut`,
+`obsProgres` thread by thread, then `obsFin` — which keeps every root move
+scored **at the deepest depth completed by all threads, not by the fastest
+one**, and each move's score at each depth. Then the six tabs, the three levels
+of reading, and what it does not do: it watches, it decides nothing, and closed
+it costs nothing.
+
+**The PDF.** `node tools/plans/pdf.js [fr|en]` assembles the five sheets, one
+per page, in **vector form**: the text stays sharp at any zoom, and the file is
+1.2 MB instead of the images' 1.4 MB. Link in the
+[Site blueprints](docs-en/Plans.en.md).
+
+### Fixed along the way
+Sheet 1 announced "37 pages · 70 modules · ≈ 40,000 lines" and "these 3 sheets".
+It now says 40 pages, 81 modules, ≈ 46,600 lines and five sheets. The title
+blocks of the three older sheets still said v3.24; they are now dated v3.49, the
+version they were checked against.
+
+A test verifies that the five sheets exist in both languages, that they are
+numbered 1 to 5, that their images are drawn, that both PDFs are there and that
+the wiki shows them all.
+
 ## [v3.49]
 
 ### The blueprint brought up to date — and stopped from drifting

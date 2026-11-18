@@ -2,9 +2,12 @@
 
 # Site blueprints
 
-Three sheets drawn like architect's blueprints, from the overview down to the details. They complement the diagrams on the [Architecture](Architecture.en.md) page: those follow the code step by step, these blueprints show who does what and how the parts talk to each other.
+Five sheets drawn like architect's blueprints, from the overview down to the details. They complement the diagrams on the [Architecture](Architecture.en.md) page: those follow the code step by step, these blueprints show who does what and how the parts talk to each other.
 
 The three sheets were checked against the code in v3.49; the page inventory, at the bottom, is checked by a test on every push.
+
+
+**In one file:** [the five sheets as a PDF](../docs-img/abalassembly-plans.en.pdf) (vector, one sheet per page — the text stays sharp at any zoom).
 
 ---
 
@@ -27,6 +30,19 @@ Who computes what during a game, and how the Lab's improvements make their way b
 ![How the AI works: the game, the game AI, the AI Observatory, the Lab, the server, the workers and the planned neural network](../docs-img/plan-fonctionnement-ia.en.webp)
 
 ---
+
+
+## 4. The Lab
+
+How the engine trains against itself: the champion, the mutants, the fast screening, confirmation by SPRT, the verdict, the stocktaking — and the rule of pairs, without which one would measure Black's edge instead of a setting's value. The sheet's figures (350 ms, 6 pairs, 250 pairs, H0 = 0 Elo, H1 = +35 Elo, α = β = 0.05) are those of `LAB_CFG_DEFAULT`.
+
+![Lab blueprint: the champion, the mutants, screening, SPRT confirmation, the verdict, stocktaking and SPSA mode](../docs-img/plan-labo.en.webp)
+
+## 5. The AI Observatory
+
+What the AI measures while it thinks: the start of the move, the search thread by thread, and what is kept at the end — every root move scored at the deepest depth completed by **all** threads, and each move's score at each depth. Then the six tabs and the three levels of reading.
+
+![AI Observatory blueprint: the life of one move, the game's record, the six tabs and the three levels of reading](../docs-img/plan-observatoire.en.webp)
 
 ---
 

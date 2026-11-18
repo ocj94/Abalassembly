@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<style>
+  @font-face{font-family:'DM Mono';src:url('../../fonts/dm-mono-latin-400-normal.woff2') format('woff2');font-weight:400}
+  @font-face{font-family:'DM Mono';src:url('../../fonts/dm-mono-latin-500-normal.woff2') format('woff2');font-weight:500}
+  html,body{margin:0;background:#0b2a4a}
+  svg{display:block}
+  text{font-family:'DM Mono',monospace;fill:#e8f1ff}
+  .t{font-size:15px;font-weight:500;letter-spacing:.5px}
+  .s{font-size:11.5px;fill:#a9c7ee}
+  .xs{font-size:10px;fill:#8fb2de}
+  .h{font-size:13px;font-weight:500;fill:#ffffff;letter-spacing:1.5px}
+  .lbl{font-size:10.5px;fill:#d6e6ff}
+  .trait{stroke:#e8f1ff;stroke-width:1.6;fill:none}
+  .fin{stroke:#bcd4f5;stroke-width:1;fill:none}
+  .prevu{stroke:#9fbbe0;stroke-width:1.4;fill:none;stroke-dasharray:7 5}
+  .fleche{stroke:#e8f1ff;stroke-width:1.3;fill:none;marker-end:url(#pointe)}
+  .retour{stroke:#7fe0c4;stroke-width:1.3;fill:none;marker-end:url(#pointeV)}
+  .cote{stroke:#8fb2de;stroke-width:.8;fill:none}
+  .ok{fill:#7fe0c4}
+</style></head><body>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080">
+  <defs>
+    <pattern id="g1" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#2a5585" stroke-width=".5"/></pattern>
+    <pattern id="g2" width="100" height="100" patternUnits="userSpaceOnUse"><rect width="100" height="100" fill="url(#g1)"/><path d="M100 0H0V100" fill="none" stroke="#3a6aa0" stroke-width="1"/></pattern>
+    <marker id="pointe" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 1L9 5L0 9z" fill="#e8f1ff"/></marker>
+    <marker id="pointeV" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 1L9 5L0 9z" fill="#7fe0c4"/></marker>
+  </defs>
+  <rect width="1600" height="1080" fill="#0b2a4a"/>
+  <rect width="1600" height="1080" fill="url(#g2)"/>
+  <rect x="18" y="18" width="1564" height="1044" class="trait"/>
+  <rect x="26" y="26" width="1548" height="1028" class="fin"/>
+
+  <text x="52" y="66" style="font-size:24px;font-weight:500;letter-spacing:4px">ABALASSEMBLY · L'OBSERVATOIRE IA</text>
+  <text x="52" y="90" class="s">Ce que l'IA mesure pendant qu'elle réfléchit, et comment on le relit</text>
+
+  <!-- la ligne du temps d'un coup -->
+  <text x="60" y="132" class="h">LE TEMPS D'UN COUP DE L'IA</text>
+  <line x1="60" y1="144" x2="1540" y2="144" class="fin"/>
+
+  <g transform="translate(60,166)">
+    <rect width="300" height="150" rx="4" class="trait"/>
+    <text x="16" y="28" class="h">① obsDebut()</text>
+    <line x1="16" y1="40" x2="284" y2="40" class="fin"/>
+    <text x="16" y="62" class="s">C'est à l'IA de jouer.</text>
+    <text x="16" y="84" class="s">On note le camp, le niveau,</text>
+    <text x="16" y="102" class="s">le style, le temps accordé,</text>
+    <text x="16" y="120" class="s">la position de départ.</text>
+    <text x="16" y="142" class="xs">l'horloge part à zéro</text>
+  </g>
+
+  <path d="M360 241 H470" class="fleche"/>
+
+  <g transform="translate(470,166)">
+    <rect width="320" height="150" rx="4" class="trait"/>
+    <text x="16" y="28" class="h">② obsProgres()</text>
+    <line x1="16" y1="40" x2="304" y2="40" class="fin"/>
+    <text x="16" y="62" class="s">Pendant la recherche, à chaque</text>
+    <text x="16" y="80" class="s">profondeur terminée.</text>
+    <text x="16" y="104" class="s">Un fil par cœur : on garde</text>
+    <text x="16" y="122" class="s">ce que CHAQUE fil a trouvé.</text>
+    <text x="16" y="142" class="xs">le bandeau se met à jour en direct</text>
+  </g>
+
+  <path d="M790 241 H900" class="fleche"/>
+
+  <g transform="translate(900,166)">
+    <rect width="640" height="150" rx="4" class="trait" style="stroke-width:2.2"/>
+    <rect x="6" y="6" width="628" height="138" rx="2" class="fin"/>
+    <text x="22" y="34" class="h">③ obsFin() — ce qui est gardé du coup</text>
+    <line x1="22" y1="46" x2="618" y2="46" class="fin"/>
+    <text x="22" y="68" class="s">· le coup choisi, sa note, la profondeur atteinte, le temps, les positions visitées</text>
+    <text x="22" y="88" class="s">· TOUS les coups de départ, notés, à la plus grande profondeur</text>
+    <text x="40" y="106" class="s">terminée par TOUS les fils — pas par le plus rapide</text>
+    <text x="22" y="126" class="s">· la note de chaque coup à chaque profondeur : on voit l'IA changer d'avis</text>
+  </g>
+
+  <path d="M1220 316 V372" class="fleche"/>
+  <text x="1234" y="352" class="lbl">une entrée par coup</text>
+
+  <!-- coup venu d'ailleurs -->
+  <g transform="translate(470,372)">
+    <rect width="320" height="110" rx="4" class="prevu"/>
+    <text x="16" y="28" class="h">obsSource()</text>
+    <line x1="16" y1="40" x2="304" y2="40" class="fin"/>
+    <text x="16" y="62" class="s">Quand le coup ne vient PAS de</text>
+    <text x="16" y="80" class="s">la recherche : livre d'ouvertures,</text>
+    <text x="16" y="98" class="s">table de finale. C'est dit tel quel.</text>
+  </g>
+  <path d="M790 427 H1050" class="fleche"/>
+
+  <!-- le registre -->
+  <g transform="translate(1050,372)">
+    <rect width="490" height="110" rx="4" class="trait"/>
+    <text x="16" y="28" class="h">LE REGISTRE DE LA PARTIE</text>
+    <line x1="16" y1="40" x2="474" y2="40" class="fin"/>
+    <text x="16" y="64" class="s">Un tableau en mémoire, un élément par coup.</text>
+    <text x="16" y="86" class="s">Il vit le temps de la partie : rien n'est envoyé nulle part.</text>
+  </g>
+
+  <!-- les six onglets -->
+  <text x="60" y="538" class="h">LES SIX ONGLETS — six façons de relire la même mesure</text>
+  <line x1="60" y1="550" x2="1540" y2="550" class="fin"/>
+
+  <g transform="translate(60,572)">
+    <rect width="230" height="128" class="trait"/>
+    <text x="14" y="26" class="t" style="font-size:13px">Vue générale</text>
+    <line x1="14" y1="38" x2="216" y2="38" class="fin"/>
+    <text x="14" y="60" class="xs">Le coup joué, sa note,</text>
+    <text x="14" y="76" class="xs">qui mène, de combien.</text>
+    <text x="14" y="100" class="xs">Lisible sans rien savoir</text>
+    <text x="14" y="116" class="xs">du fonctionnement.</text>
+  </g>
+  <g transform="translate(310,572)">
+    <rect width="230" height="128" class="trait"/>
+    <text x="14" y="26" class="t" style="font-size:13px">Recherche</text>
+    <line x1="14" y1="38" x2="216" y2="38" class="fin"/>
+    <text x="14" y="60" class="xs">Profondeur, nœuds,</text>
+    <text x="14" y="76" class="xs">vitesse, élagage.</text>
+    <text x="14" y="100" class="xs">L'arbre, étape par</text>
+    <text x="14" y="116" class="xs">étape.</text>
+  </g>
+  <g transform="translate(560,572)">
+    <rect width="230" height="128" class="trait"/>
+    <text x="14" y="26" class="t" style="font-size:13px">Évaluation</text>
+    <line x1="14" y1="38" x2="216" y2="38" class="fin"/>
+    <text x="14" y="60" class="xs">Le détail de la note :</text>
+    <text x="14" y="76" class="xs">matériel, centre,</text>
+    <text x="14" y="92" class="xs">cohésion, menaces.</text>
+    <text x="14" y="116" class="xs">Chaque poids, séparé.</text>
+  </g>
+  <g transform="translate(810,572)">
+    <rect width="230" height="128" class="trait"/>
+    <text x="14" y="26" class="t" style="font-size:13px">Décision</text>
+    <line x1="14" y1="38" x2="216" y2="38" class="fin"/>
+    <text x="14" y="60" class="xs">Pourquoi CE coup et</text>
+    <text x="14" y="76" class="xs">pas le deuxième.</text>
+    <text x="14" y="100" class="xs">L'écart, et à quelle</text>
+    <text x="14" y="116" class="xs">profondeur il s'est fait.</text>
+  </g>
+  <g transform="translate(1060,572)">
+    <rect width="230" height="128" class="trait"/>
+    <text x="14" y="26" class="t" style="font-size:13px">Historique</text>
+    <line x1="14" y1="38" x2="216" y2="38" class="fin"/>
+    <text x="14" y="60" class="xs">Tous les coups de la</text>
+    <text x="14" y="76" class="xs">partie, l'un après l'autre.</text>
+    <text x="14" y="100" class="xs">La courbe de qui mène.</text>
+  </g>
+  <g transform="translate(1310,572)">
+    <rect width="230" height="128" class="trait"/>
+    <text x="14" y="26" class="t" style="font-size:13px">Statistiques</text>
+    <line x1="14" y1="38" x2="216" y2="38" class="fin"/>
+    <text x="14" y="60" class="xs">v3.36 : toute la partie</text>
+    <text x="14" y="76" class="xs">en graphiques — choix</text>
+    <text x="14" y="92" class="xs">serrés, stabilité,</text>
+    <text x="14" y="108" class="xs">élagage, vitesse.</text>
+  </g>
+
+  <!-- trois niveaux -->
+  <g transform="translate(60,728)">
+    <rect width="700" height="150" rx="4" class="trait"/>
+    <text x="16" y="28" class="h">TROIS NIVEAUX DE LECTURE</text>
+    <line x1="16" y1="40" x2="684" y2="40" class="fin"/>
+    <text x="16" y="66" class="s">Spectateur — ce qui se passe, en français, sans vocabulaire</text>
+    <text x="16" y="94" class="s">Analyste — les chiffres qui comptent, avec ce qu'ils veulent dire</text>
+    <text x="16" y="122" class="s">Développeur — tout, y compris ce qui ne sert qu'à déboguer</text>
+  </g>
+
+  <!-- sortie -->
+  <g transform="translate(790,728)">
+    <rect width="340" height="150" rx="4" class="trait"/>
+    <text x="16" y="28" class="h">EN SORTIR QUELQUE CHOSE</text>
+    <line x1="16" y1="40" x2="324" y2="40" class="fin"/>
+    <text x="16" y="66" class="s">Copier le rapport du coup</text>
+    <text x="16" y="94" class="s">Exporter toute la partie (JSON)</text>
+    <text x="16" y="122" class="xs">le résumé statistique y est inclus</text>
+  </g>
+
+  <!-- ce qu'il ne fait pas -->
+  <g transform="translate(1160,728)">
+    <rect width="380" height="150" rx="4" class="fin"/>
+    <text x="16" y="28" class="h">CE QU'IL NE FAIT PAS</text>
+    <line x1="16" y1="40" x2="364" y2="40" class="fin"/>
+    <text x="16" y="64" class="s">Il n'influence pas le coup joué :</text>
+    <text x="16" y="82" class="s">il regarde, il ne décide rien.</text>
+    <text x="16" y="108" class="s">Fermé, il ne mesure rien —</text>
+    <text x="16" y="126" class="s">donc il ne coûte rien.</text>
+  </g>
+
+  <text x="60" y="1002" class="xs">src/main/59-observatoire-ia.js · 59b-observatoire-stats.js · les mesures viennent de l'IA elle-même (_mesuresCoupIA), jamais d'un second calcul</text>
+
+  <!-- cartouche -->
+  <g transform="translate(1130,886)">
+    <rect width="410" height="150" class="trait"/>
+    <path d="M0 40 H410 M0 72 H410 M0 104 H410 M205 72 V150 M120 104 V150" class="fin"/>
+    <text x="14" y="27" class="h">ABALASSEMBLY · OBSERVATOIRE</text>
+    <text x="14" y="61" class="s">Mesure en direct, six lectures, trois niveaux</text>
+    <text x="14" y="93" class="xs">Projet : ocj94</text>
+    <text x="219" y="93" class="xs">Planche 5 / 5</text>
+    <text x="14" y="124" class="xs">Version</text><text x="14" y="140" class="s">v3.49</text>
+    <text x="134" y="124" class="xs">Date</text><text x="134" y="140" class="s">18/11/2026</text>
+    <text x="219" y="124" class="xs">Dessiné</text><text x="219" y="140" class="s">Claude</text>
+  </g>
+</svg>
+</body></html>

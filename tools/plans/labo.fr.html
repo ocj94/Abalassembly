@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<style>
+  @font-face{font-family:'DM Mono';src:url('../../fonts/dm-mono-latin-400-normal.woff2') format('woff2');font-weight:400}
+  @font-face{font-family:'DM Mono';src:url('../../fonts/dm-mono-latin-500-normal.woff2') format('woff2');font-weight:500}
+  html,body{margin:0;background:#0b2a4a}
+  svg{display:block}
+  text{font-family:'DM Mono',monospace;fill:#e8f1ff}
+  .t{font-size:15px;font-weight:500;letter-spacing:.5px}
+  .s{font-size:11.5px;fill:#a9c7ee}
+  .xs{font-size:10px;fill:#8fb2de}
+  .h{font-size:13px;font-weight:500;fill:#ffffff;letter-spacing:1.5px}
+  .lbl{font-size:10.5px;fill:#d6e6ff}
+  .trait{stroke:#e8f1ff;stroke-width:1.6;fill:none}
+  .fin{stroke:#bcd4f5;stroke-width:1;fill:none}
+  .prevu{stroke:#9fbbe0;stroke-width:1.4;fill:none;stroke-dasharray:7 5}
+  .fleche{stroke:#e8f1ff;stroke-width:1.3;fill:none;marker-end:url(#pointe)}
+  .retour{stroke:#7fe0c4;stroke-width:1.3;fill:none;marker-end:url(#pointeV)}
+  .rejet{stroke:#f0a0a0;stroke-width:1.3;fill:none;marker-end:url(#pointeR)}
+  .cote{stroke:#8fb2de;stroke-width:.8;fill:none}
+  .ok{fill:#7fe0c4}
+  .non{fill:#f0a0a0}
+</style></head><body>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1120" viewBox="0 0 1600 1120">
+  <defs>
+    <pattern id="g1" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#2a5585" stroke-width=".5"/></pattern>
+    <pattern id="g2" width="100" height="100" patternUnits="userSpaceOnUse"><rect width="100" height="100" fill="url(#g1)"/><path d="M100 0H0V100" fill="none" stroke="#3a6aa0" stroke-width="1"/></pattern>
+    <marker id="pointe" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 1L9 5L0 9z" fill="#e8f1ff"/></marker>
+    <marker id="pointeV" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 1L9 5L0 9z" fill="#7fe0c4"/></marker>
+    <marker id="pointeR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 1L9 5L0 9z" fill="#f0a0a0"/></marker>
+  </defs>
+  <rect width="1600" height="1120" fill="#0b2a4a"/>
+  <rect width="1600" height="1120" fill="url(#g2)"/>
+  <rect x="18" y="18" width="1564" height="1084" class="trait"/>
+  <rect x="26" y="26" width="1548" height="1068" class="fin"/>
+
+  <text x="52" y="66" style="font-size:24px;font-weight:500;letter-spacing:4px">ABALASSEMBLY · LE LABO</text>
+  <text x="52" y="90" class="s">Comment le moteur s'entraîne contre lui-même, et ce qu'il faut pour qu'un réglage soit adopté</text>
+
+  <!-- ① CHAMPION -->
+  <g transform="translate(60,130)">
+    <rect width="300" height="128" rx="4" class="trait"/>
+    <text x="16" y="28" class="h">① LE CHAMPION</text>
+    <line x1="16" y1="40" x2="284" y2="40" class="fin"/>
+    <text x="16" y="62" class="s">Les poids d'évaluation en vigueur</text>
+    <text x="16" y="80" class="s">dans le jeu, à cet instant</text>
+    <text x="16" y="104" class="xs">abaLabChampion · applyLabChampion()</text>
+  </g>
+
+  <path d="M360 194 H470" class="fleche"/>
+  <text x="376" y="180" class="lbl">on copie,</text>
+  <text x="376" y="214" class="lbl">on dérègle</text>
+
+  <!-- ② MUTANTS -->
+  <g transform="translate(470,130)">
+    <rect width="300" height="128" rx="4" class="trait"/>
+    <text x="16" y="28" class="h">② LES MUTANTS</text>
+    <line x1="16" y1="40" x2="284" y2="40" class="fin"/>
+    <text x="16" y="62" class="s">Une poignée de copies du champion,</text>
+    <text x="16" y="80" class="s">chacune avec UN poids modifié</text>
+    <text x="16" y="104" class="xs">labMutants(champion, génération)</text>
+  </g>
+
+  <path d="M620 258 V320" class="fleche"/>
+
+  <!-- ③ SCREEN -->
+  <g transform="translate(330,320)">
+    <rect width="580" height="190" rx="4" class="trait" style="stroke-width:2.2"/>
+    <rect x="6" y="6" width="568" height="178" rx="2" class="fin"/>
+    <text x="22" y="36" class="h">③ ÉCRÉMAGE — phase « screen »</text>
+    <text x="22" y="56" class="xs">chaque mutant contre le champion · celui qui a le moins de parties joue d'abord</text>
+    <line x1="22" y1="68" x2="558" y2="68" class="fin"/>
+    <g transform="translate(22,82)">
+      <rect width="250" height="86" class="fin"/>
+      <text x="10" y="22" class="t" style="font-size:13px">Régime rapide</text>
+      <text x="10" y="42" class="xs">350 ms par coup</text>
+      <text x="10" y="58" class="xs">60 demi-coups au plus</text>
+      <text x="10" y="74" class="xs">nulle déclarée à 400</text>
+    </g>
+    <g transform="translate(290,82)">
+      <rect width="250" height="86" class="fin"/>
+      <text x="10" y="22" class="t" style="font-size:13px">Mêmes ouvertures</text>
+      <text x="10" y="42" class="xs">6 demi-coups tirés du corpus</text>
+      <text x="10" y="58" class="xs">(Marguerite belge réelle)</text>
+      <text x="10" y="74" class="xs">cible : 6 paires par mutant</text>
+    </g>
+  </g>
+
+  <path d="M910 415 H1010" class="fleche"/>
+  <text x="916" y="405" class="lbl">le meilleur passe</text>
+
+  <!-- ④ CONFIRMATION -->
+  <g transform="translate(1010,320)">
+    <rect width="530" height="190" rx="4" class="trait" style="stroke-width:2.2"/>
+    <rect x="6" y="6" width="518" height="178" rx="2" class="fin"/>
+    <text x="22" y="36" class="h">④ CONFIRMATION — SPRT</text>
+    <text x="22" y="56" class="xs">un seul candidat, jusqu'à ce que le test tranche</text>
+    <line x1="22" y1="68" x2="508" y2="68" class="fin"/>
+    <text x="22" y="90" class="s">600 ms par coup · 80 demi-coups</text>
+    <text x="22" y="110" class="s">6 paires au minimum, 250 au plus</text>
+    <text x="22" y="134" class="s">H0 : 0 Elo   ·   H1 : +35 Elo</text>
+    <text x="22" y="154" class="s">α = β = 0,05 → bornes de Wald</text>
+    <text x="22" y="174" class="xs">rapport de vraisemblance pentanomial, sur les PAIRES</text>
+  </g>
+
+  <!-- verdicts -->
+  <path d="M1275 510 V570" class="fleche"/>
+  <g transform="translate(1010,570)">
+    <rect width="530" height="120" rx="4" class="trait"/>
+    <text x="22" y="30" class="h">LE VERDICT</text>
+    <line x1="22" y1="42" x2="508" y2="42" class="fin"/>
+    <text x="22" y="66" class="s ok">✓ borne haute franchie → adopté</text>
+    <text x="22" y="88" class="s non">✗ borne basse franchie → rejeté</text>
+    <text x="22" y="110" class="s">— 250 paires sans trancher → indécis, on garde le champion</text>
+  </g>
+
+  <path d="M1010 630 H700" class="retour"/>
+  <text x="706" y="618" class="lbl ok">adopté : nouveau champion, génération + 1</text>
+  <text x="706" y="648" class="xs">20 générations au plus (maxGen)</text>
+
+  <!-- ⑤ BILAN -->
+  <g transform="translate(330,710)">
+    <rect width="340" height="150" rx="4" class="trait"/>
+    <text x="16" y="28" class="h">⑤ BILAN</text>
+    <line x1="16" y1="40" x2="324" y2="40" class="fin"/>
+    <text x="16" y="62" class="s">Le nouveau champion contre</text>
+    <text x="16" y="80" class="s">les poids d'ORIGINE</text>
+    <text x="16" y="104" class="s">25 paires, régime lent</text>
+    <text x="16" y="128" class="xs">mesure le chemin parcouru depuis le départ</text>
+  </g>
+
+  <!-- ⑥ SPSA -->
+  <g transform="translate(710,710)">
+    <rect width="380" height="150" rx="4" class="prevu"/>
+    <text x="16" y="28" class="h">⑥ MODE SPSA (au choix)</text>
+    <line x1="16" y1="40" x2="364" y2="40" class="fin"/>
+    <text x="16" y="62" class="s">θ+ contre θ− : tous les poids</text>
+    <text x="16" y="80" class="s">bougent en même temps</text>
+    <text x="16" y="104" class="s">200 itérations, puis 50 paires</text>
+    <text x="16" y="122" class="s">de vérification avant adoption</text>
+    <text x="16" y="142" class="xs">a=60 · c=1,2 · α=0,602 · γ=0,101</text>
+  </g>
+
+  <!-- règle des paires -->
+  <g transform="translate(60,320)">
+    <rect width="240" height="190" rx="4" class="trait"/>
+    <text x="16" y="28" class="h">LA RÈGLE DES PAIRES</text>
+    <line x1="16" y1="40" x2="224" y2="40" class="fin"/>
+    <text x="16" y="64" class="s">Toute position est jouée</text>
+    <text x="16" y="82" class="s">DEUX FOIS, couleurs</text>
+    <text x="16" y="100" class="s">inversées, même graine.</text>
+    <text x="16" y="128" class="xs">Sans ça, on mesurerait</text>
+    <text x="16" y="144" class="xs">l'avantage des noirs, pas</text>
+    <text x="16" y="160" class="xs">la valeur d'un réglage.</text>
+    <text x="16" y="180" class="xs">→ score sur 5 valeurs (penta)</text>
+  </g>
+
+  <!-- journal -->
+  <g transform="translate(60,710)">
+    <rect width="240" height="150" rx="4" class="trait"/>
+    <text x="16" y="28" class="h">LE JOURNAL</text>
+    <line x1="16" y1="40" x2="224" y2="40" class="fin"/>
+    <text x="16" y="64" class="s">Une ligne par partie :</text>
+    <text x="16" y="82" class="xs">génération, phase, mutant,</text>
+    <text x="16" y="98" class="xs">gagnant, longueur, graine,</text>
+    <text x="16" y="114" class="xs">poids A et B, durée</text>
+    <text x="16" y="138" class="xs">abaLabDataLog · 2000 dernières</text>
+  </g>
+  <path d="M300 785 H330" class="cote"/>
+
+  <!-- où ça tourne -->
+  <g transform="translate(1130,710)">
+    <rect width="410" height="150" rx="4" class="trait"/>
+    <text x="16" y="28" class="h">OÙ TOURNENT LES PARTIES</text>
+    <line x1="16" y1="40" x2="394" y2="40" class="fin"/>
+    <text x="16" y="64" class="s">Dans l'onglet ouvert : un Web Worker</text>
+    <text x="16" y="82" class="s">par cœur du processeur.</text>
+    <text x="16" y="106" class="s">Ou réparties sur d'autres appareils :</text>
+    <text x="16" y="124" class="s">voir la planche 2, le réseau de calcul.</text>
+    <text x="16" y="144" class="xs">Rien ne quitte l'appareil sans le réseau.</text>
+  </g>
+
+  <!-- ce que le labo ne fait pas -->
+  <g transform="translate(60,900)">
+    <rect width="1020" height="118" rx="4" class="fin"/>
+    <text x="16" y="28" class="h">CE QUE LE LABO NE FAIT PAS</text>
+    <line x1="16" y1="40" x2="1004" y2="40" class="fin"/>
+    <text x="16" y="64" class="s">Il n'apprend pas de tes parties : il ne joue QUE contre lui-même, sur des positions tirées du corpus humain.</text>
+    <text x="16" y="86" class="s">Il ne change pas la force du jeu derrière ton dos : un champion n'est adopté qu'après un test qui a tranché.</text>
+    <text x="16" y="108" class="xs">src/main/17-puzzle-interaction-and-lab-start.js · 42-labo-positions.js · 43-labo-texel.js · 47-labo-tableau.js</text>
+  </g>
+
+  <!-- cartouche -->
+  <g transform="translate(1130,900)">
+    <rect width="410" height="150" class="trait"/>
+    <path d="M0 40 H410 M0 72 H410 M0 104 H410 M205 72 V150 M120 104 V150" class="fin"/>
+    <text x="14" y="27" class="h">ABALASSEMBLY · LE LABO</text>
+    <text x="14" y="61" class="s">Entraînement par paires, adoption par SPRT</text>
+    <text x="14" y="93" class="xs">Projet : ocj94</text>
+    <text x="219" y="93" class="xs">Planche 4 / 5</text>
+    <text x="14" y="124" class="xs">Version</text><text x="14" y="140" class="s">v3.49</text>
+    <text x="134" y="124" class="xs">Date</text><text x="134" y="140" class="s">18/11/2026</text>
+    <text x="219" y="124" class="xs">Dessiné</text><text x="219" y="140" class="s">Claude</text>
+  </g>
+</svg>
+</body></html>

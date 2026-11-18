@@ -2,9 +2,12 @@
 
 # Plans du site
 
-Trois planches dessinées comme des plans d'architecte, de la vue d'ensemble au détail. Elles complètent les schémas de la page [Architecture](Architecture.fr.md) : ceux-là suivent le code pas à pas, ces plans montrent qui fait quoi et comment les parties communiquent.
+Cinq planches dessinées comme des plans d'architecte, de la vue d'ensemble au détail. Elles complètent les schémas de la page [Architecture](Architecture.fr.md) : ceux-là suivent le code pas à pas, ces plans montrent qui fait quoi et comment les parties communiquent.
 
 Les trois planches ont été vérifiées contre le code en v3.49 ; l'inventaire des pages, en bas, est vérifié par un test à chaque poussée. Elles sont **dessinées à la main** : à mettre à jour quand l'architecture change (voir « Modifier un plan » en bas).
+
+
+**En un seul fichier :** [les cinq planches en PDF](../docs-img/abalassembly-plans.fr.pdf) (vectoriel, une planche par page — le texte reste net à n'importe quel zoom).
 
 ---
 
@@ -27,6 +30,19 @@ Qui calcule quoi pendant une partie, et comment les améliorations du Labo revie
 ![Plan du fonctionnement de l'IA : la partie, l'IA du jeu, l'Observatoire IA, le Labo, le serveur, les workers et le réseau de neurones prévu](../docs-img/plan-fonctionnement-ia.fr.webp)
 
 ---
+
+
+## 4. Le Labo
+
+Comment le moteur s'entraîne contre lui-même : le champion, les mutants, l'écrémage rapide, la confirmation par SPRT, le verdict, le bilan — et la règle des paires, sans laquelle on mesurerait l'avantage des noirs au lieu de la valeur d'un réglage. Les chiffres de la planche (350 ms, 6 paires, 250 paires, H0 = 0 Elo, H1 = +35 Elo, α = β = 0,05) sont ceux de `LAB_CFG_DEFAULT`.
+
+![Plan du Labo : le champion, les mutants, l'écrémage, la confirmation par SPRT, le verdict, le bilan et le mode SPSA](../docs-img/plan-labo.fr.webp)
+
+## 5. L'Observatoire IA
+
+Ce que l'IA mesure pendant qu'elle réfléchit : le début du coup, la recherche fil par fil, et ce qui est gardé à la fin — tous les coups de départ notés à la plus grande profondeur terminée par **tous** les fils, et la note de chaque coup à chaque profondeur. Puis les six onglets et les trois niveaux de lecture.
+
+![Plan de l'Observatoire IA : le temps d'un coup, le registre de la partie, les six onglets et les trois niveaux de lecture](../docs-img/plan-observatoire.fr.webp)
 
 ---
 

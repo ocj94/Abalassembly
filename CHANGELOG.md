@@ -9,6 +9,48 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.50]
+
+### Deux planches de plus, et le blueprint en PDF
+Demande d'ocj94 : « montre-moi le blueprint en PDF — il y a aussi le
+fonctionnement du Labo ? et de l'Observatoire et des différents workers ? »
+
+Réponse en trois temps. **Les workers y étaient déjà** : c'est la planche 2, le
+réseau de calcul — l'ordonnanceur, les baux, et les cinq familles d'exécutants
+(navigateur, Node, Docker en service ; natif et BOINC réservés). **Le Labo et
+l'Observatoire n'avaient pas leur planche** ; ils en ont une chacun.
+
+**Planche 4 — Le Labo.** Le champion, les mutants, l'écrémage rapide, la
+confirmation par SPRT, le verdict, le bilan, le mode SPSA. Et, en encart, la
+règle des paires : toute position jouée deux fois couleurs inversées, même
+graine — sans ça on mesurerait l'avantage des noirs, pas la valeur d'un
+réglage. Les chiffres viennent de `LAB_CFG_DEFAULT`, pas de la mémoire : 350 ms
+et 6 paires à l'écrémage, 600 ms et jusqu'à 250 paires en confirmation,
+H0 = 0 Elo, H1 = +35 Elo, α = β = 0,05.
+
+**Planche 5 — L'Observatoire IA.** Le temps d'un coup : `obsDebut`,
+`obsProgres` fil par fil, puis `obsFin` — qui garde tous les coups de départ
+notés **à la plus grande profondeur terminée par tous les fils, pas par le plus
+rapide**, et la note de chaque coup à chaque profondeur. Puis les six onglets,
+les trois niveaux de lecture, et ce qu'il ne fait pas : il regarde, il ne décide
+rien, et fermé il ne coûte rien.
+
+**Le PDF.** `node tools/plans/pdf.js [fr|en]` assemble les cinq planches, une
+par page, en **vectoriel** : le texte reste net à n'importe quel zoom, et le
+fichier pèse 1,2 Mo au lieu des 1,4 Mo des images. Lien dans les
+[Plans du site](docs-fr/Plans.fr.md).
+
+### Corrigé au passage
+La planche 1 annonçait « 37 pages · 70 modules · ≈ 40 000 lignes » et « ces
+3 planches ». C'est maintenant 40 pages, 81 modules, ≈ 46 600 lignes et cinq
+planches. Les cartouches des trois anciennes planches disaient encore v3.24 ;
+elles sont datées de la v3.49, qui est la version contre laquelle elles ont été
+relues.
+
+Un test vérifie que les cinq planches existent dans les deux langues, qu'elles
+sont numérotées de 1 à 5, que leurs images sont dessinées, que les deux PDF sont
+là et que le wiki les montre toutes.
+
 ## [v3.49]
 
 ### Le blueprint remis à jour — et empêché de dériver
