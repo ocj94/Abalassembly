@@ -63,6 +63,34 @@
   <!-- Nav items -->
   <div class="sidebar-items">
 
+    <!-- v3.43 : les sept categories. Les entrees elles-memes sont deplacees
+         dans #menu-volet par menuCategories() (63-menu-categories.js) : le HTML
+         plus bas reste la seule source de verite pour leurs data-click. -->
+    <div id="menu-cats">
+      <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item menu-cat" id="mcat-jouer" data-click="menuCat('jouer', this)" aria-haspopup="true" aria-expanded="false">
+        <span class="s-icon">🎮</span><span class="s-label">Jouer</span>
+      </button>
+      <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item menu-cat" id="mcat-problemes" data-click="menuCat('problemes', this)" aria-haspopup="true" aria-expanded="false">
+        <span class="s-icon">🧩</span><span class="s-label">Problèmes</span>
+      </button>
+      <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item menu-cat" id="mcat-apprendre" data-click="menuCat('apprendre', this)" aria-haspopup="true" aria-expanded="false">
+        <span class="s-icon">📖</span><span class="s-label">Apprendre</span>
+      </button>
+      <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item menu-cat" id="mcat-analyser" data-click="menuCat('analyser', this)" aria-haspopup="true" aria-expanded="false">
+        <span class="s-icon">📊</span><span class="s-label">Analyser</span>
+      </button>
+      <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item menu-cat" id="mcat-explorer" data-click="menuCat('explorer', this)" aria-haspopup="true" aria-expanded="false">
+        <span class="s-icon">🔬</span><span class="s-label">Explorer</span>
+      </button>
+      <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item menu-cat" id="mcat-communaute" data-click="menuCat('communaute', this)" aria-haspopup="true" aria-expanded="false">
+        <span class="s-icon">👥</span><span class="s-label">Communauté</span>
+      </button>
+      <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item menu-cat" id="mcat-autre" data-click="menuCat('autre', this)" aria-haspopup="true" aria-expanded="false">
+        <span class="s-icon">⋯</span><span class="s-label">Autre</span>
+      </button>
+    </div>
+
+
     <div class="sidebar-group-label">🎮 Jouer</div>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item active" id="sid-home" data-click="sidebarNav('home',this)">
       <span class="s-icon">🏠</span><span class="s-label" data-i18n="nav.home">Accueil</span>
@@ -181,15 +209,15 @@
     <!-- Separator -->
     <div class="sidebar-sep"></div>
 
-    <a href="https://onlineabalone.wordpress.com/" target="_blank" rel="noopener noreferrer" class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item">
+    <a id="sid-blog" href="https://onlineabalone.wordpress.com/" target="_blank" rel="noopener noreferrer" class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item">
       <span class="s-icon">📝</span><span class="s-label">Blog ↗</span>
     </a>
 
-    <a href="https://abalone-online.over-blog.com/" target="_blank" rel="noopener" class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item">
+    <a id="sid-abaonline" href="https://abalone-online.over-blog.com/" target="_blank" rel="noopener" class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item">
       <span class="s-icon">📰</span><span class="s-label">Abalone Online ↗</span>
     </a>
 
-    <a href="https://discord.gg/Ju6AZ2vNTN" target="_blank" rel="noopener noreferrer" class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item">
+    <a id="sid-discord" href="https://discord.gg/Ju6AZ2vNTN" target="_blank" rel="noopener noreferrer" class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item">
       <span class="s-icon">💬</span><span class="s-label">Discord ↗</span>
     </a>
 
@@ -201,11 +229,15 @@
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-profile" data-click="sidebarNav('profile',this)">
       <span class="s-icon">👤</span><span class="s-label" data-i18n="nav.profile">Profil</span>
     </button>
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" data-click="sidebarNav('settings',this)">
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-settings" data-click="sidebarNav('settings',this)">
       <span class="s-icon">⚙️</span><span class="s-label" data-i18n="nav.settings">Paramètres</span>
     </button>
   </div>
 </aside>
+
+<!-- v3.43 : le volet des categories, pose hors de l'aside parce que celle-ci
+     coupe ce qui depasse (overflow:hidden). Rempli par menuCategories(). -->
+<div id="menu-volet" class="menu-volet" hidden></div>
 
 <!-- Overlay mobile -->
 <div id="sidebar-overlay" data-click="closeSidebarMobile()"></div>

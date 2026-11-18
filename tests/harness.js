@@ -227,6 +227,8 @@ const PASSERELLE = `
   if (typeof CAMP_CHAPITRES !== 'undefined')   relier('CAMP_CHAPITRES', function(){return CAMP_CHAPITRES;});
   // la voix des coups (v3.42)
   if (typeof VOIX !== 'undefined')             relier('VOIX', function(){return VOIX;}, function(v){VOIX=v;});
+  // le menu en categories (v3.43)
+  if (typeof MENU_CATS !== 'undefined')        relier('MENU_CATS', function(){return MENU_CATS;});
 })();
 `;
 

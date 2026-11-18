@@ -8524,3 +8524,38 @@ test('v3.42 : la voix ne parle que des coups choisis dans les réglages', () => 
     ctx.GameMode.set(modeAvant); ctx.HumanColor.set(camAvant);
   }
 });
+
+// ─── v3.43 : le menu en catégories ───
+test('v3.43 : chaque entrée du menu est rangée une fois et une seule', () => {
+  const ctx = chargerMoteur();
+  const vus = {};
+  ctx.MENU_CATS.forEach(function (c) {
+    assert.ok(c.id && c.fr && c.en, 'catégorie incomplète : ' + c.id);
+    c.items.forEach(function (id) {
+      assert.ok(!vus[id], id + ' est rangé dans deux catégories (' + vus[id] + ' et ' + c.id + ')');
+      vus[id] = c.id;
+    });
+  });
+  // les sept catégories de la barre existent dans la page, et elles seules
+  const cats = [...new Set((_SRC_INDEX.match(/id="mcat-[a-z]+"/g) || []))].map(function (m) { return m.slice(9, -1); });
+  // JSON : les tableaux venant du contexte isolé ne sont pas « reference-equal »
+  assert.deepStrictEqual(cats.sort(), JSON.parse(JSON.stringify(ctx.MENU_CATS.map(function (c) { return c.id; }).sort())));
+});
+
+test('v3.43 : aucune entrée rangée n’a disparu de la page, et le bas de barre reste à part', () => {
+  const ctx = chargerMoteur();
+  const range = [];
+  ctx.MENU_CATS.forEach(function (c) { c.items.forEach(function (id) { range.push(id); }); });
+  // chaque entrée citée existe vraiment : sinon le volet montrerait un trou
+  range.forEach(function (id) {
+    assert.ok(_SRC_INDEX.indexOf('id="' + id + '"') >= 0, id + ' est rangé mais n’existe pas dans la page');
+  });
+  // Profil et Paramètres restent en bas de barre, hors catégories
+  assert.strictEqual(ctx.menuCatDe('sid-profile'), '');
+  assert.strictEqual(ctx.menuCatDe('sid-settings'), '');
+  // une entrée inconnue n'appartient à aucune catégorie : menuCategories() la met dans « Autre »
+  assert.strictEqual(ctx.menuCatDe('sid-nimporte-quoi'), '');
+  // et les entrées rangées se retrouvent bien par leur identifiant
+  assert.strictEqual(ctx.menuCatDe('sid-lab'), 'explorer');
+  assert.strictEqual(ctx.menuCatDe('sid-campagne'), 'jouer');
+});

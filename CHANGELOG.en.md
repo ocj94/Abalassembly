@@ -9,6 +9,36 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.43]
+
+### The menu in categories
+ocj94's request, from his chess.com screenshots. The menu had grown to 38 flat
+entries: on a phone, half of them were below the fold. **Seven** remain, and a
+panel opens beside the rail with that category's entries:
+
+- 🎮 **Play** — home, play, campaign, variants, history, import
+- 🧩 **Puzzles** — puzzles, endgame tables, Brain Gym, editor
+- 📖 **Learn** — rules, Academy, openings, on a real board, training, help
+- 📊 **Analyse** — analysis, my statistics, corpus stats, library, photo detection
+- 🔬 **Explore** — AI Lab, architecture, AI briefing, documentation, GitHub insights
+- 👥 **Community** — leaderboard, observe, community, tournament, compare, friends, blog, Discord
+- ⋯ **Other** — museum, pioneers, gallery
+
+Profile and Settings stay at the bottom of the rail, as before.
+
+Under the hood, **the entries' HTML does not change**: the existing buttons,
+with their ids and their `data-click`, are *moved* into the panel, not copied.
+Everything that targeted them keeps working without knowing about categories —
+`showPage()` still lights up `#sid-<page>`, translations still find their
+`data-i18n` — and an entry nobody filed falls into "Other" instead of
+disappearing. Two tests check it: no entry filed twice, no entry named that does
+not exist in the page.
+
+The current page's category stays lit even with the panel closed, so you always
+know where you are. Escape, a click elsewhere or a click on an entry closes the
+panel. On a phone the panel takes what is left to the right of the rail and long
+labels wrap.
+
 ## [v3.42]
 
 ### Move announcements

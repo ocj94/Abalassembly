@@ -106,6 +106,7 @@ main/59b-observatoire-stats.js
 main/60-cartes-donnees.js
 main/61-campagne.js
 main/62-voix-des-coups.js
+main/63-menu-categories.js
 07z-fin-script-principal.part
 08-html.part
 09-script-tablebase.js

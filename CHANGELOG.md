@@ -9,6 +9,37 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.43]
+
+### Le menu en catégories
+Demande d'ocj94, d'après ses captures de chess.com. Le menu avait pris 38
+entrées à plat : sur un téléphone, la moitié était sous la ligne de flottaison.
+Il en reste **sept**, et un volet s'ouvre à côté avec les entrées de la
+catégorie :
+
+- 🎮 **Jouer** — accueil, jouer, campagne, variantes, historique, importer
+- 🧩 **Problèmes** — problèmes, tables de finale, Gym Cerveau, éditeur
+- 📖 **Apprendre** — règles, Academy, ouvertures, sur un vrai plateau, formation, aide
+- 📊 **Analyser** — analyse, mes statistiques, stats du corpus, bibliothèque, détection photo
+- 🔬 **Explorer** — Labo IA, architecture, fiche pour IA, documentation, insights GitHub
+- 👥 **Communauté** — classement, observer, communauté, tournoi, comparer, amis, blog, Discord
+- ⋯ **Autre** — musée, pionniers, trombinoscope
+
+Profil et Paramètres restent en bas de barre, comme avant.
+
+Sous le capot, **le HTML des entrées ne bouge pas** : les boutons existants, avec
+leurs identifiants et leurs `data-click`, sont *déplacés* dans le volet, pas
+recopiés. Tout ce qui les visait continue donc de marcher sans rien savoir des
+catégories — `showPage()` allume toujours `#sid-<page>`, les traductions
+trouvent toujours leurs `data-i18n` — et une entrée qu'on oublierait de ranger
+tombe dans « Autre » au lieu de disparaître. Deux tests le vérifient : aucune
+entrée rangée deux fois, aucune entrée citée qui n'existe pas dans la page.
+
+La catégorie de la page ouverte reste allumée même volet fermé, pour qu'on sache
+toujours où l'on est. Échap, un clic ailleurs ou un clic sur une entrée ferment
+le volet. Sur un téléphone, le volet occupe ce qui reste à droite de la barre et
+les intitulés longs passent à la ligne.
+
 ## [v3.42]
 
 ### La voix des coups

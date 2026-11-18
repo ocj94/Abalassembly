@@ -20,7 +20,7 @@
 <!-- v2.96 : connect-src ouvert a playstrategy.org, et a lui seul. Les fonctions PlayStrategy (partie en direct,
      tournois, import par lien) etaient bloquees par cette regle depuis leur ajout ; le site n'y envoie qu'un pseudo
      ou un lien, en lecture seule. Si PlayStrategy refuse les requetes venant d'un autre site (CORS), le message le dit. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' blob: 'sha256-8STPnbw+E3XBBZTJlKw/YzNCMzYXmKRZpCk2DlyHjcE=' 'sha256-xrClgwYGFk8hhEGMu2u07LSxLn0oQO68guvmE6vMhXw=' 'sha256-/Wyo501FDre3YydI7rBeWLmlc3k1Zhvprq/Qekjlbg8=' 'sha256-OSiuC3TExBji86AsM4AlH5agpnHOQosruuNPuLYANLc=' 'sha256-vPSSUR0q4b8wSgnee15gQgz67URxhHm4MgCgzbsfq2Q=' 'sha256-l+8IXMf8DU5SgvLOVQP3Yf8/vU6jr/z0Fms4QMYrWas='; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://playstrategy.org https://cdn.jsdelivr.net https://unpkg.com; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' blob: 'sha256-8STPnbw+E3XBBZTJlKw/YzNCMzYXmKRZpCk2DlyHjcE=' 'sha256-xrClgwYGFk8hhEGMu2u07LSxLn0oQO68guvmE6vMhXw=' 'sha256-/Wyo501FDre3YydI7rBeWLmlc3k1Zhvprq/Qekjlbg8=' 'sha256-5WGA4gaVAy6AT8i2BoAIl5+qIbHdwF3RGsTohVbAIiE=' 'sha256-vPSSUR0q4b8wSgnee15gQgz67URxhHm4MgCgzbsfq2Q=' 'sha256-l+8IXMf8DU5SgvLOVQP3Yf8/vU6jr/z0Fms4QMYrWas='; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://playstrategy.org https://cdn.jsdelivr.net https://unpkg.com; base-uri 'self'; form-action 'self'">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#151918">
@@ -2769,6 +2769,30 @@ body.kids-mode a[target="_blank"] {
 body.kids-mode #nav-settings,
 body.kids-mode #bnav-settings { display: none !important; }
 
+/* ── Le menu en catégories (v3.43) ── */
+.menu-cat-ouverte, .menu-cat-active { background: var(--surface2) !important; }
+.menu-cat-active .s-label, .menu-cat-active .s-icon { color: var(--gold); }
+.menu-volet {
+  position: fixed; z-index: 905; left: 52px; top: 56px;
+  min-width: 236px; max-width: 280px; max-height: calc(100vh - 72px); overflow-y: auto;
+  background: rgba(28,33,32,0.99); backdrop-filter: blur(20px);
+  border: 1px solid var(--border); border-radius: 0 12px 12px 0;
+  padding: 10px 8px; box-shadow: 0 16px 48px rgba(0,0,0,0.45);
+}
+.menu-volet[hidden] { display: none; }
+.menu-volet .sidebar-item { width: 100%; justify-content: flex-start; }
+.menu-volet .s-label { display: inline !important; white-space: nowrap; }
+.menu-groupe-titre {
+  font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--muted); padding: 2px 10px 8px;
+}
+/* Sur un telephone la barre ouverte prend deja 220 px : le volet occupe ce qui
+   reste, et les intitules longs passent a la ligne plutot que de deborder. */
+@media (max-width: 600px) {
+  .menu-volet { right: 0; min-width: 0; max-width: none; }
+  .menu-volet .s-label { white-space: normal; line-height: 1.25; }
+}
+
 /* ── La voix des coups (v3.42) ── */
 .voix-ligne { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:10px 0; font-size:13px; }
 .voix-ligne select { background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:6px 9px; font-size:13px; max-width:62%; }
@@ -3731,6 +3755,34 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
   <!-- Nav items -->
   <div class="sidebar-items">
 
+    <!-- v3.43 : les sept categories. Les entrees elles-memes sont deplacees
+         dans #menu-volet par menuCategories() (63-menu-categories.js) : le HTML
+         plus bas reste la seule source de verite pour leurs data-click. -->
+    <div id="menu-cats">
+      <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item menu-cat" id="mcat-jouer" data-click="menuCat('jouer', this)" aria-haspopup="true" aria-expanded="false">
+        <span class="s-icon">🎮</span><span class="s-label">Jouer</span>
+      </button>
+      <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item menu-cat" id="mcat-problemes" data-click="menuCat('problemes', this)" aria-haspopup="true" aria-expanded="false">
+        <span class="s-icon">🧩</span><span class="s-label">Problèmes</span>
+      </button>
+      <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item menu-cat" id="mcat-apprendre" data-click="menuCat('apprendre', this)" aria-haspopup="true" aria-expanded="false">
+        <span class="s-icon">📖</span><span class="s-label">Apprendre</span>
+      </button>
+      <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item menu-cat" id="mcat-analyser" data-click="menuCat('analyser', this)" aria-haspopup="true" aria-expanded="false">
+        <span class="s-icon">📊</span><span class="s-label">Analyser</span>
+      </button>
+      <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item menu-cat" id="mcat-explorer" data-click="menuCat('explorer', this)" aria-haspopup="true" aria-expanded="false">
+        <span class="s-icon">🔬</span><span class="s-label">Explorer</span>
+      </button>
+      <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item menu-cat" id="mcat-communaute" data-click="menuCat('communaute', this)" aria-haspopup="true" aria-expanded="false">
+        <span class="s-icon">👥</span><span class="s-label">Communauté</span>
+      </button>
+      <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item menu-cat" id="mcat-autre" data-click="menuCat('autre', this)" aria-haspopup="true" aria-expanded="false">
+        <span class="s-icon">⋯</span><span class="s-label">Autre</span>
+      </button>
+    </div>
+
+
     <div class="sidebar-group-label">🎮 Jouer</div>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item active" id="sid-home" data-click="sidebarNav('home',this)">
       <span class="s-icon">🏠</span><span class="s-label" data-i18n="nav.home">Accueil</span>
@@ -3849,15 +3901,15 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
     <!-- Separator -->
     <div class="sidebar-sep"></div>
 
-    <a href="https://onlineabalone.wordpress.com/" target="_blank" rel="noopener noreferrer" class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item">
+    <a id="sid-blog" href="https://onlineabalone.wordpress.com/" target="_blank" rel="noopener noreferrer" class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item">
       <span class="s-icon">📝</span><span class="s-label">Blog ↗</span>
     </a>
 
-    <a href="https://abalone-online.over-blog.com/" target="_blank" rel="noopener" class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item">
+    <a id="sid-abaonline" href="https://abalone-online.over-blog.com/" target="_blank" rel="noopener" class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item">
       <span class="s-icon">📰</span><span class="s-label">Abalone Online ↗</span>
     </a>
 
-    <a href="https://discord.gg/Ju6AZ2vNTN" target="_blank" rel="noopener noreferrer" class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item">
+    <a id="sid-discord" href="https://discord.gg/Ju6AZ2vNTN" target="_blank" rel="noopener noreferrer" class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item">
       <span class="s-icon">💬</span><span class="s-label">Discord ↗</span>
     </a>
 
@@ -3869,11 +3921,15 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-profile" data-click="sidebarNav('profile',this)">
       <span class="s-icon">👤</span><span class="s-label" data-i18n="nav.profile">Profil</span>
     </button>
-    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" data-click="sidebarNav('settings',this)">
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-settings" data-click="sidebarNav('settings',this)">
       <span class="s-icon">⚙️</span><span class="s-label" data-i18n="nav.settings">Paramètres</span>
     </button>
   </div>
 </aside>
+
+<!-- v3.43 : le volet des categories, pose hors de l'aside parce que celle-ci
+     coupe ce qui depasse (overflow:hidden). Rempli par menuCategories(). -->
+<div id="menu-volet" class="menu-volet" hidden></div>
 
 <!-- Overlay mobile -->
 <div id="sidebar-overlay" data-click="closeSidebarMobile()"></div>
@@ -9114,7 +9170,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v3.42';
+const APP_VERSION = 'v3.43';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -9758,7 +9814,7 @@ function basculerIndicesCoups(el) { showMoveHints = el.checked; if (typeof drawB
 function basculerTraductionChat(el) { interrupteurCouleur(el); showToast(el.checked ? '🌐 Traduction automatique activée' : 'Traduction désactivée'); }
 function viderHistoriqueConfirme() { if (confirm('Effacer tout l\'historique de parties ? Irréversible.')) { clearGameHistory(); _renderHistoryList(); } }
 function setA11yNombre(cle, valeur) { setA11y(cle, parseFloat(valeur)); }
-/* Généré par tools/actions.js : ne pas modifier à la main. 475 actions.
+/* Généré par tools/actions.js : ne pas modifier à la main. 476 actions.
    Les seules fonctions que les attributs data-click, data-change… peuvent appeler
    (src/main/00a-actions.js). Chaque entrée renvoie la fonction au moment du clic. */
 const _ACTIONS = {
@@ -9991,6 +10047,7 @@ const _ACTIONS = {
   loadPuzzle: function () { return loadPuzzle; },
   loadRefGame: function () { return loadRefGame; },
   logout: function () { return logout; },
+  menuCat: function () { return menuCat; },
   msComparerAuCorpus: function () { return msComparerAuCorpus; },
   msExporterCSV: function () { return msExporterCSV; },
   msFiltrer: function () { return msFiltrer; },
@@ -53400,6 +53457,158 @@ function voixRendreReglages() {
       if (document.getElementById('voix-reglages')) voixRendreReglages();
     });
   }
+})();
+/* ═══════════════════════════════════════════
+   LE MENU EN CATÉGORIES  (v3.43)
+   Demande d'ocj94, d'apres les captures de chess.com : sept categories dans la
+   barre, et un volet qui s'ouvre a cote avec les entrees de la categorie.
+
+   Le menu avait pris 38 entrees a plat, separees par trois intitules de groupe.
+   A la hauteur d'un telephone, la moitie etait sous la ligne de flottaison.
+
+   Principe : LE HTML NE BOUGE PAS. Les boutons existants, avec leurs
+   identifiants et leurs data-click, sont DEPLACES (appendChild, pas de copie)
+   dans le volet. Tout ce qui les vise continue donc de fonctionner sans rien
+   savoir des categories : showPage() met toujours « active » sur #sid-<page>,
+   les traductions trouvent toujours leurs data-i18n, et une entree oubliee dans
+   le tableau ci-dessous tombe dans « Autre » plutot que de disparaitre.
+═══════════════════════════════════════════ */
+const MENU_CATS = [
+  { id: 'jouer', fr: 'Jouer', en: 'Play',
+    items: ['sid-home', 'sid-game', 'sid-campagne', 'sid-variants', 'sid-history', 'sid-import'] },
+  { id: 'problemes', fr: 'Problèmes', en: 'Puzzles',
+    items: ['sid-puzzles', 'sid-tablebase', 'sid-gym', 'sid-editor'] },
+  { id: 'apprendre', fr: 'Apprendre', en: 'Learn',
+    items: ['sid-learn', 'sid-academy', 'sid-openings', 'sid-plateau', 'sid-formateurs', 'sid-aide'] },
+  { id: 'analyser', fr: 'Analyser', en: 'Analyse',
+    items: ['sid-analysis', 'sid-stats', 'sid-corpusstats', 'sid-library', 'sid-camera'] },
+  { id: 'explorer', fr: 'Explorer', en: 'Explore',
+    items: ['sid-lab', 'sid-archi', 'sid-briefing', 'sid-biblio', 'sid-github'] },
+  { id: 'communaute', fr: 'Communauté', en: 'Community',
+    items: ['sid-leaderboard', 'sid-observe', 'sid-community', 'sid-tournament', 'sid-compare', 'sid-friends',
+            'sid-blog', 'sid-abaonline', 'sid-discord'] },
+  { id: 'autre', fr: 'Autre', en: 'Other',
+    items: ['sid-museum', 'sid-pioneers', 'sid-trombi'] }
+];
+
+let _menuOuvert = '';      // la categorie ouverte, '' si le volet est ferme
+let _menuRange = false;    // les entrees ont-elles deja ete deplacees
+
+function menuCatDe(idEntree) {
+  for (let i = 0; i < MENU_CATS.length; i++) if (MENU_CATS[i].items.indexOf(idEntree) >= 0) return MENU_CATS[i].id;
+  return '';
+}
+function menuCatNom(c) { return (typeof _tr === 'function') ? _tr(c.fr, c.en) : c.fr; }
+
+/* Deplace chaque entree dans le groupe de sa categorie. Appele une fois, au
+   chargement ; les entrees qu'aucune categorie ne reclame rejoignent « Autre »,
+   pour qu'une entree ajoutee plus tard reste atteignable meme si on oublie de
+   la ranger ici. */
+function menuCategories() {
+  const volet = document.getElementById('menu-volet'), liste = document.querySelector('.sidebar-items');
+  if (!volet || !liste || _menuRange) return false;
+  const restantes = [];
+  liste.querySelectorAll('.sidebar-item').forEach(function (b) {
+    if (!b.classList.contains('menu-cat')) restantes.push(b);
+  });
+  volet.innerHTML = '';
+  MENU_CATS.forEach(function (c) {
+    const g = document.createElement('div');
+    g.className = 'menu-groupe'; g.id = 'mgrp-' + c.id; g.hidden = true;
+    const t = document.createElement('div');
+    t.className = 'menu-groupe-titre'; t.textContent = menuCatNom(c);
+    g.appendChild(t);
+    c.items.forEach(function (id) {
+      const el = document.getElementById(id);
+      if (el) g.appendChild(el);   // deplacement : l'element garde tout
+    });
+    volet.appendChild(g);
+  });
+  // ce qui n'a ete reclame par personne : dans « Autre », jamais perdu
+  const autre = document.getElementById('mgrp-autre');
+  restantes.forEach(function (b) { if (b.parentElement === liste && autre) autre.appendChild(b); });
+  // les intitules de groupe et separateurs d'avant n'ont plus d'objet
+  liste.querySelectorAll('.sidebar-group-label, .sidebar-sep, details.sidebar-collapse').forEach(function (n) { n.remove(); });
+  _menuRange = true;
+  menuSuivreActif();
+  return true;
+}
+
+/* Ouvre, ferme ou bascule une categorie. */
+function menuCat(id, btn) {
+  if (!_menuRange) menuCategories();
+  const volet = document.getElementById('menu-volet');
+  if (!volet) return;
+  if (_menuOuvert === id) { menuFermerVolet(); return; }
+  _menuOuvert = id;
+  MENU_CATS.forEach(function (c) {
+    const g = document.getElementById('mgrp-' + c.id);
+    if (g) g.hidden = (c.id !== id);
+  });
+  document.querySelectorAll('.menu-cat').forEach(function (b) {
+    const ouvert = (b.id === 'mcat-' + id);
+    b.classList.toggle('menu-cat-ouverte', ouvert);
+    b.setAttribute('aria-expanded', ouvert ? 'true' : 'false');
+  });
+  volet.hidden = false;
+  menuPlacerVolet(btn || document.getElementById('mcat-' + id));
+}
+
+function menuFermerVolet() {
+  const volet = document.getElementById('menu-volet');
+  if (volet) volet.hidden = true;
+  _menuOuvert = '';
+  document.querySelectorAll('.menu-cat').forEach(function (b) {
+    b.classList.remove('menu-cat-ouverte'); b.setAttribute('aria-expanded', 'false');
+  });
+}
+
+/* Le volet se colle au bord droit de la barre, a la hauteur de la categorie
+   cliquee, et se recale s'il deborderait en bas de la fenetre. */
+function menuPlacerVolet(btn) {
+  const volet = document.getElementById('menu-volet'), barre = document.getElementById('sidebar');
+  if (!volet || !barre) return;
+  const b = barre.getBoundingClientRect();
+  /* Sous 600 px le volet va jusqu'au bord de l'ecran (right:0 dans la feuille
+     de style) : sans ca, barre 220 px + volet 236 px depassent un telephone. */
+  volet.style.left = Math.max(0, Math.min(b.right, window.innerWidth - 150)) + 'px';
+  const haut = btn ? btn.getBoundingClientRect().top : b.top;
+  volet.style.top = Math.max(b.top, Math.min(haut, window.innerHeight - volet.offsetHeight - 8)) + 'px';
+}
+
+/* La categorie de la page ouverte reste allumee, meme volet ferme : sinon on ne
+   sait plus ou l'on est. showPage() pose deja « active » sur #sid-<page>. */
+function menuSuivreActif() {
+  const a = document.querySelector('#menu-volet .sidebar-item.active');
+  const cat = a ? menuCatDe(a.id) || 'autre' : '';
+  document.querySelectorAll('.menu-cat').forEach(function (b) {
+    b.classList.toggle('menu-cat-active', !!cat && b.id === 'mcat-' + cat);
+  });
+}
+
+(function () {
+  function demarrer() {
+    if (!menuCategories()) return;
+    // un clic sur une entree ferme le volet : on vient de naviguer
+    const volet = document.getElementById('menu-volet');
+    if (volet) volet.addEventListener('click', function (e) {
+      if (e.target.closest('.sidebar-item')) setTimeout(function () { menuFermerVolet(); menuSuivreActif(); }, 0);
+    });
+    // un clic ailleurs, ou Echap, ferme aussi
+    document.addEventListener('click', function (e) {
+      if (!_menuOuvert) return;
+      if (e.target.closest('#menu-volet') || e.target.closest('.menu-cat')) return;
+      menuFermerVolet();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && _menuOuvert) menuFermerVolet(); });
+    window.addEventListener('resize', function () { if (_menuOuvert) menuPlacerVolet(document.getElementById('mcat-' + _menuOuvert)); });
+    if (typeof showPage === 'function') {
+      const avant = showPage;
+      showPage = function (n) { avant(n); menuSuivreActif(); };
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', demarrer);
+  else demarrer();
 })();
 <!-- fin du script principal (src/main/*.js) : une piece a part, pour qu'aucun module ne la porte (v3.27) -->
 </script>
