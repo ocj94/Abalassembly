@@ -20,7 +20,7 @@
 <!-- v2.96 : connect-src ouvert a playstrategy.org, et a lui seul. Les fonctions PlayStrategy (partie en direct,
      tournois, import par lien) etaient bloquees par cette regle depuis leur ajout ; le site n'y envoie qu'un pseudo
      ou un lien, en lecture seule. Si PlayStrategy refuse les requetes venant d'un autre site (CORS), le message le dit. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' blob: 'sha256-8STPnbw+E3XBBZTJlKw/YzNCMzYXmKRZpCk2DlyHjcE=' 'sha256-xrClgwYGFk8hhEGMu2u07LSxLn0oQO68guvmE6vMhXw=' 'sha256-HZyU3+0an9TgGloQr+5HE3QQ0KnxLRB2We/gOV57StA=' 'sha256-MjvHTx7D8K3poFUnb5j/TxJ5Ktvj6AeKAot3NU9gt3U=' 'sha256-vPSSUR0q4b8wSgnee15gQgz67URxhHm4MgCgzbsfq2Q=' 'sha256-l+8IXMf8DU5SgvLOVQP3Yf8/vU6jr/z0Fms4QMYrWas='; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://playstrategy.org https://cdn.jsdelivr.net https://unpkg.com; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' blob: 'sha256-8STPnbw+E3XBBZTJlKw/YzNCMzYXmKRZpCk2DlyHjcE=' 'sha256-xrClgwYGFk8hhEGMu2u07LSxLn0oQO68guvmE6vMhXw=' 'sha256-HZyU3+0an9TgGloQr+5HE3QQ0KnxLRB2We/gOV57StA=' 'sha256-jg5OX++L11h6A1Z47Z8yG1wBWQdGea4iJRswn1peYHQ=' 'sha256-vPSSUR0q4b8wSgnee15gQgz67URxhHm4MgCgzbsfq2Q=' 'sha256-l+8IXMf8DU5SgvLOVQP3Yf8/vU6jr/z0Fms4QMYrWas='; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://playstrategy.org https://cdn.jsdelivr.net https://unpkg.com; base-uri 'self'; form-action 'self'">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#151918">
@@ -9269,7 +9269,7 @@ if (currentLang() === 'EN') { try { _i18nAppliquerTout('EN'); } catch (e) {} }
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v3.47';
+const APP_VERSION = 'v3.48';
 (function(){
   const el = document.getElementById('app-version-tag');
   if (el) el.textContent = APP_VERSION;
@@ -40623,7 +40623,9 @@ function _renderHistoryList(){
     return '<div style="display:flex;align-items:center;gap:10px;padding:10px 8px;border-bottom:1px solid var(--border);font-size:13px">'
       + '<div style="flex:1;min-width:0">'
         + '<div style="color:var(--text)">' + _historyDateLabel(e.date, e) + ' · ' + label + '</div>'
-        + '<div style="color:var(--muted);font-size:12px">' + _historyOpponentLabel(e) + ' · ' + e.moveCount + ' coups</div>'
+        /* v3.48 : echappe. L'assainissement a l'import ne protege que les parties
+           importees APRES lui ; celles deja rangees gardent leur nom brut. */
+        + '<div style="color:var(--muted);font-size:12px">' + escapeHtml(_historyOpponentLabel(e)) + ' · ' + e.moveCount + ' coups</div>'
       + '</div>'
       + '<div style="width:70px;text-align:right;font-size:12px">' + _historyResultBadge(e) + '</div>'
       + '<button class="ctrl-btn" data-click="_replayHistoryGame(\'' + e.code.replace(/'/g,"\\'") + '\')" style="width:auto;padding:6px 10px;font-size:12px">Revoir</button>'
@@ -41828,6 +41830,13 @@ function _parseBulkHistoryText(text, monPseudo){
     if (!played){ results.push({ok:false, reason:'aucun coup exploitable'}); return; }
     let blackName = '', whiteName = '';
     if (joueursLabel){ const m = joueursLabel.split(' vs '); blackName = (m[0]||'').trim(); whiteName = (m[1]||'').trim(); if(blackName==='?')blackName=''; if(whiteName==='?')whiteName='';}
+    /* v3.48 : un fichier .apgn vient de l'exterieur, et son en-tete est du
+       texte libre. Les noms passent donc par la MEME liste blanche que ceux
+       d'un code de partie (lettres, chiffres, espace, tiret, accents, 24
+       caracteres) -- sinon ils etaient stockes bruts puis inseres dans la
+       page. La CSP empechait l'execution, mais la CSP est la deuxieme ligne :
+       celle-ci est la premiere, et c'est elle qui ferme la porte. */
+    if (typeof _gcSanitizeName === 'function') { blackName = _gcSanitizeName(blackName); whiteName = _gcSanitizeName(whiteName); }
     let winner = null, reason = null;
     if (resultLabel && resultLabel !== 'Nulle'){
       winner = resultLabel.indexOf('Noir')===0 ? 'black' : (resultLabel.indexOf('Blanc')===0 ? 'white' : null);

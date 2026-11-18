@@ -191,6 +191,13 @@ function _parseBulkHistoryText(text, monPseudo){
     if (!played){ results.push({ok:false, reason:'aucun coup exploitable'}); return; }
     let blackName = '', whiteName = '';
     if (joueursLabel){ const m = joueursLabel.split(' vs '); blackName = (m[0]||'').trim(); whiteName = (m[1]||'').trim(); if(blackName==='?')blackName=''; if(whiteName==='?')whiteName='';}
+    /* v3.48 : un fichier .apgn vient de l'exterieur, et son en-tete est du
+       texte libre. Les noms passent donc par la MEME liste blanche que ceux
+       d'un code de partie (lettres, chiffres, espace, tiret, accents, 24
+       caracteres) -- sinon ils etaient stockes bruts puis inseres dans la
+       page. La CSP empechait l'execution, mais la CSP est la deuxieme ligne :
+       celle-ci est la premiere, et c'est elle qui ferme la porte. */
+    if (typeof _gcSanitizeName === 'function') { blackName = _gcSanitizeName(blackName); whiteName = _gcSanitizeName(whiteName); }
     let winner = null, reason = null;
     if (resultLabel && resultLabel !== 'Nulle'){
       winner = resultLabel.indexOf('Noir')===0 ? 'black' : (resultLabel.indexOf('Blanc')===0 ? 'white' : null);

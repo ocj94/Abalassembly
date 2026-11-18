@@ -8899,3 +8899,47 @@ test('v3.47 : le fichier construit et les binaires ne sont pas scannés', () => 
   // un chemin qui n'existe pas ne fait pas tomber le crochet
   assert.deepStrictEqual(scan.examiner('rien/du/tout.js'), []);
 });
+
+// ─── v3.48 : les noms d'un fichier importé ne sont plus du texte libre ───
+test('v3.48 : un nom de joueur hostile dans un .apgn est désarmé à l’import', () => {
+  const ctx = chargerMoteur();
+  // un en-tête APGN est du texte libre : ce nom vient d'un fichier qu'on t'a envoyé
+  const hostile = '<img src=x onerror="alert(1)">';
+  const corps = _texteKaah2.slice(_texteKaah2.indexOf('\n'));
+  const texte = '# 2026-10-01 · Belgian Daisy · Blanc gagne (6 éjections) · ' + hostile + ' vs Bob' + corps;
+  const e = ctx._parseBulkHistoryText(texte, 'bob')[0].entry;
+
+  // plus aucun caractère qui compte en HTML dans ce qui est stocké
+  [e.blackName, e.whiteName].forEach(function (n) {
+    assert.ok(!/[<>"'&]/.test(n), 'nom encore dangereux : ' + n);
+  });
+  // le nom n'est pas vidé pour autant : ce qui était lisible reste lisible
+  assert.ok(e.blackName.length > 0 && e.blackName.indexOf('img') >= 0, e.blackName);
+  assert.strictEqual(e.whiteName, 'Bob');
+  // et le code de partie, qui passait déjà par la liste blanche, reste cohérent
+  assert.ok(ctx.gameCodeParse(e.code).ok, 'le code de la partie importée doit rester lisible');
+
+  // le libellé d'adversaire construit à partir de là ne porte plus de balise
+  const lab = ctx._historyOpponentLabel(e);
+  assert.ok(lab.indexOf('<') < 0 && lab.indexOf('>') < 0, lab);
+});
+
+test('v3.48 : le libellé d’adversaire n’est jamais inséré sans échappement', () => {
+  // Deuxième ligne de défense : l'assainissement ci-dessus ne protège que les
+  // parties importées APRÈS lui ; celles déjà rangées gardent leur nom brut.
+  const fs = require('fs'), path = require('path');
+  const racine = path.join(__dirname, '..', 'src', 'main');
+  const fautifs = [];
+  fs.readdirSync(racine).filter(function (f) { return f.endsWith('.js'); }).forEach(function (f) {
+    const src = fs.readFileSync(path.join(racine, f), 'utf8');
+    src.split('\n').forEach(function (ligne, i) {
+      if (ligne.indexOf('_historyOpponentLabel(') < 0) return;
+      if (/function _historyOpponentLabel/.test(ligne)) return;
+      // l'appel doit être échappé sur place, ou rangé dans une variable qui le sera
+      if (/escapeHtml\s*\(\s*_historyOpponentLabel/.test(ligne)) return;
+      if (/^\s*(const|let|var)\s+\w+\s*=/.test(ligne)) return;   // stocké : vérifié par ailleurs
+      fautifs.push(f + ':' + (i + 1));
+    });
+  });
+  assert.deepStrictEqual(fautifs, [], 'insertion non échappée du libellé d’adversaire');
+});

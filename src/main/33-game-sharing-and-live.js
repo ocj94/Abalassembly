@@ -816,7 +816,9 @@ function _renderHistoryList(){
     return '<div style="display:flex;align-items:center;gap:10px;padding:10px 8px;border-bottom:1px solid var(--border);font-size:13px">'
       + '<div style="flex:1;min-width:0">'
         + '<div style="color:var(--text)">' + _historyDateLabel(e.date, e) + ' · ' + label + '</div>'
-        + '<div style="color:var(--muted);font-size:12px">' + _historyOpponentLabel(e) + ' · ' + e.moveCount + ' coups</div>'
+        /* v3.48 : echappe. L'assainissement a l'import ne protege que les parties
+           importees APRES lui ; celles deja rangees gardent leur nom brut. */
+        + '<div style="color:var(--muted);font-size:12px">' + escapeHtml(_historyOpponentLabel(e)) + ' · ' + e.moveCount + ' coups</div>'
       + '</div>'
       + '<div style="width:70px;text-align:right;font-size:12px">' + _historyResultBadge(e) + '</div>'
       + '<button class="ctrl-btn" data-click="_replayHistoryGame(\'' + e.code.replace(/'/g,"\\'") + '\')" style="width:auto;padding:6px 10px;font-size:12px">Revoir</button>'

@@ -9,6 +9,41 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.48]
+
+### Les noms d'un fichier importé ne sont plus du texte libre
+Trouvé en répondant à une question d'ocj94 — « mon site doit-il contenir ce que
+dit chaque dépôt ? » — et vérifié plutôt que supposé.
+
+Un code de partie fait passer les noms de joueurs par une liste blanche
+(`_gcSanitizeName` : lettres, chiffres, espace, tiret, accents, 24 caractères).
+**L'import d'un fichier `.apgn` ne le faisait pas** : l'en-tête est du texte
+libre, les noms y étaient pris bruts, rangés tels quels dans l'historique, puis
+insérés dans la page.
+
+L'essai au navigateur, avec un nom de joueur contenant une balise : le HTML
+passait bien jusque dans la page, **et la CSP l'a empêché de s'exécuter**
+(`script-src 'self'` et l'empreinte de chaque bloc, sans `unsafe-inline`). La
+défense en profondeur a fait son travail — mais la CSP est la deuxième ligne.
+La première manquait.
+
+Deux corrections :
+
+- **à l'import**, les noms passent désormais par la même liste blanche que ceux
+  d'un code de partie. C'est la porte, et c'est là qu'on la ferme ;
+- **au rendu**, le libellé d'adversaire est échappé à l'endroit qui ne l'était
+  pas (`33-game-sharing-and-live.js`). L'assainissement ne protège que les
+  parties importées *après* lui ; celles déjà rangées gardent leur nom brut.
+
+Un test vérifie le premier point sur un vrai fichier hostile, un autre relit
+tous les modules pour qu'aucune insertion du libellé ne reparte sans
+échappement.
+
+Les autres champs d'un en-tête importé avaient déjà été vérifiés au passage : la
+variante est retrouvée par correspondance dans la table des dispositions (jamais
+reprise telle quelle), et le motif de fin n'est affiché que s'il fait partie des
+valeurs connues.
+
 ## [v3.47]
 
 ### Deux filets contre les secrets poussés

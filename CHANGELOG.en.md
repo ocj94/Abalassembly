@@ -9,6 +9,37 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.48]
+
+### Player names from an imported file are no longer free text
+Found while answering a question from ocj94 — "does my site need what each repo
+says?" — and verified rather than assumed.
+
+A game code puts player names through an allowlist (`_gcSanitizeName`: letters,
+digits, space, hyphen, accents, 24 characters). **Importing an `.apgn` file did
+not**: the header is free text, names were taken raw, stored as such in the
+history, then inserted into the page.
+
+The browser test, with a player name containing a tag: the HTML did reach the
+page, **and the CSP stopped it from running** (`script-src 'self'` plus the
+digest of every block, no `unsafe-inline`). Defence in depth did its job — but
+the CSP is the second line. The first one was missing.
+
+Two fixes:
+
+- **at import**, names now go through the same allowlist as those in a game
+  code. That is the door, and that is where it gets shut;
+- **at render**, the opponent label is escaped at the one place that did not do
+  it (`33-game-sharing-and-live.js`). Sanitising only protects games imported
+  *after* it; those already stored keep their raw names.
+
+One test checks the first point on a genuinely hostile file; another re-reads
+every module so no insertion of the label can go out unescaped again.
+
+The other fields of an imported header had already been checked along the way:
+the variant is matched against the layout table (never taken as given), and the
+end reason is only displayed when it is one of the known values.
+
 ## [v3.47]
 
 ### Two nets against pushed secrets
