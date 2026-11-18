@@ -127,6 +127,9 @@
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-aide" data-click="sidebarNav('aide',this)">
       <span class="s-icon">❓</span><span class="s-label">Aide</span>
     </button>
+    <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-lecons" data-click="showPage('lecons'); fermerMenuMobile();">
+      <span class="s-icon">🎓</span><span class="s-label">Sept leçons</span>
+    </button>
     <button class="cc-button-component cc-button-ghost cc-bg-ghost cc-button-large sidebar-item" id="sid-learn" data-click="sidebarNav('learn',this)">
       <span class="s-icon">📖</span><span class="s-label" data-i18n="nav.rules">Règles du jeu</span>
     </button>
@@ -274,7 +277,7 @@
       <p class="hero-sub">La plateforme de référence pour jouer, apprendre et progresser au jeu de stratégie Abalone. Jouez hors-ligne, contre l'IA ou à deux sur le même appareil — aucune connexion requise.</p>
       <div class="hero-cta">
         <button class="btn-xl gold" data-click="playGame()">🎮 Jouer maintenant</button>
-        <button class="btn-xl outline" data-click="showPage('learn')">📖 Apprendre les règles</button>
+        <button class="btn-xl outline" data-click="showPage('lecons')">🎓 Apprendre en 7 leçons</button>
       </div>
       <p class="hero-libre">Gratuit pour toujours. Sans pub, sans compte obligatoire, sans mesure d’audience. Code ouvert (GPL).</p>
       <!-- Avant : « 48K joueurs actifs · 2.3M parties · 79K sur BGA · 127 pays », non dates, sans
@@ -4121,6 +4124,7 @@
 <ul>
 <li><b>Règles du jeu</b> et <b>Abalone Academy</b> : les règles, puis les principes de stratégie.</li>
 <li><b>Sur un vrai plateau</b> : apprendre Abalone aux enfants à partir de 3 ans, sans écran — la sécurité, les règles d’or, 8 petites étapes avec leurs schémas, un carnet de progrès et une fiche à imprimer.</li>
+<li><b>Sept leçons</b> : si tu n’as jamais joué, commence là. Sept écrans de deux minutes, dans l’ordre — le but, les déplacements, le coup en flèche, la poussée, l’éjection, le centre, la cohésion. Chacun a un diagramme, et les coups montrés sont vérifiés par le moteur du site lui-même. À la fin, un lien vers les règles complètes, la campagne et les problèmes.</li>
 <li><b>Badges</b> : vingt en tout, visibles dans ton profil. Neuf sont venus en v3.45 et ne sont pas des paliers de plus sur les mêmes compteurs : une remontée vue par l’IA, une victoire expéditive ou un marathon, cinq dispositions de départ gagnées, le premier chapitre puis toute la campagne, dix défis d’affilée, la cinquième génération du Labo, cinquante problèmes.</li>
 <li><b>Calendrier</b> : une grille jours × heures, comme une grille de programmes. Tes parties à leur heure, les séances du Labo du début à la fin, et le défi de chaque jour en tête de colonne. Les jours à venir ne sont pas vides : le défi d’un jour est calculé d’avance, pas tiré au sort, donc le calendrier annonce les prochains. Les flèches reculent ou avancent d’une fenêtre entière.</li>
 <li><b>Voix des coups</b> (Paramètres → Autorisations → <i>Voix des coups</i>) : à chaque coup, une voix annonce le déplacement en coordonnées — « A 1 en B 1 », « Blancs, trois billes, I 8 en H 7 ». Pratique pour rejouer la partie sur un vrai plateau sans quitter les billes des yeux. Tu choisis quels coups sont annoncés (tous, les tiens, ceux d’en face), le débit, la voix du navigateur, et si le camp est dit. Le texte suit la notation Aba-Pro affichée sur le plateau, donc la voix ne peut jamais dire autre chose que ce qui est écrit.</li>
@@ -4622,6 +4626,22 @@
     <div class="en-only" style="font-size:13px;color:var(--muted);margin-bottom:20px">Measures of Abalone itself, computed from the real games built into the site (MIGS, AbalOnline, PlayStrategy and reference games) — not from your own games, which are in <a href="#" data-click="showPage('stats');return false;" style="color:var(--gold)">My statistics</a>. Every figure gives its source.</div>
     <div id="corpus-stats-body"></div>
     <div id="reflexion-stats-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGE: LES SEPT LECONS (v3.46)
+     Rempli par renderLeconsPage() dans 66-lecons.js.
+══════════════════════════════════════════ -->
+<div class="page" id="page-lecons">
+  <div class="page-header" style="padding-bottom:32px">
+    <div class="section-label"><span class="fr-only">Deux minutes chacune</span><span class="en-only">Two minutes each</span></div>
+    <h2>🎓 <span class="fr-only">Sept leçons</span><span class="en-only">Seven lessons</span></h2>
+  </div>
+  <div style="padding:0 60px 80px;max-width:760px">
+    <div class="fr-only" style="font-size:13px;color:var(--muted);margin-bottom:20px">Tu n’as jamais joué ? Commence ici. Sept écrans, dans l’ordre : le but, les déplacements, la poussée, l’éjection, puis les trois idées qui font gagner. Chacun tient en deux minutes.</div>
+    <div class="en-only" style="font-size:13px;color:var(--muted);margin-bottom:20px">Never played? Start here. Seven screens, in order: the goal, the moves, the push, the ejection, then the three ideas that win games. Each takes two minutes.</div>
+    <div id="lecons-corps"></div>
   </div>
 </div>
 

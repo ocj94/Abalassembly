@@ -666,6 +666,7 @@ function showPage(name) {
     corpusstats:function(){ if (typeof renderCorpusStatsPage === 'function') renderCorpusStatsPage(); },
     campagne:   function(){ if (typeof renderCampagnePage === 'function') renderCampagnePage(); },
     calendrier: function(){ if (typeof renderCalendrierPage === 'function') renderCalendrierPage(); },
+    lecons:     function(){ if (typeof renderLeconsPage === 'function') renderLeconsPage(); },
     plateau:    function(){ if (typeof renderPlateauPage === 'function') renderPlateauPage(); },
     archi:      function(){ if (typeof renderArchiPage === 'function') renderArchiPage(); },
     compare:    function(){ renderCompare(); },

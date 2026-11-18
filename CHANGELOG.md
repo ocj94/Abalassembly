@@ -9,6 +9,40 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.46]
+
+### Sept leçons de deux minutes
+Demande d'ocj94, d'après l'application concurrente. Le site avait de quoi
+apprendre — le carnet du vrai plateau, l'entraîneur de finales, la formation des
+formateurs — mais éparpillé, et écrit pour qui sait déjà ce qu'il cherche. Ici :
+sept écrans, dans l'ordre, pour quelqu'un qui n'a jamais vu le jeu.
+
+1. 🎯 **Le plateau et le but** — 61 cases, 14 billes, six éjections pour gagner
+2. ➡️ **Déplacer une, deux ou trois billes** — le coup en ligne
+3. ↗️ **Le déplacement en flèche** — de côté, et jamais de poussée
+4. 💪 **Pousser, c'est être plus nombreux** — 2 contre 1, 3 contre 1, 3 contre 2
+5. 🚪 **Éjecter** — le bord, et pourquoi on n'y laisse pas traîner ses billes
+6. 🎯 **Le centre vaut mieux que le bord** — six directions contre trois
+7. 🧲 **Rester groupé** — une bille isolée ne pousse rien
+
+Chaque leçon tient en un écran : trois paragraphes, un diagramme, une ligne à
+retenir. Le diagramme est dessiné par le module lui-même plutôt que par le
+plateau du jeu : une leçon doit pouvoir montrer une position figée avec ses
+marques et sa flèche, sans moteur, sans état de partie, et sans jamais risquer
+de toucher à une partie en cours. La leçon 1 lit quand même la vraie disposition
+de départ dans `LAYOUTS`, plutôt que d'en recopier une.
+
+**Les coups montrés sont vérifiés par le moteur.** Un test reconstruit le
+plateau de chaque diagramme et passe le coup à `validateMove()` : la leçon 2
+doit donner un déplacement, la 3 un coup en flèche, la 4 une poussée, et la 5
+une poussée qui **éjecte** — c'est tout son propos. Une faute dans un diagramme
+casse la suite de tests, pas la compréhension d'un débutant.
+
+La progression vit dans `progress.lecons`, donc elle suit la synchronisation des
+appareils. Le bouton d'accueil « Apprendre les règles » mène maintenant ici, et
+la fin des leçons renvoie vers les règles complètes, la campagne et les
+problèmes. Page `#lecons`, en tête de la catégorie 📖 *Apprendre*.
+
 ## [v3.45]
 
 ### Neuf badges de plus — vingt en tout

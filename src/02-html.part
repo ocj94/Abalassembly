@@ -2625,6 +2625,36 @@ body.kids-mode a[target="_blank"] {
 body.kids-mode #nav-settings,
 body.kids-mode #bnav-settings { display: none !important; }
 
+/* ── Les sept leçons (v3.46) ── */
+.lec-resume { border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:20px; }
+.lec-score { font-size:28px; font-weight:700; color:var(--gold); line-height:1; }
+.lec-barre { height:6px; background:var(--border); border-radius:99px; margin:11px 0 9px; overflow:hidden; }
+.lec-barre span { display:block; height:100%; background:var(--gold); border-radius:99px; }
+.lec-suite { font-size:13px; color:var(--muted); }
+.lec-liste { display:flex; flex-direction:column; gap:9px; }
+.lec-carte { display:grid; grid-template-columns:30px 1fr; gap:4px 10px; align-items:baseline;
+  border:1px solid var(--border); border-radius:10px; padding:11px 13px; cursor:pointer; }
+.lec-carte:hover { border-color:var(--gold-dim); }
+.lec-carte.lec-fait { border-color:var(--gold-dim); }
+.lec-num { color:var(--muted); font-size:13px; text-align:center; }
+.lec-nom { font-size:14.5px; font-weight:600; }
+.lec-mot { grid-column:2; font-size:12.5px; color:var(--muted); }
+.lec-fiche { border:1px solid var(--border); border-radius:12px; padding:18px; }
+.lec-fil { font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); }
+.lec-titre { font-size:20px; margin:6px 0 14px; }
+.lec-corps { display:flex; gap:20px; flex-wrap:wrap; }
+.lec-texte { flex:1 1 300px; min-width:0; }
+.lec-texte p { font-size:14px; line-height:1.65; margin:0 0 11px; }
+.lec-diag { flex:0 0 auto; width:100%; max-width:340px; margin:0 auto; }
+.lec-retenir { border-left:2px solid var(--gold); padding:3px 0 3px 12px; font-size:13.5px; color:var(--gold); margin-top:14px; }
+.lec-boutons { display:flex; flex-wrap:wrap; gap:9px; margin-top:18px; }
+.lec-btn { background:none; border:1px solid var(--border); color:var(--text); border-radius:8px; padding:8px 14px; font-size:13.5px; cursor:pointer; }
+.lec-btn:hover { border-color:var(--gold-dim); }
+.lec-btn-or { border-color:var(--gold-dim); color:var(--gold); }
+.lec-btn-or:hover { background:var(--gold-dim); }
+.lec-apres { font-size:13px; color:var(--muted); margin-top:18px; }
+.lec-apres a { color:var(--gold); cursor:pointer; }
+
 /* ── Le calendrier (v3.44) ── */
 .cal-barre { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
 .cal-fleche { background:none; border:1px solid var(--border); color:var(--text); border-radius:8px; padding:5px 11px; cursor:pointer; font-size:13px; }

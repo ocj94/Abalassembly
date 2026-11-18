@@ -8751,3 +8751,94 @@ test('v3.45 : les badges d’état se donnent sur ce qui est déjà enregistré'
     if (sauveLab == null) ctx.localStorage.removeItem('abaLabState'); else ctx.localStorage.setItem('abaLabState', sauveLab);
   }
 });
+
+// ─── v3.46 : les sept leçons ───
+test('v3.46 : sept leçons, dans l’ordre, écrites dans les deux langues', () => {
+  const ctx = chargerMoteur();
+  assert.strictEqual(ctx.LECONS.length, 7);
+  ctx.LECONS.forEach(function (l, i) {
+    assert.strictEqual(l.id, i + 1, 'les leçons doivent être numérotées dans l’ordre');
+    assert.ok(l.emo && l.titre && l.titreEn, 'leçon ' + l.id + ' : titre manquant');
+    assert.ok(l.texte.length >= 3 && l.texteEn.length === l.texte.length,
+      'leçon ' + l.id + ' : les deux langues doivent avoir le même nombre de paragraphes');
+    assert.ok(l.retenir && l.retenirEn, 'leçon ' + l.id + ' : rien à retenir');
+    assert.ok(l.plateau, 'leçon ' + l.id + ' : pas de diagramme');
+  });
+});
+
+test('v3.46 : les diagrammes ne montrent que des cases qui existent, sans doublon', () => {
+  const ctx = chargerMoteur();
+  ctx.LECONS.forEach(function (l) {
+    const p = l.plateau, vues = {};
+    (p.noires || []).concat(p.blanches || []).forEach(function (nom) {
+      const rc = ctx.abaproToRc(nom);
+      assert.ok(rc, 'leçon ' + l.id + ' : case inconnue ' + nom);
+      const k = rc.r + ',' + rc.c;
+      assert.ok(!vues[k], 'leçon ' + l.id + ' : deux billes sur ' + nom);
+      vues[k] = 1;
+    });
+    if (p.fleche && p.fleche[0]) {
+      // une flèche part toujours d'une case occupée : sinon elle ne montre rien
+      const rc = ctx.abaproToRc(p.fleche[0]);
+      assert.ok(rc && vues[rc.r + ',' + rc.c], 'leçon ' + l.id + ' : la flèche part d’une case vide');
+    }
+  });
+});
+
+test('v3.46 : les coups montrés sont des coups légaux, jugés par le moteur lui-même', () => {
+  const ctx = chargerMoteur();
+  const sauve = ctx.board, sauveL = ctx.currentLayout;
+  try {
+    // leçons 2, 3 et 4 : un déplacement, un coup en flèche, une poussée
+    [[2, 'move'], [3, 'broadside'], [4, 'push']].forEach(function (x) {
+      const l = ctx.LECONS.filter(function (y) { return y.id === x[0]; })[0], p = l.plateau;
+      ctx.board = {};
+      (p.noires || []).forEach(function (n) { const rc = ctx.abaproToRc(n); ctx.board[rc.r + ',' + rc.c] = 'black'; });
+      (p.blanches || []).forEach(function (n) { const rc = ctx.abaproToRc(n); ctx.board[rc.r + ',' + rc.c] = 'white'; });
+      // les billes marquées sont celles qu'on joue ; la direction se lit sur la flèche
+      const sel = (p.marque || []).map(function (n) { return ctx.abaproToRc(n); });
+      const a = ctx.rcToAxial(ctx.abaproToRc(p.fleche[0]).r, ctx.abaproToRc(p.fleche[0]).c);
+      const b = ctx.rcToAxial(ctx.abaproToRc(p.fleche[1]).r, ctx.abaproToRc(p.fleche[1]).c);
+      const dir = { q: b.q - a.q, r: b.r - a.r };
+      const info = ctx.validateMove(sel, dir, 'black');
+      assert.ok(info && info.valid !== false, 'leçon ' + l.id + ' : le moteur refuse le coup montré');
+      assert.strictEqual(info.type, x[1], 'leçon ' + l.id + ' : ce n’est pas un coup de type ' + x[1]);
+    });
+
+    // leçon 5 : la bille blanche est bien au bord, donc la poussée l'éjecte
+    const l5 = ctx.LECONS.filter(function (y) { return y.id === 5; })[0], p5 = l5.plateau;
+    ctx.board = {};
+    p5.noires.forEach(function (n) { const rc = ctx.abaproToRc(n); ctx.board[rc.r + ',' + rc.c] = 'black'; });
+    p5.blanches.forEach(function (n) { const rc = ctx.abaproToRc(n); ctx.board[rc.r + ',' + rc.c] = 'white'; });
+    const sel5 = p5.noires.map(function (n) { return ctx.abaproToRc(n); });
+    const t = ctx.abaproToRc(p5.noires[2]), q = ctx.abaproToRc(p5.blanches[0]);
+    const aa = ctx.rcToAxial(t.r, t.c), bb = ctx.rcToAxial(q.r, q.c);
+    const info5 = ctx.validateMove(sel5, { q: bb.q - aa.q, r: bb.r - aa.r }, 'black');
+    assert.ok(info5 && info5.valid !== false, 'leçon 5 : le moteur refuse la poussée');
+    assert.strictEqual(info5.ejection, true, 'leçon 5 : la poussée doit éjecter, c’est tout son propos');
+  } finally { ctx.board = sauve; ctx.currentLayout = sauveL; }
+});
+
+test('v3.46 : la progression se garde et enchaîne sur la leçon suivante', () => {
+  const ctx = chargerMoteur();
+  const sauve = JSON.stringify(ctx.progress.lecons || {});
+  const _toast = ctx.showToast; ctx.showToast = function () { };
+  try {
+    ctx.progress.lecons = {};
+    assert.strictEqual(ctx.lecFaites(), 0);
+    assert.strictEqual(ctx.lecProchaine(), 1);
+    assert.strictEqual(ctx.lecFaite(1), false);
+    ctx.progress.lecons[1] = '2026-11-18T00:00:00.000Z';
+    assert.strictEqual(ctx.lecFaite(1), true);
+    assert.strictEqual(ctx.lecFaites(), 1);
+    assert.strictEqual(ctx.lecProchaine(), 2);
+    // une leçon sautée reste la prochaine à faire
+    ctx.progress.lecons[3] = '2026-11-18T00:00:00.000Z';
+    assert.strictEqual(ctx.lecProchaine(), 2);
+    assert.strictEqual(ctx.lecFaites(), 2);
+    // toutes faites : plus de prochaine
+    ctx.LECONS.forEach(function (l) { ctx.progress.lecons[l.id] = '2026-11-18T00:00:00.000Z'; });
+    assert.strictEqual(ctx.lecFaites(), 7);
+    assert.strictEqual(ctx.lecProchaine(), 0);
+  } finally { ctx.progress.lecons = JSON.parse(sauve); ctx.showToast = _toast; }
+});

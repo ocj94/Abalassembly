@@ -109,6 +109,7 @@ main/62-voix-des-coups.js
 main/63-menu-categories.js
 main/64-calendrier.js
 main/65-badges-de-plus.js
+main/66-lecons.js
 07z-fin-script-principal.part
 08-html.part
 09-script-tablebase.js

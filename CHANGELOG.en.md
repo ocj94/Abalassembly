@@ -9,6 +9,39 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.46]
+
+### Seven two-minute lessons
+ocj94's request, after the competing app. The site had plenty to learn from —
+the real-board notebook, the endgame trainer, the trainers' course — but
+scattered, and written for someone who already knows what they are looking for.
+Here: seven screens, in order, for someone who has never seen the game.
+
+1. 🎯 **The board and the goal** — 61 cells, 14 marbles, six ejections to win
+2. ➡️ **Moving one, two or three marbles** — the in-line move
+3. ↗️ **The broadside move** — sideways, and never a push
+4. 💪 **Pushing means outnumbering** — 2 v 1, 3 v 1, 3 v 2
+5. 🚪 **Ejecting** — the edge, and why marbles are not left there
+6. 🎯 **The centre beats the edge** — six directions against three
+7. 🧲 **Staying together** — a lone marble pushes nothing
+
+Each lesson fits one screen: three paragraphs, a diagram, one line to remember.
+The diagram is drawn by the module itself rather than by the game board: a
+lesson must be able to show a frozen position with its marks and its arrow,
+with no engine, no game state, and no risk of touching a game in progress.
+Lesson 1 still reads the real starting layout from `LAYOUTS` rather than copying
+one out.
+
+**The moves shown are checked by the engine.** A test rebuilds each diagram's
+board and passes the move to `validateMove()`: lesson 2 must give a move, 3 a
+broadside, 4 a push, and 5 a push that **ejects** — which is its whole point. A
+mistake in a diagram breaks the test suite, not a beginner's understanding.
+
+Progress lives in `progress.lecons`, so it follows device sync. The home
+button "Learn the rules" now leads here, and the end of the lessons points to
+the full rules, the campaign and the puzzles. Page `#lessons`, at the top of the
+📖 *Learn* category.
+
 ## [v3.45]
 
 ### Nine more badges — twenty in all

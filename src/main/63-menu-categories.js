@@ -19,7 +19,7 @@ const MENU_CATS = [
   { id: 'problemes', fr: 'Problèmes', en: 'Puzzles',
     items: ['sid-puzzles', 'sid-tablebase', 'sid-gym', 'sid-editor'] },
   { id: 'apprendre', fr: 'Apprendre', en: 'Learn',
-    items: ['sid-learn', 'sid-academy', 'sid-openings', 'sid-plateau', 'sid-formateurs', 'sid-aide'] },
+    items: ['sid-lecons', 'sid-learn', 'sid-academy', 'sid-openings', 'sid-plateau', 'sid-formateurs', 'sid-aide'] },
   { id: 'analyser', fr: 'Analyser', en: 'Analyse',
     items: ['sid-analysis', 'sid-stats', 'sid-calendrier', 'sid-corpusstats', 'sid-library', 'sid-camera'] },
   { id: 'explorer', fr: 'Explorer', en: 'Explore',

@@ -21,7 +21,7 @@
 
 // [page (ou fenetre du menu), adresse en francais, adresse en anglais] -- dans l'ordre du menu
 const ADRESSES_PAGES = [
-  ['home', 'accueil', 'home'], ['setup', 'jouer', 'play'], ['game', 'partie', 'game'], ['historique', 'historique', 'history'], ['campagne', 'campagne', 'campaign'], ['calendrier', 'calendrier', 'calendar'],
+  ['home', 'accueil', 'home'], ['setup', 'jouer', 'play'], ['game', 'partie', 'game'], ['historique', 'historique', 'history'], ['campagne', 'campagne', 'campaign'], ['calendrier', 'calendrier', 'calendar'], ['lecons', 'lecons', 'lessons'],
   ['corpusstats', 'corpus', 'corpus'], ['import', 'importer', 'import'], ['puzzles', 'problemes', 'puzzles'], ['editor', 'editeur', 'editor'],
   ['variants', 'variantes', 'variants'],
   ['aide', 'aide', 'help'], ['learn', 'regles', 'rules'], ['plateau', 'plateau', 'real-board'], ['academy', 'academy', 'academy'],

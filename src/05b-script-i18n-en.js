@@ -61,7 +61,7 @@ const I18N_EN = {
   "La plateforme de référence pour jouer, apprendre et progresser au jeu de stratégie Abalone. Jouez hors-ligne, contre l'IA ou à deux sur le même appareil — aucune connexion requise.":
     'Play, learn and improve at Abalone, the strategy game. Play offline against the AI, or with a friend on the same device — no connection needed.',
   'Gratuit pour toujours. Sans pub, sans compte obligatoire, sans mesure d’audience. Code ouvert (GPL).': 'Free forever. No ads, no account needed, no analytics. Open source (GPL).',
-  '🎮 Jouer maintenant': '🎮 Play now', '📖 Apprendre les règles': '📖 Learn the rules',
+  '🎮 Jouer maintenant': '🎮 Play now', '🎓 Apprendre en 7 leçons': '🎓 Learn in 7 lessons', 'Sept leçons': 'Seven lessons',
   'Abalassembly en chiffres — tous vérifiables': 'Abalassembly in numbers — all verifiable', 'Vraies parties rejouables': 'Real replayable games',
   'Puzzles tirés de vraies parties': 'Puzzles from real games', 'Hors ligne': 'Offline', "Compte, pub ou mesure d'audience": 'Accounts, ads or analytics',
   'Stratégie': 'Strategy', 'Chance': 'Luck', 'Complexité': 'Complexity', 'Durée': 'Length', '2 joueurs': '2 players', 'Auteurs': 'Authors',

@@ -234,6 +234,8 @@ const PASSERELLE = `
   // les badges (v3.45)
   if (typeof BADGES !== 'undefined')           relier('BADGES', function(){return BADGES;});
   if (typeof BADGES_PLUS !== 'undefined')      relier('BADGES_PLUS', function(){return BADGES_PLUS;});
+  // les lecons (v3.46)
+  if (typeof LECONS !== 'undefined')           relier('LECONS', function(){return LECONS;});
 })();
 `;
 
