@@ -46,6 +46,30 @@ Les 93 parties du tournoi **Yearly Abalone Arena** de PlayStrategy, joué le
 - Résultat : celui enregistré par PlayStrategy ; la fin de partie
   (`Termination`) est lue dans le rejeu
 
+## `playstrategy-championnat-2026.apgn`
+
+Les parties du **championnat du monde d'Abalone** du Mind Sports Olympiad, joué
+en présentiel le 1er septembre 2026 et publié par le MSO sous forme d'études sur
+PlayStrategy (étude `JG7Zf7mE`).
+
+- Disposition : marguerite belge
+- 6 rondes, 2 tables par ronde : 12 parties jouées, **11 publiées ici**
+- 875 demi-coups ; 10 joueurs, aucun programme
+- Notation : Aba-Pro, convertie de la notation PlayStrategy par
+  `psConvertirSequence` et vérifiée par un second décodage indépendant
+- Validation : 11 sur 11 rejouent intégralement
+- Joueurs nommés comme le MSO les publie : ce sont des résultats de tournoi en
+  présentiel, déjà publics. Retrait sans discussion sur simple demande d'un
+  joueur, par une issue sur ce dépôt.
+
+**Une partie est écartée** : `Uhzi76JC` (ronde 5, table 2). Ses 80 coups sont
+légaux et rejouent en entier, mais le rejeu finit **6-3 pour les Blancs** alors
+que le MSO annonce 1-0 pour le joueur nommé en premier, donc pour les Noirs. Sur
+les onze autres parties la convention « premier nommé = Noirs » se vérifie :
+l'attribution de ce chapitre est donc fausse d'un côté ou de l'autre. Plutôt que
+de deviner l'inversion, la partie reste dehors — `tools/to-apgn.js` la rejette
+de lui-même (« résultat contraire au rejeu »).
+
 ## `playstrategy-parties.apgn`
 
 D'autres parties jouées sur **PlayStrategy**, envoyées une par une (v3.28 à
@@ -84,6 +108,7 @@ doivent pas être publiées avant cet accord.
 ```
 node tools/to-apgn.js --source migs --out games/migs-2016-2017.apgn
 node tools/to-apgn.js --source ps --out games/playstrategy-yearly-2026.apgn
+node tools/to-apgn.js --source ps-cm --out games/playstrategy-championnat-2026.apgn
 node tools/to-apgn.js --source ps-autres --out games/playstrategy-parties.apgn
 ```
 
@@ -95,7 +120,7 @@ node tools/to-apgn.js --source ps-autres --out games/playstrategy-parties.apgn
 2. Elle entre d'elle-même dans la banque PlayStrategy du corpus (`PS_CORPUS`) :
    recalculer `tools/qualite-coups.js`, `tools/stats-parties.js`,
    `tools/labo-positions.js` et `tools/empreintes-complement.js`, puis mettre à
-   jour les chiffres cités (4 595 parties…) ; les tests disent lesquels.
+   jour les chiffres cités (4 606 parties…) ; les tests disent lesquels.
 
 ## Pseudos des joueurs (RGPD)
 

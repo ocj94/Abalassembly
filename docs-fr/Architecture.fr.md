@@ -4,7 +4,7 @@
 
 Quatre cartes pour comprendre comment Abalassembly est construit. Elles sont **écrites à la main** et doivent être mises à jour quand l'architecture change — contrairement à la « Fiche pour IA » du site, qui compte tout à l'exécution. La page Architecture du site en donne la version courte, en français et en anglais.
 
-Vérifié contre le code en v3.49 (avant : v2.96, v2.66 ; il manquait les poids Texel, la qualité des coups, les humains et les programmes, les 60 positions de départ, les parties citées sans leurs coups et les fichiers APGN, et la règle de sécurité bloquait PlayStrategy). Les chiffres de la page du site sont regroupés dans `ARCHI_CHIFFRES` (`src/main/34-architecture-diagrams-briefing.js`), et un test les compare aux données embarquées : une partie ou un problème de plus, et le test demande la mise à jour.
+Vérifié contre le code en v3.51 (avant : v2.96, v2.66 ; il manquait les poids Texel, la qualité des coups, les humains et les programmes, les 60 positions de départ, les parties citées sans leurs coups et les fichiers APGN, et la règle de sécurité bloquait PlayStrategy). Les chiffres de la page du site sont regroupés dans `ARCHI_CHIFFRES` (`src/main/34-architecture-diagrams-briefing.js`), et un test les compare aux données embarquées : une partie ou un problème de plus, et le test demande la mise à jour.
 
 Pour une vue d'ensemble dessinée (pages, IA, Labo, serveur), voir les [Plans du site](Plans.fr.md).
 
@@ -68,13 +68,13 @@ Tout part des vraies parties embarquées dans le fichier.
 
 ```mermaid
 flowchart LR
-    S1[MIGS<br/>2 589 parties<br/>Belgian Daisy] --> C[Corpus<br/>4 595 parties réelles]
+    S1[MIGS<br/>2 589 parties<br/>Belgian Daisy] --> C[Corpus<br/>4 606 parties réelles]
     S2[AbalOnline<br/>1 890 parties<br/>18 dispositions] --> C
-    S3[PlayStrategy 2025-2026<br/>108 parties : 93 du tournoi<br/>+ 15 amicales] --> C
+    S3[PlayStrategy 2025-2026<br/>119 parties : 93 du tournoi<br/>+ 11 du championnat du monde<br/>+ 15 amicales] --> C
     S4[Parties de référence<br/>8 parties] --> C
 
     C --> O[Livres d'ouvertures<br/>arbre de 13 dispositions<br/>et livre statique]
-    C --> E[Empreintes<br/>428 644 positions × 12 dimensions]
+    C --> E[Empreintes<br/>429 519 positions × 12 dimensions]
     C --> R[Chaque partie rejouée<br/>coup par coup, hors ligne]
     C --> P[Problèmes<br/>138, chacun sourcé]
     C --> LP[Positions du Labo<br/>25 204 calmes + 3 866 départs]
@@ -103,8 +103,8 @@ flowchart LR
 
 **Précisions :**
 
-- Les **livres d'ouvertures** et le repli de l'IA (question 3) ne lisent que les parties MIGS et AbalOnline (418 595 positions). Les 10 049 positions des parties PlayStrategy et de référence s'y ajoutent pour les 12 dimensions des Statistiques du jeu (v2.59), d'où 428 644 (v3.33).
-- **Chaque partie rejouée** : `tools/stats-parties.js` rejoue hors ligne, avec le vrai moteur, les 4 595 parties (éjections, sortes de coups, occasions, les 12 dimensions des deux camps aux 20ᵉ, 40ᵉ et 60ᵉ coups) ; le résultat est embarqué compressé. Il nourrit la page Statistiques du jeu (les billes qui tombent, ce qui fait gagner, comment jouent les vrais joueurs — v2.63 à v2.65), les comparaisons de Mes statistiques et la ligne de l'écran de fin de partie. Un test rejoue un échantillon et compare.
+- Les **livres d'ouvertures** et le repli de l'IA (question 3) ne lisent que les parties MIGS et AbalOnline (418 595 positions). Les 10 924 positions des parties PlayStrategy et de référence s'y ajoutent pour les 12 dimensions des Statistiques du jeu (v2.59), d'où 429 519 (v3.51).
+- **Chaque partie rejouée** : `tools/stats-parties.js` rejoue hors ligne, avec le vrai moteur, les 4 606 parties (éjections, sortes de coups, occasions, les 12 dimensions des deux camps aux 20ᵉ, 40ᵉ et 60ᵉ coups) ; le résultat est embarqué compressé. Il nourrit la page Statistiques du jeu (les billes qui tombent, ce qui fait gagner, comment jouent les vrais joueurs — v2.63 à v2.65), les comparaisons de Mes statistiques et la ligne de l'écran de fin de partie. Un test rejoue un échantillon et compare.
 
 - **Positions du Labo** (v2.70) : `tools/labo-positions.js` rejoue hors ligne les parties complètes et garde, pour chacune, jusqu'à 6 positions calmes (aucune éjection possible pour le camp au trait), avec le coup joué et le résultat, et une position de départ entre le 8ᵉ et le 16ᵉ demi-coup, à 0-0. Les duels du Labo partent de ces positions (Marguerite belge par défaut) ; la méthode Texel règle les poids sur les résultats ; « Comme les humains » et « Contre toi » sur les coups joués. Un test vérifie qu'elles suivent le corpus.
 

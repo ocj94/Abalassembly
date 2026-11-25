@@ -401,10 +401,49 @@ const PS_PARTIES_AMICALES = [
   ["aXsgzzHx","2026-08-17","Sok_imsoo","Airisson","Airisson gagne","a1b2 i5h5 a2b3 i6h6 i9h8 g4g5 h9g8 g5g6 i8h8 h4h5g4 h8g8 g5g6 g9f8 a5b5 c2c3 c6c7d6 b3c4 f5g6 b2c3 g6h7 c5d5 b4b6c5 f5e5 e8d8 c3d3 c6d6 f8f7 h7i8h8 c5d5 h6h7 c4d4 a4b5 f7f6 c7d7 d5e5 c6d6 h6g5 d6e6 d3e4 i8h8 d4e4 f8g9 e5f5 d8d7 h5i6 i5h5 f5g5 f6d6f5 e4f4 i9h9 e3f3 e5d5f6 h5g5 e7d7d6 f5g6 e5f5 f3g4 f5f6 h5h6 f7g7 i7i6 i8h7 i5h4 e6f6 f4g5 c6d6 h6g5 f6g7 f8e7 i7h6 f4g5 h9h8 i6h5 h8h7 f3g4 g8g9h8 g4h5 h8h7"],
   ["HrczjlFo","2026-08-17","Airisson","Sok_imsoo","Airisson gagne","a1b2 i5h5 i9h8 i6h6 h8g7 a4b4 a2b3 h6g6 g7g8f7 b4c5 c2c3d2 b5c6 c4d4 h4g4 f7e6 c5d6 e4e5 h5g5 e7e6 d6e7 c5d5 g4g5 b1b3c1 g6f6 c3d4 g7h8f7 d5e5 i5h5i6 i8h7 c4c5 d2d3 g8f7 g5f5 e4f4 d4d5 d8e8 c2d3c3 e8e7 c4d4 f7e6 d4e4 e5d4 c1c2 a5b6 f4g4 b5c5 g8h9g7 e6d5 f6h8e6 c6c5 c1c2d2 c7c6 f5h7f6 c6b5 b3b2 c3b3 h4g4 b6b5 g4e4h5 i6h6 h8g7 b4b3 d2d3e3 e7f8e8 d6e6 f9e8 e6f6 d7e8d6 g6h6 e7d6 h5g5g4 b3b2 i6h6h5 b1b2 g8g7 d6e6 g6f5 e6d6 h5g4 d6c5 g5f4 c3c4 g7f6"]
 ];
-/* v3.33 : la banque PlayStrategy du corpus COMMUN, le tournoi puis les amicales. Constante : les donnees
+/* Championnat du monde d’Abalone, Mind Sports Olympiad 2026, joue en presentiel le 1er septembre
+   2026 et publie par le MSO sous forme d’etudes sur PlayStrategy (etude JG7Zf7mE, exportee par
+   /study/JG7Zf7mE.pgn). Six rondes, deux tables par ronde : 12 parties jouees, 11 retenues, 875 demi-coups.
+   Format : celui des tableaux ci-dessus [id de chapitre PlayStrategy, date, P1 (Noirs), P2 (Blancs),
+   resultat, coups Aba-Pro]. Coups convertis par psConvertirSequence et verifies par le second
+   decodage independant : les 12 rejouent jusqu’au dernier coup, aucune ambiguite.
+   UNE EST ECARTEE, Uhzi76JC (ronde 5, table 2, Hyeongseop Shin contre David Pearce) : ses 80 coups
+   sont legaux et rejouent en entier, mais le rejeu finit 6-3 pour les BLANCS alors que le MSO
+   annonce 1-0 pour le joueur nomme en premier, donc pour les Noirs. Sur les onze autres la
+   convention « premier nomme = Noirs » se verifie. L’attribution de ce chapitre est donc fausse
+   d’un cote ou de l’autre ; plutot que de deviner l’inversion, la partie reste hors du corpus
+   (tools/to-apgn.js la rejette de lui-meme : « resultat contraire au rejeu »).
+   Disposition : Marguerite belge (celle de la variante « Abalone » de PlayStrategy).
+   Les joueurs sont nommes comme le MSO les publie : ce sont des resultats de tournoi en presentiel,
+   deja publics. Retrait sans discussion sur simple demande d’un joueur (choix d’ocj94, v3.51).
+   - mu8VHQBx : ronde 1, table 1, Vincent Frochot (Noirs) contre Sangmin Lee (Blancs), 35 demi-coups, Vincent Frochot gagne.
+   - eJwDRbIp : ronde 1, table 2, David Klausa (Noirs) contre David Pearce (Blancs), 34 demi-coups, David Pearce gagne.
+   - Zcl6f6Nh : ronde 2, table 1, Seoyun Kim (Noirs) contre Vincent Frochot (Blancs), 46 demi-coups, Vincent Frochot gagne.
+   - DWrPiOTf : ronde 2, table 2, David Pearce (Noirs) contre Hajoon Choi (Blancs), 87 demi-coups, David Pearce gagne.
+   - 3aftb9wl : ronde 3, table 1, Vincent Frochot (Noirs) contre Yeonwoo Ju (Blancs), 83 demi-coups, Vincent Frochot gagne.
+   - GjeJKHb1 : ronde 3, table 2, Ye Jun Kang (Noirs) contre David Pearce (Blancs), 142 demi-coups, Ye Jun Kang gagne.
+   - m5O7Gsj4 : ronde 4, table 1, Hyeongseop Shin (Noirs) contre Vincent Frochot (Blancs), 92 demi-coups, Vincent Frochot gagne.
+   - XMtpupS8 : ronde 4, table 2, Dahoon Han (Noirs) contre Ye Jun Kang (Blancs), 105 demi-coups, Dahoon Han gagne.
+   - 20Vts6Un : ronde 5, table 1, Vincent Frochot (Noirs) contre Dahoon Han (Blancs), 55 demi-coups, Vincent Frochot gagne.
+   - fUt0xt0c : ronde 6, table 1, Francesco Salerno (Noirs) contre Vincent Frochot (Blancs), 102 demi-coups, Vincent Frochot gagne.
+   - 6xORYtSC : ronde 6, table 2, Minjun Kim (Noirs) contre Ye Jun Kang (Blancs), 94 demi-coups, Ye Jun Kang gagne. */
+const PS_CHAMPIONNAT_MONDE_2026 = [
+  ["mu8VHQBx","2026-09-01","Vincent Frochot","Sangmin Lee","Vincent Frochot gagne","a1b2 a5b5 a2b3 b5c5 b3c4 i6h6 i8h7 c5c6d6 h7g6 d6e6 g8g7 h6i6 g7g6 i6h5 b2c3 h4g4 e5f5 g7f6 i9h8 b4a4b3 g7g6 a3b3 d5c4 e6e5 g6g5 a2b2 f5g5 e4f4 b1c2 d7d6 h4h5 d6d5 c4d4 f6f5 h6h5"],
+  ["eJwDRbIp","2026-09-01","David Klausa","David Pearce","David Pearce gagne","i8h7 i6h6 h9g8 a5b5 b1c2 a4b4 a1b2 c6c5 a2b2 c5c4 g7f6 g4g5 g8f7 b6b5 d2d3 c4c3 b1b2a1 b5b4 a1a2 c3b3 d3d4 h4h5 h8g8 g5g6 g9f8 h5h6 d4d5 h6h7 d5d6 g7h8 a2a1 a3b3 d8d7 c3b2"],
+  ["Zcl6f6Nh","2026-09-01","Seoyun Kim","Vincent Frochot","Vincent Frochot gagne","a1b2 i5h5 g7g8f6 i6h6 f7f6 a5b5 a2b3 h6g6 b2c3 b4c5 c2c3d2 a4b5 b3c3 g5g6 e6e5 b5c5 d2d3e2 d6d7e6 b1b2 h5g4 h8h9g8 c5d5 b2c3c2 d5e5 h7h8 e5f5 e2e3 h5g5 c2d3 g5g6 i8h8 e7e6 e3d3d2 e5f6 f5e5 h4f4h5 g8f7 g5h5 d2c2d3 h7g7 i9i8 e4f5 g9f9 f7f8 d5e5 g6h7"],
+  ["DWrPiOTf","2026-09-01","David Pearce","Hajoon Choi","David Pearce gagne","i9h8 a5b5 h8g7 a4b4 i8h7 c6c5 a1b2 b6c6 c1c3d1 b5c5 d1d2 b4c4 g8g7 c6c5 g7g6 i6h5 f6f5 h5g4 f5f4 d6d5 d2e2 g4h5 d1e2 h5h6 g4f4 c5c4 f2f3 d3c3 a2b2 b3c4 f3e3 e5d5 f4e4 e6d5 b1b2 g3h4g4 e4f5 i8i7 h9h8 h4g4 e2e3 h5g4 h6g6 i5h4 h8g7 d5c4 a2b2 e2f2 g7f7 a4b5 g6g5 g3f3 d4e5 c4c6d4 e5e4 e2f3 c2d2 f2g3 f7f6 d6d5 d2e2 g3g4 e3f4 h4g3 d1e2d2 g4f3 e4e3 e1d1 h5g4 d3d5e4 f6g6 e6e5 g6g5 i6i7 g3g4 i8h8 h7g6 c3b3d4 b4c5 b5b4 g5h6 h8g8 b2c3 g8f7 g6f5 b4b3 d3d2"],
+  ["3aftb9wl","2026-09-01","Vincent Frochot","Yeonwoo Ju","Vincent Frochot gagne","a1b2 i5h5 a2b3 i6h6 c2c3 a5b5 b2c3 h6g6 g7g8f7 h4g4 c3d4 h5g4 b3c4 f3f5e2 e6f7d6 b6c6 d4d5 c7d7 f8f7 a4a5 d6e6 e7d6 h7g6 d7d6 c4d4 e2e3d1 h8h9g8 d6c5 g6f5 a3b4 g8f7 b4b5 d5d4 b6c6 d3d2 a5b5 e4e5 b5b6 g9g8 e7d7 g8f7 h6g5 b1c1 g4f4 c1d2 b3c3 d1d2 c2c4b2 d3d4 b4c5 f7e7 c5d6 e5e6 d8e8 i9h8 c7c6 i8h8 d8e9 h8g8 b2b3 e7e8 d8c7 d2e3 h6i7h7 e8d7 b4c5 g5f5 h7g7 d7c6 a4b4 d4d5 d7c7e8 b5c6 g7f7 f6e5 f7e7 d4d5 b6c7 d5d6 i8h8 g8f8g9 h8g8 g9f9"],
+  ["GjeJKHb1","2026-09-01","Ye Jun Kang","David Pearce","Ye Jun Kang gagne","a1b2 i5h5 a2b3 i6h6 b1c2 h5g5 d3d4 g4g5 i9h8 h4g4 g7g9f7 c5c6d6 b2c3 b4b6c5 h8g8 g4f4 h9g8 g7g6 c3d4 c7c6 f8f7 c6c5 c1c2d2 a4a5b4 d2d3e3 h6g5 f7f6 f2f3e1 f4e4 b4c5 d2d3 a4a5 d3d4 d7e7 f6e5 e7f7 c3c4 b5a4 e4d4 a4a3 d6c5 g6h7 a3b4 i8h7 b4c4 f7f6 b3c3 d8e8 c3d4 g7h7 d6e6 i7h6 c4d4 g4g5 f9g9 h4g4 c5d6 h8h7 d6e6 i6i5 g8g7 h5h6 g7g6 g3f3 g5f4 e2d2 g6f5 h6h8g6 f6f5 g6g7 f5f4 d2c2 f2f3 c2a2c3 e5d4 b3a3b4 f4e4 b4a4c5 e6e5 c6d6 c3c4 b5c6 d3d4 d8e8 e3e4 e8f8 f3g4f4 c6d7 d6e6 b2c3 g5g6 d7e7 d4e5 h8h7 d5e5 g8f8 c4c5d5 g9f8 e4e5 e9d8 g6f6 c7c6 f5e5 b5a5b4 c4c5 d8e8 c5c6 a4b4 c7c6 i9h8 c5d6 g9g8 g5f5 h7g7 f8e7 b4c4 f4f5 f8g8 e7f7 h8h7 f7g7 i7h6 f5g6 h6g5 i8h7 c4d4 g7f6 b2c3c2 c6c5 e1e2 e6e5 i5h4 d6d5 h4g3 d5d4 d1e1 g6f6 g3f3 c4d4 f3e3 h7g6 g4g5"],
+  ["m5O7Gsj4","2026-09-01","Hyeongseop Shin","Vincent Frochot","Vincent Frochot gagne","a1b2 i5h5 a2b3 i6h6 i9h8 h5g5 b3c4 b4c5 d4d5 b6c6 h9g8 d7d6 c2c3 c7d7 f7f6 h4g4 c3c4 g4g5 g8g9f7 c7d7 b1b2 d7d6 b2b3 a4b5 c4c5 f4e4 b3b4 e4d4 c6c5 b6c6 i8h8 g5g6 g9f9 d4d5 d8e8 b4b3 a4b4 b3c3 e3e4 d3d4 h8h7 g7g6 e8f8 c7d7 h6i7 h5g4 f9g9 g4g5f3 f8g8 d5e5 c4d5 f7f8 i7h7 f8e7 g9f8 e7d6 a3b3 g6f5 g5g6 e4e5 h7h6 d7c6 d5c4 a5b5 e7f7 c6b5 f8g8 f3f4 i8i9 b4c5 h6h7 f4f5 g8g7 f5f6 h9h8 f6f7 i9h8 f9f8 h7g6 f7e6 b3b2 e5d4 a1b1 c5c4 g5f5g4 d5c4 a2a3 a4b5b4 h8g7 d6c5 h6g6 b3b2"],
+  ["XMtpupS8","2026-09-01","Dahoon Han","Ye Jun Kang","Dahoon Han gagne","a1b2 i5h5 a2b3 i6h6 b3c4 h6g6 i9h8 c5d6 c2c3 b5c6 b1b2 b6c6 b2b3 b5c6 b4b5 e8d8 c3d3 g6f5 h7g7h6 h4g4 i8g8h7 h5g4 h7g7 f3f4 g7f7 g4f4 f7e7 f4e3 f8e8 d6e6 e7d6 a5b6 b3b4 g6e6g7 b4c5 e3e4 b6b5 f8f7 d3c3 g7g8 c3b3 d4e5 h9g9 a4a3 g9f8 e4e5 f8e8 g7f7 b4c5 c6d7 c7c6 g8f8 b3c4 f6f7 i6h5 e8f8 e9e8 f9f8 c4d5 h9h8 e8e7 e4f5 e7f7 f8g9 c6c5 g8h8 c5d6 g5g6 d6e7 d7d8c6 b5c5 i8i7 g8f8 g9h9 c5d6 h9h8 e8f9 h8h7 f9f8 i7i6 e5f6 h7h6 f8f7 f3f4g4 c4d5d4 h4i5 d4e4 g4f4 e4f5 i5h5 e6f6 f4g5 g7g6 g4h4 d5e6 h8i8 e6f6 i6h5 i7h6 h5g4 e7f7 g4f3 f7g7 i7i6 f6g6"],
+  ["20Vts6Un","2026-09-01","Vincent Frochot","Dahoon Han","Vincent Frochot gagne","a1b2 a5b5 a2b3 b5c5 b3c4 i5h5 i8h7 i6h6 g7g8f7 g4g5f3 h7h9g7 h4h5g4 g9f8 c5c6d6 f8e7 f3f4 f8e7 g6f6 c6b5 h6g6 g7f7 g4g5 f7e7 f4f5 c7d7 b6c6 d7e7 i7h6 g7g8 h7g7 g8g9f8 h6g5 b1c2 c6d7 d3d4 g6f6 f7e7 f4f5 b2b3 d6e6 f8e7 g6g7 f9e8 d8e9 e7d6 g7g6 d6c5 e6g8d6 d4c4 g6f6 c4c5 f6e6 b6c7 e9f9 d7e8"],
+  ["fUt0xt0c","2026-09-01","Francesco Salerno","Vincent Frochot","Vincent Frochot gagne","a1b2 a4b4 b2c3 c6c5 a2b3 i5h5 i8h7 i6h6 b3c4 c5b5d6 d4d5 g4g5 g8g9f7 d7e7 f7f6 e7f7 h8g8 h4h5 h8g8 h7g7 c1c2d2 e7e6 d3e4 h7g7 i9h9 c3d4 d6d5 b6c6 g6f5 c6d6 d3d4 g7f6 d6d5 d7e7 g9f8 e6e5 e8e7 c2d3 f8e7 g7f6 b1b2 c5c6 b2b3 f4e4 b4c5 c6b5 g8h9f8 b5a5c6 d5e6 h6g5 g6h7g7 f4f5 d6e6 g8f7 g9f8 g5f5 c3b3c2 e4e5 h8g7 e7e6 c5d6 c3d4 d2e3 f5f6 f9e8 d3d4 d8e8 c4d5b4 f8e8 e5d5 e8e7 d4e5 h8i9h7 f7g7 d7e7 g7h7 e3e4d3 g6h7 e7e6 c5d5 f7e6 e4e5 d8e8 a4b4 e7e8f7 b4c4 g4g5 i7h7 b5c5 h7g7 e7e8 e4e5 e8f8 e6f7 f8e8 f7g8 d5e6 i8h8 e6f7 c6b6d7 g5f5 g8f8"],
+  ["6xORYtSC","2026-09-01","Minjun Kim","Ye Jun Kang","Ye Jun Kang gagne","a1b2 i5h5 g7g8f6 i6h6 f7f6 h5g5 a2b3 a5b5 b3c4 b4c5 d4d5 d7e7 b2c3 e7e6 c2c3 b5c6 c3c4 g5f5 h7h9g7 h6g5 i8i9h8 c7d7 e4d4 d7e7 d4c4 d5e6 h8g7 g5f5 b5c5 e7e6 b4a4b3 g5f5 h9g9 f5e5 b5a5b4 f7e6 a2b3a1 e6e5 c6d6 c5c4 g9f9f8 c3d4 f8e8f7 g4f4g5 b4a4c5 g5h6 b5c6 h4g4 a1b2 g4f4 g7f7 g8g7 b2c3c2 f4f5 f8e8 f7f6 e3d3 c4d5 f7e7 b6b5 c7b6 f4f5 a3b4 h6h7 e8d7 f5e5 a5b6 e4d4 b5c6 h7g6 c3d3 g6f5 b1c2 c4d4 b4b5 e4e5 e9d8 g7f7 f4e4 f7e7 c2d3 h7g7 e3f4 e5d5 f4f5 d5c5 f5f6 e6e7 f6f7 e7e8 d3e4 a4b4 f7e7 b4b5"]
+];
+/* v3.33 : la banque PlayStrategy du corpus COMMUN, le tournoi, le championnat du monde, puis les amicales. Constante : les donnees
    precalculees (signature _sbSignature) en dependent. Les parties ajoutees sur un appareil (v3.34,
    psAjoutsLire) n'y entrent pas : elles s'ajoutent a cote, dans psCorpusEtendu. */
-const PS_CORPUS = PS_TOURNOI_YEARLY_2026.concat(PS_PARTIES_AMICALES);
+const PS_CORPUS = PS_TOURNOI_YEARLY_2026.concat(PS_CHAMPIONNAT_MONDE_2026).concat(PS_PARTIES_AMICALES);
 /* v3.34 (demande d'ocj94 : « ajoute-les au corpus », choix « directement dans le corpus ») : les parties
    PlayStrategy importees (par pseudo ou lien de tournoi) ou suivies en direct jusqu'a leur fin entrent
    dans le corpus DE CE NAVIGATEUR. Gardees dans localStorage (cle abaPSAjouts), elles comptent dans la

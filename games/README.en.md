@@ -46,6 +46,29 @@ The 93 games of PlayStrategy's **Yearly Abalone Arena**, played on
 - Result: the one recorded by PlayStrategy; the ending (`Termination`) is
   read from the replay
 
+## `playstrategy-championnat-2026.apgn`
+
+The games of the Mind Sports Olympiad **Abalone World Championship**, played
+over the board on 1 September 2026 and published by the MSO as studies on
+PlayStrategy (study `JG7Zf7mE`).
+
+- Layout: Belgian daisy
+- 6 rounds, 2 tables per round: 12 games played, **11 published here**
+- 875 plies; 10 players, no program
+- Notation: Aba-Pro, converted from PlayStrategy's own notation by
+  `psConvertirSequence` and checked by a second independent decoding
+- Validation: 11 of 11 replay to the last move
+- Players are named as the MSO publishes them: these are over-the-board
+  tournament results, already public. Removed without discussion at any
+  player's request, through an issue on this repository.
+
+**One game is left out**: `Uhzi76JC` (round 5, table 2). Its 80 moves are legal
+and replay in full, but the replay ends **6-3 for White** while the MSO records
+1-0 for the player named first, that is for Black. On the other eleven games the
+"first named = Black" convention holds, so this chapter's attribution is wrong
+one way or the other. Rather than guess the swap, the game stays out —
+`tools/to-apgn.js` rejects it on its own ("result contradicts the replay").
+
 ## `playstrategy-parties.apgn`
 
 Other games played on **PlayStrategy**, sent one at a time (v3.28 to
@@ -83,6 +106,7 @@ published before that consent is given.
 ```
 node tools/to-apgn.js --source migs --out games/migs-2016-2017.apgn
 node tools/to-apgn.js --source ps --out games/playstrategy-yearly-2026.apgn
+node tools/to-apgn.js --source ps-cm --out games/playstrategy-championnat-2026.apgn
 node tools/to-apgn.js --source ps-autres --out games/playstrategy-parties.apgn
 ```
 
@@ -95,7 +119,7 @@ node tools/to-apgn.js --source ps-autres --out games/playstrategy-parties.apgn
 2. It goes into the corpus's PlayStrategy bank by itself (`PS_CORPUS`):
    recompute `tools/qualite-coups.js`, `tools/stats-parties.js`,
    `tools/labo-positions.js` and `tools/empreintes-complement.js`, then update
-   the figures quoted (4,595 games…); the tests say which.
+   the figures quoted (4,606 games…); the tests say which.
 
 ## Players' usernames (GDPR)
 

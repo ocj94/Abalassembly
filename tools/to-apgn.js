@@ -6,7 +6,7 @@
  * rejet, avec le numero du coup fautif. Un format d'echange qui accepterait
  * des parties fausses ne vaudrait rien.
  *
- * Usage :  node tools/to-apgn.js [--source migs|ao|ps|ps-autres|all] [--out f.apgn] [--limit N]
+ * Usage :  node tools/to-apgn.js [--source migs|ao|ps|ps-cm|ps-autres|all] [--out f.apgn] [--limit N]
  *
  * --source migs : les 2589 parties du serveur MiGs, ferme le 30/05/2017.
  * --source ao   : les parties AbalOnline. NE PAS diffuser sans l'accord de
@@ -15,6 +15,10 @@
  *                 PlayStrategy (18/09/2026), publiees avec l'accord de
  *                 Vincent. Coups deja convertis de la notation PlayStrategy en
  *                 Aba-Pro (psConvertirSequence, verifies un a un).
+ * --source ps-cm : v3.51, les 12 parties du championnat du monde d'Abalone du
+ *                 Mind Sports Olympiad 2026 (01/09/2026), publiees par le MSO
+ *                 sous forme d'etudes sur PlayStrategy. Memes conversion et
+ *                 verification que --source ps.
  * --source ps-autres : v3.28, les autres parties PlayStrategy embarquees
  *                 (PS_PARTIES_AMICALES), dans le corpus depuis v3.33.
  *
@@ -220,8 +224,8 @@ const outPath = (args.indexOf('--out') >= 0) ? args[args.indexOf('--out') + 1]
   : path.join(ROOT, 'games', 'abalassembly.apgn');
 const limit = (args.indexOf('--limit') >= 0) ? parseInt(args[args.indexOf('--limit') + 1], 10) : Infinity;
 const source = (args.indexOf('--source') >= 0) ? args[args.indexOf('--source') + 1] : 'all';
-if (['migs', 'ao', 'ps', 'ps-autres', 'all'].indexOf(source) < 0) {
-  console.error("--source doit valoir migs, ao, ps, ps-autres ou all"); process.exit(2);
+if (['migs', 'ao', 'ps', 'ps-cm', 'ps-autres', 'all'].indexOf(source) < 0) {
+  console.error("--source doit valoir migs, ao, ps, ps-cm, ps-autres ou all"); process.exit(2);
 }
 
 const MIGS = JSON.parse(zlib.inflateRawSync(Buffer.from(grabB64('MIGS_B64'), 'base64')).toString('utf8'));
@@ -289,6 +293,9 @@ for (const g of ((source === 'ao' || source === 'all') ? AO : [])) {
    (dont 3 parties sans un seul coup). « Normal » chez PlayStrategy ne veut pas dire 6 billes. */
 const PS = (source === 'ps' || source === 'all') ? grabArray('PS_TOURNOI_YEARLY_2026') : [];
 ANON(PS, [2, 3], [4]);
+// v3.51 : le championnat du monde (PS_CHAMPIONNAT_MONDE_2026), meme traitement, son propre evenement
+const PSCM = (source === 'ps-cm' || source === 'all') ? grabArray('PS_CHAMPIONNAT_MONDE_2026') : [];
+ANON(PSCM, [2, 3], [4]);
 // v3.28 : les autres parties PlayStrategy (PS_PARTIES_AMICALES), meme traitement, leur propre evenement
 const PS2 = (source === 'ps-autres' || source === 'all') ? grabArray('PS_PARTIES_AMICALES') : [];
 ANON(PS2, [2, 3], [4]);
@@ -316,6 +323,7 @@ const exporterPS = function(liste, evenement){
   }
 };
 exporterPS(PS, function(g){ return 'Yearly Abalone Arena (PlayStrategy ' + g[0] + ')'; });
+exporterPS(PSCM, function(g){ return 'Abalone World Championship 2026, Mind Sports Olympiad (PlayStrategy ' + g[0] + ')'; });
 exporterPS(PS2, function(g){ return 'PlayStrategy ' + g[0]; });
 
 fs.mkdirSync(path.dirname(outPath), { recursive: true });

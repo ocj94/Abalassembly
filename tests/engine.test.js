@@ -701,17 +701,17 @@ test('equipes : triees par membres, 8 au plus ; reseau coupe -> null sans except
 
 /* ─── 18. Stats du corpus : le tournoi PlayStrategy compte, toutes parties ─── */
 
-test('corpus : MIGS + AbalOnline + 93 parties du tournoi + 15 amicales PlayStrategy + 8 de reference = 4 595', async () => {
+test('corpus : MIGS + AbalOnline + 93 parties du tournoi + 11 du championnat du monde + 15 amicales PlayStrategy + 8 de reference = 4 606', async () => {
   assert.ok(await ctx.ensureGameBanks());
   const s = await ctx.computeCorpusStats(() => {});
   assert.strictEqual(s.nMigs, 2589); assert.strictEqual(s.nAo, 1890);
-  assert.strictEqual(s.nPs, 108); assert.strictEqual(s.nPsSansCoup, 3);
-  assert.strictEqual(s.totalGames, 4595);
+  assert.strictEqual(s.nPs, 119); assert.strictEqual(s.nPsSansCoup, 3);
+  assert.strictEqual(s.totalGames, 4606);
   // la duree ne compte que les parties jouees : pas de partie "a 0 coup"
-  assert.strictEqual(s.nLens, 2589 + 90 + 15 + 8);
+  assert.strictEqual(s.nLens, 2589 + 90 + 11 + 15 + 8);
   assert.ok(s.lenMin > 0);
   const bel = s.topVariants.find(v => v[0] === 'belgian');
-  assert.ok(bel && bel[1] === 114, 'Belgian Daisy : les 93 parties du tournoi + les 15 amicales + les 6 parties KAAH');
+  assert.ok(bel && bel[1] === 125, 'Belgian Daisy : les 93 parties du tournoi + les 11 du championnat du monde + les 15 amicales + les 6 parties KAAH');
 });
 
 test("corpus : une partie seulement affichee n'y entre pas ; v3.34 : une partie ajoutee (psAjouterAuCorpus) y entre, sur cet appareil", async () => {
@@ -719,7 +719,7 @@ test("corpus : une partie seulement affichee n'y entre pas ; v3.34 : une partie 
   ctx.PS_GAMES.push(['vol00001', '2026-09-01', 'X', 'Y', 'X gagne', 'a1b2 i5h5']);
   let s = await ctx.computeCorpusStats(() => {});
   ctx.PS_GAMES.pop();
-  assert.strictEqual(s.totalGames, 4595); assert.strictEqual(s.nPsAjouts, 0);
+  assert.strictEqual(s.totalGames, 4606); assert.strictEqual(s.nPsAjouts, 0);
   try {
     // refusees : partielle, coups illisibles, deja dans le corpus commun, identifiant invalide
     assert.strictEqual(ctx.psAjouterAuCorpus([
@@ -730,10 +730,10 @@ test("corpus : une partie seulement affichee n'y entre pas ; v3.34 : une partie 
     assert.strictEqual(ctx.psAjouterAuCorpus([['vol00001', '2026-09-01', 'Alex', 'Bob', 'Alex gagne', 'a1b2 i5h5 a2b3']]), 1);
     assert.strictEqual(ctx.psAjouterAuCorpus([['vol00001', '2026-09-01', 'Alex', 'Bob', 'Alex gagne', 'a1b2 i5h5 a2b3']]), 0);
     s = await ctx.computeCorpusStats(() => {});
-    assert.strictEqual(s.totalGames, 4596); assert.strictEqual(s.nPs, 109); assert.strictEqual(s.nPsAjouts, 1);
+    assert.strictEqual(s.totalGames, 4607); assert.strictEqual(s.nPs, 120); assert.strictEqual(s.nPsAjouts, 1);
     // le corpus commun et ses donnees precalculees ne bougent pas
-    assert.strictEqual(lire('_sbBanques()[2].length'), 108);
-    assert.ok(/^2589-1890-108-8-/.test(lire('_sbSignature()')));
+    assert.strictEqual(lire('_sbBanques()[2].length'), 119);
+    assert.ok(/^2589-1890-119-8-/.test(lire('_sbSignature()')));
     // la bibliotheque le dit, et « Retirer » les enleve
     const el = { innerHTML: '' }, avant = ctx.document.getElementById;
     ctx.document.getElementById = id => id === 'ps-import-list' ? el : avant(id);
@@ -745,7 +745,7 @@ test("corpus : une partie seulement affichee n'y entre pas ; v3.34 : une partie 
       assert.doesNotMatch(el.innerHTML, /📥/);
     } finally { ctx.document.getElementById = avant; }
     s = await ctx.computeCorpusStats(() => {});
-    assert.strictEqual(s.totalGames, 4595); assert.strictEqual(lire('PS_GAMES.length'), 108);
+    assert.strictEqual(s.totalGames, 4606); assert.strictEqual(lire('PS_GAMES.length'), 119);
   } finally { ctx.localStorage.removeItem('abaPSAjouts'); ctx.PS_GAMES = lire('PS_CORPUS.slice()'); }
 });
 
@@ -4422,7 +4422,7 @@ test('v2.66 Architecture : les questions de l’IA dans l’ordre de aiMove(), l
     ['Comment l’IA choisit son coup', 'D’où viennent les données', 'Les modes de jeu et les échanges', 'Les tables de finale'].forEach(t => assert.ok(h.indexOf('<h3 class="archi-titre">' + t + '</h3>') >= 0, t));
     assert.strictEqual((h.match(/class="archi-num"/g) || []).length, 5, 'cinq questions');
     assert.ok(h.indexOf('Partie de Découverte arrivée à 4 billes contre 2') > 0 && h.indexOf('table de finale 4 contre 2') > 0);
-    assert.ok(h.indexOf('Corpus : <b class="archi-chiffre">' + ctx._dimNb(4595) + '</b> parties réelles') > 0);
+    assert.ok(h.indexOf('Corpus : <b class="archi-chiffre">' + ctx._dimNb(4606) + '</b> parties réelles') > 0);
     assert.ok(h.indexOf('PlayStrategy') > 0 && h.indexOf('en lecture seule') > 0, 'le serveur exterieur, dit');
     const liens = [...h.matchAll(/href="https:\/\/github\.com\/ocj94\/Abalassembly\/blob\/main\/([^"]+)"/g)].map(m => m[1]);
     assert.deepStrictEqual(liens, ['docs-fr/Architecture.fr.md']);
@@ -4436,7 +4436,7 @@ test('v2.66 Architecture : les questions de l’IA dans l’ordre de aiMove(), l
       ctx.renderArchiPage();
       const h = els['archi-diagrams'].innerHTML;
       ['How the AI picks its move', 'Where the data comes from', 'Game modes and exchanges', 'Endgame tables'].forEach(t => assert.ok(h.indexOf('<h3 class="archi-titre">' + t + '</h3>') >= 0, t));
-      assert.ok(h.indexOf('Corpus: <b class="archi-chiffre">' + ctx._dimNb(4595) + '</b> real games') > 0);
+      assert.ok(h.indexOf('Corpus: <b class="archi-chiffre">' + ctx._dimNb(4606) + '</b> real games') > 0);
       const liens = [...h.matchAll(/href="https:\/\/github\.com\/ocj94\/Abalassembly\/blob\/main\/([^"]+)"/g)].map(m => m[1]);
       assert.deepStrictEqual(liens, ['docs-en/Architecture.en.md']);
       liens.forEach(f => assert.ok(existe(f), f));
@@ -5103,10 +5103,10 @@ async function _corpusPage74(langue) {
 
 test('corpus v2.74 : en anglais, plus un mot de francais dans les cartes, les variantes ni la reflexion de l IA', async () => {
   const en = await _corpusPage74('EN');
-  assert.strictEqual(en.titre, 'What 4,592 real games say', 'v2.77 : parties distinctes (3 doublons comptes une fois)');
+  assert.strictEqual(en.titre, 'What 4,603 real games say', 'v2.77 : parties distinctes (3 doublons comptes une fois)');
   ['The first player’s advantage', 'Black (moves first)', 'Length of a game', 'How games end', 'Six marbles off', 'Resigned', 'Disconnected',
    'Field recorded directly in the MIGS corpus', 'percentage points</strong> more than an even split'].forEach(t => assert.ok(en.cartes.indexOf(t) >= 0, t));
-  assert.match(en.cartes, /100\.7 moves/, 'decimales a l anglaise');
+  assert.match(en.cartes, /100\.6 moves/, 'decimales a l anglaise');
   assert.match(en.cartes, /\b1,\d{3} wins/, 'milliers a l anglaise');
   assert.ok(en.variantes.indexOf('Most played variants') >= 0 && en.variantes.indexOf('Custom layout') >= 0 && en.variantes.indexOf('Swiss Daisy') >= 0);
   assert.doesNotMatch(en.variantes, /swiss_daisy|german_daisy|>custom</, 'jamais les cles brutes');
@@ -5115,8 +5115,8 @@ test('corpus v2.74 : en anglais, plus un mot de francais dans les cartes, les va
   for (const k of ['titre', 'cartes', 'variantes', 'reflexion']) assert.doesNotMatch(en[k].replace(/<[^>]*>/g, ' '), francais, k);
   // en francais, rien ne change de sens ; l'avantage est bien l'ecart a 50 %, pas l'ecart entre les camps
   const fr = await _corpusPage74('FR');
-  assert.match(fr.titre, /^Ce que disent 4\s592 vraies parties$/);
-  ['L’avantage du premier joueur', 'Au score', 'de plus qu’un partage égal (50 %)', '100,7 coups'].forEach(t => assert.ok(fr.cartes.indexOf(t) >= 0, t));
+  assert.match(fr.titre, /^Ce que disent 4\s603 vraies parties$/);
+  ['L’avantage du premier joueur', 'Au score', 'de plus qu’un partage égal (50 %)', '100,6 coups'].forEach(t => assert.ok(fr.cartes.indexOf(t) >= 0, t));
   const s = await ctx.computeCorpusStats(() => {});
   assert.ok(fr.cartes.indexOf((s.blackPct - 50).toFixed(1).replace('.', ',') + ' points de pourcentage') >= 0);
   assert.ok(fr.variantes.indexOf('Disposition libre') >= 0);
@@ -5306,8 +5306,8 @@ test('corpus v2.77 : les 3 doublons exacts d AbalOnline comptent une fois -- sta
   assert.strictEqual(v.nComplets, complets); assert.strictEqual(v.nIncomplets, incomplets);
   assert.strictEqual(ctx._cfParties().length, complets);
   const s = await ctx.computeCorpusStats(() => {});
-  assert.strictEqual(s.nDoublons, 3); assert.strictEqual(s.nDoublonsAO, 3); assert.strictEqual(s.totalGames, 4595, 'parties embarquees : rien n est retire');
-  assert.match(_r63('_corpusPhraseDoublons')(s, 'FR'), /^3 doublons exacts d’AbalOnline .* ne comptent qu’une fois : 4\s592 parties distinctes\.$/);
+  assert.strictEqual(s.nDoublons, 3); assert.strictEqual(s.nDoublonsAO, 3); assert.strictEqual(s.totalGames, 4606, 'parties embarquees : rien n est retire');
+  assert.match(_r63('_corpusPhraseDoublons')(s, 'FR'), /^3 doublons exacts d’AbalOnline .* ne comptent qu’une fois : 4\s603 parties distinctes\.$/);
   // avec un filtre, les parties laissees de cote sont comptees, pas deduites du total (avant : 2 000 « problemes » sous un filtre MIGS)
   const migs = ctx._sbAgreger({ source: '0', dispo: 'tout', longueur: 'tout', periode: 'tout' });
   assert.strictEqual(migs.nIncomplets, 0);
@@ -6114,30 +6114,30 @@ test('v2.91 : reconnaitre les programmes, par leur nom exact', () => {
 
 test('v2.91 : filtre Joueurs de la page Statistiques du jeu, et vrais joueurs humains dans Mes statistiques', async () => {
   await ctx.ensureGameBanks(); assert.ok(await ctx.ensureStatsParties());
-  // par banque : MiGs 1 431 parties avec une IA, PlayStrategy 73 (sur 108 depuis v3.33), reference 8, AbalOnline aucune (ses bots ne sont pas connus)
+  // par banque : MiGs 1 431 parties avec une IA, PlayStrategy 73 (sur 119 depuis v3.51), reference 8, AbalOnline aucune (ses bots ne sont pas connus)
   const D = _r63('STATS_PARTIES'), par = [[0, 0], [0, 0], [0, 0], [0, 0]];
   D.p.forEach((p, k) => { par[ctx._cfSourceDe(k, D)][ctx._cfCampsIA(k) ? 1 : 0]++; });
-  assert.deepStrictEqual(par[0], [1158, 1431]); assert.strictEqual(par[1][1], 0); assert.deepStrictEqual(par[2], [35, 73]);   // v3.33 : + 15 amicales entre humains assert.deepStrictEqual(par[3], [0, 8]);
+  assert.deepStrictEqual(par[0], [1158, 1431]); assert.strictEqual(par[1][1], 0); assert.deepStrictEqual(par[2], [46, 73]);   // v3.33 : + 15 amicales entre humains ; v3.51 : + 11 du championnat du monde assert.deepStrictEqual(par[3], [0, 8]);
   const avant = JSON.stringify(_r63('_corpusFiltre'));
   try {
     _r63("_corpusFiltre = { source: 'tout', dispo: 'tout', longueur: 'tout', periode: 'tout', joueurs: 'humains' }");
-    const H = ctx._cfParties(); assert.strictEqual(H.length, 2750); assert.ok(H.every(x => !ctx._cfCampsIA(x.k)));
+    const H = ctx._cfParties(); assert.strictEqual(H.length, 2761); assert.ok(H.every(x => !ctx._cfCampsIA(x.k)));
     _r63("_corpusFiltre.joueurs = 'ia'");
     const I = ctx._cfParties(); assert.strictEqual(I.length, 1512); assert.ok(I.every(x => ctx._cfCampsIA(x.k)));
     const barre = await _enFrancais54(() => ctx._cfBarre());
-    assert.match(barre, /humains contre humains \(2750\)/); assert.match(barre, /avec un programme \(1512\)/); assert.match(barre, /Programmes reconnus/);
+    assert.match(barre, /humains contre humains \(2761\)/); assert.match(barre, /avec un programme \(1512\)/); assert.match(barre, /Programmes reconnus/);
     assert.match(barre, /corpusFiltrer\(\\?'joueurs\\?',\\?'tout\\?'\)/, 'le bouton Tout le corpus remet aussi les joueurs');
     _r63("_corpusFiltre.joueurs = 'tout'"); assert.strictEqual(ctx._cfActif(), null);
   } finally { _r63('_corpusFiltre = ' + avant); }
   // Mes statistiques : toutes les parties, mais pas le camp des programmes
   const tous = ctx._sbAgreger(), h = ctx._sbAgreger(_r63('SB_CAMPS_HUMAINS'));
   assert.strictEqual(h.nComplets, tous.nComplets); assert.strictEqual(tous.camp.camps, 2 * tous.nComplets);
-  assert.strictEqual(h.camp.camps, 6989, '8 524 camps (v3.33 : + 15 parties amicales) moins les 1 535 tenus par un programme');
+  assert.strictEqual(h.camp.camps, 7011, '8 546 camps (v3.33 : + 15 parties amicales ; v3.51 : + 11 du championnat du monde) moins les 1 535 tenus par un programme');
   assert.ok(h.gagnants.camps < tous.gagnants.camps && h.camp.ej < tous.camp.ej);
   const s = (v, i) => v.types[i] / (v.types[0] + v.types[1] + v.types[2] + v.types[3] + v.types[4]);
   assert.ok(Math.abs(s(h, 0) - s(tous, 0)) > 0.001, 'les parts changent sans MLA');
   const html = await _enFrancais54(() => ctx._sbHtmlPerso({ parPartie: 2, sortes: [10, 5, 3, 2, 1, 4, 3, 6], byPhase: { ouverture: 1, milieu: 2, finale: 3 } }));
-  assert.match(html, /sans le camp des programmes \(6[\s  ]?989 camps humains\)/);
+  assert.match(html, /sans le camp des programmes \(7[\s  ]?011 camps humains\)/);
 });
 
 test('v2.91 : la bibliotheque marque les programmes 🤖', async () => {
@@ -6152,7 +6152,7 @@ test('v2.91 : fichiers APGN -- les 93 parties du Yearly et les programmes, ident
   const fs = require('fs'), path = require('path'), os = require('os'), { execFileSync } = require('child_process');
   const racine = path.join(__dirname, '..'), tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'apgn-'));
   try {
-    for (const [src, f] of [['ps', 'playstrategy-yearly-2026.apgn'], ['ps-autres', 'playstrategy-parties.apgn'], ['migs', 'migs-2016-2017.apgn']]) {
+    for (const [src, f] of [['ps', 'playstrategy-yearly-2026.apgn'], ['ps-cm', 'playstrategy-championnat-2026.apgn'], ['ps-autres', 'playstrategy-parties.apgn'], ['migs', 'migs-2016-2017.apgn']]) {
       const sortie = execFileSync(process.execPath, [path.join(racine, 'tools', 'to-apgn.js'), '--source', src, '--out', path.join(tmp, f)], { encoding: 'utf8', timeout: 240000 });
       assert.match(sortie, /parties rejetees  : 0/, src);
       assert.ok(fs.readFileSync(path.join(tmp, f), 'utf8') === fs.readFileSync(path.join(racine, 'games', f), 'utf8'), 'games/' + f + ' a jour');
@@ -7900,7 +7900,7 @@ test('v3.28-v3.33, parties amicales PlayStrategy : rejouees en entier, dans la b
     assert.ok(lire('PS_GAMES.some(function(x){ return x[0] === ' + JSON.stringify(g[0]) + '; })'), g[0] + ' dans la bibliotheque');
     assert.ok(lire('_sbBanques()[2].some(function(x){ return x[0] === ' + JSON.stringify(g[0]) + '; })'), g[0] + ' dans les banques');
   });
-  assert.strictEqual(lire('_sbBanques()[2].length'), 108, 'v3.33 : le tournoi (93) puis les 15 amicales');
+  assert.strictEqual(lire('_sbBanques()[2].length'), 119, 'v3.33 : le tournoi (93), v3.51 : le championnat du monde (11), puis les 15 amicales');
   assert.ok(lire('_sbBanques()[2] === PS_CORPUS && PS_GAMES !== PS_CORPUS'), 'une partie suivie en direct n entre jamais dans le corpus');
   // classees par date
   const dates = P.map(function(x){ return x[1]; }); assert.deepStrictEqual(dates, dates.slice().sort());

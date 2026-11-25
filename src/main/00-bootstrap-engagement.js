@@ -6,7 +6,7 @@
    version nulle part sur le site avant -- seul GitHub (releases/wiki)
    la tracait, invisible pour qui n'y va jamais. Signale par ocj94.
 ═══════════════════════════════════════════ */
-const APP_VERSION = 'v3.50';
+const APP_VERSION = 'v3.51';
 /* v3.49 : le poids du fichier, ecrit par tools/build.js apres l'assemblage.
    Il etait ecrit a la main dans la fiche pour IA, et il annoncait 7,7 Mo quand
    le fichier en faisait 11,0 : trois relectures d'architecture n'avaient pas

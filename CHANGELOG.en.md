@@ -9,6 +9,41 @@ Versions match `APP_VERSION` in `index.html` and the
 This file exists because the history lived only in the Releases, and so was
 invisible offline — which contradicts the project's own principle.
 
+## [v3.51]
+
+### The world championship enters the corpus
+ocj94's request: "look at what exists and is reusable" to preserve Abalone
+games, then "commit what you have already found".
+
+The games of the Mind Sports Olympiad 2026 **Abalone World Championship**,
+played over the board on 1 September 2026, are published by the MSO as studies
+on PlayStrategy. They export to PGN through `/study/JG7Zf7mE.pgn`, and
+PlayStrategy explicitly invites use of its API. Six rounds, two tables per
+round: twelve games.
+
+**Eleven enter the corpus** (`PS_CHAMPIONNAT_MONDE_2026`, a new bank of
+`PS_CORPUS`), converted from PlayStrategy's notation to Aba-Pro by
+`psConvertirSequence` — which already existed — and checked by the second
+independent decoding: 875 plies, all replaying to the last move. The corpus goes
+from 4,595 to 4,606 games, the PlayStrategy bank from 108 to 119.
+
+**One is left out.** `Uhzi76JC` (round 5, table 2) has 80 legal moves that
+replay in full, but the replay ends 6-3 for White while the MSO records 1-0 for
+the player named first, that is for Black. On the other eleven the "first named
+= Black" convention holds, so this chapter's attribution is wrong one way or the
+other. Rather than guess the swap, the game stays out — `tools/to-apgn.js` was
+already rejecting it.
+
+Players are named as the MSO publishes them: these are over-the-board tournament
+results, already public. Removed without discussion at a player's request
+(ocj94's choice).
+
+New published file: `games/playstrategy-championnat-2026.apgn`, through the new
+`--source ps-cm` of `tools/to-apgn.js`. The four derived tools were run again
+(fingerprints, game statistics, Lab positions, move quality), and the
+hand-written figures — Architecture cards, README, blueprint sheets 1 and 3 and
+their PDFs — follow.
+
 ## [v3.50]
 
 ### Two more sheets, and the blueprint as a PDF

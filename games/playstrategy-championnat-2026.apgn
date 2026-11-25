@@ -1,0 +1,224 @@
+[Event "Abalone World Championship 2026, Mind Sports Olympiad (PlayStrategy mu8VHQBx)"]
+[Date "2026.09.01"]
+[Black "Vincent Frochot"]
+[White "Sangmin Lee"]
+[Variant "belgian"]
+[Result "1-0"]
+[Notation "Aba-Pro"]
+[Termination "Au score"]
+[Plies "35"]
+[Source "PlayStrategy"]
+
+1. a1b2 a5b5 2. a2b3 b5c5 3. b3c4 i6h6 4. i8h7 c5c6d6 5. h7g6 d6e6
+6. g8g7 h6i6 7. g7g6 i6h5 8. b2c3 h4g4 9. e5f5 g7f6 10. i9h8 b4a4b3
+11. g7g6 a3b3 12. d5c4 e6e5 13. g6g5 a2b2 14. f5g5 e4f4 15. b1c2 d7d6
+16. h4h5 d6d5 17. c4d4 f6f5 18. h6h5 1-0
+
+[Event "Abalone World Championship 2026, Mind Sports Olympiad (PlayStrategy eJwDRbIp)"]
+[Date "2026.09.01"]
+[Black "David Klausa"]
+[White "David Pearce"]
+[Variant "belgian"]
+[Result "0-1"]
+[Notation "Aba-Pro"]
+[Termination "Au score"]
+[Plies "34"]
+[Source "PlayStrategy"]
+
+1. i8h7 i6h6 2. h9g8 a5b5 3. b1c2 a4b4 4. a1b2 c6c5 5. a2b2 c5c4 6. g7f6 g4g5
+7. g8f7 b6b5 8. d2d3 c4c3 9. b1b2a1 b5b4 10. a1a2 c3b3 11. d3d4 h4h5
+12. h8g8 g5g6 13. g9f8 h5h6 14. d4d5 h6h7 15. d5d6 g7h8 16. a2a1 a3b3
+17. d8d7 c3b2 0-1
+
+[Event "Abalone World Championship 2026, Mind Sports Olympiad (PlayStrategy Zcl6f6Nh)"]
+[Date "2026.09.01"]
+[Black "Seoyun Kim"]
+[White "Vincent Frochot"]
+[Variant "belgian"]
+[Result "0-1"]
+[Notation "Aba-Pro"]
+[Termination "Au score"]
+[Plies "46"]
+[Source "PlayStrategy"]
+
+1. a1b2 i5h5 2. g7g8f6 i6h6 3. f7f6 a5b5 4. a2b3 h6g6 5. b2c3 b4c5
+6. c2c3d2 a4b5 7. b3c3 g5g6 8. e6e5 b5c5 9. d2d3e2 d6d7e6 10. b1b2 h5g4
+11. h8h9g8 c5d5 12. b2c3c2 d5e5 13. h7h8 e5f5 14. e2e3 h5g5 15. c2d3 g5g6
+16. i8h8 e7e6 17. e3d3d2 e5f6 18. f5e5 h4f4h5 19. g8f7 g5h5 20. d2c2d3 h7g7
+21. i9i8 e4f5 22. g9f9 f7f8 23. d5e5 g6h7 0-1
+
+[Event "Abalone World Championship 2026, Mind Sports Olympiad (PlayStrategy DWrPiOTf)"]
+[Date "2026.09.01"]
+[Black "David Pearce"]
+[White "Hajoon Choi"]
+[Variant "belgian"]
+[Result "1-0"]
+[Notation "Aba-Pro"]
+[Termination "Au score"]
+[Plies "87"]
+[Source "PlayStrategy"]
+
+1. i9h8 a5b5 2. h8g7 a4b4 3. i8h7 c6c5 4. a1b2 b6c6 5. c1c3d1 b5c5
+6. d1d2 b4c4 7. g8g7 c6c5 8. g7g6 i6h5 9. f6f5 h5g4 10. f5f4 d6d5
+11. d2e2 g4h5 12. d1e2 h5h6 13. g4f4 c5c4 14. f2f3 d3c3 15. a2b2 b3c4
+16. f3e3 e5d5 17. f4e4 e6d5 18. b1b2 g3h4g4 19. e4f5 i8i7 20. h9h8 h4g4
+21. e2e3 h5g4 22. h6g6 i5h4 23. h8g7 d5c4 24. a2b2 e2f2 25. g7f7 a4b5
+26. g6g5 g3f3 27. d4e5 c4c6d4 28. e5e4 e2f3 29. c2d2 f2g3 30. f7f6 d6d5
+31. d2e2 g3g4 32. e3f4 h4g3 33. d1e2d2 g4f3 34. e4e3 e1d1 35. h5g4 d3d5e4
+36. f6g6 e6e5 37. g6g5 i6i7 38. g3g4 i8h8 39. h7g6 c3b3d4 40. b4c5 b5b4
+41. g5h6 h8g8 42. b2c3 g8f7 43. g6f5 b4b3 44. d3d2 1-0
+
+[Event "Abalone World Championship 2026, Mind Sports Olympiad (PlayStrategy 3aftb9wl)"]
+[Date "2026.09.01"]
+[Black "Vincent Frochot"]
+[White "Yeonwoo Ju"]
+[Variant "belgian"]
+[Result "1-0"]
+[Notation "Aba-Pro"]
+[Termination "Au score"]
+[Plies "83"]
+[Source "PlayStrategy"]
+
+1. a1b2 i5h5 2. a2b3 i6h6 3. c2c3 a5b5 4. b2c3 h6g6 5. g7g8f7 h4g4
+6. c3d4 h5g4 7. b3c4 f3f5e2 8. e6f7d6 b6c6 9. d4d5 c7d7 10. f8f7 a4a5
+11. d6e6 e7d6 12. h7g6 d7d6 13. c4d4 e2e3d1 14. h8h9g8 d6c5 15. g6f5 a3b4
+16. g8f7 b4b5 17. d5d4 b6c6 18. d3d2 a5b5 19. e4e5 b5b6 20. g9g8 e7d7
+21. g8f7 h6g5 22. b1c1 g4f4 23. c1d2 b3c3 24. d1d2 c2c4b2 25. d3d4 b4c5
+26. f7e7 c5d6 27. e5e6 d8e8 28. i9h8 c7c6 29. i8h8 d8e9 30. h8g8 b2b3
+31. e7e8 d8c7 32. d2e3 h6i7h7 33. e8d7 b4c5 34. g5f5 h7g7 35. d7c6 a4b4
+36. d4d5 d7c7e8 37. b5c6 g7f7 38. f6e5 f7e7 39. d4d5 b6c7 40. d5d6 i8h8
+41. g8f8g9 h8g8 42. g9f9 1-0
+
+[Event "Abalone World Championship 2026, Mind Sports Olympiad (PlayStrategy GjeJKHb1)"]
+[Date "2026.09.01"]
+[Black "Ye Jun Kang"]
+[White "David Pearce"]
+[Variant "belgian"]
+[Result "1-0"]
+[Notation "Aba-Pro"]
+[Termination "Abandon"]
+[Plies "142"]
+[Source "PlayStrategy"]
+
+1. a1b2 i5h5 2. a2b3 i6h6 3. b1c2 h5g5 4. d3d4 g4g5 5. i9h8 h4g4
+6. g7g9f7 c5c6d6 7. b2c3 b4b6c5 8. h8g8 g4f4 9. h9g8 g7g6 10. c3d4 c7c6
+11. f8f7 c6c5 12. c1c2d2 a4a5b4 13. d2d3e3 h6g5 14. f7f6 f2f3e1 15. f4e4 b4c5
+16. d2d3 a4a5 17. d3d4 d7e7 18. f6e5 e7f7 19. c3c4 b5a4 20. e4d4 a4a3
+21. d6c5 g6h7 22. a3b4 i8h7 23. b4c4 f7f6 24. b3c3 d8e8 25. c3d4 g7h7
+26. d6e6 i7h6 27. c4d4 g4g5 28. f9g9 h4g4 29. c5d6 h8h7 30. d6e6 i6i5
+31. g8g7 h5h6 32. g7g6 g3f3 33. g5f4 e2d2 34. g6f5 h6h8g6 35. f6f5 g6g7
+36. f5f4 d2c2 37. f2f3 c2a2c3 38. e5d4 b3a3b4 39. f4e4 b4a4c5 40. e6e5 c6d6
+41. c3c4 b5c6 42. d3d4 d8e8 43. e3e4 e8f8 44. f3g4f4 c6d7 45. d6e6 b2c3
+46. g5g6 d7e7 47. d4e5 h8h7 48. d5e5 g8f8 49. c4c5d5 g9f8 50. e4e5 e9d8
+51. g6f6 c7c6 52. f5e5 b5a5b4 53. c4c5 d8e8 54. c5c6 a4b4 55. c7c6 i9h8
+56. c5d6 g9g8 57. g5f5 h7g7 58. f8e7 b4c4 59. f4f5 f8g8 60. e7f7 h8h7
+61. f7g7 i7h6 62. f5g6 h6g5 63. i8h7 c4d4 64. g7f6 b2c3c2 65. c6c5 e1e2
+66. e6e5 i5h4 67. d6d5 h4g3 68. d5d4 d1e1 69. g6f6 g3f3 70. c4d4 f3e3
+71. h7g6 g4g5 1-0
+
+[Event "Abalone World Championship 2026, Mind Sports Olympiad (PlayStrategy m5O7Gsj4)"]
+[Date "2026.09.01"]
+[Black "Hyeongseop Shin"]
+[White "Vincent Frochot"]
+[Variant "belgian"]
+[Result "0-1"]
+[Notation "Aba-Pro"]
+[Termination "Au score"]
+[Plies "92"]
+[Source "PlayStrategy"]
+
+1. a1b2 i5h5 2. a2b3 i6h6 3. i9h8 h5g5 4. b3c4 b4c5 5. d4d5 b6c6 6. h9g8 d7d6
+7. c2c3 c7d7 8. f7f6 h4g4 9. c3c4 g4g5 10. g8g9f7 c7d7 11. b1b2 d7d6
+12. b2b3 a4b5 13. c4c5 f4e4 14. b3b4 e4d4 15. c6c5 b6c6 16. i8h8 g5g6
+17. g9f9 d4d5 18. d8e8 b4b3 19. a4b4 b3c3 20. e3e4 d3d4 21. h8h7 g7g6
+22. e8f8 c7d7 23. h6i7 h5g4 24. f9g9 g4g5f3 25. f8g8 d5e5 26. c4d5 f7f8
+27. i7h7 f8e7 28. g9f8 e7d6 29. a3b3 g6f5 30. g5g6 e4e5 31. h7h6 d7c6
+32. d5c4 a5b5 33. e7f7 c6b5 34. f8g8 f3f4 35. i8i9 b4c5 36. h6h7 f4f5
+37. g8g7 f5f6 38. h9h8 f6f7 39. i9h8 f9f8 40. h7g6 f7e6 41. b3b2 e5d4
+42. a1b1 c5c4 43. g5f5g4 d5c4 44. a2a3 a4b5b4 45. h8g7 d6c5 46. h6g6 b3b2 0-1
+
+[Event "Abalone World Championship 2026, Mind Sports Olympiad (PlayStrategy XMtpupS8)"]
+[Date "2026.09.01"]
+[Black "Dahoon Han"]
+[White "Ye Jun Kang"]
+[Variant "belgian"]
+[Result "1-0"]
+[Notation "Aba-Pro"]
+[Termination "Au score"]
+[Plies "105"]
+[Source "PlayStrategy"]
+
+1. a1b2 i5h5 2. a2b3 i6h6 3. b3c4 h6g6 4. i9h8 c5d6 5. c2c3 b5c6 6. b1b2 b6c6
+7. b2b3 b5c6 8. b4b5 e8d8 9. c3d3 g6f5 10. h7g7h6 h4g4 11. i8g8h7 h5g4
+12. h7g7 f3f4 13. g7f7 g4f4 14. f7e7 f4e3 15. f8e8 d6e6 16. e7d6 a5b6
+17. b3b4 g6e6g7 18. b4c5 e3e4 19. b6b5 f8f7 20. d3c3 g7g8 21. c3b3 d4e5
+22. h9g9 a4a3 23. g9f8 e4e5 24. f8e8 g7f7 25. b4c5 c6d7 26. c7c6 g8f8
+27. b3c4 f6f7 28. i6h5 e8f8 29. e9e8 f9f8 30. c4d5 h9h8 31. e8e7 e4f5
+32. e7f7 f8g9 33. c6c5 g8h8 34. c5d6 g5g6 35. d6e7 d7d8c6 36. b5c5 i8i7
+37. g8f8 g9h9 38. c5d6 h9h8 39. e8f9 h8h7 40. f9f8 i7i6 41. e5f6 h7h6
+42. f8f7 f3f4g4 43. c4d5d4 h4i5 44. d4e4 g4f4 45. e4f5 i5h5 46. e6f6 f4g5
+47. g7g6 g4h4 48. d5e6 h8i8 49. e6f6 i6h5 50. i7h6 h5g4 51. e7f7 g4f3
+52. f7g7 i7i6 53. f6g6 1-0
+
+[Event "Abalone World Championship 2026, Mind Sports Olympiad (PlayStrategy 20Vts6Un)"]
+[Date "2026.09.01"]
+[Black "Vincent Frochot"]
+[White "Dahoon Han"]
+[Variant "belgian"]
+[Result "1-0"]
+[Notation "Aba-Pro"]
+[Termination "Au score"]
+[Plies "55"]
+[Source "PlayStrategy"]
+
+1. a1b2 a5b5 2. a2b3 b5c5 3. b3c4 i5h5 4. i8h7 i6h6 5. g7g8f7 g4g5f3
+6. h7h9g7 h4h5g4 7. g9f8 c5c6d6 8. f8e7 f3f4 9. f8e7 g6f6 10. c6b5 h6g6
+11. g7f7 g4g5 12. f7e7 f4f5 13. c7d7 b6c6 14. d7e7 i7h6 15. g7g8 h7g7
+16. g8g9f8 h6g5 17. b1c2 c6d7 18. d3d4 g6f6 19. f7e7 f4f5 20. b2b3 d6e6
+21. f8e7 g6g7 22. f9e8 d8e9 23. e7d6 g7g6 24. d6c5 e6g8d6 25. d4c4 g6f6
+26. c4c5 f6e6 27. b6c7 e9f9 28. d7e8 1-0
+
+[Event "Abalone World Championship 2026, Mind Sports Olympiad (PlayStrategy fUt0xt0c)"]
+[Date "2026.09.01"]
+[Black "Francesco Salerno"]
+[White "Vincent Frochot"]
+[Variant "belgian"]
+[Result "0-1"]
+[Notation "Aba-Pro"]
+[Termination "Abandon"]
+[Plies "102"]
+[Source "PlayStrategy"]
+
+1. a1b2 a4b4 2. b2c3 c6c5 3. a2b3 i5h5 4. i8h7 i6h6 5. b3c4 c5b5d6
+6. d4d5 g4g5 7. g8g9f7 d7e7 8. f7f6 e7f7 9. h8g8 h4h5 10. h8g8 h7g7
+11. c1c2d2 e7e6 12. d3e4 h7g7 13. i9h9 c3d4 14. d6d5 b6c6 15. g6f5 c6d6
+16. d3d4 g7f6 17. d6d5 d7e7 18. g9f8 e6e5 19. e8e7 c2d3 20. f8e7 g7f6
+21. b1b2 c5c6 22. b2b3 f4e4 23. b4c5 c6b5 24. g8h9f8 b5a5c6 25. d5e6 h6g5
+26. g6h7g7 f4f5 27. d6e6 g8f7 28. g9f8 g5f5 29. c3b3c2 e4e5 30. h8g7 e7e6
+31. c5d6 c3d4 32. d2e3 f5f6 33. f9e8 d3d4 34. d8e8 c4d5b4 35. f8e8 e5d5
+36. e8e7 d4e5 37. h8i9h7 f7g7 38. d7e7 g7h7 39. e3e4d3 g6h7 40. e7e6 c5d5
+41. f7e6 e4e5 42. d8e8 a4b4 43. e7e8f7 b4c4 44. g4g5 i7h7 45. b5c5 h7g7
+46. e7e8 e4e5 47. e8f8 e6f7 48. f8e8 f7g8 49. d5e6 i8h8 50. e6f7 c6b6d7
+51. g5f5 g8f8 0-1
+
+[Event "Abalone World Championship 2026, Mind Sports Olympiad (PlayStrategy 6xORYtSC)"]
+[Date "2026.09.01"]
+[Black "Minjun Kim"]
+[White "Ye Jun Kang"]
+[Variant "belgian"]
+[Result "0-1"]
+[Notation "Aba-Pro"]
+[Termination "Au score"]
+[Plies "94"]
+[Source "PlayStrategy"]
+
+1. a1b2 i5h5 2. g7g8f6 i6h6 3. f7f6 h5g5 4. a2b3 a5b5 5. b3c4 b4c5
+6. d4d5 d7e7 7. b2c3 e7e6 8. c2c3 b5c6 9. c3c4 g5f5 10. h7h9g7 h6g5
+11. i8i9h8 c7d7 12. e4d4 d7e7 13. d4c4 d5e6 14. h8g7 g5f5 15. b5c5 e7e6
+16. b4a4b3 g5f5 17. h9g9 f5e5 18. b5a5b4 f7e6 19. a2b3a1 e6e5 20. c6d6 c5c4
+21. g9f9f8 c3d4 22. f8e8f7 g4f4g5 23. b4a4c5 g5h6 24. b5c6 h4g4 25. a1b2 g4f4
+26. g7f7 g8g7 27. b2c3c2 f4f5 28. f8e8 f7f6 29. e3d3 c4d5 30. f7e7 b6b5
+31. c7b6 f4f5 32. a3b4 h6h7 33. e8d7 f5e5 34. a5b6 e4d4 35. b5c6 h7g6
+36. c3d3 g6f5 37. b1c2 c4d4 38. b4b5 e4e5 39. e9d8 g7f7 40. f4e4 f7e7
+41. c2d3 h7g7 42. e3f4 e5d5 43. f4f5 d5c5 44. f5f6 e6e7 45. f6f7 e7e8
+46. d3e4 a4b4 47. f7e7 b4b5 0-1

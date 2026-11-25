@@ -41,8 +41,8 @@
    playstrategy.org en meme temps.
 ═══════════════════════════════════════════ */
 const ARCHI_CHIFFRES = {
-  migs: 2589, ao: 1890, ps: 108, ref: 8,       // parties de chaque source (_sbBanques) ; v3.33 : ps = 93 du tournoi + 15 amicales
-  empreintes: 428644,                           // positions mesurees : EMPREINTES_HISTORIQUES + EMPREINTES_COMPLEMENT
+  migs: 2589, ao: 1890, ps: 119, ref: 8,       // parties de chaque source (_sbBanques) ; v3.51 : ps = 93 du tournoi + 11 du championnat du monde + 15 amicales
+  empreintes: 429519,                           // positions mesurees : EMPREINTES_HISTORIQUES + EMPREINTES_COMPLEMENT
   dispositionsLivre: 13,                        // dispositions de l'arbre d'ouvertures (OPENING_TREES)
   puzzles: 138,                                 // PUZZLES
   historique: 200,                              // HIST_MAX

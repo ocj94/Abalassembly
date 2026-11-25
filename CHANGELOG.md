@@ -9,6 +9,41 @@ Les versions correspondent à `APP_VERSION` dans `index.html` et aux
 Ce fichier existe parce que l'historique ne vivait que dans les Releases,
 donc invisible hors ligne — ce qui contredit le principe du projet.
 
+## [v3.51]
+
+### Le championnat du monde entre dans le corpus
+Demande d'ocj94 : « regarde ce qui existe et est réutilisable » pour préserver
+les parties d'Abalone, puis « commite ce que tu as déjà trouvé ».
+
+Les parties du **championnat du monde d'Abalone** du Mind Sports Olympiad 2026,
+joué en présentiel le 1er septembre 2026, sont publiées par le MSO sous forme
+d'études sur PlayStrategy. Elles sont exportables en PGN par
+`/study/JG7Zf7mE.pgn`, et PlayStrategy invite explicitement à utiliser son API.
+Six rondes, deux tables par ronde : douze parties.
+
+**Onze entrent dans le corpus** (`PS_CHAMPIONNAT_MONDE_2026`, nouvelle banque de
+`PS_CORPUS`), converties de la notation PlayStrategy en Aba-Pro par
+`psConvertirSequence` — qui existait déjà — et vérifiées par le second décodage
+indépendant : 875 demi-coups, toutes rejouent jusqu'au dernier coup. Le corpus
+passe de 4 595 à 4 606 parties, la banque PlayStrategy de 108 à 119.
+
+**Une est écartée.** `Uhzi76JC` (ronde 5, table 2) a 80 coups légaux qui
+rejouent en entier, mais le rejeu finit 6-3 pour les Blancs alors que le MSO
+annonce 1-0 pour le joueur nommé en premier, donc pour les Noirs. Sur les onze
+autres, la convention « premier nommé = Noirs » se vérifie : l'attribution de ce
+chapitre est fausse d'un côté ou de l'autre. Plutôt que de deviner l'inversion,
+la partie reste dehors — `tools/to-apgn.js` la rejetait de lui-même.
+
+Les joueurs sont nommés comme le MSO les publie : ce sont des résultats de
+tournoi en présentiel, déjà publics. Retrait sans discussion sur demande d'un
+joueur (choix d'ocj94).
+
+Nouveau fichier publié : `games/playstrategy-championnat-2026.apgn`, par la
+nouvelle source `--source ps-cm` de `tools/to-apgn.js`. Les quatre outils
+dérivés ont été relancés (empreintes, statistiques des parties, positions du
+Labo, qualité des coups), et les chiffres écrits à la main — cartes
+Architecture, README, planches 1 et 3 du blueprint et ses PDF — suivent.
+
 ## [v3.50]
 
 ### Deux planches de plus, et le blueprint en PDF
